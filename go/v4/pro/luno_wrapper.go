@@ -70,7 +70,7 @@ func (this *Luno) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions)
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Luno) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -272,10 +272,10 @@ func (this *Luno) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Tr
 func (this *Luno) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Luno) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Luno) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Luno) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Luno) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Luno) FetchFreeBalance(params ...any) (ccxt.Balance, error) {

@@ -518,7 +518,7 @@ class p2b extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null) {
+    public function parse_ticker(mixed $ticker, ?array $market = null) {
         //
         // parseTickers
         //
@@ -551,7 +551,7 @@ class p2b extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer_product($ticker, 'at', 1000);
-        if (is_array($ticker) && array_key_exists('ticker', $ticker)) {
+        if (is_array($ticker) && array_key_exists('ticker' ?? '', $ticker)) {
             $ticker = $this->safe_value($ticker, 'ticker');
         }
         $last = $this->safe_string($ticker, 'last');
@@ -591,7 +591,7 @@ class p2b extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -806,7 +806,7 @@ class p2b extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    array(
         //        1699253400,       // Kline open time
@@ -863,7 +863,7 @@ class p2b extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance(mixed $response) {
         //
         //    {
         //        "USDT" => array(
@@ -1349,7 +1349,7 @@ class p2b extends Exchange {
         ), $market);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
@@ -1372,7 +1372,7 @@ class p2b extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

@@ -14,6 +14,7 @@ var CairoOption = require('./enum/CairoOption.js');
 var CairoResult = require('./enum/CairoResult.js');
 var tuple = require('./tuple.js');
 
+// ----------------------------------------------------------------------------
 /**
  * Parse base types
  * @param type type of element
@@ -131,17 +132,17 @@ function parseResponseValue(responseIterator, element, structs, enums) {
         }, {});
         // Option
         if (element.type.startsWith('core::option::Option')) {
-            const content = variantNum === CairoOption.CairoOptionVariant.Some ? rawEnum.Some : undefined;
+            const content = variantNum === CairoOption.CairoOptionVariant.Some ? rawEnum['Some'] : undefined;
             return new CairoOption.CairoOption(variantNum, content);
         }
         // Result
         if (element.type.startsWith('core::result::Result')) {
             let content;
             if (variantNum === CairoResult.CairoResultVariant.Ok) {
-                content = rawEnum.Ok;
+                content = rawEnum['Ok'];
             }
             else {
-                content = rawEnum.Err;
+                content = rawEnum['Err'];
             }
             return new CairoResult.CairoResult(variantNum, content);
         }

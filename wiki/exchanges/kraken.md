@@ -141,7 +141,7 @@ kraken.fetchTradingFee (symbol, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.kraken.com/api-reference/market-data/get-order-book  
 
@@ -488,7 +488,7 @@ fetch orders by the list of order id
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | No | list of order id |
 | symbol | <code>string</code> | No | unified ccxt market symbol |
-| params | <code>object</code> | No | extra parameters specific to the kraken api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -579,12 +579,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled) |
+| symbol | <code>string</code> | No | unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kraken.cancelAllOrders (symbol, params?)
+kraken.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -765,7 +765,7 @@ fetch deposit methods for a currency associated with this account
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the kraken api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -830,7 +830,7 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | not used by kraken fetchPositions () |
+| symbols | <code>Array&lt;string&gt;</code> | No | not used by fetchPositions () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

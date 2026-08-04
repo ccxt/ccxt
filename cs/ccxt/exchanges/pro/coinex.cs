@@ -427,10 +427,16 @@ public partial class coinex : ccxt.coinex
             {
                 ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
             }
-            ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+            if (isTrue(isTrue((!isEqual(accountType, null))) && isTrue((!isEqual(code, null)))))
+            {
+                ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+            }
         } else
         {
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            }
         }
     }
 
@@ -651,7 +657,7 @@ public partial class coinex : ccxt.coinex
         object marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
         object fee = new Dictionary<string, object>() {};
-        object feeCost = this.omitZero(((string)this.safeString(trade, "fee")));
+        object feeCost = this.omitZero(this.safeString(trade, "fee"));
         if (isTrue(!isEqual(feeCost, null)))
         {
             object feeCurrencyId = this.safeString(trade, "fee_ccy", getValue(market, "quote"));
@@ -843,7 +849,7 @@ public partial class coinex : ccxt.coinex
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -920,7 +926,7 @@ public partial class coinex : ccxt.coinex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1204,10 +1210,12 @@ public partial class coinex : ccxt.coinex
         //     }
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object order = this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {});
+        object order = this.extend(new Dictionary<string, object>() {
+            { "status", this.safeString(data, "event") },
+        }, this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {}));
         object parsedOrder = this.parseWsOrder(order);
         object symbol = getValue(parsedOrder, "symbol");
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         if (isTrue(isEqual(this.orders, null)))
         {
             object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1319,7 +1327,7 @@ public partial class coinex : ccxt.coinex
         object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
         object fee = null;
-        object feeCost = this.omitZero(((string)this.safeString2(order, "fee", "quote_ccy_fee")));
+        object feeCost = this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee"));
         if (isTrue(!isEqual(feeCost, null)))
         {
             object feeCurrencyId = this.safeString(order, "fee_ccy", getValue(market, "quote"));
@@ -1360,6 +1368,10 @@ public partial class coinex : ccxt.coinex
             { "active_success", "open" },
             { "active_fail", "canceled" },
             { "cancel", "canceled" },
+            { "put", "open" },
+            { "update", "open" },
+            { "modify", "open" },
+            { "finish", "closed" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1488,7 +1500,7 @@ public partial class coinex : ccxt.coinex
             { "stop.update", this.handleOrders },
             { "bbo.update", this.handleBidAsk },
         };
-        object handler = this.safeValue(handlers, ((string)method));
+        object handler = this.safeValue(handlers, method);
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
@@ -1566,7 +1578,7 @@ public partial class coinex : ccxt.coinex
         if (isTrue(!isEqual(subscription, null)))
         {
             object futureIndex = this.safeString(subscription, "future");
-            var future = this.safeValue((client as WebSocketClient).futures, ((string)futureIndex));
+            var future = this.safeValue((client as WebSocketClient).futures, futureIndex);
             if (isTrue(!isEqual(future, null)))
             {
                 (future as Future).resolve(true);

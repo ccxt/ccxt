@@ -5,6 +5,7 @@ export type Strings = string[] | undefined;
 export type Num = number | undefined;
 export type Bool = boolean | undefined;
 export type IndexType = number | string;
+export type NullableIndexType = IndexType | undefined;
 export type OrderSide = 'buy' | 'sell' | string | undefined;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
@@ -13,7 +14,7 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 export interface NestedDictionary {
-    [key: string]: string | NestedDictionary;
+    [key: string]: any;
 }
 export type Dict = Dictionary<any>;
 export type NullableDict = Dict | undefined;
@@ -29,6 +30,11 @@ export interface FeeInterface {
     cost: Num;
     rate?: Num;
 }
+export interface FeeStringInterface {
+    currency: Str;
+    cost: Str;
+    rate?: Str;
+}
 export interface TradingFeeInterface {
     info: any;
     symbol: Str;
@@ -38,9 +44,10 @@ export interface TradingFeeInterface {
     tierBased: Bool;
 }
 export type Fee = FeeInterface | undefined;
+export type FeeString = FeeStringInterface | undefined;
 export interface MarketMarginModes {
-    isolated: boolean;
-    cross: boolean;
+    isolated: Bool;
+    cross: Bool;
 }
 export interface Precision {
     amount: Num;
@@ -60,19 +67,19 @@ export interface MarketInterface {
     active: Bool;
     type: MarketType;
     subType?: SubType;
-    spot: boolean;
-    margin: boolean;
-    swap: boolean;
-    future: boolean;
-    option: boolean;
-    prediction?: boolean;
-    contract: boolean;
+    spot: Bool;
+    margin: Bool;
+    swap: Bool;
+    future: Bool;
+    option: Bool;
+    prediction?: Bool;
+    contract: Bool;
     settle: Str;
     settleId: Str;
     contractSize: Num;
     linear: Bool;
     inverse: Bool;
-    quanto?: boolean;
+    quanto?: Bool;
     expiry: Int;
     expiryDatetime: Str;
     strike: Num;
@@ -382,6 +389,7 @@ export interface OrderBook {
     timestamp: Int;
     nonce: Int;
     symbol: Str;
+    copy(): OrderBook;
 }
 export interface OrderBooks extends Dictionary<OrderBook> {
 }
@@ -468,6 +476,9 @@ export interface BalanceAccount {
     free: Str;
     used: Str;
     total: Str;
+    debt?: Str;
+    frozen?: Str;
+    info?: any;
 }
 export interface Account {
     id: Str;
@@ -592,6 +603,8 @@ export interface DepositWithdrawFee {
     withdraw?: DepositWithdrawFeeNetwork;
     deposit?: DepositWithdrawFeeNetwork;
     networks?: Dictionary<DepositWithdrawFeeNetwork>;
+}
+export interface DepositWithdrawFees extends Dictionary<DepositWithdrawFee> {
 }
 export interface TransferEntry {
     info?: any;

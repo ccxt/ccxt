@@ -9,6 +9,7 @@ var Precise = require('../base/Precise.js');
 var crypto = require('../base/functions/crypto.js');
 var errors = require('../base/errors.js');
 
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class hyperliquid
@@ -125,7 +126,10 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'outcomeQuoteCurrency': 'USDH',
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
-                'builderFee': false,
+                'builderFee': true,
+                'builder': '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6',
+                'feeRate': '0%', // max builder fee rate to approve
+                'feeInt': 0, // builder fee attached per order, in tenths of a basis point
             },
             'exceptions': {
                 'exact': {
@@ -832,6 +836,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             const candleCount = (limit !== undefined) ? limit : 100;
             const startOffset = tf * candleCount * -1000;
             startTime = this.sum(until, startOffset);
+            if (startTime === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchOHLCV() missing startTime');
+            }
             if (startTime < 0) {
                 startTime = 0;
             }
@@ -936,7 +943,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             const account = this.account();
             account['total'] = total;
             account['used'] = used;
-            result[coin] = account;
+            if (coin !== undefined) {
+                result[coin] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1153,7 +1162,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 return this.safeDict(this.outcomes_by_id, key, {});
             }
         }
-        if ((outcomeInput in this.markets) || (outcomeInput in this.markets_by_id)) {
+        if (((this.markets !== undefined) && (outcomeInput in this.markets)) || ((this.markets_by_id !== undefined) && (outcomeInput in this.markets_by_id))) {
             const market = this.safeMarket(outcomeInput);
             const sideHintOrDefault = (sideHint !== undefined) ? sideHint : 'YES';
             const found = this.findOutcomeInMarket(market, sideHintOrDefault);
@@ -1211,7 +1220,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             }
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a limit price for outcome markets in between 0 and 1.');
         }
-        let px;
+        let px = undefined;
         if (isMarket) {
             const priceStr = this.numberToString(price);
             px = isBuy ? Precise["default"].stringMul(priceStr, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(priceStr, Precise["default"].stringSub('1', slippage));
@@ -1219,6 +1228,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         else {
             px = this.priceToPrecision(marketSymbol, price);
+        }
+        if (px === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() could not determine price');
         }
         const sz = this.amountToPrecision(marketSymbol, amount);
         const orderType = {
@@ -1243,6 +1255,16 @@ class hyperliquid extends hyperliquid$1["default"] {
             'orders': [orderObj],
             'grouping': 'na',
         };
+        if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
+            const wallet = this.safeStringLower(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            // feeInt defaults to 0: the builder is attached for statistics purposes only and the
+            // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
+            let feeInt = this.safeInteger(this.options, 'feeInt', 0);
+            if (!this.safeBool(this.options, 'builderFee', true)) {
+                feeInt = 0;
+            }
+            orderAction['builder'] = { 'b': wallet, 'f': feeInt };
+        }
         const signature = this.signL1Action(orderAction, nonce, vaultAddress);
         const request = {
             'action': orderAction,
@@ -1797,6 +1819,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const marketValues = this.toArray(marketsDict);
         // Group markets by parentSymbol
         const groupMap = {};
+        if (queries === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchEvents() missing queries');
+        }
         const lowerQueries = [];
         for (let i = 0; i < queries.length; i++) {
             const queryString = queries[i];
@@ -1840,15 +1865,22 @@ class hyperliquid extends hyperliquid$1["default"] {
                     continue;
                 }
             }
+            if (parentSymbol === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchEvents() missing parentSymbol');
+            }
             if (!(parentSymbol in groupMap)) {
-                groupMap[parentSymbol] = [];
+                if (parentSymbol !== undefined) {
+                    groupMap[parentSymbol] = [];
+                }
             }
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            const parentMarkets = groupMap[parentSymbol];
+            const parentMarkets = this.safeValue(groupMap, parentSymbol);
             parentMarkets.push(mkt);
-            groupMap[parentSymbol] = parentMarkets;
+            if (parentSymbol !== undefined) {
+                groupMap[parentSymbol] = parentMarkets;
+            }
         }
         const events = [];
         const groupKeys = Object.keys(groupMap);
@@ -1935,6 +1967,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const prec = this.safeNumber(this.safeDict(market, 'precision', {}), 'amount', 0.0001);
         // Convert precision to decimal places
         let decimals = 4;
+        if (prec === undefined) {
+            throw new errors.ExchangeError(this.id + ' amountToPrecision() missing prec');
+        }
         if (prec > 0) {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -1944,6 +1979,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(outcome);
         const prec = this.safeNumber(this.safeDict(market, 'precision', {}), 'price', 0.0001);
         let decimals = 4;
+        if (prec === undefined) {
+            throw new errors.ExchangeError(this.id + ' priceToPrecision() missing prec');
+        }
         if (prec > 0) {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -2011,6 +2049,65 @@ class hyperliquid extends hyperliquid$1["default"] {
         const msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
         return this.signMessage(msg, this.privateKey);
     }
+    signUserSignedAction(messageTypes, message) {
+        const zeroAddress = this.safeString(this.options, 'zeroAddress');
+        const chainId = 421614;
+        const domain = {
+            'chainId': chainId,
+            'name': 'HyperliquidSignTransaction',
+            'verifyingContract': zeroAddress,
+            'version': '1',
+        };
+        const msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        const signature = this.signMessage(msg, this.privateKey);
+        return signature;
+    }
+    buildApproveBuilderFeeSig(message) {
+        const messageTypes = {
+            'HyperliquidTransaction:ApproveBuilderFee': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'maxFeeRate', 'type': 'string' },
+                { 'name': 'builder', 'type': 'address' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+    /**
+     * @method
+     * @name hyperliquid#approveBuilderFee
+     * @ignore
+     * @description approves the builder for the given max fee rate, required before orders can carry a builder attribution
+     * @param {string} builder the builder wallet address
+     * @param {string} maxFeeRate the maximum builder fee rate to approve, e.g. '0%'
+     * @returns {object} the raw exchange response
+     */
+    async approveBuilderFee(builder, maxFeeRate) {
+        const nonce = this.milliseconds();
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        const payload = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'maxFeeRate': maxFeeRate,
+            'builder': builder,
+            'nonce': nonce,
+        };
+        const sig = this.buildApproveBuilderFeeSig(payload);
+        const action = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'maxFeeRate': payload['maxFeeRate'],
+            'builder': payload['builder'],
+            'nonce': nonce,
+            'type': 'approveBuilderFee',
+        };
+        const request = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': undefined,
+        };
+        return await this.privatePostExchange(request);
+    }
     async initializeClient() {
         // createOrder/createOrders call this before trading; load markets so the order builder can
         // resolve the outcome's market and precision. loading them also keeps this method genuinely
@@ -2020,7 +2117,20 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (!buildFee) {
             return undefined;
         }
-        // builder fee approval would go here if needed
+        if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
+            return undefined; // already approved
+        }
+        try {
+            const builder = this.safeString(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            // the default feeRate is '0%': the builder is approved and attached for statistics
+            // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
+            const maxFeeRate = this.safeString(this.options, 'feeRate', '0%');
+            await this.approveBuilderFee(builder, maxFeeRate);
+            this.options['approvedBuilderFee'] = true;
+        }
+        catch (e) {
+            this.options['builderFee'] = false; // disable builder fee if an error occurs
+        }
         return undefined;
     }
     handlePublicAddress(methodName, params) {

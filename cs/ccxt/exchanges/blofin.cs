@@ -501,7 +501,7 @@ public partial class blofin : Exchange
         object contract = isTrue(swap) || isTrue(future);
         object baseId = this.safeString(market, "baseCurrency");
         object quoteId = this.safeString(market, "quoteCurrency");
-        object settleId = this.safeString(market, "quoteCurrency");
+        object settleId = this.safeString(market, "settleCurrency", quoteId);
         object settle = this.safeCurrencyCode(settleId);
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
@@ -521,6 +521,9 @@ public partial class blofin : Exchange
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object isActive = (isEqual(this.safeString(market, "state"), "live"));
         object isMargin = isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1")));
+        object contractType = this.safeString(market, "contractType");
+        object maxLimitAmount = this.safeNumber(market, "maxLimitSize");
+        object maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -540,8 +543,8 @@ public partial class blofin : Exchange
             { "taker", taker },
             { "maker", maker },
             { "contract", contract },
-            { "linear", ((bool) isTrue(contract)) ? (isEqual(quoteId, settleId)) : null },
-            { "inverse", ((bool) isTrue(contract)) ? (isEqual(baseId, settleId)) : null },
+            { "linear", ((bool) isTrue(contract)) ? (isEqual(contractType, "linear")) : null },
+            { "inverse", ((bool) isTrue(contract)) ? (isEqual(contractType, "inverse")) : null },
             { "contractSize", ((bool) isTrue(contract)) ? this.safeNumber(market, "contractValue") : null },
             { "expiry", expiry },
             { "expiryDatetime", expiry },
@@ -559,7 +562,7 @@ public partial class blofin : Exchange
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber(market, "minSize") },
-                    { "max", null },
+                    { "max", maxLimitAmount },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", null },
@@ -567,7 +570,7 @@ public partial class blofin : Exchange
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", null },
+                    { "max", ((bool) isTrue(contract)) ? null : maxSpotCost },
                 } },
             } },
             { "info", market },
@@ -582,7 +585,7 @@ public partial class blofin : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1304,6 +1307,14 @@ public partial class blofin : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -1766,7 +1777,7 @@ public partial class blofin : Exchange
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            object orderRequest = this.createOrderRequest(((string)marketId), type, side, amount, price, extendedParams);
+            object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         object response = await this.privatePostTradeBatchOrders(ordersRequests);
@@ -2200,7 +2211,7 @@ public partial class blofin : Exchange
             { "10", "trade" },
             { "11", "trade" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -2271,7 +2282,7 @@ public partial class blofin : Exchange
         }
         object market = this.market(symbol);
         object request = new List<object>() {};
-        object method = ((string)this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders"));
+        object method = this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders");
         object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
         object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
         object trigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
@@ -2406,7 +2417,7 @@ public partial class blofin : Exchange
         object position = this.safeDict(data, 0);
         if (isTrue(isEqual(position, null)))
         {
-            return null;
+            throw new NullResponse ((string)add(this.id, " fetchPosition() returned empty position")) ;
         }
         return this.parsePosition(position, market);
     }
@@ -2443,7 +2454,7 @@ public partial class blofin : Exchange
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -2619,7 +2630,8 @@ public partial class blofin : Exchange
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         } else if (isTrue(isEqual(initialMarginString, null)))
         {
-            initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+            object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+            initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         object rounder = "0.00005"; // round to closest 0.01%
         object maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
@@ -2848,7 +2860,7 @@ public partial class blofin : Exchange
      * @see https://blofin.com/docs#close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the blofin api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -3061,7 +3073,7 @@ public partial class blofin : Exchange
      * @description set hedged to true or false for a market
      * @see https://docs.blofin.com/index.html#set-position-mode
      * @param {bool} hedged set to true to use hedged mode, false for one-way mode
-     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */

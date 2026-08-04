@@ -103,7 +103,7 @@ public partial class myriad
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
-    /// fetches a single prediction-market event by its market id
+    /// fetches a single prediction-market event by its market id, or orderbook slug
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.myriad.markets/builders/myriad-api-reference"/>  <br/>
@@ -140,6 +140,69 @@ public partial class myriad
     {
         var res = await this.fetchRawMarketById(id, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches a single raw myriad question object by question id; falls back to keyword search by id/slug/title when direct lookup is unavailable
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the raw question object.</returns>
+    public async Task<Dictionary<string, object>> FetchRawQuestionById(string id, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchRawQuestionById(id, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches raw myriad question objects matching the given search terms via the questions keyword filter
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of raw myriad question objects.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchRawQuestionsBySearch(List<string> queries, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchRawQuestionsBySearch(queries, parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// fetches raw myriad question objects from the paginated questions listing
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.state</term>
+    /// <description>
+    /// string : optional question state filter when supported by the backend
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of raw myriad question objects.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchRawQuestionsList(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchRawQuestionsList(parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// fetch the open outcome-token positions held by a wallet (myriad settles trades on-chain, so only read-only portfolio data is exposed by the API)
@@ -290,6 +353,24 @@ public partial class myriad
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.orderResponse</term>
+    /// <description>
+    /// object : a pre-fetched fetchOrder-style response for the order being replaced; avoids the internal lookup when already available, call fetchOrder to retrieve this data
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.rawOrder</term>
+    /// <description>
+    /// object : the raw order payload to cancel as an alternative to params.orderResponse, call fetchOrder to retrieve this data
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.networkId</term>
+    /// <description>
+    /// string : the order-book network id, required when using params.rawOrder without an embedded network id
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
@@ -305,6 +386,48 @@ public partial class myriad
     /// </summary>
     /// <remarks>
     /// <list type="table">
+    /// <item>
+    /// <term>type</term>
+    /// <description>
+    /// string : not used by the AMM path
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : not used by the AMM path
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.quote</term>
+    /// <description>
+    /// object : a pre-fetched fetchTradeQuote result to reuse instead of requesting a new quote, call fetchTradeQuote to retrieve this data
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.transactionHash</term>
+    /// <description>
+    /// string : a pre-broadcast transaction hash; when provided the method skips transaction submission and only parses the order result, capture this value from sendEvmTransaction
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.skipAllowance</term>
+    /// <description>
+    /// boolean : optional override to skip the ERC20 allowance check/approval before a buy; implied true when params.transactionHash is provided
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.skipWaitForReceipt</term>
+    /// <description>
+    /// boolean : optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
@@ -318,11 +441,12 @@ public partial class myriad
     /// buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
     /// </summary>
     /// <remarks>
+    /// See <see href="createAmmOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra exchange-specific parameters
+    /// object : extra parameters passed through to createAmmOrder
     /// </description>
     /// </item>
     /// </list>
@@ -332,6 +456,45 @@ public partial class myriad
     {
         var res = await this.createMarketBuyOrderWithCost(outcome, cost, parameters);
         return new PredictionOrder(res);
+    }
+    /// <summary>
+    /// fetches executed AMM trades for a wallet from the user events feed and exposes them as closed prediction orders
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : unified outcome to filter by
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra exchange-specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of closed [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<List<PredictionOrder>> FetchAmmOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchAmmOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
     /// cancels an open order book order by its hash (re-signs the original order to prove ownership; gasless)
@@ -349,6 +512,24 @@ public partial class myriad
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.orderResponse</term>
+    /// <description>
+    /// object : a pre-fetched fetchOrder-style response for the target order; avoids the internal order lookup when already available, call fetchOrder to retrieve this data
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.rawOrder</term>
+    /// <description>
+    /// object : the raw order payload to sign as an alternative to params.orderResponse, call fetchOrder to retrieve this data
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.networkId</term>
+    /// <description>
+    /// string : the order-book network id, required when using params.rawOrder without an embedded network id
     /// </description>
     /// </item>
     /// </list>
@@ -403,6 +584,18 @@ public partial class myriad
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.orderResponses</term>
+    /// <description>
+    /// object : pre-fetched fetchOrder-style responses keyed by order hash, or an array of such responses; avoids the internal per-order lookups when already available, call fetchOrder for each id to retrieve this data
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.networkId</term>
+    /// <description>
+    /// string : the order-book network id fallback for any supplied raw order data
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
@@ -438,7 +631,7 @@ public partial class myriad
         return new PredictionOrder(res);
     }
     /// <summary>
-    /// fetches order book orders for the wallet (or any trader passed via params.trader)
+    /// fetches order book orders for the wallet (or any trader passed via params.trader), or amm closed orders
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008"/>  <br/>
@@ -667,6 +860,24 @@ public partial class myriad
     /// string : the network id (defaults to options.defaultNetworkId, '56')
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : alias for params.network_id
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.currency</term>
+    /// <description>
+    /// string : output balance currency code override, e.g. 'USDC' or 'USDT'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.decimals</term>
+    /// <description>
+    /// int : for USDC and USDT it's 6, default is 18 for USD1
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
@@ -831,7 +1042,7 @@ public partial class myriad
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
-    /// fetches prediction-market events matching the given scope (query/queries/tags/eventId — required) and caches their markets and outcomes on the instance
+    /// fetches prediction-market events matching the given scope (query/queries/tags/eventId) and caches their markets and outcomes on the instance
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.myriad.markets/builders/myriad-api-reference"/>  <br/>
@@ -851,7 +1062,7 @@ public partial class myriad
     /// <item>
     /// <term>params.eventId</term>
     /// <description>
-    /// string : direct lookup by unified event id (composite networkId:marketId)
+    /// string : direct lookup by unified event id (composite networkId:marketId) like '56:170145' or questions path like '793bfc47-ddcd-47d2-aad5-52c7002fc823'
     /// </description>
     /// </item>
     /// <item>

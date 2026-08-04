@@ -479,7 +479,7 @@ func (this *BydfiCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalAr
 		_ = params
 		var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [\\'ETH/USDC\\', \\'1m\\']")))
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")))
 		}
 
 		retRes3478 := (<-this.LoadMarkets())
@@ -530,7 +530,7 @@ func (this *BydfiCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, optional
 		_ = params
 		var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [\\'ETH/USDC\\', \\'1m\\']")))
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")))
 		}
 
 		retRes3828 := (<-this.LoadMarkets())
@@ -661,7 +661,7 @@ func (this *BydfiCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan 
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BydfiCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1306,7 +1306,9 @@ func (this *BydfiCore) HandleBalance(client any, message any) {
 			var account any = this.Account()
 			ccxt.AddElementToObject(account, "total", this.SafeString(balance, "wb"))
 			ccxt.AddElementToObject(account, "used", this.SafeString(balance, "tfm"))
-			ccxt.AddElementToObject(result, code, account)
+			if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+				ccxt.AddElementToObject(result, code, account)
+			}
 		}
 		var parsedBalance any = this.SafeBalance(result)
 		this.Balance = this.Extend(this.Balance, parsedBalance)

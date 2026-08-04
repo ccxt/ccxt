@@ -7,7 +7,7 @@ var coinbaseinternational$1 = require('../coinbaseinternational.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class coinbaseinternational extends coinbaseinternational$1["default"] {
     describe() {
@@ -236,7 +236,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const output = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = this.markets[symbol];
+            const market = this.market(symbol);
             if (market['active']) {
                 output.push(symbol);
             }

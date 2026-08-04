@@ -10,7 +10,7 @@ var errors = require('../utils/errors.js');
 var properties = require('../utils/properties.js');
 var data = require('../utils/data.js');
 
-//import { TypedDataDomain, TypedDataField } from "@ethersproject/providerabstract-signer";
+// ----------------------------------------------------------------------------
 const { base16ToBinary } = functions;
 const padding = new Uint8Array(32);
 padding.fill(0);
@@ -445,8 +445,8 @@ class TypedDataEncoder {
         });
         const encoder = TypedDataEncoder.from(types);
         const typesWithDomain = Object.assign({}, types);
-        errors.assertArgument(typesWithDomain.EIP712Domain == null, "types must not contain EIP712Domain type", "types.EIP712Domain", types);
-        typesWithDomain.EIP712Domain = domainTypes;
+        errors.assertArgument(typesWithDomain['EIP712Domain'] == null, "types must not contain EIP712Domain type", "types.EIP712Domain", types);
+        typesWithDomain['EIP712Domain'] = domainTypes;
         // Validate the data structures and types
         encoder.encode(value);
         return {

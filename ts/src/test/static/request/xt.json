@@ -40,6 +40,19 @@
                     }
                 ],
                 "output": "{\"positionType\":\"CROSSED\",\"positionSide\":\"LONG\",\"symbol\":\"btc_usdt\"}"
+            },
+            {
+                "description": "set margin mode isolated on an inverse (coin-margined) market routes to dapi, not fapi",
+                "method": "setMarginMode",
+                "url": "https://dapi.xt.com/future/user/v1/position/change-type",
+                "input": [
+                    "isolated",
+                    "BTC/USD:BTC",
+                    {
+                        "positionSide": "LONG"
+                    }
+                ],
+                "output": "{\"positionType\":\"ISOLATED\",\"positionSide\":\"LONG\",\"symbol\":\"btc_usd\"}"
             }
         ],
         "createOrder":[

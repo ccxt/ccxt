@@ -218,7 +218,7 @@ lighter.fetchCurrencies (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.lighter.xyz/reference/orderbookorders  
 
@@ -761,7 +761,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market to set margin in |
 | amount | <code>float</code> | Yes | the amount to set the margin to |
-| params | <code>object</code> | No | parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | parameters specific to the exchange API endpoint |
 | params.accountIndex | <code>string</code> | No | account index |
 | params.apiKeyIndex | <code>string</code> | No | api key index |
 
@@ -800,7 +800,7 @@ lighter.watchOrders (symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#order-book  
 

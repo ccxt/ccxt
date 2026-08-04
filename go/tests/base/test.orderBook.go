@@ -21,8 +21,6 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 		"nonce":     134234234,
 	}
 	var emptyAllowedFor any = []any{"nonce"}
-	// turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-	orderbook = exchange.DeepExtend(map[string]any{}, orderbook)
 	AssertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, orderbook)
 	AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol)

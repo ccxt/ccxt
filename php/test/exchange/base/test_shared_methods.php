@@ -76,18 +76,15 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
         for ($i = 0; $i < count($format); $i++) {
             $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($i, $empty_allowed_for);
             $value = $entry[$i];
-            if (is_array($skipped_properties) && array_key_exists($i, $skipped_properties)) {
-                continue;
-            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
-            if ($empty_allowed_for_this_key && ($value === null)) {
+            if (($empty_allowed_for_this_key && ($value === null)) || (is_array($skipped_properties) && array_key_exists($i, $skipped_properties))) {
                 continue;
             }
             assert($value !== null, ((string) $i) . ' index is expected to have a value' . $log_text);
             // because of other langs, this is needed for arrays
-            $type_assertion = assert_type($exchange, $skipped_properties, $entry, $i, $format);
+            $type_assertion = assert_type($exchange, array(), $entry, $i, $format);
             assert($type_assertion, ((string) $i) . ' index does not have an expected type ' . $log_text);
         }
     } else {
@@ -99,13 +96,10 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
                 continue;
             }
             assert(is_array($entry) && array_key_exists($key, $entry), '"' . string_value($key) . '" key is missing from structure' . $log_text);
-            if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
-                continue;
-            }
             $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
-            // - it's not inside "allowe empty values" list
+            // - it's not inside "allowed empty values" list
             // - it's not undefined
             if ($empty_allowed_for_this_key && ($value === null)) {
                 continue;
@@ -114,7 +108,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             assert($value !== null, '"' . string_value($key) . '" key is expected to have a value' . $log_text);
             // add exclusion for info key, as it can be any type
             if ($key !== 'info') {
-                $type_assertion = assert_type($exchange, $skipped_properties, $entry, $key, $format);
+                $type_assertion = assert_type($exchange, array(), $entry, $key, $format);
                 assert($type_assertion, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
                 if ($deep) {
                     if ($exchange->is_dictionary($value) || gettype($value) === 'array' && array_is_list($value)) {
@@ -178,6 +172,9 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
             // so, we have to compare with millisecond accururacy
             $dt_parsed = $exchange->parse8601($dt);
             $ts_ms = $entry['timestamp'];
+            if ($dt_parsed === null) {
+                assert(false, 'datetime is not parseable: ' . $dt . $log_text);
+            }
             $diff = abs($dt_parsed - $ts_ms);
             if ($diff >= 500) {
                 $dt_parsed_string = $exchange->iso8601($dt_parsed);
@@ -245,7 +242,7 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
 
 function assert_symbol_in_markets($exchange, $skipped_properties, $method, $symbol) {
     $log_text = log_template($exchange, $method, array());
-    assert((is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
+    assert(($exchange->markets !== null) && (is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
 }
 
 
@@ -678,7 +675,7 @@ function validate_ticker_exception_for_percentage($ex, $exchange, $ticker) {
         $symbol = $ticker['symbol'];
         if ($symbol !== null) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if (!(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
+            if (($exchange->markets === null) || !(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
                 return;
             }
             // if OHLCV supported

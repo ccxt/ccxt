@@ -1008,7 +1008,7 @@ func (this *PhemexCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		//                     "symbol":"BTCUSDT",
 		//                     "steps":"2000K",
 		//                     "riskLimits":[
-		//                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},,
+		//                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},
 		//                         {"limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"},
 		//                         {"limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"},
 		//                     ]
@@ -1244,7 +1244,7 @@ func (this *PhemexCore) CustomParseOrderBook(orderbook any, symbol any, optional
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PhemexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1340,7 +1340,7 @@ func (this *PhemexCore) ToEp(price any, optionalArgs ...any) any {
 	if IsTrue(IsTrue((IsEqual(price, nil))) || IsTrue((IsEqual(market, nil)))) {
 		return price
 	}
-	return this.ToEn(price, GetValue(market, "priceScale"))
+	return this.ToEn(price, this.SafeValue(market, "priceScale"))
 }
 func (this *PhemexCore) FromEn(en any, scale any) any {
 	if IsTrue(IsTrue(IsEqual(en, nil)) || IsTrue(IsEqual(scale, nil))) {
@@ -2892,10 +2892,10 @@ func (this *PhemexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 					}
 				}
 				cost = Ternary(IsTrue((IsEqual(cost, nil))), amount, cost)
-				var costString any = this.NumberToString(cost)
+				var costString any = this.CostToPrecision(symbol, cost)
 				AddElementToObject(request, "quoteQtyEv", this.ToEv(costString, market))
 			} else {
-				var amountString any = this.NumberToString(amount)
+				var amountString any = this.AmountToPrecision(symbol, amount)
 				AddElementToObject(request, "baseQtyEv", this.ToEv(amountString, market))
 			}
 		} else if IsTrue(GetValue(market, "swap")) {
@@ -2930,7 +2930,7 @@ func (this *PhemexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 				triggerDirection = GetValue(triggerDirectionparamsVariable, 0)
 				params = GetValue(triggerDirectionparamsVariable, 1)
 				if IsTrue(IsEqual(triggerDirection, nil)) {
-					panic(ArgumentsRequired(Add(this.Id, " createOrder() also requires a \\'triggerDirection\\' parameter with either \\'ascending\\' or \\'descending\\' value")))
+					panic(ArgumentsRequired(Add(this.Id, " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")))
 				}
 				// the flow defined per https://phemex-docs.github.io/#more-order-type-examples
 				if IsTrue(IsTrue(IsEqual(triggerDirection, "ascending")) || IsTrue(IsEqual(triggerDirection, "up"))) {
@@ -4181,7 +4181,7 @@ func (this *PhemexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var networkId any = this.SafeString(transaction, "chainName")
 	var timestamp any = this.SafeIntegerN(transaction, []any{"createdAt", "submitedAt", "submittedAt"})
 	var typeVar any = this.SafeStringLower(transaction, "type")
-	var feeCost any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "feeEv"), GetValue(currency, "valueScale")))
+	var feeCost any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "feeEv"), this.SafeValue(currency, "valueScale")))
 	if IsTrue(IsEqual(feeCost, nil)) {
 		feeCost = this.SafeNumber(transaction, "feeRv")
 	}
@@ -4194,7 +4194,7 @@ func (this *PhemexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		}
 	}
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var amount any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "amountEv"), GetValue(currency, "valueScale")))
+	var amount any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "amountEv"), this.SafeValue(currency, "valueScale")))
 	if IsTrue(IsEqual(amount, nil)) {
 		amount = this.SafeNumber(transaction, "amountRv")
 	}
@@ -4399,7 +4399,7 @@ func (this *PhemexCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified contract symbol
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch positions for
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
@@ -5054,7 +5054,7 @@ func (this *PhemexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
  * @description set hedged to true or false for a market
  * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by binance setPositionMode ()
+ * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
@@ -5247,7 +5247,7 @@ func (this *PhemexCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) 
 			"currency":              GetValue(market, "settle"),
 			"minNotional":           minNotionalResponse,
 			"maxNotional":           maxNotional,
-			"maintenanceMarginRate": this.SafeString(tier, "maintenanceMargin"),
+			"maintenanceMarginRate": this.SafeNumber(tier, "maintenanceMargin"),
 			"maxLeverage":           nil,
 			"info":                  tier,
 		})
@@ -5754,7 +5754,7 @@ func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
- * @param {object} [params] extra parameters specific to the phemex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
  */

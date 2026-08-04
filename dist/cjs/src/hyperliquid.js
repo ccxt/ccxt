@@ -10,7 +10,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hyperliquid
@@ -72,7 +72,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -366,6 +366,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         this.options['sandboxMode'] = enabled;
     }
     market(symbol) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' market() requires a symbol argument');
+        }
         if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
@@ -504,7 +507,9 @@ class hyperliquid extends hyperliquid$1["default"] {
                     nameWithoutU = nameWithoutU + parts[j];
                 }
                 const baseCode = this.safeCurrencyCode(nameWithoutU);
-                this.options['spotCurrencyMapping'][code] = baseCode;
+                if (code !== undefined) {
+                    this.options['spotCurrencyMapping'][code] = baseCode;
+                }
             }
         }
         return result;
@@ -641,9 +646,10 @@ class hyperliquid extends hyperliquid$1["default"] {
                     data['collateralTokenName'] = collateralTokenCode;
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     const safeCode = this.safeCurrencyCode(name);
+                    const hip3Code = (safeCode === undefined) ? name : safeCode.replace(':', '-');
                     this.options['hip3TokensByName'][name] = {
                         'quote': collateralTokenCode,
-                        'code': safeCode.replace(':', '-'),
+                        'code': hip3Code,
                     };
                 }
                 result.push(data);
@@ -990,6 +996,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const settleId = (collateralTokenCode === undefined) ? 'USDC' : collateralTokenCode;
         const baseName = this.safeString(market, 'name');
         let base = this.safeCurrencyCode(baseName);
+        if (base === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing base currency');
+        }
         base = base.replace(':', '-'); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         const quote = this.safeCurrencyCode(quoteId);
         const baseId = this.safeString(market, 'baseId');
@@ -1158,7 +1167,9 @@ class hyperliquid extends hyperliquid$1["default"] {
                 const used = this.safeString(balance, 'hold');
                 account['total'] = total;
                 account['used'] = used;
-                spotBalances[code] = account;
+                if (code !== undefined) {
+                    spotBalances[code] = account;
+                }
             }
             return this.safeBalance(spotBalances);
         }
@@ -1189,7 +1200,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1198,7 +1209,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(symbol);
         const request = {
             'type': 'l2Book',
-            'coin': market['swap'] ? market['baseName'] : market['id'],
+            'coin': market['swap'] ? this.safeString(market, 'baseName') : market['id'],
         };
         const response = await this.publicPostInfo(this.extend(request, params));
         //
@@ -1287,6 +1298,25 @@ class hyperliquid extends hyperliquid$1["default"] {
             result[symbol] = ticker;
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
+    }
+    /**
+     * @method
+     * @name hyperliquid#fetchFundingRate
+     * @description fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const rates = await this.fetchFundingRates([market['symbol']], params);
+        const rate = this.safeDict(rates, market['symbol']);
+        if (rate === undefined) {
+            throw new errors.BadSymbol(this.id + ' fetchFundingRate() could not find a funding rate for ' + symbol);
+        }
+        return rate;
     }
     /**
      * @method
@@ -1464,7 +1494,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['swap'] ? market['baseName'] : market['id'],
+                'coin': market['swap'] ? this.safeString(market, 'baseName') : market['id'],
                 'interval': this.safeString(this.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
@@ -2167,6 +2197,12 @@ class hyperliquid extends hyperliquid$1["default"] {
         return this.parseOrders(ordersToBeParsed);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         type = type.toUpperCase();
         side = side.toUpperCase();
@@ -2962,7 +2998,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(symbol);
         const request = {
             'type': 'fundingHistory',
-            'coin': market['baseName'],
+            'coin': this.safeString(market, 'baseName'),
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -3389,7 +3425,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             marketId = this.coinToMarketId(coin);
         }
         if (this.safeString(entry, 'id') === undefined) {
-            market = this.safeMarket(marketId, undefined);
+            market = this.safeMarket(marketId);
         }
         else {
             market = this.safeMarket(marketId, market);
@@ -3550,7 +3586,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const amount = this.safeString(trade, 'sz');
         const coin = this.safeString(trade, 'coin');
         const marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, undefined);
+        market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const id = this.safeString(trade, 'tid');
         let side = this.safeString(trade, 'side');
@@ -3735,7 +3771,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const entry = this.safeDict(position, 'position', {});
         const coin = this.safeString(entry, 'coin');
         const marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, undefined);
+        market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const leverage = this.safeDict(entry, 'leverage', {});
         const marginMode = this.safeString(leverage, 'type');

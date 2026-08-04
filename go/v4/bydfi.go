@@ -575,7 +575,7 @@ func (this *BydfiCore) ParseMarket(market any) any {
  * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
- * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BydfiCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -642,6 +642,9 @@ func (this *BydfiCore) GetClosestLimit(limit any) any {
 	var limits any = []any{5, 10, 20, 50, 100, 500, 1000}
 	var result any = 1000
 	for i := 0; IsLessThan(i, GetArrayLength(limits)); i++ {
+		if IsTrue(IsEqual(limit, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " getClosestLimit() requires a limit argument")))
+		}
 		if IsTrue(IsLessThanOrEqual(limit, GetValue(limits, i))) {
 			result = GetValue(limits, i)
 			break
@@ -675,8 +678,8 @@ func (this *BydfiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes64212 := (<-this.LoadMarkets())
-			PanicOnError(retRes64212)
+			retRes64512 := (<-this.LoadMarkets())
+			PanicOnError(retRes64512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -744,8 +747,8 @@ func (this *BydfiCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes69012 := (<-this.LoadMarkets())
-			PanicOnError(retRes69012)
+			retRes69312 := (<-this.LoadMarkets())
+			PanicOnError(retRes69312)
 		}
 		var paginate any = this.SafeBool(params, "paginate", false)
 		if IsTrue(paginate) {
@@ -899,7 +902,7 @@ func (this *BydfiCore) ParseTradeType(typeVar any) any {
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch (max 500)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
@@ -918,8 +921,8 @@ func (this *BydfiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes83512 := (<-this.LoadMarkets())
-			PanicOnError(retRes83512)
+			retRes83812 := (<-this.LoadMarkets())
+			PanicOnError(retRes83812)
 		}
 		var maxLimit any = 500 // docs says max 1500, but in practice only 500 works
 		var paginate any = false
@@ -950,6 +953,9 @@ func (this *BydfiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			startTime = Subtract(now, timeDelta)
 			until = now
 		} else if IsTrue(IsEqual(until, nil)) {
+			if IsTrue(IsEqual(startTime, nil)) {
+				panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a since or until argument")))
+			}
 			until = Add(startTime, timeDelta)
 			if IsTrue(IsGreaterThan(until, now)) {
 				until = now
@@ -1029,8 +1035,8 @@ func (this *BydfiCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes92912 := (<-this.LoadMarkets())
-			PanicOnError(retRes92912)
+			retRes93512 := (<-this.LoadMarkets())
+			PanicOnError(retRes93512)
 		}
 
 		response := (<-this.PublicGetV1FapiMarketTicker24hr(params))
@@ -1080,8 +1086,8 @@ func (this *BydfiCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes96512 := (<-this.LoadMarkets())
-			PanicOnError(retRes96512)
+			retRes97112 := (<-this.LoadMarkets())
+			PanicOnError(retRes97112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1162,8 +1168,8 @@ func (this *BydfiCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes103112 := (<-this.LoadMarkets())
-			PanicOnError(retRes103112)
+			retRes103712 := (<-this.LoadMarkets())
+			PanicOnError(retRes103712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1260,8 +1266,8 @@ func (this *BydfiCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes110712 := (<-this.LoadMarkets())
-			PanicOnError(retRes110712)
+			retRes111312 := (<-this.LoadMarkets())
+			PanicOnError(retRes111312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1364,8 +1370,8 @@ func (this *BydfiCore) CreateOrder(symbol any, typeVar any, side any, amount any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes119112 := (<-this.LoadMarkets())
-			PanicOnError(retRes119112)
+			retRes119712 := (<-this.LoadMarkets())
+			PanicOnError(retRes119712)
 		}
 		var market any = this.Market(symbol)
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -1422,7 +1428,16 @@ func (this *BydfiCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var market any = this.Market(symbol)
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createOrderRequest() requires a side argument")))
+	}
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"side":   ToUpper(side),
@@ -1545,8 +1560,8 @@ func (this *BydfiCore) CreateOrders(orders any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes135512 := (<-this.LoadMarkets())
-			PanicOnError(retRes135512)
+			retRes137012 := (<-this.LoadMarkets())
+			PanicOnError(retRes137012)
 		}
 		var length any = GetArrayLength(orders)
 		if IsTrue(IsGreaterThan(length, 5)) {
@@ -1613,8 +1628,8 @@ func (this *BydfiCore) EditOrder(id any, symbol any, typeVar any, side any, opti
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes140212 := (<-this.LoadMarkets())
-			PanicOnError(retRes140212)
+			retRes141712 := (<-this.LoadMarkets())
+			PanicOnError(retRes141712)
 		}
 		var request any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, params)
 		var wallet any = "W001"
@@ -1653,8 +1668,8 @@ func (this *BydfiCore) EditOrders(orders any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes142512 := (<-this.LoadMarkets())
-			PanicOnError(retRes142512)
+			retRes144012 := (<-this.LoadMarkets())
+			PanicOnError(retRes144012)
 		}
 		var length any = GetArrayLength(orders)
 		if IsTrue(IsGreaterThan(length, 5)) {
@@ -1743,8 +1758,8 @@ func (this *BydfiCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes149112 := (<-this.LoadMarkets())
-			PanicOnError(retRes149112)
+			retRes150612 := (<-this.LoadMarkets())
+			PanicOnError(retRes150612)
 		}
 		var market any = this.Market(symbol)
 		var wallet any = "W001"
@@ -1831,8 +1846,8 @@ func (this *BydfiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes155612 := (<-this.LoadMarkets())
-			PanicOnError(retRes155612)
+			retRes157112 := (<-this.LoadMarkets())
+			PanicOnError(retRes157112)
 		}
 		var market any = this.Market(symbol)
 		var wallet any = "W001"
@@ -1926,8 +1941,8 @@ func (this *BydfiCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes162812 := (<-this.LoadMarkets())
-			PanicOnError(retRes162812)
+			retRes164312 := (<-this.LoadMarkets())
+			PanicOnError(retRes164312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1998,8 +2013,8 @@ func (this *BydfiCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes167312 := (<-this.LoadMarkets())
-			PanicOnError(retRes167312)
+			retRes168812 := (<-this.LoadMarkets())
+			PanicOnError(retRes168812)
 		}
 		var paginate any = this.SafeBool(params, "paginate", false)
 		if IsTrue(paginate) {
@@ -2299,8 +2314,8 @@ func (this *BydfiCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes194612 := (<-this.LoadMarkets())
-			PanicOnError(retRes194612)
+			retRes196112 := (<-this.LoadMarkets())
+			PanicOnError(retRes196112)
 		}
 		var market any = this.Market(symbol)
 		var wallet any = "W001"
@@ -2346,8 +2361,8 @@ func (this *BydfiCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes197612 := (<-this.LoadMarkets())
-			PanicOnError(retRes197612)
+			retRes199112 := (<-this.LoadMarkets())
+			PanicOnError(retRes199112)
 		}
 		var market any = this.Market(symbol)
 		var wallet any = "W001"
@@ -2416,8 +2431,8 @@ func (this *BydfiCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes202612 := (<-this.LoadMarkets())
-			PanicOnError(retRes202612)
+			retRes204112 := (<-this.LoadMarkets())
+			PanicOnError(retRes204112)
 		}
 		var contractType any = "FUTURE"
 		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "contractType", contractType)
@@ -2480,8 +2495,8 @@ func (this *BydfiCore) FetchPositionsForSymbol(symbol any, optionalArgs ...any) 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes207312 := (<-this.LoadMarkets())
-			PanicOnError(retRes207312)
+			retRes208812 := (<-this.LoadMarkets())
+			PanicOnError(retRes208812)
 		}
 		var market any = this.Market(symbol)
 		var contractType any = "FUTURE"
@@ -2625,7 +2640,7 @@ func (this *BydfiCore) ParsePositionSide(side any) any {
  * @param {string} symbol a unified market symbol
  * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2644,8 +2659,8 @@ func (this *BydfiCore) FetchPositionHistory(symbol any, optionalArgs ...any) <-c
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes221612 := (<-this.LoadMarkets())
-			PanicOnError(retRes221612)
+			retRes223112 := (<-this.LoadMarkets())
+			PanicOnError(retRes223112)
 		}
 		var market any = this.Market(symbol)
 		var contractType any = "FUTURE"
@@ -2683,7 +2698,7 @@ func (this *BydfiCore) FetchPositionHistory(symbol any, optionalArgs ...any) <-c
  * @param {string[]} symbols a list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2704,8 +2719,8 @@ func (this *BydfiCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes225312 := (<-this.LoadMarkets())
-			PanicOnError(retRes225312)
+			retRes226812 := (<-this.LoadMarkets())
+			PanicOnError(retRes226812)
 		}
 		var contractType any = "FUTURE"
 		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsHistory", "contractType", contractType)
@@ -2793,8 +2808,8 @@ func (this *BydfiCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes232512 := (<-this.LoadMarkets())
-			PanicOnError(retRes232512)
+			retRes234012 := (<-this.LoadMarkets())
+			PanicOnError(retRes234012)
 		}
 		var market any = this.Market(symbol)
 		var contractType any = "FUTURE"
@@ -2874,8 +2889,8 @@ func (this *BydfiCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes238412 := (<-this.LoadMarkets())
-			PanicOnError(retRes238412)
+			retRes239912 := (<-this.LoadMarkets())
+			PanicOnError(retRes239912)
 		}
 		var market any = this.Market(symbol)
 		var contractType any = "FUTURE"
@@ -2893,9 +2908,9 @@ func (this *BydfiCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan
 			"wallet":       wallet,
 		}
 
-		retRes239715 := (<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params)))
-		PanicOnError(retRes239715)
-		ch <- retRes239715
+		retRes241215 := (<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params)))
+		PanicOnError(retRes241215)
+		ch <- retRes241215
 		return nil
 
 	}()
@@ -2908,7 +2923,7 @@ func (this *BydfiCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan
  * @description set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
  * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} [symbol] not used by bydfi setPositionMode ()
+ * @param {string} [symbol] not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2929,8 +2944,8 @@ func (this *BydfiCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan a
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes241812 := (<-this.LoadMarkets())
-			PanicOnError(retRes241812)
+			retRes243312 := (<-this.LoadMarkets())
+			PanicOnError(retRes243312)
 		}
 		var positionType any = Ternary(IsTrue(hedged), "HEDGE", "ONEWAY")
 		var wallet any = "W001"
@@ -2952,8 +2967,8 @@ func (this *BydfiCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan a
 			"settleCoin":   settleCoin,
 		}
 
-		retRes244015 := (<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params)))
-		PanicOnError(retRes244015)
+		retRes245515 := (<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params)))
+		PanicOnError(retRes245515)
 		//
 		//     {
 		//         "code": 200,
@@ -2961,7 +2976,7 @@ func (this *BydfiCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan a
 		//         "success": true
 		//     }
 		//
-		ch <- retRes244015
+		ch <- retRes245515
 		return nil
 
 	}()
@@ -2991,8 +3006,8 @@ func (this *BydfiCore) FetchPositionMode(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes245712 := (<-this.LoadMarkets())
-			PanicOnError(retRes245712)
+			retRes247212 := (<-this.LoadMarkets())
+			PanicOnError(retRes247212)
 		}
 		var wallet any = "W001"
 		walletparamsVariable := this.HandleOptionAndParams(params, "fetchPositionMode", "wallet", wallet)
@@ -3070,8 +3085,8 @@ func (this *BydfiCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes251512 := (<-this.LoadMarkets())
-			PanicOnError(retRes251512)
+			retRes253012 := (<-this.LoadMarkets())
+			PanicOnError(retRes253012)
 		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
@@ -3162,7 +3177,9 @@ func (this *BydfiCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString2(balance, "total", "balance"))
 		AddElementToObject(account, "free", this.SafeString2(balance, "available", "availableBalance"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -3188,8 +3205,8 @@ func (this *BydfiCore) Transfer(code any, amount any, fromAccount any, toAccount
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes261312 := (<-this.LoadMarkets())
-			PanicOnError(retRes261312)
+			retRes263012 := (<-this.LoadMarkets())
+			PanicOnError(retRes263012)
 		}
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
@@ -3261,8 +3278,8 @@ func (this *BydfiCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes266512 := (<-this.LoadMarkets())
-			PanicOnError(retRes266512)
+			retRes268212 := (<-this.LoadMarkets())
+			PanicOnError(retRes268212)
 		}
 		var currency any = this.Currency(code)
 		var paginate any = this.SafeBool(params, "paginate", false)
@@ -3404,9 +3421,9 @@ func (this *BydfiCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes277915 := (<-this.FetchTransactionsHelper("deposit", code, since, limit, params))
-		PanicOnError(retRes277915)
-		ch <- retRes277915
+		retRes279615 := (<-this.FetchTransactionsHelper("deposit", code, since, limit, params))
+		PanicOnError(retRes279615)
+		ch <- retRes279615
 		return nil
 
 	}()
@@ -3438,9 +3455,9 @@ func (this *BydfiCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes279415 := (<-this.FetchTransactionsHelper("withdrawal", code, since, limit, params))
-		PanicOnError(retRes279415)
-		ch <- retRes279415
+		retRes281115 := (<-this.FetchTransactionsHelper("withdrawal", code, since, limit, params))
+		PanicOnError(retRes281115)
+		ch <- retRes281115
 		return nil
 
 	}()
@@ -3457,8 +3474,8 @@ func (this *BydfiCore) FetchTransactionsHelper(typeVar any, code any, since any,
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes280312 := (<-this.LoadMarkets())
-			PanicOnError(retRes280312)
+			retRes282012 := (<-this.LoadMarkets())
+			PanicOnError(retRes282012)
 		}
 		var currency any = this.Currency(code)
 		var paginate any = this.SafeBool(params, "paginate", false)

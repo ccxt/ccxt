@@ -61,10 +61,10 @@ public partial class whitebit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// fetch the trading fees for multiple markets
@@ -232,7 +232,7 @@ public partial class whitebit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -528,6 +528,12 @@ public partial class whitebit
     /// <remarks>
     /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -1340,7 +1346,7 @@ public partial class whitebit
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

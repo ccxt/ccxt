@@ -124,6 +124,10 @@ public partial class exmo : ccxt.exmo
         //     }
         //
         object topic = this.safeString(message, "topic");
+        if (isTrue(isEqual(topic, null)))
+        {
+            return;
+        }
         object parts = ((string)topic).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object type = this.safeString(parts, 0);
         if (isTrue(isEqual(type, "spot")))
@@ -168,7 +172,10 @@ public partial class exmo : ccxt.exmo
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balances, currencyId);
                 ((IDictionary<string,object>)account)["used"] = this.safeString(reserved, currencyId);
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                }
             }
         } else if (isTrue(isEqual(eventVar, "update")))
         {
@@ -177,7 +184,10 @@ public partial class exmo : ccxt.exmo
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(data, "balance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(data, "reserved");
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            }
         }
         this.balance = this.safeBalance(this.balance);
     }
@@ -210,7 +220,10 @@ public partial class exmo : ccxt.exmo
             ((IDictionary<string,object>)account)["free"] = this.safeString(wallet, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(wallet, "used");
             ((IDictionary<string,object>)account)["total"] = this.safeString(wallet, "balance");
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            }
             this.balance = this.safeBalance(this.balance);
         }
     }
@@ -302,6 +315,10 @@ public partial class exmo : ccxt.exmo
         //      }
         //
         object topic = this.safeString(message, "topic");
+        if (isTrue(isEqual(topic, null)))
+        {
+            return;
+        }
         object topicParts = ((string)topic).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(topicParts, 1);
         object symbol = this.safeSymbol(marketId);
@@ -362,6 +379,10 @@ public partial class exmo : ccxt.exmo
         //      }
         //
         object topic = this.safeString(message, "topic");
+        if (isTrue(isEqual(topic, null)))
+        {
+            return;
+        }
         object parts = ((string)topic).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object symbol = this.safeSymbol(marketId);
@@ -487,6 +508,10 @@ public partial class exmo : ccxt.exmo
         //     }
         //
         object topic = this.safeString(message, "topic");
+        if (isTrue(isEqual(topic, null)))
+        {
+            return;
+        }
         object parts = ((string)topic).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object type = this.safeString(parts, 0);
         object messageHash = add("myTrades:", type);
@@ -516,7 +541,10 @@ public partial class exmo : ccxt.exmo
         {
             object trade = getValue(trades, j);
             callDynamically(myTrades, "append", new object[] {trade});
-            ((IDictionary<string,object>)symbols)[(string)getValue(trade, "symbol")] = true;
+            if (isTrue(!isEqual(getValue(trade, "symbol"), null)))
+            {
+                ((IDictionary<string,object>)symbols)[(string)getValue(trade, "symbol")] = true;
+            }
         }
         object symbolKeys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbolKeys)); postFixIncrement(ref i))
@@ -535,7 +563,7 @@ public partial class exmo : ccxt.exmo
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -595,6 +623,10 @@ public partial class exmo : ccxt.exmo
         //     }
         //
         object topic = this.safeString(message, "topic");
+        if (isTrue(isEqual(topic, null)))
+        {
+            return;
+        }
         object parts = ((string)topic).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object symbol = this.safeSymbol(marketId);
@@ -739,6 +771,10 @@ public partial class exmo : ccxt.exmo
         // }
         //
         object topic = this.safeString(message, "topic");
+        if (isTrue(isEqual(topic, null)))
+        {
+            return;
+        }
         object parts = ((string)topic).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object type = this.safeString(parts, 0);
         object messageHash = add("orders:", type);
@@ -763,7 +799,10 @@ public partial class exmo : ccxt.exmo
         {
             object order = this.parseWsOrder(getValue(rawOrders, j));
             callDynamically(cachedOrders, "append", new object[] {order});
-            ((IDictionary<string,object>)symbols)[(string)getValue(order, "symbol")] = true;
+            if (isTrue(!isEqual(getValue(order, "symbol"), null)))
+            {
+                ((IDictionary<string,object>)symbols)[(string)getValue(order, "symbol")] = true;
+            }
         }
         object symbolKeys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbolKeys)); postFixIncrement(ref i))

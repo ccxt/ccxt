@@ -151,7 +151,10 @@ class ArrayCacheBySymbolById(ArrayCache):
             if reference != item:
                 reference.update(item)
             item = reference
-            index = self._index.index(item['id'])
+            # index by key_field + id - different symbols can share an order id
+            # (binance uses per-symbol id sequences), and matching on id alone
+            # would remove the wrong row, see https://github.com/ccxt/ccxt/issues/26092
+            index = self._index.index(key + item['id'])
             del self._deque[index]
             del self._index[index]
         else:
@@ -164,7 +167,7 @@ class ArrayCacheBySymbolById(ArrayCache):
             except Exception as e:
                 logger.error(f"Error deleting item from hashmap: {delete_item}. Error:{e}")
         self._deque.append(item)
-        self._index.append(item['id'])
+        self._index.append(key + item['id'])
         if self._clear_all_updates:
             self._clear_all_updates = False
             self._clear_updates_by_symbol.clear()

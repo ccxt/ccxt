@@ -10,6 +10,7 @@ import {
     selfIsDefined,
 } from '../../base/functions.js';
 import { Future } from './Future.js';
+import type { Dict } from '../types.js';
 
 // bun's 'ws' polyfill does not implement the 'upgrade' event (https://github.com/oven-sh/bun/issues/5951)
 // which makes the HTTP 101 Switching Protocols response fire the error handler,
@@ -36,7 +37,7 @@ export default class WsClient extends Client {
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
 
-        const connectionHeaders = {};
+        const connectionHeaders: Dict = {};
         if (this.cookies !== undefined) {
             let cookieStr = '';
             const cookiesKeys = Object.keys (this.cookies);
@@ -154,7 +155,7 @@ export default class WsClient extends Client {
         }
     }
 
-    connect (backoffDelay = 0) {
+    override connect (backoffDelay = 0) {
         if (!this.startedConnecting) {
             this.startedConnecting = true
             // exponential backoff for consequent ws connections if necessary
@@ -167,11 +168,11 @@ export default class WsClient extends Client {
         return this.connected
     }
 
-    isOpen () {
+    override isOpen () {
         return (this.connection.readyState === WebSocketPlatform.OPEN)
     }
 
-    close () {
+    override close () {
         if (this.connection instanceof WebSocketPlatform) {
             if (this.disconnected === undefined) {
                 this.disconnected = Future ();

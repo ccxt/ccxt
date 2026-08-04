@@ -6,6 +6,7 @@ var lbank$1 = require('../lbank.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class lbank extends lbank$1["default"] {
     describe() {
@@ -243,7 +244,7 @@ class lbank extends lbank$1["default"] {
      * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickerWs(symbol, params = {}) {
@@ -268,7 +269,7 @@ class lbank extends lbank$1["default"] {
      * @see https://www.lbank.com/en-US/docs/index.html#market
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
@@ -526,7 +527,7 @@ class lbank extends lbank$1["default"] {
      * @param {string} [symbol] unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -583,6 +584,9 @@ class lbank extends lbank$1["default"] {
             myOrders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const order = this.parseWsOrder(message);
+        if (myOrders === undefined) {
+            return;
+        }
         myOrders.append(order);
         this.orders = myOrders;
         client.resolve(myOrders, 'orders');
@@ -733,7 +737,9 @@ class lbank extends lbank$1["default"] {
         account['free'] = this.safeString(data, 'free');
         account['used'] = this.safeString(data, 'freeze');
         account['total'] = this.safeString(data, 'asset');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
     }
@@ -744,7 +750,7 @@ class lbank extends lbank$1["default"] {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     async fetchOrderBookWs(symbol, limit = undefined, params = {}) {
@@ -774,8 +780,8 @@ class lbank extends lbank$1["default"] {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
-     * @param {object} params extra parameters specific to the lbank api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -926,7 +932,7 @@ class lbank extends lbank$1["default"] {
     }
     async authenticate(params = {}) {
         // when we implement more private streams, we need to refactor the authentication
-        // to be concurent-safe and respect the same authentication token
+        // to be concurrent-safe and respect the same authentication token
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const now = this.milliseconds();

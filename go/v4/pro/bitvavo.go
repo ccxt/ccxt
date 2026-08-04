@@ -501,7 +501,7 @@ func (this *BitvavoCore) HandleOHLCV(client any, message any) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitvavoCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -842,7 +842,7 @@ func (this *BitvavoCore) WatchMyTrades(optionalArgs ...any) <-chan any {
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
  * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -895,7 +895,7 @@ func (this *BitvavoCore) CreateOrderWs(symbol any, typeVar any, side any, amount
  * @param {string} side 'buy' or 'sell'
  * @param {float} [amount] how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitvavoCore) EditOrderWs(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
@@ -935,7 +935,7 @@ func (this *BitvavoCore) EditOrderWs(id any, symbol any, typeVar any, side any, 
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitvavoCore) CancelOrderWs(id any, optionalArgs ...any) <-chan any {
@@ -972,7 +972,7 @@ func (this *BitvavoCore) CancelOrderWs(id any, optionalArgs ...any) <-chan any {
  * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
  * @description cancel all open orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitvavoCore) CancelAllOrdersWs(optionalArgs ...any) <-chan any {
@@ -1000,7 +1000,7 @@ func (this *BitvavoCore) CancelAllOrdersWs(optionalArgs ...any) <-chan any {
 		if ccxt.IsTrue(!ccxt.IsEqual(operatorId, nil)) {
 			ccxt.AddElementToObject(request, "operatorId", this.ParseToInt(operatorId))
 		} else {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options[\\'operatorId\\'] = 1234567890")))
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")))
 		}
 		var market any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -1044,7 +1044,7 @@ func (this *BitvavoCore) HandleMultipleOrders(client any, message any) {
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitvavoCore) FetchOrderWs(id any, optionalArgs ...any) <-chan any {
@@ -1090,7 +1090,7 @@ func (this *BitvavoCore) FetchOrderWs(id any, optionalArgs ...any) <-chan any {
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitvavoCore) FetchOrdersWs(optionalArgs ...any) <-chan any {
@@ -1161,7 +1161,7 @@ func (this *BitvavoCore) WatchRequest(action any, request any) <-chan any {
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitvavoCore) FetchOpenOrdersWs(optionalArgs ...any) <-chan any {
@@ -1210,7 +1210,7 @@ func (this *BitvavoCore) FetchOpenOrdersWs(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BitvavoCore) FetchMyTradesWs(optionalArgs ...any) <-chan any {
@@ -1287,7 +1287,7 @@ func (this *BitvavoCore) HandleMyTrades(client any, message any) {
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitvavoCore) WithdrawWs(code any, amount any, address any, optionalArgs ...any) <-chan any {
@@ -1348,7 +1348,7 @@ func (this *BitvavoCore) HandleWithdraw(client any, message any) {
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitvavoCore) FetchWithdrawalsWs(optionalArgs ...any) <-chan any {
@@ -1418,7 +1418,7 @@ func (this *BitvavoCore) HandleWithdraws(client any, message any) {
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BitvavoCore) FetchOHLCVWs(symbol any, optionalArgs ...any) <-chan any {
@@ -1460,7 +1460,7 @@ func (this *BitvavoCore) FetchOHLCVWs(symbol any, optionalArgs ...any) <-chan an
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitvavoCore) FetchDepositsWs(optionalArgs ...any) <-chan any {
@@ -1524,7 +1524,7 @@ func (this *BitvavoCore) HandleDeposits(client any, message any) {
  * @name bitvavo#fetchTradingFeesWs
  * @see https://docs.bitvavo.com/#tag/ccxt.Account/paths/~1account/get
  * @description fetch the trading fees for multiple markets
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *BitvavoCore) FetchTradingFeesWs(optionalArgs ...any) <-chan any {
@@ -1557,7 +1557,7 @@ func (this *BitvavoCore) FetchTradingFeesWs(optionalArgs ...any) <-chan any {
  * @name bitvavo#fetchMarketsWs
  * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
  * @description retrieves data on all markets for bitvavo
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *BitvavoCore) FetchMarketsWs(optionalArgs ...any) <-chan any {
@@ -1582,7 +1582,7 @@ func (this *BitvavoCore) FetchMarketsWs(optionalArgs ...any) <-chan any {
  * @name bitvavo#fetchCurrenciesWs
  * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
  * @description fetches all available currencies on an exchange
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
 func (this *BitvavoCore) FetchCurrenciesWs(optionalArgs ...any) <-chan any {
@@ -1656,7 +1656,7 @@ func (this *BitvavoCore) HandleTradingFees(client any, message any) {
  * @name bitvavo#fetchBalanceWs
  * @see https://docs.bitvavo.com/#tag/ccxt.Account/paths/~1balance/get
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
  */
 func (this *BitvavoCore) FetchBalanceWs(optionalArgs ...any) <-chan any {

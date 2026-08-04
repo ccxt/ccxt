@@ -27,7 +27,6 @@ var bitfinex = require('./src/bitfinex.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
-var bitmart = require('./src/bitmart.js');
 var bitmex = require('./src/bitmex.js');
 var bitopro = require('./src/bitopro.js');
 var bitrue = require('./src/bitrue.js');
@@ -82,7 +81,6 @@ var indodax = require('./src/indodax.js');
 var kraken = require('./src/kraken.js');
 var krakenfutures = require('./src/krakenfutures.js');
 var kucoin = require('./src/kucoin.js');
-var kucoineu = require('./src/kucoineu.js');
 var kucoinfutures = require('./src/kucoinfutures.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
@@ -93,6 +91,7 @@ var mexc = require('./src/mexc.js');
 var modetrade = require('./src/modetrade.js');
 var mudrex = require('./src/mudrex.js');
 var myokx = require('./src/myokx.js');
+var nado = require('./src/nado.js');
 var ndax = require('./src/ndax.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
@@ -126,7 +125,6 @@ var bingx$1 = require('./src/pro/bingx.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
-var bitmart$1 = require('./src/pro/bitmart.js');
 var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
@@ -166,7 +164,6 @@ var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
-var kucoineu$1 = require('./src/pro/kucoineu.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var lbank$1 = require('./src/pro/lbank.js');
 var lighter$1 = require('./src/pro/lighter.js');
@@ -175,6 +172,7 @@ var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
 var mudrex$1 = require('./src/pro/mudrex.js');
 var myokx$1 = require('./src/pro/myokx.js');
+var nado$1 = require('./src/pro/nado.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okx$1 = require('./src/pro/okx.js');
 var okxus$1 = require('./src/pro/okxus.js');
@@ -199,7 +197,7 @@ var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.66';
+const version = '4.5.70';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -219,7 +217,6 @@ const exchanges = {
     'bitflyer': bitflyer["default"],
     'bitget': bitget["default"],
     'bithumb': bithumb["default"],
-    'bitmart': bitmart["default"],
     'bitmex': bitmex["default"],
     'bitopro': bitopro["default"],
     'bitrue': bitrue["default"],
@@ -274,7 +271,6 @@ const exchanges = {
     'kraken': kraken["default"],
     'krakenfutures': krakenfutures["default"],
     'kucoin': kucoin["default"],
-    'kucoineu': kucoineu["default"],
     'kucoinfutures': kucoinfutures["default"],
     'latoken': latoken["default"],
     'lbank': lbank["default"],
@@ -285,6 +281,7 @@ const exchanges = {
     'modetrade': modetrade["default"],
     'mudrex': mudrex["default"],
     'myokx': myokx["default"],
+    'nado': nado["default"],
     'ndax': ndax["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
@@ -320,7 +317,6 @@ const pro = {
     'bitfinex': bitfinex$1["default"],
     'bitget': bitget$1["default"],
     'bithumb': bithumb$1["default"],
-    'bitmart': bitmart$1["default"],
     'bitmex': bitmex$1["default"],
     'bitopro': bitopro$1["default"],
     'bitrue': bitrue$1["default"],
@@ -360,7 +356,6 @@ const pro = {
     'kraken': kraken$1["default"],
     'krakenfutures': krakenfutures$1["default"],
     'kucoin': kucoin$1["default"],
-    'kucoineu': kucoineu$1["default"],
     'kucoinfutures': kucoinfutures$1["default"],
     'lbank': lbank$1["default"],
     'lighter': lighter$1["default"],
@@ -369,6 +364,7 @@ const pro = {
     'modetrade': modetrade$1["default"],
     'mudrex': mudrex$1["default"],
     'myokx': myokx$1["default"],
+    'nado': nado$1["default"],
     'ndax': ndax$1["default"],
     'okx': okx$1["default"],
     'okxus': okxus$1["default"],
@@ -469,7 +465,6 @@ exports.bitfinex = bitfinex["default"];
 exports.bitflyer = bitflyer["default"];
 exports.bitget = bitget["default"];
 exports.bithumb = bithumb["default"];
-exports.bitmart = bitmart["default"];
 exports.bitmex = bitmex["default"];
 exports.bitopro = bitopro["default"];
 exports.bitrue = bitrue["default"];
@@ -524,7 +519,6 @@ exports.indodax = indodax["default"];
 exports.kraken = kraken["default"];
 exports.krakenfutures = krakenfutures["default"];
 exports.kucoin = kucoin["default"];
-exports.kucoineu = kucoineu["default"];
 exports.kucoinfutures = kucoinfutures["default"];
 exports.latoken = latoken["default"];
 exports.lbank = lbank["default"];
@@ -535,6 +529,7 @@ exports.mexc = mexc["default"];
 exports.modetrade = modetrade["default"];
 exports.mudrex = mudrex["default"];
 exports.myokx = myokx["default"];
+exports.nado = nado["default"];
 exports.ndax = ndax["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];

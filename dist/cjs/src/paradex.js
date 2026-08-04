@@ -10,7 +10,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class paradex
@@ -154,7 +154,9 @@ class paradex extends paradex$1["default"] {
                         'bbo/{market}/interactive': 1,
                         'funding/data': 1,
                         'markets': 1,
+                        'markets/history': 1,
                         'markets/klines': 1,
+                        'markets/settlement-price': 1,
                         'markets/summary': 1,
                         'orderbook/{market}': 1,
                         'orderbook/{market}/impact-price': 1,
@@ -1031,7 +1033,7 @@ class paradex extends paradex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1378,6 +1380,9 @@ class paradex extends paradex$1["default"] {
         const now = this.nonce();
         if (cachedToken !== undefined) {
             const cachedExpires = this.safeInteger(this.options, 'expires');
+            if (cachedExpires === undefined) {
+                throw new errors.ExchangeError(this.id + ' authenticateRest() missing cachedExpires');
+            }
             if (now < cachedExpires) {
                 return cachedToken;
             }
@@ -1540,6 +1545,12 @@ class paradex extends paradex$1["default"] {
         return Precise["default"].stringMul(num, '100000000');
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         let reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase();
@@ -1632,6 +1643,9 @@ class paradex extends paradex$1["default"] {
         const account = await this.retrieveAccount();
         const now = this.nonce();
         const orderType = this.safeString(request, 'type');
+        if (orderType === undefined) {
+            throw new errors.ExchangeError(this.id + ' signOrderRequest() missing orderType');
+        }
         const isMarket = (orderType.indexOf('MARKET') >= 0);
         const orderReq = {
             'timestamp': now * 1000,
@@ -1734,7 +1748,7 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#editOrder
      * @description edit an open limit order or TPSL order
-     * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+     * @see https://docs.paradex.trade/api/prod/orders/modify
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'limit' or a TPSL order type
@@ -1901,7 +1915,7 @@ class paradex extends paradex$1["default"] {
      * @description cancel multiple orders
      * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
      * @param {string[]} ids order ids
-     * @param {string} [symbol] unified market symbol, not used by paradex cancelOrders()
+     * @param {string} [symbol] unified market symbol, not used by cancelOrders()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1955,7 +1969,7 @@ class paradex extends paradex$1["default"] {
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
             const marketId = this.safeString(result, 'market');
-            const market = this.safeMarket(marketId, undefined);
+            const market = this.safeMarket(marketId);
             const status = this.safeString(result, 'status');
             let orderStatus = undefined;
             if (status === 'QUEUED_FOR_CANCELLATION') {
@@ -2237,7 +2251,9 @@ class paradex extends paradex$1["default"] {
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['total'] = this.safeString(balance, 'size');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2841,8 +2857,8 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let leverage = undefined;
-        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', 1);
+        let leverage = 1;
+        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', leverage);
         const request = {
             'market': market['id'],
             'leverage': leverage,

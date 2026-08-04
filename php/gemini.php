@@ -447,26 +447,28 @@ class gemini extends Exchange {
         $networkCode = null;
         if ($networkId !== null) {
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'info' => $rawCurrency,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => $precision,
-                'limits' => array(
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $rawCurrency,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => $precision,
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $rawCurrency,
@@ -611,7 +613,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function parse_market_active($status) {
+    public function parse_market_active(mixed $status) {
         $statuses = array(
             'open' => true,
             'closed' => false,
@@ -628,7 +630,7 @@ class gemini extends Exchange {
     public function fetch_usdt_markets($params = array()) {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
-        if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
+        if (is_array($this->urls) && array_key_exists('test' ?? '', $this->urls)) {
             return array(); // sandbox does not have usdt markets
         }
         $fetchUsdtMarkets = $this->safe_value($this->options, 'fetchUsdtMarkets', array());
@@ -711,7 +713,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function parse_market($response): array {
+    public function parse_market(mixed $response): array {
         //
         // $response might be:
         //
@@ -782,7 +784,7 @@ class gemini extends Exchange {
             $marketIdWithoutPerp = str_replace('PERP', '', $marketIdUpper);
             $conflictingMarkets = $this->safe_dict($this->options, 'conflictingMarkets', array());
             $lowerCaseId = strtolower($marketIdWithoutPerp);
-            if (is_array($conflictingMarkets) && array_key_exists($lowerCaseId, $conflictingMarkets)) {
+            if (is_array($conflictingMarkets) && array_key_exists($lowerCaseId ?? '', $conflictingMarkets)) {
                 $conflictingMarket = $conflictingMarkets[$lowerCaseId];
                 $baseId = $conflictingMarket['base'];
                 $quoteId = $conflictingMarket['quote'];
@@ -818,7 +820,7 @@ class gemini extends Exchange {
         }
         $type = $swap ? 'swap' : 'spot';
         $isSpot = !$swap;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
             'base' => $base,
@@ -866,7 +868,7 @@ class gemini extends Exchange {
             ),
             'created' => null,
             'info' => $response,
-        );
+        ));
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -878,7 +880,7 @@ class gemini extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1214,7 +1216,7 @@ class gemini extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -1223,7 +1225,9 @@ class gemini extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['total'] = $this->safe_string($balance, 'amount');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1235,7 +1239,7 @@ class gemini extends Exchange {
          * @see https://docs.gemini.com/rest-api/#get-notional-volume
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1276,8 +1280,9 @@ class gemini extends Exchange {
         $maker = $this->parse_number($makerString);
         $taker = $this->parse_number($takerString);
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -1893,7 +1898,7 @@ class gemini extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
         //
         //      {
         //          "address" => "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -1963,7 +1968,7 @@ class gemini extends Exchange {
         return $this->group_by($results, 'network');
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
@@ -1999,7 +2004,7 @@ class gemini extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             if (gettype($body) === 'string') {
                 $feedback = $this->id . ' ' . $body;
@@ -2119,7 +2124,7 @@ class gemini extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //    {
         //        product_type => 'PerpetualSwapContract',

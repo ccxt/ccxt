@@ -170,10 +170,10 @@ class kraken extends \ccxt\async\kraken {
         $isTrailingLimitAmountOrder = $trailingLimitAmount !== null;
         $isTrailingLimitPercentOrder = $trailingLimitPercent !== null;
         $offset = $this->safe_string($params, 'offset', ''); // can set this to - for minus
-        $trailingAmountString = ($trailingAmount !== null) ? $offset . ($this->number_to_string($trailingAmount)) : null;
-        $trailingPercentString = ($trailingPercent !== null) ? $offset . ($this->number_to_string($trailingPercent)) : null;
-        $trailingLimitAmountString = ($trailingLimitAmount !== null) ? $offset . ($this->number_to_string($trailingLimitAmount)) : null;
-        $trailingLimitPercentString = ($trailingLimitPercent !== null) ? $offset . ($this->number_to_string($trailingLimitPercent)) : null;
+        $trailingAmountString = ($trailingAmount !== null) ? $offset . $this->number_to_string($trailingAmount) : null;
+        $trailingPercentString = ($trailingPercent !== null) ? $offset . $this->number_to_string($trailingPercent) : null;
+        $trailingLimitAmountString = ($trailingLimitAmount !== null) ? $offset . $this->number_to_string($trailingLimitAmount) : null;
+        $trailingLimitPercentString = ($trailingLimitPercent !== null) ? $offset . $this->number_to_string($trailingLimitPercent) : null;
         $priceType = ($isTrailingPercentOrder || $isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if ($method === 'createOrderWs') {
             $reduceOnly = $this->safe_bool($params, 'reduceOnly');
@@ -310,7 +310,7 @@ class kraken extends \ccxt\async\kraken {
         })();
     }
 
-    public function handle_create_edit_order($client, $message) {
+    public function handle_create_edit_order(Client $client, mixed $message) {
         //
         //  createOrder
         //     {
@@ -442,7 +442,7 @@ class kraken extends \ccxt\async\kraken {
         })();
     }
 
-    public function handle_cancel_order($client, $message) {
+    public function handle_cancel_order(Client $client, mixed $message) {
         //
         //     {
         //         "method" => "cancel_order",
@@ -489,7 +489,7 @@ class kraken extends \ccxt\async\kraken {
         })();
     }
 
-    public function handle_cancel_all_orders($client, $message) {
+    public function handle_cancel_all_orders(Client $client, mixed $message) {
         //
         //     {
         //         "method" => "cancel_all",
@@ -506,7 +506,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve($message, $reqId);
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(mixed $client, mixed $message) {
         //
         //     {
         //         "channel" => "ticker",
@@ -566,7 +566,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve($result, $messageHash);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "trade",
@@ -602,7 +602,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "ohlc",
@@ -629,13 +629,13 @@ class kraken extends \ccxt\async\kraken {
         $first = $data[0];
         $marketId = $this->safe_string($first, 'symbol');
         $symbol = $this->safe_symbol($marketId);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
         $interval = $this->safe_integer($first, 'interval');
         $timeframe = $this->find_timeframe($interval);
         $messageHash = $this->get_message_hash('ohlcv', null, $symbol);
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -796,7 +796,7 @@ class kraken extends \ccxt\async\kraken {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $requiredParams = array();
             if ($limit !== null) {
@@ -860,7 +860,7 @@ class kraken extends \ccxt\async\kraken {
                 if ($symbols !== null) {
                     for ($i = 0; $i < count($symbols); $i++) {
                         $symbol = $symbols[$i];
-                        $market = $this->markets[$symbol];
+                        $market = $this->market($symbol);
                         $info = $this->safe_value($market, 'info', array());
                         $wsName = $this->safe_string($info, 'wsname');
                         $marketsByWsName[$wsName] = $market;
@@ -883,7 +883,7 @@ class kraken extends \ccxt\async\kraken {
         return $request;
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
@@ -897,7 +897,7 @@ class kraken extends \ccxt\async\kraken {
         })();
     }
 
-    public function handle_heartbeat(Client $client, $message) {
+    public function handle_heartbeat(Client $client, mixed $message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -907,7 +907,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve($message, $event);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // $first $message (snapshot)
         //
@@ -1036,7 +1036,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function custom_handle_deltas($bookside, $deltas) {
+    public function custom_handle_deltas(mixed $bookside, mixed $deltas) {
         // $sortOrder = (key === 'bids') ? true : false;
         for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
@@ -1054,7 +1054,7 @@ class kraken extends \ccxt\async\kraken {
         }
     }
 
-    public function format_number($data) {
+    public function format_number(mixed $data) {
         $parts = explode('.', $data);
         $integer = $this->safe_string($parts, 0);
         $decimals = $this->safe_string($parts, 1, '');
@@ -1069,7 +1069,7 @@ class kraken extends \ccxt\async\kraken {
         return $joinedResult;
     }
 
-    public function handle_system_status(Client $client, $message) {
+    public function handle_system_status(Client $client, mixed $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
         // and unified for any usage pattern that
@@ -1128,7 +1128,7 @@ class kraken extends \ccxt\async\kraken {
         })();
     }
 
-    public function watch_private($name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function watch_private(mixed $name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($name, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
@@ -1155,7 +1155,7 @@ class kraken extends \ccxt\async\kraken {
             if ($this->newUpdates) {
                 $limit = $result->getLimit($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, true);
         })();
     }
 
@@ -1177,7 +1177,7 @@ class kraken extends \ccxt\async\kraken {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message, $subscription = null) {
+    public function handle_my_trades(Client $client, mixed $message, ?array $subscription = null) {
         //
         //     {
         //         "channel" => "executions",
@@ -1235,7 +1235,7 @@ class kraken extends \ccxt\async\kraken {
         }
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //     {
         //         "order_id" => "O6NTZC-K6FRH-ATWBCK",
@@ -1265,7 +1265,7 @@ class kraken extends \ccxt\async\kraken {
             $symbol = $market['symbol'];
         }
         $fee = null;
-        if (is_array($trade) && array_key_exists('fees', $trade)) {
+        if (is_array($trade) && array_key_exists('fees' ?? '', $trade)) {
             $fees = $this->safe_list($trade, 'fees', array());
             $firstFee = $this->safe_dict($fees, 0, array());
             $fee = array(
@@ -1308,7 +1308,7 @@ class kraken extends \ccxt\async\kraken {
         return $this->watch_private('orders', $symbol, $since, $limit, $this->extend($params, array( 'snap_orders' => true )));
     }
 
-    public function handle_orders(Client $client, $message, $subscription = null) {
+    public function handle_orders(Client $client, mixed $message, ?array $subscription = null) {
         //
         //     {
         //         "channel" => "executions",
@@ -1361,7 +1361,7 @@ class kraken extends \ccxt\async\kraken {
                 if ($length === $limit && ($previousOrder === null)) {
                     $first = $stored[0];
                     $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId', array());
-                    if (is_array($symbolsByOrderId) && array_key_exists($first['id'], $symbolsByOrderId)) {
+                    if (is_array($symbolsByOrderId) && array_key_exists($first['id'] ?? '', $symbolsByOrderId)) {
                         unset($symbolsByOrderId[$first['id']]);
                     }
                 }
@@ -1380,7 +1380,7 @@ class kraken extends \ccxt\async\kraken {
         }
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         // watchOrders
         //
@@ -1452,7 +1452,7 @@ class kraken extends \ccxt\async\kraken {
         ));
     }
 
-    public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, $subscriptionArgs = null, $params = array()) {
+    public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, mixed $subscriptionArgs = null, $params = array()) {
         return Async\async(function () use ($unifiedName, $channelName, $symbols, $subscriptionArgs, $params) {
             Async\await($this->load_markets());
             // $symbols are required
@@ -1511,7 +1511,7 @@ class kraken extends \ccxt\async\kraken {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "balances",
@@ -1568,7 +1568,7 @@ class kraken extends \ccxt\async\kraken {
         return $messageHash;
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         // public
         //
@@ -1597,12 +1597,12 @@ class kraken extends \ccxt\async\kraken {
             $client->subscriptions[$channelId] = $message;
         }
         // $requestId = $this->safe_string($message, "reqid");
-        // if (is_array($client->futures) && array_key_exists($requestId, $client->futures)) {
+        // if (is_array($client->futures) && array_key_exists($requestId ?? '', $client->futures)) {
         //     unset($client->futures[$requestId]);
         // }
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
         //         "errorMessage" => "Currency pair not in ISO 4217-A3 format foobar",
@@ -1641,7 +1641,7 @@ class kraken extends \ccxt\async\kraken {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $channel = $this->safe_string($message, 'channel');
         if ($channel !== null) {
             if ($channel === 'executions') {

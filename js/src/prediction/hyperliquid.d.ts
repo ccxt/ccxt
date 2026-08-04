@@ -147,7 +147,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    fetchOrderBook(outcome: string, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name hyperliquid#fetchOHLCV
@@ -358,14 +358,26 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an event structure
      */
     parseEvent(raw: Dict): any;
-    amountToPrecision(outcome: string, amount: any): string;
-    priceToPrecision(outcome: string, price: any): string;
+    amountToPrecision(outcome: Str, amount: any): string;
+    priceToPrecision(outcome: Str, price: any): string;
     hashMessage(message: any): string;
     signHash(hash: string, privateKey: string): Dict;
     signMessage(message: any, privateKey: string): Dict;
     constructPhantomAgent(hash: any, isTestnet?: boolean): Dict;
     actionHash(action: Dict, vaultAddress: Str, nonce: number): any;
     signL1Action(action: Dict, nonce: number, vaultAddress?: Str): Dict;
+    signUserSignedAction(messageTypes: Dict, message: Dict): Dict;
+    buildApproveBuilderFeeSig(message: Dict): Dict;
+    /**
+     * @method
+     * @name hyperliquid#approveBuilderFee
+     * @ignore
+     * @description approves the builder for the given max fee rate, required before orders can carry a builder attribution
+     * @param {string} builder the builder wallet address
+     * @param {string} maxFeeRate the maximum builder fee rate to approve, e.g. '0%'
+     * @returns {object} the raw exchange response
+     */
+    approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
     initializeClient(): Promise<any>;
     handlePublicAddress(methodName: string, params: Dict): any;
     formatVaultAddress(address?: Str): Str;
@@ -375,6 +387,6 @@ export default class hyperliquid extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
 }

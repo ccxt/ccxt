@@ -8,7 +8,7 @@ var apex$1 = require('./abstract/apex.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class apex
@@ -517,26 +517,28 @@ class apex extends apex$1["default"] {
                 if (tokenName === currencyId) {
                     const networkId = this.safeString(chain, 'chainId');
                     const networkCode = this.networkIdToCode(networkId, code);
-                    networks[networkCode] = {
-                        'info': chain,
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': undefined,
-                        'deposit': !this.safeBool(chain, 'depositDisable'),
-                        'withdraw': this.safeBool(token, 'withdrawEnable'),
-                        'fee': this.safeNumber(token, 'minFee'),
-                        'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber(token, 'minWithdraw'),
-                                'max': undefined,
+                    if (networkCode !== undefined) {
+                        networks[networkCode] = {
+                            'info': chain,
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': undefined,
+                            'deposit': !this.safeBool(chain, 'depositDisable'),
+                            'withdraw': this.safeBool(token, 'withdrawEnable'),
+                            'fee': this.safeNumber(token, 'minFee'),
+                            'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
+                            'limits': {
+                                'withdraw': {
+                                    'min': this.safeNumber(token, 'minWithdraw'),
+                                    'max': undefined,
+                                },
+                                'deposit': {
+                                    'min': this.safeNumber(chain, 'minDeposit'),
+                                    'max': undefined,
+                                },
                             },
-                            'deposit': {
-                                'min': this.safeNumber(chain, 'minDeposit'),
-                                'max': undefined,
-                            },
-                        },
-                    };
+                        };
+                    }
                 }
             }
         }
@@ -775,7 +777,7 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         const response = await this.publicGetV3Ticker(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);
@@ -819,7 +821,7 @@ class apex extends apex$1["default"] {
         const market = this.market(symbol);
         let request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
@@ -831,7 +833,7 @@ class apex extends apex$1["default"] {
         }
         const response = await this.publicGetV3Klines(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
-        const OHLCVs = this.safeList(data, market['id2'], []);
+        const OHLCVs = this.safeList(data, this.safeString(market, 'id2'), []);
         return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -865,7 +867,7 @@ class apex extends apex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -873,7 +875,7 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         if (limit === undefined) {
             limit = 100; // default is 200 when requested with `since`
@@ -931,7 +933,7 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         if (limit === undefined) {
             limit = 500; // default is 50
@@ -1014,7 +1016,7 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         const response = await this.publicGetV3Ticker(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);
@@ -1259,20 +1261,22 @@ class apex extends apex$1["default"] {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         if (market === undefined && marketId !== undefined) {
-            if (marketId in this.markets) {
-                market = this.markets[marketId];
+            const marketsMap = this.markets;
+            const marketsById = this.markets_by_id;
+            if ((marketsMap !== undefined) && (marketId in marketsMap)) {
+                market = marketsMap[marketId];
             }
-            else if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+            else if ((marketsById !== undefined) && (marketId in marketsById)) {
+                market = marketsById[marketId];
             }
             else {
                 const newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if (newMarketId in this.markets_by_id) {
-                    const markets = this.markets_by_id[newMarketId];
+                if ((marketsById !== undefined) && (newMarketId in marketsById)) {
+                    const markets = marketsById[newMarketId];
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
-                        if (this.markets_by_id[newMarketId][0]['id2'] === marketId) {
-                            market = this.markets_by_id[newMarketId][0];
+                        if (marketsById[newMarketId][0]['id2'] === marketId) {
+                            market = marketsById[newMarketId][0];
                         }
                     }
                 }
@@ -1334,6 +1338,9 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         let orderType = type.toUpperCase();
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const orderSide = side.toUpperCase();
         const orderSize = this.amountToPrecision(symbol, amount);
         let orderPrice = '0';
@@ -1473,7 +1480,8 @@ class apex extends apex$1["default"] {
         }
         const tokenId = this.safeString(currency, 'tokenId', '');
         const decimalsNum = this.safeNumber(currency, 'decimals', 0);
-        const mathPowResult = (Math.pow(10, decimalsNum));
+        const decimalsNumber = (decimalsNum === undefined) ? 0 : decimalsNum;
+        const mathPowResult = (Math.pow(10, decimalsNumber));
         const amountNumber = this.parseToInt(amount * mathPowResult);
         const timestampSeconds = this.parseToInt(this.milliseconds() / 1000);
         let clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);
@@ -1584,7 +1592,7 @@ class apex extends apex$1["default"] {
      * @name apex#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

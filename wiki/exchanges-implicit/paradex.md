@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official paradex API documentation:** [docs.api.testnet.paradex.trade](https://docs.api.testnet.paradex.trade/)
 
-> 109 implicit endpoints across 2 access groups.
+> 111 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -65,7 +65,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetBboMarketInteractive` | GET | `bbo/{market}/interactive` | 1 |
 | `publicGetFundingData` | GET | `funding/data` | 1 |
 | `publicGetMarkets` | GET | `markets` | 1 |
+| `publicGetMarketsHistory` | GET | `markets/history` | 1 |
 | `publicGetMarketsKlines` | GET | `markets/klines` | 1 |
+| `publicGetMarketsSettlementPrice` | GET | `markets/settlement-price` | 1 |
 | `publicGetMarketsSummary` | GET | `markets/summary` | 1 |
 | `publicGetOrderbookMarket` | GET | `orderbook/{market}` | 1 |
 | `publicGetOrderbookMarketImpactPrice` | GET | `orderbook/{market}/impact-price` | 1 |

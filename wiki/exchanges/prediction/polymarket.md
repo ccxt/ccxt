@@ -58,6 +58,7 @@ retrieves data on all markets for polymarket, each prediction market becomes one
 | params | <code>object</code> | No | extra exchange-specific parameters |
 | params.query | <code>string</code> | No | a single search term used to filter the fetched events |
 | params.queries | <code>Array&lt;string&gt;</code> | No | multiple search terms (alternative to query) |
+| params.tags | <code>Array&lt;string&gt;</code> | No | filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned) |
 | params.status | <code>string</code> | No | 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active' |
 | params.limit | <code>int</code> | No | max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome) |
 
@@ -451,6 +452,7 @@ places a limit or market order on the CLOB for the given outcome token
 | params.salt | <code>string</code> | No | order salt; defaults to the current time in ms (pin it for idempotent retries) |
 | params.timestamp | <code>string</code> | No | order timestamp; defaults to the current time in ms |
 | params.expiration | <code>string</code> | No | unix-seconds expiration for GTD orders; defaults to '0' (no expiry) |
+| params.builderCode | <code>string</code> | No | builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder |
 
 
 ```javascript
@@ -589,6 +591,7 @@ fetches prediction-market events matching the given scope (query/queries/tags/ev
 | params | <code>object</code> | No | extra exchange-specific parameters |
 | params.query | <code>string</code> | No | a single keyword search term |
 | params.queries | <code>Array&lt;string&gt;</code> | No | multiple search terms (alternative to query) |
+| params.tags | <code>Array&lt;string&gt;</code> | No | filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped) |
 | params.limit | <code>int</code> | No | max number of events to return |
 | params.sort | <code>string</code> | No | 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field |
 | params.status | <code>string</code> | No | 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable) |

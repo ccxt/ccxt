@@ -62,7 +62,7 @@ class ArrayCache extends BaseCache implements CustomArray {
     }
 
     getLimit (symbol, limit) {
-        let newUpdatesValue = undefined
+        let newUpdatesValue: Bool = undefined
 
         if (symbol === undefined) {
             newUpdatesValue = this.allNewUpdates
@@ -190,7 +190,10 @@ class ArrayCacheBySymbolById extends ArrayCache {
                 }
             }
             item = reference
-            const index = this.findIndex ((x) => x.id === item.id)
+            // match on both the key field (e.g. symbol) and id - different symbols
+            // can share an order id (exchanges like binance use per-symbol id
+            // sequences), and matching on id alone would splice out the wrong row
+            const index = this.findIndex ((x) => (x.id === item.id) && (x[this.keyField] === item[this.keyField]))
             // move the order to the end of the array
             this.splice (index, 1)
         } else {
@@ -225,7 +228,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
 
 class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: Int = undefined) {
         super (maxSize)
         this.keyField = 'outcome'
     }

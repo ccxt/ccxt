@@ -206,7 +206,7 @@ func (this *BlofinCore) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BlofinCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -237,7 +237,7 @@ func (this *BlofinCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan a
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BlofinCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -570,7 +570,7 @@ func (this *BlofinCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalA
 		_ = params
 		var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [[\\'BTC/USDT\\', \\'1m\\'], [\\'LTC/USDT\\', \\'5m\\']]")))
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")))
 		}
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 

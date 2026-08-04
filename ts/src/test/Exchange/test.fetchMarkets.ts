@@ -2,6 +2,7 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testMarket from './base/test.market.js';
 import testSharedMethods from './base/test.sharedMethods.js';
+import type { Dict } from '../../base/types.js';
 
 async function testFetchMarkets (exchange: Exchange, skippedProperties: object) {
     const method = 'fetchMarkets';
@@ -18,7 +19,7 @@ async function testFetchMarkets (exchange: Exchange, skippedProperties: object) 
 
 function detectMarketConflicts (exchange: Exchange, marketValues: any[]) {
     // detect if there are markets with different ids for the same symbol
-    const ids = {};
+    const ids: Dict = {};
     for (let i = 0; i < marketValues.length; i++) {
         const market = marketValues[i];
         const symbol = market['symbol'];

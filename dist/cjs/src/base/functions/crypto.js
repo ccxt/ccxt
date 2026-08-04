@@ -9,13 +9,13 @@ var secp256k1_js = require('@noble/curves/secp256k1.js');
 var nist_js = require('@noble/curves/nist.js');
 var utils_js = require('@noble/curves/utils.js');
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 // @noble/hashes v2 and @noble/curves v2 accept Uint8Array only
 // strings were treated as utf8 by noble-hashes v1 and as hex by noble-curves v1
 const utf8Bytes = (data) => ((typeof data === 'string') ? utils_js$1.utf8ToBytes(data) : data);
 const hexBytes = (data) => ((typeof data === 'string') ? utils_js.hexToBytes(data) : data);
 const encoders = {
-    binary: x => x,
+    binary: (x) => x,
     hex: base.hex.encode,
     base64: base.base64.encode,
 };

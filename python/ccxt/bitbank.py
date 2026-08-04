@@ -312,13 +312,13 @@ class bitbank(Exchange, ImplicitAPI):
         pairs = self.safe_value(data, 'pairs', [])
         return self.parse_markets(pairs)
 
-    def parse_market(self, entry) -> Market:
+    def parse_market(self, entry: Any) -> Market:
         id = self.safe_string(entry, 'name')
         baseId = self.safe_string(entry, 'base_asset')
         quoteId = self.safe_string(entry, 'quote_asset')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -368,7 +368,7 @@ class bitbank(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': entry,
-        }
+        })
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
@@ -426,7 +426,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -564,7 +564,7 @@ class bitbank(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         "0.02501786",
@@ -635,7 +635,7 @@ class bitbank(Exchange, ImplicitAPI):
         ohlcv = self.safe_list(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -651,7 +651,8 @@ class bitbank(Exchange, ImplicitAPI):
             account['free'] = self.safe_string(balance, 'free_amount')
             account['used'] = self.safe_string(balance, 'locked_amount')
             account['total'] = self.safe_string(balance, 'onhand_amount')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1040,7 +1041,7 @@ class bitbank(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         query = self.omit(params, self.extract_params(path))
         url = self.implode_hostname(self.urls['api'][api]) + '/'
         if (api == 'public') or (api == 'markets'):
@@ -1049,8 +1050,20 @@ class bitbank(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
+            # bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            # 'timeWindow'(default): request time + validity window, stateless and safe for concurrent use of one key
+            # 'nonce': legacy strictly-increasing nonce, kept escape hatch for clients with drifting clocks,
+            # since bitbank offers no server time endpoint to compensate against
+            authMethod = self.safe_string(self.options, 'authMethod', 'timeWindow')
+            isTimeWindow = (authMethod == 'timeWindow')
+            requestTime = str(self.milliseconds())
+            timeWindow = self.safe_string(self.options, 'timeWindow', '5000')
             nonce = str(self.nonce())
-            auth = nonce
+            auth = None
+            if isTimeWindow:
+                auth = requestTime + timeWindow
+            else:
+                auth = nonce
             url += self.version + '/' + self.implode_params(path, params)
             if method == 'POST':
                 body = self.json(query)
@@ -1064,12 +1077,16 @@ class bitbank(Exchange, ImplicitAPI):
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,
-                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
+            if isTimeWindow:
+                headers['ACCESS-REQUEST-TIME'] = requestTime
+                headers['ACCESS-TIME-WINDOW'] = timeWindow
+            else:
+                headers['ACCESS-NONCE'] = nonce
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         success = self.safe_integer(response, 'success')

@@ -6,7 +6,7 @@ var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 var lighter$1 = require('../lighter.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class lighter extends lighter$1["default"] {
     describe() {
@@ -182,7 +182,7 @@ class lighter extends lighter$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -354,7 +354,7 @@ class lighter extends lighter$1["default"] {
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
         }
-        if (symbolsLength === 0) {
+        if ((symbols === undefined) || (symbolsLength === 0)) {
             messageHashes.push(this.getMessageHash('ticker'));
         }
         else {
@@ -844,6 +844,9 @@ class lighter extends lighter$1["default"] {
         const price = this.safeString(liquidation, 'price');
         const baseValue = Precise["default"].stringMul(contracts, contractSize);
         const quoteValue = Precise["default"].stringMul(baseValue, price);
+        if (market === undefined) {
+            return undefined;
+        }
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': market['symbol'],
@@ -1038,7 +1041,9 @@ class lighter extends lighter$1["default"] {
                 const account = this.account();
                 account['used'] = this.safeString(asset, 'locked_balance');
                 account['total'] = this.safeString(asset, 'balance');
-                balance[code] = account;
+                if (code !== undefined) {
+                    balance[code] = account;
+                }
             }
         }
         else {

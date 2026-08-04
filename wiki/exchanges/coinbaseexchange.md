@@ -128,7 +128,7 @@ coinbaseexchange.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook  
 
@@ -476,12 +476,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-coinbaseexchange.cancelAllOrders (symbol, params?)
+coinbaseexchange.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -819,7 +819,7 @@ coinbaseexchange.watchOrders (symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -840,7 +840,7 @@ coinbaseexchange.watchOrderBookForSymbols (symbols, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |

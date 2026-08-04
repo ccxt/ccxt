@@ -395,7 +395,7 @@ public partial class blockchaincom : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -630,6 +630,10 @@ public partial class blockchaincom : Exchange
         object uppercaseOrderType = ((string)orderType).ToUpper();
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
         parameters = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "ordType", uppercaseOrderType },
             { "symbol", getValue(market, "id") },
@@ -706,7 +710,7 @@ public partial class blockchaincom : Exchange
      * @name blockchaincom#cancelAllOrders
      * @description cancel all open orders
      * @see https://api.blockchain.com/v3/#deleteallorders
-     * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -760,9 +764,10 @@ public partial class blockchaincom : Exchange
         object makerFee = this.safeNumber(response, "makerRate");
         object takerFee = this.safeNumber(response, "takerRate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1198,7 +1203,7 @@ public partial class blockchaincom : Exchange
      * @description fetch information on a deposit
      * @see https://api.blockchain.com/v3/#getdepositbyid
      * @param {string} id deposit id
-     * @param {string} code not used by blockchaincom fetchDeposit ()
+     * @param {string} code not used by fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
@@ -1232,7 +1237,7 @@ public partial class blockchaincom : Exchange
         {
             await this.loadMarkets();
         }
-        object accountName = ((string)this.safeString(parameters, "account", "primary"));
+        object accountName = this.safeString(parameters, "account", "primary");
         parameters = this.omit(parameters, "account");
         object request = new Dictionary<string, object>() {
             { "account", accountName },

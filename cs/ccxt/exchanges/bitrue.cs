@@ -733,22 +733,25 @@ public partial class bitrue : Exchange
             object entry = getValue(networkDetails, j);
             object networkId = this.safeString(entry, "chain");
             object network = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                { "info", entry },
-                { "id", networkId },
-                { "network", network },
-                { "deposit", this.safeBool(entry, "enableDeposit") },
-                { "withdraw", this.safeBool(entry, "enableWithdraw") },
-                { "active", null },
-                { "fee", this.safeNumber(entry, "withdrawFee") },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(entry, "minWithdraw") },
-                        { "max", this.safeNumber(entry, "maxWithdraw") },
+            if (isTrue(!isEqual(network, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                    { "info", entry },
+                    { "id", networkId },
+                    { "network", network },
+                    { "deposit", this.safeBool(entry, "enableDeposit") },
+                    { "withdraw", this.safeBool(entry, "enableWithdraw") },
+                    { "active", null },
+                    { "fee", this.safeNumber(entry, "withdrawFee") },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(entry, "minWithdraw") },
+                            { "max", this.safeNumber(entry, "maxWithdraw") },
+                        } },
                     } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -779,7 +782,7 @@ public partial class bitrue : Exchange
      * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
      * @see https://www.bitrue.com/api-docs#current-open-contract
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
@@ -956,7 +959,7 @@ public partial class bitrue : Exchange
             minCost = this.safeNumber(market, "minOrderMoney");
         }
         object isSpot = (isEqual(type, "spot"));
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "lowercaseId", lowercaseId },
             { "symbol", symbol },
@@ -1005,7 +1008,7 @@ public partial class bitrue : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseBalance(object response)
@@ -1069,7 +1072,10 @@ public partial class bitrue : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "free", "accountNormal");
             ((IDictionary<string,object>)account)["used"] = this.safeString2(balance, "locked", "accountLock");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
         ((IDictionary<string,object>)result)["datetime"] = this.iso8601(timestamp);
@@ -1134,7 +1140,7 @@ public partial class bitrue : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1529,7 +1535,7 @@ public partial class bitrue : Exchange
         }
         symbols = this.marketSymbols(symbols, null, false);
         object first = this.safeString(symbols, 0);
-        object market = this.market(((string)first));
+        object market = this.market(first);
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
@@ -1608,7 +1614,7 @@ public partial class bitrue : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object first = this.safeString(symbols, 0);
-            object market = this.market(((string)first));
+            object market = this.market(first);
             if (isTrue(getValue(market, "swap")))
             {
                 throw new NotSupported ((string)add(this.id, " fetchTickers does not support swap markets, please use fetchTicker instead")) ;
@@ -1935,7 +1941,7 @@ public partial class bitrue : Exchange
         object amount = this.safeString(order, "origQty");
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
-        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+        //   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
         object cost = this.safeString2(order, "cummulativeQuoteQty", "cumQuote");
         object id = this.safeString(order, "orderId");
         object type = this.safeStringLower(order, "type");
@@ -1948,7 +1954,7 @@ public partial class bitrue : Exchange
         {
             type = "limit";
         }
-        object triggerPrice = this.parseNumber(this.omitZero(((string)this.safeString(order, "stopPrice"))));
+        object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "stopPrice")));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2513,7 +2519,7 @@ public partial class bitrue : Exchange
      * @description cancel all open orders in a market
      * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -2525,7 +2531,7 @@ public partial class bitrue : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object response = null;
         object data = new List<object>() {};
         if (isTrue(getValue(market, "swap")))
@@ -2816,7 +2822,7 @@ public partial class bitrue : Exchange
                 { "6", "canceled" },
             } },
         };
-        object statuses = this.safeDict(statusesByType, ((string)type), new Dictionary<string, object>() {});
+        object statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         return this.safeString(statuses, status, status);
     }
 
@@ -3050,16 +3056,19 @@ public partial class bitrue : Exchange
                 object networkId = this.safeString(chainDetail, "chain");
                 object currencyCode = this.safeString(currency, "code");
                 object networkCode = this.networkIdToCode(networkId, currencyCode);
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "fee", this.safeNumber(chainDetail, "withdrawFee") },
-                        { "percentage", false },
-                    } },
-                };
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "fee", this.safeNumber(chainDetail, "withdrawFee") },
+                            { "percentage", false },
+                        } },
+                    };
+                }
                 if (isTrue(isEqual(chainDetailLength, 1)))
                 {
                     ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(chainDetail, "withdrawFee");
@@ -3462,7 +3471,7 @@ public partial class bitrue : Exchange
             throw new DDoSProtection ((string)add(add(add(add(add(add(this.id, " "), ((object)code).ToString()), " "), reason), " "), body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (isTrue(isGreaterThanOrEqual(code, 400)))
         {

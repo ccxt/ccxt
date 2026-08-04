@@ -34,10 +34,8 @@ async def test_watch_order_book_for_symbols(exchange, skipped_properties, symbol
             current_time = exchange.milliseconds()
             succeeded = False
         if (succeeded) and (response is not None):
-            assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return a dictionary. ' + exchange.json(response)
-            current_time = exchange.milliseconds()
-            test_shared_methods.assert_in_array(exchange, skipped_properties, method, response, 'symbol', symbols)
             test_order_book(exchange, skipped_properties, method, response, None)
+            test_shared_methods.assert_in_array(exchange, skipped_properties, method, response, 'symbol', symbols)
             symbol = response['symbol']
             if (symbol is not None) and not exchange.in_array(symbol, seen_symbols):
                 seen_symbols.append(symbol)

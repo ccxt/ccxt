@@ -339,12 +339,12 @@ class coinmate(Exchange, ImplicitAPI):
 
     async def fetch_time(self, params={}) -> Int:
         """
-        fetches the current integer timestamp in milliseconds from the bingx server
+        fetches the current integer timestamp in milliseconds from the exchange server
 
         https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int: the current integer timestamp in milliseconds from the bingx server
+        :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = await self.publicGetSystemTime(params)
         #
@@ -444,7 +444,7 @@ class coinmate(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         balances = self.safe_value(response, 'data', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
@@ -482,7 +482,7 @@ class coinmate(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1165,7 +1165,7 @@ class coinmate(Exchange, ImplicitAPI):
         https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
 
         :param str id: order id
-        :param str symbol: not used by coinmate cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1188,7 +1188,7 @@ class coinmate(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = (self.urls['api'])['rest'] + '/' + path
         if api == 'public':
             if params:
@@ -1209,7 +1209,7 @@ class coinmate(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

@@ -6,7 +6,7 @@ var time = require('../functions/time.js');
 var generic = require('../functions/generic.js');
 var OrderBookSide = require('./OrderBookSide.js');
 
-/* eslint-disable max-classes-per-file */
+// ----------------------------------------------------------------------------
 class OrderBook {
     constructor(snapshot = {}, depth = undefined) {
         this.cache = []; // make prop visible so we use typed OrderBooks
@@ -86,6 +86,24 @@ class OrderBook {
             delete this.symbol;
         }
         return this;
+    }
+    copy() {
+        const snapshot = {};
+        if (this.outcome !== undefined) {
+            snapshot['outcome'] = this.outcome;
+            snapshot['outcomeId'] = this.outcomeId;
+            snapshot['market'] = this.market;
+        }
+        else {
+            snapshot['symbol'] = this.symbol;
+        }
+        const copy = new this.constructor(snapshot, this.asks.depth);
+        copy.asks = this.asks.copy();
+        copy.bids = this.bids.copy();
+        copy.nonce = this.nonce;
+        copy.timestamp = this.timestamp;
+        copy.datetime = this.datetime;
+        return copy;
     }
 }
 // ----------------------------------------------------------------------------

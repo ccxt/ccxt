@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var num = require('../num.js');
 var shortString = require('../shortString.js');
 
+// ----------------------------------------------------------------------------
 /**
  * convert a Cairo ByteArray to a JS string
  * @param myByteArray Cairo representation of a LongString

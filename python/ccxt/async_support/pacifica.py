@@ -246,6 +246,12 @@ class pacifica(Exchange, ImplicitAPI):
                     'taker': self.parse_number('0.0004'),
                     'maker': self.parse_number('0.00015'),
                 },
+                'spot': {
+                    # https://docs.pacifica.fi/trading-on-pacifica/trading-fees
+                    # one unified fee schedule for all product types
+                    'taker': self.parse_number('0.0004'),
+                    'maker': self.parse_number('0.00015'),
+                },
             },
             #
             # Reminder:
@@ -619,7 +625,7 @@ class pacifica(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    async def fetch_swap_markets(self, params={}) -> List[Market]:
+    async def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         """
         retrieves data on all swap markets for pacifica
 
@@ -679,6 +685,8 @@ class pacifica(Exchange, ImplicitAPI):
         maxLeverage = None
         crossMargin = None
         isolatedMargin = None
+        if id is None:
+            raise ExchangeError(self.id + ' parseMarket() missing id')
         if isSpot:
             idParts = id.split('-')
             quoteId = self.safe_string(idParts, 1, quoteId)
@@ -837,13 +845,13 @@ class pacifica(Exchange, ImplicitAPI):
         cacheAddress = self.walletAddress
         settings = None
         if userAccount == cacheAddress:
-            settings = self.handle_option('fetchLeverage', 'settings', None)
+            settings = self.handle_option('fetchLeverage', 'settings')
         else:
             request = {
                 'account': userAccount,
             }
             settings = await self.fetch_account_settings(self.extend(request, params))
-        setting = self.safe_dict(settings, symbol, None)
+        setting = self.safe_dict(settings, symbol)
         if setting is None:
             # NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             # When querying self endpoint, all markets with default margin and leverage settings on self account will return blank.
@@ -916,7 +924,7 @@ class pacifica(Exchange, ImplicitAPI):
         return self.parse_account_settings(self.safe_list(response, 'data', []))
 
     async def load_account_settings(self, refresh: bool = False, params={}):
-        settings = self.handle_option('loadAccountSettings', 'settings', None)
+        settings = self.handle_option('loadAccountSettings', 'settings')
         if (settings is None) or (refresh is True):
             self.options['settings'] = self.create_safe_dictionary()
             settings = await self.fetch_account_settings(params)
@@ -951,7 +959,7 @@ class pacifica(Exchange, ImplicitAPI):
         cacheAddress = self.walletAddress
         settings = None
         if userAccount == cacheAddress:
-            settings = self.handle_option('fetchMarginMode', 'settings', None)
+            settings = self.handle_option('fetchMarginMode', 'settings')
         else:
             request = {
                 'account': userAccount,
@@ -966,7 +974,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "updated_at": 1758086074002
         #    },
         # }
-        setting = self.safe_dict(settings, symbol, None)
+        setting = self.safe_dict(settings, symbol)
         if setting is None:
             # NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             # When querying self endpoint, all markets with default margin and leverage settings on self account will return blank.
@@ -1004,7 +1012,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.aggLevel]: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1095,7 +1103,7 @@ class pacifica(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(result, symbols)
 
-    def parse_funding_rate(self, info, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, info: Any, market: Market = None) -> FundingRate:
         #
         #      {
         #         "funding": "0.00010529",
@@ -1209,7 +1217,7 @@ class pacifica(Exchange, ImplicitAPI):
         candles = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #       "t": 1748954160000,
@@ -1233,7 +1241,7 @@ class pacifica(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def fetch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
 
@@ -1469,7 +1477,11 @@ class pacifica(Exchange, ImplicitAPI):
         orderId = self.safe_string(order, 'order_id')
         return self.safe_order({'id': orderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> list:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> list:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         create a trade order
@@ -1668,7 +1680,7 @@ class pacifica(Exchange, ImplicitAPI):
         ordersToReturn = []
         for i in range(0, len(results)):
             order = results[i]
-            error = self.safe_string(order, 'error', None)
+            error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
             if (error is not None) or (not success):
@@ -1724,7 +1736,7 @@ class pacifica(Exchange, ImplicitAPI):
         ordersToReturn = []
         for i in range(0, len(results)):
             order = results[i]
-            error = self.safe_string(order, 'error', None)
+            error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
             if (error is not None) or (not success):
@@ -1765,7 +1777,7 @@ class pacifica(Exchange, ImplicitAPI):
 
         https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
 
-        :param str symbol:(optional) unified market symbol of the market to cancel orders in.
+        :param str [symbol]:(optional) unified market symbol of the market to cancel orders in.
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.excludeReduceOnly]: whether to exclude reduce-only orders
         :param int [params.expiryWindow]: time to live in milliseconds
@@ -1900,7 +1912,9 @@ class pacifica(Exchange, ImplicitAPI):
         orderId = self.safe_string(data, 'order_id')
         return self.safe_order({'id': orderId, 'info': response, 'symbol': symbol})
 
-    def edit_order_request(self, id: str, symbol: str, type: str, side: str, amount: Num, price: Num, market: Market, params={}):
+    def edit_order_request(self, id: str, symbol: Str, type: str, side: Str, amount: Num, price: Num, market: Market, params={}):
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount!')
         if price is None:
@@ -2027,7 +2041,8 @@ class pacifica(Exchange, ImplicitAPI):
             info = data[i]
             ticker = self.parse_ticker(info)
             symbol = self.safe_string(ticker, 'symbol')
-            result[symbol] = ticker
+            if symbol is not None:
+                result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -2236,7 +2251,7 @@ class pacifica(Exchange, ImplicitAPI):
         orders = self.parse_orders(data, market, since, limit)
         return orders
 
-    def add_pagination_cursor_to_result(self, response):
+    def add_pagination_cursor_to_result(self, response: Any):
         data = self.safe_list(response, 'data', [])
         paginationCursor = self.safe_string(response, 'next_cursor')
         hasMore = self.safe_bool(response, 'has_more', False)
@@ -2346,16 +2361,16 @@ class pacifica(Exchange, ImplicitAPI):
         tif = None
         if tifRaw is not None:
             tif = tifRaw.upper()
-        return self.safe_string(tifMap, tif, None)
+        return self.safe_string(tifMap, tif)
 
-    def map_side(self, sideRaw: str):
+    def map_side(self, sideRaw: Str):
         sideMap = {
             'sell': 'ask',
             'buy': 'bid',
         }
         return self.safe_string(sideMap, sideRaw, sideRaw)
 
-    def parse_order_type(self, status: str):
+    def parse_order_type(self, status: Str):
         statuses = {
             'stop_limit': 'limit',
             'stop_market': 'market',
@@ -2796,7 +2811,7 @@ class pacifica(Exchange, ImplicitAPI):
         ois = await self.fetch_open_interests([symbol], params)
         return ois[symbol]
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #     {
         #       "funding": "0.00010529",
@@ -2911,7 +2926,7 @@ class pacifica(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         ledgerType = {
             'subaccount_transfer': 'transfer',
             'deposit': 'transaction',
@@ -2984,7 +2999,7 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_incomes(data, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         #     {
         #       "history_id": 2287920,
@@ -3090,7 +3105,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         finalHeaders = {}
         agentAddress = None
-        agentAddress, params = self.handle_option('createSubAccount', 'agentAddress', None)
+        agentAddress, params = self.handle_option('createSubAccount', 'agentAddress')
         originAddress = None
         originAddress, params = self.handle_origin_and_single_address('createSubAccount', params)
         if originAddress is None:
@@ -3205,7 +3220,7 @@ class pacifica(Exchange, ImplicitAPI):
             return [address1, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or or "address" in params')
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -3229,7 +3244,7 @@ class pacifica(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         host = self.implode_hostname(self.urls[urlKey][api])
@@ -3244,16 +3259,16 @@ class pacifica(Exchange, ImplicitAPI):
             headers['Accept'] = '*/*'
         if method == 'POST':
             body = self.json(params)
-        if self.handle_option('sign', 'apiKey', None) is not None:
+        if self.handle_option('sign', 'apiKey') is not None:
             headers['PF-API-KEY'] = self.options['apiKey']
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         cost = self.safe_string(config, 'cost', '1')
         costNumber = self.parse_number(cost)
         # 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if costNumber > 1:
-            if self.handle_option(method, 'apiKey', None) is not None:
+            if self.handle_option(method, 'apiKey') is not None:
                 costWithKey = self.handle_option(
                     method,
                     'maxCostHugeWithApiKey',

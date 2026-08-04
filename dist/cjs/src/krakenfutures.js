@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class krakenfutures
@@ -209,6 +209,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     'invalidAccount': errors.BadRequest, // the fromAccount or the toAccount are invalid
                     'invalidAmount': errors.BadRequest,
                     'insufficientFunds': errors.InsufficientFunds,
+                    'INSUFFICIENT_MARGIN': errors.InsufficientFunds, // 500 with {"errors":[{"code":92,"message":"INSUFFICIENT_MARGIN"}]}, see https://github.com/ccxt/ccxt/issues/19896
                     'Bad Request': errors.BadRequest, // The URL contains invalid characters. (Please encode the json URL parameter)
                     'Unavailable': errors.ExchangeNotAvailable, // https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit': errors.BadRequest,
@@ -1078,6 +1079,12 @@ class krakenfutures extends krakenfutures$1["default"] {
         });
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         type = this.safeString(params, 'orderType', type);
@@ -1421,7 +1428,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @name krakenfutures#cancelAllOrders
      * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
      * @description Cancels all orders on the exchange, including trigger orders
-     * @param {str} symbol Unified market symbol
+     * @param {string} [symbol] Unified market symbol
      * @param {dict} [params] Exchange specific params
      * @returns Response from exchange api
      */
@@ -2514,6 +2521,9 @@ class krakenfutures extends krakenfutures$1["default"] {
             const currencyId = currencyIds[i];
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode(currencyId);
+            if (code === undefined) {
+                continue;
+            }
             const splitCode = code.split('_');
             const codeLength = splitCode.length;
             if (codeLength > 1) {
@@ -2533,7 +2543,9 @@ class krakenfutures extends krakenfutures$1["default"] {
                 account['free'] = this.safeString(auxiliary, 'af');
                 account['total'] = this.safeString(auxiliary, 'pv');
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2727,7 +2739,9 @@ class krakenfutures extends krakenfutures$1["default"] {
     }
     parsePositions(response, symbols = undefined, params = {}) {
         const result = [];
-        const positions = this.safeValue(response, 'openPositions');
+        // a degraded response can omit openPositions entirely - default to an
+        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
+        const positions = this.safeList(response, 'openPositions', []);
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition(positions[i]);
             result.push(position);
@@ -2955,7 +2969,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (account in accountByType) {
             return accountByType[account];
         }
-        else if (account in this.markets) {
+        else if ((this.markets !== undefined) && (account in this.markets)) {
             const market = this.market(account);
             const marketId = market['id'];
             const splitId = marketId.split('_');
@@ -3050,9 +3064,13 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        const marketIdUpper = this.marketId(symbol);
+        if (marketIdUpper === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' marketId is required');
+        }
         const request = {
             'maxLeverage': leverage,
-            'symbol': this.marketId(symbol).toUpperCase(),
+            'symbol': marketIdUpper.toUpperCase(),
         };
         //
         // { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
@@ -3105,8 +3123,12 @@ class krakenfutures extends krakenfutures$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const marketIdUpper = this.marketId(symbol);
+        if (marketIdUpper === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' marketId is required');
+        }
         const request = {
-            'symbol': this.marketId(symbol).toUpperCase(),
+            'symbol': marketIdUpper.toUpperCase(),
         };
         const response = await this.privateGetLeveragepreferences(this.extend(request, params));
         //

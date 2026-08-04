@@ -237,6 +237,12 @@ class pacifica extends Exchange {
                     'taker' => $this->parse_number('0.0004'),
                     'maker' => $this->parse_number('0.00015'),
                 ),
+                'spot' => array(
+                    // https://docs.pacifica.fi/trading-on-pacifica/trading-fees
+                    // one unified fee schedule for all product types
+                    'taker' => $this->parse_number('0.0004'),
+                    'maker' => $this->parse_number('0.00015'),
+                ),
             ),
             //
             // Reminder:
@@ -688,6 +694,9 @@ class pacifica extends Exchange {
         $maxLeverage = null;
         $crossMargin = null;
         $isolatedMargin = null;
+        if ($id === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing id');
+        }
         if ($isSpot) {
             $idParts = explode('-', $id);
             $quoteId = $this->safe_string($idParts, 1, $quoteId);
@@ -855,14 +864,14 @@ class pacifica extends Exchange {
             $cacheAddress = $this->walletAddress;
             $settings = null;
             if ($userAccount === $cacheAddress) {
-                $settings = $this->handle_option('fetchLeverage', 'settings', null);
+                $settings = $this->handle_option('fetchLeverage', 'settings');
             } else {
                 $request = array(
                     'account' => $userAccount,
                 );
                 $settings = Async\await($this->fetch_account_settings($this->extend($request, $params)));
             }
-            $setting = $this->safe_dict($settings, $symbol, null);
+            $setting = $this->safe_dict($settings, $symbol);
             if ($setting === null) {
                 // NOTE => Upon account creation, all markets have margin $settings default to cross margin and leverage default to max.
                 // When querying this endpoint, all markets with default margin and leverage $settings on this account will return blank.
@@ -944,7 +953,7 @@ class pacifica extends Exchange {
 
     public function load_account_settings(bool $refresh = false, $params = array()) {
         return Async\async(function () use ($refresh, $params) {
-            $settings = $this->handle_option('loadAccountSettings', 'settings', null);
+            $settings = $this->handle_option('loadAccountSettings', 'settings');
             if (($settings === null) || ($refresh === true)) {
                 $this->options['settings'] = $this->create_safe_dictionary();
                 $settings = Async\await($this->fetch_account_settings($params));
@@ -986,7 +995,7 @@ class pacifica extends Exchange {
             $cacheAddress = $this->walletAddress;
             $settings = null;
             if ($userAccount === $cacheAddress) {
-                $settings = $this->handle_option('fetchMarginMode', 'settings', null);
+                $settings = $this->handle_option('fetchMarginMode', 'settings');
             } else {
                 $request = array(
                     'account' => $userAccount,
@@ -1002,7 +1011,7 @@ class pacifica extends Exchange {
             //       "updated_at" => 1758086074002
             //    ),
             // }
-            $setting = $this->safe_dict($settings, $symbol, null);
+            $setting = $this->safe_dict($settings, $symbol);
             if ($setting === null) {
                 // NOTE => Upon account creation, all markets have margin $settings default to cross margin and leverage default to max.
                 // When querying this endpoint, all markets with default margin and leverage $settings on this account will return blank.
@@ -1045,7 +1054,7 @@ class pacifica extends Exchange {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1142,7 +1151,7 @@ class pacifica extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($info, ?array $market = null): array {
+    public function parse_funding_rate(mixed $info, ?array $market = null): array {
         //
         //      {
         //         "funding" => "0.00010529",
@@ -1268,7 +1277,7 @@ class pacifica extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //       "t" => 1748954160000,
@@ -1293,7 +1302,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1552,7 +1561,13 @@ class pacifica extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * create a trade order
@@ -1771,7 +1786,7 @@ class pacifica extends Exchange {
             $ordersToReturn = array();
             for ($i = 0; $i < count($results); $i++) {
                 $order = $results[$i];
-                $error = $this->safe_string($order, 'error', null);
+                $error = $this->safe_string($order, 'error');
                 $success = $this->safe_bool($order, 'success', false);
                 $status = null;
                 if (($error !== null) || (!$success)) {
@@ -1834,7 +1849,7 @@ class pacifica extends Exchange {
             $ordersToReturn = array();
             for ($i = 0; $i < count($results); $i++) {
                 $order = $results[$i];
-                $error = $this->safe_string($order, 'error', null);
+                $error = $this->safe_string($order, 'error');
                 $success = $this->safe_bool($order, 'success', false);
                 $status = null;
                 if (($error !== null) || (!$success)) {
@@ -1883,7 +1898,7 @@ class pacifica extends Exchange {
              *
              * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
              *
-             * @param {string} $symbol (optional) unified market $symbol of the market to cancel orders in.
+             * @param {string} [$symbol] (optional) unified market $symbol of the market to cancel orders in.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->excludeReduceOnly] whether to exclude reduce-only orders
              * @param {int} [$params->expiryWindow] time to live in milliseconds
@@ -2036,7 +2051,10 @@ class pacifica extends Exchange {
         })();
     }
 
-    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price, array $market, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, string $type, ?string $side, ?float $amount, ?float $price, array $market, $params = array()) {
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount!');
         }
@@ -2178,7 +2196,9 @@ class pacifica extends Exchange {
                 $info = $data[$i];
                 $ticker = $this->parse_ticker($info);
                 $symbol = $this->safe_string($ticker, 'symbol');
-                $result[$symbol] = $ticker;
+                if ($symbol !== null) {
+                    $result[$symbol] = $ticker;
+                }
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         })();
@@ -2415,7 +2435,7 @@ class pacifica extends Exchange {
         })();
     }
 
-    public function add_pagination_cursor_to_result($response) {
+    public function add_pagination_cursor_to_result(mixed $response) {
         $data = $this->safe_list($response, 'data', array());
         $paginationCursor = $this->safe_string($response, 'next_cursor');
         $hasMore = $this->safe_bool($response, 'has_more', false);
@@ -2536,10 +2556,10 @@ class pacifica extends Exchange {
         if ($tifRaw !== null) {
             $tif = strtoupper($tifRaw);
         }
-        return $this->safe_string($tifMap, $tif, null);
+        return $this->safe_string($tifMap, $tif);
     }
 
-    public function map_side(string $sideRaw) {
+    public function map_side(?string $sideRaw) {
         $sideMap = array(
             'sell' => 'ask',
             'buy' => 'bid',
@@ -2547,7 +2567,7 @@ class pacifica extends Exchange {
         return $this->safe_string($sideMap, $sideRaw, $sideRaw);
     }
 
-    public function parse_order_type(string $status) {
+    public function parse_order_type(?string $status) {
         $statuses = array(
             'stop_limit' => 'limit',
             'stop_market' => 'market',
@@ -3029,7 +3049,7 @@ class pacifica extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //       "funding" => "0.00010529",
@@ -3154,7 +3174,7 @@ class pacifica extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'subaccount_transfer' => 'transfer',
             'deposit' => 'transaction',
@@ -3235,7 +3255,7 @@ class pacifica extends Exchange {
         })();
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //       "history_id" => 2287920,
@@ -3345,7 +3365,7 @@ class pacifica extends Exchange {
              */
             $finalHeaders = array( );
             $agentAddress = null;
-            list($agentAddress, $params) = $this->handle_option('createSubAccount', 'agentAddress', null);
+            list($agentAddress, $params) = $this->handle_option('createSubAccount', 'agentAddress');
             $originAddress = null;
             list($originAddress, $params) = $this->handle_origin_and_single_address('createSubAccount', $params);
             if ($originAddress === null) {
@@ -3490,7 +3510,7 @@ class pacifica extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $address either as "exchange.walletAddress = ..." or or "address" in params');
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
@@ -3518,7 +3538,7 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = ($isTestnet) ? 'test' : 'api';
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
@@ -3535,18 +3555,18 @@ class pacifica extends Exchange {
         if ($method === 'POST') {
             $body = $this->json($params);
         }
-        if ($this->handle_option('sign', 'apiKey', null) !== null) {
+        if ($this->handle_option('sign', 'apiKey') !== null) {
             $headers['PF-API-KEY'] = $this->options['apiKey'];
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
         $cost = $this->safe_string($config, 'cost', '1');
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if ($costNumber > 1) {
-            if ($this->handle_option($method, 'apiKey', null) !== null) {
+            if ($this->handle_option($method, 'apiKey') !== null) {
                 $costWithKey = $this->handle_option(
                     $method,
                     'maxCostHugeWithApiKey',

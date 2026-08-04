@@ -151,12 +151,13 @@ func (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
+	var symbol any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(market, nil))), nil, ccxt.GetValue(market, "symbol"))
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"timestamp":    nil,
 		"datetime":     nil,
-		"symbol":       ccxt.GetValue(market, "symbol"),
+		"symbol":       symbol,
 		"order":        nil,
 		"type":         nil,
 		"side":         nil,
@@ -177,7 +178,7 @@ func (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *LunoCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -191,8 +192,8 @@ func (this *LunoCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		this.CheckRequiredCredentials()
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes15512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes15512)
+			retRes15612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes15612)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")

@@ -86,20 +86,16 @@ public class TestSharedMethods extends BaseTest {
             {
                 Object emptyAllowedForThisKey = Helpers.isTrue((Helpers.isEqual(emptyAllowedFor, null))) || Helpers.isTrue(exchange.inArray(i, emptyAllowedFor));
                 Object value = Helpers.GetValue(entry, i);
-                if (Helpers.isTrue(Helpers.inOp(skippedProperties, i)))
-                {
-                    continue;
-                }
                 // check when:
                 // - it's not inside "allowe empty values" list
                 // - it's not undefined
-                if (Helpers.isTrue(Helpers.isTrue(emptyAllowedForThisKey) && Helpers.isTrue((Helpers.isEqual(value, null)))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(emptyAllowedForThisKey) && Helpers.isTrue((Helpers.isEqual(value, null))))) || Helpers.isTrue((Helpers.inOp(skippedProperties, i)))))
                 {
                     continue;
                 }
                 Assert(!Helpers.isEqual(value, null), Helpers.add(Helpers.add(String.valueOf(i), " index is expected to have a value"), logText));
                 // because of other langs, this is needed for arrays
-                Object typeAssertion = AssertType(exchange, skippedProperties, entry, i, format);
+                Object typeAssertion = AssertType(exchange, new java.util.HashMap<String, Object>() {{}}, entry, i, format);
                 Assert(typeAssertion, Helpers.add(Helpers.add(String.valueOf(i), " index does not have an expected type "), logText));
             }
         } else
@@ -114,14 +110,10 @@ public class TestSharedMethods extends BaseTest {
                     continue;
                 }
                 Assert(Helpers.inOp(entry, key), Helpers.add(Helpers.add(Helpers.add("\"", stringValue(key)), "\" key is missing from structure"), logText));
-                if (Helpers.isTrue(Helpers.inOp(skippedProperties, key)))
-                {
-                    continue;
-                }
                 Object emptyAllowedForThisKey = Helpers.isTrue((Helpers.isEqual(emptyAllowedFor, null))) || Helpers.isTrue(exchange.inArray(key, emptyAllowedFor));
                 Object value = Helpers.GetValue(entry, key);
                 // check when:
-                // - it's not inside "allowe empty values" list
+                // - it's not inside "allowed empty values" list
                 // - it's not undefined
                 if (Helpers.isTrue(Helpers.isTrue(emptyAllowedForThisKey) && Helpers.isTrue((Helpers.isEqual(value, null)))))
                 {
@@ -132,7 +124,7 @@ public class TestSharedMethods extends BaseTest {
                 // add exclusion for info key, as it can be any type
                 if (Helpers.isTrue(!Helpers.isEqual(key, "info")))
                 {
-                    Object typeAssertion = AssertType(exchange, skippedProperties, entry, key, format);
+                    Object typeAssertion = AssertType(exchange, new java.util.HashMap<String, Object>() {{}}, entry, key, format);
                     Assert(typeAssertion, Helpers.add(Helpers.add(Helpers.add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
                     if (Helpers.isTrue(deep))
                     {
@@ -210,6 +202,10 @@ public class TestSharedMethods extends BaseTest {
                 // so, we have to compare with millisecond accururacy
                 Object dtParsed = exchange.parse8601(dt);
                 Object tsMs = Helpers.GetValue(entry, "timestamp");
+                if (Helpers.isTrue(Helpers.isEqual(dtParsed, null)))
+                {
+                    Assert(false, Helpers.add(Helpers.add("datetime is not parseable: ", dt), logText));
+                }
                 Object diff = Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(diff, 500)))
                 {
@@ -287,7 +283,7 @@ public class TestSharedMethods extends BaseTest {
     public static void AssertSymbolInMarkets(BaseExchange exchange, Object skippedProperties, Object method, Object symbol)
     {
         Object logText = logTemplate(exchange, method, new java.util.HashMap<String, Object>() {{}});
-        Assert((Helpers.inOp(exchange.markets, symbol)), Helpers.add("symbol should be present in exchange.symbols", logText));
+        Assert(Helpers.isTrue((!Helpers.isEqual(exchange.markets, null))) && Helpers.isTrue((Helpers.inOp(exchange.markets, symbol))), Helpers.add("symbol should be present in exchange.symbols", logText));
     }
     public static void AssertGreater(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
     {
@@ -785,7 +781,7 @@ public class TestSharedMethods extends BaseTest {
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 // if it's not in markets, then maybe newly added symbol, so can can compromise there
-                if (!Helpers.isTrue((Helpers.inOp(exchange.markets, symbol))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(exchange.markets, null))) || !Helpers.isTrue((Helpers.inOp(exchange.markets, symbol)))))
                 {
                     return null;
                 }

@@ -141,7 +141,9 @@ public partial class paradex : Exchange
                         { "bbo/{market}/interactive", 1 },
                         { "funding/data", 1 },
                         { "markets", 1 },
+                        { "markets/history", 1 },
                         { "markets/klines", 1 },
+                        { "markets/settlement-price", 1 },
                         { "markets/summary", 1 },
                         { "orderbook/{market}", 1 },
                         { "orderbook/{market}/impact-price", 1 },
@@ -1056,7 +1058,7 @@ public partial class paradex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1455,6 +1457,10 @@ public partial class paradex : Exchange
         if (isTrue(!isEqual(cachedToken, null)))
         {
             object cachedExpires = this.safeInteger(this.options, "expires");
+            if (isTrue(isEqual(cachedExpires, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " authenticateRest() missing cachedExpires")) ;
+            }
             if (isTrue(isLessThan(now, cachedExpires)))
             {
                 return cachedToken;
@@ -1539,7 +1545,7 @@ public partial class paradex : Exchange
         //
         object timestamp = this.safeInteger(order, "created_at");
         object orderId = this.safeString(order, "id");
-        object clientOrderId = this.omitZero(((string)this.safeString(order, "client_id")));
+        object clientOrderId = this.omitZero(this.safeString(order, "client_id"));
         object marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
@@ -1559,8 +1565,8 @@ public partial class paradex : Exchange
             }
         }
         object side = this.safeStringLower(order, "side");
-        object average = this.omitZero(((string)this.safeString(order, "avg_fill_price")));
-        object remaining = this.omitZero(((string)this.safeString(order, "remaining_size")));
+        object average = this.omitZero(this.safeString(order, "avg_fill_price"));
+        object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         object flags = this.safeList(order, "flags", new List<object>() {});
         object reduceOnly = null;
@@ -1633,7 +1639,7 @@ public partial class paradex : Exchange
             { "STOP_LIMIT", "limit" },
             { "STOP_MARKET", "market" },
         };
-        return this.safeStringLower(types, ((string)type), type);
+        return this.safeStringLower(types, type, type);
     }
 
     public virtual object scaleNumber(object num)
@@ -1644,6 +1650,14 @@ public partial class paradex : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         object orderType = ((string)type).ToUpper();
@@ -1747,6 +1761,10 @@ public partial class paradex : Exchange
         object account = await this.retrieveAccount();
         object now = this.nonce();
         object orderType = this.safeString(request, "type");
+        if (isTrue(isEqual(orderType, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " signOrderRequest() missing orderType")) ;
+        }
         object isMarket = (isGreaterThanOrEqual(getIndexOf(orderType, "MARKET"), 0));
         object orderReq = new Dictionary<string, object>() {
             { "timestamp", multiply(now, 1000) },
@@ -1869,7 +1887,7 @@ public partial class paradex : Exchange
      * @method
      * @name paradex#editOrder
      * @description edit an open limit order or TPSL order
-     * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+     * @see https://docs.paradex.trade/api/prod/orders/modify
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'limit' or a TPSL order type
@@ -1969,7 +1987,7 @@ public partial class paradex : Exchange
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object extendedParams = this.extend(parameters, orderParams);
-            object orderRequest = this.createOrderRequest(((string)symbol), ((string)type), side, amount, price, extendedParams);
+            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest(orderRequest);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -2053,7 +2071,7 @@ public partial class paradex : Exchange
      * @description cancel multiple orders
      * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
      * @param {string[]} ids order ids
-     * @param {string} [symbol] unified market symbol, not used by paradex cancelOrders()
+     * @param {string} [symbol] unified market symbol, not used by cancelOrders()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2114,7 +2132,7 @@ public partial class paradex : Exchange
         {
             object result = getValue(results, i);
             object marketId = this.safeString(result, "market");
-            object market = this.safeMarket(marketId, null);
+            object market = this.safeMarket(marketId);
             object status = this.safeString(result, "status");
             object orderStatus = null;
             if (isTrue(isEqual(status, "QUEUED_FOR_CANCELLATION")))
@@ -2436,7 +2454,10 @@ public partial class paradex : Exchange
             object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "size");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -3128,9 +3149,9 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
-        object leverage = null;
-        var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", 1);
+        object market = this.market(symbol);
+        object leverage = 1;
+        var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", leverage);
         leverage = ((IList<object>)leverageparametersVariable)[0];
         parameters = ((IList<object>)leverageparametersVariable)[1];
         object request = new Dictionary<string, object>() {
@@ -3222,7 +3243,7 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
         marginMode = ((IList<object>)marginModeparametersVariable)[0];

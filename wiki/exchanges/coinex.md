@@ -189,7 +189,7 @@ coinex.fetchTime (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1335,7 +1335,7 @@ fetches historical positions
 | symbol | <code>string</code> | Yes | unified contract symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default is 10 |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch positions for |
 
 
@@ -1386,7 +1386,7 @@ fetches the history of margin added or reduced from contract isolated positions
 | type | <code>string</code> | No | not used by coinex fetchMarginAdjustmentHistory |
 | since | <code>int</code> | No | timestamp in ms of the earliest change to fetch |
 | limit | <code>int</code> | No | the maximum amount of changes to fetch, default is 10 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest change to fetch |
 | params.positionId | <code>int</code> | No | the id of the position that you want to retrieve margin adjustment history for |
 
@@ -1557,7 +1557,7 @@ coinex.watchTradesForSymbols (symbols, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1583,7 +1583,7 @@ coinex.watchOrderBookForSymbols (symbols, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

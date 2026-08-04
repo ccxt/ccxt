@@ -477,7 +477,7 @@ class coinone extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $balances = $this->omit($response, array(
             'errorCode',
@@ -492,7 +492,9 @@ class coinone extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'avail');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -525,7 +527,7 @@ class coinone extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -870,36 +872,45 @@ class coinone extends Exchange {
             /**
              * create a trade order
              *
-             * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-             * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+             * @see https://docs.coinone.co.kr/reference/order-v21
              *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            if ($type !== 'limit') {
+            $orderType = strtoupper($type); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+            $orderSide = strtoupper($side); // unified lowercase order sides, same override rule
+            if ($orderType !== 'LIMIT') {
                 throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
+            }
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for the limit orders');
             }
             if ($this->markets === null) {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            // the v1 order/limit_buy and order/limit_sell endpoints were retired by
+            // the exchange and return 404, the v2.1 order endpoint replaces them,
+            // see https://github.com/ccxt/ccxt/issues/23174
             $request = array(
-                'price' => $price,
-                'currency' => $market['id'],
-                'qty' => $amount,
+                'quote_currency' => $market['quoteId'],
+                'target_currency' => $market['baseId'],
+                'type' => $orderType,
+                'side' => $orderSide,
+                'price' => $this->price_to_precision($symbol, $price),
+                'qty' => $this->amount_to_precision($symbol, $amount),
             );
-            $method = 'privatePostOrder' . $this->capitalize($type) . $this->capitalize($side);
-            $response = Async\await($this->$method($this->extend($request, $params)));
+            $response = Async\await($this->v2_1PrivatePostOrderLimit($this->extend($request, $params)));
             //
             //     {
             //         "result" => "success",
-            //         "errorCode" => "0",
-            //         "orderId" => "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+            //         "error_code" => "0",
+            //         "order_id" => "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
             //     }
             //
             return $this->parse_order($response, $market);
@@ -1007,9 +1018,9 @@ class coinone extends Exchange {
         //         "feeRate" => "-0.0015"
         //     }
         //
-        $id = $this->safe_string($order, 'orderId');
-        $baseId = $this->safe_string($order, 'baseCurrency');
-        $quoteId = $this->safe_string($order, 'targetCurrency');
+        $id = $this->safe_string_2($order, 'orderId', 'order_id');
+        $baseId = $this->safe_string_2($order, 'baseCurrency', 'target_currency');
+        $quoteId = $this->safe_string_2($order, 'targetCurrency', 'quote_currency');
         $base = null;
         $quote = null;
         if ($baseId !== null) {
@@ -1024,14 +1035,20 @@ class coinone extends Exchange {
             $market = $this->safe_market($symbol, $market, '/');
         }
         $timestamp = $this->safe_timestamp_2($order, 'timestamp', 'updatedAt');
-        $side = $this->safe_string_2($order, 'type', 'side');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_integer_2($order, 'ordered_at', 'updated_at'); // v2.1 sends milliseconds
+        }
+        $side = $this->safe_string_lower_2($order, 'type', 'side');
+        if (($side === 'limit') || ($side === 'market') || ($side === 'stop_limit')) {
+            $side = $this->safe_string_lower($order, 'side'); // in v2.1 rows the type field carries the $order type, the $side lives in $side
+        }
         if ($side === 'ask') {
             $side = 'sell';
         } elseif ($side === 'bid') {
             $side = 'buy';
         }
-        $remainingString = $this->safe_string($order, 'remainQty');
-        $amountString = $this->safe_string_2($order, 'originalQty', 'qty');
+        $remainingString = $this->safe_string_2($order, 'remainQty', 'remain_qty');
+        $amountString = $this->safe_string_n($order, array( 'originalQty', 'qty', 'original_qty' ));
         $status = $this->safe_string($order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if ($status === 'live') {
@@ -1049,7 +1066,7 @@ class coinone extends Exchange {
             $feeCurrencyCode = ($side === 'sell') ? $quote : $base;
             $fee = array(
                 'cost' => $feeCostString,
-                'rate' => $this->safe_string($order, 'feeRate'),
+                'rate' => $this->safe_string_2($order, 'feeRate', 'fee_rate'),
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -1068,9 +1085,9 @@ class coinone extends Exchange {
             'price' => $this->safe_string($order, 'price'),
             'triggerPrice' => null,
             'cost' => null,
-            'average' => $this->safe_string($order, 'averageExecutedPrice'),
+            'average' => $this->safe_string_2($order, 'averageExecutedPrice', 'average_executed_price'),
             'amount' => $amountString,
-            'filled' => $this->safe_string($order, 'executedQty'),
+            'filled' => $this->safe_string_2($order, 'executedQty', 'executed_qty'),
             'remaining' => $remainingString,
             'status' => $status,
             'fee' => $fee,
@@ -1098,9 +1115,10 @@ class coinone extends Exchange {
             }
             $market = $this->market($symbol);
             $request = array(
-                'currency' => $market['id'],
+                'quote_currency' => $market['quoteId'],
+                'target_currency' => $market['baseId'],
             );
-            $response = Async\await($this->privatePostOrderLimitOrders($this->extend($request, $params)));
+            $response = Async\await($this->v2_1PrivatePostOrderOpenOrders($this->extend($request, $params)));
             //
             //     {
             //         "result" => "success",
@@ -1118,8 +1136,8 @@ class coinone extends Exchange {
             //         )
             //     }
             //
-            $limitOrders = $this->safe_list($response, 'limitOrders', array());
-            return $this->parse_orders($limitOrders, $market, $since, $limit);
+            $openOrders = $this->safe_list_2($response, 'open_orders', 'limitOrders', array());
+            return $this->parse_orders($openOrders, $market, $since, $limit);
         })();
     }
 
@@ -1265,13 +1283,15 @@ class coinone extends Exchange {
                     $depositAddress['tag'] = $value;
                     $depositAddress['info'] = array( $address, $value );
                 }
-                $result[$code] = $depositAddress;
+                if ($code !== null) {
+                    $result[$code] = $depositAddress;
+                }
             }
             return $result;
         })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . '/';
@@ -1291,7 +1311,13 @@ class coinone extends Exchange {
         } else {
             $this->check_required_credentials();
             $url .= $request;
-            $nonce = (string) $this->nonce();
+            // the v2.1 $api requires a uuid $nonce, the older apis use a numeric one
+            $nonce = null;
+            if ($api === 'v2_1Private') {
+                $nonce = $this->uuid();
+            } else {
+                $nonce = (string) $this->nonce();
+            }
             $json = $this->json($this->extend(array(
                 'access_token' => $this->apiKey,
                 'nonce' => $nonce,
@@ -1309,7 +1335,7 @@ class coinone extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

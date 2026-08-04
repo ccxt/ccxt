@@ -66,7 +66,7 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of raw gamma event objects.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchRawEventsBySearch(List<object> queries, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchRawEventsBySearch(List<string> queries, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchRawEventsBySearch(queries, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
@@ -625,6 +625,12 @@ public partial class polymarket
     /// <term>params.expiration</term>
     /// <description>
     /// string : unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.builderCode</term>
+    /// <description>
+    /// string : builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
     /// </description>
     /// </item>
     /// </list>

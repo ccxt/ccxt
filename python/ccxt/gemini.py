@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -451,7 +451,7 @@ class gemini(Exchange, ImplicitAPI):
         currenciesArray = self.safe_value(data, 'currencies', [])
         return self.parse_currencies(currenciesArray)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 0)
         code = self.safe_currency_code(id)
         type = 'fiat' if self.safe_string(rawCurrency, 7) else 'crypto'
@@ -461,26 +461,27 @@ class gemini(Exchange, ImplicitAPI):
         networkCode = None
         if networkId is not None:
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'info': rawCurrency,
             'id': id,
@@ -616,7 +617,7 @@ class gemini(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_market_active(self, status):
+    def parse_market_active(self, status: Any):
         statuses = {
             'open': True,
             'closed': False,
@@ -700,7 +701,7 @@ class gemini(Exchange, ImplicitAPI):
                         result.append(self.parse_market(marketIds[i]))
         return result
 
-    def parse_market(self, response) -> Market:
+    def parse_market(self, response: Any) -> Market:
         #
         # response might be:
         #
@@ -799,7 +800,7 @@ class gemini(Exchange, ImplicitAPI):
             inverse = False
         type = 'swap' if swap else 'spot'
         isSpot = not swap
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -847,7 +848,7 @@ class gemini(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': response,
-        }
+        })
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -858,7 +859,7 @@ class gemini(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1172,7 +1173,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -1181,7 +1182,8 @@ class gemini(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['total'] = self.safe_string(balance, 'amount')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_trading_fees(self, params={}) -> TradingFees:
@@ -1231,8 +1233,9 @@ class gemini(Exchange, ImplicitAPI):
         maker = self.parse_number(makerString)
         taker = self.parse_number(takerString)
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1804,7 +1807,7 @@ class gemini(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None):
         #
         #      {
         #          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -1868,7 +1871,7 @@ class gemini(Exchange, ImplicitAPI):
         results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
         return self.group_by(results, 'network')
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
@@ -1899,7 +1902,7 @@ class gemini(Exchange, ImplicitAPI):
             body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             if isinstance(body, str):
                 feedback = self.id + ' ' + body
@@ -2009,7 +2012,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #    {
         #        product_type: 'PerpetualSwapContract',

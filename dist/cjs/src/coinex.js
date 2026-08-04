@@ -9,7 +9,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class coinex
@@ -770,7 +770,9 @@ class coinex extends coinex$1["default"] {
                 },
                 'info': chain,
             };
-            networks[networkCode] = network;
+            if (networkCode !== undefined) {
+                networks[networkCode] = network;
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -1040,7 +1042,11 @@ class coinex extends coinex$1["default"] {
         //
         const marketType = ('mark_price' in ticker) ? 'swap' : 'spot';
         const marketId = this.safeString(ticker, 'market');
-        const symbol = this.safeSymbol(marketId, market, undefined, marketType);
+        market = this.safeMarket(marketId, market, undefined, marketType);
+        const symbol = market['symbol'];
+        // on inverse contracts 'value' is denominated in the settle currency, not
+        // the quote, so it is the quote volume only for spot and linear markets
+        const quoteVolume = market['inverse'] ? undefined : this.safeString(ticker, 'value');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1060,7 +1066,7 @@ class coinex extends coinex$1["default"] {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'markPrice': this.safeString(ticker, 'mark_price'),
             'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
@@ -1251,7 +1257,7 @@ class coinex extends coinex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = 20, params = {}) {
         if (this.markets === undefined) {
@@ -1736,7 +1742,9 @@ class coinex extends coinex$1["default"] {
             const baseDebt = this.safeString(loan, 'base_ccy');
             const baseInterest = this.safeString(interest, 'base_ccy');
             baseAccount['debt'] = Precise["default"].stringAdd(baseDebt, baseInterest);
-            result[baseCurrencyCode] = baseAccount;
+            if (baseCurrencyCode !== undefined) {
+                result[baseCurrencyCode] = baseAccount;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1767,7 +1775,9 @@ class coinex extends coinex$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1801,7 +1811,9 @@ class coinex extends coinex$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1832,7 +1844,9 @@ class coinex extends coinex$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2169,6 +2183,12 @@ class coinex extends coinex$1["default"] {
         return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
@@ -3096,7 +3116,9 @@ class coinex extends coinex$1["default"] {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
             const market = this.market(marketId);
-            orderSymbols.push(marketId);
+            if (marketId !== undefined) {
+                orderSymbols.push(marketId);
+            }
             const id = this.safeString(rawOrder, 'id');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
@@ -4616,7 +4638,7 @@ class coinex extends coinex$1["default"] {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const status = this.safeStringLower(response, 'message');
         const type = (addOrReduce === 'reduce') ? 'reduce' : 'add';
         return this.extend(this.parseMarginModification(data, market), {
@@ -5175,7 +5197,7 @@ class coinex extends coinex$1["default"] {
         if (type === 'deposit') {
             feeCost = '0';
         }
-        const feeCurrencyId = this.safeString(transaction, 'fee_asset');
+        const feeCurrencyId = this.safeString2(transaction, 'fee_asset', 'fee_ccy'); // https://github.com/ccxt/ccxt/issues/25153
         const fee = {
             'cost': this.parseNumber(feeCost),
             'currency': this.safeCurrencyCode(feeCurrencyId),
@@ -5852,7 +5874,9 @@ class coinex extends coinex$1["default"] {
             }
             const code = this.safeCurrencyCode(currencyId);
             if (codes === undefined || this.inArray(code, codes)) {
-                result[code] = this.parseDepositWithdrawFee(item);
+                if (code !== undefined) {
+                    result[code] = this.parseDepositWithdrawFee(item);
+                }
             }
         }
         return result;
@@ -5912,16 +5936,18 @@ class coinex extends coinex$1["default"] {
                     const currencyId = this.safeString(asset, 'ccy');
                     const feeCode = this.safeCurrencyCode(currencyId, currency);
                     const networkCode = this.networkIdToCode(networkId, feeCode);
-                    result['networks'][networkCode] = {
-                        'withdraw': {
-                            'fee': this.safeNumber(entry, 'withdrawal_fee'),
-                            'percentage': false,
-                        },
-                        'deposit': {
-                            'fee': undefined,
-                            'percentage': undefined,
-                        },
-                    };
+                    if (networkCode !== undefined) {
+                        result['networks'][networkCode] = {
+                            'withdraw': {
+                                'fee': this.safeNumber(entry, 'withdrawal_fee'),
+                                'percentage': false,
+                            },
+                            'deposit': {
+                                'fee': undefined,
+                                'percentage': undefined,
+                            },
+                        };
+                    }
                 }
             }
         }
@@ -5999,7 +6025,7 @@ class coinex extends coinex$1["default"] {
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch, default is 10
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -6134,7 +6160,7 @@ class coinex extends coinex$1["default"] {
          * @ignore
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
@@ -6285,7 +6311,7 @@ class coinex extends coinex$1["default"] {
      * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch, default is 10
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @param {int} [params.positionId] the id of the position that you want to retrieve margin adjustment history for
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}

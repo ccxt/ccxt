@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbaseexchange import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -529,7 +529,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency) -> Currency:
+    def parse_currency(self, rawCurrency: Any) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'id')
         name = self.safe_string(rawCurrency, 'name')
         code = self.safe_currency_code(id)
@@ -540,24 +540,25 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             network = supportedNetworks[j]
             networkId = self.safe_string(network, 'id')
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'id': networkId,
-                'name': self.safe_string(network, 'name'),
-                'network': networkCode,
-                'active': self.safe_string(network, 'status') == 'online',
-                'withdraw': None,
-                'deposit': None,
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(network, 'min_withdrawal_amount'),
-                        'max': self.safe_number(network, 'max_withdrawal_amount'),
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'name': self.safe_string(network, 'name'),
+                    'network': networkCode,
+                    'active': self.safe_string(network, 'status') == 'online',
+                    'withdraw': None,
+                    'deposit': None,
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(network, 'min_withdrawal_amount'),
+                            'max': self.safe_number(network, 'max_withdrawal_amount'),
+                        },
                     },
-                },
-                'contract': self.safe_string(network, 'contract_address'),
-                'info': network,
-            }
+                    'contract': self.safe_string(network, 'contract_address'),
+                    'info': network,
+                }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -736,7 +737,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #
         return self.parse_accounts(response, params)
 
-    def parse_account(self, account):
+    def parse_account(self, account: Any):
         #
         #     {
         #         "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
@@ -755,7 +756,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -765,7 +766,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'hold')
             account['total'] = self.safe_string(balance, 'balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -791,7 +793,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1061,7 +1063,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'cost': cost,
         }, market)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
         https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
@@ -1154,8 +1156,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         maker = self.safe_number(response, 'maker_fee_rate')
         taker = self.safe_number(response, 'taker_fee_rate')
         result = {}
-        for i in range(0, len((self.symbols))):
-            symbol = (self.symbols)[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1166,7 +1168,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         1591514160,
@@ -1584,7 +1586,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
 
         cancel all open orders
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1639,7 +1641,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
         return self.parse_transaction(response, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             'transfer': 'transfer',  # Funds moved between portfolios
             'match': 'trade',       # Funds moved result of a trade
@@ -1895,7 +1897,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         """
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
-    def parse_transaction_status(self, transaction):
+    def parse_transaction_status(self, transaction: Any):
         canceled = self.safe_value(transaction, 'canceled_at')
         if canceled:
             return 'canceled'
@@ -2022,7 +2024,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET':
@@ -2053,7 +2055,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if (code == 400) or (code == 404):
             if body[0] == '{':
                 message = self.safe_string(response, 'message')
@@ -2064,7 +2066,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}):
+    async def request(self, path: Any, api='public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
         response = await self.fetch2(path, api, method, params, headers, body, config)
         if not isinstance(response, str):
             if 'message' in response:

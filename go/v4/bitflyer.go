@@ -402,7 +402,9 @@ func (this *BitflyerCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -424,8 +426,8 @@ func (this *BitflyerCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes43512 := (<-this.LoadMarkets())
-			PanicOnError(retRes43512)
+			retRes43712 := (<-this.LoadMarkets())
+			PanicOnError(retRes43712)
 		}
 
 		response := (<-this.PrivateGetGetbalance(params))
@@ -465,7 +467,7 @@ func (this *BitflyerCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitflyerCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -478,8 +480,8 @@ func (this *BitflyerCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes47212 := (<-this.LoadMarkets())
-			PanicOnError(retRes47212)
+			retRes47412 := (<-this.LoadMarkets())
+			PanicOnError(retRes47412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -543,8 +545,8 @@ func (this *BitflyerCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes52112 := (<-this.LoadMarkets())
-			PanicOnError(retRes52112)
+			retRes52312 := (<-this.LoadMarkets())
+			PanicOnError(retRes52312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -651,8 +653,8 @@ func (this *BitflyerCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes60912 := (<-this.LoadMarkets())
-			PanicOnError(retRes60912)
+			retRes61112 := (<-this.LoadMarkets())
+			PanicOnError(retRes61112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -703,8 +705,8 @@ func (this *BitflyerCore) FetchTradingFee(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes64612 := (<-this.LoadMarkets())
-			PanicOnError(retRes64612)
+			retRes64812 := (<-this.LoadMarkets())
+			PanicOnError(retRes64812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -758,8 +760,8 @@ func (this *BitflyerCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes68412 := (<-this.LoadMarkets())
-			PanicOnError(retRes68412)
+			retRes68612 := (<-this.LoadMarkets())
+			PanicOnError(retRes68612)
 		}
 		var request any = map[string]any{
 			"product_code":     this.MarketId(symbol),
@@ -808,8 +810,8 @@ func (this *BitflyerCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes71712 := (<-this.LoadMarkets())
-			PanicOnError(retRes71712)
+			retRes71912 := (<-this.LoadMarkets())
+			PanicOnError(retRes71912)
 		}
 		var request any = map[string]any{
 			"product_code":              this.MarketId(symbol),
@@ -917,8 +919,8 @@ func (this *BitflyerCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes80512 := (<-this.LoadMarkets())
-			PanicOnError(retRes80512)
+			retRes80712 := (<-this.LoadMarkets())
+			PanicOnError(retRes80712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -968,9 +970,9 @@ func (this *BitflyerCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			"child_order_state": "ACTIVE",
 		}
 
-		retRes83515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes83515)
-		ch <- retRes83515
+		retRes83715 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes83715)
+		ch <- retRes83715
 		return nil
 
 	}()
@@ -1005,9 +1007,9 @@ func (this *BitflyerCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			"child_order_state": "COMPLETED",
 		}
 
-		retRes85315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes85315)
-		ch <- retRes85315
+		retRes85515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes85515)
+		ch <- retRes85515
 		return nil
 
 	}()
@@ -1080,8 +1082,8 @@ func (this *BitflyerCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes89412 := (<-this.LoadMarkets())
-			PanicOnError(retRes89412)
+			retRes89612 := (<-this.LoadMarkets())
+			PanicOnError(retRes89612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1138,8 +1140,8 @@ func (this *BitflyerCore) FetchPositions(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93512 := (<-this.LoadMarkets())
-			PanicOnError(retRes93512)
+			retRes93712 := (<-this.LoadMarkets())
+			PanicOnError(retRes93712)
 		}
 		var request any = map[string]any{
 			"product_code": this.MarketIds(symbols),
@@ -1197,8 +1199,8 @@ func (this *BitflyerCore) Withdraw(code any, amount any, address any, optionalAr
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes97712 := (<-this.LoadMarkets())
-			PanicOnError(retRes97712)
+			retRes97912 := (<-this.LoadMarkets())
+			PanicOnError(retRes97912)
 		}
 		if IsTrue(IsTrue(IsTrue(!IsEqual(code, "JPY")) && IsTrue(!IsEqual(code, "USD"))) && IsTrue(!IsEqual(code, "EUR"))) {
 			panic(ExchangeError(Add(Add(Add(this.Id, " allows withdrawing JPY, USD, EUR only, "), code), " is not supported")))
@@ -1250,8 +1252,8 @@ func (this *BitflyerCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes101012 := (<-this.LoadMarkets())
-			PanicOnError(retRes101012)
+			retRes101212 := (<-this.LoadMarkets())
+			PanicOnError(retRes101212)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -1312,8 +1314,8 @@ func (this *BitflyerCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes105112 := (<-this.LoadMarkets())
-			PanicOnError(retRes105112)
+			retRes105312 := (<-this.LoadMarkets())
+			PanicOnError(retRes105312)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -1467,8 +1469,8 @@ func (this *BitflyerCore) FetchFundingRate(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes118912 := (<-this.LoadMarkets())
-			PanicOnError(retRes118912)
+			retRes119112 := (<-this.LoadMarkets())
+			PanicOnError(retRes119112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{

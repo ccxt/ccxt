@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var crypto = require('./base/functions/crypto.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class backpack
@@ -543,26 +543,28 @@ class backpack extends backpack$1["default"] {
             const networkId = this.safeString(network, 'blockchain');
             const networkIdLowerCase = this.safeStringLower(network, 'blockchain');
             const networkCode = this.networkIdToCode(networkIdLowerCase, code);
-            parsedNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(network, 'minimumWithdrawal'),
-                        'max': this.parseNumber(this.omitZero(this.safeString(network, 'maximumWithdrawal'))),
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(network, 'minimumWithdrawal'),
+                            'max': this.parseNumber(this.omitZero(this.safeString(network, 'maximumWithdrawal'))),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(network, 'minimumDeposit'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(network, 'minimumDeposit'),
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool(network, 'depositEnabled'),
-                'withdraw': this.safeBool(network, 'withdrawEnabled'),
-                'fee': this.safeNumber(network, 'withdrawalFee'),
-                'precision': undefined,
-                'info': network,
-            };
+                    'active': undefined,
+                    'deposit': this.safeBool(network, 'depositEnabled'),
+                    'withdraw': this.safeBool(network, 'withdrawEnabled'),
+                    'fee': this.safeNumber(network, 'withdrawalFee'),
+                    'precision': undefined,
+                    'info': network,
+                };
+            }
         }
         let active = undefined;
         let deposit = undefined;
@@ -903,8 +905,8 @@ class backpack extends backpack$1["default"] {
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -930,6 +932,9 @@ class backpack extends backpack$1["default"] {
         //     }
         //
         const microseconds = this.safeInteger(response, 'timestamp');
+        if (microseconds === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchOrderBook() missing microseconds');
+        }
         const timestamp = this.parseToInt(microseconds / 1000);
         const orderbook = this.parseOrderBook(response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
@@ -944,7 +949,7 @@ class backpack extends backpack$1["default"] {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in seconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 100)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1196,7 +1201,11 @@ class backpack extends backpack$1["default"] {
         else {
             response = await this.publicGetApiV1Trades(this.extend(request, params));
         }
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -1237,7 +1246,11 @@ class backpack extends backpack$1["default"] {
             request['fillType'] = 'User'; // default
         }
         const response = await this.privateGetWapiV1HistoryFills(this.extend(request, params));
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1333,6 +1346,9 @@ class backpack extends backpack$1["default"] {
         //     }
         //
         const status = this.safeString(response, 'status');
+        if (status === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchStatus() missing status');
+        }
         return {
             'status': status.toLowerCase(),
             'updated': undefined,
@@ -1393,7 +1409,9 @@ class backpack extends backpack$1["default"] {
             const used = Precise["default"].stringAdd(locked, staked);
             account['free'] = this.safeString(balance, 'available');
             account['used'] = used;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1744,6 +1762,12 @@ class backpack extends backpack$1["default"] {
         return this.parseOrders(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1859,7 +1883,7 @@ class backpack extends backpack$1["default"] {
      * @description fetch an open order by it's id
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
      * @param {string} id order id
-     * @param {string} symbol not used by hollaex fetchOpenOrder ()
+     * @param {string} symbol not used by fetchOpenOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1931,10 +1955,10 @@ class backpack extends backpack$1["default"] {
      * @name backpack#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of  orde structures to retrieve (default 100, max 1000)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
