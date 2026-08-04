@@ -41,7 +41,7 @@ export default function AssistantPanel({
   async function refresh() {
     if (refreshing) return;
     setRefreshing(true);
-    setPrompts(await fetchPrompts());
+    setPrompts(await fetchPrompts(prompts)); // exclude what's on screen → fresh hand
     setGen((g) => g + 1);
     window.setTimeout(() => setRefreshing(false), 450);
   }
@@ -199,9 +199,10 @@ type CodeBlock = { kind: "code"; text: string; lang: LanguageId | null; complete
 type Block = { kind: "text"; text: string } | CodeBlock;
 type TaggedCode = CodeBlock & { lang: LanguageId };
 
-async function fetchPrompts(): Promise<string[]> {
+async function fetchPrompts(exclude: string[] = []): Promise<string[]> {
   try {
-    const res = await fetch(apiUrl("/api/prompts"), { cache: "no-store" });
+    const qs = exclude.map((p) => `exclude=${encodeURIComponent(p)}`).join("&");
+    const res = await fetch(apiUrl(`/api/prompts${qs ? `?${qs}` : ""}`), { cache: "no-store" });
     const data = await res.json();
     return Array.isArray(data.prompts) ? data.prompts : [];
   } catch {
