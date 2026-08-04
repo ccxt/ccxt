@@ -23,18 +23,33 @@ function registrable(host) {
   return TWO_LABEL_SUFFIXES.has(lastTwo) ? lastThree : lastTwo;
 }
 
+// Many exchanges store API bases as templates (okx: "https://{hostname}",
+// bybit: "https://api.{hostname}") and put the real host in `exchange.hostname`.
+// The bare template is not a DNS name — without substitution those exchanges
+// never reach the allowlist and playground calls hang until RequestTimeout.
+function expandUrlTemplates(str, ex) {
+  if (typeof str !== "string") return str;
+  const hostname = typeof ex?.hostname === "string" ? ex.hostname : "";
+  if (!hostname || !str.includes("{")) return str;
+  return str.replaceAll("{hostname}", hostname);
+}
+
 const hosts = new Set();
-function walk(v) {
+function addHost(host) {
+  if (!host) return;
+  const h = host.split("@").pop().split(":")[0].toLowerCase();
+  if (h && h.includes(".") && /^[a-z0-9.-]+$/.test(h)) hosts.add(h);
+}
+
+function walk(v, ex) {
   if (typeof v === "string") {
-    const m = v.match(/^https?:\/\/([^/?#]+)/i);
-    if (m) {
-      const host = m[1].split("@").pop().split(":")[0].toLowerCase();
-      if (host && host.includes(".") && /^[a-z0-9.-]+$/.test(host)) hosts.add(host);
-    }
+    const expanded = expandUrlTemplates(v, ex);
+    const m = expanded.match(/^https?:\/\/([^/?#]+)/i);
+    if (m) addHost(m[1]);
   } else if (Array.isArray(v)) {
-    v.forEach(walk);
+    v.forEach((x) => walk(x, ex));
   } else if (v && typeof v === "object") {
-    Object.values(v).forEach(walk);
+    Object.values(v).forEach((x) => walk(x, ex));
   }
 }
 
@@ -51,8 +66,12 @@ for (const [ns, ids] of namespaces) {
   for (const id of ids ?? []) {
     try {
       const ex = new ns[id]();
-      walk(ex.urls?.api); // only the API/test endpoints, not doc/referral/marketing hosts
-      walk(ex.urls?.test);
+      walk(ex.urls?.api, ex); // only the API/test endpoints, not doc/referral/marketing hosts
+      walk(ex.urls?.test, ex);
+      // Hostname is the live API host for template-based exchanges even when
+      // urls.api has already been walked (and when the template expands to the
+      // same host this is a no-op via the Set).
+      if (typeof ex.hostname === "string") addHost(ex.hostname);
     } catch {
       // skip exchanges that fail to construct without config
     }
