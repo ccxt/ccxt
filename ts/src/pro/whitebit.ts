@@ -5,13 +5,13 @@ import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, List, Market, NullableDict, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Fee, FeeString, List, Market, NullableDict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class whitebit extends whitebitRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -74,7 +74,7 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -97,7 +97,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         // {
         //     "method": "candles_update",
@@ -151,7 +151,7 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -175,7 +175,7 @@ export default class whitebit extends whitebitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // {
         //     "method":"depth_update",
@@ -240,13 +240,13 @@ export default class whitebit extends whitebitRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
     }
 
-    handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -261,7 +261,7 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -282,7 +282,7 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -306,7 +306,7 @@ export default class whitebit extends whitebitRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //   {
         //       "method": "market_update",
@@ -367,7 +367,7 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -383,7 +383,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //    {
         //        "method":"trades_update",
@@ -438,7 +438,7 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
         }
@@ -457,7 +457,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message, subscription: Dict | undefined = undefined) {
+    handleMyTrades (client: Client, message: any, subscription: Dict | undefined = undefined) {
         //
         //   {
         //       "method": "deals_update",
@@ -490,7 +490,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //   [
         //         1894994106, // id
@@ -513,7 +513,7 @@ export default class whitebit extends whitebitRest {
         const amount = this.safeString (trade, 5);
         const marketId = this.safeString (trade, 2);
         market = this.safeMarket (marketId, market);
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 6);
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 10);
@@ -565,7 +565,7 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
@@ -584,7 +584,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription: Dict | undefined = undefined) {
+    handleOrder (client: Client, message: any, subscription: Dict | undefined = undefined) {
         //
         // {
         //     "method": "ordersPending_update",
@@ -626,7 +626,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //   {
         //         "id": 96433622651,
@@ -675,7 +675,7 @@ export default class whitebit extends whitebitRest {
         const rawSide = this.safeInteger (order, 'side');
         const side = (rawSide === 1) ? 'sell' : 'buy';
         const dealFee = this.safeString (order, 'deal_fee');
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         if (dealFee !== undefined) {
             fee = {
                 'cost': this.parseNumber (dealFee),
@@ -718,7 +718,7 @@ export default class whitebit extends whitebitRest {
         }, market);
     }
 
-    parseWsOrderType (status) {
+    parseWsOrderType (status: any) {
         const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
@@ -743,7 +743,7 @@ export default class whitebit extends whitebitRest {
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -762,7 +762,7 @@ export default class whitebit extends whitebitRest {
         return await this.watchPrivate (messageHash, method, currencies, params);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //   {
         //       "method":"balanceSpot_update",
@@ -804,7 +804,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash, method, reqParams: any[] = [], params = {}) {
+    async watchPublic (messageHash: any, method: any, reqParams: any[] = [], params = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const request: Dict = {
@@ -816,7 +816,7 @@ export default class whitebit extends whitebitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchMultipleSubscription (messageHash, method, symbol, isNested = false, params = {}) {
+    async watchMultipleSubscription (messageHash: any, method: any, symbol: any, isNested = false, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -878,7 +878,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async watchPrivate (messageHash, method, reqParams: any[] = [], params = {}) {
+    async watchPrivate (messageHash: any, method: any, reqParams: any[] = [], params = {}) {
         this.checkRequiredCredentials ();
         await this.authenticate ();
         const url = this.urls['api']['ws'];
@@ -930,7 +930,7 @@ export default class whitebit extends whitebitRest {
         return await future;
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
         //
@@ -939,7 +939,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     {
         //         "error": { code: 1, message: "invalid argument" },
@@ -966,7 +966,7 @@ export default class whitebit extends whitebitRest {
         return true;
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // auth
         //    { error: null, result: { status: "success" }, id: 1656084550 }
@@ -1005,7 +1005,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message, id) {
+    handleSubscriptionStatus (client: Client, message: any, id: any) {
         // not every method stores its subscription
         // as an object so we can't do indeById here
         const subs = client.subscriptions;
@@ -1025,12 +1025,12 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         return {
             'id': 0,
             'method': 'ping',

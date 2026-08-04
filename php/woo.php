@@ -960,7 +960,7 @@ class woo extends Exchange {
         ), $market);
     }
 
-    public function parse_token_and_fee_temp($item, $feeTokenKeys, $feeAmountKeys) {
+    public function parse_token_and_fee_temp(mixed $item, mixed $feeTokenKeys, mixed $feeAmountKeys) {
         $feeCost = $this->safe_string_n($item, $feeAmountKeys);
         $fee = null;
         if ($feeCost !== null) {
@@ -1551,7 +1551,7 @@ class woo extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function encode_margin_mode($mode) {
+    public function encode_margin_mode(mixed $mode) {
         $modes = array(
             'cross' => 'CROSS',
             'isolated' => 'ISOLATED',
@@ -2380,7 +2380,7 @@ class woo extends Exchange {
         return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'startTimestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -2575,7 +2575,7 @@ class woo extends Exchange {
         return $this->parse_accounts($rows, $params);
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //     {
         //         "applicationId" => "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
@@ -2656,7 +2656,7 @@ class woo extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2710,7 +2710,7 @@ class woo extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function get_dedicated_network_id($currency, array $params): mixed {
+    public function get_dedicated_network_id(mixed $currency, array $params): mixed {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         $networkCode = $this->network_id_to_code($networkCode, $currency['code']);
@@ -2723,7 +2723,7 @@ class woo extends Exchange {
         return array( $currentyNetworkId, $params );
     }
 
-    public function parse_deposit_address($depositEntry, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositEntry, ?array $currency = null): array {
         $address = $this->safe_string($depositEntry, 'address');
         $this->check_address($address);
         return array(
@@ -2869,7 +2869,7 @@ class woo extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'BALANCE' => 'transaction', // Funds moved in/out wallet
             'COLLATERAL' => 'transfer', // Funds moved between portfolios
@@ -2877,7 +2877,7 @@ class woo extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function get_currency_from_chaincode($networkizedCode, $currency) {
+    public function get_currency_from_chaincode(mixed $networkizedCode, mixed $currency) {
         if ($currency !== null) {
             return $currency;
         } else {
@@ -3298,7 +3298,7 @@ class woo extends Exchange {
         ));
     }
 
-    public function parse_margin_loan($info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null) {
         //
         //     {
         //         "success" => true,
@@ -3319,7 +3319,7 @@ class woo extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
@@ -3390,7 +3390,7 @@ class woo extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }
@@ -3408,7 +3408,7 @@ class woo extends Exchange {
         return null;
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //         "id" => 1286360,
@@ -3515,7 +3515,7 @@ class woo extends Exchange {
         return $this->parse_incomes($rows, $market, $since, $limit);
     }
 
-    public function parse_funding_rate($fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDT",
@@ -3975,7 +3975,7 @@ class woo extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'REDUCE', $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4586,7 +4586,7 @@ class woo extends Exchange {
         );
     }
 
-    public function default_network_code_for_currency($code) {
+    public function default_network_code_for_currency(mixed $code) {
         $currencyItem = $this->currency($code);
         $networks = $currencyItem['networks'];
         $networkKeys = is_array($networks) ? array_keys($networks) : array();

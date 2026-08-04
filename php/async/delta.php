@@ -651,7 +651,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function index_by_stringified_numeric_id($input) {
+    public function index_by_stringified_numeric_id(mixed $input) {
         $result = array();
         if ($input === null) {
             return null;
@@ -1622,7 +1622,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "time":1605393120,
@@ -1707,7 +1707,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_list($response, 'result', array());
         $result = array( 'info' => $response );
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId', array());
@@ -2365,7 +2365,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function fetch_orders_with_method($method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_with_method(mixed $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($method, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $request = array(
@@ -2564,7 +2564,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'pnl' => 'pnl',
             'deposit' => 'transaction',
@@ -2679,7 +2679,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        "id" => 1915615,
@@ -2847,7 +2847,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "close" => 30600.5,
@@ -2948,7 +2948,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3103,7 +3103,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "close" => 894.0,
@@ -3340,7 +3340,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_settlement($settlement, $market) {
+    public function parse_settlement(mixed $settlement, mixed $market) {
         //
         //     {
         //         "contract_value" => "0.001",
@@ -3405,7 +3405,7 @@ class delta extends Exchange {
         );
     }
 
-    public function parse_settlements($settlements, $market) {
+    public function parse_settlements(mixed $settlements, mixed $market) {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
@@ -4229,7 +4229,7 @@ class delta extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
@@ -4262,7 +4262,7 @@ class delta extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

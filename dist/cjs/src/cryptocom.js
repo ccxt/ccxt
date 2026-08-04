@@ -29,7 +29,7 @@ class cryptocom extends cryptocom$1["default"] {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': true,
+                'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -2172,7 +2172,8 @@ class cryptocom extends cryptocom$1["default"] {
     async fetchDepositAddress(code, params = {}) {
         const network = this.safeStringUpper(params, 'network');
         params = this.omit(params, ['network']);
-        const depositAddresses = await this.fetchDepositAddressesByNetwork(code, params);
+        const depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, params);
+        const depositAddresses = depositAddressesRaw;
         if (network in depositAddresses) {
             return depositAddresses[network];
         }

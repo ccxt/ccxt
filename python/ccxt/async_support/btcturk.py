@@ -309,7 +309,7 @@ class btcturk(Exchange, ImplicitAPI):
         markets = self.safe_list(data, 'symbols', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, entry) -> Market:
+    def parse_market(self, entry: Any) -> Market:
         id = self.safe_string(entry, 'name')
         baseId = self.safe_string(entry, 'numerator')
         quoteId = self.safe_string(entry, 'denominator')
@@ -381,7 +381,7 @@ class btcturk(Exchange, ImplicitAPI):
             'info': entry,
         })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         data = self.safe_list(response, 'data', [])
         result = {
             'info': response,
@@ -649,7 +649,7 @@ class btcturk(Exchange, ImplicitAPI):
             dataList = data
         return self.parse_trades(dataList, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #    {
         #        "timestamp": 1661990400,
@@ -745,7 +745,7 @@ class btcturk(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcvs(self, ohlcvs, market: Any = None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
+    def parse_ohlcvs(self, ohlcvs: Any, market: Any = None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
         results = []
         timestamp = self.safe_list(ohlcvs, 't', [])
         high = self.safe_list(ohlcvs, 'h', [])
@@ -1020,7 +1020,7 @@ class btcturk(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
         url = self.urls['api'][api] + '/' + path
@@ -1042,7 +1042,7 @@ class btcturk(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         errorCode = self.safe_string(response, 'code', '0')
         message = self.safe_string(response, 'message')
         output = body if (message is None) else message

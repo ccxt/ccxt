@@ -80,7 +80,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "topic":"orderbook",
@@ -155,7 +155,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "trade",
@@ -222,7 +222,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message, ?array $subscription = null) {
+    public function handle_my_trades(Client $client, mixed $message, ?array $subscription = null) {
         //
         // {
         //     "topic":"usertrade",
@@ -311,7 +311,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_order(Client $client, $message, ?array $subscription = null) {
+    public function handle_order(Client $client, mixed $message, ?array $subscription = null) {
         //
         //     {
         //         "topic" => "order",
@@ -424,7 +424,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "wallet",
@@ -468,7 +468,7 @@ class hollaex extends \ccxt\async\hollaex {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_public($messageHash, $params = array()) {
+    public function watch_public(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $url = $this->urls['api']['ws'];
             $request = array(
@@ -480,7 +480,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function watch_private($messageHash, $params = array()) {
+    public function watch_private(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $this->check_required_credentials();
             $expires = $this->safe_string($this->options, 'ws-expires');
@@ -513,7 +513,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     array( $error => "Bearer or HMAC authentication required" )
         //     array( $error => "Error => wrong input" )
@@ -532,7 +532,7 @@ class hollaex extends \ccxt\async\hollaex {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // pong
         //
@@ -645,17 +645,17 @@ class hollaex extends \ccxt\async\hollaex {
         return array( 'op' => 'ping' );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function on_error(Client $client, $error) {
+    public function on_error(Client $client, mixed $error) {
         $this->options['ws-expires'] = null;
         parent::on_error($client, $error);
     }
 
-    public function on_close(Client $client, $error) {
+    public function on_close(Client $client, mixed $error) {
         $this->options['ws-expires'] = null;
         parent::on_close($client, $error);
     }

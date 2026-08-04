@@ -1009,9 +1009,9 @@ public partial class bitvavo : Exchange
         object maker = this.safeNumber(feesValue, "maker");
         object taker = this.safeNumber(feesValue, "taker");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(((object)this.symbols), i);
+            object symbol = getValue(this.symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fees },
                 { "symbol", symbol },

@@ -326,7 +326,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $result;
     }
 
-    public function fetch_events(array $params = array()) {
+    public function fetch_events($params = array()) {
         throw new NotSupported($this->id . ' fetchEvents() is not supported yet');
     }
 
@@ -588,7 +588,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $this->slug_to_market_symbol($eventSlug, $marketSlug) . ':' . $label;
     }
 
-    public function set_markets($markets, $currencies = null) {
+    public function set_markets(mixed $markets, $currencies = null) {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys $this->markets/$this->symbols by 'symbol',
         // so alias the handle onto a shallow $copy per $row; the caller's rows stay symbol-free
@@ -613,7 +613,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $stored;
     }
 
-    public function index_market_outcomes($market) {
+    public function index_market_outcomes(mixed $market) {
         // index one market's outcome tokens into $this->outcomes / $this->outcomes_by_id,
         // normalizing each to the canonical identity keys (outcome / outcomeId / $market) so
         // consumers and the safe* helpers stay uniform even when an exchange's parseMarket
@@ -1578,28 +1578,28 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $results;
     }
 
-    public function filter_by_outcome_since_limit($array, ?string $outcome = null, ?int $since = null, ?int $limit = null, $tail = false) {
+    public function filter_by_outcome_since_limit(mixed $array, ?string $outcome = null, ?int $since = null, ?int $limit = null, $tail = false) {
         return $this->filter_by_value_since_limit($array, 'outcome', $outcome, $since, $limit, 'timestamp', $tail);
     }
 
-    public function filter_by_outcomes_since_limit($array, ?array $outcomes = null, ?int $since = null, ?int $limit = null, $tail = false) {
+    public function filter_by_outcomes_since_limit(mixed $array, ?array $outcomes = null, ?int $since = null, ?int $limit = null, $tail = false) {
         $result = $this->filter_by_array($array, 'outcome', $outcomes, false);
         return $this->filter_by_since_limit($result, $since, $limit, 'timestamp', $tail);
     }
 
-    public function amount_to_prediction_precision(?string $outcome, $amount) {
+    public function amount_to_prediction_precision(?string $outcome, mixed $amount) {
         $outcomeObj = $this->outcome($outcome);
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         return $this->amount_to_precision($marketSymbol, $amount);
     }
 
-    public function price_to_prediction_precision(?string $outcome, $price) {
+    public function price_to_prediction_precision(?string $outcome, mixed $price) {
         $outcomeObj = $this->outcome($outcome);
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         return $this->price_to_precision($marketSymbol, $price);
     }
 
-    public function cost_to_prediction_precision(?string $outcome, $cost) {
+    public function cost_to_prediction_precision(?string $outcome, mixed $cost) {
         $outcomeObj = $this->outcome($outcome);
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         return $this->cost_to_precision($marketSymbol, $cost);

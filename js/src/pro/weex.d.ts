@@ -5,7 +5,7 @@ export default class weex extends weexRest {
     describe(): any;
     requestId(): string | undefined;
     subscribePublic(messageHashes: any, channels: any, isContract?: boolean, params?: {}, subscription?: {}): Promise<any>;
-    subscribePrivate(messageHash: any, subscribeHash: any, channel: any, isContract?: boolean, params?: {}, subscription?: {}): Promise<any>;
+    subscribePrivate(messageHash: any, subscribeHash: any, channel: any, isContract?: boolean, params?: any, subscription?: {}): Promise<any>;
     authenticate(url: any): void;
     /**
      * @method
@@ -142,7 +142,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name weex#unWatchOHLCVForSymbols
@@ -293,7 +293,7 @@ export default class weex extends weexRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, type: any): void;
-    loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    loadBalanceSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
     handleBalance(client: Client, message: any): void;
     /**
      * @method
@@ -309,7 +309,7 @@ export default class weex extends weexRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, params?: Dict): void;
-    loadPositionsSnapshot(client: any, messageHash: any, params: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any, params: any): Promise<void>;
     /**
      * @method
      * @name weex#unWatchPositions

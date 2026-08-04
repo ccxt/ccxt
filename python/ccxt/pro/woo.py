@@ -82,14 +82,14 @@ class woo(ccxt.async_support.woo):
             },
         })
 
-    def request_id(self, url):
+    def request_id(self, url: Any):
         options = self.safe_value(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
         return newValue
 
-    async def watch_public(self, messageHash, message):
+    async def watch_public(self, messageHash: Any, message: Any):
         urlUid = '/' + self.uid if (self.uid) else ''
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
@@ -182,7 +182,7 @@ class woo(ccxt.async_support.woo):
         topic = 'orderbook'
         return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "PERP_BTC_USDT@orderbookupdate",
@@ -245,7 +245,7 @@ class woo(ccxt.async_support.woo):
             orderbook.reset(snapshot)
             client.resolve(orderbook, topic)
 
-    def handle_order_book_subscription(self, client: Client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message: Any, subscription: Any):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         limit = self.safe_integer(subscription, 'limit', defaultLimit)
         symbol = self.safe_string(subscription, 'symbol')  # watchOrderBook
@@ -256,7 +256,7 @@ class woo(ccxt.async_support.woo):
         self.orderbooks[symbol] = self.order_book({}, limit)
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
-    async def fetch_order_book_snapshot(self, client, message, subscription):
+    async def fetch_order_book_snapshot(self, client: Client, message: Any, subscription: Any):
         symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(message, 'topic')
         try:
@@ -287,7 +287,7 @@ class woo(ccxt.async_support.woo):
                 del client.subscriptions[messageHash]
             client.reject(e, messageHash)
 
-    def handle_order_book_message(self, client: Client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message: Any, orderbook: Any):
         data = self.safe_dict(message, 'data')
         self.handle_deltas(orderbook['asks'], self.safe_value(data, 'asks', []))
         self.handle_deltas(orderbook['bids'], self.safe_value(data, 'bids', []))
@@ -296,12 +296,12 @@ class woo(ccxt.async_support.woo):
         orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         price = self.safe_float_2(delta, 'price', 0)
         amount = self.safe_float_2(delta, 'quantity', 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -341,7 +341,7 @@ class woo(ccxt.async_support.woo):
         topic = 'ticker'
         return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
-    def parse_ws_ticker(self, ticker, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -377,7 +377,7 @@ class woo(ccxt.async_support.woo):
             'info': ticker,
         }, market)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "PERP_BTC_USDT@ticker",
@@ -447,7 +447,7 @@ class woo(ccxt.async_support.woo):
         subHash = 'tickers'
         return await self.unwatch_public(subHash, None, topic, params)
 
-    def handle_tickers(self, client: Client, message):
+    def handle_tickers(self, client: Client, message: Any):
         #
         #     {
         #         "topic":"tickers",
@@ -532,7 +532,7 @@ class woo(ccxt.async_support.woo):
         topic = 'bidsasks'
         return await self.unwatch_public(subHash, None, topic, params)
 
-    def handle_bid_ask(self, client: Client, message):
+    def handle_bid_ask(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "bbos",
@@ -565,7 +565,7 @@ class woo(ccxt.async_support.woo):
                 result[symbol] = parsedTicker
         client.resolve(result, topic)
 
-    def parse_ws_bid_ask(self, ticker, market: Market = None):
+    def parse_ws_bid_ask(self, ticker: Any, market: Market = None):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -612,7 +612,7 @@ class woo(ccxt.async_support.woo):
             limit = ohlcv.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -634,7 +634,7 @@ class woo(ccxt.async_support.woo):
         params['symbolsAndTimeframes'] = [[market['symbol'], timeframe]]
         return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "topic":"SPOT_BTC_USDT@kline_1m",
@@ -722,7 +722,7 @@ class woo(ccxt.async_support.woo):
         subHash = market['id'] + '@trade'
         return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: Any):
         #
         # {
         #     "topic":"SPOT_ADA_USDT@trade",
@@ -751,7 +751,7 @@ class woo(ccxt.async_support.woo):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, topic)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         #     {
         #         "symbol":"SPOT_ADA_USDT",
@@ -859,7 +859,7 @@ class woo(ccxt.async_support.woo):
             self.watch(url, messageHash, message, messageHash, message)
         return await future
 
-    async def watch_private(self, messageHash, message, params={}):
+    async def watch_private(self, messageHash: Any, message: Any, params={}):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         requestId = self.request_id(url)
@@ -869,7 +869,7 @@ class woo(ccxt.async_support.woo):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
-    async def watch_private_multiple(self, messageHashes, message, params={}):
+    async def watch_private_multiple(self, messageHashes: Any, message: Any, params={}):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         requestId = self.request_id(url)
@@ -947,7 +947,7 @@ class woo(ccxt.async_support.woo):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -1064,7 +1064,7 @@ class woo(ccxt.async_support.woo):
             'trades': trades,
         })
 
-    def handle_order_update(self, client: Client, message):
+    def handle_order_update(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "executionreport",
@@ -1111,7 +1111,7 @@ class woo(ccxt.async_support.woo):
                 self.handle_my_trade(client, data)
             self.handle_order(client, data, topic)
 
-    def handle_order(self, client: Client, message, topic):
+    def handle_order(self, client: Client, message: Any, topic: Any):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')
@@ -1137,7 +1137,7 @@ class woo(ccxt.async_support.woo):
             messageHashSymbol = topic + ':' + symbol
             client.resolve(self.orders, messageHashSymbol)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: Any):
         #
         #    {
         #     "msgType": 0,  # execution report
@@ -1222,7 +1222,7 @@ class woo(ccxt.async_support.woo):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type, symbols: Strings = None):
+    def set_positions_cache(self, client: Client, type: Any, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot:
             messageHash = 'fetchPositionsSnapshot'
@@ -1232,7 +1232,7 @@ class woo(ccxt.async_support.woo):
         else:
             self.positions = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client, messageHash):
+    async def load_positions_snapshot(self, client: Client, messageHash: Any):
         positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1247,7 +1247,7 @@ class woo(ccxt.async_support.woo):
             future.resolve(cache)
             client.resolve(cache, 'positions')
 
-    def handle_positions(self, client, message):
+    def handle_positions(self, client: Any, message: Any):
         #
         #    {
         #        "topic":"position",
@@ -1311,7 +1311,7 @@ class woo(ccxt.async_support.woo):
         message = self.extend(request, params)
         return await self.watch_private(messageHash, message)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Any, message: Any):
         #
         #   {
         #       "topic": "balance",
@@ -1386,7 +1386,7 @@ class woo(ccxt.async_support.woo):
         message = self.extend(request, params)
         return await self.watch_public(topic, message)
 
-    def handle_funding_rate(self, client: Client, message):
+    def handle_funding_rate(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "PERP_BTC_USDT@estfundingrate",
@@ -1406,7 +1406,7 @@ class woo(ccxt.async_support.woo):
         messageHash = self.safe_string(message, 'topic')
         client.resolve(fundingRate, messageHash)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         #
@@ -1431,7 +1431,7 @@ class woo(ccxt.async_support.woo):
                 client.reject(error)
             return True
 
-    def handle_un_subscription(self, client: Client, message):
+    def handle_un_subscription(self, client: Client, message: Any):
         #
         #     {
         #         "id": "2",
@@ -1452,7 +1452,7 @@ class woo(ccxt.async_support.woo):
             self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if self.handle_error_message(client, message):
             return
         methods = {
@@ -1505,20 +1505,20 @@ class woo(ccxt.async_support.woo):
     def ping(self, client: Client):
         return {'event': 'ping'}
 
-    async def pong(self, client: Client, message):
+    async def pong(self, client: Client, message: Any):
         await client.send({'event': 'pong'})
 
-    def handle_ping(self, client: Client, message):
+    def handle_ping(self, client: Client, message: Any):
         self.spawn(self.pong, client, message)
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         #
         # {event: "pong", ts: 1657117026090}
         #
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_subscribe(self, client: Client, message):
+    def handle_subscribe(self, client: Client, message: Any):
         #
         #     {
         #         "id": "666888",
@@ -1535,7 +1535,7 @@ class woo(ccxt.async_support.woo):
             method(client, message, subscription)
         return message
 
-    def handle_auth(self, client: Client, message):
+    def handle_auth(self, client: Client, message: Any):
         #
         #     {
         #         "event": "auth",

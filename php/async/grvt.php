@@ -679,7 +679,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //    {
         //        "instrument" => "BTC_USDT_Perp",
@@ -1213,7 +1213,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //            {
         //                "open_time" => "1767288240000000000",
@@ -1297,7 +1297,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_funding_rate_history($rawItem, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $rawItem, ?array $market = null) {
         //
         //            array(
         //                "instrument" => "BTC_USDT_Perp",
@@ -1319,7 +1319,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function get_sub_account_id($params) {
+    public function get_sub_account_id(mixed $params) {
         $subAccountId = null;
         list($subAccountId, $params) = $this->handle_option_and_params($params, 'getSubAccountId', 'accountId');
         if ($subAccountId === null) {
@@ -1376,7 +1376,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //        {
         //            "event_time" => "1764863116142428457",
@@ -1550,7 +1550,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function internal_fetch_transfers($req, mixed $currency = null, ?int $since = null, ?int $limit = null) {
+    public function internal_fetch_transfers(mixed $req, mixed $currency = null, ?int $since = null, ?int $limit = null) {
         return Async\async(function () use ($req, $currency, $since, $limit) {
             $response = Async\await($this->privateTradingPostFullV1TransferHistory($req));
             //
@@ -2221,11 +2221,11 @@ class grvt extends Exchange {
         })();
     }
 
-    public function convert_to_big_int_custom($x) {
+    public function convert_to_big_int_custom(mixed $x) {
         return intval($x);
     }
 
-    public function eip_message_for_order($order, $structureType) {
+    public function eip_message_for_order(mixed $order, mixed $structureType) {
         $priceMultiplier = '1000000000';
         $orderLegs = $this->safe_list($order, 'legs', array());
         $legs = array();
@@ -2680,7 +2680,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //            {
         //                "event_time" => "1765267200004987902",
@@ -3320,7 +3320,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function handle_until_option_string(string $key, $request, $params, $multiplier = 1) {
+    public function handle_until_option_string(string $key, mixed $request, mixed $params, $multiplier = 1) {
         $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request[$key] = $this->number_to_string($this->parse_to_int($until * $multiplier));
@@ -3335,7 +3335,7 @@ class grvt extends Exchange {
         return $requestId;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . $path;
         $queryString = '';
@@ -3371,7 +3371,7 @@ class grvt extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (str_ends_with($url, 'auth/api_key/login') || str_ends_with($url, 'auth/wallet/login')) {
             $accountId = $this->safe_string_2($headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             $this->options['AuthAccountId'] = $accountId;

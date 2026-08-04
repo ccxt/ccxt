@@ -1674,7 +1674,7 @@ class htx extends Exchange {
         return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
-    public function parse_trading_limits($limits, ?string $symbol = null, $params = array()) {
+    public function parse_trading_limits(mixed $limits, ?string $symbol = null, $params = array()) {
         //
         //   {                                "symbol" => "aidocbtc",
         //                  "buy-limit-must-less-than" =>  1.1,
@@ -1701,7 +1701,7 @@ class htx extends Exchange {
         );
     }
 
-    public function cost_to_precision($symbol, $cost) {
+    public function cost_to_precision(?string $symbol, mixed $cost) {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->market($symbol)['precision']['cost'], $this->precisionMode);
     }
 
@@ -2504,7 +2504,7 @@ class htx extends Exchange {
         return $this->parse_last_prices($data, $symbols);
     }
 
-    public function parse_last_price($entry, ?array $market = null) {
+    public function parse_last_price(mixed $entry, ?array $market = null) {
         // example responses are documented in fetchLastPrices
         $marketId = $this->safe_string_2($entry, 'symbol', 'contract_code');
         $market = $this->safe_market($marketId, $market);
@@ -3123,7 +3123,7 @@ class htx extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "amount":1.2082,
@@ -3321,7 +3321,7 @@ class htx extends Exchange {
         return $this->parse_accounts($data);
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //     {
         //         "id" => 5202591,
@@ -4040,7 +4040,7 @@ class htx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function parse_margin_balance_helper($balance, $code, $result) {
+    public function parse_margin_balance_helper(mixed $balance, mixed $code, mixed $result) {
         $account = null;
         if (is_array($result) && array_key_exists($code ?? '', $result)) {
             $account = $result[$code];
@@ -4062,7 +4062,7 @@ class htx extends Exchange {
         return $account;
     }
 
-    public function fetch_spot_orders_by_states($states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_spot_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if ($method === 'spot_private_get_v1_order_orders') {
             if ($symbol === null) {
@@ -6283,7 +6283,7 @@ class htx extends Exchange {
         return $this->parse_cancel_orders($data);
     }
 
-    public function parse_cancel_orders($orders) {
+    public function parse_cancel_orders(mixed $orders) {
         //
         //    {
         //        "success" => array(
@@ -6536,7 +6536,7 @@ class htx extends Exchange {
         return $response;
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
         //
         //     {
         //         "currency" => "usdt",
@@ -7417,7 +7417,7 @@ class htx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         // inverse swap
         //
@@ -7472,7 +7472,7 @@ class htx extends Exchange {
         );
     }
 
-    public function parse_funding_interval($interval) {
+    public function parse_funding_interval(mixed $interval) {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -7740,7 +7740,7 @@ class htx extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = '/';
         $isArrayParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $query = null;
@@ -7891,7 +7891,7 @@ class htx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -8104,7 +8104,7 @@ class htx extends Exchange {
         return $response;
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //       "id" => "1667161118",
@@ -8598,7 +8598,7 @@ class htx extends Exchange {
         return $parsed;
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'trade' => 'trade',
             'etf' => 'trade',
@@ -8784,7 +8784,7 @@ class htx extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'contract_code');
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         $currencyId = $this->safe_string($info, 'trade_partition');
         $marketId = $this->safe_string($info, 'contract_code');
         $tiers = array();
@@ -9114,7 +9114,7 @@ class htx extends Exchange {
         return $openInterest;
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         // fetchOpenInterestHistory
         //
@@ -9251,7 +9251,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -9294,7 +9294,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -9335,7 +9335,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function parse_margin_loan($info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null) {
         //
         // borrowMargin cross
         //
@@ -9497,7 +9497,7 @@ class htx extends Exchange {
         return $this->sort_by($settlements, 'timestamp');
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -9551,7 +9551,7 @@ class htx extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //            {
         //              "currency" => "sxp",
@@ -9620,7 +9620,7 @@ class htx extends Exchange {
         return $result;
     }
 
-    public function parse_settlements($settlements, $market) {
+    public function parse_settlements(mixed $settlements, mixed $market) {
         //
         // coin-m swap, fetchSettlementHistory
         //
@@ -9694,7 +9694,7 @@ class htx extends Exchange {
         return $result;
     }
 
-    public function parse_settlement($settlement, $market) {
+    public function parse_settlement(mixed $settlement, mixed $market) {
         //
         // coin-m swap, fetchSettlementHistory
         //
@@ -9834,7 +9834,7 @@ class htx extends Exchange {
         return $this->parse_liquidations($data, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
         //         "query_id" => 452057,

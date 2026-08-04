@@ -2876,9 +2876,9 @@ public partial class bitfinex : Exchange
         object takerFee = this.safeNumber(takerData, 0);
         object takerFeeFiat = this.safeNumber(takerData, 2);
         object takerFeeDeriv = this.safeNumber(takerData, 5);
-        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(((object)this.symbols), i);
+            object symbol = getValue(this.symbols, i);
             object market = this.market(symbol);
             object fee = new Dictionary<string, object>() {
                 { "info", response },

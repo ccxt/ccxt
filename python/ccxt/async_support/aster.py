@@ -1106,7 +1106,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         # spot:
         #
@@ -1706,7 +1706,7 @@ class aster(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def parse_last_price(self, entry, market: Market = None):
+    def parse_last_price(self, entry: Any, market: Market = None):
         #
         # spot & swap
         #
@@ -1765,7 +1765,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         # fundingRate
         #
@@ -1948,7 +1948,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market)
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: Any, market: Market = None):
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -2012,7 +2012,7 @@ class aster(Exchange, ImplicitAPI):
             #
         return self.parse_balance(data)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -3184,7 +3184,7 @@ class aster(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def modify_margin_helper(self, symbol: str, amount, addOrReduce, params={}):
+    async def modify_margin_helper(self, symbol: str, amount: Any, addOrReduce: Any, params={}):
         await self.load_markets_and_sign_in()
         market = self.market(symbol)
         amount = self.amount_to_precision(symbol, amount)
@@ -3231,7 +3231,7 @@ class aster(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         #     {
         #       "symbol": "ETHUSDT",
@@ -3331,7 +3331,7 @@ class aster(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         ledgerType = {
             'TRANSFER': 'transfer',
             'WELCOME_BONUS': 'cashback',
@@ -3386,7 +3386,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_position_risk(self, position, market: Market = None):
+    def parse_position_risk(self, position: Any, market: Market = None):
         #
         #     {
         #         "entryPrice": "6563.66500",
@@ -3610,7 +3610,7 @@ class aster(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
 
-    def parse_account_positions(self, account, filterClosed=False):
+    def parse_account_positions(self, account: Any, filterClosed=False):
         positions = self.safe_list(account, 'positions', [])
         assets = self.safe_list(account, 'assets', [])
         balances = {}
@@ -3644,7 +3644,7 @@ class aster(Exchange, ImplicitAPI):
                     result.append(parsed)
         return result
 
-    def parse_account_position(self, position, market: Market = None):
+    def parse_account_position(self, position: Any, market: Market = None):
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
         symbol = self.safe_string(market, 'symbol')
@@ -3863,13 +3863,13 @@ class aster(Exchange, ImplicitAPI):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    def keccak_message(self, message):
+    def keccak_message(self, message: Any):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: Any, privateKey: Any):
         return self.sign_hash(self.keccak_message(message), privateKey[-64:])
 
-    def sign_withdraw_payload(self, withdrawPayload, network) -> str:
+    def sign_withdraw_payload(self, withdrawPayload: Any, network: Any) -> str:
         chainId = self.safe_integer(withdrawPayload, 'chainId')
         domain = {
             'chainId': chainId,
@@ -3955,7 +3955,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: Any, currency: Currency = None) -> Transaction:
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'withdrawId'),
@@ -4039,7 +4039,7 @@ class aster(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def hash_message(self, binaryMessage):
+    def hash_message(self, binaryMessage: Any):
         # binaryMessage = self.encode(message)
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
@@ -4047,7 +4047,7 @@ class aster(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: Any, privateKey: Any):
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -4055,7 +4055,7 @@ class aster(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api'][api] + '/' + path
         if api == 'fapiPublic' or api == 'sapiPublic':
             if params:
@@ -4218,7 +4218,7 @@ class aster(Exchange, ImplicitAPI):
                 self.options['builderFee'] = False  # disable if err
         return None  # just c#
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

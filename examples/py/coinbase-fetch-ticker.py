@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+# fetchTicker is a one-shot REST call. For live updates, prefer watchTicker
+# (WebSocket) instead of polling this in a loop — see coinbase-watch-ticker.py.
+
 import os
 import sys
 from pprint import pprint

@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, DepositWithdrawFees } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -50,7 +50,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): Dict;
     /**
      * @method
@@ -70,7 +70,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/?id=trading-limits-structure}
      */
-    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<any>;
+    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name whitebit#fetchFundingLimits

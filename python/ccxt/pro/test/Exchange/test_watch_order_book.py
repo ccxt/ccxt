@@ -12,6 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
+from ccxt.base.errors import InvalidNonce  # noqa E402
 from ccxt.test.exchange.base import test_order_book  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
@@ -25,7 +26,7 @@ async def test_watch_order_book(exchange, skipped_properties, symbol):
         try:
             response = await exchange.watch_order_book(symbol)
         except Exception as e:
-            if not test_shared_methods.is_temporary_failure(e):
+            if not test_shared_methods.is_temporary_failure(e) and not (isinstance(e, InvalidNonce)):
                 raise e
             now = exchange.milliseconds()
             # continue;

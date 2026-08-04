@@ -17,8 +17,10 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 
+// url trees are open-ended bags: exchanges nest arbitrary depth under
+// 'api', 'test', 'hostnames', 'demo', ... and index them dynamically
 export interface NestedDictionary {
-    [key: string]: string | NestedDictionary;
+    [key: string]: any;
 }
 
 export type Dict = Dictionary<any>;
@@ -41,6 +43,14 @@ export interface FeeInterface {
     rate?: Num;
 }
 
+// intermediate fee bag carried through the Precise/safeTrade pipeline, before
+// parseFeeNumeric() converts cost/rate to numbers; the unified Trade/Order fee is Fee
+export interface FeeStringInterface {
+    currency: Str;
+    cost: Str;
+    rate?: Str;
+}
+
 export interface TradingFeeInterface {
     info: any;
     symbol: Str;
@@ -51,6 +61,8 @@ export interface TradingFeeInterface {
 }
 
 export type Fee = FeeInterface | undefined;
+
+export type FeeString = FeeStringInterface | undefined;
 
 export interface MarketMarginModes {
     isolated: Bool;
@@ -530,6 +542,9 @@ export interface BalanceAccount {
     free: Str,
     used: Str,
     total: Str,
+    debt?: Str,
+    frozen?: Str,
+    info?: any,
 }
 
 export interface Account {
@@ -667,6 +682,9 @@ export interface DepositWithdrawFee {
     withdraw?: DepositWithdrawFeeNetwork,
     deposit?: DepositWithdrawFeeNetwork,
     networks?: Dictionary<DepositWithdrawFeeNetwork>;
+}
+
+export interface DepositWithdrawFees extends Dictionary<DepositWithdrawFee> {
 }
 
 export interface TransferEntry {

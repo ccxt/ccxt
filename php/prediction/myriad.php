@@ -2812,7 +2812,7 @@ class myriad extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         /**
          * @ignore
          * parses a single myriad $price chart data point into an $ohlcv tuple
@@ -3011,7 +3011,7 @@ class myriad extends Exchange {
         ), $market);
     }
 
-    public function fetch_events(array $params = array()): PromiseInterface {
+    public function fetch_events($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches prediction-market events matching the given scope (query/queries/tags/eventId) and caches their markets and outcomes on the instance
@@ -3239,7 +3239,7 @@ class myriad extends Exchange {
         })();
     }
 
-    public function pong($client, mixed $message = null) {
+    public function pong(Client $client, mixed $message = null) {
         return Async\async(function () use ($client, $message) {
             // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
             Async\await($client->send('{}'));
@@ -3257,7 +3257,7 @@ class myriad extends Exchange {
         })();
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(mixed $client, mixed $message) {
         // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
         // base JSON.parse and arrives here raw string, a single command arrives already $parsed
         if (gettype($message) === 'string') {
@@ -3275,7 +3275,7 @@ class myriad extends Exchange {
         $this->handle_centrifugo_frame($client, $message);
     }
 
-    public function handle_centrifugo_frame($client, $msg) {
+    public function handle_centrifugo_frame(Client $client, mixed $msg) {
         $keys = is_array($msg) ? array_keys($msg) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
@@ -3365,7 +3365,7 @@ class myriad extends Exchange {
         })();
     }
 
-    public function handle_order_book($client, $data) {
+    public function handle_order_book(mixed $client, mixed $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3465,7 +3465,7 @@ class myriad extends Exchange {
         return null;
     }
 
-    public function handle_trades($client, $data) {
+    public function handle_trades(mixed $client, mixed $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3658,7 +3658,7 @@ class myriad extends Exchange {
         })();
     }
 
-    public function handle_ticker($client, $data) {
+    public function handle_ticker(mixed $client, mixed $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3736,7 +3736,7 @@ class myriad extends Exchange {
         })();
     }
 
-    public function handle_order($client, $data) {
+    public function handle_order(mixed $client, mixed $data) {
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheByOutcomeById($limit);
@@ -3839,7 +3839,7 @@ class myriad extends Exchange {
         })();
     }
 
-    public function handle_position($client, $data) {
+    public function handle_position(mixed $client, mixed $data) {
         if ($this->positions === null) {
             $limit = $this->safe_integer($this->options, 'positionsLimit', 1000);
             $this->positions = new ArrayCacheByOutcomeById($limit);
@@ -3908,7 +3908,7 @@ class myriad extends Exchange {
         return strtolower($address);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         // Myriad $error responses are array( "error" => "<message>", "details" => [...] ) with a 4xx status
         if ($response === null) {
             return null;

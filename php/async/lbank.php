@@ -1175,7 +1175,7 @@ class lbank extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //   array(
         //     1482311500, // timestamp
@@ -1259,7 +1259,7 @@ class lbank extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         // spotPrivatePostUserInfo
         //
@@ -1397,7 +1397,7 @@ class lbank extends Exchange {
         return null;
     }
 
-    public function parse_funding_rate($ticker, ?array $market = null): array {
+    public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
         // {
         //     "symbol" => "BTCUSDT",
         //     "highestPrice" => "69495.5",
@@ -2327,7 +2327,7 @@ class lbank extends Exchange {
         })();
     }
 
-    public function get_network_code_for_currency($currencyCode, $params) {
+    public function get_network_code_for_currency(mixed $currencyCode, mixed $params) {
         $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
         $defaultNetwork = $this->safe_string_upper($defaultNetworks, $currencyCode);
         $networks = $this->safe_value($this->options, 'networks', array());
@@ -2514,7 +2514,7 @@ class lbank extends Exchange {
         })();
     }
 
-    public function parse_transaction_status($status, $type) {
+    public function parse_transaction_status(?string $status, mixed $type) {
         $statuses = array(
             'deposit' => array(
                 '1' => 'pending',
@@ -2903,7 +2903,7 @@ class lbank extends Exchange {
         })();
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * when using private endpoint, only returns information for currencies with non-zero balance, use public $method by specifying $this->options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
@@ -3014,7 +3014,7 @@ class lbank extends Exchange {
         })();
     }
 
-    public function parse_public_deposit_withdraw_fees($response, ?array $codes = null) {
+    public function parse_public_deposit_withdraw_fees(mixed $response, ?array $codes = null) {
         //
         //    array(
         //        array(
@@ -3073,7 +3073,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         // * only used for fetchPrivateDepositWithdrawFees
         //
@@ -3132,7 +3132,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         // Every spot endpoint ends with ".do"
@@ -3196,7 +3196,7 @@ class lbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function convert_secret_to_pem($secret) {
+    public function convert_secret_to_pem(mixed $secret) {
         $lineLength = 64;
         $secretLength = strlen($secret) - 0;
         $numLines = $this->parse_to_int($secretLength / $lineLength);
@@ -3210,7 +3210,7 @@ class lbank extends Exchange {
         return $pem . '-----END PRIVATE KEY-----';
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             throw new NullResponse($this->id . ' parseBalance() returned empty response');
         }

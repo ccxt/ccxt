@@ -208,7 +208,7 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // "market.btcusdt.detail"
         //     {
@@ -316,7 +316,7 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "ch" => "market.btcusdt.trade.detail",
@@ -420,7 +420,7 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "ch" => "market.btcusdt.kline.1min",
@@ -545,7 +545,7 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function handle_order_book_snapshot(Client $client, $message, $subscription) {
+    public function handle_order_book_snapshot(Client $client, mixed $message, mixed $subscription) {
         //
         //     {
         //         "id" => 1583473663565,
@@ -635,7 +635,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function watch_order_book_snapshot($client, $message, $subscription) {
+    public function watch_order_book_snapshot(mixed $client, mixed $message, mixed $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
             $messageHash = $this->safe_string($subscription, 'messageHash');
             $symbol = $this->safe_string($subscription, 'symbol');
@@ -675,19 +675,19 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book_message(Client $client, $message) {
+    public function handle_order_book_message(Client $client, mixed $message) {
         // spot markets
         //
         //     {
@@ -790,7 +790,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // deltas
         //
@@ -864,7 +864,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_order_book_subscription(Client $client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $market = $this->market($symbol);
         $limit = $this->safe_integer($subscription, 'limit');
@@ -954,7 +954,7 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function get_order_channel_and_message_hash($type, $subType, ?array $market = null, $params = array()) {
+    public function get_order_channel_and_message_hash(mixed $type, mixed $subType, ?array $market = null, $params = array()) {
         $messageHash = null;
         $channel = null;
         $orderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
@@ -998,7 +998,7 @@ class htx extends \ccxt\async\htx {
         return array( $channel, $messageHash );
     }
 
-    public function get_v5_linear_channel_and_message_hash($topic, ?array $market = null, $params = array()) {
+    public function get_v5_linear_channel_and_message_hash(mixed $topic, ?array $market = null, $params = array()) {
         $contractCode = ($market !== null) ? $market['id'] : $this->safe_string($params, 'contract_code', '*');
         $channel = $topic;
         $messageHash = $topic;
@@ -1076,7 +1076,7 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         // spot
         //
@@ -1328,7 +1328,7 @@ class htx extends \ccxt\async\htx {
         $client->resolve($this->orders, $genericMessageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         // spot
         //
@@ -1554,7 +1554,7 @@ class htx extends \ccxt\async\htx {
         ), $market);
     }
 
-    public function parse_order_trade($trade, ?array $market = null) {
+    public function parse_order_trade(mixed $trade, ?array $market = null) {
         // spot private wrapped $trade
         //
         //     {
@@ -1680,7 +1680,7 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //    {
         //        op => 'notify',
@@ -1933,7 +1933,7 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         // spot
         //
         //     {
@@ -2202,7 +2202,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "id" => 1583414227,
@@ -2254,7 +2254,7 @@ class htx extends \ccxt\async\htx {
         $this->clean_cache($subscription);
     }
 
-    public function handle_system_status(Client $client, $message) {
+    public function handle_system_status(Client $client, mixed $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
         // and unified for any usage pattern that
@@ -2268,7 +2268,7 @@ class htx extends \ccxt\async\htx {
         return $message;
     }
 
-    public function handle_subject(Client $client, $message) {
+    public function handle_subject(Client $client, mixed $message) {
         // spot
         //     {
         //         "ch" => "market.btcusdt.mbp.150",
@@ -2401,7 +2401,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function pong($client, $message) {
+    public function pong(Client $client, mixed $message) {
         return Async\async(function () use ($client, $message) {
             //
             //     array( $ping => 1583491673714 )
@@ -2433,11 +2433,11 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function handle_ping(Client $client, $message) {
+    public function handle_ping(Client $client, mixed $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         //
         // spot
         //
@@ -2462,7 +2462,7 @@ class htx extends \ccxt\async\htx {
         $promise->resolve($message);
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
         //         "action" => "sub",
@@ -2549,7 +2549,7 @@ class htx extends \ccxt\async\htx {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             //
             //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)
@@ -2645,7 +2645,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_my_trade(Client $client, $message, $extendParams = array()) {
+    public function handle_my_trade(Client $client, mixed $message, $extendParams = array()) {
         //
         // spot
         //
@@ -2787,7 +2787,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         // spot private
         //
         //     {
@@ -2879,7 +2879,7 @@ class htx extends \ccxt\async\htx {
         ), $market);
     }
 
-    public function get_url_by_market_type($type, $isLinear = true, $isPrivate = false, $isFeed = false, $isV5 = false) {
+    public function get_url_by_market_type(mixed $type, $isLinear = true, $isPrivate = false, $isFeed = false, $isV5 = false) {
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $hostnameURL = null;
@@ -2911,7 +2911,7 @@ class htx extends \ccxt\async\htx {
         return $url;
     }
 
-    public function subscribe_public($url, $symbol, $messageHash, mixed $method = null, $params = array()) {
+    public function subscribe_public(mixed $url, mixed $symbol, mixed $messageHash, mixed $method = null, $params = array()) {
         return Async\async(function () use ($url, $symbol, $messageHash, $method, $params) {
             $requestId = $this->request_id();
             $request = array(
@@ -2961,7 +2961,7 @@ class htx extends \ccxt\async\htx {
         })();
     }
 
-    public function subscribe_private($channel, $messageHash, $type, $subtype, $params = array(), $subscriptionParams = array()) {
+    public function subscribe_private(mixed $channel, mixed $messageHash, mixed $type, mixed $subtype, $params = array(), $subscriptionParams = array()) {
         return Async\async(function () use ($channel, $messageHash, $type, $subtype, $params, $subscriptionParams) {
             $requestId = $this->request_id();
             $subscription = array(

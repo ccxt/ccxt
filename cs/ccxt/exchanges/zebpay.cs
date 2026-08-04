@@ -530,7 +530,7 @@ public partial class zebpay : Exchange
             // }
             //
             object responseData = this.safeList(response, "data", new List<object>() {});
-            data = this.safeDict(responseData, 0);
+            data = this.safeDict(responseData, 0, new Dictionary<string, object>() {});
         }
         return this.parseTradingFee(data, market);
     }

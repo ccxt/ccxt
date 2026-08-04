@@ -102,7 +102,7 @@ class coinex extends \ccxt\async\coinex {
         return $requestId;
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //  spot
         //
@@ -187,7 +187,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve($newTickers, 'tickers');
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null) {
+    public function parse_ws_ticker(mixed $ticker, ?array $market = null) {
         //
         //  spot
         //
@@ -294,7 +294,7 @@ class coinex extends \ccxt\async\coinex {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // spot
         //
@@ -377,7 +377,7 @@ class coinex extends \ccxt\async\coinex {
         }
     }
 
-    public function parse_ws_balance($balance, ?string $accountType = null) {
+    public function parse_ws_balance(mixed $balance, ?string $accountType = null) {
         //
         // spot
         //
@@ -472,7 +472,7 @@ class coinex extends \ccxt\async\coinex {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "method" => "user_deals.update",
@@ -513,7 +513,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         // spot
         //
@@ -576,7 +576,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // spot watchTrades
         //
@@ -863,18 +863,18 @@ class coinex extends \ccxt\async\coinex {
         })();
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "method" => "depth.update",
@@ -998,7 +998,7 @@ class coinex extends \ccxt\async\coinex {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         // spot
         //
@@ -1133,7 +1133,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         // spot
         //
@@ -1263,7 +1263,7 @@ class coinex extends \ccxt\async\coinex {
         ), $market);
     }
 
-    public function parse_ws_order_status($status) {
+    public function parse_ws_order_status(mixed $status) {
         $statuses = array(
             'active_success' => 'open',
             'active_fail' => 'canceled',
@@ -1321,7 +1321,7 @@ class coinex extends \ccxt\async\coinex {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
         //         "method" => "bbo.update",
@@ -1344,7 +1344,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         //
         //     {
         //         "market" => "BTCUSDT",
@@ -1371,7 +1371,7 @@ class coinex extends \ccxt\async\coinex {
         ), $market);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $method = $this->safe_string($message, 'method');
         $error = $this->safe_string($message, 'message');
         if ($error !== null) {
@@ -1395,7 +1395,7 @@ class coinex extends \ccxt\async\coinex {
         $this->handle_subscription_status($client, $message);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -1417,7 +1417,7 @@ class coinex extends \ccxt\async\coinex {
         return null;
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         //
         // success
         //
@@ -1450,7 +1450,7 @@ class coinex extends \ccxt\async\coinex {
         }
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         $id = $this->safe_integer($message, 'id');
         $subscription = $this->safe_value($client->subscriptions, $id);
         if ($subscription !== null) {

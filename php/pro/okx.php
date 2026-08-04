@@ -136,7 +136,7 @@ class okx extends \ccxt\async\okx {
         return $url . '/private' . $sandboxSuffix;
     }
 
-    public function subscribe_multiple($access, $channel, ?array $symbols = null, $params = array()) {
+    public function subscribe_multiple(mixed $access, mixed $channel, ?array $symbols = null, $params = array()) {
         return Async\async(function () use ($access, $channel, $symbols, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -174,7 +174,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function subscribe($access, $messageHash, $channel, $symbol, $params = array()) {
+    public function subscribe(mixed $access, mixed $messageHash, mixed $channel, mixed $symbol, $params = array()) {
         return Async\async(function () use ($access, $messageHash, $channel, $symbol, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -322,7 +322,7 @@ class okx extends \ccxt\async\okx {
         return $this->un_watch_trades_for_symbols(array( $symbol ), $params);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "arg" => array( $channel => "trades", instId => "BTC-USDT" ),
@@ -440,7 +440,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_funding_rate(Client $client, $message) {
+    public function handle_funding_rate(Client $client, mixed $message) {
         //
         // "data":array(
         //     {
@@ -621,7 +621,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "arg" => array( $channel => "tickers", instId => "BTC-USDT" ),
@@ -707,7 +707,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
         //         "arg" => array( channel => "tickers", instId => "BTC-USDT" ),
@@ -744,7 +744,7 @@ class okx extends \ccxt\async\okx {
         $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -819,7 +819,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_liquidation(Client $client, $message) {
+    public function handle_liquidation(Client $client, mixed $message) {
         //
         //    {
         //        "arg" => array(
@@ -911,7 +911,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_my_liquidation(Client $client, $message) {
+    public function handle_my_liquidation(Client $client, mixed $message) {
         //
         //    {
         //        "arg" => array(
@@ -966,7 +966,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function parse_ws_my_liquidation($liquidation, ?array $market = null) {
+    public function parse_ws_my_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //    {
         //        "pTime" => "1597026383085",
@@ -1013,7 +1013,7 @@ class okx extends \ccxt\async\okx {
         ));
     }
 
-    public function parse_ws_liquidation($liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
         //
         // public $liquidation
         //    {
@@ -1188,7 +1188,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "arg" => array( $channel => "candle1m", instId => "BTC-USDT" ),
@@ -1404,7 +1404,7 @@ class okx extends \ccxt\async\okx {
         return $this->un_watch_order_book_for_symbols(array( $symbol ), $params);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         //
         //     array(
         //         "31685", // $price
@@ -1418,13 +1418,13 @@ class okx extends \ccxt\async\okx {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash, ?array $market = null) {
+    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook, mixed $messageHash, ?array $market = null) {
         //
         //     {
         //         "asks" => array(
@@ -1473,7 +1473,7 @@ class okx extends \ccxt\async\okx {
         return $orderbook;
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // $snapshot
         //
@@ -1665,11 +1665,11 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_balance_and_position(Client $client, $message) {
+    public function handle_balance_and_position(Client $client, mixed $message) {
         $this->handle_my_liquidation($client, $message);
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         $arg => array(
@@ -1767,7 +1767,7 @@ class okx extends \ccxt\async\okx {
         $client->resolve($this->balance, $channel);
     }
 
-    public function order_to_trade($order, ?array $market = null) {
+    public function order_to_trade(mixed $order, ?array $market = null) {
         $info = $this->safe_value($order, 'info', array());
         $timestamp = $this->safe_integer($info, 'fillTime');
         $feeMarketId = $this->safe_string($info, 'fillFeeCcy');
@@ -1896,7 +1896,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //    {
         //        $arg => array(
@@ -2051,7 +2051,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //     {
         //         "arg":array(
@@ -2135,7 +2135,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "arg":array(
@@ -2285,7 +2285,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_place_orders(Client $client, $message) {
+    public function handle_place_orders(Client $client, mixed $message) {
         //
         //  batch-orders/order/cancel-order
         //    {
@@ -2485,7 +2485,7 @@ class okx extends \ccxt\async\okx {
         })();
     }
 
-    public function handle_cancel_all_orders(Client $client, $message) {
+    public function handle_cancel_all_orders(Client $client, mixed $message) {
         //
         //    {
         //        "id" => "1512",
@@ -2504,7 +2504,7 @@ class okx extends \ccxt\async\okx {
         $client->resolve($data, $messageHash);
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     array( event => 'subscribe', arg => array( $channel => "tickers", instId => "BTC-USDT" ) )
         //
@@ -2513,7 +2513,7 @@ class okx extends \ccxt\async\okx {
         return $message;
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         //
         //     array( event => "login", success => true )
         //
@@ -2527,12 +2527,12 @@ class okx extends \ccxt\async\okx {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     array( event => 'error', $msg => "Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])", code => "60012" )
         //     array( event => 'error", $msg => "channel:ticker,instId:BTC-USDT doesn"t exist", code => "60018" )
@@ -2587,7 +2587,7 @@ class okx extends \ccxt\async\okx {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
@@ -2726,7 +2726,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function handle_unsubscription_ticker(Client $client, string $symbol, $channel) {
+    public function handle_unsubscription_ticker(Client $client, string $symbol, mixed $channel) {
         $subMessageHash = $channel . '::' . $symbol;
         $messageHash = 'unsubscribe:ticker:' . $symbol;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
@@ -2735,7 +2735,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function handle_unsubscription(Client $client, $message) {
+    public function handle_unsubscription(Client $client, mixed $message) {
         //
         // {
         //     "event" => "unsubscribe",

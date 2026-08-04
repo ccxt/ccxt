@@ -23,13 +23,22 @@ class bitvavo extends \ccxt\async\bitvavo {
                 'cancelOrdersWs' => false,
                 'fetchTradesWs' => false,
                 'watchOrderBook' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchBidsAsks' => true,
                 'watchOHLCV' => true,
+                'watchOHLCVForSymbols' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
+                'unWatchOrderBook' => true,
+                'unWatchOrderBookForSymbols' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
+                'unWatchOHLCV' => true,
+                'unWatchOHLCVForSymbols' => true,
                 'cancelAllOrdersWs' => true,
                 'cancelOrderWs' => true,
                 'createOrderWs' => true,
@@ -69,7 +78,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         ));
     }
 
-    public function watch_public($name, $symbol, $params = array()) {
+    public function watch_public(mixed $name, mixed $symbol, $params = array()) {
         return Async\async(function () use ($name, $symbol, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -93,7 +102,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function watch_public_multiple($methodName, string $channelName, $symbols, $params = array()) {
+    public function watch_public_multiple(mixed $methodName, string $channelName, mixed $symbols, $params = array()) {
         return Async\async(function () use ($methodName, $channelName, $symbols, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -154,7 +163,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "ticker24h",
@@ -215,7 +224,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         $event = 'bidask';
         $tickers = $this->safe_value($message, 'data', array());
         $result = array();
@@ -231,7 +240,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($result, $event);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'market');
         $market = $this->safe_market($marketId, null, '-');
         $symbol = $this->safe_string($market, 'symbol');
@@ -270,7 +279,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "trade",
@@ -296,6 +305,103 @@ class bitvavo extends \ccxt\async\bitvavo {
         $tradesArray->append($trade);
         $this->trades[$symbol] = $tradesArray;
         $client->resolve($tradesArray, $messageHash);
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a list of $symbols
+             *
+             * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+             *
+             * @param {string[]} $symbols unified $symbols of the markets to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $symbols = $this->market_symbols($symbols, null, false);
+            $name = 'trades';
+            $marketIds = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $marketIds[] = $market['id'];
+                $messageHashes[] = $name . '@' . $market['id'];
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'action' => 'subscribe',
+                'channels' => array(
+                    array(
+                        'name' => $name,
+                        'markets' => $marketIds,
+                    ),
+                ),
+            );
+            $message = $this->extend($request, $params);
+            $trades = Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
+            if ($this->newUpdates) {
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit($tradeSymbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        })();
+    }
+
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * stop watching the list of most recent trades for a particular $symbol
+             *
+             * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+             *
+             * @param {string} $symbol unified $symbol of the market to stop watching the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {any} status of the unwatch request
+             */
+            return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
+        })();
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * stop watching the list of most recent trades for a list of $symbols
+             *
+             * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+             *
+             * @param {string[]} $symbols unified $symbols of the markets to stop watching the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {any} status of the unwatch request
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $symbols = $this->market_symbols($symbols, null, false);
+            $name = 'trades';
+            $marketIds = array();
+            $subMessageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $marketIds[] = $market['id'];
+                $subMessageHashes[] = $name . '@' . $market['id'];
+            }
+            $channels = array(
+                array(
+                    'name' => $name,
+                    'markets' => $marketIds,
+                ),
+            );
+            $subscriptionArgs = array(
+                'symbols' => $symbols,
+            );
+            return Async\await($this->un_watch_channels('trades', $channels, $subMessageHashes, $subscriptionArgs, $params));
+        })();
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -338,7 +444,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_fetch_ohlcv(Client $client, $message) {
+    public function handle_fetch_ohlcv(Client $client, mixed $message) {
         //
         //    {
         //        action => 'getCandles',
@@ -354,7 +460,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($ohlcv, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "candle",
@@ -394,6 +500,128 @@ class bitvavo extends \ccxt\async\bitvavo {
             $stored->append($parsed);
         }
         $client->resolve($stored, $messageHash);
+        // watchOHLCVForSymbols needs the $symbol and $timeframe to assemble its result
+        $client->resolve(array( $symbol, $timeframe, $stored ), 'multi:' . $messageHash);
+    }
+
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+             *
+             * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+             *
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of $candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of [$symbol, $timeframe] keyed arrays of $candles ordered, open, high, low, close, volume
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $name = 'candles';
+            $messageHashes = array();
+            $marketIdsByInterval = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+                $market = $this->market($symbolAndTimeframe[0]);
+                $timeframeString = $symbolAndTimeframe[1];
+                $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
+                if (!(is_array($marketIdsByInterval) && array_key_exists($interval ?? '', $marketIdsByInterval))) {
+                    $marketIdsByInterval[$interval] = array();
+                }
+                $intervalIds = $marketIdsByInterval[$interval];
+                $intervalIds[] = $market['id'];
+                $messageHashes[] = 'multi:' . $name . '@' . $market['id'] . '_' . $interval;
+            }
+            $channels = array();
+            $intervals = is_array($marketIdsByInterval) ? array_keys($marketIdsByInterval) : array();
+            for ($i = 0; $i < count($intervals); $i++) {
+                $interval = $intervals[$i];
+                $channels[] = array(
+                    'name' => $name,
+                    'interval' => array( $interval ),
+                    'markets' => $marketIdsByInterval[$interval],
+                );
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'action' => 'subscribe',
+                'channels' => $channels,
+            );
+            $message = $this->extend($request, $params);
+            list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
+            if ($this->newUpdates) {
+                $limit = $candles->getLimit($symbol, $limit);
+            }
+            $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
+            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
+        })();
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $params) {
+            /**
+             * stop watching historical candlestick data for a market
+             *
+             * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+             *
+             * @param {string} $symbol unified $symbol of the market to stop watching the candles for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {any} status of the unwatch request
+             */
+            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
+        })();
+    }
+
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbolsAndTimeframes, $params) {
+            /**
+             * stop watching historical candlestick data for multiple markets
+             *
+             * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+             *
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to stop watching the candles for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {any} status of the unwatch request
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $name = 'candles';
+            $subMessageHashes = array();
+            $marketIdsByInterval = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+                $market = $this->market($symbolAndTimeframe[0]);
+                $timeframeString = $symbolAndTimeframe[1];
+                $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
+                if (!(is_array($marketIdsByInterval) && array_key_exists($interval ?? '', $marketIdsByInterval))) {
+                    $marketIdsByInterval[$interval] = array();
+                }
+                $intervalIds = $marketIdsByInterval[$interval];
+                $intervalIds[] = $market['id'];
+                // both the single-symbol and the multi-symbol watch hashes must be released
+                $subMessageHashes[] = $name . '@' . $market['id'] . '_' . $interval;
+                $subMessageHashes[] = 'multi:' . $name . '@' . $market['id'] . '_' . $interval;
+            }
+            $channels = array();
+            $intervals = is_array($marketIdsByInterval) ? array_keys($marketIdsByInterval) : array();
+            for ($i = 0; $i < count($intervals); $i++) {
+                $interval = $intervals[$i];
+                $channels[] = array(
+                    'name' => $name,
+                    'interval' => array( $interval ),
+                    'markets' => $marketIdsByInterval[$interval],
+                );
+            }
+            $subscriptionArgs = array(
+                'symbolsAndTimeframes' => $symbolsAndTimeframes,
+            );
+            return Async\await($this->un_watch_channels('ohlcv', $channels, $subMessageHashes, $subscriptionArgs, $params));
+        })();
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -439,19 +667,118 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+             *
+             * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+             *
+             * @param {string[]} $symbols unified $symbols of the markets to fetch the order book for
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $symbols = $this->market_symbols($symbols, null, false);
+            $name = 'book';
+            $marketIds = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $marketIds[] = $market['id'];
+                $messageHashes[] = $name . '@' . $market['id'];
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'action' => 'subscribe',
+                'channels' => array(
+                    array(
+                        'name' => $name,
+                        'markets' => $marketIds,
+                    ),
+                ),
+            );
+            // the per-$market snapshot machinery reads the marketId from the buffered
+            // delta messages, so the shared $subscription only carries the common fields
+            $subscription = array(
+                'name' => $name,
+                'symbols' => $symbols,
+                'limit' => $limit,
+                'params' => $params,
+            );
+            $message = $this->extend($request, $params);
+            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $subscription));
+            return $orderbook->limit();
+        })();
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * stop watching the order book for a particular $symbol
+             *
+             * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+             *
+             * @param {string} $symbol unified $symbol of the market to stop watching the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {any} status of the unwatch request
+             */
+            return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
+        })();
+    }
+
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * stop watching the order book for multiple markets
+             *
+             * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+             *
+             * @param {string[]} $symbols unified $symbols of the markets to stop watching the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {any} status of the unwatch request
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $symbols = $this->market_symbols($symbols, null, false);
+            $name = 'book';
+            $marketIds = array();
+            $subMessageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $marketIds[] = $market['id'];
+                $subMessageHashes[] = $name . '@' . $market['id'];
+            }
+            $channels = array(
+                array(
+                    'name' => $name,
+                    'markets' => $marketIds,
+                ),
+            );
+            $subscriptionArgs = array(
+                'symbols' => $symbols,
+            );
+            return Async\await($this->un_watch_channels('orderbook', $channels, $subMessageHashes, $subscriptionArgs, $params));
+        })();
+    }
+
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
         //
         //     {
         //         "event" => "book",
@@ -474,7 +801,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $orderbook;
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "book",
@@ -499,9 +826,12 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         if ($orderbook['nonce'] === null) {
             $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
-            $watchingOrderBookSnapshot = $this->safe_value($subscription, 'watchingOrderBookSnapshot');
+            // multi-$symbol watches share one $subscription object, so the
+            // snapshot-in-flight flag must be tracked per $market
+            $flagKey = 'watchingOrderBookSnapshot@' . $marketId;
+            $watchingOrderBookSnapshot = $this->safe_value($subscription, $flagKey);
             if ($watchingOrderBookSnapshot === null) {
-                $subscription['watchingOrderBookSnapshot'] = true;
+                $subscription[$flagKey] = true;
                 $client->subscriptions[$messageHash] = $subscription;
                 $options = $this->safe_value($this->options, 'watchOrderBookSnapshot', array());
                 $delay = $this->safe_integer($options, 'delay', $this->rateLimit);
@@ -515,10 +845,18 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function watch_order_book_snapshot($client, $message, $subscription) {
+    public function watch_order_book_snapshot(mixed $client, mixed $message, mixed $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
             $params = $this->safe_value($subscription, 'params');
-            $marketId = $this->safe_string($subscription, 'marketId');
+            // multi-symbol watches share one $subscription object without a $marketId,
+            // in that case the buffered delta $message identifies the market
+            $marketId = $this->safe_string_2($subscription, 'marketId', 'market', $this->safe_string($message, 'market'));
+            $snapshotSymbol = $this->safe_symbol($marketId, null, '-');
+            if (!(is_array($this->orderbooks) && array_key_exists($snapshotSymbol ?? '', $this->orderbooks))) {
+                // this snapshot fetch was scheduled before an unsubscribe removed the
+                // order book - skip it so the getBook $request is not sent for a dead market
+                return null;
+            }
             $name = 'getBook';
             $messageHash = $name . '@' . $marketId;
             $url = $this->urls['api']['ws'];
@@ -531,7 +869,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_order_book_snapshot(Client $client, $message) {
+    public function handle_order_book_snapshot(Client $client, mixed $message) {
         //
         //     {
         //         "action" => "getBook",
@@ -559,7 +897,11 @@ class bitvavo extends \ccxt\async\bitvavo {
         $symbol = $this->safe_symbol($marketId, null, '-');
         $name = 'book';
         $messageHash = $name . '@' . $marketId;
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            // the market was unsubscribed while this $snapshot request was in flight
+            return;
+        }
         $snapshot = $this->parse_order_book($response, $symbol);
         $snapshot['nonce'] = $this->safe_integer($response, 'nonce');
         $orderbook->reset($snapshot);
@@ -571,9 +913,16 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve($orderbook, $messageHash);
+        // getBook is a one-shot request but array($this, 'watch') tracks it persistent
+        // subscription - drop it so a later unsubscribe/subscribe re-fetches the $snapshot
+        // instead of suppressing the request already-active subscription
+        $snapshotHash = 'getBook@' . $marketId;
+        if (is_array($client->subscriptions) && array_key_exists($snapshotHash ?? '', $client->subscriptions)) {
+            unset($client->subscriptions[$snapshotHash]);
+        }
     }
 
-    public function handle_order_book_subscription(Client $client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
@@ -582,7 +931,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
     }
 
-    public function handle_order_book_subscriptions(Client $client, $message, $marketIds) {
+    public function handle_order_book_subscriptions(Client $client, mixed $message, mixed $marketIds) {
         $name = 'book';
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $this->safe_string($marketIds, $i);
@@ -593,9 +942,68 @@ class bitvavo extends \ccxt\async\bitvavo {
                 $method = $this->safe_value($subscription, 'method');
                 if ($method !== null) {
                     $method($client, $message, $subscription);
+                } elseif ($subscription !== null) {
+                    // multi-$symbol watches share one $subscription object without a
+                    // per-market $method - initialize the order book directly
+                    $limit = $this->safe_integer($subscription, 'limit');
+                    $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
                 }
             }
         }
+    }
+
+    public function un_watch_channels(string $topic, array $channels, array $subMessageHashes, array $subscriptionArgs, $params = array()): PromiseInterface {
+        return Async\async(function () use ($topic, $channels, $subMessageHashes, $subscriptionArgs, $params) {
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'action' => 'unsubscribe',
+                'channels' => $channels,
+            );
+            $unsubHashes = array();
+            for ($i = 0; $i < count($subMessageHashes); $i++) {
+                $unsubHashes[] = 'unsubscribe:' . $subMessageHashes[$i];
+            }
+            $subscription = $this->extend(array(
+                'topic' => $topic,
+                'subMessageHashes' => $subMessageHashes,
+                'unsubHashes' => $unsubHashes,
+            ), $subscriptionArgs);
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch_multiple($url, $unsubHashes, $message, $unsubHashes, $subscription));
+        })();
+    }
+
+    public function handle_unsubscription_status(Client $client, mixed $message) {
+        //
+        //     {
+        //         "event" => "unsubscribed",
+        //         "subscriptions" => array()
+        //     }
+        //
+        // the confirmation carries the remaining subscriptions without identifying
+        // which unsubscribe request it belongs to, so settle every pending unsubscription
+        $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if (!(is_array($client->subscriptions) && array_key_exists($key ?? '', $client->subscriptions))) {
+                continue;
+            }
+            if (!str_starts_with($key, 'unsubscribe:')) {
+                continue;
+            }
+            $subscription = $client->subscriptions[$key];
+            $subHash = str_replace('unsubscribe:', '', $key);
+            $this->clean_cache($subscription);
+            $this->clean_unsubscription($client, $subHash, $key);
+            // bitvavo resolves-and-deletes the data futures on every $message, so at
+            // unsubscribe time the sub future is usually already gone and cleanUnsubscription
+            // stashes the error in $client->rejections instead - that stale entry
+            // would immediately reject the next subscribe's fresh future, so clear it here
+            if (is_array($client->rejections) && array_key_exists($subHash ?? '', $client->rejections)) {
+                unset($client->rejections[$subHash]);
+            }
+        }
+        return $message;
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -791,7 +1199,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_multiple_orders(Client $client, $message) {
+    public function handle_multiple_orders(Client $client, mixed $message) {
         //
         //    {
         //        $action => 'privateCancelOrders',
@@ -873,7 +1281,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return intval($ts . $randomPart);
     }
 
-    public function watch_request($action, $request) {
+    public function watch_request(mixed $action, mixed $request) {
         return Async\async(function () use ($action, $request) {
             $messageHash = $this->request_id();
             $messageHashStr = (string) $messageHash;
@@ -937,7 +1345,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //    {
         //        $action => 'privateGetTrades',
@@ -990,7 +1398,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_withdraw(Client $client, $message) {
+    public function handle_withdraw(Client $client, mixed $message) {
         //
         //    {
         //        $action => 'privateWithdrawAssets',
@@ -1032,7 +1440,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_withdraws(Client $client, $message) {
+    public function handle_withdraws(Client $client, mixed $message) {
         //
         //    {
         //        $action => 'privateGetWithdrawalHistory',
@@ -1103,7 +1511,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_deposits(Client $client, $message) {
+    public function handle_deposits(Client $client, mixed $message) {
         //
         //    {
         //        action => 'privateGetDepositHistory',
@@ -1172,7 +1580,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_fetch_currencies(Client $client, $message) {
+    public function handle_fetch_currencies(Client $client, mixed $message) {
         //
         //    {
         //        action => 'getAssets',
@@ -1199,7 +1607,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($currencies, $messageHash);
     }
 
-    public function handle_trading_fees($client, $message) {
+    public function handle_trading_fees(Client $client, mixed $message) {
         //
         //    {
         //        action => 'privateGetAccount',
@@ -1236,7 +1644,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_fetch_balance(Client $client, $message) {
+    public function handle_fetch_balance(Client $client, mixed $message) {
         //
         //    {
         //        action => 'privateGetBalance',
@@ -1255,7 +1663,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($balance, $messageHash);
     }
 
-    public function handle_single_order(Client $client, $message) {
+    public function handle_single_order(Client $client, mixed $message) {
         //
         //    {
         //        action => 'privateCreateOrder',
@@ -1290,7 +1698,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($order, $messageHash);
     }
 
-    public function handle_markets(Client $client, $message) {
+    public function handle_markets(Client $client, mixed $message) {
         //
         //    {
         //        action => 'getMarkets',
@@ -1316,7 +1724,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($markets, $messageHash);
     }
 
-    public function build_message_hash($action, $params = array()) {
+    public function build_message_hash(mixed $action, $params = array()) {
         $methods = array(
             'privateCreateOrder' => array($this, 'action_and_market_message_hash'),
             'privateUpdateOrder' => array($this, 'action_and_order_id_message_hash'),
@@ -1332,12 +1740,12 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $messageHash;
     }
 
-    public function action_and_market_message_hash($action, $params = array()) {
+    public function action_and_market_message_hash(mixed $action, $params = array()) {
         $symbol = $this->safe_string($params, 'market', '');
         return $action . $symbol;
     }
 
-    public function action_and_order_id_message_hash($action, $params = array()) {
+    public function action_and_order_id_message_hash(mixed $action, $params = array()) {
         $orderId = $this->safe_string($params, 'orderId');
         if ($orderId === null) {
             throw new ExchangeError($this->id . ' privateUpdateOrderMessageHash requires a $orderId parameter');
@@ -1345,7 +1753,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $action . $orderId;
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "order",
@@ -1381,7 +1789,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "fill",
@@ -1411,7 +1819,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($tradesArray, $messageHash);
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "subscribed",
@@ -1462,7 +1870,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "authenticate",
@@ -1484,7 +1892,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //        $action => 'privateCreateOrder',
@@ -1519,7 +1927,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return null;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "subscribed",
@@ -1569,6 +1977,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         $methods = array(
             'subscribed' => array($this, 'handle_subscription_status'),
+            'unsubscribed' => array($this, 'handle_unsubscription_status'),
             'book' => array($this, 'handle_order_book'),
             'getBook' => array($this, 'handle_order_book_snapshot'),
             'trade' => array($this, 'handle_trade'),

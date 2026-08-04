@@ -486,7 +486,7 @@ class cryptomus extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         //     {
         //         "currency_pair" => "XMR_USDT",
@@ -673,7 +673,7 @@ class cryptomus extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_balance($balance): array {
+    public function parse_balance(mixed $balance): array {
         //
         //     {
         //         "ticker" => "AVAX",
@@ -1134,7 +1134,7 @@ class cryptomus extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers($feeTiers, ?array $market = null) {
+    public function parse_fee_tiers(mixed $feeTiers, ?array $market = null) {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -1153,7 +1153,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;
@@ -1186,7 +1186,7 @@ class cryptomus extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

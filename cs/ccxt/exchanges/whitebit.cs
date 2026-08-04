@@ -1127,14 +1127,15 @@ public partial class whitebit : Exchange
                 }
             }
             // Build comprehensive funding limits
+            object currencyLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
             object limits = new Dictionary<string, object>() {
                 { "deposit", new Dictionary<string, object>() {
-                    { "min", getValue(getValue(getValue(currency, "limits"), "deposit"), "min") },
-                    { "max", getValue(getValue(getValue(currency, "limits"), "deposit"), "max") },
+                    { "min", getValue(getValue(currencyLimits, "deposit"), "min") },
+                    { "max", getValue(getValue(currencyLimits, "deposit"), "max") },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
-                    { "min", getValue(getValue(getValue(currency, "limits"), "withdraw"), "min") },
-                    { "max", getValue(getValue(getValue(currency, "limits"), "withdraw"), "max") },
+                    { "min", getValue(getValue(currencyLimits, "withdraw"), "min") },
+                    { "max", getValue(getValue(currencyLimits, "withdraw"), "max") },
                 } },
             };
             // Add fee information if available

@@ -521,7 +521,7 @@ class zebpay extends Exchange {
                 // }
                 //
                 $responseData = $this->safe_list($response, 'data', array());
-                $data = $this->safe_dict($responseData, 0);
+                $data = $this->safe_dict($responseData, 0, array());
             }
             return $this->parse_trading_fee($data, $market);
         })();
@@ -1116,7 +1116,7 @@ class zebpay extends Exchange {
         })();
     }
 
-    public function order_request($symbol, $type, $amount, $request, ?float $price = null, $params = array()) {
+    public function order_request(mixed $symbol, mixed $type, mixed $amount, mixed $request, ?float $price = null, $params = array()) {
         $upperCaseType = strtoupper($type);
         $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
@@ -1807,7 +1807,7 @@ class zebpay extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1951,7 +1951,7 @@ class zebpay extends Exchange {
         ), $market);
     }
 
-    public function parse_margin_modification($info, ?array $market = null): array {
+    public function parse_margin_modification(mixed $info, ?array $market = null): array {
         //
         //    {
         //         "symbol" => "BTCINR",
@@ -1976,7 +1976,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $params = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
         $marketType = $isV1 ? 'swap' : 'spot';
@@ -2024,7 +2024,7 @@ class zebpay extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;

@@ -79,7 +79,7 @@ class ndax extends \ccxt\async\ndax {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         $payload = $this->safe_value($message, 'o', array());
         //
         //     {
@@ -160,7 +160,7 @@ class ndax extends \ccxt\async\ndax {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         $payload = $this->safe_value($message, 'o', array());
         //
         // initial snapshot
@@ -254,7 +254,7 @@ class ndax extends \ccxt\async\ndax {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "m" => 1,
@@ -418,7 +418,7 @@ class ndax extends \ccxt\async\ndax {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "m" => 3,
@@ -498,7 +498,7 @@ class ndax extends \ccxt\async\ndax {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_order_book_subscription(Client $client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
         //
         //     {
         //         "m" => 1,
@@ -535,7 +535,7 @@ class ndax extends \ccxt\async\ndax {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "m" => 1,
@@ -555,7 +555,7 @@ class ndax extends \ccxt\async\ndax {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         //     {
         //         "m" => 0, // $message type, 0 request, 1 reply, 2 subscribe, 3 $event, unsubscribe, 5 error

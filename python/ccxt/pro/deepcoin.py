@@ -93,7 +93,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             # prevent automatic disconnects on private channel
         return 'ping'
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         client.lastPong = self.milliseconds()
         return message
 
@@ -105,7 +105,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.unlock_id()
         return newValue
 
-    def create_public_request(self, market, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False):
+    def create_public_request(self, market: Any, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False):
         marketId = market['symbol']  # spot markets use symbol with slash
         if market['type'] == 'swap':
             marketId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')  # swap markets use symbol without slash
@@ -123,7 +123,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return request
 
-    async def watch_public(self, market, messageHash: str, topicID: str, params: dict = {}, suffix: str = '') -> Any:
+    async def watch_public(self, market: Any, messageHash: str, topicID: str, params: dict = {}, suffix: str = '') -> Any:
         url = self.urls['api']['ws']['public'][market['type']]
         requestId = self.request_id()
         request = self.create_public_request(market, requestId, topicID, suffix)
@@ -133,7 +133,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
 
-    async def un_watch_public(self, market, messageHash: str, topicID: str, params: dict = {}, subscription: dict = {}, suffix: str = '') -> Any:
+    async def un_watch_public(self, market: Any, messageHash: str, topicID: str, params: dict = {}, subscription: dict = {}, suffix: str = '') -> Any:
         url = self.urls['api']['ws']['public'][market['type']]
         requestId = self.request_id()
         client = self.client(url)
@@ -218,7 +218,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.un_watch_public(market, messageHash, '7', params, subscription)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     a: 'PO',
         #     m: 'Success',
@@ -359,7 +359,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.un_watch_public(market, messageHash, '2', params, subscription)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "a": "PMT",
@@ -521,7 +521,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.un_watch_public(market, messageHash, '11', params, subscription, suffix)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "a": "PK",
@@ -565,7 +565,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         messageHash = 'ohlcv' + '::' + symbol + '::' + timeframe
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ws_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "I": "BTC/USDT",
@@ -627,7 +627,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.un_watch_public(market, messageHash, '25', params, subscription, suffix)
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "a": "PMO",
@@ -666,7 +666,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             messageHash = 'orderbook' + '::' + symbol
             client.resolve(orderbook, messageHash)
 
-    def handle_order_book_snapshot(self, client: Client, message):
+    def handle_order_book_snapshot(self, client: Client, message: Any):
         entries = self.safe_list(message, 'r', [])
         first = self.safe_dict(entries, 0, {})
         data = self.safe_dict(first, 'd', {})
@@ -701,7 +701,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         messageHash = 'orderbook' + '::' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_order_book_message(self, client: Client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message: Any, orderbook: Any):
         #     {
         #         "a": "PMO",
         #         "t": "i",  # i - update, f - snapshot
@@ -724,7 +724,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
 
-    def handle_delta(self, orderbook, entry):
+    def handle_delta(self, orderbook: Any, entry: Any):
         data = self.safe_dict(entry, 'd', {})
         bids = orderbook['bids']
         asks = orderbook['asks']
@@ -761,7 +761,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: Any):
         #
         #     {
         #         "action": "PushTrade",
@@ -833,7 +833,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         #     {
         #         "action": "PushOrder",
@@ -881,7 +881,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             client.resolve(self.orders, messageHash)
             client.resolve(self.orders, symbolMessageHash)
 
-    def parse_ws_order(self, order, market: Market = None) -> Order:
+    def parse_ws_order(self, order: Any, market: Market = None) -> Order:
         #
         #     {
         #         "D": "0",
@@ -974,7 +974,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             return positions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_position(self, client: Client, message):
+    def handle_position(self, client: Client, message: Any):
         #
         #     {
         #         "action": "PushPosition",
@@ -1014,7 +1014,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             client.resolve(self.positions, messageHash)
             client.resolve(self.positions, symbolMessageHash)
 
-    def parse_ws_position(self, position, market: Market = None) -> Position:
+    def parse_ws_position(self, position: Any, market: Market = None) -> Position:
         #
         #     {
         #         "A": "9256245",
@@ -1082,7 +1082,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return self.safe_string(modes, marginMode, marginMode)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if message == 'pong':
             self.handle_pong(client, message)
         else:
@@ -1107,7 +1107,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             elif action == 'PushPosition':
                 self.handle_position(client, message)
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         #     {
         #         "a": "RecvTopicAction",
@@ -1144,7 +1144,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message: Any):
         #
         #     {
         #         "a": "RecvTopicAction",

@@ -1141,7 +1141,7 @@ public partial class btcmarkets : Exchange
             currency = getValue(market, "base");
             cost = this.amountToPrecision(symbol, amount);
         }
-        object rate = getValue(market, takerOrMaker);
+        object rate = this.safeValue(market, takerOrMaker);
         object rateCost = Precise.stringMul(this.numberToString(rate), cost);
         object feeCost = this.feeToPrecision(symbol, rateCost);
         if (isTrue(isEqual(feeCost, null)))

@@ -631,7 +631,7 @@ class gemini extends Exchange {
         })();
     }
 
-    public function parse_market_active($status) {
+    public function parse_market_active(mixed $status) {
         $statuses = array(
             'open' => true,
             'closed' => false,
@@ -735,7 +735,7 @@ class gemini extends Exchange {
         })();
     }
 
-    public function parse_market($response): array {
+    public function parse_market(mixed $response): array {
         //
         // $response might be:
         //
@@ -1252,7 +1252,7 @@ class gemini extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -1952,7 +1952,7 @@ class gemini extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
         //
         //      {
         //          "address" => "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -2026,7 +2026,7 @@ class gemini extends Exchange {
         })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
@@ -2062,7 +2062,7 @@ class gemini extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             if (gettype($body) === 'string') {
                 $feedback = $this->id . ' ' . $body;
@@ -2188,7 +2188,7 @@ class gemini extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //    {
         //        product_type => 'PerpetualSwapContract',

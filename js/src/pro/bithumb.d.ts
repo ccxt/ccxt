@@ -1,5 +1,5 @@
 import bithumbRest from '../bithumb.js';
-import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Bool, Order, Str, Market } from '../base/types.js';
+import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Balances } from '../base/types.js';
 export default class bithumb extends bithumbRest {
@@ -26,7 +26,7 @@ export default class bithumb extends bithumbRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name bithumb#watchOrderBook

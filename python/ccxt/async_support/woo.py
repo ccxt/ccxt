@@ -964,7 +964,7 @@ class woo(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def parse_token_and_fee_temp(self, item, feeTokenKeys, feeAmountKeys):
+    def parse_token_and_fee_temp(self, item: Any, feeTokenKeys: Any, feeAmountKeys: Any):
         feeCost = self.safe_string_n(item, feeAmountKeys)
         fee = None
         if feeCost is not None:
@@ -1282,7 +1282,7 @@ class woo(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
-    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
+    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params: dict = {}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
 
@@ -1306,7 +1306,7 @@ class woo(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return await self.create_order(symbol, type, side, amount, price, params)
 
-    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params: dict = {}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
 
@@ -1510,7 +1510,7 @@ class woo(Exchange, ImplicitAPI):
         data['timestamp'] = self.safe_string(response, 'timestamp')
         return self.parse_order(data, market)
 
-    def encode_margin_mode(self, mode):
+    def encode_margin_mode(self, mode: Any):
         modes = {
             'cross': 'CROSS',
             'isolated': 'ISOLATED',
@@ -2278,7 +2278,7 @@ class woo(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'startTimestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -2461,7 +2461,7 @@ class woo(Exchange, ImplicitAPI):
         rows = self.array_concat(mainRows, subRows)
         return self.parse_accounts(rows, params)
 
-    def parse_account(self, account):
+    def parse_account(self, account: Any):
         #
         #     {
         #         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
@@ -2539,7 +2539,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_balance(data)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -2588,7 +2588,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def get_dedicated_network_id(self, currency, params: dict) -> Any:
+    def get_dedicated_network_id(self, currency: Any, params: dict) -> Any:
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         networkCode = self.network_id_to_code(networkCode, currency['code'])
@@ -2599,7 +2599,7 @@ class woo(Exchange, ImplicitAPI):
         currentyNetworkId = self.safe_string(networkEntry, 'currencyNetworkId')
         return [currentyNetworkId, params]
 
-    def parse_deposit_address(self, depositEntry, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositEntry: Any, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositEntry, 'address')
         self.check_address(address)
         return {
@@ -2735,14 +2735,14 @@ class woo(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
         }
         return self.safe_string(types, type, type)
 
-    def get_currency_from_chaincode(self, networkizedCode, currency):
+    def get_currency_from_chaincode(self, networkizedCode: Any, currency: Any):
         if currency is not None:
             return currency
         else:
@@ -3136,7 +3136,7 @@ class woo(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def parse_margin_loan(self, info, currency: Currency = None):
+    def parse_margin_loan(self, info: Any, currency: Currency = None):
         #
         #     {
         #         "success": True,
@@ -3155,7 +3155,7 @@ class woo(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -3214,7 +3214,7 @@ class woo(Exchange, ImplicitAPI):
             headers['x-api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #
@@ -3229,7 +3229,7 @@ class woo(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         return None
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         #     {
         #         "id": 1286360,
@@ -3328,7 +3328,7 @@ class woo(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_incomes(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -3760,7 +3760,7 @@ class woo(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'REDUCE', params)
 
-    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -4341,7 +4341,7 @@ class woo(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def default_network_code_for_currency(self, code):
+    def default_network_code_for_currency(self, code: Any):
         currencyItem = self.currency(code)
         networks = currencyItem['networks']
         networkKeys = list(networks.keys())

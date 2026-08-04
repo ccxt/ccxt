@@ -21,7 +21,7 @@ public partial class cryptocom : Exchange
                 { "margin", true },
                 { "swap", true },
                 { "future", true },
-                { "option", true },
+                { "option", false },
                 { "addMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
@@ -2350,7 +2350,8 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         object network = this.safeStringUpper(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
-        object depositAddresses = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object depositAddresses = ((object)depositAddressesRaw);
         if (isTrue(inOp(depositAddresses, ((string)network))))
         {
             return getValue(depositAddresses, ((string)network));
@@ -3890,9 +3891,9 @@ public partial class cryptocom : Exchange
         //
         object result = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)result)["info"] = response;
-        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(((object)this.symbols), i);
+            object symbol = getValue(this.symbols, i);
             object market = this.market(symbol);
             object isSwap = getValue(market, "swap");
             object takerFeeKey = ((bool) isTrue(isSwap)) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";

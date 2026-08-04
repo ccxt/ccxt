@@ -571,7 +571,7 @@ class poloniex extends Exchange {
         ));
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // spot:
         //
@@ -1811,7 +1811,7 @@ class poloniex extends Exchange {
         ), $market);
     }
 
-    public function parse_order_type($status) {
+    public function parse_order_type(mixed $status) {
         $statuses = array(
             'MARKET' => 'market',
             'LIMIT' => 'limit',
@@ -1822,7 +1822,7 @@ class poloniex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_open_orders($orders, $market, $result) {
+    public function parse_open_orders(mixed $orders, mixed $market, mixed $result) {
         for ($i = 0; $i < count($orders); $i++) {
             $order = $orders[$i];
             $extended = $this->extend($order, array(
@@ -2073,7 +2073,7 @@ class poloniex extends Exchange {
         })();
     }
 
-    public function order_request($symbol, $type, $side, $amount, $request, ?float $price = null, $params = array()) {
+    public function order_request(mixed $symbol, mixed $type, mixed $side, mixed $amount, mixed $request, ?float $price = null, $params = array()) {
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         $market = $this->market($symbol);
         if ($market['contract']) {
@@ -2455,7 +2455,7 @@ class poloniex extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -2751,7 +2751,7 @@ class poloniex extends Exchange {
         })();
     }
 
-    public function prepare_request_for_deposit_address(string $code, array $params = array()): mixed {
+    public function prepare_request_for_deposit_address(string $code, $params = array()): mixed {
         if (!(is_array($this->currencies) && array_key_exists($code ?? '', $this->currencies))) {
             throw new BadSymbol($this->id . ' fetchDepositAddress() => can not recognize ' . $code . ' $currency, you might try using unified $currency-$code and add provide specific "network" parameter, like => fetchDepositAddress("USDT", array( "network" => "TRC20" ))');
         }
@@ -2776,7 +2776,7 @@ class poloniex extends Exchange {
         return array( $request, $params, $currency, $networkEntry );
     }
 
-    public function parse_deposit_address_special($response, $currency, $networkEntry): array {
+    public function parse_deposit_address_special(mixed $response, mixed $currency, mixed $networkEntry): array {
         $address = $this->safe_string($response, 'address');
         if ($address === null) {
             $address = $this->safe_string($response, $networkEntry['id']);
@@ -3035,7 +3035,7 @@ class poloniex extends Exchange {
         })();
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -3082,7 +3082,7 @@ class poloniex extends Exchange {
         })();
     }
 
-    public function parse_deposit_withdraw_fees($response, ?array $codes = null, ?string $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, ?string $currencyIdKey = null) {
         //
         //         {
         //             "1CR" => array(
@@ -3144,7 +3144,7 @@ class poloniex extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         $depositWithdrawFee = $this->deposit_withdraw_fee(array());
         $currencyCode = $this->safe_string($currency, 'code');
         $depositWithdrawFee['info'][$currencyCode] = $fee;
@@ -3611,7 +3611,7 @@ class poloniex extends Exchange {
         ));
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3696,7 +3696,7 @@ class poloniex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api']['spot'];
         if ($this->in_array($api, array( 'swapPublic', 'swapPrivate' ))) {
             $url = $this->urls['api']['swap'];
@@ -3743,7 +3743,7 @@ class poloniex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

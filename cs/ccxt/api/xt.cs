@@ -446,6 +446,11 @@ public partial class xt : Exchange
         return await this.callAsync ("privateLinearGetFutureUserV1PositionAdl",parameters);
     }
 
+    public async Task<object> privateLinearGetFutureUserV1PositionBreakList (object parameters = null)
+    {
+        return await this.callAsync ("privateLinearGetFutureUserV1PositionBreakList",parameters);
+    }
+
     public async Task<object> privateLinearGetFutureUserV1PositionList (object parameters = null)
     {
         return await this.callAsync ("privateLinearGetFutureUserV1PositionList",parameters);
@@ -636,6 +641,11 @@ public partial class xt : Exchange
         return await this.callAsync ("privateInverseGetFutureUserV1PositionAdl",parameters);
     }
 
+    public async Task<object> privateInverseGetFutureUserV1PositionBreakList (object parameters = null)
+    {
+        return await this.callAsync ("privateInverseGetFutureUserV1PositionBreakList",parameters);
+    }
+
     public async Task<object> privateInverseGetFutureUserV1PositionList (object parameters = null)
     {
         return await this.callAsync ("privateInverseGetFutureUserV1PositionList",parameters);
@@ -744,6 +754,11 @@ public partial class xt : Exchange
     public async Task<object> privateInversePostFutureUserV1UserCollectionCancel (object parameters = null)
     {
         return await this.callAsync ("privateInversePostFutureUserV1UserCollectionCancel",parameters);
+    }
+
+    public async Task<object> privateInversePostFutureUserV1PositionChangeType (object parameters = null)
+    {
+        return await this.callAsync ("privateInversePostFutureUserV1PositionChangeType",parameters);
     }
 
     public async Task<object> privateUserGetUserAccount (object parameters = null)

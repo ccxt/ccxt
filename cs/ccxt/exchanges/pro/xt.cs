@@ -27,6 +27,8 @@ public partial class xt : ccxt.xt
                 { "watchOrders", true },
                 { "watchMyTrades", true },
                 { "watchPositions", true },
+                { "watchFundingRate", true },
+                { "unWatchFundingRate", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -722,6 +724,91 @@ public partial class xt : ccxt.xt
         return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
     }
 
+    /**
+     * @method
+     * @name xt#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new BadSymbol ((string)add(this.id, " watchFundingRate() supports swap contracts only")) ;
+        }
+        object name = add("fund_rate@", getValue(market, "id"));
+        return await this.subscribe(name, "public", "watchFundingRate", market, null, parameters);
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchFundingRate
+     * @description stops watching the funding rate
+     * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new BadSymbol ((string)add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
+        }
+        object name = add("fund_rate@", getValue(market, "id"));
+        object messageHash = add("unsubscribe::", name);
+        return await this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, null, parameters);
+    }
+
+    public virtual object handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "topic": "fund_rate",
+        //         "event": "fund_rate@btc_usdt",
+        //         "data": {
+        //             "s": "btc_usdt",  // symbol
+        //             "r": "0.01",      // funding rate
+        //             "t": 123124124    // timestamp
+        //         }
+        //     }
+        //
+        object data = this.safeDict(message, "data");
+        object marketId = this.safeString(data, "s");
+        if (isTrue(!isEqual(marketId, null)))
+        {
+            object raw = new Dictionary<string, object>() {
+                { "symbol", marketId },
+                { "fundingRate", this.safeString(data, "r") },
+            };
+            object fundingRate = this.parseFundingRate(raw);
+            object timestamp = this.safeInteger(data, "t");
+            ((IDictionary<string,object>)fundingRate)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)fundingRate)["datetime"] = this.iso8601(timestamp);
+            object symbol = getValue(fundingRate, "symbol");
+            ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
+            object eventVar = this.safeString(message, "event");
+            object messageHash = add(eventVar, "::contract");
+            callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
+        }
+        return message;
+    }
+
     public virtual void setPositionsCache(WebSocketClient client)
     {
         if (isTrue(isEqual(this.positions, null)))
@@ -1055,7 +1142,7 @@ public partial class xt : ccxt.xt
             object symbol = getValue(market, "symbol");
             object parsed = this.parseOHLCV(data, market);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1583,6 +1670,7 @@ public partial class xt : ccxt.xt
                 { "balance", this.handleBalance },
                 { "order", this.handleOrder },
                 { "position", this.handlePosition },
+                { "fund_rate", this.handleFundingRate },
             };
             object method = ((bool) isTrue((isEqual(topic, null)))) ? null : this.safeValue(methods, topic);
             if (isTrue(isEqual(topic, "trade")))

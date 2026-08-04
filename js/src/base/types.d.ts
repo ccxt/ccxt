@@ -14,7 +14,7 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 export interface NestedDictionary {
-    [key: string]: string | NestedDictionary;
+    [key: string]: any;
 }
 export type Dict = Dictionary<any>;
 export type NullableDict = Dict | undefined;
@@ -30,6 +30,11 @@ export interface FeeInterface {
     cost: Num;
     rate?: Num;
 }
+export interface FeeStringInterface {
+    currency: Str;
+    cost: Str;
+    rate?: Str;
+}
 export interface TradingFeeInterface {
     info: any;
     symbol: Str;
@@ -39,6 +44,7 @@ export interface TradingFeeInterface {
     tierBased: Bool;
 }
 export type Fee = FeeInterface | undefined;
+export type FeeString = FeeStringInterface | undefined;
 export interface MarketMarginModes {
     isolated: Bool;
     cross: Bool;
@@ -470,6 +476,9 @@ export interface BalanceAccount {
     free: Str;
     used: Str;
     total: Str;
+    debt?: Str;
+    frozen?: Str;
+    info?: any;
 }
 export interface Account {
     id: Str;
@@ -594,6 +603,8 @@ export interface DepositWithdrawFee {
     withdraw?: DepositWithdrawFeeNetwork;
     deposit?: DepositWithdrawFeeNetwork;
     networks?: Dictionary<DepositWithdrawFeeNetwork>;
+}
+export interface DepositWithdrawFees extends Dictionary<DepositWithdrawFee> {
 }
 export interface TransferEntry {
     info?: any;

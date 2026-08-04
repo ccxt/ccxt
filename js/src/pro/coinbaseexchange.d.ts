@@ -9,7 +9,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         signature: any;
         passphrase: string;
     };
-    subscribe(name: any, symbol?: Str, messageHashStart?: Str, params?: {}): Promise<any>;
+    subscribe(name: string, symbol?: Str, messageHashStart?: Str, params?: {}): Promise<any>;
     subscribeMultiple(name: any, symbols?: string[], messageHashStart?: Str, params?: {}): Promise<any>;
     /**
      * @method

@@ -2,7 +2,6 @@
 import testOrder from '../../../test/Exchange/base/test.order.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange } from '../../../../ccxt.js';
-import type { Order } from '../../../base/types.js';
 
 async function testWatchOrders (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOrders';

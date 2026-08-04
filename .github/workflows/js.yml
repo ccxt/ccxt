@@ -80,6 +80,8 @@ jobs:
       if: github.ref == 'refs/heads/master'
       run: |
         rm -rf js/
+    - name: Check base types are in sync with ts/src/base/types.ts
+      run: npm run transpile-types-check
     - name: Pre-transpile and transpile TS
       if: env.important_modified == 'true'
       run: npm run pre-transpile-js

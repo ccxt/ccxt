@@ -889,7 +889,7 @@ class bitopro extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -961,7 +961,7 @@ class bitopro extends Exchange {
         })();
     }
 
-    public function insert_missing_candles($candles, $distance, $since, $limit) {
+    public function insert_missing_candles(mixed $candles, mixed $distance, mixed $since, mixed $limit) {
         // the exchange doesn't send zero volume $candles so we emulate them instead
         // otherwise sending a $limit arg leads to unexpected results
         $length = count($candles);
@@ -1001,7 +1001,7 @@ class bitopro extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //     [array(
         //         "currency":"twd",
@@ -1271,7 +1271,7 @@ class bitopro extends Exchange {
         })();
     }
 
-    public function parse_cancel_orders($data) {
+    public function parse_cancel_orders(mixed $data) {
         $dataKeys = is_array($data) ? array_keys($data) : array();
         $orders = array();
         for ($i = 0; $i < count($dataKeys); $i++) {
@@ -1894,7 +1894,7 @@ class bitopro extends Exchange {
         })();
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //    {
         //        "currency":"eth",
         //        "withdrawFee":"0.007",
@@ -1919,7 +1919,7 @@ class bitopro extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -1955,7 +1955,7 @@ class bitopro extends Exchange {
         })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($headers === null) {
@@ -1995,7 +1995,7 @@ class bitopro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to the default $error handler
         }

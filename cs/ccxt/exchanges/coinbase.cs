@@ -144,6 +144,7 @@ public partial class coinbase : Exchange
                 { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
+                { "transfer", true },
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -5160,6 +5161,66 @@ public partial class coinbase : Exchange
 
     /**
      * @method
+     * @name coinbase#transfer
+     * @description transfer currency internally between portfolios of the same account
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount the portfolio uuid to transfer funds from
+     * @param {string} toAccount the portfolio uuid to transfer funds to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "funds", new Dictionary<string, object>() {
+                { "value", this.currencyToPrecision(code, amount) },
+                { "currency", getValue(currency, "id") },
+            } },
+            { "source_portfolio_uuid", fromAccount },
+            { "target_portfolio_uuid", toAccount },
+        };
+        object response = await this.v3PrivatePostBrokeragePortfoliosMoveFunds(this.extend(request, parameters));
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        object transfer = this.parseTransfer(response, currency);
+        ((IDictionary<string,object>)transfer)["amount"] = amount;
+        ((IDictionary<string,object>)transfer)["status"] = "ok";
+        return transfer;
+    }
+
+    public override object parseTransfer(object transfer, object currency = null)
+    {
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        object currencyCode = this.safeCurrencyCode(null, currency);
+        return new Dictionary<string, object>() {
+            { "info", transfer },
+            { "id", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "currency", currencyCode },
+            { "amount", null },
+            { "fromAccount", this.safeString(transfer, "source_portfolio_uuid") },
+            { "toAccount", this.safeString(transfer, "target_portfolio_uuid") },
+            { "status", null },
+        };
+    }
+
+    /**
+     * @method
      * @name coinbase#closePosition
      * @description *futures only* closes open positions for a market
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
@@ -5488,9 +5549,9 @@ public partial class coinbase : Exchange
         object taker_fee = this.safeNumber(data, "taker_fee_rate");
         object maker_fee = this.safeNumber(data, "maker_fee_rate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(((object)this.symbols), i);
+            object symbol = getValue(this.symbols, i);
             object market = this.market(symbol);
             if (isTrue(isTrue((isTrue(isSpot) && isTrue(getValue(market, "spot")))) || isTrue((!isTrue(isSpot) && !isTrue(getValue(market, "spot"))))))
             {

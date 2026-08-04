@@ -497,7 +497,7 @@ class pacifica extends \ccxt\async\pacifica {
         })();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         // {
         //   "channel" => "book",
@@ -715,7 +715,7 @@ class pacifica extends \ccxt\async\pacifica {
         })();
     }
 
-    public function handle_ws_tickers(Client $client, $message) {
+    public function handle_ws_tickers(Client $client, mixed $message) {
         //
         // {
         //     "channel" => "prices",
@@ -752,11 +752,11 @@ class pacifica extends \ccxt\async\pacifica {
         return true;
     }
 
-    public function parse_ws_ticker($rawTicker, ?array $market = null): array {
+    public function parse_ws_ticker(mixed $rawTicker, ?array $market = null): array {
         return $this->parse_ticker($rawTicker, $market);
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         // {
         //   "channel" => "account_trades",
@@ -882,7 +882,7 @@ class pacifica extends \ccxt\async\pacifica {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         // {
         //   "channel" => "trades",
@@ -1076,7 +1076,7 @@ class pacifica extends \ccxt\async\pacifica {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // {
         //   "channel" => "candle",
@@ -1199,7 +1199,7 @@ class pacifica extends \ccxt\async\pacifica {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         // not snapshot, only updates
         // {
         //   "channel" => "account_order_updates",
@@ -1257,7 +1257,7 @@ class pacifica extends \ccxt\async\pacifica {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
         // array("id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":array("r":1245,"q":1250,"t":56))
@@ -1351,7 +1351,7 @@ class pacifica extends \ccxt\async\pacifica {
         $this->clean_cache($topicStructure);
     }
 
-    public function handle_subscription_response(Client $client, $message) {
+    public function handle_subscription_response(Client $client, mixed $message) {
         //  {
         //      "channel" => "subscribe",
         //      "data" => {
@@ -1391,7 +1391,7 @@ class pacifica extends \ccxt\async\pacifica {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // {
         //     "channel":"subscribe",
@@ -1448,7 +1448,7 @@ class pacifica extends \ccxt\async\pacifica {
         );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //   {
         //       "channel" => "pong"

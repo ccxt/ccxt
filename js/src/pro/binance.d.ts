@@ -313,7 +313,7 @@ export default class binance extends binanceRest {
      */
     fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleFetchOrderBook(client: Client, message: any): void;
-    fetchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<void>;
+    fetchOrderBookSnapshot(client: Client, message: any, subscription: any): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
@@ -380,7 +380,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseWsTrade(trade: any, market?: Market): Trade;
     handleTrade(client: Client, message: any): void;
     /**
@@ -398,7 +398,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name binance#watchOHLCVForSymbols
@@ -440,7 +440,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method
@@ -593,7 +593,7 @@ export default class binance extends binanceRest {
     handleTickers(client: Client, message: any): void;
     handleMarkPrices(client: Client, message: any): void;
     handleTickersAndBidsAsks(client: Client, message: any, methodType: any): void;
-    signParams(params?: {}): any;
+    signParams(params?: Dict): any;
     /**
      * @name binance#ensureUserDataStreamWsSubscribeSignature
      * @description watches best bid & ask for symbols
@@ -619,7 +619,7 @@ export default class binance extends binanceRest {
     authenticate(params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;
     setBalanceCache(client: Client, type: any, isPortfolioMargin?: boolean): void;
-    loadBalanceSnapshot(client: any, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
+    loadBalanceSnapshot(client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
     /**
      * @method
      * @name binance#fetchBalanceWs
@@ -823,7 +823,7 @@ export default class binance extends binanceRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings, isPortfolioMargin?: boolean): void;
-    loadPositionsSnapshot(client: any, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
     /**
@@ -870,7 +870,7 @@ export default class binance extends binanceRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrade(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
-    handleAcountUpdate(client: any, message: any): void;
+    handleAcountUpdate(client: Client, message: any): void;
     handleWsError(client: Client, message: any): void;
     handleEventStreamTerminated(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;

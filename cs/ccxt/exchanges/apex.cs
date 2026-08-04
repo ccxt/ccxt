@@ -799,7 +799,7 @@ public partial class apex : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id2") },
+            { "symbol", this.safeString(market, "id2") },
         };
         object response = await this.publicGetV3Ticker(this.extend(request, parameters));
         object tickers = this.safeList(response, "data", new List<object>() {});
@@ -852,7 +852,7 @@ public partial class apex : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
-            { "symbol", getValue(market, "id2") },
+            { "symbol", this.safeString(market, "id2") },
         };
         if (isTrue(isEqual(limit, null)))
         {
@@ -868,7 +868,7 @@ public partial class apex : Exchange
         }
         object response = await this.publicGetV3Klines(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object OHLCVs = this.safeList(data, getValue(market, "id2"), new List<object>() {});
+        object OHLCVs = this.safeList(data, this.safeString(market, "id2"), new List<object>() {});
         return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
     }
 
@@ -909,7 +909,7 @@ public partial class apex : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id2") },
+            { "symbol", this.safeString(market, "id2") },
         };
         if (isTrue(isEqual(limit, null)))
         {
@@ -972,7 +972,7 @@ public partial class apex : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id2") },
+            { "symbol", this.safeString(market, "id2") },
         };
         if (isTrue(isEqual(limit, null)))
         {
@@ -1062,7 +1062,7 @@ public partial class apex : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id2") },
+            { "symbol", this.safeString(market, "id2") },
         };
         object response = await this.publicGetV3Ticker(this.extend(request, parameters));
         object tickers = this.safeList(response, "data", new List<object>() {});

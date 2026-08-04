@@ -163,6 +163,7 @@ class coinbase extends Exchange {
                 'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -730,7 +731,7 @@ class coinbase extends Exchange {
         })();
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         // fetchAccountsV2
         //
@@ -930,7 +931,7 @@ class coinbase extends Exchange {
         })();
     }
 
-    public function fetch_transactions_with_method($method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($method, $code, $since, $limit, $params) {
             $request = null;
             list($request, $params) = Async\await($this->prepare_account_request_with_currency_code($code, $limit, $params));
@@ -1626,7 +1627,7 @@ class coinbase extends Exchange {
         })();
     }
 
-    public function parse_spot_market($market, $feeTier): array {
+    public function parse_spot_market(mixed $market, mixed $feeTier): array {
         //
         //         {
         //             "product_id" => "TONE-USD",
@@ -1723,7 +1724,7 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function parse_contract_market($market, $feeTier): array {
+    public function parse_contract_market(mixed $market, mixed $feeTier): array {
         // expiring
         //
         //        {
@@ -2458,7 +2459,7 @@ class coinbase extends Exchange {
         ), $market);
     }
 
-    public function parse_custom_balance($response, $params = array()) {
+    public function parse_custom_balance(mixed $response, $params = array()) {
         $balances = $this->safe_list_2($response, 'data', 'accounts', array());
         $accounts = $this->safe_list($params, 'type', $this->options['accounts']);
         $v3Accounts = $this->safe_list($params, 'type', $this->options['v3Accounts']);
@@ -2674,14 +2675,14 @@ class coinbase extends Exchange {
         })();
     }
 
-    public function parse_ledger_entry_status($status) {
+    public function parse_ledger_entry_status(mixed $status) {
         $types = array(
             'completed' => 'ok',
         );
         return $this->safe_string($types, $status, $status);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'buy' => 'trade',
             'sell' => 'trade',
@@ -3006,7 +3007,7 @@ class coinbase extends Exchange {
         ), $currency);
     }
 
-    public function find_account_id($code, $params = array()) {
+    public function find_account_id(mixed $code, $params = array()) {
         return Async\async(function () use ($code, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -3785,7 +3786,7 @@ class coinbase extends Exchange {
         })();
     }
 
-    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -4015,7 +4016,7 @@ class coinbase extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         array(
@@ -4467,7 +4468,7 @@ class coinbase extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        id => '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
@@ -4776,7 +4777,7 @@ class coinbase extends Exchange {
         })();
     }
 
-    public function parse_deposit_method_ids($ids, $params = array()) {
+    public function parse_deposit_method_ids(mixed $ids, $params = array()) {
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $this->extend($this->parse_deposit_method_id($ids[$i]), $params);
@@ -4785,7 +4786,7 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_method_id($depositId) {
+    public function parse_deposit_method_id(mixed $depositId) {
         return array(
             'info' => $depositId,
             'id' => $this->safe_string($depositId, 'id'),
@@ -4907,6 +4908,65 @@ class coinbase extends Exchange {
             'toAmount' => null,
             'price' => null,
             'fee' => $this->safe_number($feeAmountStructure, 'value'),
+        );
+    }
+
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * $transfer $currency internally between portfolios of the same account
+             *
+             * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+             *
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to $transfer
+             * @param {string} $fromAccount the portfolio uuid to $transfer funds from
+             * @param {string} $toAccount the portfolio uuid to $transfer funds to
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'funds' => array(
+                    'value' => $this->currency_to_precision($code, $amount),
+                    'currency' => $currency['id'],
+                ),
+                'source_portfolio_uuid' => $fromAccount,
+                'target_portfolio_uuid' => $toAccount,
+            );
+            $response = Async\await($this->v3PrivatePostBrokeragePortfoliosMoveFunds($this->extend($request, $params)));
+            //
+            //     {
+            //         "source_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+            //         "target_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+            //     }
+            //
+            $transfer = $this->parse_transfer($response, $currency);
+            $transfer['amount'] = $amount;
+            $transfer['status'] = 'ok';
+            return $transfer;
+        })();
+    }
+
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
+        //
+        //     {
+        //         "source_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        $currencyCode = $this->safe_currency_code(null, $currency);
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $currencyCode,
+            'amount' => null,
+            'fromAccount' => $this->safe_string($transfer, 'source_portfolio_uuid'),
+            'toAccount' => $this->safe_string($transfer, 'target_portfolio_uuid'),
+            'status' => null,
         );
     }
 
@@ -5216,8 +5276,8 @@ class coinbase extends Exchange {
             $taker_fee = $this->safe_number($data, 'taker_fee_rate');
             $maker_fee = $this->safe_number($data, 'maker_fee_rate');
             $result = array();
-            for ($i = 0; $i < count(($this->symbols)); $i++) {
-                $symbol = ($this->symbols)[$i];
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
                 $market = $this->market($symbol);
                 if (($isSpot && $market['spot']) || (!$isSpot && !$market['spot'])) {
                     $result[$symbol] = array(
@@ -5350,7 +5410,7 @@ class coinbase extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
         $isV3 = $version === 'v3';
@@ -5448,7 +5508,7 @@ class coinbase extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

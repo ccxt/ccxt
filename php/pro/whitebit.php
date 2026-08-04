@@ -104,7 +104,7 @@ class whitebit extends \ccxt\async\whitebit {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // {
         //     "method" => "candles_update",
@@ -184,7 +184,7 @@ class whitebit extends \ccxt\async\whitebit {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // {
         //     "method":"depth_update",
@@ -249,13 +249,13 @@ class whitebit extends \ccxt\async\whitebit {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -319,7 +319,7 @@ class whitebit extends \ccxt\async\whitebit {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //   {
         //       "method" => "market_update",
@@ -398,7 +398,7 @@ class whitebit extends \ccxt\async\whitebit {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //    {
         //        "method":"trades_update",
@@ -474,7 +474,7 @@ class whitebit extends \ccxt\async\whitebit {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message, ?array $subscription = null) {
+    public function handle_my_trades(Client $client, mixed $message, ?array $subscription = null) {
         //
         //   {
         //       "method" => "deals_update",
@@ -507,7 +507,7 @@ class whitebit extends \ccxt\async\whitebit {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //   array(
         //         1894994106, // $id
@@ -603,7 +603,7 @@ class whitebit extends \ccxt\async\whitebit {
         })();
     }
 
-    public function handle_order(Client $client, $message, ?array $subscription = null) {
+    public function handle_order(Client $client, mixed $message, ?array $subscription = null) {
         //
         // {
         //     "method" => "ordersPending_update",
@@ -645,7 +645,7 @@ class whitebit extends \ccxt\async\whitebit {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //   {
         //         "id" => 96433622651,
@@ -737,7 +737,7 @@ class whitebit extends \ccxt\async\whitebit {
         ), $market);
     }
 
-    public function parse_ws_order_type($status) {
+    public function parse_ws_order_type(mixed $status) {
         $statuses = array(
             '1' => 'limit',
             '2' => 'market',
@@ -783,7 +783,7 @@ class whitebit extends \ccxt\async\whitebit {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //   {
         //       "method":"balanceSpot_update",
@@ -825,7 +825,7 @@ class whitebit extends \ccxt\async\whitebit {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_public($messageHash, $method, array $reqParams = array(), $params = array()) {
+    public function watch_public(mixed $messageHash, mixed $method, array $reqParams = array(), $params = array()) {
         return Async\async(function () use ($messageHash, $method, $reqParams, $params) {
             $url = $this->urls['api']['ws'];
             $id = $this->nonce();
@@ -839,7 +839,7 @@ class whitebit extends \ccxt\async\whitebit {
         })();
     }
 
-    public function watch_multiple_subscription($messageHash, $method, $symbol, $isNested = false, $params = array()) {
+    public function watch_multiple_subscription(mixed $messageHash, mixed $method, mixed $symbol, $isNested = false, $params = array()) {
         return Async\async(function () use ($messageHash, $method, $symbol, $isNested, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -903,7 +903,7 @@ class whitebit extends \ccxt\async\whitebit {
         })();
     }
 
-    public function watch_private($messageHash, $method, array $reqParams = array(), $params = array()) {
+    public function watch_private(mixed $messageHash, mixed $method, array $reqParams = array(), $params = array()) {
         return Async\async(function () use ($messageHash, $method, $reqParams, $params) {
             $this->check_required_credentials();
             Async\await($this->authenticate());
@@ -959,7 +959,7 @@ class whitebit extends \ccxt\async\whitebit {
         })();
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         //
         //     array( error => null, result => array( status => "success" ), id => 1656084550 )
         //
@@ -968,7 +968,7 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
         //         "error" => array( $code => 1, $message => "invalid argument" ),
@@ -995,7 +995,7 @@ class whitebit extends \ccxt\async\whitebit {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // auth
         //    array( error => null, $result => array( status => "success" ), $id => 1656084550 )
@@ -1034,7 +1034,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
     }
 
-    public function handle_subscription_status(Client $client, $message, $id) {
+    public function handle_subscription_status(Client $client, mixed $message, mixed $id) {
         // not every $method stores its $subscription
         // object so we can't do indeById here
         $subs = $client->subscriptions;
@@ -1054,7 +1054,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }

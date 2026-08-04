@@ -1054,7 +1054,7 @@ class bitrue extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         // spot
         //
@@ -1562,7 +1562,7 @@ class bitrue extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // spot
         //
@@ -2802,7 +2802,7 @@ class bitrue extends Exchange {
         })();
     }
 
-    public function parse_transaction_status_by_type($status, ?string $type = null) {
+    public function parse_transaction_status_by_type(mixed $status, ?string $type = null) {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -3003,7 +3003,7 @@ class bitrue extends Exchange {
         })();
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //   {
         //       "coin" => "adx",
@@ -3047,7 +3047,7 @@ class bitrue extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -3067,7 +3067,7 @@ class bitrue extends Exchange {
         })();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(mixed $transfer, ?array $currency = null) {
         //
         //     fetchTransfers
         //
@@ -3246,7 +3246,7 @@ class bitrue extends Exchange {
         })();
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(mixed $data, ?array $market = null): array {
         //
         // setMargin
         //
@@ -3311,7 +3311,7 @@ class bitrue extends Exchange {
         })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $type = $this->safe_string($api, 0);
         $version = $this->safe_string($api, 1);
         $access = $this->safe_string($api, 2);
@@ -3388,7 +3388,7 @@ class bitrue extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
@@ -3456,7 +3456,7 @@ class bitrue extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {

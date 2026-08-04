@@ -98,7 +98,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
@@ -112,7 +112,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $newValue;
     }
 
-    public function create_public_request($market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false) {
+    public function create_public_request(mixed $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false) {
         $marketId = $market['symbol']; // spot markets use symbol with slash
         if ($market['type'] === 'swap') {
             $marketId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''); // swap markets use symbol without slash
@@ -133,7 +133,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $request;
     }
 
-    public function watch_public($market, string $messageHash, string $topicID, array $params = array(), string $suffix = ''): PromiseInterface {
+    public function watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), string $suffix = ''): PromiseInterface {
         return Async\async(function () use ($market, $messageHash, $topicID, $params, $suffix) {
             $url = $this->urls['api']['ws']['public'][$market['type']];
             $requestId = $this->request_id();
@@ -146,7 +146,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         })();
     }
 
-    public function un_watch_public($market, string $messageHash, string $topicID, array $params = array(), array $subscription = array(), string $suffix = ''): PromiseInterface {
+    public function un_watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = ''): PromiseInterface {
         return Async\async(function () use ($market, $messageHash, $topicID, $params, $subscription, $suffix) {
             $url = $this->urls['api']['ws']['public'][$market['type']];
             $requestId = $this->request_id();
@@ -168,7 +168,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         })();
     }
 
-    public function watch_private(string $messageHash, array $params = array()): PromiseInterface {
+    public function watch_private(string $messageHash, $params = array()): PromiseInterface {
         return Async\async(function () use ($messageHash, $params) {
             $listenKey = Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'] . '?$listenKey=' . $listenKey;
@@ -252,7 +252,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     a => 'PO',
         //     m => 'Success',
@@ -405,7 +405,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "a" => "PMT",
@@ -583,7 +583,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "a" => "PK",
@@ -631,7 +631,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "I" => "BTC/USDT",
@@ -702,7 +702,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "a" => "PMO",
@@ -745,7 +745,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function handle_order_book_snapshot(Client $client, $message) {
+    public function handle_order_book_snapshot(Client $client, mixed $message) {
         $entries = $this->safe_list($message, 'r', array());
         $first = $this->safe_dict($entries, 0, array());
         $data = $this->safe_dict($first, 'd', array());
@@ -784,7 +784,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
         //     {
         //         "a" => "PMO",
         //         "t" => "i", // i - update, f - snapshot
@@ -809,7 +809,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function handle_delta($orderbook, $entry) {
+    public function handle_delta(mixed $orderbook, mixed $entry) {
         $data = $this->safe_dict($entry, 'd', array());
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];
@@ -854,7 +854,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         })();
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         //     {
         //         "action" => "PushTrade",
@@ -935,7 +935,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //     {
         //         "action" => "PushOrder",
@@ -986,7 +986,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function parse_ws_order($order, ?array $market = null): array {
+    public function parse_ws_order(mixed $order, ?array $market = null): array {
         //
         //     {
         //         "D" => "0",
@@ -1088,7 +1088,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         })();
     }
 
-    public function handle_position(Client $client, $message) {
+    public function handle_position(Client $client, mixed $message) {
         //
         //     {
         //         "action" => "PushPosition",
@@ -1131,7 +1131,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function parse_ws_position($position, ?array $market = null): array {
+    public function parse_ws_position(mixed $position, ?array $market = null): array {
         //
         //     {
         //         "A" => "9256245",
@@ -1204,7 +1204,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $this->safe_string($modes, $marginMode, $marginMode);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($message === 'pong') {
             $this->handle_pong($client, $message);
         } else {
@@ -1233,7 +1233,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "a" => "RecvTopicAction",
@@ -1273,7 +1273,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $this->clean_cache($subscription);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         //
         //     {
         //         "a" => "RecvTopicAction",

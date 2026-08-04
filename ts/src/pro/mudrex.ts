@@ -5,11 +5,12 @@ import mudrexRest from '../mudrex.js';
 import { ExchangeError, NotSupported, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Strings, Ticker, Tickers, Dict } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
 
 // ---------------------------------------------------------------------------
 
 export default class mudrex extends mudrexRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -32,7 +33,7 @@ export default class mudrex extends mudrexRest {
         });
     }
 
-    ping (client) {
+    override ping (client: Client) {
         return {
             'id': this.requestId (),
             'method': 'PING',
@@ -64,7 +65,7 @@ export default class mudrex extends mudrexRest {
         this.options['ws'] = wsOptions;
     }
 
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -86,7 +87,7 @@ export default class mudrex extends mudrexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -120,7 +121,7 @@ export default class mudrex extends mudrexRest {
         return this.filterByArrayTickers (this.tickers, 'symbol', symbols);
     }
 
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -155,7 +156,7 @@ export default class mudrex extends mudrexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleMessage (client, message) {
+    override handleMessage (client: any, message: any) {
         if (this.safeString (message, 'method') === 'PONG') {
             return;
         }
@@ -174,7 +175,7 @@ export default class mudrex extends mudrexRest {
         }
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message: any) {
         const error = this.safeDict (message, 'error', {});
         const code = this.safeString (error, 'code');
         const msg = this.safeString (error, 'msg');
@@ -185,7 +186,7 @@ export default class mudrex extends mudrexRest {
         throw new ExchangeError (feedback);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: any, message: any) {
         const stream = this.safeString (message, 'stream');
         if (stream === undefined) {
             return;
@@ -222,7 +223,7 @@ export default class mudrex extends mudrexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: any, message: any) {
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const t = data[i];

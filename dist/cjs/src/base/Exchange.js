@@ -78,7 +78,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.70'; }
+    static { this.ccxtVersion = '4.5.71'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -170,6 +170,8 @@ class BaseExchange {
         this.hostname = undefined;
         this.precisionMode = undefined;
         this.paddingMode = undefined;
+        // nested by design: exchanges declare { 'exact': {...}, 'broad': {...} }
+        // and pro subclasses add a 'ws' sub-tree, with error classes as values
         this.exceptions = {};
         this.timeframes = {};
         this.version = undefined;
@@ -1954,8 +1956,8 @@ class BaseExchange {
             throw new errors.NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
         return '0x' + this.binaryToBase16(TxRaw.encode(TxRaw.fromPartial({
-            'bodyBytes': signDoc.bodyBytes,
-            'authInfoBytes': signDoc.authInfoBytes,
+            'bodyBytes': signDoc['bodyBytes'],
+            'authInfoBytes': signDoc['authInfoBytes'],
             'signatures': [this.base16ToBinary(signature)],
         })).finish());
     }

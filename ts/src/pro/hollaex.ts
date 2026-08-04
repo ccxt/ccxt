@@ -12,7 +12,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class hollaex extends hollaexRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -66,7 +66,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -76,7 +76,7 @@ export default class hollaex extends hollaexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "topic":"orderbook",
@@ -135,7 +135,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -149,7 +149,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "topic": "trade",
@@ -196,7 +196,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -214,7 +214,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message, subscription: Dict | undefined = undefined) {
+    handleMyTrades (client: Client, message: any, subscription: Dict | undefined = undefined) {
         //
         // {
         //     "topic":"usertrade",
@@ -283,7 +283,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -301,7 +301,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription: Dict | undefined = undefined) {
+    handleOrder (client: Client, message: any, subscription: Dict | undefined = undefined) {
         //
         //     {
         //         "topic": "order",
@@ -407,12 +407,12 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         const messageHash = 'wallet';
         return await this.watchPrivate (messageHash, params);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "topic": "wallet",
@@ -456,7 +456,7 @@ export default class hollaex extends hollaexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash, params = {}) {
+    async watchPublic (messageHash: any, params = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'op': 'subscribe',
@@ -466,7 +466,7 @@ export default class hollaex extends hollaexRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash, params = {}) {
+    async watchPrivate (messageHash: any, params = {}) {
         this.checkRequiredCredentials ();
         let expires = this.safeString (this.options, 'ws-expires');
         if (expires === undefined) {
@@ -497,7 +497,7 @@ export default class hollaex extends hollaexRest {
         return await this.watch (signedUrl, messageHash, message, messageHash);
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     { error: "Bearer or HMAC authentication required" }
         //     { error: "Error: wrong input" }
@@ -516,7 +516,7 @@ export default class hollaex extends hollaexRest {
         return true;
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // pong
         //
@@ -624,22 +624,22 @@ export default class hollaex extends hollaexRest {
         }
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return { 'op': 'ping' };
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    onError (client: Client, error) {
+    override onError (client: Client, error: any) {
         this.options['ws-expires'] = undefined;
         super.onError (client, error);
     }
 
-    onClose (client: Client, error) {
+    override onClose (client: Client, error: any) {
         this.options['ws-expires'] = undefined;
         super.onClose (client, error);
     }

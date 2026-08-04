@@ -1372,7 +1372,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         // Unused => fetchOHLCV performs client-side bucket aggregation directly.
         //
         //     {
@@ -1454,7 +1454,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function parse_prediction_open_interest($interest, ?array $market = null): array {
+    public function parse_prediction_open_interest(array $interest, ?array $market = null): array {
         //
         //     array( "market" => "0x7976b8...92", "value" => 4925662.470476 )
         //
@@ -1690,7 +1690,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         /**
          * @ignore
          * parses a balance-allowance $response into a balances object with a USDC entry
@@ -2438,7 +2438,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function fetch_events(array $params = array()): PromiseInterface {
+    public function fetch_events($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance; for an unscoped top-volume browse use fetchMarkets ()

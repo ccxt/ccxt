@@ -80,7 +80,7 @@ class coinone(ccxt.async_support.coinone):
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Any, message: Any):
         #
         #     {
         #         "response_type": "DATA",
@@ -128,7 +128,7 @@ class coinone(ccxt.async_support.coinone):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'qty')
         bookside.storeArray(bidAsk)
 
@@ -158,7 +158,7 @@ class coinone(ccxt.async_support.coinone):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "response_type": "DATA",
@@ -195,7 +195,7 @@ class coinone(ccxt.async_support.coinone):
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
 
-    def parse_ws_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "quote_currency": "KRW",
@@ -282,7 +282,7 @@ class coinone(ccxt.async_support.coinone):
             limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "response_type": "DATA",
@@ -351,7 +351,7 @@ class coinone(ccxt.async_support.coinone):
             'fee': None,
         }, market)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {
         #         "response_type": "ERROR",
@@ -364,7 +364,7 @@ class coinone(ccxt.async_support.coinone):
             return True
         return False
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if self.handle_error_message(client, message):
             return
         type = self.safe_string(message, 'response_type')
@@ -395,7 +395,7 @@ class coinone(ccxt.async_support.coinone):
             'request_type': 'PING',
         }
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         #
         #     {
         #         "response_type":"PONG"

@@ -293,7 +293,7 @@ class bithumb(Exchange, ImplicitAPI):
         # since they're the same we just need to return one
         return super(bithumb, self).safe_market(marketId, market, delimiter, 'spot')
 
-    def amount_to_precision(self, symbol, amount):
+    def amount_to_precision(self, symbol: Str, amount: Any):
         market = self.market(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
 
@@ -418,7 +418,7 @@ class bithumb(Exchange, ImplicitAPI):
                 result.append(entry)
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         balances = self.safe_dict(response, 'data')
         codes = list(self.currencies.keys())
@@ -643,7 +643,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         1576823400000,  # 기준 시간
@@ -1064,7 +1064,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}):
         """
         cancels an open order
 
@@ -1171,7 +1171,7 @@ class bithumb(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def fix_comma_number(self, numberStr):
+    def fix_comma_number(self, numberStr: Any):
         # some endpoints need self https://github.com/ccxt/ccxt/issues/11031
         if numberStr is None:
             return None
@@ -1183,7 +1183,7 @@ class bithumb(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))
@@ -1208,7 +1208,7 @@ class bithumb(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:

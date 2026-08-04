@@ -33,7 +33,7 @@ public partial class myokx : okx
                 { "CORS", null },
                 { "spot", true },
                 { "margin", null },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
             } },
@@ -49,6 +49,9 @@ public partial class myokx : okx
             } },
             { "options", new Dictionary<string, object>() {
                 { "mica", true },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "swap"} },
+                } },
             } },
         });
     }

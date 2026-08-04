@@ -28,8 +28,7 @@ import { TupleCoder } from "./coders/tuple.js";
 import { ParamType } from "./fragments.js";
 
 import type {
-    BytesLike,
-    CallExceptionAction, CallExceptionError, CallExceptionTransaction
+    BytesLike
 } from "./utils/index.js";
 
 // https://docs.soliditylang.org/en/v0.8.17/control-structures.html

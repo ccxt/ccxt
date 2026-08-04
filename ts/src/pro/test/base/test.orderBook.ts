@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { OrderBook, IndexedOrderBook, CountedOrderBook } from '../../../base/ws/OrderBook.js';
 
-function equals (a, b) {
+function equals (a: any, b: any) {
     if (a.length !== b.length) {
         return false;
     }

@@ -2477,7 +2477,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fee(string $code, $params = array()) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array()): array {
         /**
          * fetch the fee for deposits and withdrawals
          *
@@ -2526,7 +2526,7 @@ class kucoin extends Exchange {
         return $this->parse_deposit_withdraw_fee($data, $currency);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
         //        "currency" => "USDT",
@@ -2605,7 +2605,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function is_futures_method($methodName, $params) {
+    public function is_futures_method(mixed $methodName, mixed $params) {
         //
         // Helper
         // @$methodName (string) => The name of the method
@@ -3245,7 +3245,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1545904980",             // Start time of the candle cycle
@@ -3668,7 +3668,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         $address = $this->safe_string($depositAddress, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
         if ($address !== null) {
@@ -3919,7 +3919,7 @@ class kucoin extends Exchange {
         return $orderbook;
     }
 
-    public function handle_trigger_prices($params) {
+    public function handle_trigger_prices(mixed $params) {
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
@@ -4153,7 +4153,7 @@ class kucoin extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function market_order_amount_to_precision(?string $symbol, $amount) {
+    public function market_order_amount_to_precision(?string $symbol, mixed $amount) {
         $market = $this->market($symbol);
         $result = $this->decimal_to_precision($amount, TRUNCATE, $market['info']['quoteIncrement'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
@@ -5375,7 +5375,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, null, null, array( 'status' => 'canceled' ));
     }
 
-    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches a list of orders placed on the exchange
          *
@@ -5435,7 +5435,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function fetch_spot_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_spot_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch a list of spot $orders
          *
@@ -5575,7 +5575,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_contract_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_contract_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches a list of contract $orders placed on the exchange
          *
@@ -5689,7 +5689,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_uta_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_uta_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * helper method for fetching $orders by $status with uta endpoint
          *
@@ -8079,7 +8079,7 @@ class kucoin extends Exchange {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function parse_balance_helper($entry) {
+    public function parse_balance_helper(mixed $entry) {
         $account = $this->account();
         $account['used'] = $this->safe_string_2($entry, 'holdBalance', 'hold');
         $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'available');
@@ -8808,7 +8808,7 @@ class kucoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'Assets Transferred in After Upgrading' => 'transfer', // Assets Transferred in After V1 to V2 Upgrading
             'Deposit' => 'transaction', // Deposit
@@ -8873,7 +8873,7 @@ class kucoin extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_direction($direction) {
+    public function parse_ledger_direction(mixed $direction) {
         $directions = array(
             'in' => 'in',
             'out' => 'out',
@@ -8885,7 +8885,7 @@ class kucoin extends Exchange {
         return $this->safe_string($directions, $direction, $direction);
     }
 
-    public function parse_ledger_status($status) {
+    public function parse_ledger_status(mixed $status) {
         $statuses = array(
             'Completed' => 'ok',
             'Pending' => 'pending',
@@ -9185,7 +9185,7 @@ class kucoin extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
         $versions = $this->safe_dict($this->options, 'versions', array());
         $apiVersions = $this->safe_dict($versions, $api, array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
@@ -9201,7 +9201,7 @@ class kucoin extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function parse_borrow_rate($info, ?array $currency = null) {
+    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
         //     array(
         //         "tradeId" => "62db2dcaff219600012b56cd",
@@ -9549,7 +9549,7 @@ class kucoin extends Exchange {
         return $this->parse_borrow_rate_history($rows, $code, $since, $limit);
     }
 
-    public function parse_borrow_rate_histories($response, $codes, $since, $limit) {
+    public function parse_borrow_rate_histories(mixed $response, mixed $codes, mixed $since, mixed $limit) {
         //
         //     array(
         //         {
@@ -9696,7 +9696,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -9732,7 +9732,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -9772,7 +9772,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function parse_margin_loan($info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null) {
         //
         //     {
         //         "orderNo" => "5da6dba0f943c0c81f5d5db5",
@@ -9792,7 +9792,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
          *
@@ -10069,7 +10069,7 @@ class kucoin extends Exchange {
         return $this->parse_funding_rate($data, $market);
     }
 
-    public function parse_funding_rate($data, ?array $market = null): array {
+    public function parse_funding_rate(mixed $data, ?array $market = null): array {
         // uta
         //     {
         //         "symbol" => ".ETHUSDTMFPI8H",
@@ -10122,7 +10122,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function parse_funding_interval($interval) {
+    public function parse_funding_interval(mixed $interval) {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -10213,7 +10213,7 @@ class kucoin extends Exchange {
         return $this->parse_funding_rate_histories($result, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
         //
         // uta
         //     {
@@ -11056,7 +11056,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function parse_margin_modification($info, ?array $market = null): array {
+    public function parse_margin_modification(mixed $info, ?array $market = null): array {
         //
         //    {
         //        "id" => "62311d26064e8f00013f2c6d",
@@ -11340,7 +11340,7 @@ class kucoin extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         /**
          * @ignore
          * @param {array} $info Exchange $market response for 1 $market
@@ -11502,7 +11502,7 @@ class kucoin extends Exchange {
         return $this->parse_open_interests($data, $symbols);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDTM",
@@ -11602,7 +11602,7 @@ class kucoin extends Exchange {
         return $uta;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
@@ -11692,7 +11692,7 @@ class kucoin extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;

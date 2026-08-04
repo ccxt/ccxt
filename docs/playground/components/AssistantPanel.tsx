@@ -1,20 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { FALLBACK_FREE_MODELS, languageFromFence, type FreeModel } from "@/lib/ai/openrouter";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { languageFromFence } from "@/lib/ai/assistant";
 import { getLanguage, isRunnable, type LanguageId } from "@/lib/languages";
 import { apiUrl } from "@/lib/basePath";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 type InsertFn = (code: string, target?: LanguageId) => void;
-
-const SUGGESTIONS = [
-  "Fetch the BTC/USDT order book on kraken",
-  "Compare ETH price across 3 exchanges",
-  "Get 1-day OHLCV for SOL and find the high",
-  "Search Polymarket for a Bitcoin event and get its ticker",
-];
 
 export default function AssistantPanel({
   language,
@@ -27,34 +20,43 @@ export default function AssistantPanel({
 }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
-  const [models, setModels] = useState<FreeModel[]>(FALLBACK_FREE_MODELS);
-  const [model, setModel] = useState(FALLBACK_FREE_MODELS[0].id);
-  const [modelsLoading, setModelsLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [prompts, setPrompts] = useState<string[]>([]);
+  const [gen, setGen] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Bumped on every reset so an in-flight stream cannot write into a cleared chat.
+  const chatEpoch = useRef(0);
 
-  // The free tier rotates, so the live list comes from the server (warmed at
-  // startup). Until it lands — or if it fails — the fallback list is used.
   useEffect(() => {
-    let cancelled = false;
-    fetch(apiUrl("/api/ai/models"))
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-      .then((data: { models?: FreeModel[]; defaultModel?: string }) => {
-        if (cancelled || !data.models?.length) return;
-        const next = data.models;
-        setModels(next);
-        setModel((current) =>
-          next.some((m) => m.id === current) ? current : data.defaultModel ?? next[0].id,
-        );
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setModelsLoading(false);
-      });
+    let alive = true;
+    fetchPrompts().then((next) => {
+      if (!alive) return;
+      setPrompts(next);
+      setGen((g) => g + 1);
+    });
     return () => {
-      cancelled = true;
+      alive = false;
     };
   }, []);
+
+  async function refresh() {
+    if (refreshing) return;
+    setRefreshing(true);
+    chatEpoch.current += 1;
+    const epoch = chatEpoch.current;
+    // Clear the conversation first so the empty-state chips reappear immediately.
+    setMessages([]);
+    setBusy(false);
+    setInput("");
+    const next = await fetchPrompts(prompts);
+    if (epoch !== chatEpoch.current) return;
+    setPrompts(next);
+    setGen((g) => g + 1);
+    window.setTimeout(() => {
+      if (epoch === chatEpoch.current) setRefreshing(false);
+    }, 450);
+  }
 
   const scrollDown = () => {
     requestAnimationFrame(() => {
@@ -65,6 +67,7 @@ export default function AssistantPanel({
 
   async function send(text: string) {
     if (!text.trim() || busy) return;
+    const epoch = chatEpoch.current;
     const history: Msg[] = [...messages, { role: "user", content: text }];
     setMessages([...history, { role: "assistant", content: "" }]);
     setInput("");
@@ -75,12 +78,14 @@ export default function AssistantPanel({
       const res = await fetch(apiUrl("/api/ai"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history, model, language, code }),
+        body: JSON.stringify({ messages: history, language, code }),
       });
+
+      if (epoch !== chatEpoch.current) return;
 
       if (!res.ok || !res.body) {
         const err = await res.json().catch(() => ({ error: "request failed" }));
-        appendToLast(`⚠️ ${err.error ?? "request failed"}${err.detail ? `\n${err.detail}` : ""}`);
+        appendToLast(`⚠️ ${err.error ?? "request failed"}${err.detail ? `\n${err.detail}` : ""}`, epoch);
         return;
       }
 
@@ -90,6 +95,14 @@ export default function AssistantPanel({
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+        if (epoch !== chatEpoch.current) {
+          try {
+            await reader.cancel();
+          } catch {
+            // ignore
+          }
+          return;
+        }
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
         buffer = lines.pop() ?? "";
@@ -102,7 +115,7 @@ export default function AssistantPanel({
             const json = JSON.parse(payload);
             const delta: string = json.choices?.[0]?.delta?.content ?? "";
             if (delta) {
-              appendToLast(delta);
+              appendToLast(delta, epoch);
               scrollDown();
             }
           } catch {
@@ -111,14 +124,19 @@ export default function AssistantPanel({
         }
       }
     } catch (e) {
-      appendToLast(`⚠️ ${e instanceof Error ? e.message : "network error"}`);
+      if (epoch === chatEpoch.current) {
+        appendToLast(`⚠️ ${e instanceof Error ? e.message : "network error"}`, epoch);
+      }
     } finally {
-      setBusy(false);
-      scrollDown();
+      if (epoch === chatEpoch.current) {
+        setBusy(false);
+        scrollDown();
+      }
     }
   }
 
-  function appendToLast(chunk: string) {
+  function appendToLast(chunk: string, epoch: number) {
+    if (epoch !== chatEpoch.current) return;
     setMessages((prev) => {
       const next = [...prev];
       const last = next[next.length - 1];
@@ -129,32 +147,41 @@ export default function AssistantPanel({
     });
   }
 
+  const refreshBtn = (
+    <button
+      className={"icon-btn refresh" + (refreshing ? " spinning" : "")}
+      onClick={refresh}
+      disabled={refreshing}
+      aria-label="Clear chat and show new examples"
+      title="New examples"
+      type="button"
+    >
+      <RefreshIcon />
+    </button>
+  );
+
   return (
     <aside className="ai">
       <div className="ai-head">
         <span>✦ Assistant</span>
-        <select
-          className="select model-select"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          disabled={modelsLoading}
-          aria-label={modelsLoading ? "Loading models…" : "Model"}
-        >
-          {models.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.label}
-            </option>
-          ))}
-        </select>
       </div>
 
       <div className="ai-msgs" ref={scrollRef}>
         {messages.length === 0 ? (
           <div className="ai-empty">
-            Ask for CCXT code and it lands in your editor. Free models via OpenRouter.
-            <div className="chips">
-              {SUGGESTIONS.map((s) => (
-                <button key={s} className="chip" onClick={() => send(s)}>
+            Ask for CCXT code and it lands in your editor.
+            <div className="chips-head">
+              <span>Try one</span>
+              {refreshBtn}
+            </div>
+            <div className="chips" key={gen}>
+              {prompts.map((s, i) => (
+                <button
+                  key={i}
+                  className="chip chip-in"
+                  style={{ animationDelay: `${i * 55}ms` }}
+                  onClick={() => send(s)}
+                >
                   {s}
                 </button>
               ))}
@@ -168,6 +195,8 @@ export default function AssistantPanel({
               streaming={busy && i === messages.length - 1}
               language={language}
               onInsert={onInsert}
+              // Persist the refresh control on the first user turn (right of "You").
+              trailing={m.role === "user" && i === 0 ? refreshBtn : undefined}
             />
           ))
         )}
@@ -205,16 +234,50 @@ type CodeBlock = { kind: "code"; text: string; lang: LanguageId | null; complete
 type Block = { kind: "text"; text: string } | CodeBlock;
 type TaggedCode = CodeBlock & { lang: LanguageId };
 
+async function fetchPrompts(exclude: string[] = []): Promise<string[]> {
+  try {
+    const qs = exclude.map((p) => `exclude=${encodeURIComponent(p)}`).join("&");
+    const res = await fetch(apiUrl(`/api/prompts${qs ? `?${qs}` : ""}`), { cache: "no-store" });
+    const data = await res.json();
+    return Array.isArray(data.prompts) ? data.prompts : [];
+  } catch {
+    return [];
+  }
+}
+
+function RefreshIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.36-2.64L3 16" />
+      <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.36 2.64L21 8" />
+      <polyline points="21 3 21 8 16 8" />
+      <polyline points="3 21 3 16 8 16" />
+    </svg>
+  );
+}
+
 function Message({
   msg,
   streaming,
   language,
   onInsert,
+  trailing,
 }: {
   msg: Msg;
   streaming: boolean;
   language: LanguageId;
   onInsert: InsertFn;
+  trailing?: ReactNode;
 }) {
   const blocks = useMemo(() => parseBlocks(msg.content, streaming), [msg.content, streaming]);
   // Primary Insert arms progressive fill: primary buffer now, each other language
@@ -285,7 +348,10 @@ function Message({
 
   return (
     <div className={"msg " + msg.role}>
-      <div className="who">{msg.role === "user" ? "You" : "Assistant"}</div>
+      <div className="who">
+        <span>{msg.role === "user" ? "You" : "Assistant"}</span>
+        {trailing}
+      </div>
       {msg.role === "user" ? (
         <div className="bubble">{renderBlocks(blocks, onInsert)}</div>
       ) : (

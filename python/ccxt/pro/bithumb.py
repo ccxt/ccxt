@@ -98,7 +98,7 @@ class bithumb(ccxt.async_support.bithumb):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #    {
         #        "type" : "ticker",
@@ -130,7 +130,7 @@ class bithumb(ccxt.async_support.bithumb):
         self.tickers[symbol] = ticker
         client.resolve(self.tickers[symbol], messageHash)
 
-    def parse_ws_ticker(self, ticker, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None):
         #
         #    {
         #        "symbol" : "BTC_KRW",           # 통화코드
@@ -202,7 +202,7 @@ class bithumb(ccxt.async_support.bithumb):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #    {
         #        "type" : "orderbookdepth",
@@ -244,7 +244,7 @@ class bithumb(ccxt.async_support.bithumb):
         messageHash = 'orderbook' + ':' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, orderbook, delta):
+    def handle_delta(self, orderbook: Any, delta: Any):
         #
         #    {
         #        symbol: "ETH_BTC",
@@ -260,7 +260,7 @@ class bithumb(ccxt.async_support.bithumb):
         orderbookSide = orderbook[side]
         orderbookSide.storeArray(bidAsk)
 
-    def handle_deltas(self, orderbook, deltas):
+    def handle_deltas(self, orderbook: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(orderbook, deltas[i])
 
@@ -291,7 +291,7 @@ class bithumb(ccxt.async_support.bithumb):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Any, message: Any):
         #
         #    {
         #        "type" : "transaction",
@@ -326,7 +326,7 @@ class bithumb(ccxt.async_support.bithumb):
             messageHash = 'trade' + ':' + symbol
             client.resolve(trades, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         #    {
         #        "symbol" : "BTC_KRW",
@@ -359,7 +359,7 @@ class bithumb(ccxt.async_support.bithumb):
             'fee': None,
         }, market)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #    {
         #        "status" : "5100",
@@ -399,7 +399,7 @@ class bithumb(ccxt.async_support.bithumb):
         balance = await self.watch(url, messageHash, request, messageHash)
         return balance
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #    {
         #        "type": "myAsset",
@@ -489,7 +489,7 @@ class bithumb(ccxt.async_support.bithumb):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message):
+    def handle_orders(self, client: Client, message: Any):
         #
         #    {
         #        "type": "myOrder",
@@ -527,7 +527,7 @@ class bithumb(ccxt.async_support.bithumb):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         #    {
         #        "type": "myOrder",
@@ -614,7 +614,7 @@ class bithumb(ccxt.async_support.bithumb):
             'trades': None,
         }, market)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if not self.handle_error_message(client, message):
             return
         topic = self.safe_string(message, 'type')

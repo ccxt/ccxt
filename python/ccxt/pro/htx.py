@@ -196,7 +196,7 @@ class htx(ccxt.async_support.htx):
         subMessageHash = self.implode_params(channel, {'marketId': market['id']})
         return await self.unsubscribe_public(market, subMessageHash, topic, params)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         # "market.btcusdt.detail"
         #     {
@@ -292,7 +292,7 @@ class htx(ccxt.async_support.htx):
         subMessageHash = self.implode_params(channel, {'marketId': market['id']})
         return await self.unsubscribe_public(market, subMessageHash, topic, params)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "ch": "market.btcusdt.trade.detail",
@@ -360,7 +360,7 @@ class htx(ccxt.async_support.htx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -383,7 +383,7 @@ class htx(ccxt.async_support.htx):
         params['symbolsAndTimeframes'] = [[market['symbol'], timeframe]]
         return await self.unsubscribe_public(market, subMessageHash, topic, params)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "ch": "market.btcusdt.kline.1min",
@@ -421,7 +421,7 @@ class htx(ccxt.async_support.htx):
         stored.append(parsed)
         client.resolve(stored, ch)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
@@ -462,7 +462,7 @@ class htx(ccxt.async_support.htx):
         orderbook = await self.subscribe_public(url, symbol, messageHash, method, params)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> Any:
         """
         unsubscribe from the orderbook channel
 
@@ -490,7 +490,7 @@ class htx(ccxt.async_support.htx):
             params['data_type'] = 'incremental'
         return await self.unsubscribe_public(market, subMessageHash, topic, params)
 
-    def handle_order_book_snapshot(self, client: Client, message, subscription):
+    def handle_order_book_snapshot(self, client: Client, message: Any, subscription: Any):
         #
         #     {
         #         "id": 1583473663565,
@@ -568,7 +568,7 @@ class htx(ccxt.async_support.htx):
                 del self.orderbooks[symbol]
             client.reject(e, messageHash)
 
-    async def watch_order_book_snapshot(self, client, message, subscription):
+    async def watch_order_book_snapshot(self, client: Any, message: Any, subscription: Any):
         messageHash = self.safe_string(subscription, 'messageHash')
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
@@ -603,16 +603,16 @@ class htx(ccxt.async_support.htx):
             client.reject(e, messageHash)
         return None
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client: Client, message):
+    def handle_order_book_message(self, client: Client, message: Any):
         # spot markets
         #
         #     {
@@ -710,7 +710,7 @@ class htx(ccxt.async_support.htx):
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # deltas
         #
@@ -779,7 +779,7 @@ class htx(ccxt.async_support.htx):
             self.handle_order_book_message(client, message)
             client.resolve(orderbook, messageHash)
 
-    def handle_order_book_subscription(self, client: Client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message: Any, subscription: Any):
         symbol = self.safe_string(subscription, 'symbol')
         market = self.market(symbol)
         limit = self.safe_integer(subscription, 'limit')
@@ -857,7 +857,7 @@ class htx(ccxt.async_support.htx):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def get_order_channel_and_message_hash(self, type, subType, market: Market = None, params={}):
+    def get_order_channel_and_message_hash(self, type: Any, subType: Any, market: Market = None, params={}):
         messageHash = None
         channel = None
         orderType = self.safe_string(self.options, 'orderType', 'orders')  # orders or matchOrders
@@ -895,7 +895,7 @@ class htx(ccxt.async_support.htx):
                 channel = prefix + '.' + '*'
         return [channel, messageHash]
 
-    def get_v5_linear_channel_and_message_hash(self, topic, market: Market = None, params={}):
+    def get_v5_linear_channel_and_message_hash(self, topic: Any, market: Market = None, params={}):
         contractCode = market['id'] if (market is not None) else self.safe_string(params, 'contract_code', '*')
         channel = topic
         messageHash = topic
@@ -964,7 +964,7 @@ class htx(ccxt.async_support.htx):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         # spot
         #
@@ -1208,7 +1208,7 @@ class htx(ccxt.async_support.htx):
         genericMessageHash = genericMessageHash.replace('.' + lowerCaseBaseId, '')
         client.resolve(self.orders, genericMessageHash)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         # spot
         #
@@ -1428,7 +1428,7 @@ class htx(ccxt.async_support.htx):
             'stopLossPrice': self.safe_string_2(order, 'sl_trigger_price', 'sl_order_price'),
         }, market)
 
-    def parse_order_trade(self, trade, market: Market = None):
+    def parse_order_trade(self, trade: Any, market: Market = None):
         # spot private wrapped trade
         #
         #     {
@@ -1541,7 +1541,7 @@ class htx(ccxt.async_support.htx):
             return newPositions
         return self.filter_by_symbols_since_limit(self.safe_value(self.safe_value(self.positions, url), marginMode), symbols, since, limit, False)
 
-    def handle_positions(self, client, message):
+    def handle_positions(self, client: Any, message: Any):
         #
         #    {
         #        op: 'notify',
@@ -1770,7 +1770,7 @@ class htx(ccxt.async_support.htx):
         # messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
         return await self.subscribe_private(channel, messageHash, type, subType, params, subscriptionParams)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         # spot
         #
         #     {
@@ -2019,7 +2019,7 @@ class htx(ccxt.async_support.htx):
                     self.balance = self.safe_balance(self.balance)
             client.resolve(self.balance, messageHash)
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         #     {
         #         "id": 1583414227,
@@ -2062,7 +2062,7 @@ class htx(ccxt.async_support.htx):
             self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
-    def handle_system_status(self, client: Client, message):
+    def handle_system_status(self, client: Client, message: Any):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
         # and unified for any usage pattern that
@@ -2075,7 +2075,7 @@ class htx(ccxt.async_support.htx):
         #
         return message
 
-    def handle_subject(self, client: Client, message):
+    def handle_subject(self, client: Client, message: Any):
         # spot
         #     {
         #         "ch": "market.btcusdt.mbp.150",
@@ -2197,7 +2197,7 @@ class htx(ccxt.async_support.htx):
             if topic.find('positions') >= 0:
                 self.handle_positions(client, message)
 
-    async def pong(self, client, message):
+    async def pong(self, client: Client, message: Any):
         #
         #     {ping: 1583491673714}
         #     {action: "ping", data: {ts: 1645108204665}}
@@ -2222,10 +2222,10 @@ class htx(ccxt.async_support.htx):
             error = NetworkError(self.id + ' pong failed ' + self.exception_message(e))
             client.reset(error)
 
-    def handle_ping(self, client: Client, message):
+    def handle_ping(self, client: Client, message: Any):
         self.spawn(self.pong, client, message)
 
-    def handle_authenticate(self, client: Client, message):
+    def handle_authenticate(self, client: Client, message: Any):
         #
         # spot
         #
@@ -2249,7 +2249,7 @@ class htx(ccxt.async_support.htx):
         promise = client.futures['auth']
         promise.resolve(message)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {
         #         "action": "sub",
@@ -2324,7 +2324,7 @@ class htx(ccxt.async_support.htx):
                     client.reject(e)
         return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if self.handle_error_message(client, message):
             #
             #     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
@@ -2406,7 +2406,7 @@ class htx(ccxt.async_support.htx):
             if 'ping' in message:
                 self.handle_ping(client, message)
 
-    def handle_my_trade(self, client: Client, message, extendParams={}):
+    def handle_my_trade(self, client: Client, message: Any, extendParams={}):
         #
         # spot
         #
@@ -2538,7 +2538,7 @@ class htx(ccxt.async_support.htx):
                 genericTradesHash = genericOrderHash + ':' + 'trade'
                 client.resolve(self.myTrades, genericTradesHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         # spot private
         #
         #     {
@@ -2626,7 +2626,7 @@ class htx(ccxt.async_support.htx):
             'fee': fee,
         }, market)
 
-    def get_url_by_market_type(self, type, isLinear=True, isPrivate=False, isFeed=False, isV5=False):
+    def get_url_by_market_type(self, type: Any, isLinear=True, isPrivate=False, isFeed=False, isV5=False):
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
         hostnameURL = None
@@ -2652,7 +2652,7 @@ class htx(ccxt.async_support.htx):
                 url = subTypeUrl['public']
         return url
 
-    async def subscribe_public(self, url, symbol, messageHash, method: Any = None, params={}):
+    async def subscribe_public(self, url: Any, symbol: Any, messageHash: Any, method: Any = None, params={}):
         requestId = self.request_id()
         request = {
             'sub': messageHash,
@@ -2693,7 +2693,7 @@ class htx(ccxt.async_support.htx):
             params = self.omit(params, 'symbolsAndTimeframes')
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
-    async def subscribe_private(self, channel, messageHash, type, subtype, params={}, subscriptionParams={}):
+    async def subscribe_private(self, channel: Any, messageHash: Any, type: Any, subtype: Any, params: Any = {}, subscriptionParams={}):
         requestId = self.request_id()
         subscription = {
             'id': requestId,

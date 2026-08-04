@@ -174,7 +174,7 @@ class mudrex extends Exchange {
         ));
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         $apiUrls = $this->safe_dict($this->urls, 'api', array());
         $base = $this->safe_string($apiUrls, $api);
         if ($base === null) {
@@ -215,7 +215,7 @@ class mudrex extends Exchange {
         return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null || gettype($response) !== 'array') {
             return null;
         }
@@ -247,7 +247,7 @@ class mudrex extends Exchange {
         return null;
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array( 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 )
         //     array( timestampInSeconds, open, high, low, close, volume )

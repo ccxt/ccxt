@@ -540,7 +540,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         tickers = await self.publicGetTickers(params)
         return self.parse_tickers(tickers, symbols)
 
-    def parse_order_state(self, state):
+    def parse_order_state(self, state: Any):
         states = {
             'OPEN': 'open',
             'REJECTED': 'rejected',
@@ -792,7 +792,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         state = 'OPEN'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
-    async def fetch_orders_by_state(self, state, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_state(self, state: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if self.markets is None:
             await self.load_markets()
         request = {
@@ -910,7 +910,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def parse_transaction_state(self, state):
+    def parse_transaction_state(self, state: Any):
         states = {
             'COMPLETED': 'ok',  #
             'REJECTED': 'failed',
@@ -1200,7 +1200,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         requestPath = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + requestPath
         query = self.omit(params, self.extract_params(path))
@@ -1220,7 +1220,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         # {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if response is None:
             return None

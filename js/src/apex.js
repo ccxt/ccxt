@@ -779,7 +779,7 @@ export default class apex extends Exchange {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         const response = await this.publicGetV3Ticker(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);
@@ -823,7 +823,7 @@ export default class apex extends Exchange {
         const market = this.market(symbol);
         let request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
@@ -835,7 +835,7 @@ export default class apex extends Exchange {
         }
         const response = await this.publicGetV3Klines(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
-        const OHLCVs = this.safeList(data, market['id2'], []);
+        const OHLCVs = this.safeList(data, this.safeString(market, 'id2'), []);
         return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -877,7 +877,7 @@ export default class apex extends Exchange {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         if (limit === undefined) {
             limit = 100; // default is 200 when requested with `since`
@@ -935,7 +935,7 @@ export default class apex extends Exchange {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         if (limit === undefined) {
             limit = 500; // default is 50
@@ -1018,7 +1018,7 @@ export default class apex extends Exchange {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         const response = await this.publicGetV3Ticker(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);

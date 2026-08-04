@@ -1520,10 +1520,18 @@ export default class bingx extends Exchange {
         }
         let amount = this.safeStringN(trade, ['qty', 'amount', 'q']);
         if ((market !== undefined) && market['swap'] && ('volume' in trade)) {
-            // private trade returns num of contracts instead of base currency (as the order-related methods do)
-            const contractSize = this.safeString(market['info'], 'tradeMinQuantity');
-            const volume = this.safeString(trade, 'volume');
-            amount = Precise.stringMul(volume, contractSize);
+            if (market['linear']) {
+                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
+                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
+                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
+                amount = this.safeString(trade, 'volume');
+            }
+            else {
+                // private trade returns num of contracts instead of base currency (as the order-related methods do)
+                const contractSize = this.safeString(market['info'], 'tradeMinQuantity');
+                const volume = this.safeString(trade, 'volume');
+                amount = Precise.stringMul(volume, contractSize);
+            }
         }
         return this.safeTrade({
             'id': this.safeString2(trade, 'id', 't'),

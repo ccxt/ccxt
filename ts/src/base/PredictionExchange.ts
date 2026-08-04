@@ -3,7 +3,7 @@
 import { BaseExchange } from './Exchange.js';
 import { Precise } from './Precise.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams, Currencies } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ export default class PredictionExchange extends BaseExchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'prediction': true,
@@ -367,7 +367,7 @@ export default class PredictionExchange extends BaseExchange {
         const seen: Dict = {};
         const keys = Object.keys (this.events);
         for (let i = 0; i < keys.length; i++) {
-            const event = this.events[keys[i]];
+            const event: Dict = this.events[keys[i]];
             const identity = this.safeString2 (event, 'id', 'event', keys[i]);
             if (!(identity in seen)) {
                 seen[identity] = true;
@@ -579,7 +579,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.slugToMarketSymbol (eventSlug, marketSlug) + ':' + label;
     }
 
-    setMarkets (markets, currencies = undefined) {
+    override setMarkets (markets: any, currencies = undefined) {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
@@ -604,7 +604,7 @@ export default class PredictionExchange extends BaseExchange {
         return stored;
     }
 
-    indexMarketOutcomes (market) {
+    indexMarketOutcomes (market: any) {
         // index one market's outcome tokens into this.outcomes / this.outcomes_by_id,
         // normalizing each to the canonical identity keys (outcome / outcomeId / market) so
         // consumers and the safe* helpers stay uniform even when an exchange's parseMarket
@@ -918,7 +918,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (outcome: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (outcome: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         return await super.fetchOHLCV (outcome, timeframe, since, limit, params);
     }
 
@@ -1619,28 +1619,28 @@ export default class PredictionExchange extends BaseExchange {
         return results as PredictionPosition[];
     }
 
-    filterByOutcomeSinceLimit (array, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByOutcomeSinceLimit (array: any, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         return this.filterByValueSinceLimit (array, 'outcome', outcome, since, limit, 'timestamp', tail);
     }
 
-    filterByOutcomesSinceLimit (array, outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByOutcomesSinceLimit (array: any, outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         const result = this.filterByArray (array, 'outcome', outcomes, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
-    amountToPredictionPrecision (outcome: Str, amount): Str {
+    amountToPredictionPrecision (outcome: Str, amount: any): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.amountToPrecision (marketSymbol, amount);
     }
 
-    priceToPredictionPrecision (outcome: Str, price): Str {
+    priceToPredictionPrecision (outcome: Str, price: any): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.priceToPrecision (marketSymbol, price);
     }
 
-    costToPredictionPrecision (outcome: Str, cost): Str {
+    costToPredictionPrecision (outcome: Str, cost: any): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.costToPrecision (marketSymbol, cost);

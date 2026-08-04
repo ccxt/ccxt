@@ -110,7 +110,7 @@ class bithumb extends \ccxt\async\bithumb {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //    {
         //        "type" : "ticker",
@@ -143,7 +143,7 @@ class bithumb extends \ccxt\async\bithumb {
         $client->resolve($this->tickers[$symbol], $messageHash);
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -220,7 +220,7 @@ class bithumb extends \ccxt\async\bithumb {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //    {
         //        "type" : "orderbookdepth",
@@ -264,7 +264,7 @@ class bithumb extends \ccxt\async\bithumb {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         //
         //    {
         //        symbol => "ETH_BTC",
@@ -281,7 +281,7 @@ class bithumb extends \ccxt\async\bithumb {
         $orderbookSide->storeArray($bidAsk);
     }
 
-    public function handle_deltas($orderbook, $deltas) {
+    public function handle_deltas(mixed $orderbook, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($orderbook, $deltas[$i]);
         }
@@ -319,7 +319,7 @@ class bithumb extends \ccxt\async\bithumb {
         })();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(mixed $client, mixed $message) {
         //
         //    {
         //        "type" : "transaction",
@@ -357,7 +357,7 @@ class bithumb extends \ccxt\async\bithumb {
         }
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //    {
         //        "symbol" : "BTC_KRW",
@@ -391,7 +391,7 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //        "status" : "5100",
@@ -439,7 +439,7 @@ class bithumb extends \ccxt\async\bithumb {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //    {
         //        "type" => "myAsset",
@@ -541,7 +541,7 @@ class bithumb extends \ccxt\async\bithumb {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //    {
         //        "type" => "myOrder",
@@ -581,7 +581,7 @@ class bithumb extends \ccxt\async\bithumb {
         $client->resolve($cachedOrders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //    {
         //        "type" => "myOrder",
@@ -672,7 +672,7 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }

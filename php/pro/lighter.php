@@ -71,7 +71,7 @@ class lighter extends \ccxt\async\lighter {
         return $hash;
     }
 
-    public function subscribe_public($messageHash, $params = array()) {
+    public function subscribe_public(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $url = $this->urls['api']['ws'];
             $request = array(
@@ -85,7 +85,7 @@ class lighter extends \ccxt\async\lighter {
         })();
     }
 
-    public function subscribe_public_multiple($messageHashes, $params = array()) {
+    public function subscribe_public_multiple(mixed $messageHashes, $params = array()) {
         return Async\async(function () use ($messageHashes, $params) {
             $url = $this->urls['api']['ws'];
             $request = array(
@@ -99,7 +99,7 @@ class lighter extends \ccxt\async\lighter {
         })();
     }
 
-    public function unsubscribe($messageHash, $params = array()) {
+    public function unsubscribe(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $url = $this->urls['api']['ws'];
             $request = array(
@@ -113,7 +113,7 @@ class lighter extends \ccxt\async\lighter {
         })();
     }
 
-    public function subscribe_private($messageHash, $params = array()) {
+    public function subscribe_private(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             Async\await($this->preLoadLighterLibrary());
             $params['auth'] = $this->createAuth($params);
@@ -121,19 +121,19 @@ class lighter extends \ccxt\async\lighter {
         })();
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $this->safe_float($delta, 'price');
         $amount = $this->safe_float($delta, 'size');
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
         $data = $this->safe_dict($message, 'order_book', array());
         $this->handle_deltas($orderbook['asks'], $this->safe_list($data, 'asks', array()));
         $this->handle_deltas($orderbook['bids'], $this->safe_list($data, 'bids', array()));
@@ -144,7 +144,7 @@ class lighter extends \ccxt\async\lighter {
         return $orderbook;
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // {
         //     "channel" => "order_book:0",
@@ -241,7 +241,7 @@ class lighter extends \ccxt\async\lighter {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // watchTicker
         //     {
@@ -478,7 +478,7 @@ class lighter extends \ccxt\async\lighter {
         return $this->un_watch_tickers($symbols, $params);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //     {
         //         "trade_id" => 526801155,
@@ -530,7 +530,7 @@ class lighter extends \ccxt\async\lighter {
         ), $market);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "trade:0",
@@ -643,7 +643,7 @@ class lighter extends \ccxt\async\lighter {
         })();
     }
 
-    public function parse_ws_order_trade($trade, ?array $market = null) {
+    public function parse_ws_order_trade(array $trade, ?array $market = null) {
         //
         //     {
         //         "trade_id" => 526801155,
@@ -728,7 +728,7 @@ class lighter extends \ccxt\async\lighter {
         ), $market);
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "account_all_trades:723310",
@@ -862,7 +862,7 @@ class lighter extends \ccxt\async\lighter {
         })();
     }
 
-    public function parse_ws_liquidation($liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
         //         "trade_id" => 526801155,
@@ -916,7 +916,7 @@ class lighter extends \ccxt\async\lighter {
         ));
     }
 
-    public function handle_liquidation(Client $client, $message) {
+    public function handle_liquidation(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "trade:0",
@@ -1031,7 +1031,7 @@ class lighter extends \ccxt\async\lighter {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //    spot $balance
         //    {
@@ -1190,7 +1190,7 @@ class lighter extends \ccxt\async\lighter {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //    {
         //        "account" => {ACCOUNT_INDEX},
@@ -1240,7 +1240,7 @@ class lighter extends \ccxt\async\lighter {
         return true;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         //
         //     {
         //         "error" => {
@@ -1264,7 +1264,7 @@ class lighter extends \ccxt\async\lighter {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
@@ -1311,7 +1311,7 @@ class lighter extends \ccxt\async\lighter {
         }
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "session_id" => "8d354239-80e0-4b77-8763-87b6fef2f768",
@@ -1344,14 +1344,14 @@ class lighter extends \ccxt\async\lighter {
         $this->clean_cache($subscription);
     }
 
-    public function handle_ping(Client $client, $message) {
+    public function handle_ping(Client $client, mixed $message) {
         //
         //     array( "type" => "ping" )
         //
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function pong($client, $message) {
+    public function pong(Client $client, mixed $message) {
         return Async\async(function () use ($client, $message) {
             $request = array(
                 'type' => 'pong',

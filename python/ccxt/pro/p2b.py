@@ -65,7 +65,7 @@ class p2b(ccxt.async_support.p2b):
             },
         })
 
-    async def subscribe(self, name: str, messageHash: str, request, params={}):
+    async def subscribe(self, name: str, messageHash: str, request: Any, params={}):
         """
  @ignore
         Connects to a websocket channel
@@ -248,7 +248,7 @@ class p2b(ccxt.async_support.p2b):
         orderbook = await self.subscribe(name, messageHash, request, params)
         return orderbook.limit()
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #    {
         #        "method": "kline.update",
@@ -290,7 +290,7 @@ class p2b(ccxt.async_support.p2b):
             client.resolve(stored, messageHash)
         return message
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: Any):
         #
         #    {
         #        "method": "deals.update",
@@ -328,7 +328,7 @@ class p2b(ccxt.async_support.p2b):
         client.resolve(tradesArray, messageHash)
         return message
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         # state
         #
@@ -384,7 +384,7 @@ class p2b(ccxt.async_support.p2b):
         client.resolve(ticker, messageHash)
         return message
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #    {
         #        "method": "depth.update",
@@ -441,7 +441,7 @@ class p2b(ccxt.async_support.p2b):
         orderbook['symbol'] = symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if self.handle_error_message(client, message):
             return
         result = self.safe_string(message, 'result')
@@ -460,7 +460,7 @@ class p2b(ccxt.async_support.p2b):
         if endpoint is not None:
             endpoint(client, message)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         error = self.safe_string(message, 'error')
         if error is not None:
             raise ExchangeError(self.id + ' error: ' + self.json(error))
@@ -477,7 +477,7 @@ class p2b(ccxt.async_support.p2b):
             'id': self.milliseconds(),
         }
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         #
         #    {
         #        error: null,
@@ -488,10 +488,10 @@ class p2b(ccxt.async_support.p2b):
         client.lastPong = self.safe_integer(message, 'id', self.milliseconds())
         return message
 
-    def on_error(self, client: Client, error):
+    def on_error(self, client: Client, error: Any):
         self.options['tickerSubs'] = self.create_safe_dictionary()
         super(p2b, self).on_error(client, error)
 
-    def on_close(self, client: Client, error):
+    def on_close(self, client: Client, error: Any):
         self.options['tickerSubs'] = self.create_safe_dictionary()
         super(p2b, self).on_close(client, error)

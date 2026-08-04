@@ -416,7 +416,7 @@ class coinbaseinternational extends Exchange {
         })();
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //    {
         //       "portfolio_id":"1ap32qsc-1-0",
@@ -499,7 +499,7 @@ class coinbaseinternational extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //   {
         //     "start" => "2024-04-23T00:00:00Z",
@@ -581,11 +581,11 @@ class coinbaseinternational extends Exchange {
         })();
     }
 
-    public function parse_funding_rate_history($info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
         return $this->parse_funding_rate($info, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate(mixed $contract, ?array $market = null) {
         //
         //    {
         //       "instrument_id":"149264167780483072",
@@ -658,7 +658,7 @@ class coinbaseinternational extends Exchange {
         })();
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         // {
         //     "amount":"0.0008",
@@ -855,7 +855,7 @@ class coinbaseinternational extends Exchange {
         })();
     }
 
-    public function find_default_network($networks) {
+    public function find_default_network(mixed $networks) {
         $networksArray = $this->to_array($networks);
         for ($i = 0; $i < count($networksArray); $i++) {
             $info = $networksArray[$i]['info'];
@@ -867,7 +867,7 @@ class coinbaseinternational extends Exchange {
         return $networksArray[0];
     }
 
-    public function load_currency_networks($code, $params = array()) {
+    public function load_currency_networks(mixed $code, $params = array()) {
         return Async\async(function () use ($code, $params) {
             $currency = $this->currency($code);
             $networks = $this->safe_dict($currency, 'networks');
@@ -901,7 +901,7 @@ class coinbaseinternational extends Exchange {
         })();
     }
 
-    public function parse_networks($networks, $params = array()) {
+    public function parse_networks(mixed $networks, $params = array()) {
         $result = array();
         for ($i = 0; $i < count($networks); $i++) {
             $network = $this->extend($this->parse_network($networks[$i]), $params);
@@ -910,7 +910,7 @@ class coinbaseinternational extends Exchange {
         return $result;
     }
 
-    public function parse_network($network, $params = array()) {
+    public function parse_network(mixed $network, $params = array()) {
         //
         //    {
         //        "asset_id":"1",
@@ -1728,7 +1728,7 @@ class coinbaseinternational extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //    {
         //       "asset_id":"0-0-1",
@@ -2412,7 +2412,7 @@ class coinbaseinternational extends Exchange {
         })();
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
         $fullPath = '/' . $version . '/' . $this->implode_params($path, $params);
@@ -2446,7 +2446,7 @@ class coinbaseinternational extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         //    {
         //        "title":"io.javalin.http.BadRequestResponse => Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",

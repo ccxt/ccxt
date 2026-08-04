@@ -856,7 +856,7 @@ func (this *ApexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
-			"symbol": GetValue(market, "id2"),
+			"symbol": this.SafeString(market, "id2"),
 		}
 
 		response := (<-this.PublicGetV3Ticker(this.Extend(request, params)))
@@ -940,7 +940,7 @@ func (this *ApexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
-			"symbol":   GetValue(market, "id2"),
+			"symbol":   this.SafeString(market, "id2"),
 		}
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 200 // default is 200 when requested with `since`
@@ -956,7 +956,7 @@ func (this *ApexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		response := (<-this.PublicGetV3Klines(this.Extend(request, params)))
 		PanicOnError(response)
 		var data any = this.SafeDict(response, "data", map[string]any{})
-		var OHLCVs any = this.SafeList(data, GetValue(market, "id2"), []any{})
+		var OHLCVs any = this.SafeList(data, this.SafeString(market, "id2"), []any{})
 
 		ch <- this.ParseOHLCVs(OHLCVs, market, timeframe, since, limit)
 		return nil
@@ -1009,7 +1009,7 @@ func (this *ApexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
-			"symbol": GetValue(market, "id2"),
+			"symbol": this.SafeString(market, "id2"),
 		}
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 100 // default is 200 when requested with `since`
@@ -1087,7 +1087,7 @@ func (this *ApexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
-			"symbol": GetValue(market, "id2"),
+			"symbol": this.SafeString(market, "id2"),
 		}
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 500 // default is 50
@@ -1188,7 +1188,7 @@ func (this *ApexCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan 
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
-			"symbol": GetValue(market, "id2"),
+			"symbol": this.SafeString(market, "id2"),
 		}
 
 		response := (<-this.PublicGetV3Ticker(this.Extend(request, params)))

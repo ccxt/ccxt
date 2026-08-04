@@ -135,7 +135,7 @@ class lbank(ccxt.async_support.lbank):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Any, message: Any):
         #
         # request
         #    {
@@ -283,7 +283,7 @@ class lbank(ccxt.async_support.lbank):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Any, message: Any):
         #
         #     {
         #         "tick":{
@@ -315,7 +315,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTicker:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_ticker(self, ticker, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None):
         #
         #     {
         #         "tick":{
@@ -420,7 +420,7 @@ class lbank(ccxt.async_support.lbank):
         result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
         return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Any, message: Any):
         #
         # request
         #     {
@@ -467,7 +467,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTrades:' + symbol
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         # request
         #    ['timestamp', 'price', 'volume', 'direction']
@@ -543,7 +543,7 @@ class lbank(ccxt.async_support.lbank):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message: Any):
         #
         #     {
         #         "orderUpdate":{
@@ -577,7 +577,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'orders:' + symbol
         client.resolve(myOrders, messageHash)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         #     {
         #         "orderUpdate":{
@@ -658,7 +658,7 @@ class lbank(ccxt.async_support.lbank):
             'trades': None,
         }, market)
 
-    def parse_ws_order_status(self, status):
+    def parse_ws_order_status(self, status: Any):
         statuses = {
             '-1': 'canceled',  # Withdrawn
             '0': 'open',   # Unsettled
@@ -690,7 +690,7 @@ class lbank(ccxt.async_support.lbank):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
         #         "data": {
@@ -780,7 +780,7 @@ class lbank(ccxt.async_support.lbank):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Any, message: Any):
         #
         # request
         #    {
@@ -853,7 +853,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchOrderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message: Any):
         #
         #    {
         #        SERVER: 'V2',
@@ -866,7 +866,7 @@ class lbank(ccxt.async_support.lbank):
         error = ExchangeError(self.id + ' ' + errMsg)
         client.reject(error)
 
-    async def handle_ping(self, client: Client, message):
+    async def handle_ping(self, client: Client, message: Any):
         #
         #  {ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping'}
         #
@@ -879,7 +879,7 @@ class lbank(ccxt.async_support.lbank):
         except Exception as e:
             self.on_error(client, e)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Any, message: Any):
         status = self.safe_string(message, 'status')
         if status == 'error':
             self.handle_error_message(client, message)

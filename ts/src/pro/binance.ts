@@ -7,7 +7,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, Liquidation, List, Market, Num, NullableDict, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Liquidation, List, Market, Num, FeeString, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import Client from '../base/ws/Client.js';
@@ -15,7 +15,7 @@ import Client from '../base/ws/Client.js';
 // -----------------------------------------------------------------------------
 
 export default class binance extends binanceRest {
-    describe (): any {
+    override describe (): any {
         const superDescribe = super.describe ();
         return this.deepExtend (superDescribe, this.describeData ());
     }
@@ -197,7 +197,7 @@ export default class binance extends binanceRest {
         };
     }
 
-    requestId (url) {
+    requestId (url: any) {
         const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -238,7 +238,7 @@ export default class binance extends binanceRest {
         return stream;
     }
 
-    getWsUrl (type, category) {
+    getWsUrl (type: any, category: any) {
         const baseUrl = this.urls['api']['ws'][type];
         if (type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
@@ -262,14 +262,14 @@ export default class binance extends binanceRest {
         return baseUrl;
     }
 
-    getFutureWsCategory (channel) {
+    getFutureWsCategory (channel: any) {
         if (channel === 'depth' || channel === 'rpiDepth' || channel === 'bookTicker' || channel === 'trade') {
             return 'public';
         }
         return 'market';
     }
 
-    getPrivateWsUrl (type, listenKey) {
+    getPrivateWsUrl (type: any, listenKey: any) {
         if (type === 'future') {
             return this.getWsUrl (type, 'private') + '?listenKey=' + listenKey;
         }
@@ -288,7 +288,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    override watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -304,7 +304,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    override async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -357,7 +357,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
     }
 
-    handleLiquidation (client: Client, message) {
+    handleLiquidation (client: Client, message: any) {
         //
         // future
         //    {
@@ -412,7 +412,7 @@ export default class binance extends binanceRest {
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
 
-    parseWsLiquidation (liquidation, market: Market = undefined) {
+    parseWsLiquidation (liquidation: any, market: Market = undefined) {
         //
         // future
         //    {
@@ -516,7 +516,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    override watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -532,7 +532,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    override async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -565,7 +565,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit);
     }
 
-    handleMyLiquidation (client: Client, message) {
+    handleMyLiquidation (client: Client, message: any) {
         //
         //    {
         //        "s":"BTCUSDT",              // Symbol
@@ -645,7 +645,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         //
         // todo add support for <levels>-snapshots (depth)
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
@@ -703,7 +703,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -778,7 +778,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -839,7 +839,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         return this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
@@ -854,7 +854,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -889,7 +889,7 @@ export default class binance extends binanceRest {
         return orderbook;
     }
 
-    handleFetchOrderBook (client: Client, message) {
+    handleFetchOrderBook (client: Client, message: any) {
         //
         //    {
         //        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
@@ -921,7 +921,7 @@ export default class binance extends binanceRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async fetchOrderBookSnapshot (client, message, subscription) {
+    async fetchOrderBookSnapshot (client: Client, message: any, subscription: any) {
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = 'orderbook::' + symbol;
         try {
@@ -980,19 +980,19 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
     }
 
-    handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message: any, orderbook: any) {
         const u = this.safeInteger (message, 'u');
         this.handleDeltas (orderbook['asks'], this.safeValue (message, 'a', []));
         this.handleDeltas (orderbook['bids'], this.safeValue (message, 'b', []));
@@ -1003,7 +1003,7 @@ export default class binance extends binanceRest {
         return orderbook;
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -1109,7 +1109,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         const symbolOfSubscription = this.safeString (subscription, 'symbol'); // watchOrderBook
@@ -1128,7 +1128,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "result": null,
@@ -1175,7 +1175,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1239,7 +1239,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1304,7 +1304,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override unWatchTrades (symbol: string, params = {}): Promise<any> {
         return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
@@ -1323,12 +1323,12 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // public watchTrades
         //
@@ -1463,7 +1463,7 @@ export default class binance extends binanceRest {
             }
             takerOrMaker = trade['m'] ? 'maker' : 'taker';
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'n');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'N');
@@ -1491,7 +1491,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const isSpot = this.isSpotUrl (client);
@@ -1526,7 +1526,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1551,7 +1551,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1622,7 +1622,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1696,7 +1696,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1706,7 +1706,7 @@ export default class binance extends binanceRest {
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "e": "kline",
@@ -1784,7 +1784,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.returnRateLimits] return the rate limits for the exchange
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1833,7 +1833,7 @@ export default class binance extends binanceRest {
      * @param {string} params.timeZone default=0 (UTC)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1874,7 +1874,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleFetchOHLCV (client: Client, message) {
+    handleFetchOHLCV (client: Client, message: any) {
         //
         //    {
         //        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
@@ -1928,7 +1928,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] stream to use can be ticker or miniTicker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1947,7 +1947,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+    override async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1966,7 +1966,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         let channelName: Str = undefined;
         // for now watchmarkPrice uses the same messageHash as watchTicker
         // so it's impossible to watch both at the same time
@@ -1993,7 +1993,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         let channelName: Str = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'miniTicker');
         if (channelName === 'bookTicker') {
@@ -2020,7 +2020,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         let channelName: Str = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
         if (channelName === 'bookTicker') {
@@ -2038,7 +2038,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
         let channelName: Str = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'name', 'markPrice');
         if (this.markets === undefined) {
@@ -2056,7 +2056,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
+    override unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
         return this.unWatchMarkPrices ([ symbol ], params);
     }
 
@@ -2074,7 +2074,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override unWatchTicker (symbol: string, params = {}): Promise<any> {
         return this.unWatchTickers ([ symbol ], params);
     }
 
@@ -2089,7 +2089,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2101,7 +2101,7 @@ export default class binance extends binanceRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    async watchMultiTickerHelper (methodName, channelName: Str, symbols: Strings = undefined, params = {}, isUnsubscribe: boolean = false) {
+    async watchMultiTickerHelper (methodName: any, channelName: Str, symbols: Strings = undefined, params = {}, isUnsubscribe: boolean = false) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2212,7 +2212,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    parseWsTicker (message, marketType) {
+    parseWsTicker (message: any, marketType: any) {
         // markPrice
         //   {
         //       "e": "markPriceUpdate",   // Event type
@@ -2332,7 +2332,7 @@ export default class binance extends binanceRest {
         }, market);
     }
 
-    handleTickerWs (client: Client, message) {
+    handleTickerWs (client: Client, message: any) {
         //
         // ticker.price
         //    {
@@ -2365,7 +2365,7 @@ export default class binance extends binanceRest {
         client.resolve (ticker, messageHash);
     }
 
-    handleBidsAsks (client: Client, message) {
+    handleBidsAsks (client: Client, message: any) {
         //
         // arrives one symbol dict or array of symbol dicts
         //
@@ -2381,7 +2381,7 @@ export default class binance extends binanceRest {
         this.handleTickersAndBidsAsks (client, message, 'bidasks');
     }
 
-    handleTickers (client: Client, message) {
+    handleTickers (client: Client, message: any) {
         //
         // arrives one symbol dict or array of symbol dicts
         //
@@ -2414,11 +2414,11 @@ export default class binance extends binanceRest {
         this.handleTickersAndBidsAsks (client, message, 'tickers');
     }
 
-    handleMarkPrices (client: Client, message) {
+    handleMarkPrices (client: Client, message: any) {
         this.handleTickersAndBidsAsks (client, message, 'markPrices');
     }
 
-    handleTickersAndBidsAsks (client: Client, message, methodType) {
+    handleTickersAndBidsAsks (client: Client, message: any, methodType: any) {
         const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const isBidAsk = (methodType === 'bidasks');
@@ -2476,7 +2476,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    signParams (params = {}) {
+    signParams (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
         if (defaultRecvWindow !== undefined) {
@@ -2538,7 +2538,7 @@ export default class binance extends binanceRest {
         await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleUserDataStreamSubscribe (client: Client, message) {
+    handleUserDataStreamSubscribe (client: Client, message: any) {
         //
         //   {
         //     "id": 1,
@@ -2778,7 +2778,7 @@ export default class binance extends binanceRest {
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            const subscriptionKeys = Object.keys ((client as any).subscriptions);
+            const subscriptionKeys = Object.keys (client.subscriptions);
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
@@ -2789,7 +2789,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    setBalanceCache (client: Client, type, isPortfolioMargin = false) {
+    setBalanceCache (client: Client, type: any, isPortfolioMargin = false) {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
@@ -2806,7 +2806,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async loadBalanceSnapshot (client, messageHash, type, isPortfolioMargin) {
+    async loadBalanceSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any) {
         const params: Dict = {
             'type': type,
         };
@@ -2837,7 +2837,7 @@ export default class binance extends binanceRest {
      * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalanceWs (params = {}): Promise<Balances> {
+    override async fetchBalanceWs (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2866,7 +2866,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleBalanceWs (client: Client, message) {
+    handleBalanceWs (client: Client, message: any) {
         //
         //
         const messageHash = this.safeString (message, 'id');
@@ -2883,7 +2883,7 @@ export default class binance extends binanceRest {
         client.resolve (parsedBalances, messageHash);
     }
 
-    handleAccountStatusWs (client: Client, message) {
+    handleAccountStatusWs (client: Client, message: any) {
         //
         // spot
         //    {
@@ -2945,7 +2945,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositionWs (symbol: string, params = {}): Promise<Position[]> {
+    override fetchPositionWs (symbol: string, params = {}): Promise<Position[]> {
         return this.fetchPositionsWs ([ symbol ], params);
     }
 
@@ -2961,7 +2961,7 @@ export default class binance extends binanceRest {
      * @param {string|undefined} [params.method] method to use. Can be account.position or v2/account.position
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositionsWs (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionsWs (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3004,7 +3004,7 @@ export default class binance extends binanceRest {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    handlePositionsWs (client: Client, message) {
+    handlePositionsWs (client: Client, message: any) {
         //
         //    {
         //        id: '1',
@@ -3056,7 +3056,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch the balance of a portfolio margin account
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3097,7 +3097,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, type);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // sent upon a balance update not related to orders
         //
@@ -3229,7 +3229,7 @@ export default class binance extends binanceRest {
         return accountType;
     }
 
-    getMarketType (method, market, params = {}) {
+    getMarketType (method: any, market: any, params = {}) {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (method, market, params);
         let subType: Str = undefined;
@@ -3260,7 +3260,7 @@ export default class binance extends binanceRest {
      * @param {boolean} params.returnRateLimits set to true to return rate limit information, default false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3314,7 +3314,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleOrderWs (client: Client, message) {
+    handleOrderWs (client: Client, message: any) {
         //
         //    {
         //        "id": 1,
@@ -3368,7 +3368,7 @@ export default class binance extends binanceRest {
         client.resolve (order, messageHash);
     }
 
-    handleOrdersWs (client: Client, message) {
+    handleOrdersWs (client: Client, message: any) {
         //
         //    {
         //        "id": 1,
@@ -3428,7 +3428,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3461,7 +3461,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleEditOrderWs (client: Client, message) {
+    handleEditOrderWs (client: Client, message: any) {
         //
         // spot
         //    {
@@ -3587,7 +3587,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.trigger] set to true if you would like to cancel a conditional order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3645,7 +3645,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrdersWs() requires a symbol argument');
         }
@@ -3689,7 +3689,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3742,7 +3742,7 @@ export default class binance extends binanceRest {
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3786,7 +3786,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const orders = await this.fetchOrdersWs (symbol, since, limit, params);
         const closedOrders: Order[] = [];
         for (let i = 0; i < orders.length; i++) {
@@ -3809,7 +3809,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3857,7 +3857,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch portfolio margin account orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3908,7 +3908,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         // spot
         //
@@ -4030,7 +4030,7 @@ export default class binance extends binanceRest {
             lastTradeTimestamp = T;
         }
         const lastUpdateTimestamp = T;
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (order, 'n');
         if ((feeCost !== undefined) && (Precise.stringGt (feeCost, '0'))) {
             const feeCurrencyId = this.safeString (order, 'N');
@@ -4080,7 +4080,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    handleOrderUpdate (client: Client, message) {
+    handleOrderUpdate (client: Client, message: any) {
         //
         // spot
         //
@@ -4217,7 +4217,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4272,7 +4272,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined, isPortfolioMargin = false) {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined, isPortfolioMargin = false) {
         if (type === 'spot') {
             return;
         }
@@ -4294,7 +4294,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type, isPortfolioMargin) {
+    async loadPositionsSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any) {
         const params: Dict = {
             'type': type,
         };
@@ -4319,7 +4319,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         //     {
         //         e: 'ACCOUNT_UPDATE',
@@ -4385,7 +4385,7 @@ export default class binance extends binanceRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -4453,7 +4453,7 @@ export default class binance extends binanceRest {
      * @param {int} [params.fromId] first trade Id to fetch
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4510,7 +4510,7 @@ export default class binance extends binanceRest {
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4543,7 +4543,7 @@ export default class binance extends binanceRest {
         return this.filterBySinceLimit (trades, since, limit);
     }
 
-    handleTradesWs (client: Client, message) {
+    handleTradesWs (client: Client, message: any) {
         //
         // fetchMyTradesWs
         //
@@ -4606,7 +4606,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch trades in a portfolio margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4658,7 +4658,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         const messageHash = 'myTrades';
         const executionType = this.safeString (message, 'x');
         if (executionType === 'TRADE') {
@@ -4732,7 +4732,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -4751,7 +4751,7 @@ export default class binance extends binanceRest {
                 }
                 const fees = this.safeValue (order, 'fees');
                 if (fees !== undefined) {
-                    parsed['fees'] = fees;
+                    (parsed as Dict)['fees'] = fees;
                 }
                 parsed['trades'] = this.safeValue (order, 'trades');
                 const timestamp = this.safeInteger (parsed, 'timestamp');
@@ -4768,12 +4768,12 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleAcountUpdate (client, message) {
+    handleAcountUpdate (client: Client, message: any) {
         this.handleBalance (client, message);
         this.handlePositions (client, message);
     }
 
-    handleWsError (client: Client, message) {
+    handleWsError (client: Client, message: any) {
         //
         //    {
         //        "error": {
@@ -4819,7 +4819,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleEventStreamTerminated (client: Client, message) {
+    handleEventStreamTerminated (client: Client, message: any) {
         //
         //    {
         //        e: 'eventStreamTerminated',
@@ -4836,7 +4836,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         // handle WebSocketAPI
         const eventMsg = this.safeDict (message, 'event');
         if (eventMsg !== undefined) {

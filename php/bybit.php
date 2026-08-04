@@ -1413,7 +1413,7 @@ class bybit extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function add_pagination_cursor_to_result($response) {
+    public function add_pagination_cursor_to_result(mixed $response) {
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list_n($result, array( 'list', 'rows', 'data', 'dataList' ), array());
         $paginationCursor = $this->safe_string_2($result, 'nextPageCursor', 'cursor');
@@ -1634,7 +1634,7 @@ class bybit extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function get_bybit_type($method, $market, $params = array()): array {
+    public function get_bybit_type(mixed $method, mixed $market, $params = array()): array {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params($method, $market, $params);
         $subType = null;
@@ -1938,7 +1938,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_spot_markets($params): array {
+    public function fetch_spot_markets(mixed $params): array {
         $request = array(
             'category' => 'spot',
         );
@@ -2250,7 +2250,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_option_markets($params): array {
+    public function fetch_option_markets(mixed $params): array {
         $request = array(
             'category' => 'option',
         );
@@ -2716,7 +2716,7 @@ class bybit extends Exchange {
         return $this->fetch_tickers($symbols, $params);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1621162800",
@@ -2861,7 +2861,7 @@ class bybit extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_funding_rate($ticker, ?array $market = null): array {
+    public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -3471,7 +3471,7 @@ class bybit extends Exchange {
         return $this->parse_order_book($result, $symbol, $timestamp, 'b', 'a');
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         // cross
         //     {
@@ -5924,7 +5924,7 @@ class bybit extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "chainType" => "ERC20",
@@ -6535,7 +6535,7 @@ class bybit extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'Deposit' => 'transaction',
             'Withdraw' => 'transaction',
@@ -7437,7 +7437,7 @@ class bybit extends Exchange {
         return $this->fetch_derivatives_open_interest_history($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //    {
         //        "openInterest" => 64757.62400000,
@@ -7497,7 +7497,7 @@ class bybit extends Exchange {
         return $this->parse_borrow_rate($data, $currency);
     }
 
-    public function parse_borrow_rate($info, ?array $currency = null) {
+    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
         //     {
         //         "coin" => "USDT",
@@ -7810,7 +7810,7 @@ class bybit extends Exchange {
         return $this->parse_margin_loan($result, $currency);
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -7848,7 +7848,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function parse_margin_loan($info, ?array $currency = null): array {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         // borrowCrossMargin
         //
@@ -8103,7 +8103,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "name" => "BTC",
@@ -8159,7 +8159,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -8332,7 +8332,7 @@ class bybit extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_settlement($settlement, $market) {
+    public function parse_settlement(mixed $settlement, mixed $market) {
         //
         // fetchSettlementHistory
         //
@@ -8366,7 +8366,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function parse_settlements($settlements, $market) {
+    public function parse_settlements(mixed $settlements, mixed $market) {
         //
         // fetchSettlementHistory
         //
@@ -8438,7 +8438,7 @@ class bybit extends Exchange {
         return $this->parse_volatility_history($volatility);
     }
 
-    public function parse_volatility_history($volatility) {
+    public function parse_volatility_history(mixed $volatility) {
         //
         //     {
         //         "period" => 7,
@@ -8744,7 +8744,7 @@ class bybit extends Exchange {
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null): array {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHPERP",
@@ -8854,7 +8854,7 @@ class bybit extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_leverage_tiers($response, ?array $symbols = null, ?string $marketIdKey = null): array {
+    public function parse_leverage_tiers(mixed $response, ?array $symbols = null, ?string $marketIdKey = null): array {
         //
         //  array(
         //      {
@@ -8888,7 +8888,7 @@ class bybit extends Exchange {
         return $tiers;
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         //
         //  array(
         //      {
@@ -8974,7 +8974,7 @@ class bybit extends Exchange {
         return $this->parse_incomes($fundings, $market, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null): array {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         // {
         //     "symbol" => "XMRUSDT",
@@ -9939,7 +9939,7 @@ class bybit extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         if ($api === 'public') {
             if ($params) {
@@ -10042,7 +10042,7 @@ class bybit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

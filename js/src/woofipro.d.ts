@@ -1,5 +1,5 @@
 import Exchange from './abstract/woofipro.js';
-import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict, FeeString } from './base/types.js';
 /**
  * @class woofipro
  * @augments Exchange
@@ -52,7 +52,7 @@ export default class woofipro extends Exchange {
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
-    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): NullableDict;
+    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): FeeString;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -444,7 +444,7 @@ export default class woofipro extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    parseLeverage(leverage: any, market?: Market): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
      * @name woofipro#fetchLeverage
@@ -488,7 +488,7 @@ export default class woofipro extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     nonce(): number;
-    sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
         body: Str;

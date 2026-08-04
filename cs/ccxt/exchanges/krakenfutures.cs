@@ -733,7 +733,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         object candles = this.safeList(response, "candles");
-        return this.parseOHLCVs((IList<object>)(candles), market, timeframe, since, limit);
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

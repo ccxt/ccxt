@@ -4279,7 +4279,7 @@ public partial class digifinex : Exchange
             {
                 throw new ExchangeError ((string)add(this.id, " fetchTransfers() could not resolve currency")) ;
             }
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = getValue(((object)currency), "id");
         }
         if (isTrue(!isEqual(since, null)))
         {

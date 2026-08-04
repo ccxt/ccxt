@@ -507,7 +507,7 @@ class zebpay extends zebpay$1["default"] {
             // }
             //
             const responseData = this.safeList(response, 'data', []);
-            data = this.safeDict(responseData, 0);
+            data = this.safeDict(responseData, 0, {});
         }
         return this.parseTradingFee(data, market);
     }

@@ -571,7 +571,7 @@ class kraken extends Exchange {
         ));
     }
 
-    public function fee_to_precision($symbol, $fee) {
+    public function fee_to_precision(?string $symbol, mixed $fee) {
         return $this->decimal_to_precision($fee, TRUNCATE, $this->market($symbol)['precision']['amount'], $this->precisionMode);
     }
 
@@ -979,7 +979,7 @@ class kraken extends Exchange {
         return $this->parse_trading_fee($result, $market);
     }
 
-    public function parse_trading_fee($response, $market) {
+    public function parse_trading_fee(mixed $response, mixed $market) {
         $makerFees = $this->safe_value($response, 'fees_maker', array());
         $takerFees = $this->safe_value($response, 'fees', array());
         $symbolMakerFee = $this->safe_value($makerFees, $market['id'], array());
@@ -994,7 +994,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_order_book_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bid_ask(mixed $bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $timestamp = $this->safe_integer($bidask, 2);
@@ -1166,7 +1166,7 @@ class kraken extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1591475640,
@@ -1248,7 +1248,7 @@ class kraken extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'trade' => 'trade',
             'withdrawal' => 'transaction',
@@ -1370,7 +1370,7 @@ class kraken extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function fetch_ledger_entries_by_ids($ids, ?string $code = null, $params = array()) {
+    public function fetch_ledger_entries_by_ids(mixed $ids, ?string $code = null, $params = array()) {
         // https://www.kraken.com/features/api#query-ledgers
         if ($this->markets === null) {
             $this->load_markets();
@@ -1611,7 +1611,7 @@ class kraken extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'result', array());
         $result = array(
             'info' => $response,
@@ -1834,7 +1834,7 @@ class kraken extends Exchange {
         return $this->parse_orders($this->safe_list($result, 'orders'));
     }
 
-    public function find_market_by_altname_or_id($id) {
+    public function find_market_by_altname_or_id(mixed $id) {
         $marketsByAltname = $this->safe_value($this->options, 'marketsByAltname', array());
         if (is_array($marketsByAltname) && array_key_exists($id ?? '', $marketsByAltname)) {
             return $marketsByAltname[$id];
@@ -1843,7 +1843,7 @@ class kraken extends Exchange {
         }
     }
 
-    public function get_delisted_market_by_id($id) {
+    public function get_delisted_market_by_id(mixed $id) {
         if ($id === null) {
             return $id;
         }
@@ -1895,7 +1895,7 @@ class kraken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($status) {
+    public function parse_order_type(mixed $status) {
         $statuses = array(
             // we dont add "space" delimited orders here (eg. stop loss) because they need separate parsing
             'take-profit' => 'market',
@@ -2519,7 +2519,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_orders_by_ids($ids, ?string $symbol = null, $params = array()) {
+    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()) {
         /**
          * fetch $orders by the list of $order $id
          *
@@ -2958,7 +2958,7 @@ class kraken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_network($network) {
+    public function parse_network(mixed $network) {
         $withdrawMethods = $this->safe_value($this->options, 'withdrawMethods', array());
         return $this->safe_string($withdrawMethods, $network, $network);
     }
@@ -3073,7 +3073,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_transactions_by_type($type, $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
+    public function parse_transactions_by_type(mixed $type, mixed $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $this->parse_transaction($this->extend(array(
@@ -3246,7 +3246,7 @@ class kraken extends Exchange {
         return $this->parse_transactions_by_type('withdrawal', $rawWithdrawals, $code, $since, $limit);
     }
 
-    public function add_pagination_cursor_to_result($result) {
+    public function add_pagination_cursor_to_result(mixed $result) {
         $cursor = $this->safe_string($result, 'next_cursor');
         $data = $this->safe_value($result, 'withdrawals');
         $dataLength = count($data);
@@ -3386,7 +3386,7 @@ class kraken extends Exchange {
         return $this->parse_deposit_address($firstResult, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
@@ -3567,7 +3567,7 @@ class kraken extends Exchange {
         ));
     }
 
-    public function parse_account_type($account) {
+    public function parse_account_type(mixed $account) {
         $accountByType = array(
             'spot' => 'Spot Wallet',
             'swap' => 'Futures Wallet',
@@ -3576,7 +3576,7 @@ class kraken extends Exchange {
         return $this->safe_string($accountByType, $account, $account);
     }
 
-    public function transfer_out(string $code, $amount, $params = array()) {
+    public function transfer_out(string $code, mixed $amount, $params = array()) {
         /**
          * transfer from spot wallet to futures wallet
          *
@@ -3663,7 +3663,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {
@@ -3712,7 +3712,7 @@ class kraken extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($code === 520) {
             throw new ExchangeNotAvailable($this->id . ' ' . (string) $code . ' ' . $reason);
         }

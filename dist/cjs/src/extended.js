@@ -2183,7 +2183,7 @@ class extended extends extended$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(this.safeDict(data, 0), market);
+        return this.parseLeverage(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method

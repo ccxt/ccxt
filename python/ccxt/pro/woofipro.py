@@ -73,14 +73,14 @@ class woofipro(ccxt.async_support.woofipro):
             },
         })
 
-    def request_id(self, url):
+    def request_id(self, url: Any):
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
         return newValue
 
-    async def watch_public(self, messageHash, message):
+    async def watch_public(self, messageHash: Any, message: Any):
         # the default id
         id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY'
         if self.accountId is not None and self.accountId != '':
@@ -117,7 +117,7 @@ class woofipro(ccxt.async_support.woofipro):
         orderbook = await self.watch_public(topic, message)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "PERP_BTC_USDC@orderbook",
@@ -175,7 +175,7 @@ class woofipro(ccxt.async_support.woofipro):
         message = self.extend(request, params)
         return await self.watch_public(topic, message)
 
-    def parse_ws_ticker(self, ticker, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDC",
@@ -211,7 +211,7 @@ class woofipro(ccxt.async_support.woofipro):
             'info': ticker,
         }, market)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "PERP_BTC_USDC@ticker",
@@ -263,7 +263,7 @@ class woofipro(ccxt.async_support.woofipro):
         tickers = await self.watch_public(topic, message)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def handle_tickers(self, client: Client, message):
+    def handle_tickers(self, client: Client, message: Any):
         #
         #     {
         #         "topic":"tickers",
@@ -318,7 +318,7 @@ class woofipro(ccxt.async_support.woofipro):
         tickers = await self.watch_public(topic, message)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message):
+    def handle_bid_ask(self, client: Client, message: Any):
         #
         #     {
         #       "topic": "bbos",
@@ -345,7 +345,7 @@ class woofipro(ccxt.async_support.woofipro):
             result.append(ticker)
         client.resolve(result, topic)
 
-    def parse_ws_bid_ask(self, ticker, market: Market = None):
+    def parse_ws_bid_ask(self, ticker: Any, market: Market = None):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -392,7 +392,7 @@ class woofipro(ccxt.async_support.woofipro):
             limit = ohlcv.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "topic":"PERP_BTC_USDC@kline_1m",
@@ -463,7 +463,7 @@ class woofipro(ccxt.async_support.woofipro):
             limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: Any):
         #
         # {
         #     "topic":"PERP_ADA_USDC@trade",
@@ -492,7 +492,7 @@ class woofipro(ccxt.async_support.woofipro):
         self.trades[symbol] = trades
         client.resolve(trades, topic)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         #     {
         #         "symbol":"PERP_ADA_USDC",
@@ -564,7 +564,7 @@ class woofipro(ccxt.async_support.woofipro):
             'info': trade,
         }, market)
 
-    def handle_auth(self, client: Client, message):
+    def handle_auth(self, client: Client, message: Any):
         #
         #     {
         #         "event": "auth",
@@ -613,7 +613,7 @@ class woofipro(ccxt.async_support.woofipro):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    async def watch_private(self, messageHash, message, params={}):
+    async def watch_private(self, messageHash: Any, message: Any, params={}):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.accountId
         requestId = self.request_id(url)
@@ -623,7 +623,7 @@ class woofipro(ccxt.async_support.woofipro):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
-    async def watch_private_multiple(self, messageHashes, message, params={}):
+    async def watch_private_multiple(self, messageHashes: Any, message: Any, params={}):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.accountId
         requestId = self.request_id(url)
@@ -701,7 +701,7 @@ class woofipro(ccxt.async_support.woofipro):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -819,7 +819,7 @@ class woofipro(ccxt.async_support.woofipro):
             'trades': trades,
         })
 
-    def handle_order_update(self, client: Client, message):
+    def handle_order_update(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "executionreport",
@@ -865,7 +865,7 @@ class woofipro(ccxt.async_support.woofipro):
                 self.handle_my_trade(client, data)
             self.handle_order(client, data, topic)
 
-    def handle_order(self, client: Client, message, topic):
+    def handle_order(self, client: Client, message: Any, topic: Any):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')
@@ -891,7 +891,7 @@ class woofipro(ccxt.async_support.woofipro):
             messageHashSymbol = topic + ':' + symbol
             client.resolve(self.orders, messageHashSymbol)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: Any):
         #
         # {
         #     symbol: 'PERP_XRP_USDC',
@@ -978,7 +978,7 @@ class woofipro(ccxt.async_support.woofipro):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type, symbols: Strings = None):
+    def set_positions_cache(self, client: Client, type: Any, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot:
             messageHash = 'fetchPositionsSnapshot'
@@ -988,7 +988,7 @@ class woofipro(ccxt.async_support.woofipro):
         else:
             self.positions = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client, messageHash):
+    async def load_positions_snapshot(self, client: Client, messageHash: Any):
         positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1003,7 +1003,7 @@ class woofipro(ccxt.async_support.woofipro):
             future.resolve(cache)
             client.resolve(cache, 'positions')
 
-    def handle_positions(self, client, message):
+    def handle_positions(self, client: Any, message: Any):
         #
         #    {
         #        "topic":"position",
@@ -1053,7 +1053,7 @@ class woofipro(ccxt.async_support.woofipro):
             client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position, market: Market = None):
+    def parse_ws_position(self, position: Any, market: Market = None):
         #
         #     {
         #         "symbol":"PERP_ETH_USDC",
@@ -1144,7 +1144,7 @@ class woofipro(ccxt.async_support.woofipro):
         message = self.extend(request, params)
         return await self.watch_private(messageHash, message)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Any, message: Any):
         #
         #     {
         #         "topic":"balance",
@@ -1196,7 +1196,7 @@ class woofipro(ccxt.async_support.woofipro):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         #
@@ -1221,7 +1221,7 @@ class woofipro(ccxt.async_support.woofipro):
                 client.reject(error)
             return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if self.handle_error_message(client, message):
             return
         methods = {
@@ -1271,20 +1271,20 @@ class woofipro(ccxt.async_support.woofipro):
     def ping(self, client: Client):
         return {'event': 'ping'}
 
-    async def pong(self, client: Client, message):
+    async def pong(self, client: Client, message: Any):
         await client.send({'event': 'pong'})
 
-    def handle_ping(self, client: Client, message):
+    def handle_ping(self, client: Client, message: Any):
         self.spawn(self.pong, client, message)
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         #
         # {event: "pong", ts: 1614667590000}
         #
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_subscribe(self, client: Client, message):
+    def handle_subscribe(self, client: Client, message: Any):
         #
         #     {
         #         "id": "666888",

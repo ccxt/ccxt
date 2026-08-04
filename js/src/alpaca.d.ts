@@ -23,7 +23,7 @@ export default class alpaca extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(asset: any): Market;
+    parseMarket(asset: Dict): Market;
     /**
      * @method
      * @name alpaca#fetchTrades

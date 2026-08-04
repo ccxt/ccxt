@@ -5805,7 +5805,8 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "network");
         code = ((string)this.safeCurrencyCode(code));
         object network = this.networkIdToCode(rawNetwork, code);
-        object response = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object responseRaw = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object response = ((object)responseRaw);
         if (isTrue(!isEqual(network, null)))
         {
             object result = this.safeDict(response, network);

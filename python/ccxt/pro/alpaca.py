@@ -91,7 +91,7 @@ class alpaca(ccxt.async_support.alpaca):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #    {
         #         "T": "q",
@@ -110,7 +110,7 @@ class alpaca(ccxt.async_support.alpaca):
             self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: Any, market: Market = None) -> Ticker:
         #
         #    {
         #         "T": "q",
@@ -176,7 +176,7 @@ class alpaca(ccxt.async_support.alpaca):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #    {
         #        "T": "b",
@@ -228,7 +228,7 @@ class alpaca(ccxt.async_support.alpaca):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # snapshot
         #    {
@@ -272,11 +272,11 @@ class alpaca(ccxt.async_support.alpaca):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         bidAsk = self.parse_order_book_bid_ask(delta, 'p', 's')
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -308,7 +308,7 @@ class alpaca(ccxt.async_support.alpaca):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "T": "t",
@@ -393,11 +393,11 @@ class alpaca(ccxt.async_support.alpaca):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_trade_update(self, client: Client, message):
+    def handle_trade_update(self, client: Client, message: Any):
         self.handle_order(client, message)
         self.handle_my_trade(client, message)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         #    {
         #        "stream": "trade_updates",
@@ -456,7 +456,7 @@ class alpaca(ccxt.async_support.alpaca):
         messageHash = 'orders:' + order['symbol']
         client.resolve(orders, messageHash)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: Any):
         #
         #    {
         #        "stream": "trade_updates",
@@ -520,7 +520,7 @@ class alpaca(ccxt.async_support.alpaca):
         messageHash = 'myTrades'
         client.resolve(myTrades, messageHash)
 
-    def parse_my_trade(self, trade, market: Market = None):
+    def parse_my_trade(self, trade: Any, market: Market = None):
         #
         #    {
         #        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
@@ -582,7 +582,7 @@ class alpaca(ccxt.async_support.alpaca):
             'fee': None,
         }, market)
 
-    async def authenticate(self, url, params={}):
+    async def authenticate(self, url: Any, params={}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
@@ -606,7 +606,7 @@ class alpaca(ccxt.async_support.alpaca):
             self.watch(url, messageHash, request, messageHash, future)
         return await future
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #    {
         #        "T": "error",
@@ -618,7 +618,7 @@ class alpaca(ccxt.async_support.alpaca):
         msg = self.safe_value(message, 'msg', {})
         raise ExchangeError(self.id + ' code: ' + code + ' message: ' + msg)
 
-    def handle_connected(self, client: Client, message):
+    def handle_connected(self, client: Client, message: Any):
         #
         #    {
         #        "T": "success",
@@ -627,7 +627,7 @@ class alpaca(ccxt.async_support.alpaca):
         #
         return message
 
-    def handle_crypto_message(self, client: Client, message):
+    def handle_crypto_message(self, client: Client, message: Any):
         for i in range(0, len(message)):
             data = message[i]
             T = self.safe_string(data, 'T')
@@ -652,7 +652,7 @@ class alpaca(ccxt.async_support.alpaca):
             if method is not None:
                 method(client, data)
 
-    def handle_trading_message(self, client: Client, message):
+    def handle_trading_message(self, client: Client, message: Any):
         stream = self.safe_string(message, 'stream')
         methods = {
             'authorization': self.handle_authenticate,
@@ -663,13 +663,13 @@ class alpaca(ccxt.async_support.alpaca):
         if method is not None:
             method(client, message)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if isinstance(message, list):
             self.handle_crypto_message(client, message)
             return
         self.handle_trading_message(client, message)
 
-    def handle_authenticate(self, client: Client, message):
+    def handle_authenticate(self, client: Client, message: Any):
         #
         # crypto
         #    {
@@ -704,7 +704,7 @@ class alpaca(ccxt.async_support.alpaca):
             return
         raise AuthenticationError(self.id + ' failed to authenticate.')
 
-    def handle_subscription(self, client: Client, message):
+    def handle_subscription(self, client: Client, message: Any):
         #
         # crypto
         #    {

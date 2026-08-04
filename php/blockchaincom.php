@@ -548,7 +548,7 @@ class blockchaincom extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_order_state($state) {
+    public function parse_order_state(mixed $state) {
         $states = array(
             'OPEN' => 'open',
             'REJECTED' => 'rejected',
@@ -823,7 +823,7 @@ class blockchaincom extends Exchange {
         return $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_by_state($state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_state(mixed $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -953,7 +953,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function parse_transaction_state($state) {
+    public function parse_transaction_state(mixed $state) {
         $states = array(
             'COMPLETED' => 'ok', //
             'REJECTED' => 'failed',
@@ -1267,7 +1267,7 @@ class blockchaincom extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $requestPath = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
@@ -1292,7 +1292,7 @@ class blockchaincom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if ($response === null) {
             return null;

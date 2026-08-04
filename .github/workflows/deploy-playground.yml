@@ -32,7 +32,7 @@ permissions:
 jobs:
   deploy:
     if: github.repository == 'ccxt/ccxt'
-    runs-on: ubuntu-latest           # amd64 — native build matching the docs server
+    runs-on: [ self-hosted, linux, x64, deploy ]          # amd64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-playground
       IMAGE_PROXY: ghcr.io/ccxt/ccxt-playground-egress
@@ -59,6 +59,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # The runtime layer resolves "latest" ccxt for Python/PHP/C#, so a cached
+      # layer would pin it forever. Keying on the ISO week re-resolves every
+      # Monday: six days out of seven the layer is a cache hit and the build is
+      # a couple of minutes instead of ~20.
+      - name: Compute runtime cache key
+        id: rev
+        run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
       - name: Build & push image
         uses: docker/build-push-action@v7
         with:
@@ -72,6 +80,7 @@ jobs:
           # (e.g. on a small box), add it back: PLAYGROUND_DISABLED=go
           build-args: |
             NEXT_BASE_PATH=${{ env.BASE_PATH }}
+            RUNTIMES_REV=${{ steps.rev.outputs.week }}
           # SHA tag enables canary validation + rollback; latest moves only after smoke passes.
           tags: |
             ${{ env.IMAGE }}:latest
@@ -96,6 +105,7 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host *\n  ServerAliveInterval 30\n  ServerAliveCountMax 10\n' > ~/.ssh/config
 
       - name: Deploy with canary smoke test (no-downtime, auto-abort on failure)
         env:
@@ -175,15 +185,20 @@ jobs:
           docker network connect "$NET_EGRESS" "$PROXY"
           docker tag "$IMAGE_PROXY:$SHA" "$IMAGE_PROXY:latest"
 
-          # OpenRouter key lives only on the box (root-only env-file, never in GitHub).
+          # Deployment-local settings (PLAYGROUND_AI_URL and anything else the box
+          # supplies) live only on the box, in a root-only env-file, never in GitHub.
           ENVFILE_ARG=""
           [ -f /root/ccxt-playground.env ] && ENVFILE_ARG="--env-file /root/ccxt-playground.env"
 
           # Force the app's egress through the proxy (it has no other route out).
+          # NO_PROXY carries the internal network's gateway so the assistant can
+          # reach the box-local endpoint in PLAYGROUND_AI_URL directly; everything
+          # else still goes through the exchange allowlist.
+          GATEWAY_IP="${SUBNET%.*/*}.1"
           PROXYENV="-e PLAYGROUND_EGRESS_PROXY=http://egress-proxy:3128 \
             -e HTTP_PROXY=http://egress-proxy:3128 -e HTTPS_PROXY=http://egress-proxy:3128 \
             -e http_proxy=http://egress-proxy:3128 -e https_proxy=http://egress-proxy:3128 \
-            -e NO_PROXY=localhost,127.0.0.1 -e no_proxy=localhost,127.0.0.1"
+            -e NO_PROXY=localhost,127.0.0.1,$GATEWAY_IP -e no_proxy=localhost,127.0.0.1,$GATEWAY_IP"
 
           # Hardening flags so a user run can't reach the host or exhaust it.
           # 12g/6cpu: sized for the dedicated docs box (8 cores / 31 GB). A warm

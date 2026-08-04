@@ -689,7 +689,7 @@ class coinsph(Exchange, ImplicitAPI):
             'limits': {},
         })
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('noSymbolAndNoSymbols' in config) and not ('symbol' in params) and not ('symbols' in params):
@@ -1121,7 +1121,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -1337,7 +1337,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         balances = self.safe_list(response, 'balances', [])
         result = {
             'info': response,
@@ -1682,7 +1682,7 @@ class coinsph(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def parse_order_side(self, status):
+    def parse_order_side(self, status: Any):
         statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -1691,7 +1691,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def encode_order_side(self, status):
+    def encode_order_side(self, status: Any):
         statuses = {
             'buy': 'BUY',
             'sell': 'SELL',
@@ -1700,7 +1700,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
+    def parse_order_type(self, status: Any):
         statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1714,7 +1714,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def encode_order_type(self, status):
+    def encode_order_type(self, status: Any):
         statuses = {
             'market': 'MARKET',
             'limit': 'LIMIT',
@@ -1741,7 +1741,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_time_in_force(self, status):
+    def parse_order_time_in_force(self, status: Any):
         statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -2117,7 +2117,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "coin": "ETH",
@@ -2135,7 +2135,7 @@ class coinsph(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'addressTag'),
         }
 
-    def url_encode_query(self, query={}):
+    def url_encode_query(self, query: dict = {}):
         encodedArrayParams = ''
         keys = list(query.keys())
         for i in range(0, len(keys)):
@@ -2153,14 +2153,14 @@ class coinsph(Exchange, ImplicitAPI):
         else:
             return encodedArrayParams
 
-    def parse_array_param(self, array, key):
+    def parse_array_param(self, array: Any, key: Any):
         stringifiedArray = self.json(array)
         stringifiedArray = stringifiedArray.replace('[', '%5B')
         stringifiedArray = stringifiedArray.replace(']', '%5D')
         urlEncodedParam = key + '=' + stringifiedArray
         return urlEncodedParam
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         endpoint = self.implode_params(path, params)
@@ -2185,7 +2185,7 @@ class coinsph(Exchange, ImplicitAPI):
                 url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         responseCode = self.safe_string(response, 'code')

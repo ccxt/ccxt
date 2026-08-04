@@ -172,9 +172,10 @@ public partial class backpack : ccxt.backpack
                 } else
                 {
                     object symbol = ((string)messageHash).Replace((string)"unsubscribe:orders:", (string)"");
-                    if (isTrue(isTrue((!isEqual(this.orders, null))) && isTrue((inOp(this.orders, symbol)))))
+                    object cache = this.orders;
+                    if (isTrue(isTrue((!isEqual(cache, null))) && isTrue((inOp(cache, symbol)))))
                     {
-                        ((IDictionary<string,object>)this.orders).Remove((string)symbol);
+                        ((IDictionary<string,object>)cache).Remove((string)symbol);
                     }
                 }
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "positions"), 0)))

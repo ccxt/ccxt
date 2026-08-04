@@ -2,14 +2,14 @@
 
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Bool, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { NotSupported } from '../base/errors.js';
+import { BadSymbol, NotSupported } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class xt extends xtRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -28,6 +28,8 @@ export default class xt extends xtRest {
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchPositions': true,
+                'watchFundingRate': true,
+                'unWatchFundingRate': true,
             },
             'urls': {
                 'api': {
@@ -111,7 +113,7 @@ export default class xt extends xtRest {
         return client.subscriptions['token'];
     }
 
-    getCacheIndex (orderbook, cache) {
+    override getCacheIndex (orderbook: any, cache: any) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDelta = this.safeValue (cache, 0);
@@ -129,7 +131,7 @@ export default class xt extends xtRest {
         return cache.length;
     }
 
-    handleDelta (orderbook, delta) {
+    override handleDelta (orderbook: any, delta: any) {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
         const obAsks = this.safeList (delta, 'a', []);
         const obBids = this.safeList (delta, 'b', []);
@@ -171,7 +173,7 @@ export default class xt extends xtRest {
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
         const id = this.numberToString (this.milliseconds ()) + name; // call back ID
-        const subscribe = {
+        const subscribe: Dict = {
             'method': isContract ? 'SUBSCRIBE' : 'subscribe',
             'id': id,
         };
@@ -227,7 +229,7 @@ export default class xt extends xtRest {
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
         const id = this.numberToString (this.milliseconds ()) + name; // call back ID
-        const unsubscribe = {
+        const unsubscribe: Dict = {
             'method': isContract ? 'UNSUBSCRIBE' : 'unsubscribe',
             'id': id,
         };
@@ -279,7 +281,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -303,7 +305,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -328,7 +330,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -358,7 +360,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -389,7 +391,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -413,7 +415,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -436,7 +438,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -459,7 +461,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}): Promise<Trade[]> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -483,7 +485,7 @@ export default class xt extends xtRest {
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -511,7 +513,7 @@ export default class xt extends xtRest {
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<OrderBook> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -538,7 +540,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -566,7 +568,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -591,7 +593,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -610,7 +612,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -632,6 +634,81 @@ export default class xt extends xtRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
+    /**
+     * @method
+     * @name xt#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' watchFundingRate() supports swap contracts only');
+        }
+        const name = 'fund_rate@' + market['id'];
+        return await this.subscribe (name, 'public', 'watchFundingRate', market, undefined, params);
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchFundingRate
+     * @description stops watching the funding rate
+     * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    override async unWatchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' unWatchFundingRate() supports swap contracts only');
+        }
+        const name = 'fund_rate@' + market['id'];
+        const messageHash = 'unsubscribe::' + name;
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, undefined, params);
+    }
+
+    handleFundingRate (client: Client, message: Dict) {
+        //
+        //     {
+        //         "topic": "fund_rate",
+        //         "event": "fund_rate@btc_usdt",
+        //         "data": {
+        //             "s": "btc_usdt",  // symbol
+        //             "r": "0.01",      // funding rate
+        //             "t": 123124124    // timestamp
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data');
+        const marketId = this.safeString (data, 's');
+        if (marketId !== undefined) {
+            const raw: Dict = {
+                'symbol': marketId,
+                'fundingRate': this.safeString (data, 'r'),
+            };
+            const fundingRate = this.parseFundingRate (raw);
+            const timestamp = this.safeInteger (data, 't');
+            fundingRate['timestamp'] = timestamp;
+            fundingRate['datetime'] = this.iso8601 (timestamp);
+            const symbol = fundingRate['symbol'];
+            this.fundingRates[(symbol as string)] = fundingRate;
+            const event = this.safeString (message, 'event');
+            const messageHash = event + '::contract';
+            client.resolve (fundingRate, messageHash);
+        }
+        return message;
+    }
+
     setPositionsCache (client: Client) {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
@@ -646,7 +723,7 @@ export default class xt extends xtRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash) {
+    async loadPositionsSnapshot (client: Client, messageHash: any) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -665,7 +742,7 @@ export default class xt extends xtRest {
         }
     }
 
-    handlePosition (client, message) {
+    handlePosition (client: any, message: any) {
         //
         //    {
         //      topic: 'position',
@@ -943,7 +1020,7 @@ export default class xt extends xtRest {
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (data, market);
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1128,7 +1205,7 @@ export default class xt extends xtRest {
         }
     }
 
-    parseWsOrderTrade (trade: Dict, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
         //
         //    {
         //        "s": "btc_usdt",                         // symbol
@@ -1186,7 +1263,7 @@ export default class xt extends xtRest {
         }, market);
     }
 
-    parseWsOrder (order: Dict, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined) {
         //
         // spot
         //
@@ -1427,7 +1504,7 @@ export default class xt extends xtRest {
         client.resolve (stored, 'trade::' + tradeType);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
             client.onPong ();
@@ -1444,6 +1521,7 @@ export default class xt extends xtRest {
                 'balance': this.handleBalance,
                 'order': this.handleOrder,
                 'position': this.handlePosition,
+                'fund_rate': this.handleFundingRate,
             };
             let method = (topic === undefined) ? undefined : this.safeValue (methods, topic);
             if (topic === 'trade') {
@@ -1462,12 +1540,12 @@ export default class xt extends xtRest {
         }
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         client.lastPong = this.milliseconds ();
         return 'ping';
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         id: '1763045665228ticker@eth_usdt',

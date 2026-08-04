@@ -2396,7 +2396,8 @@ public partial class gate : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object chainsIndexedById = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object chainsIndexedById = ((object)chainsIndexedByIdRaw);
         object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
         return getValue(chainsIndexedById, ((string)selectedNetworkIdOrCode));
     }

@@ -690,7 +690,7 @@ class deribit extends Exchange {
         ));
     }
 
-    public function code_from_options($methodName, $params = array()) {
+    public function code_from_options(mixed $methodName, $params = array()) {
         $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
         $options = $this->safe_value($this->options, $methodName, array());
         $code = $this->safe_value($options, 'code', $defaultCode);
@@ -786,7 +786,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //      {
         //          "username" => "someusername_1",
@@ -1060,7 +1060,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_balance($balance): array {
+    public function parse_balance(mixed $balance): array {
         $result = array(
             'info' => $balance,
         );
@@ -1930,7 +1930,7 @@ class deribit extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order_type($orderType) {
+    public function parse_order_type(mixed $orderType) {
         $orderTypes = array(
             'stop_limit' => 'limit',
             'take_limit' => 'limit',
@@ -3008,7 +3008,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_volatility_history($volatility) {
+    public function parse_volatility_history(mixed $volatility) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -3239,7 +3239,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
         //      "withdrawal_priorities" => array(),
@@ -3266,7 +3266,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -3427,7 +3427,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //   {
         //       "jsonrpc":"2.0",
@@ -3540,7 +3540,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function add_pagination_cursor_to_result($cursor, $data) {
+    public function add_pagination_cursor_to_result(mixed $cursor, mixed $data) {
         if ($cursor !== null) {
             $dataLength = count($data);
             if ($dataLength > 0) {
@@ -3619,7 +3619,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
         //         "type" => "bankruptcy",
@@ -4007,7 +4007,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "high" => 93099.5,
@@ -4056,7 +4056,7 @@ class deribit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . 'api/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {
@@ -4082,7 +4082,7 @@ class deribit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default $error handler
         }

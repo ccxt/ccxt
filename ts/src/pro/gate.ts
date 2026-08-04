@@ -12,7 +12,7 @@ import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 export default class gate extends gateRest {
-    describe (): any {
+    override describe (): any {
         const superDescribe = super.describe ();
         return this.deepExtend (superDescribe, this.describeData ());
     }
@@ -170,7 +170,7 @@ export default class gate extends gateRest {
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -196,7 +196,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrdersWs (orders: OrderRequest[], params = {}) {
+    override async createOrdersWs (orders: OrderRequest[], params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -226,7 +226,7 @@ export default class gate extends gateRest {
      * @param {string} [params.channel] the channel to use, defaults to spot.order_cancel_cp or futures.order_cancel_cp
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrdersWs() requires a symbol argument');
         }
@@ -259,7 +259,7 @@ export default class gate extends gateRest {
      * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -292,7 +292,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrderWs (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrderWs (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -321,7 +321,7 @@ export default class gate extends gateRest {
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrderWs (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -346,7 +346,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return this.fetchOrdersByStatusWs ('open', symbol, since, limit, params);
     }
 
@@ -361,7 +361,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override fetchClosedOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return this.fetchOrdersByStatusWs ('finished', symbol, since, limit, params);
     }
 
@@ -379,7 +379,7 @@ export default class gate extends gateRest {
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -417,7 +417,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -470,7 +470,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -513,7 +513,7 @@ export default class gate extends gateRest {
         return await this.unSubscribePublicMultiple (url, 'orderbook', [ symbol ], [ messageHash ], [ subMessageHash ], payload, channel, params);
     }
 
-    handleOrderBookSubscription (client: Client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol !== undefined) {
@@ -521,7 +521,7 @@ export default class gate extends gateRest {
         }
     }
 
-    handleNewSpotOrderBook (client: Client, message) {
+    handleNewSpotOrderBook (client: Client, message: any) {
         //
         //   {
         //      "channel":"spot.obu",
@@ -576,7 +576,7 @@ export default class gate extends gateRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // spot
         //
@@ -678,7 +678,7 @@ export default class gate extends gateRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    getCacheIndex (orderBook, cache) {
+    override getCacheIndex (orderBook: any, cache: any) {
         const nonce = this.safeInteger (orderBook, 'nonce');
         const firstDelta = cache[0];
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
@@ -696,7 +696,7 @@ export default class gate extends gateRest {
         return cache.length;
     }
 
-    handleBidAsks (bookSide, bidAsks) {
+    handleBidAsks (bookSide: any, bidAsks: any) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = bidAsks[i];
             if (Array.isArray (bidAsk)) {
@@ -709,7 +709,7 @@ export default class gate extends gateRest {
         }
     }
 
-    handleDelta (orderbook, delta) {
+    override handleDelta (orderbook: any, delta: any) {
         const timestamp = this.safeInteger (delta, 't');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -733,7 +733,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -755,11 +755,11 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         return this.subscribeWatchTickersAndBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //    {
         //        "time": 1649326221,
@@ -792,11 +792,11 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         return this.subscribeWatchTickersAndBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
     }
 
-    handleBidAsk (client: Client, message) {
+    handleBidAsk (client: Client, message: any) {
         //
         //    {
         //        "time": 1671363004,
@@ -850,7 +850,7 @@ export default class gate extends gateRest {
         return this.filterByArray (result, 'symbol', symbols, true);
     }
 
-    handleTickerAndBidAsk (objectName: string, client: Client, message) {
+    handleTickerAndBidAsk (objectName: string, client: Client, message: any) {
         const channel = this.safeString (message, 'channel') as string;
         const parts = channel.split ('.');
         const rawMarketType = this.safeString (parts, 0);
@@ -898,7 +898,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -916,7 +916,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -948,7 +948,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -976,11 +976,11 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override unWatchTrades (symbol: string, params = {}): Promise<any> {
         return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         // {
         //     "time": 1648725035,
@@ -1033,7 +1033,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1054,7 +1054,7 @@ export default class gate extends gateRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         // {
         //     "time": 1606292600,
@@ -1127,7 +1127,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1165,7 +1165,7 @@ export default class gate extends gateRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         // {
         //     "time": 1543205083,
@@ -1227,7 +1227,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1251,7 +1251,7 @@ export default class gate extends gateRest {
         return await this.subscribePrivate (url, messageHash, undefined, channel, params, requiresUid);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // spot order fill
         //     {
@@ -1359,7 +1359,7 @@ export default class gate extends gateRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1407,7 +1407,7 @@ export default class gate extends gateRest {
         return this.filterBySymbolsSinceLimit (this.safeValue (this.positions, type), symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -1426,7 +1426,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type) {
+    async loadPositionsSnapshot (client: Client, messageHash: any, type: any) {
         const positions = await this.fetchPositions (undefined, { 'type': type });
         this.positions[type] = new ArrayCacheBySymbolBySide ();
         const cache = this.positions[type];
@@ -1445,7 +1445,7 @@ export default class gate extends gateRest {
         }
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         //    {
         //        time: 1693158497,
@@ -1540,7 +1540,7 @@ export default class gate extends gateRest {
      * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1583,7 +1583,7 @@ export default class gate extends gateRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //     {
         //         "time": 1774613210,
@@ -1676,7 +1676,7 @@ export default class gate extends gateRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    override watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -1693,7 +1693,7 @@ export default class gate extends gateRest {
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    override async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1735,7 +1735,7 @@ export default class gate extends gateRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
     }
 
-    handleLiquidation (client: Client, message) {
+    handleLiquidation (client: Client, message: any) {
         //
         // future / delivery
         //     {
@@ -1797,7 +1797,7 @@ export default class gate extends gateRest {
         client.resolve (newLiquidations, 'myLiquidations');
     }
 
-    parseWsLiquidation (liquidation, market: Market = undefined) {
+    parseWsLiquidation (liquidation: any, market: Market = undefined) {
         //
         // future / delivery
         //    {
@@ -1845,7 +1845,7 @@ export default class gate extends gateRest {
         });
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        "time": 1647274664,
@@ -1938,11 +1938,11 @@ export default class gate extends gateRest {
         return false;
     }
 
-    handleBalanceSubscription (client: Client, message, subscription: Dict | undefined = undefined) {
+    handleBalanceSubscription (client: Client, message: any, subscription: Dict | undefined = undefined) {
         this.balance = {};
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         const channel = this.safeString (message, 'channel') as string;
         const methods: Dict = {
             'balance': this.handleBalanceSubscription,
@@ -1967,7 +1967,7 @@ export default class gate extends gateRest {
         }
     }
 
-    handleUnSubscribe (client: Client, message) {
+    handleUnSubscribe (client: Client, message: any) {
         //
         // {
         //     "time":1725534679,
@@ -2012,7 +2012,7 @@ export default class gate extends gateRest {
         }
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // subscribe
         //    {
@@ -2154,7 +2154,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getUrlByMarket (market) {
+    getUrlByMarket (market: any) {
         const baseUrl = this.urls['api'][market['type']];
         if (market['contract']) {
             return market['linear'] ? baseUrl['usdt'] : baseUrl['btc'];
@@ -2212,7 +2212,7 @@ export default class gate extends gateRest {
         return reqid;
     }
 
-    async subscribePublic (url, messageHash, payload, channel, params = {}, subscription: Dict | undefined = undefined) {
+    async subscribePublic (url: any, messageHash: any, payload: any, channel: any, params = {}, subscription: Dict | undefined = undefined) {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {
@@ -2233,7 +2233,7 @@ export default class gate extends gateRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async subscribePublicMultiple (url, messageHashes, payload, channel, params = {}) {
+    async subscribePublicMultiple (url: any, messageHashes: any, payload: any, channel: any, params = {}) {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {
@@ -2247,7 +2247,7 @@ export default class gate extends gateRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    async unSubscribePublicMultiple (url, topic, symbols, messageHashes, subMessageHashes, payload, channel, params = {}) {
+    async unSubscribePublicMultiple (url: any, topic: any, symbols: any, messageHashes: any, subMessageHashes: any, payload: any, channel: any, params = {}) {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {
@@ -2269,7 +2269,7 @@ export default class gate extends gateRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes, sub);
     }
 
-    async authenticate (url, messageType) {
+    async authenticate (url: any, messageType: any) {
         const channel = messageType + '.login';
         const client = this.client (url);
         const messageHash = 'authenticated';
@@ -2281,13 +2281,13 @@ export default class gate extends gateRest {
         return future;
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: any) {
         const messageHash = 'authenticated';
         const future = this.safeValue (client.futures, messageHash);
         future.resolve (true);
     }
 
-    async requestPrivate (url, reqParams, channel, requestId: Str = undefined) {
+    async requestPrivate (url: any, reqParams: any, channel: any, requestId: Str = undefined) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         const event = 'api';
@@ -2322,7 +2322,7 @@ export default class gate extends gateRest {
         return await this.watch (url, messageHash, request, messageHash, requestId);
     }
 
-    async subscribePrivate (url, messageHash, payload, channel, params, requiresUid = false) {
+    async subscribePrivate (url: any, messageHash: any, payload: any, channel: any, params: any, requiresUid = false) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUid) {

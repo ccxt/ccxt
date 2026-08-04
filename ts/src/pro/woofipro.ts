@@ -6,13 +6,13 @@ import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/er
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, NullableDict, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FeeString, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
 
 export default class woofipro extends woofiproRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -70,7 +70,7 @@ export default class woofipro extends woofiproRest {
         });
     }
 
-    requestId (url) {
+    requestId (url: any) {
         const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -78,7 +78,7 @@ export default class woofipro extends woofiproRest {
         return newValue;
     }
 
-    async watchPublic (messageHash, message) {
+    async watchPublic (messageHash: any, message: any) {
         // the default id
         let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
         if (this.accountId !== undefined && this.accountId !== '') {
@@ -103,7 +103,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -119,7 +119,7 @@ export default class woofipro extends woofiproRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@orderbook",
@@ -165,7 +165,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -181,7 +181,7 @@ export default class woofipro extends woofiproRest {
         return await this.watchPublic (topic, message);
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -218,7 +218,7 @@ export default class woofipro extends woofiproRest {
         }, market);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@ticker",
@@ -257,7 +257,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -273,7 +273,7 @@ export default class woofipro extends woofiproRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleTickers (client: Client, message) {
+    handleTickers (client: Client, message: any) {
         //
         //     {
         //         "topic":"tickers",
@@ -316,7 +316,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -332,7 +332,7 @@ export default class woofipro extends woofiproRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message) {
+    handleBidAsk (client: Client, message: any) {
         //
         //     {
         //       "topic": "bbos",
@@ -362,7 +362,7 @@ export default class woofipro extends woofiproRest {
         client.resolve (result, topic);
     }
 
-    parseWsBidAsk (ticker, market: Market = undefined) {
+    parseWsBidAsk (ticker: any, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
@@ -391,7 +391,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -414,7 +414,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -472,7 +472,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -491,7 +491,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         // {
         //     "topic":"PERP_ADA_USDC@trade",
@@ -522,7 +522,7 @@ export default class woofipro extends woofiproRest {
         client.resolve (trades, topic);
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -572,7 +572,7 @@ export default class woofipro extends woofiproRest {
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeValue = this.safeString (trade, 'fee');
         if (feeValue !== undefined) {
             fee = {
@@ -597,7 +597,7 @@ export default class woofipro extends woofiproRest {
         }, market);
     }
 
-    handleAuth (client: Client, message) {
+    handleAuth (client: Client, message: any) {
         //
         //     {
         //         "event": "auth",
@@ -652,7 +652,7 @@ export default class woofipro extends woofiproRest {
         return await future;
     }
 
-    async watchPrivate (messageHash, message, params = {}) {
+    async watchPrivate (messageHash: any, message: any, params = {}) {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
@@ -663,7 +663,7 @@ export default class woofipro extends woofiproRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchPrivateMultiple (messageHashes, message, params = {}) {
+    async watchPrivateMultiple (messageHashes: any, message: any, params = {}) {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
@@ -687,7 +687,7 @@ export default class woofipro extends woofiproRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -725,7 +725,7 @@ export default class woofipro extends woofiproRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -750,7 +750,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -871,7 +871,7 @@ export default class woofipro extends woofiproRest {
         });
     }
 
-    handleOrderUpdate (client: Client, message) {
+    handleOrderUpdate (client: Client, message: any) {
         //
         //     {
         //         "topic": "executionreport",
@@ -922,7 +922,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleOrder (client: Client, message, topic) {
+    handleOrder (client: Client, message: any, topic: any) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -941,7 +941,7 @@ export default class woofipro extends woofiproRest {
                 }
                 const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
-                    parsed['fees'] = fees;
+                    (parsed as Dict)['fees'] = fees;
                 }
                 parsed['trades'] = this.safeList (order, 'trades', []);
                 parsed['timestamp'] = this.safeInteger (order, 'timestamp');
@@ -954,7 +954,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         // {
         //     symbol: 'PERP_XRP_USDC',
@@ -1011,7 +1011,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1051,7 +1051,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -1064,7 +1064,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash) {
+    async loadPositionsSnapshot (client: Client, messageHash: any) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1083,7 +1083,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         //    {
         //        "topic":"position",
@@ -1136,7 +1136,7 @@ export default class woofipro extends woofiproRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1217,7 +1217,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1231,7 +1231,7 @@ export default class woofipro extends woofiproRest {
         return await this.watchPrivate (messageHash, message);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: any, message: any) {
         //
         //     {
         //         "topic":"balance",
@@ -1287,7 +1287,7 @@ export default class woofipro extends woofiproRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
@@ -1319,7 +1319,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1376,19 +1376,19 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message) {
+    async pong (client: Client, message: any) {
         await client.send ({ 'event': 'pong' });
     }
 
-    handlePing (client: Client, message) {
+    handlePing (client: Client, message: any) {
         this.spawn (this.pong, client, message);
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         //
         // { event: "pong", ts: 1614667590000 }
         //
@@ -1396,7 +1396,7 @@ export default class woofipro extends woofiproRest {
         return message;
     }
 
-    handleSubscribe (client: Client, message) {
+    handleSubscribe (client: Client, message: any) {
         //
         //     {
         //         "id": "666888",

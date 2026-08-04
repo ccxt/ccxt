@@ -80,8 +80,8 @@ func (this *MudrexCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes6812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes6812)
+			retRes6912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes6912)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -99,9 +99,9 @@ func (this *MudrexCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any 
 		}
 		var request any = this.Extend(subscribe, params)
 
-		retRes8515 := (<-this.Watch(url, messageHash, request, messageHash))
-		ccxt.PanicOnError(retRes8515)
-		ch <- retRes8515
+		retRes8615 := (<-this.Watch(url, messageHash, request, messageHash))
+		ccxt.PanicOnError(retRes8615)
+		ch <- retRes8615
 		return nil
 
 	}()
@@ -118,8 +118,8 @@ func (this *MudrexCore) WatchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes9012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes9012)
+			retRes9112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes9112)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var messageHashes any = []any{}
@@ -174,8 +174,8 @@ func (this *MudrexCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes12412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes12412)
+			retRes12512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes12512)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")

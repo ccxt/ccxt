@@ -1153,8 +1153,23 @@ public partial class bitbank : Exchange
         } else
         {
             this.checkRequiredCredentials();
+            // bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
+            // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
+            // since bitbank offers no server time endpoint to compensate against
+            object authMethod = this.safeString(this.options, "authMethod", "timeWindow");
+            object isTimeWindow = (isEqual(authMethod, "timeWindow"));
+            object requestTime = ((object)this.milliseconds()).ToString();
+            object timeWindow = this.safeString(this.options, "timeWindow", "5000");
             object nonce = ((object)this.nonce()).ToString();
-            object auth = nonce;
+            object auth = null;
+            if (isTrue(isTimeWindow))
+            {
+                auth = add(requestTime, timeWindow);
+            } else
+            {
+                auth = nonce;
+            }
             url = add(url, add(add(this.version, "/"), this.implodeParams(path, parameters)));
             if (isTrue(isEqual(method, "POST")))
             {
@@ -1173,9 +1188,16 @@ public partial class bitbank : Exchange
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "ACCESS-KEY", this.apiKey },
-                { "ACCESS-NONCE", nonce },
                 { "ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
             };
+            if (isTrue(isTimeWindow))
+            {
+                ((IDictionary<string,object>)headers)["ACCESS-REQUEST-TIME"] = requestTime;
+                ((IDictionary<string,object>)headers)["ACCESS-TIME-WINDOW"] = timeWindow;
+            } else
+            {
+                ((IDictionary<string,object>)headers)["ACCESS-NONCE"] = nonce;
+            }
         }
         return new Dictionary<string, object>() {
             { "url", url },

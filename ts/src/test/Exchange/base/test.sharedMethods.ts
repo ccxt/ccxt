@@ -4,7 +4,7 @@ import assert from 'assert';
 import { Exchange } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
-import { Bool, Num, Order, Str } from '../../../base/types.js';
+import { Bool, Dict, Num, Order, Str } from '../../../base/types.js';
 
 function logTemplate (exchange: Exchange, method: Str, entry: object | undefined) {
     // there are cases when exchange is undefined (eg. base tests)
@@ -92,7 +92,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             }
             assert (key in entry, '"' + stringValue (key) + '" key is missing from structure' + logText);
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (key, emptyAllowedFor);
-            const value = entry[key];
+            const value = (entry as Dict)[key];
             // check when:
             // - it's not inside "allowed empty values" list
             // - it's not undefined
@@ -107,7 +107,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
                 assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
                     if (exchange.isDictionary (value) || Array.isArray (value)) {
-                        assertStructure (exchange, skippedProperties, method, value, format[key], emptyAllowedFor, deep);
+                        assertStructure (exchange, skippedProperties, method, value, (format as Dict)[key], emptyAllowedFor, deep);
                     }
                 }
             }
@@ -126,9 +126,9 @@ function assertTimestamp (exchange: Exchange, skippedProperties: object, method:
         assert ((keyNameOrIndex in entry), 'timestamp key "' + keyNameOrIndex + '" is missing from structure' + logText);
     } else {
         // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
-        assert (!(entry[keyNameOrIndex] === undefined), 'timestamp index ' + stringValue (keyNameOrIndex) + ' is undefined' + logText);
+        assert (!((entry as Dict)[keyNameOrIndex] === undefined), 'timestamp index ' + stringValue (keyNameOrIndex) + ' is undefined' + logText);
     }
-    const ts = entry[keyNameOrIndex];
+    const ts = (entry as Dict)[keyNameOrIndex];
     assert (ts !== undefined || allowNull, 'timestamp is null' + logText);
     if (ts !== undefined) {
         assert (typeof ts === 'number', 'timestamp is not numeric' + logText);
@@ -164,7 +164,7 @@ function assertTimestampAndDatetime (exchange: Exchange, skippedProperties: obje
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601 (dt);
-            const tsMs = entry['timestamp'];
+            const tsMs = (entry as Dict)['timestamp'];
             if (dtParsed === undefined) {
                 assert (false, 'datetime is not parseable: ' + dt + logText);
             }
@@ -193,7 +193,7 @@ function assertCurrencyCode (exchange: Exchange, skippedProperties: object, meth
     }
 }
 
-function assertValidCurrencyIdAndCode (exchange: Exchange, skippedProperties: object, method: string, entry: object, currencyId, currencyCode, allowNull: boolean = true) {
+function assertValidCurrencyIdAndCode (exchange: Exchange, skippedProperties: object, method: string, entry: object, currencyId: Str, currencyCode: Str, allowNull: boolean = true) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
     if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
@@ -403,7 +403,7 @@ function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, 
     }
 }
 
-async function fetchBestBidAsk (exchange, method, symbol) {
+async function fetchBestBidAsk (exchange: any, method: string, symbol: string) {
     const logText = logTemplate (exchange, method, {});
     // find out best bid/ask price
     let bestBid: Num = undefined;
@@ -442,7 +442,7 @@ async function fetchBestBidAsk (exchange, method, symbol) {
     return [ bestBid, bestAsk ];
 }
 
-async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
+async function fetchOrder (exchange: any, symbol: Str, orderId: Str, skippedProperties: any) {
     let fetchedOrder: Order | undefined = undefined;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
@@ -486,7 +486,7 @@ async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
     return fetchedOrder;
 }
 
-function assertOrderState (exchange, skippedProperties, method, order, assertedStatus, strictCheck) {
+function assertOrderState (exchange: any, skippedProperties: any, method: string, order: any, assertedStatus: string, strictCheck: boolean) {
     // note, `strictCheck` is `true` only from "fetchOrder" cases
     const logText = logTemplate (exchange, method, order);
     const msg = 'order should be ' + assertedStatus + ', but it was not asserted' + logText;
@@ -549,7 +549,7 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     }
 }
 
-function getActiveMarkets (exchange, includeUnknown = true) {
+function getActiveMarkets (exchange: any, includeUnknown = true) {
     const filteredActive = exchange.filterBy (exchange.markets, 'active', true);
     if (includeUnknown) {
         const filteredUndefined = exchange.filterBy (exchange.markets, 'active', undefined);

@@ -56,7 +56,45 @@ function removeOverloadStrippedFile (tmpPath: string, srcPath: string): void {
     }
 }
 
+// ast-transpiler loses the default value of a parameter that carries a *named* type
+// (`params: Dict = {}`): for named types it reads `node.initializer.text`, which is
+// undefined on an object literal, so the correct `.getText()` value captured earlier is
+// overwritten with undefined. Untyped (`params = {}`) and `object`-typed parameters keep
+// their initializer, which is why this only began to bite once noImplicitAny forced
+// explicit `Dict` annotations onto the trailing params bag.
+//
+// Every wrapper generator decides "is this parameter optional?" with
+// `param.optional || param.initializer !== undefined`, so the dropped initializer makes the
+// params bag look REQUIRED and corrupts the emitted signatures:
+//   C#  -> CS1737 optional parameters must appear after all required parameters
+//   Go  -> a required `map[string]any` appears before the variadic options, so the
+//          generated callers no longer match ("not enough arguments in call to ...")
+//   Java-> same required/optional ordering drift in the generated wrappers
+// Restoring the initializer at the metadata boundary fixes all of them at once and keeps
+// the generated output byte-identical to the pre-noImplicitAny baseline.
+const PARAMS_BAG_TYPES = new Set ([ 'Dict', 'NullableDict', 'Dictionary<any>', 'object', 'Object' ]);
+
+function restoreParamsBagInitializers (methodsTypes: any[]): any[] {
+    if (!methodsTypes) {
+        return methodsTypes;
+    }
+    for (const method of methodsTypes) {
+        const parameters = method?.parameters;
+        if (!parameters) {
+            continue;
+        }
+        for (const parameter of parameters) {
+            const isParamsBag = (parameter.name === 'params') && PARAMS_BAG_TYPES.has (parameter.type);
+            if (isParamsBag && (parameter.initializer === undefined)) {
+                parameter.initializer = '{}';
+            }
+        }
+    }
+    return methodsTypes;
+}
+
 export {
     writeOverloadStrippedFile,
     removeOverloadStrippedFile,
+    restoreParamsBagInitializers,
 };

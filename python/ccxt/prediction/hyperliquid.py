@@ -802,7 +802,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         """
  @ignore
         parses a single hyperliquid candle object into a CCXT OHLCV tuple
@@ -1995,7 +1995,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 raise ExchangeError(feedback)
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         if ('byType' in config) and ('type' in params):
             type = params['type']
             byType = config['byType']

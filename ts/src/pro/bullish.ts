@@ -10,7 +10,7 @@ import { ExchangeError } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 
 export default class bullish extends bullishRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -56,7 +56,7 @@ export default class bullish extends bullishRest {
         return requestId;
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
         const id = this.requestId ().toString ();
@@ -69,7 +69,7 @@ export default class bullish extends bullishRest {
         };
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         //
         //     {
         //         "id": "7",
@@ -128,14 +128,14 @@ export default class bullish extends bullishRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const messageHash = 'trades::' + market['symbol'];
         const url = '/trading-api/v1/market-data/trades';
-        const request: any = {
+        const request: Dict = {
             'topic': 'anonymousTrades',
             'symbol': market['id'],
         };
@@ -146,7 +146,7 @@ export default class bullish extends bullishRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "type": "snapshot",
@@ -200,7 +200,7 @@ export default class bullish extends bullishRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -211,7 +211,7 @@ export default class bullish extends bullishRest {
         return await this.watch (url, messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "type": "update",
@@ -283,7 +283,7 @@ export default class bullish extends bullishRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -298,7 +298,7 @@ export default class bullish extends bullishRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "type": "snapshot",
@@ -347,7 +347,7 @@ export default class bullish extends bullishRest {
         client.resolve (orderbook, messageHash);
     }
 
-    separateBidsOrAsks (entry) {
+    separateBidsOrAsks (entry: any) {
         const result: List = [];
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
@@ -375,7 +375,7 @@ export default class bullish extends bullishRest {
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -400,7 +400,7 @@ export default class bullish extends bullishRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         // snapshot
         //     {
         //         "type": "snapshot",
@@ -492,7 +492,7 @@ export default class bullish extends bullishRest {
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -517,7 +517,7 @@ export default class bullish extends bullishRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         // snapshot
         //     {
@@ -599,7 +599,7 @@ export default class bullish extends bullishRest {
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -616,7 +616,7 @@ export default class bullish extends bullishRest {
         return await this.watchPrivate (messageHash, messageHash, request, params);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // snapshot
         //     {
@@ -699,7 +699,7 @@ export default class bullish extends bullishRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -719,7 +719,7 @@ export default class bullish extends bullishRest {
         return this.filterBySymbolsSinceLimit (positions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message) {
+    handlePositions (client: Client, message: any) {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
@@ -756,7 +756,7 @@ export default class bullish extends bullishRest {
         client.resolve (positions, 'positions');
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message: any) {
         //
         //     {
         //         "data": {
@@ -781,7 +781,7 @@ export default class bullish extends bullishRest {
         }
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const dataType = this.safeString (message, 'dataType');
         const result = this.safeDict (message, 'result');
         if (result !== undefined) {

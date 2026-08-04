@@ -1701,7 +1701,7 @@ public partial class woofipro : Exchange
                     { "type", "LIMIT" },
                     { "reduce_only", true },
                 };
-                ((IList<object>)outterOrder).Add(takeProfitOrder);
+                ((IList<object>)childOrders).Add(takeProfitOrder);
             }
             ((IDictionary<string,object>)request)["child_orders"] = new List<object>() {outterOrder};
         }

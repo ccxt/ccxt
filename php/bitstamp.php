@@ -731,7 +731,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function construct_currency_object($id, $code, $name, $precision, $minCost, $originalPayload) {
+    public function construct_currency_object(mixed $id, mixed $code, mixed $name, mixed $precision, mixed $minCost, mixed $originalPayload) {
         $currencyType = 'crypto';
         $description = $this->describe();
         if ($this->is_fiat($code)) {
@@ -1030,7 +1030,7 @@ class bitstamp extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function get_currency_id_from_transaction($transaction) {
+    public function get_currency_id_from_transaction(mixed $transaction) {
         //
         //     {
         //         "fee" => "0.00000000",
@@ -1069,7 +1069,7 @@ class bitstamp extends Exchange {
         return null;
     }
 
-    public function get_market_from_trade($trade) {
+    public function get_market_from_trade(mixed $trade) {
         $trade = $this->omit($trade, array(
             'fee',
             'price',
@@ -1283,7 +1283,7 @@ class bitstamp extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "high" => "9064.77",
@@ -1362,7 +1362,7 @@ class bitstamp extends Exchange {
         return $this->parse_ohlcvs($ohlc, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $finalResponse = $response; // java req
         $result = array(
             'info' => $finalResponse,
@@ -1467,7 +1467,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function parse_trading_fees($fees) {
+    public function parse_trading_fees(mixed $fees) {
         $result = array( 'info' => $fees );
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
@@ -1537,7 +1537,7 @@ class bitstamp extends Exchange {
         return $this->parse_transaction_fees($response);
     }
 
-    public function parse_transaction_fees($response, ?array $codes = null) {
+    public function parse_transaction_fees(mixed $response, ?array $codes = null) {
         $result = array();
         $currencies = $this->index_by($response, 'currency');
         $ids = is_array($currencies) ? array_keys($currencies) : array();
@@ -1559,7 +1559,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -1587,7 +1587,7 @@ class bitstamp extends Exchange {
         return $this->parse_deposit_withdraw_fees($responseByCurrencyId, $codes);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         $result = $this->deposit_withdraw_fee($fee);
         $code = $this->safe_string($currency, 'code');
         for ($j = 0; $j < count($fee); $j++) {
@@ -1946,7 +1946,7 @@ class bitstamp extends Exchange {
         return $this->parse_funding_rate_histories($values, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "funding_rate" => "0.0024",
@@ -2293,7 +2293,7 @@ class bitstamp extends Exchange {
         ), $market);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             '0' => 'transaction',
             '1' => 'transaction',
@@ -2452,7 +2452,7 @@ class bitstamp extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function parse_funding_rate($fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
         //
         //     {
         //         "funding_rate" => "0.0024",
@@ -2526,7 +2526,7 @@ class bitstamp extends Exchange {
         ));
     }
 
-    public function get_currency_name($code) {
+    public function get_currency_name(mixed $code) {
         /**
          * @ignore
          * @param {string} $code Unified currency $code
@@ -2535,7 +2535,7 @@ class bitstamp extends Exchange {
         return strtolower($code);
     }
 
-    public function is_fiat($code) {
+    public function is_fiat(mixed $code) {
         return $code === 'USD' || $code === 'EUR' || $code === 'GBP';
     }
 
@@ -2658,7 +2658,7 @@ class bitstamp extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(mixed $transfer, ?array $currency = null) {
         //
         //    array( $status => 'ok' )
         //
@@ -2692,7 +2692,7 @@ class bitstamp extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/';
         $url .= $this->version . '/';
         $url .= $this->implode_params($path, $params);
@@ -2737,7 +2737,7 @@ class bitstamp extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

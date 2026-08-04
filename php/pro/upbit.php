@@ -38,7 +38,7 @@ class upbit extends \ccxt\async\upbit {
         ));
     }
 
-    public function watch_public_multiple(?array $symbols, $channel, $params = array()) {
+    public function watch_public_multiple(?array $symbols, mixed $channel, $params = array()) {
         return Async\async(function () use ($symbols, $channel, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -199,7 +199,7 @@ class upbit extends \ccxt\async\upbit {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         // 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type => "ticker",
         //   "code" => "BTC-ETH",
@@ -245,7 +245,7 @@ class upbit extends \ccxt\async\upbit {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         // { $type => "orderbook",
         //   "code" => "BTC-ETH",
         //   "timestamp" => 1584486737444,
@@ -300,7 +300,7 @@ class upbit extends \ccxt\async\upbit {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         // { type => "trade",
         //   "code" => "KRW-BTC",
         //   "timestamp" => 1584508285812,
@@ -331,7 +331,7 @@ class upbit extends \ccxt\async\upbit {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         // {
         //     type => 'candle.1s',
         //     code => 'KRW-USDT',
@@ -376,7 +376,7 @@ class upbit extends \ccxt\async\upbit {
         return $client;
     }
 
-    public function watch_private($symbol, $channel, $messageHash, $params = array()) {
+    public function watch_private(mixed $symbol, mixed $channel, mixed $messageHash, $params = array()) {
         return Async\async(function () use ($symbol, $channel, $messageHash, $params) {
             Async\await($this->authenticate());
             $request = array(
@@ -495,7 +495,7 @@ class upbit extends \ccxt\async\upbit {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         // {
         //     "type" => "myOrder",
@@ -565,7 +565,7 @@ class upbit extends \ccxt\async\upbit {
         ));
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         // see => parseWsOrder
         $side = $this->safe_string_lower($trade, 'ask_bid');
         if ($side === 'bid') {
@@ -601,7 +601,7 @@ class upbit extends \ccxt\async\upbit {
         ), $market);
     }
 
-    public function handle_my_order(Client $client, $message) {
+    public function handle_my_order(Client $client, mixed $message) {
         // see => parseWsOrder
         $tradeId = $this->safe_string($message, 'trade_uuid');
         if ($tradeId !== null) {
@@ -610,7 +610,7 @@ class upbit extends \ccxt\async\upbit {
         $this->handle_order($client, $message);
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         // see => parseWsOrder
         $myTrades = $this->myTrades;
         if ($myTrades === null) {
@@ -625,7 +625,7 @@ class upbit extends \ccxt\async\upbit {
         $client->resolve($myTrades, $messageHash);
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -675,7 +675,7 @@ class upbit extends \ccxt\async\upbit {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // {
         //     "type" => "myAsset",
@@ -714,7 +714,7 @@ class upbit extends \ccxt\async\upbit {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $methods = array(
             'ticker' => array($this, 'handle_ticker'),
             'orderbook' => array($this, 'handle_order_book'),
