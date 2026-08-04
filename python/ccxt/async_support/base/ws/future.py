@@ -46,8 +46,12 @@ class Future(asyncio.Future):
                 except Exception:
                     pass
                 # the winner is already done and retrieved via settle_from - only the
-                # still-pending losers need a swallow for their eventual rejection
-                if not f.done():
+                # still-pending losers need a swallow for their eventual rejection.
+                # a loser lingers in client.futures and rejoins later races, so guard
+                # with a flag to add the swallow at most once - otherwise the callbacks
+                # would accumulate on long-lived futures and leak memory
+                if not f.done() and not getattr(f, '_ccxt_swallow_attached', False):
+                    f._ccxt_swallow_attached = True
                     f.add_done_callback(_swallow)
             callbacks.clear()
 
