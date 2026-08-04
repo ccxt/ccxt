@@ -947,6 +947,7 @@ public partial class xt
     /// </summary>
     /// <remarks>
     /// See <see href="https://doc.xt.com/#futures_usergetPosition"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -961,6 +962,7 @@ public partial class xt
     /// </summary>
     /// <remarks>
     /// See <see href="https://doc.xt.com/#futures_usergetPosition"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbols</term>

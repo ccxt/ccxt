@@ -243,6 +243,7 @@ public partial class xt : Exchange
                             { "future/user/v1/balance/funding-rate-list", 1 },
                             { "future/user/v1/balance/list", 1 },
                             { "future/user/v1/position/adl", 1 },
+                            { "future/user/v1/position/break-list", 1 },
                             { "future/user/v1/position/list", 1 },
                             { "future/user/v1/user/collection/list", 1 },
                             { "future/user/v1/user/listen-key", 1 },
@@ -287,6 +288,7 @@ public partial class xt : Exchange
                             { "future/user/v1/balance/funding-rate-list", 1 },
                             { "future/user/v1/balance/list", 1 },
                             { "future/user/v1/position/adl", 1 },
+                            { "future/user/v1/position/break-list", 1 },
                             { "future/user/v1/position/list", 1 },
                             { "future/user/v1/user/collection/list", 1 },
                             { "future/user/v1/user/listen-key", 1 },
@@ -5101,10 +5103,53 @@ public partial class xt : Exchange
     }
 
     /**
+     * @ignore
+     * @method
+     * @param {object[]} breakList the "result" array of a position/break-list response
+     */
+    public virtual object indexPositionBreakList(object breakList)
+    {
+        object breakBySymbolSide = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(breakList)); postFixIncrement(ref i))
+        {
+            object breakEntry = getValue(breakList, i);
+            // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
+            // endpoint, including here and on position/list; there is no one-way/net
+            // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            // both validate positionSide against exactly ['LONG', 'SHORT'])
+            object key = add(add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
+            ((IDictionary<string,object>)breakBySymbolSide)[(string)key] = breakEntry;
+        }
+        return breakBySymbolSide;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @param {object} entry a single entry from a position/list response
+     * @param {object} breakBySymbolSide the result of indexPositionBreakList()
+     */
+    public virtual object mergePositionBreakInfo(object entry, object breakBySymbolSide)
+    {
+        object marketId = this.safeString(entry, "symbol");
+        object key = add(add(marketId, "_"), this.safeString(entry, "positionSide"));
+        object breakEntry = this.safeDict(breakBySymbolSide, key);
+        if (isTrue(isEqual(breakEntry, null)))
+        {
+            return entry;
+        }
+        return this.extend(entry, new Dictionary<string, object>() {
+            { "breakPrice", this.safeString(breakEntry, "breakPrice") },
+            { "calMarkPrice", this.safeString(breakEntry, "calMarkPrice") },
+        });
+    }
+
+    /**
      * @method
      * @name xt#fetchPosition
      * @description fetch data on a single open contract trade position
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -5124,14 +5169,21 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPosition", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object response = null;
+        object promisesUnresolved = new List<object>() {};
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters));
+            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters)));
+            ((IList<object>)promisesUnresolved).Add(callDynamically(this, "privateInverseGetFutureUserV1PositionBreakList", new object[] { this.extend(request, parameters) }));
         } else
         {
-            response = await this.privateLinearGetFutureUserV1PositionList(this.extend(request, parameters));
+            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, parameters)));
+            ((IList<object>)promisesUnresolved).Add(callDynamically(this, "privateLinearGetFutureUserV1PositionBreakList", new object[] { this.extend(request, parameters) }));
         }
+        var responsebreakResponseVariable = await promiseAll(promisesUnresolved);
+        var response = ((IList<object>) responsebreakResponseVariable)[0];
+        var breakResponse = ((IList<object>) responsebreakResponseVariable)[1];
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -5152,12 +5204,28 @@ public partial class xt : Exchange
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        object positions = this.safeValue(response, "result", new List<object>() {});
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        object positions = this.safeList(response, "result", new List<object>() {});
+        object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object entry = getValue(positions, i);
@@ -5166,7 +5234,8 @@ public partial class xt : Exchange
             object positionSize = this.safeString(entry, "positionSize");
             if (isTrue(!isEqual(positionSize, "0")))
             {
-                return this.parsePosition(entry, marketInner);
+                object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+                return this.parsePosition(merged, marketInner);
             }
         }
         throw new NullResponse ((string)add(add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
@@ -5177,6 +5246,7 @@ public partial class xt : Exchange
      * @name xt#fetchPositions
      * @description fetch all open positions
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} [symbols] list of unified market symbols, not supported with xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -5192,14 +5262,21 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object response = null;
+        object promisesUnresolved = new List<object>() {};
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await this.privateInverseGetFutureUserV1PositionList(parameters);
+            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionList(parameters));
+            ((IList<object>)promisesUnresolved).Add(callDynamically(this, "privateInverseGetFutureUserV1PositionBreakList", new object[] { parameters }));
         } else
         {
-            response = await this.privateLinearGetFutureUserV1PositionList(parameters);
+            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionList(parameters));
+            ((IList<object>)promisesUnresolved).Add(callDynamically(this, "privateLinearGetFutureUserV1PositionBreakList", new object[] { parameters }));
         }
+        var responsebreakResponseVariable = await promiseAll(promisesUnresolved);
+        var response = ((IList<object>) responsebreakResponseVariable)[0];
+        var breakResponse = ((IList<object>) responsebreakResponseVariable)[1];
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -5220,25 +5297,44 @@ public partial class xt : Exchange
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        object positions = this.safeValue(response, "result", new List<object>() {});
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        object positions = this.safeList(response, "result", new List<object>() {});
+        object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object entry = getValue(positions, i);
             object marketId = this.safeString(entry, "symbol");
             object marketInner = this.safeMarket(marketId, null, null, "contract");
-            ((IList<object>)result).Add(this.parsePosition(entry, marketInner));
+            object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+            ((IList<object>)result).Add(this.parsePosition(merged, marketInner));
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
     }
 
     public override object parsePosition(object position, object market = null)
     {
+        //
+        // position/list
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -5254,7 +5350,17 @@ public partial class xt : Exchange
         //         "openOrderMarginFrozen": "0",
         //         "realizedProfit": "-0.00130138",
         //         "autoMargin": false,
-        //         "leverage": 25
+        //         "leverage": 25,
+        //         "markPrice": "27050"
+        //     }
+        //
+        // position/break-list
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "positionSide": "SHORT",
+        //         "breakPrice": "0",
+        //         "calMarkPrice": "27050"
         //     }
         //
         object marketId = this.safeString(position, "symbol");
@@ -5263,6 +5369,7 @@ public partial class xt : Exchange
         object positionType = this.safeString(position, "positionType");
         object marginMode = ((bool) isTrue((isEqual(positionType, "CROSSED")))) ? "cross" : "isolated";
         object collateral = this.safeNumber(position, "isolatedMargin");
+        object liquidationPriceString = this.omitZero(this.safeString(position, "breakPrice"));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -5274,7 +5381,7 @@ public partial class xt : Exchange
             { "contracts", this.safeNumber(position, "positionSize") },
             { "contractSize", getValue(market, "contractSize") },
             { "entryPrice", this.safeNumber(position, "entryPrice") },
-            { "markPrice", null },
+            { "markPrice", this.safeNumber2(position, "markPrice", "calMarkPrice") },
             { "notional", null },
             { "leverage", this.safeInteger(position, "leverage") },
             { "collateral", collateral },
@@ -5283,7 +5390,7 @@ public partial class xt : Exchange
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
             { "unrealizedPnl", null },
-            { "liquidationPrice", null },
+            { "liquidationPrice", this.parseNumber(liquidationPriceString) },
             { "marginMode", marginMode },
             { "percentage", null },
             { "marginRatio", null },
