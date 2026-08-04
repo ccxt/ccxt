@@ -691,7 +691,7 @@ func ValidateTickerExceptionForPercentage(ex any, exchange ccxt.ICoreExchange, t
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		// only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-		var eMessage any = exchange.ExceptionMessage(ex, false)
+		var eMessage any = exchange.ExceptionMessage(ex, false) // typed string so the php transpile uses mb_strpos, not in_array
 		if IsTrue(IsTrue(IsGreaterThanOrEqual(GetIndexOf(eMessage, "percentage should be above"), 0)) || IsTrue(IsGreaterThanOrEqual(GetIndexOf(eMessage, "percentage should be below"), 0))) {
 			var symbol any = GetValue(ticker, "symbol")
 			if IsTrue(!IsEqual(symbol, nil)) {
