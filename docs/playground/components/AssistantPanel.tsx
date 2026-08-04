@@ -9,13 +9,6 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 type InsertFn = (code: string, target?: LanguageId) => void;
 
-const SUGGESTIONS = [
-  "Fetch the BTC/USDT order book on kraken",
-  "Compare ETH price across 3 exchanges",
-  "Get 1-day OHLCV for SOL and find the high",
-  "Search Polymarket for a Bitcoin event and get its ticker",
-];
-
 export default function AssistantPanel({
   language,
   code,
@@ -28,7 +21,30 @@ export default function AssistantPanel({
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [prompts, setPrompts] = useState<string[]>([]);
+  const [gen, setGen] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetchPrompts().then((next) => {
+      if (!alive) return;
+      setPrompts(next);
+      setGen((g) => g + 1);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  async function refresh() {
+    if (refreshing) return;
+    setRefreshing(true);
+    setPrompts(await fetchPrompts());
+    setGen((g) => g + 1);
+    window.setTimeout(() => setRefreshing(false), 450);
+  }
 
   const scrollDown = () => {
     requestAnimationFrame(() => {
@@ -113,9 +129,26 @@ export default function AssistantPanel({
         {messages.length === 0 ? (
           <div className="ai-empty">
             Ask for CCXT code and it lands in your editor.
-            <div className="chips">
-              {SUGGESTIONS.map((s) => (
-                <button key={s} className="chip" onClick={() => send(s)}>
+            <div className="chips-head">
+              <span>Try one</span>
+              <button
+                className={"icon-btn refresh" + (refreshing ? " spinning" : "")}
+                onClick={refresh}
+                disabled={refreshing}
+                aria-label="New examples"
+                title="New examples"
+              >
+                <RefreshIcon />
+              </button>
+            </div>
+            <div className="chips" key={gen}>
+              {prompts.map((s, i) => (
+                <button
+                  key={i}
+                  className="chip chip-in"
+                  style={{ animationDelay: `${i * 55}ms` }}
+                  onClick={() => send(s)}
+                >
                   {s}
                 </button>
               ))}
@@ -165,6 +198,37 @@ export default function AssistantPanel({
 type CodeBlock = { kind: "code"; text: string; lang: LanguageId | null; complete: boolean };
 type Block = { kind: "text"; text: string } | CodeBlock;
 type TaggedCode = CodeBlock & { lang: LanguageId };
+
+async function fetchPrompts(): Promise<string[]> {
+  try {
+    const res = await fetch(apiUrl("/api/prompts"), { cache: "no-store" });
+    const data = await res.json();
+    return Array.isArray(data.prompts) ? data.prompts : [];
+  } catch {
+    return [];
+  }
+}
+
+function RefreshIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.36-2.64L3 16" />
+      <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.36 2.64L21 8" />
+      <polyline points="21 3 21 8 16 8" />
+      <polyline points="3 21 3 16 8 16" />
+    </svg>
+  );
+}
 
 function Message({
   msg,
