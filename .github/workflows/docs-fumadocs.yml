@@ -82,7 +82,7 @@ jobs:
 
   deploy:
     if: github.repository == 'ccxt/ccxt'
-    runs-on: ubuntu-latest           # amd64 — native build matching the docs server
+    runs-on: ${{ github.ref == 'refs/heads/master' && fromJSON('["self-hosted", "linux", "x64", "deploy"]') || 'ubuntu-latest' }}   # amd64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-fumadocs
       CONTAINER: ccxt-docs
