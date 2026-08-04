@@ -735,13 +735,15 @@ class myriad extends myriad$1["default"] {
         if (rHex === undefined) {
             throw new errors.ExchangeError(this.id + ' signEvmTransaction() missing rHex');
         }
-        if ((rHex.length % 2) !== 0) {
+        const rHexLength = rHex.length;
+        if ((rHexLength % 2) !== 0) {
             rHex = '0' + rHex;
         }
         if (sHex === undefined) {
             throw new errors.ExchangeError(this.id + ' signEvmTransaction() missing sHex');
         }
-        if ((sHex.length % 2) !== 0) {
+        const sHexLength = sHex.length;
+        if ((sHexLength % 2) !== 0) {
             sHex = '0' + sHex;
         }
         const yParity = this.safeInteger(signature, 'v');
@@ -3036,7 +3038,8 @@ class myriad extends myriad$1["default"] {
                 filteredMarkets.push(m);
             }
             // skip question events that contribute no new markets after de-duplicating by market handle
-            if ((evMarketsLength > 0) && (filteredMarkets.length === 0)) {
+            const filteredMarketsLength = filteredMarkets.length;
+            if ((evMarketsLength > 0) && (filteredMarketsLength === 0)) {
                 continue;
             }
             ev['markets'] = filteredMarkets;
