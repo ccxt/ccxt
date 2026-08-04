@@ -4733,7 +4733,7 @@ export default class xt extends Exchange {
      * @method
      * @param {object[]} breakList the "result" array of a position/break-list response
      */
-    indexPositionBreakList (breakList): Dict {
+    indexPositionBreakList (breakList: Dict[]): Dict {
         const breakBySymbolSide: Dict = {};
         for (let i = 0; i < breakList.length; i++) {
             const breakEntry = breakList[i];
