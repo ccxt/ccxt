@@ -412,7 +412,7 @@ class MarketInterface(TypedDict):
     swap: bool
     future: bool
     option: bool
-    stock: NotRequired[bool]
+    stock: bool
     contract: bool
     settle: Str
     settleId: Str

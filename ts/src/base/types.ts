@@ -79,7 +79,7 @@ export interface MarketInterface {
     swap: boolean;
     future: boolean;
     option: boolean;
-    stock?: boolean;
+    stock: boolean;
     prediction?: boolean;
     contract: boolean;
     settle: Str;
