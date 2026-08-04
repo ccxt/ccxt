@@ -400,12 +400,17 @@ button {
   line-height: 1.6;
 }
 .msg .who {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: hsl(var(--muted-foreground));
   margin-bottom: 6px;
+  min-height: 24px;
 }
 .msg.user .bubble {
   background: hsl(var(--muted));
