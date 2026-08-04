@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { languageFromFence } from "@/lib/ai/assistant";
 import { getLanguage, isRunnable, type LanguageId } from "@/lib/languages";
 import { apiUrl } from "@/lib/basePath";
@@ -25,6 +25,8 @@ export default function AssistantPanel({
   const [gen, setGen] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Bumped on every reset so an in-flight stream cannot write into a cleared chat.
+  const chatEpoch = useRef(0);
 
   useEffect(() => {
     let alive = true;
@@ -41,9 +43,19 @@ export default function AssistantPanel({
   async function refresh() {
     if (refreshing) return;
     setRefreshing(true);
-    setPrompts(await fetchPrompts(prompts)); // exclude what's on screen → fresh hand
+    chatEpoch.current += 1;
+    const epoch = chatEpoch.current;
+    // Clear the conversation first so the empty-state chips reappear immediately.
+    setMessages([]);
+    setBusy(false);
+    setInput("");
+    const next = await fetchPrompts(prompts);
+    if (epoch !== chatEpoch.current) return;
+    setPrompts(next);
     setGen((g) => g + 1);
-    window.setTimeout(() => setRefreshing(false), 450);
+    window.setTimeout(() => {
+      if (epoch === chatEpoch.current) setRefreshing(false);
+    }, 450);
   }
 
   const scrollDown = () => {
@@ -55,6 +67,7 @@ export default function AssistantPanel({
 
   async function send(text: string) {
     if (!text.trim() || busy) return;
+    const epoch = chatEpoch.current;
     const history: Msg[] = [...messages, { role: "user", content: text }];
     setMessages([...history, { role: "assistant", content: "" }]);
     setInput("");
@@ -68,9 +81,11 @@ export default function AssistantPanel({
         body: JSON.stringify({ messages: history, language, code }),
       });
 
+      if (epoch !== chatEpoch.current) return;
+
       if (!res.ok || !res.body) {
         const err = await res.json().catch(() => ({ error: "request failed" }));
-        appendToLast(`⚠️ ${err.error ?? "request failed"}${err.detail ? `\n${err.detail}` : ""}`);
+        appendToLast(`⚠️ ${err.error ?? "request failed"}${err.detail ? `\n${err.detail}` : ""}`, epoch);
         return;
       }
 
@@ -80,6 +95,14 @@ export default function AssistantPanel({
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+        if (epoch !== chatEpoch.current) {
+          try {
+            await reader.cancel();
+          } catch {
+            // ignore
+          }
+          return;
+        }
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
         buffer = lines.pop() ?? "";
@@ -92,7 +115,7 @@ export default function AssistantPanel({
             const json = JSON.parse(payload);
             const delta: string = json.choices?.[0]?.delta?.content ?? "";
             if (delta) {
-              appendToLast(delta);
+              appendToLast(delta, epoch);
               scrollDown();
             }
           } catch {
@@ -101,14 +124,19 @@ export default function AssistantPanel({
         }
       }
     } catch (e) {
-      appendToLast(`⚠️ ${e instanceof Error ? e.message : "network error"}`);
+      if (epoch === chatEpoch.current) {
+        appendToLast(`⚠️ ${e instanceof Error ? e.message : "network error"}`, epoch);
+      }
     } finally {
-      setBusy(false);
-      scrollDown();
+      if (epoch === chatEpoch.current) {
+        setBusy(false);
+        scrollDown();
+      }
     }
   }
 
-  function appendToLast(chunk: string) {
+  function appendToLast(chunk: string, epoch: number) {
+    if (epoch !== chatEpoch.current) return;
     setMessages((prev) => {
       const next = [...prev];
       const last = next[next.length - 1];
@@ -118,6 +146,19 @@ export default function AssistantPanel({
       return next;
     });
   }
+
+  const refreshBtn = (
+    <button
+      className={"icon-btn refresh" + (refreshing ? " spinning" : "")}
+      onClick={refresh}
+      disabled={refreshing}
+      aria-label="Clear chat and show new examples"
+      title="New examples"
+      type="button"
+    >
+      <RefreshIcon />
+    </button>
+  );
 
   return (
     <aside className="ai">
@@ -131,15 +172,7 @@ export default function AssistantPanel({
             Ask for CCXT code and it lands in your editor.
             <div className="chips-head">
               <span>Try one</span>
-              <button
-                className={"icon-btn refresh" + (refreshing ? " spinning" : "")}
-                onClick={refresh}
-                disabled={refreshing}
-                aria-label="New examples"
-                title="New examples"
-              >
-                <RefreshIcon />
-              </button>
+              {refreshBtn}
             </div>
             <div className="chips" key={gen}>
               {prompts.map((s, i) => (
@@ -162,6 +195,8 @@ export default function AssistantPanel({
               streaming={busy && i === messages.length - 1}
               language={language}
               onInsert={onInsert}
+              // Persist the refresh control on the first user turn (right of "You").
+              trailing={m.role === "user" && i === 0 ? refreshBtn : undefined}
             />
           ))
         )}
@@ -236,11 +271,13 @@ function Message({
   streaming,
   language,
   onInsert,
+  trailing,
 }: {
   msg: Msg;
   streaming: boolean;
   language: LanguageId;
   onInsert: InsertFn;
+  trailing?: ReactNode;
 }) {
   const blocks = useMemo(() => parseBlocks(msg.content, streaming), [msg.content, streaming]);
   // Primary Insert arms progressive fill: primary buffer now, each other language
@@ -311,7 +348,10 @@ function Message({
 
   return (
     <div className={"msg " + msg.role}>
-      <div className="who">{msg.role === "user" ? "You" : "Assistant"}</div>
+      <div className="who">
+        <span>{msg.role === "user" ? "You" : "Assistant"}</span>
+        {trailing}
+      </div>
       {msg.role === "user" ? (
         <div className="bubble">{renderBlocks(blocks, onInsert)}</div>
       ) : (
