@@ -4,7 +4,7 @@ import Exchange from '../abstract/prediction/sxbet.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired, ExchangeError, InvalidOrder } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError, InvalidOrder, OrderNotFound } from '../base/errors.js';
 import type { Dict, Int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -40,6 +40,7 @@ export default class sxbet extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -1246,6 +1247,162 @@ export default class sxbet extends Exchange {
             blanketResult.push (this.parseSxbetCancelResult (orderHash, blanketResponse));
         }
         return blanketResult;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#parsePredictionOrder
+     * @description parses one raw GET /orders row into a unified prediction order. every sx.bet maker order is a 'buy' of the outcome it bets on (isMakerBettingOutcomeOne selects the side), priced at the maker's own implied probability
+     * @param {object} order the raw sx.bet order object
+     * @param {object} [market] the outcome object the order belongs to (resolved from the cache by outcomeId when omitted)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
+        //
+        //     {
+        //         "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+        //         "fillAmount": "0",
+        //         "pendingFillAmount": "0",
+        //         "orderHash": "0x17253b84088b569faeb88d9e32df6eb213a9f45dee475712e8c98c2fbd6f17f8",
+        //         "maker": "0xC3f45c4Ea846424eA5bf1Dd4121b251293210f03",
+        //         "totalBetSize": "5000000",
+        //         "percentageOdds": "50000000000000000000",
+        //         "baseToken": "0x1BC6326EA6aF2aB8E4b6Bc83418044B1923b2956",
+        //         "executor": "0x3259E7Ccc0993368fCB82689F5C534669A0C06ca",
+        //         "salt": "1785852948895",
+        //         "isMakerBettingOutcomeOne": true,
+        //         "signature": "0x...",
+        //         "expiry": 2209006800,
+        //         "apiExpiry": 1785853540,
+        //         "sportXeventId": "L12003787",
+        //         "orderStatus": "ACTIVE"
+        //     }
+        //
+        const orderHash = this.safeString (order, 'orderHash');
+        const marketHash = this.safeString (order, 'marketHash', '');
+        const isMakerBettingOutcomeOne = this.safeBool (order, 'isMakerBettingOutcomeOne', true);
+        const outcomeId = isMakerBettingOutcomeOne ? marketHash : (marketHash + '-2');
+        const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const oneDenom = '100000000000000000000';
+        const usdcDecimals = '1000000';
+        const percentageOdds = this.safeString (order, 'percentageOdds');
+        const price = (percentageOdds !== undefined) ? this.parseNumber (Precise.stringDiv (percentageOdds, oneDenom)) : undefined;
+        const totalBetSize = this.safeString (order, 'totalBetSize', '0');
+        const fillAmount = this.safeString (order, 'fillAmount', '0');
+        const pendingFillAmount = this.safeString (order, 'pendingFillAmount', '0');
+        const amount = this.parseNumber (Precise.stringDiv (totalBetSize, usdcDecimals, 6));
+        const filled = this.parseNumber (Precise.stringDiv (fillAmount, usdcDecimals, 6));
+        const remainingRaw = Precise.stringSub (Precise.stringSub (totalBetSize, fillAmount), pendingFillAmount);
+        const remaining = this.parseNumber (Precise.stringDiv (remainingRaw, usdcDecimals, 6));
+        // the venue only distinguishes ACTIVE/INACTIVE; an INACTIVE fully-filled order closed,
+        // any other INACTIVE order was cancelled or expired
+        const orderStatus = this.safeString (order, 'orderStatus');
+        let status = 'open';
+        if (orderStatus !== 'ACTIVE') {
+            status = Precise.stringGe (fillAmount, totalBetSize) ? 'closed' : 'canceled';
+        }
+        // the sortBy created_at key exists server-side but the row carries no timestamp field
+        return this.safePredictionOrder ({
+            'id': orderHash,
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'type': 'limit',
+            'timeInForce': undefined,
+            'side': 'buy',
+            'price': price,
+            'average': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': undefined,
+            'fee': undefined,
+            'reduceOnly': undefined,
+            'postOnly': undefined,
+            'trades': [],
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId', outcomeId),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'info': order,
+        }, outcomeObj) as PredictionOrder;
+    }
+
+    /**
+     * @method
+     * @name sxbet#fetchOpenOrders
+     * @description fetches the wallet's resting maker orders via GET /orders scoped by maker — needs only walletAddress (the endpoint is public), no privateKey
+     * @see https://docs.sx.bet/api-reference/get-orders
+     * @param {string} [outcome] unified outcome or outcomeId — narrows to that outcome's market
+     * @param {int} [since] not supported by the venue (order rows carry no timestamp), applied client-side only if the venue adds one
+     * @param {int} [limit] the maximum number of orders to return (server-side perPage, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. sportXeventId, page)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a walletAddress to identify the maker');
+        }
+        const request: Dict = { 'maker': this.walletAddress };
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+            request['marketHashes'] = this.safeString (outcomeObj['info'], 'marketHash');
+        }
+        if (limit !== undefined) {
+            request['perPage'] = limit;
+        }
+        const response = await this.sxbetPublicGetOrders (this.extend (request, params));
+        const rawOrders = this.safeList (response, 'data', []);
+        return this.parsePredictionOrders (rawOrders, outcomeObj, since, limit);
+    }
+
+    /**
+     * @method
+     * @name sxbet#fetchOrders
+     * @description fetches the wallet's maker orders. sx.bet's GET /orders only serves RESTING (active) orders — filled/cancelled/expired orders leave the listing permanently (their history is only reconstructable from trades), so this returns the same set as fetchOpenOrders
+     * @see https://docs.sx.bet/api-reference/get-orders
+     * @param {string} [outcome] unified outcome or outcomeId — narrows to that outcome's market
+     * @param {int} [since] not supported by the venue (order rows carry no timestamp)
+     * @param {int} [limit] the maximum number of orders to return (server-side perPage, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. sportXeventId, page)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        return await this.fetchOpenOrders (outcome, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name sxbet#fetchOrder
+     * @description fetches a single resting maker order by its order hash. throws OrderNotFound when the hash is no longer resting — sx.bet's GET /orders drops filled/cancelled/expired orders from the listing entirely
+     * @see https://docs.sx.bet/api-reference/get-orders
+     * @param {string} id the order hash
+     * @param {string} [outcome] unified outcome or outcomeId (labelling hint only, the request needs just the id)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument');
+        }
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+        }
+        const request: Dict = { 'orderHashes': id };
+        const response = await this.sxbetPublicGetOrders (this.extend (request, params));
+        const rawOrders = this.safeList (response, 'data', []);
+        const rawOrdersLength = rawOrders.length;
+        if (rawOrdersLength === 0) {
+            throw new OrderNotFound (this.id + ' fetchOrder() could not find order ' + id + ' - it is not resting (filled, cancelled or expired orders leave the venue listing)');
+        }
+        return this.parsePredictionOrder (this.safeDict (rawOrders, 0, {}), outcomeObj);
     }
 
     /**
