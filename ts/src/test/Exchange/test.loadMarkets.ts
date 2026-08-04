@@ -5,6 +5,7 @@ import testMarket from './base/test.market.js';
 function testLoadedMarketTypes (exchange: Exchange, skippedProperties: object) {
     const marketTypes = [ 'spot', 'swap', 'future', 'option', 'index' ];
     const collectedTypes = [];
+    assert (exchange.markets !== undefined, '.markets is undefined');
     const markets = Object.values (exchange.markets);
     for (let i = 0; i < markets.length; i++) {
         const market = markets[i];
