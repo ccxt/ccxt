@@ -501,8 +501,8 @@
                     "stopLossPrice": null,
                     "average": null,
                     "amount": 20,
-                    "filled": null,
-                    "remaining": null,
+                    "filled": 0,
+                    "remaining": 20,
                     "cost": null,
                     "trades": [],
                     "fee": {
