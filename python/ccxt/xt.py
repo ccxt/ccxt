@@ -4494,7 +4494,7 @@ class xt(Exchange, ImplicitAPI):
             'amount': self.safe_number(contract, 'cast'),
         }
 
-    def index_position_break_list(self, breakList) -> dict:
+    def index_position_break_list(self, breakList: List[dict]) -> dict:
         """
  @ignore
         :param dict[] breakList: the "result" array of a position/break-list response
