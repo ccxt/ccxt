@@ -642,10 +642,31 @@ export default class sxbet extends Exchange {
         const hex = this.remove0xPrefix (result);
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         const lengthHex = hex.slice (64, 128);
-        const length = parseInt (lengthHex, 16);
+        const length = this.hexToInt (lengthHex);
         const dataEnd = this.sum (128, length * 2);
         const dataHex = hex.slice (128, dataEnd);
         return this.decode (this.base16ToBinary (dataHex));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#hexToInt
+     * @description parses a hex string (no '0x' prefix) into an integer — plain digit-by-digit, since JS's parseInt (hex, 16) two-argument form has no portable equivalent across languages/transpilers. Only used for small values (byte lengths, permit nonces), safe well within the float-precision range
+     * @param {string} hex the hex string, no '0x' prefix
+     * @returns {int} the parsed integer
+     */
+    hexToInt (hex: string): number {
+        const digits = '0123456789abcdef';
+        const lowerHex = hex.toLowerCase ();
+        const hexLength = lowerHex.length;
+        let result = 0;
+        for (let i = 0; i < hexLength; i++) {
+            const ch = lowerHex[i];
+            const digitValue = digits.indexOf (ch);
+            result = (result * 16) + digitValue;
+        }
+        return result;
     }
 
     /**
@@ -682,7 +703,7 @@ export default class sxbet extends Exchange {
         const nonceCallData = '0x7ecebe00' + this.padHexAddress (owner); // nonces(address)
         const nonceResult = await this.ethRpc (rpcUrl, 'eth_call', [ { 'to': tokenAddress, 'data': nonceCallData }, 'latest' ]);
         const nonceHex = this.hexToRlpBytes (nonceResult);
-        const nonce = (nonceHex === '') ? '0' : this.numberToString (parseInt (nonceHex, 16));
+        const nonce = (nonceHex === '') ? '0' : this.numberToString (this.hexToInt (nonceHex));
         const tokenName = await this.fetchErc20Name (rpcUrl, tokenAddress);
         const defaultDeadlineSeconds = this.safeInteger (this.options, 'approveDeadlineSeconds', 7200);
         const deadline = this.safeInteger (params, 'deadline', this.sum (this.seconds (), defaultDeadlineSeconds));
