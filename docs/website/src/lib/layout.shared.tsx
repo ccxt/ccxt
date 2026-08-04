@@ -24,13 +24,14 @@ export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutPr
   // so the deprecated layout-level `i18n` prop isn't needed here.
   return {
     nav: {
-      // Brand mark opens the marketing site (not the docs home).
+      // Brand mark → marketing site, same tab. Function title bypasses
+      // fumadocs-core/Link, which auto-sets target=_blank on absolute URLs.
       url: 'https://ccxt.com',
-      title: (
-        <>
+      title: ({ href, ...props }) => (
+        <a href={href ?? 'https://ccxt.com'} {...props}>
           <CcxtMark className="size-5" />
           <span className="font-semibold">{appName}</span>
-        </>
+        </a>
       ),
     },
     // Always-visible section nav so you can jump between the Guide, per-exchange
