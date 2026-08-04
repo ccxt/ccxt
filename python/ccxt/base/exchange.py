@@ -2418,6 +2418,8 @@ class BaseExchange(object):
             request['integrator_account_index'],
             request['integrator_taker_fee'],
             request['integrator_maker_fee'],
+            request['self_trade_behavior'],
+            request['self_trade_equality'],
             True,
             request['nonce'],
             request['api_key_index'],
@@ -2441,6 +2443,8 @@ class BaseExchange(object):
             request['integrator_account_index'],
             request['integrator_taker_fee'],
             request['integrator_maker_fee'],
+            request['self_trade_behavior'],
+            request['self_trade_equality'],
             True,
             request['nonce'],
             request['api_key_index'],
@@ -2516,11 +2520,14 @@ class BaseExchange(object):
             request['integrator_account_index'],
             request['integrator_taker_fee'],
             request['integrator_maker_fee'],
+            request['self_trade_behavior'],
+            request['self_trade_equality'],
             True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
         ))
+        print(request)
         if error:
             raise Exception('lighter_sign_modify_order() failed with error: ' + str(error))
         return [tx_type, tx_info]
