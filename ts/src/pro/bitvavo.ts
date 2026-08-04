@@ -962,7 +962,7 @@ export default class bitvavo extends bitvavoRest {
             this.cleanUnsubscription (client, subHash, key);
             // bitvavo resolves-and-deletes the data futures on every message, so at
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
-            // stashes the UnsubscribeError in client.rejections instead - that stale entry
+            // stashes the error in client.rejections instead - that stale entry
             // would immediately reject the next subscribe's fresh future, so clear it here
             if (subHash in client.rejections) {
                 delete client.rejections[subHash];
