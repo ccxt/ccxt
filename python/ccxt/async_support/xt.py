@@ -273,6 +273,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/user/v1/balance/funding-rate-list': 1,
                             'future/user/v1/balance/list': 1,
                             'future/user/v1/position/adl': 1,
+                            'future/user/v1/position/break-list': 1,
                             'future/user/v1/position/list': 1,
                             'future/user/v1/user/collection/list': 1,
                             'future/user/v1/user/listen-key': 1,
@@ -317,6 +318,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/user/v1/balance/funding-rate-list': 1,
                             'future/user/v1/balance/list': 1,
                             'future/user/v1/position/adl': 1,
+                            'future/user/v1/position/break-list': 1,
                             'future/user/v1/position/list': 1,
                             'future/user/v1/user/collection/list': 1,
                             'future/user/v1/user/listen-key': 1,
@@ -4493,11 +4495,44 @@ class xt(Exchange, ImplicitAPI):
             'amount': self.safe_number(contract, 'cast'),
         }
 
+    def index_position_break_list(self, breakList) -> dict:
+        """
+ @ignore
+        :param dict[] breakList: the "result" array of a position/break-list response
+        """
+        breakBySymbolSide = {}
+        for i in range(0, len(breakList)):
+            breakEntry = breakList[i]
+            # xt is hedge-mode only(positionSide is always 'LONG'/'SHORT' on every
+            # endpoint, including here and on position/list; there is no one-way/net
+            # mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            # both validate positionSide against exactly ['LONG', 'SHORT'])
+            key = self.safe_string(breakEntry, 'symbol') + '_' + self.safe_string(breakEntry, 'positionSide')
+            breakBySymbolSide[key] = breakEntry
+        return breakBySymbolSide
+
+    def merge_position_break_info(self, entry: dict, breakBySymbolSide: dict) -> dict:
+        """
+ @ignore
+        :param dict entry: a single entry from a position/list response
+        :param dict breakBySymbolSide: the result of indexPositionBreakList()
+        """
+        marketId = self.safe_string(entry, 'symbol')
+        key = marketId + '_' + self.safe_string(entry, 'positionSide')
+        breakEntry = self.safe_dict(breakBySymbolSide, key)
+        if breakEntry is None:
+            return entry
+        return self.extend(entry, {
+            'breakPrice': self.safe_string(breakEntry, 'breakPrice'),
+            'calMarkPrice': self.safe_string(breakEntry, 'calMarkPrice'),
+        })
+
     async def fetch_position(self, symbol: str, params={}) -> Position:
         """
         fetch data on a single open contract trade position
 
         https://doc.xt.com/#futures_usergetPosition
+        https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
 
         :param str symbol: unified market symbol of the market the position is held in
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -4511,11 +4546,16 @@ class xt(Exchange, ImplicitAPI):
         }
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPosition', market, params)
-        response = None
+        promisesUnresolved = []
         if subType == 'inverse':
-            response = await self.privateInverseGetFutureUserV1PositionList(self.extend(request, params))
+            promisesUnresolved.append(self.privateInverseGetFutureUserV1PositionList(self.extend(request, params)))
+            promisesUnresolved.append(self.privateInverseGetFutureUserV1PositionBreakList(self.extend(request, params)))
         else:
-            response = await self.privateLinearGetFutureUserV1PositionList(self.extend(request, params))
+            promisesUnresolved.append(self.privateLinearGetFutureUserV1PositionList(self.extend(request, params)))
+            promisesUnresolved.append(self.privateLinearGetFutureUserV1PositionBreakList(self.extend(request, params)))
+        response, breakResponse = await asyncio.gather(*promisesUnresolved)
+        #
+        # position/list
         #
         #     {
         #         "returnCode": 0,
@@ -4536,19 +4576,36 @@ class xt(Exchange, ImplicitAPI):
         #                 "openOrderMarginFrozen": "0",
         #                 "realizedProfit": "-0.00130138",
         #                 "autoMargin": False,
-        #                 "leverage": 25
+        #                 "leverage": 25,
+        #                 "markPrice": "27050"
         #             },
         #         ]
         #     }
         #
-        positions = self.safe_value(response, 'result', [])
+        # position/break-list
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "result": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "positionSide": "SHORT",
+        #                 "breakPrice": "0",
+        #                 "calMarkPrice": "27050"
+        #             },
+        #         ]
+        #     }
+        #
+        positions = self.safe_list(response, 'result', [])
+        breakBySymbolSide = self.index_position_break_list(self.safe_list(breakResponse, 'result', []))
         for i in range(0, len(positions)):
             entry = positions[i]
             marketId = self.safe_string(entry, 'symbol')
             marketInner = self.safe_market(marketId, None, None, 'contract')
             positionSize = self.safe_string(entry, 'positionSize')
             if positionSize != '0':
-                return self.parse_position(entry, marketInner)
+                merged = self.merge_position_break_info(entry, breakBySymbolSide)
+                return self.parse_position(merged, marketInner)
         raise NullResponse(self.id + ' fetchPosition() could not find a position for ' + symbol)
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
@@ -4556,6 +4613,7 @@ class xt(Exchange, ImplicitAPI):
         fetch all open positions
 
         https://doc.xt.com/#futures_usergetPosition
+        https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
 
         :param str [symbols]: list of unified market symbols, not supported with xt
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -4565,11 +4623,16 @@ class xt(Exchange, ImplicitAPI):
             await self.load_markets()
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositions', None, params)
-        response = None
+        promisesUnresolved = []
         if subType == 'inverse':
-            response = await self.privateInverseGetFutureUserV1PositionList(params)
+            promisesUnresolved.append(self.privateInverseGetFutureUserV1PositionList(params))
+            promisesUnresolved.append(self.privateInverseGetFutureUserV1PositionBreakList(params))
         else:
-            response = await self.privateLinearGetFutureUserV1PositionList(params)
+            promisesUnresolved.append(self.privateLinearGetFutureUserV1PositionList(params))
+            promisesUnresolved.append(self.privateLinearGetFutureUserV1PositionBreakList(params))
+        response, breakResponse = await asyncio.gather(*promisesUnresolved)
+        #
+        # position/list
         #
         #     {
         #         "returnCode": 0,
@@ -4590,21 +4653,40 @@ class xt(Exchange, ImplicitAPI):
         #                 "openOrderMarginFrozen": "0",
         #                 "realizedProfit": "-0.00130138",
         #                 "autoMargin": False,
-        #                 "leverage": 25
+        #                 "leverage": 25,
+        #                 "markPrice": "27050"
         #             },
         #         ]
         #     }
         #
-        positions = self.safe_value(response, 'result', [])
+        # position/break-list
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "result": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "positionSide": "SHORT",
+        #                 "breakPrice": "0",
+        #                 "calMarkPrice": "27050"
+        #             },
+        #         ]
+        #     }
+        #
+        positions = self.safe_list(response, 'result', [])
+        breakBySymbolSide = self.index_position_break_list(self.safe_list(breakResponse, 'result', []))
         result = []
         for i in range(0, len(positions)):
             entry = positions[i]
             marketId = self.safe_string(entry, 'symbol')
             marketInner = self.safe_market(marketId, None, None, 'contract')
-            result.append(self.parse_position(entry, marketInner))
+            merged = self.merge_position_break_info(entry, breakBySymbolSide)
+            result.append(self.parse_position(merged, marketInner))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position: Any, market: Market = None):
+        #
+        # position/list
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4620,7 +4702,17 @@ class xt(Exchange, ImplicitAPI):
         #         "openOrderMarginFrozen": "0",
         #         "realizedProfit": "-0.00130138",
         #         "autoMargin": False,
-        #         "leverage": 25
+        #         "leverage": 25,
+        #         "markPrice": "27050"
+        #     }
+        #
+        # position/break-list
+        #
+        #     {
+        #         "symbol": "btc_usdt",
+        #         "positionSide": "SHORT",
+        #         "breakPrice": "0",
+        #         "calMarkPrice": "27050"
         #     }
         #
         marketId = self.safe_string(position, 'symbol')
@@ -4629,6 +4721,7 @@ class xt(Exchange, ImplicitAPI):
         positionType = self.safe_string(position, 'positionType')
         marginMode = 'cross' if (positionType == 'CROSSED') else 'isolated'
         collateral = self.safe_number(position, 'isolatedMargin')
+        liquidationPriceString = self.omit_zero(self.safe_string(position, 'breakPrice'))
         return self.safe_position({
             'info': position,
             'id': None,
@@ -4640,7 +4733,7 @@ class xt(Exchange, ImplicitAPI):
             'contracts': self.safe_number(position, 'positionSize'),
             'contractSize': market['contractSize'],
             'entryPrice': self.safe_number(position, 'entryPrice'),
-            'markPrice': None,
+            'markPrice': self.safe_number_2(position, 'markPrice', 'calMarkPrice'),
             'notional': None,
             'leverage': self.safe_integer(position, 'leverage'),
             'collateral': collateral,
@@ -4649,7 +4742,7 @@ class xt(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,
             'unrealizedPnl': None,
-            'liquidationPrice': None,
+            'liquidationPrice': self.parse_number(liquidationPriceString),
             'marginMode': marginMode,
             'percentage': None,
             'marginRatio': None,
