@@ -13,12 +13,12 @@ import type { LanguageId } from "../languages";
 export const AI_ENDPOINT = process.env.PLAYGROUND_AI_URL?.trim() ?? "";
 
 const LANGUAGE_NAMES: Record<LanguageId, string> = {
-  ts: "TypeScript (run natively by Node, ESM, `import ccxt from 'ccxt'`, top-level await, types from ccxt)",
+  ts: "TypeScript (run natively by Node as an ES module, `import ccxt from 'ccxt'` — never require(), top-level await, types from ccxt)",
   python: "Python (synchronous ccxt, `import ccxt`, snake_case methods like fetch_ticker)",
-  php: "PHP (synchronous ccxt, classes under the \\ccxt namespace, snake_case methods)",
-  go: "Go (`github.com/ccxt/ccxt/go/v4/<exchange>`, `exchange := binance.New()`, PascalCase methods returning (result, error))",
-  csharp: "C# (.NET, `using ccxt;`, `new Binance()`, async PascalCase methods like await exchange.FetchTicker(...))",
-  java: "Java (`io.github.ccxt.exchanges.Binance`, `new Binance()`, camelCase methods returning CompletableFuture — call .join())",
+  php: "PHP (synchronous ccxt, classes under the \\ccxt namespace, snake_case methods; ccxt is preloaded, so start at `<?php` and never require/include an autoloader)",
+  go: "Go (one package: `ccxt \"github.com/ccxt/ccxt/go/v4\"` — there is no per-exchange package — construct with `ccxt.NewBinance(nil)`, PascalCase methods returning (result, error), struct fields are pointers)",
+  csharp: "C# (.NET top-level statements, `using ccxt;`, `new Binance()`, async PascalCase methods like await exchange.FetchTicker(...), lowercase result fields like ticker.symbol)",
+  java: "Java (`io.github.ccxt.exchanges.Binance`, `new Binance()`, in a `public class Main`; camelCase methods are SYNCHRONOUS and return the value directly — never call .join() on them; only the `...Async` variants return CompletableFuture)",
 };
 
 // The playground has one tab per language and the user switches freely, so an
@@ -77,6 +77,7 @@ Rules:
 - Every code answer ships the SAME program in ALL ${ordered.length} playground languages, one fenced block each, in this order and with exactly these fence tags:
 ${roster}
 - Never omit, merge, repeat or reorder a language, and never put two languages in one block. Each block is a complete, runnable program on its own, matching that language's idioms above (method casing, imports, sync vs async).
+- ccxt is already installed and on the path in every language, so never emit install/bootstrap boilerplate: no \`npm install\`, no \`go get\`, no \`go.mod\`, no \`composer require\`, no \`require\`/\`include\` of an autoloader in PHP, and no \`require()\` in TypeScript.
 - Prefer well-known exchanges (binance, kraken, coinbase, okx, bybit, bitfinex). Use unified symbols like 'BTC/USDT'.
 - Prediction markets (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid) live under the ccxt.prediction namespace and need ccxt >= 4.5.66. Construct with new ccxt.prediction.polymarket(). Search events with fetchEvents({ query: 'Bitcoin', limit: 5 }) — it must be scoped by at least one selector (query, queries, tags, eventId, or slug). Each event has .markets[], each market has .outcomes[] (and a .resolved flag), each outcome has an .outcome handle and a .label (e.g. 'Yes'/'No', though categorical markets use other labels); pass the .outcome handle to fetchTicker/fetchOrderBook/fetchOHLCV. An outcome's price is the market-implied probability. Resolved/closed markets have no order book, so skip markets where .resolved is true and wrap fetchTicker in a try/catch when scanning search results. In Python and PHP these exchanges are async-only: in Python use "import ccxt.prediction" with asyncio and await; there is no synchronous prediction API.
 - Keep answers concise: a sentence or two of prose before the blocks, not a paragraph per language. Nothing but code inside the fences — no prose, no output samples.
