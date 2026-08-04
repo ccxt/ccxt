@@ -115,7 +115,10 @@ public partial class cex : ccxt.cex
             ((IDictionary<string,object>)account)["free"] = this.safeString(freeBalance, currencyId);
             ((IDictionary<string,object>)account)["used"] = this.safeString(usedBalance, currencyId);
             object code = this.safeCurrencyCode(currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         this.balance = this.safeBalance(result);
         object messageHash = this.safeString(message, "oid");
@@ -246,13 +249,17 @@ public partial class cex : ccxt.cex
     {
         object data = this.safeList(message, "data", new List<object>() {});
         object symbol = this.safeString(getValue(this.options, "watchTrades"), "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
         if (!isTrue((inOp(this.trades, symbol))))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = new ArrayCache(limit);
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
-        object stored = getValue(this.trades, ((string)symbol));
-        object market = this.market(((string)symbol));
+        object stored = getValue(this.trades, symbol);
+        object market = this.market(symbol);
         object dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
@@ -262,8 +269,8 @@ public partial class cex : ccxt.cex
             callDynamically(stored, "append", new object[] {parsed});
         }
         object messageHash = "trades";
-        ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, ((string)symbol)), messageHash});
+        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), messageHash});
     }
 
     /**
@@ -810,7 +817,7 @@ public partial class cex : ccxt.cex
         }
         object storedOrders = this.orders;
         object ordersBySymbol = this.safeValue((storedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-        object order = this.safeValue(ordersBySymbol, ((string)orderId));
+        object order = this.safeValue(ordersBySymbol, orderId);
         if (isTrue(isEqual(order, null)))
         {
             order = this.parseWsOrderUpdate(data, market);
@@ -886,11 +893,19 @@ public partial class cex : ccxt.cex
         object remaining = null;
         if (isTrue(!isEqual(remainsPrecision, null)))
         {
+            if (isTrue(isEqual(market, null)))
+            {
+                return null;
+            }
             remaining = this.currencyFromPrecision(getValue(market, "base"), remainsPrecision);
         }
         object amount = this.safeString(order, "amount");
         if (!isTrue(isTransaction))
         {
+            if (isTrue(isEqual(market, null)))
+            {
+                return null;
+            }
             this.currencyFromPrecision(getValue(market, "base"), amount);
         }
         object baseId = this.safeString(order, "symbol");
@@ -997,7 +1012,7 @@ public partial class cex : ccxt.cex
         object symbol = this.safeString(message, "oid"); // symbol is set as requestId in watchOrders
         object rawOrders = this.safeValue(message, "data", new List<object>() {});
         object myOrders = this.orders;
-        if (isTrue(isEqual(this.orders, null)))
+        if (isTrue(isEqual(myOrders, null)))
         {
             object limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCacheBySymbolById(limit);
@@ -1027,7 +1042,7 @@ public partial class cex : ccxt.cex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1218,6 +1233,10 @@ public partial class cex : ccxt.cex
         //     }
         //
         object pair = this.safeString(message, "pair");
+        if (isTrue(isEqual(pair, null)))
+        {
+            return;
+        }
         object parts = ((string)pair).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object baseId = this.safeString(parts, 0);
         object quoteId = this.safeString(parts, 1);
@@ -1610,7 +1629,7 @@ public partial class cex : ccxt.cex
         } catch(Exception error)
         {
             object messageHash = this.safeString(message, "oid");
-            var future = this.safeValue(getValue(client as WebSocketClient, "futures"), ((string)messageHash));
+            var future = this.safeValue(getValue(client as WebSocketClient, "futures"), messageHash);
             if (isTrue(!isEqual(future, null)))
             {
                 ((WebSocketClient)client).reject(error, messageHash);
@@ -1654,7 +1673,7 @@ public partial class cex : ccxt.cex
             { "mass-cancel-place-orders", this.resolveData },
             { "get-order", this.resolveData },
         };
-        object handler = this.safeValue(handlers, ((string)eventVar));
+        object handler = this.safeValue(handlers, eventVar);
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

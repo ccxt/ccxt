@@ -416,7 +416,10 @@ public partial class coinone : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "avail");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -448,7 +451,7 @@ public partial class coinone : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -520,7 +523,7 @@ public partial class coinone : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object first = this.safeString(symbols, 0);
-            market = this.market(((string)first));
+            market = this.market(first);
             ((IDictionary<string,object>)request)["quote_currency"] = getValue(market, "quote");
             ((IDictionary<string,object>)request)["target_currency"] = getValue(market, "base");
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters));
@@ -1259,7 +1262,10 @@ public partial class coinone : Exchange
                 ((IDictionary<string,object>)depositAddress)["tag"] = value;
                 ((IDictionary<string,object>)depositAddress)["info"] = new List<object>() {address, value};
             }
-            ((IDictionary<string,object>)result)[(string)code] = depositAddress;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = depositAddress;
+            }
         }
         return result;
     }

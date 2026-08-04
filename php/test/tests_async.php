@@ -1704,7 +1704,9 @@ class testMainClass {
             $options['secret'] = '';
         }
         $exchange = init_exchange($exchange_name, $options);
-        $exchange->currencies = $currencies;
+        if ($currencies !== null) {
+            $exchange->currencies = $currencies;
+        }
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if ($prediction_events !== null) {
@@ -2162,7 +2164,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['Referer'] === $id, 'bybit - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2189,7 +2191,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             $id = 'ccxt';
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot orders.');
@@ -2198,14 +2200,14 @@ class testMainClass {
                     'uta' => true,
                 )));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot uta orders.');
             $id = 'ccxtfutures';
             try {
                 \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap orders.');
             try {
@@ -2213,7 +2215,7 @@ class testMainClass {
                     'uta' => true,
                 )));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap uta orders.');
             if (!is_sync()) {
@@ -2236,14 +2238,14 @@ class testMainClass {
                 $exchange->options['uta'] = false;
                 \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers.');
             try {
                 $exchange->options['uta'] = true;
                 \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers for uta orders.');
             if (!is_sync()) {
@@ -2262,7 +2264,7 @@ class testMainClass {
             try {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'bitget - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2282,7 +2284,7 @@ class testMainClass {
             try {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['source'] === $id, 'mexc - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2393,7 +2395,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['X-SOURCE-KEY'] === $id, 'bingx - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2446,7 +2448,7 @@ class testMainClass {
     // async testHyperliquid () {
     //     const exchange = this.initOfflineExchange ('hyperliquid');
     //     const id = '1';
-    //     let request = undefined;
+    //     let request: NullableDict = undefined;
     //     try {
     //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
     //     } catch (e) {
@@ -2591,7 +2593,7 @@ class testMainClass {
             try {
                 \React\Async\await($exchange->create_order('BTC/USD:USDC', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['PARADEX-PARTNER'] === $id, 'paradex - id: ' . $id . ' not in headers');
             if (!is_sync()) {
@@ -2610,7 +2612,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['INPUT-SOURCE'] === $id, 'hashkey - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2702,7 +2704,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('ETH/USDC', 'limit', 'buy', 1, 5000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['X-Broker-Id'] === $id, 'backpack - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2721,7 +2723,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['X-BB-API-PLATFORM'] === $id, 'toobit - id: ' . $id . ' not in headers.');
             if (!is_sync()) {

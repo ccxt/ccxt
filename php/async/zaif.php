@@ -269,11 +269,14 @@ class zaif extends Exchange {
     public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'currency_pair');
         $name = $this->safe_string($market, 'name');
+        if ($name === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing name');
+        }
         list($baseId, $quoteId) = explode('/', $name);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -321,10 +324,10 @@ class zaif extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'return', array());
         $deposit = $this->safe_value($balances, 'deposit');
         $result = array(
@@ -346,7 +349,9 @@ class zaif extends Exchange {
                     $account['total'] = $this->safe_string($deposit, $currencyId);
                 }
             }
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -379,7 +384,7 @@ class zaif extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -616,7 +621,7 @@ class zaif extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_dict($response, 'return');
+            $data = $this->safe_dict($response, 'return', array());
             return $this->parse_order($data);
         })();
     }
@@ -793,7 +798,7 @@ class zaif extends Exchange {
             //         }
             //     }
             //
-            $returnData = $this->safe_dict($result, 'return');
+            $returnData = $this->safe_dict($result, 'return', array());
             return $this->parse_transaction($returnData, $currency);
         })();
     }
@@ -851,7 +856,7 @@ class zaif extends Exchange {
         return sprintf('%.8f', $nonce);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api']['rest'] . '/';
         if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
@@ -880,7 +885,7 @@ class zaif extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

@@ -14,6 +14,7 @@ public partial class testMainClass : BaseTest
         assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         assert(((exchange.symbols is IList<object>) || (exchange.symbols.GetType().IsGenericType && exchange.symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ".symbols is not an array");
         object symbolsLength = getArrayLength(exchange.symbols);
+        assert(!isEqual(exchange.markets, null), ".markets is undefined");
         object marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
         object marketKeysLength = getArrayLength(marketKeys);
         assert(isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");

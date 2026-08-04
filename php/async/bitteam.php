@@ -699,30 +699,32 @@ class bitteam extends Exchange {
             $networkId = $networkIds[$j];
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkFee = $this->safe_number($feesByNetworkId, $networkId);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'active' => $active,
-                'fee' => $networkFee,
-                'precision' => $networkPrecision,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'active' => $active,
+                    'fee' => $networkFee,
+                    'precision' => $networkPrecision,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->parse_number($minWithdraw),
+                            'max' => $this->parse_number($maxWithdraw),
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_number($minDeposit),
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $this->parse_number($minWithdraw),
-                        'max' => $this->parse_number($maxWithdraw),
-                    ),
-                    'deposit' => array(
-                        'min' => $this->parse_number($minDeposit),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $currency,
-            );
+                    'info' => $currency,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -808,7 +810,7 @@ class bitteam extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "t" => 1669680000,
@@ -839,7 +841,7 @@ class bitteam extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1420,7 +1422,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($status) {
+    public function parse_order_type(mixed $status) {
         $statuses = array(
             'market' => 'market',
             'limit' => 'limit',
@@ -1428,7 +1430,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_value_to_pricision($valueObject, $valueKey, $preciseObject, $precisionKey) {
+    public function parse_value_to_pricision(mixed $valueObject, mixed $valueKey, mixed $preciseObject, mixed $precisionKey) {
         $valueRawString = $this->safe_string($valueObject, $valueKey);
         $precisionRawString = $this->safe_string($preciseObject, $precisionKey);
         if ($valueRawString === null || $precisionRawString === null) {
@@ -2169,7 +2171,7 @@ class bitteam extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //     {
         //         "ok" => true,
@@ -2227,11 +2229,13 @@ class bitteam extends Exchange {
             $used = $this->safe_string($currencyBalance, 'used');
             $total = $this->safe_string($currencyBalance, 'total');
             $currencyCode = $this->safe_currency_code(strtolower($rawCurrencyId));
-            $balance[$currencyCode] = array(
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            if ($currencyCode !== null) {
+                $balance[$currencyCode] = array(
+                    'free' => $free,
+                    'used' => $used,
+                    'total' => $total,
+                );
+            }
         }
         return $this->safe_balance($balance);
     }
@@ -2447,7 +2451,7 @@ class bitteam extends Exchange {
         );
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'deposit' => 'deposit',
             'withdraw' => 'withdrawal',
@@ -2463,7 +2467,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
@@ -2488,7 +2492,7 @@ class bitteam extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

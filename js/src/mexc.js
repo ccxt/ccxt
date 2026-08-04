@@ -1190,23 +1190,25 @@ export default class mexc extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString2(chain, 'netWork', 'network');
             const network = this.networkIdToCode(networkId, code);
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': undefined,
-                'deposit': this.safeBool(chain, 'depositEnable', false),
-                'withdraw': this.safeBool(chain, 'withdrawEnable', false),
-                'fee': this.safeNumber(chain, 'withdrawFee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeString(chain, 'withdrawMin'),
-                        'max': this.safeString(chain, 'withdrawMax'),
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'depositEnable', false),
+                    'withdraw': this.safeBool(chain, 'withdrawEnable', false),
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeString(chain, 'withdrawMin'),
+                            'max': this.safeString(chain, 'withdrawMax'),
+                        },
                     },
-                },
-                'contract': this.safeString(chain, 'contract'),
-            };
+                    'contract': this.safeString(chain, 'contract'),
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': rawCurrency,
@@ -1506,7 +1508,7 @@ export default class mexc extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2561,10 +2563,14 @@ export default class mexc extends Exchange {
         else if (type === 'market') {
             type = 6;
         }
+        let volString = this.amountToPrecision(symbol, amount);
+        if (volString === undefined) {
+            volString = '0';
+        }
         const request = {
             'symbol': market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
-            'vol': parseFloat(this.amountToPrecision(symbol, amount)),
+            'vol': parseFloat(volString),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             //
@@ -2588,7 +2594,11 @@ export default class mexc extends Exchange {
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
         if ((type !== 5) && (type !== 6) && (type !== 'market')) {
-            request['price'] = parseFloat(this.priceToPrecision(symbol, price));
+            let priceString = this.priceToPrecision(symbol, price);
+            if (priceString === undefined) {
+                priceString = '0';
+            }
+            request['price'] = parseFloat(priceString);
         }
         if (openType === 1) {
             const leverage = this.safeInteger(params, 'leverage');
@@ -3982,8 +3992,12 @@ export default class mexc extends Exchange {
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'asset'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'asset'));
                 const subResult = {};
-                subResult[baseCode] = this.parseBalanceHelper(base);
-                subResult[quoteCode] = this.parseBalanceHelper(quote);
+                if (baseCode !== undefined) {
+                    subResult[baseCode] = this.parseBalanceHelper(base);
+                }
+                if (quoteCode !== undefined) {
+                    subResult[quoteCode] = this.parseBalanceHelper(quote);
+                }
                 result[symbol] = this.safeBalance(subResult);
             }
             return result;
@@ -3996,7 +4010,9 @@ export default class mexc extends Exchange {
                 const account = this.account();
                 account['free'] = this.safeString(entry, 'availableBalance');
                 account['used'] = this.safeString(entry, 'frozenBalance');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             return this.safeBalance(result);
         }
@@ -4008,7 +4024,9 @@ export default class mexc extends Exchange {
                 const account = this.account();
                 account['free'] = this.safeString(entry, 'free');
                 account['used'] = this.safeString(entry, 'locked');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             return this.safeBalance(result);
         }
@@ -4870,8 +4888,8 @@ export default class mexc extends Exchange {
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             const networkUnified = this.networkIdToCode(networkCode, code);
             const networks = this.safeDict(currency, 'networks', {});
-            if (networkUnified in networks) {
-                const network = this.safeDict(networks, networkUnified, {});
+            if ((networkUnified !== undefined) && (networkUnified in networks)) {
+                const network = (networkUnified === undefined) ? {} : this.safeDict(networks, networkUnified, {});
                 const networkInfo = this.safeValue(network, 'info', {});
                 networkId = this.safeString(networkInfo, 'network');
             }
@@ -4924,8 +4942,8 @@ export default class mexc extends Exchange {
         let networkId = undefined;
         const networkUnified = this.networkIdToCode(networkCode, code);
         const networks = this.safeDict(currency, 'networks', {});
-        if (networkUnified in networks) {
-            const network = this.safeDict(networks, networkUnified, {});
+        if ((networkUnified !== undefined) && (networkUnified in networks)) {
+            const network = (networkUnified === undefined) ? {} : this.safeDict(networks, networkUnified, {});
             const networkInfo = this.safeValue(network, 'info', {});
             networkId = this.safeString(networkInfo, 'network');
         }
@@ -4960,7 +4978,8 @@ export default class mexc extends Exchange {
         const addressStructures = await this.fetchDepositAddressesByNetwork(code, params);
         let result;
         if (network !== undefined) {
-            result = this.safeDict(addressStructures, this.networkIdToCode(network, code));
+            const netCode = this.networkIdToCode(network, code);
+            result = (netCode === undefined) ? undefined : this.safeDict(addressStructures, netCode);
         }
         else {
             const options = this.safeDict(this.options, 'defaultNetworks');
@@ -5473,7 +5492,7 @@ export default class mexc extends Exchange {
         else if (marketType === 'swap') {
             throw new BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
         }
-        return undefined;
+        throw new BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
     }
     /**
      * @method
@@ -6034,16 +6053,18 @@ export default class mexc extends Exchange {
             const networkEntry = networkList[j];
             const networkId = this.safeString(networkEntry, 'network');
             const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': this.safeNumber(networkEntry, 'withdrawFee'),
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': this.safeNumber(networkEntry, 'withdrawFee'),
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }

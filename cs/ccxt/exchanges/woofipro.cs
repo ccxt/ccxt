@@ -531,6 +531,10 @@ public partial class woofipro : Exchange
         //   }
         //
         object marketId = this.safeString(market, "symbol");
+        if (isTrue(isEqual(marketId, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
+        }
         object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketType = "swap";
         object baseId = this.safeString(parts, 1);
@@ -540,7 +544,7 @@ public partial class woofipro : Exchange
         object settleId = this.safeString(parts, 2);
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
             { "base", bs },
@@ -588,7 +592,7 @@ public partial class woofipro : Exchange
             } },
             { "created", this.safeInteger(market, "created_time") },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -695,6 +699,10 @@ public partial class woofipro : Exchange
                 { "_token", token },
                 { "_indexedChains", indexedChains },
             });
+            if (isTrue(isEqual(parsed, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchCurrencies() could not resolve parsed")) ;
+            }
             ((IDictionary<string,object>)result)[(string)getValue(parsed, "code")] = parsed;
         }
         return result;
@@ -713,31 +721,34 @@ public partial class woofipro : Exchange
             object networkEntry = getValue(networks, j);
             object networkId = this.safeString(networkEntry, "chain_id");
             object networkRow = this.safeDict(indexedChains, networkId);
-            object networkName = this.safeString(networkRow, "name");
+            object networkName = this.safeString(networkRow, "name", networkId);
             object networkCode = this.networkIdToCode(networkName, code);
-            ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
+                    { "info", new Dictionary<string, object>() {
+                        { "network", networkEntry },
+                        { "networkRow", networkRow },
                     } },
-                } },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
-                { "info", new Dictionary<string, object>() {
-                    { "network", networkEntry },
-                    { "networkRow", networkRow },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -818,7 +829,7 @@ public partial class woofipro : Exchange
         object order_id = this.safeString(trade, "order_id");
         object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
         object feeCost = this.safeString(fee, "cost");
-        if (isTrue(!isEqual(feeCost, null)))
+        if (isTrue(isTrue((!isEqual(fee, null))) && isTrue((!isEqual(feeCost, null)))))
         {
             ((IDictionary<string,object>)fee)["cost"] = feeCost;
         }
@@ -1285,9 +1296,10 @@ public partial class woofipro : Exchange
         object maker = this.safeString(data, "futures_maker_fee_rate");
         object taker = this.safeString(data, "futures_taker_fee_rate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1308,7 +1320,7 @@ public partial class woofipro : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1571,22 +1583,34 @@ public partial class woofipro : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name woofipro#createOrderRequest
-        * @description helper function to build the request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name woofipro#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         object orderType = ((string)type).ToUpper();
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrderRequest() requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object orderSide = ((string)side).ToUpper();
         object request = new Dictionary<string, object>() {
@@ -1677,7 +1701,7 @@ public partial class woofipro : Exchange
                     { "type", "LIMIT" },
                     { "reduce_only", true },
                 };
-                ((IList<object>)outterOrder).Add(takeProfitOrder);
+                ((IList<object>)childOrders).Add(takeProfitOrder);
             }
             ((IDictionary<string,object>)request)["child_orders"] = new List<object>() {outterOrder};
         }
@@ -1845,6 +1869,10 @@ public partial class woofipro : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
         object response = null;
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a side argument")) ;
+        }
         if (isTrue(isConditional))
         {
             response = await this.v1PrivatePutAlgoOrder(this.extend(request, parameters));
@@ -1985,7 +2013,8 @@ public partial class woofipro : Exchange
         }
         if (isTrue(trigger))
         {
-            return this.extend(this.parseOrder(response), extendParams);
+            object parsedResponse = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+            return this.extend(this.parseOrder(parsedResponse), extendParams);
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.extend(this.parseOrder(data), extendParams);
@@ -2174,7 +2203,8 @@ public partial class woofipro : Exchange
         // }
         //
         object orders = this.safeDict(response, "data", response);
-        return this.parseOrder(orders, market);
+        object parsedOrders = ((bool) isTrue((isEqual(orders, null)))) ? new Dictionary<string, object>() {} : orders;
+        return this.parseOrder(parsedOrders, market);
     }
 
     /**
@@ -2492,7 +2522,10 @@ public partial class woofipro : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");
             ((IDictionary<string,object>)account)["frozen"] = this.safeString(balance, "frozen");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2625,7 +2658,7 @@ public partial class woofipro : Exchange
             { "BALANCE", "transaction" },
             { "COLLATERAL", "transfer" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -2766,7 +2799,12 @@ public partial class woofipro : Exchange
         //         "success":true
         //     }
         //
-        return this.parseTransactions(rows, currency, since, limit, parameters);
+        object rowsList = new List<object>() {};
+        if (isTrue(!isEqual(rows, null)))
+        {
+            rowsList = rows;
+        }
+        return this.parseTransactions(rowsList, currency, since, limit, parameters);
     }
 
     public async virtual Task<object> getWithdrawNonce(object parameters = null)
@@ -3116,7 +3154,7 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parsePosition(data, market);
     }
 

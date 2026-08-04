@@ -366,7 +366,7 @@ public partial class hibachi
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary containg [orderbook information]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;

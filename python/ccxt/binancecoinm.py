@@ -42,10 +42,10 @@ class binancecoinm(binance, ImplicitAPI):
             },
         })
 
-    def transfer_in(self, code: str, amount, params={}):
+    def transfer_in(self, code: str, amount: Any, params={}):
         # transfer from spot wallet to coinm futures wallet
         return self.futuresTransfer(code, amount, 3, params)
 
-    def transfer_out(self, code: str, amount, params={}):
+    def transfer_out(self, code: str, amount: Any, params={}):
         # transfer from coinm futures wallet to spot wallet
         return self.futuresTransfer(code, amount, 4, params)

@@ -92,7 +92,7 @@ bitteam.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair  
 

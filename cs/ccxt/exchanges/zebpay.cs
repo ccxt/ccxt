@@ -419,26 +419,29 @@ public partial class zebpay : Exchange
             {
                 minDepositString = ((bool) isTrue((isEqual(minDepositString, null)))) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
             }
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", chain },
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", isTrue(depositAllowed) && isTrue(withdrawAllowed) },
-                { "deposit", depositAllowed },
-                { "withdraw", withdrawAllowed },
-                { "fee", this.parseNumber(withdrawFeeString) },
-                { "precision", precision },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minNetworkWithdrawString) },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", chain },
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", isTrue(depositAllowed) && isTrue(withdrawAllowed) },
+                    { "deposit", depositAllowed },
+                    { "withdraw", withdrawAllowed },
+                    { "fee", this.parseNumber(withdrawFeeString) },
+                    { "precision", precision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.parseNumber(minNetworkWithdrawString) },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.parseNumber(minNetworkDepositString) },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minNetworkDepositString) },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -527,7 +530,7 @@ public partial class zebpay : Exchange
             // }
             //
             object responseData = this.safeList(response, "data", new List<object>() {});
-            data = this.safeDict(responseData, 0);
+            data = this.safeDict(responseData, 0, new Dictionary<string, object>() {});
         }
         return this.parseTradingFee(data, market);
     }
@@ -575,7 +578,10 @@ public partial class zebpay : Exchange
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = fee;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = fee;
+            }
         }
         return result;
     }
@@ -589,7 +595,7 @@ public partial class zebpay : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1102,6 +1108,10 @@ public partial class zebpay : Exchange
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         parameters = this.omit(parameters, new List<object>() {"marginAsset", "takeProfitPrice", "takeProfitPrice"});
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
@@ -1162,7 +1172,7 @@ public partial class zebpay : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object upperCaseType = ((string)type).ToUpper();
-        object triggerPrice = this.safeString(parameters, "stopLossPrice", null);
+        object triggerPrice = this.safeString(parameters, "stopLossPrice");
         object quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         object clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
@@ -1234,7 +1244,7 @@ public partial class zebpay : Exchange
         //        },
         //    }
         //
-        return this.parseOrder(this.safeDict(response, "data"));
+        return this.parseOrder(this.safeDict(response, "data", new Dictionary<string, object>() {}));
     }
 
     /**
@@ -1445,7 +1455,7 @@ public partial class zebpay : Exchange
         object clientOrderId = this.safeString(order, "clientOrderId");
         object timeInForce = this.safeString(order, "timeInForce");
         object status = this.safeStringLower(order, "status");
-        object orderId = this.safeString(order, "orderId", null);
+        object orderId = this.safeString(order, "orderId");
         object parsedOrder = this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },
@@ -1901,7 +1911,10 @@ public partial class zebpay : Exchange
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "used");
             object currencyId = this.safeString(entry, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }

@@ -37,7 +37,7 @@ export class BytesCoder extends DynamicBytesCoder {
         super("bytes", localName);
     }
 
-    decode(reader: Reader): any {
+    override decode(reader: Reader): any {
         return hexlify(super.decode(reader));
     }
 }

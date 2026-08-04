@@ -517,7 +517,7 @@ class whitebit extends whitebit$1["default"] {
         const makerFeeRate = this.safeString(market, 'makerFee');
         const maker = Precise["default"].stringDiv(makerFeeRate, '100');
         const isSpot = !swap;
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -567,7 +567,7 @@ class whitebit extends whitebit$1["default"] {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -665,25 +665,27 @@ class whitebit extends whitebit$1["default"] {
             const networkCode = this.networkIdToCode(networkId, code);
             const networkDepositLimits = this.safeDict(depositLimits, networkId, {});
             const networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, {});
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.inArray(networkId, depositsNetworks),
-                'withdraw': this.inArray(networkId, withdrawsNetworks),
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber(networkDepositLimits, 'min'),
-                        'max': this.safeNumber(networkDepositLimits, 'max'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.inArray(networkId, depositsNetworks),
+                    'withdraw': this.inArray(networkId, withdrawsNetworks),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(networkDepositLimits, 'min'),
+                            'max': this.safeNumber(networkDepositLimits, 'max'),
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(networkWithdrawLimits, 'min'),
+                            'max': this.safeNumber(networkWithdrawLimits, 'max'),
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(networkWithdrawLimits, 'min'),
-                        'max': this.safeNumber(networkWithdrawLimits, 'max'),
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -761,9 +763,13 @@ class whitebit extends whitebit$1["default"] {
             const data = response[currency];
             const code = this.safeCurrencyCode(currency);
             const withdraw = this.safeValue(data, 'withdraw', {});
-            withdrawFees[code] = this.safeString(withdraw, 'fixed');
+            if (code !== undefined) {
+                withdrawFees[code] = this.safeString(withdraw, 'fixed');
+            }
             const deposit = this.safeValue(data, 'deposit', {});
-            depositFees[code] = this.safeString(deposit, 'fixed');
+            if (code !== undefined) {
+                depositFees[code] = this.safeString(deposit, 'fixed');
+            }
         }
         return {
             'withdraw': withdrawFees,
@@ -881,7 +887,7 @@ class whitebit extends whitebit$1["default"] {
             const currencyId = splitEntry[0];
             const feeInfo = response[entry];
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (this.inArray(code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
                 const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
@@ -904,10 +910,12 @@ class whitebit extends whitebit$1["default"] {
                     const networkLength = networkId.length;
                     networkId = networkId.slice(1, networkLength - 1);
                     const networkCode = this.networkIdToCode(networkId, code);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
+                    if (networkCode !== undefined) {
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        };
+                    }
                 }
                 else {
                     depositWithdrawFees[code]['withdraw'] = withdrawResult;
@@ -954,8 +962,9 @@ class whitebit extends whitebit$1["default"] {
         //      }
         //
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             const fee = this.safeValue(response, market['baseId'], {});
             let makerFee = this.safeString(fee, 'maker_fee');
@@ -1032,10 +1041,14 @@ class whitebit extends whitebit$1["default"] {
         //
         const result = {};
         // Process all markets from the loaded markets cache
-        const marketIds = Object.keys(this.markets);
+        const markets = this.markets;
+        if (markets === undefined) {
+            throw new errors.ExchangeError(this.id + ' markets not loaded');
+        }
+        const marketIds = Object.keys(markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.markets[marketId];
+            const market = markets[marketId];
             if (!market || !market['symbol']) {
                 continue; // Skip invalid markets silently
             }
@@ -1184,14 +1197,15 @@ class whitebit extends whitebit$1["default"] {
                 }
             }
             // Build comprehensive funding limits
+            const currencyLimits = this.safeDict(currency, 'limits', {});
             const limits = {
                 'deposit': {
-                    'min': currency['limits']['deposit']['min'],
-                    'max': currency['limits']['deposit']['max'],
+                    'min': currencyLimits['deposit']['min'],
+                    'max': currencyLimits['deposit']['max'],
                 },
                 'withdraw': {
-                    'min': currency['limits']['withdraw']['min'],
-                    'max': currency['limits']['withdraw']['max'],
+                    'min': currencyLimits['withdraw']['min'],
+                    'max': currencyLimits['withdraw']['max'],
                 },
             };
             // Add fee information if available
@@ -1592,7 +1606,7 @@ class whitebit extends whitebit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2284,11 +2298,17 @@ class whitebit extends whitebit$1["default"] {
         }
         const market = this.market(symbol);
         params = this.omit(params, 'symbol');
+        if (timeout === undefined) {
+            throw new errors.ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         const isBiggerThanZero = (timeout > 0);
         const request = {
             'market': market['id'],
             // 'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
         };
+        if (timeout === undefined) {
+            throw new errors.ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         if (isBiggerThanZero) {
             request['timeout'] = this.numberToString(timeout / 1000);
         }
@@ -2318,12 +2338,16 @@ class whitebit extends whitebit$1["default"] {
                 account['free'] = this.safeString2(balance, 'available', 'main_balance');
                 account['used'] = this.safeString(balance, 'freeze');
                 account['total'] = this.safeString(balance, 'main_balance');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             else {
                 const account = this.account();
                 account['total'] = balance;
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -3282,7 +3306,11 @@ class whitebit extends whitebit$1["default"] {
         //     }
         //
         const records = this.safeList(response, 'records', []);
-        return this.parseTransactions(records, currency, since, limit);
+        let recordsList = [];
+        if (records !== undefined) {
+            recordsList = records;
+        }
+        return this.parseTransactions(recordsList, currency, since, limit);
     }
     /**
      * @method
@@ -3661,7 +3689,11 @@ class whitebit extends whitebit$1["default"] {
         //    }
         //
         const records = this.safeList(response, 'records');
-        return this.parseTransactions(records, currency, since, limit);
+        let recordsList = [];
+        if (records !== undefined) {
+            recordsList = records;
+        }
+        return this.parseTransactions(recordsList, currency, since, limit);
     }
     /**
      * @method

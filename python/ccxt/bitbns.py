@@ -358,7 +358,7 @@ class bitbns(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -491,7 +491,7 @@ class bitbns(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         timestamp = None
         result = {
             'info': response,
@@ -513,7 +513,8 @@ class bitbns(Exchange, ImplicitAPI):
                 if currencyId == 'Money':
                     currencyId = 'INR'
                 code = self.safe_currency_code(currencyId)
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -544,7 +545,7 @@ class bitbns(Exchange, ImplicitAPI):
         # note that "Money" stands for INR - the only fiat in bitbns
         return self.parse_balance(response)
 
-    def parse_status(self, status):
+    def parse_status(self, status: Any):
         statuses = {
             '-1': 'cancelled',
             '0': 'open',
@@ -661,6 +662,8 @@ class bitbns(Exchange, ImplicitAPI):
         targetRate = self.safe_string(params, 'target_rate')
         trailRate = self.safe_string(params, 'trail_rate')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate'])
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],
@@ -691,7 +694,8 @@ class bitbns(Exchange, ImplicitAPI):
         #         "code":200
         #     }
         #
-        return self.parse_order(response, market)
+        parsed = {} if (response is None) else response
+        return self.parse_order(parsed, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -723,7 +727,8 @@ class bitbns(Exchange, ImplicitAPI):
         quoteSide += tail
         request['side'] = quoteSide
         response = self.v2PostCancel(self.extend(request, params))
-        return self.parse_order(response, market)
+        parsed = {} if (response is None) else response
+        return self.parse_order(parsed, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -775,7 +780,7 @@ class bitbns(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        first = self.safe_dict(data, 0)
+        first = self.safe_dict(data, 0, {})
         return self.parse_order(first, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1068,7 +1073,7 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Any, type: Str = None):
         statusesByType = {
             'deposit': {
                 '0': 'pending',
@@ -1190,7 +1195,7 @@ class bitbns(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'www', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'www', method='GET', params={}, headers: dict = None, body: Str = None):
         urls = self.urls
         if not (api in urls['api']):
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
@@ -1223,7 +1228,7 @@ class bitbns(Exchange, ImplicitAPI):
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

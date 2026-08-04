@@ -584,6 +584,9 @@ export default class lbank extends lbankRest {
             myOrders = new ArrayCacheBySymbolById(limit);
         }
         const order = this.parseWsOrder(message);
+        if (myOrders === undefined) {
+            return;
+        }
         myOrders.append(order);
         this.orders = myOrders;
         client.resolve(myOrders, 'orders');
@@ -734,7 +737,9 @@ export default class lbank extends lbankRest {
         account['free'] = this.safeString(data, 'free');
         account['used'] = this.safeString(data, 'freeze');
         account['total'] = this.safeString(data, 'asset');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
     }
@@ -776,7 +781,7 @@ export default class lbank extends lbankRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {

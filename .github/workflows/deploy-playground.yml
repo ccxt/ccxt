@@ -32,7 +32,7 @@ permissions:
 jobs:
   deploy:
     if: github.repository == 'ccxt/ccxt'
-    runs-on: ubuntu-latest           # amd64 — native build matching the docs server
+    runs-on: [ self-hosted, linux, x64, deploy ]          # amd64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-playground
       IMAGE_PROXY: ghcr.io/ccxt/ccxt-playground-egress
@@ -59,6 +59,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # The runtime layer resolves "latest" ccxt for Python/PHP/C#, so a cached
+      # layer would pin it forever. Keying on the ISO week re-resolves every
+      # Monday: six days out of seven the layer is a cache hit and the build is
+      # a couple of minutes instead of ~20.
+      - name: Compute runtime cache key
+        id: rev
+        run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
       - name: Build & push image
         uses: docker/build-push-action@v7
         with:
@@ -68,10 +76,11 @@ jobs:
           # All five runnable languages (TS/Python/PHP/C#/Go) are enabled. The Go
           # warm build (~5 GB peak) happens here on the GitHub-hosted runner, not
           # on the docs box; the box only needs headroom for warm `go run`s, which
-          # the 4 GB run cap below covers. To make a language install-only again
+          # the 12 GB run cap below covers. To make a language install-only again
           # (e.g. on a small box), add it back: PLAYGROUND_DISABLED=go
           build-args: |
             NEXT_BASE_PATH=${{ env.BASE_PATH }}
+            RUNTIMES_REV=${{ steps.rev.outputs.week }}
           # SHA tag enables canary validation + rollback; latest moves only after smoke passes.
           tags: |
             ${{ env.IMAGE }}:latest
@@ -96,6 +105,7 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host *\n  ServerAliveInterval 30\n  ServerAliveCountMax 10\n' > ~/.ssh/config
 
       - name: Deploy with canary smoke test (no-downtime, auto-abort on failure)
         env:
@@ -175,21 +185,30 @@ jobs:
           docker network connect "$NET_EGRESS" "$PROXY"
           docker tag "$IMAGE_PROXY:$SHA" "$IMAGE_PROXY:latest"
 
-          # OpenRouter key lives only on the box (root-only env-file, never in GitHub).
+          # Deployment-local settings (PLAYGROUND_AI_URL and anything else the box
+          # supplies) live only on the box, in a root-only env-file, never in GitHub.
           ENVFILE_ARG=""
           [ -f /root/ccxt-playground.env ] && ENVFILE_ARG="--env-file /root/ccxt-playground.env"
 
           # Force the app's egress through the proxy (it has no other route out).
+          # NO_PROXY carries the internal network's gateway so the assistant can
+          # reach the box-local endpoint in PLAYGROUND_AI_URL directly; everything
+          # else still goes through the exchange allowlist.
+          GATEWAY_IP="${SUBNET%.*/*}.1"
           PROXYENV="-e PLAYGROUND_EGRESS_PROXY=http://egress-proxy:3128 \
             -e HTTP_PROXY=http://egress-proxy:3128 -e HTTPS_PROXY=http://egress-proxy:3128 \
             -e http_proxy=http://egress-proxy:3128 -e https_proxy=http://egress-proxy:3128 \
-            -e NO_PROXY=localhost,127.0.0.1 -e no_proxy=localhost,127.0.0.1"
+            -e NO_PROXY=localhost,127.0.0.1,$GATEWAY_IP -e no_proxy=localhost,127.0.0.1,$GATEWAY_IP"
 
           # Hardening flags so a user run can't reach the host or exhaust it.
-          # 4 GB (not 2): a warm `go run` only recompiles the user's main package,
-          # but an import outside the warmed dependency graph triggers a large
-          # rebuild that OOMs inside 2 GB.
-          RUNFLAGS="--init --memory 4g --memory-swap 4g --cpus 2 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
+          # 12g/6cpu: sized for the dedicated docs box (8 cores / 31 GB). A warm
+          # `go run` only recompiles the user's main package, but an import
+          # outside the warmed dependency graph triggers a cold rebuild of the
+          # ccxt graph — 12 GB gives that headroom, and 6 CPUs (Go >= 1.25
+          # derives GOMAXPROCS from the cgroup quota) makes it finish well
+          # inside COMPILE_TIMEOUT_MS instead of crawling on 2. Still capped so
+          # user code can't exhaust the host.
+          RUNFLAGS="--init --memory 12g --memory-swap 12g --cpus 6 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
 
           # Persistent submission log — only the promoted live app (not the throwaway
           # canary) writes to the durable host mount; the file is logrotated above.

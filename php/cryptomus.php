@@ -310,6 +310,9 @@ class cryptomus extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($market, 'symbol');
+        if ($marketId === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
+        }
         $parts = explode('_', $marketId);
         $baseId = $parts[0];
         $quoteId = $parts[1];
@@ -421,26 +424,28 @@ class cryptomus extends Exchange {
             }
             $networkId = $this->safe_string($networkEntry, 'network_code');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($networkEntry, 'min_withdraw'),
-                        'max' => $this->safe_number($networkEntry, 'max_withdraw'),
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($networkEntry, 'min_withdraw'),
+                            'max' => $this->safe_number($networkEntry, 'max_withdraw'),
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($networkEntry, 'min_deposit'),
+                            'max' => $this->safe_number($networkEntry, 'max_deposit'),
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($networkEntry, 'min_deposit'),
-                        'max' => $this->safe_number($networkEntry, 'max_deposit'),
-                    ),
-                ),
-                'active' => null,
-                'deposit' => $this->safe_bool($networkEntry, 'can_deposit'),
-                'withdraw' => $this->safe_bool($networkEntry, 'can_withdraw'),
-                'fee' => null,
-                'precision' => null,
-                'info' => $networkEntry,
-            );
+                    'active' => null,
+                    'deposit' => $this->safe_bool($networkEntry, 'can_deposit'),
+                    'withdraw' => $this->safe_bool($networkEntry, 'can_withdraw'),
+                    'fee' => null,
+                    'precision' => null,
+                    'info' => $networkEntry,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -481,7 +486,7 @@ class cryptomus extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         //     {
         //         "currency_pair" => "XMR_USDT",
@@ -528,7 +533,7 @@ class cryptomus extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->level] 0 or 1 or 2 or 3 or 4 or 5 - the $level of volume
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -600,7 +605,11 @@ class cryptomus extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data');
-        return $this->parse_trades($data, $market, $since, $limit);
+        $dataList = array();
+        if ($data !== null) {
+            $dataList = $data;
+        }
+        return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -664,7 +673,7 @@ class cryptomus extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_balance($balance): array {
+    public function parse_balance(mixed $balance): array {
         //
         //     {
         //         "ticker" => "AVAX",
@@ -682,7 +691,9 @@ class cryptomus extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balanceEntry, 'available');
             $account['used'] = $this->safe_string($balanceEntry, 'held');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1123,7 +1134,7 @@ class cryptomus extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers($feeTiers, ?array $market = null) {
+    public function parse_fee_tiers(mixed $feeTiers, ?array $market = null) {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -1142,7 +1153,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;
@@ -1175,7 +1186,7 @@ class cryptomus extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

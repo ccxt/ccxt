@@ -402,26 +402,28 @@ class zebpay extends zebpay$1["default"] {
             if (minNetworkDepositString !== undefined) {
                 minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise["default"].stringMin(minNetworkDepositString, minDepositString);
             }
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': depositAllowed && withdrawAllowed,
-                'deposit': depositAllowed,
-                'withdraw': withdrawAllowed,
-                'fee': this.parseNumber(withdrawFeeString),
-                'precision': precision,
-                'limits': {
-                    'withdraw': {
-                        'min': this.parseNumber(minNetworkWithdrawString),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': depositAllowed && withdrawAllowed,
+                    'deposit': depositAllowed,
+                    'withdraw': withdrawAllowed,
+                    'fee': this.parseNumber(withdrawFeeString),
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.parseNumber(minNetworkWithdrawString),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.parseNumber(minNetworkDepositString),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.parseNumber(minNetworkDepositString),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': rawCurrency,
@@ -505,7 +507,7 @@ class zebpay extends zebpay$1["default"] {
             // }
             //
             const responseData = this.safeList(response, 'data', []);
-            data = this.safeDict(responseData, 0);
+            data = this.safeDict(responseData, 0, {});
         }
         return this.parseTradingFee(data, market);
     }
@@ -546,7 +548,9 @@ class zebpay extends zebpay$1["default"] {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -559,7 +563,7 @@ class zebpay extends zebpay$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1026,6 +1030,9 @@ class zebpay extends zebpay$1["default"] {
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         params = this.omit(params, ['marginAsset', 'takeProfitPrice', 'takeProfitPrice']);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         let request = {
             'symbol': market['id'],
             'side': side.toUpperCase(),
@@ -1075,7 +1082,7 @@ class zebpay extends zebpay$1["default"] {
     }
     orderRequest(symbol, type, amount, request, price = undefined, params = {}) {
         const upperCaseType = type.toUpperCase();
-        const triggerPrice = this.safeString(params, 'stopLossPrice', undefined);
+        const triggerPrice = this.safeString(params, 'stopLossPrice');
         const quoteOrderQty = this.safeString2(params, 'quoteOrderQty', 'cost', undefined);
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         const clientOrderId = this.safeString(params, 'clientOrderId', this.uuid());
@@ -1138,7 +1145,7 @@ class zebpay extends zebpay$1["default"] {
         //        },
         //    }
         //
-        return this.parseOrder(this.safeDict(response, 'data'));
+        return this.parseOrder(this.safeDict(response, 'data', {}));
     }
     /**
      * @method
@@ -1327,7 +1334,7 @@ class zebpay extends zebpay$1["default"] {
         const clientOrderId = this.safeString(order, 'clientOrderId');
         const timeInForce = this.safeString(order, 'timeInForce');
         const status = this.safeStringLower(order, 'status');
-        const orderId = this.safeString(order, 'orderId', undefined);
+        const orderId = this.safeString(order, 'orderId');
         const parsedOrder = this.safeOrder({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1742,7 +1749,9 @@ class zebpay extends zebpay$1["default"] {
             account['used'] = this.safeString(entry, 'used');
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

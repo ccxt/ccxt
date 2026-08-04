@@ -372,7 +372,7 @@ class delta extends Exchange {
         $datetime = $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
         $optionTypeUnified = ($optionType === 'C') ? 'call' : 'put';
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $optionType . '-' . $base . '-' . $strike . '-' . $expiry,
             'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
             'base' => $base,
@@ -415,12 +415,12 @@ class delta extends Exchange {
                 ),
             ),
             'info' => null,
-        );
+        ));
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')) || (str_starts_with($marketId, 'C-')) || (str_starts_with($marketId, 'P-')));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+        if ($isOption && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -590,26 +590,28 @@ class delta extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'name' => $this->safe_string($chain, 'name'),
-                'info' => $chain,
-                'active' => $this->safe_string($chain, 'status') === 'enabled',
-                'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
-                'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
-                'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
-                'limits' => array(
-                    'deposit' => array(
-                        'min' => $this->safe_number($chain, 'min_deposit_amount'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'name' => $this->safe_string($chain, 'name'),
+                    'info' => $chain,
+                    'active' => $this->safe_string($chain, 'status') === 'enabled',
+                    'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
+                    'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
+                    'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => $this->safe_number($chain, 'min_deposit_amount'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -649,7 +651,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function index_by_stringified_numeric_id($input) {
+    public function index_by_stringified_numeric_id(mixed $input) {
         $result = array();
         if ($input === null) {
             return null;
@@ -924,7 +926,7 @@ class delta extends Exchange {
                     }
                 }
                 $state = $this->safe_string($market, 'state');
-                $result[] = array(
+                $result[] = $this->safe_market_structure(array(
                     'id' => $id,
                     'numericId' => $numericId,
                     'symbol' => $symbol,
@@ -975,7 +977,7 @@ class delta extends Exchange {
                     ),
                     'created' => $this->parse8601($this->safe_string($market, 'launch_time')),
                     'info' => $market,
-                );
+                ));
             }
             return $result;
         })();
@@ -1429,7 +1431,9 @@ class delta extends Exchange {
                 }
                 $ticker = $this->parse_ticker($rawTicker);
                 $symbol = $ticker['symbol'];
-                $result[$symbol] = $ticker;
+                if ($symbol !== null) {
+                    $result[$symbol] = $ticker;
+                }
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         })();
@@ -1445,7 +1449,7 @@ class delta extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1618,7 +1622,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "time":1605393120,
@@ -1669,6 +1673,9 @@ class delta extends Exchange {
             if ($since === null) {
                 $end = $untilIsDefined ? $until : $this->seconds();
                 $request['end'] = $end;
+                if ($end === null) {
+                    throw new ExchangeError($this->id . ' fetchOHLCV() missing end');
+                }
                 $request['start'] = $end - $limit * $duration;
             } else {
                 $start = $this->parse_to_int($since / 1000);
@@ -1700,7 +1707,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_list($response, 'result', array());
         $result = array( 'info' => $response );
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId', array());
@@ -2134,7 +2141,11 @@ class delta extends Exchange {
                 // "size" => $this->amount_to_precision($symbol, $amount),
             );
             if ($amount !== null) {
-                $request['size'] = intval($this->amount_to_precision($symbol, $amount));
+                $sizeString = $this->amount_to_precision($symbol, $amount);
+                if ($sizeString === null) {
+                    $sizeString = '0';
+                }
+                $request['size'] = intval($sizeString);
             }
             if ($price !== null) {
                 $request['limit_price'] = $this->price_to_precision($symbol, $price);
@@ -2157,7 +2168,7 @@ class delta extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_dict($response, 'result');
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
         })();
     }
@@ -2220,7 +2231,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $result = $this->safe_dict($response, 'result');
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
         })();
     }
@@ -2354,7 +2365,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function fetch_orders_with_method($method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_with_method(mixed $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($method, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $request = array(
@@ -2553,7 +2564,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'pnl' => 'pnl',
             'deposit' => 'transaction',
@@ -2668,7 +2679,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        "id" => 1915615,
@@ -2836,7 +2847,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "close" => 30600.5,
@@ -2937,7 +2948,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3092,7 +3103,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "close" => 894.0,
@@ -3329,7 +3340,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_settlement($settlement, $market) {
+    public function parse_settlement(mixed $settlement, mixed $market) {
         //
         //     {
         //         "contract_value" => "0.001",
@@ -3394,7 +3405,7 @@ class delta extends Exchange {
         );
     }
 
-    public function parse_settlements($settlements, $market) {
+    public function parse_settlements(mixed $settlements, mixed $market) {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
@@ -4218,7 +4229,7 @@ class delta extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
@@ -4251,7 +4262,7 @@ class delta extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

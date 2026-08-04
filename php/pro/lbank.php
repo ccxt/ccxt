@@ -148,7 +148,7 @@ class lbank extends \ccxt\async\lbank {
         })();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(mixed $client, mixed $message) {
         //
         // request
         //    {
@@ -308,7 +308,7 @@ class lbank extends \ccxt\async\lbank {
         })();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(mixed $client, mixed $message) {
         //
         //     {
         //         "tick":array(
@@ -341,7 +341,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //     {
         //         "tick":array(
@@ -456,7 +456,7 @@ class lbank extends \ccxt\async\lbank {
         })();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(mixed $client, mixed $message) {
         //
         // request
         //     {
@@ -506,7 +506,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // request
         //    array( 'timestamp', 'price', 'volume', 'direction' )
@@ -590,7 +590,7 @@ class lbank extends \ccxt\async\lbank {
         })();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //     {
         //         "orderUpdate":array(
@@ -617,6 +617,9 @@ class lbank extends \ccxt\async\lbank {
             $myOrders = new ArrayCacheBySymbolById($limit);
         }
         $order = $this->parse_ws_order($message);
+        if ($myOrders === null) {
+            return;
+        }
         $myOrders->append($order);
         $this->orders = $myOrders;
         $client->resolve($myOrders, 'orders');
@@ -624,7 +627,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($myOrders, $messageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //     {
         //         "orderUpdate":array(
@@ -708,7 +711,7 @@ class lbank extends \ccxt\async\lbank {
         ), $market);
     }
 
-    public function parse_ws_order_status($status) {
+    public function parse_ws_order_status(mixed $status) {
         $statuses = array(
             '-1' => 'canceled',  // Withdrawn
             '0' => 'open',   // Unsettled
@@ -745,7 +748,7 @@ class lbank extends \ccxt\async\lbank {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "data" => array(
@@ -773,7 +776,9 @@ class lbank extends \ccxt\async\lbank {
         $account['free'] = $this->safe_string($data, 'free');
         $account['used'] = $this->safe_string($data, 'freeze');
         $account['total'] = $this->safe_string($data, 'asset');
-        $this->balance[$code] = $account;
+        if ($code !== null) {
+            $this->balance[$code] = $account;
+        }
         $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, 'balance');
     }
@@ -821,7 +826,7 @@ class lbank extends \ccxt\async\lbank {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -845,7 +850,7 @@ class lbank extends \ccxt\async\lbank {
         })();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         // request
         //    {
@@ -920,7 +925,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         //
         //    {
         //        SERVER => 'V2',
@@ -934,7 +939,7 @@ class lbank extends \ccxt\async\lbank {
         $client->reject($error);
     }
 
-    public function handle_ping(Client $client, $message) {
+    public function handle_ping(Client $client, mixed $message) {
         return Async\async(function () use ($client, $message) {
             //
             //  array( ping => 'a13a939c-5f25-4e06-9981-93cb3b890707', action => 'ping' )
@@ -951,7 +956,7 @@ class lbank extends \ccxt\async\lbank {
         })();
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(mixed $client, mixed $message) {
         $status = $this->safe_string($message, 'status');
         if ($status === 'error') {
             $this->handle_error_message($client, $message);

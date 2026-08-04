@@ -42,12 +42,12 @@ class binancecoinm extends binance {
         ));
     }
 
-    public function transfer_in(string $code, $amount, $params = array()) {
+    public function transfer_in(string $code, mixed $amount, $params = array()) {
         // transfer from spot wallet to coinm futures wallet
         return $this->futuresTransfer($code, $amount, 3, $params);
     }
 
-    public function transfer_out(string $code, $amount, $params = array()) {
+    public function transfer_out(string $code, mixed $amount, $params = array()) {
         // transfer from coinm futures wallet to spot wallet
         return $this->futuresTransfer($code, $amount, 4, $params);
     }

@@ -506,6 +506,8 @@ class dydx(Exchange, ImplicitAPI):
         #
         quoteId = 'USDC'
         marketId = self.safe_string(market, 'ticker')
+        if marketId is None:
+            raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('-')
         baseName = self.safe_string(parts, 0)
         baseId = self.safe_string(market, 'baseId', baseName)  # idk where 'baseId' comes from, but leaving
@@ -695,7 +697,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'trades', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         # {
         #     "startedAt": "2025-07-25T09:47:00.000Z",
@@ -832,7 +834,7 @@ class dydx(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def handle_public_address(self, methodName: str, params: dict):
+    def handle_public_address(self, methodName: Str, params: dict) -> list:
         userAux = None
         userAux, params = self.handle_option_and_params(params, methodName, 'user')
         user = userAux
@@ -1165,10 +1167,10 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'positions', [])
         return self.parse_positions(rows, symbols)
 
-    def hash_message(self, message):
+    def hash_message(self, message: Any):
         return self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: Any, privateKey: Any):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
@@ -1178,7 +1180,7 @@ class dydx(Exchange, ImplicitAPI):
             'v': self.sum(27, signature['v']),
         }
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: Any, privateKey: Any):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_onboarding_action(self) -> object:
@@ -1199,7 +1201,7 @@ class dydx(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def sign_dydx_tx(self, privateKey: str, message: Any, memo: str, chainId: str, account: Any, authenticators: Any, fee=None) -> str:
+    def sign_dydx_tx(self, privateKey: Str, message: Any, memo: Str, chainId: Str, account: Any, authenticators: Any, fee: Any = None) -> str:
         encodedTx, signDoc = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, fee)
         signature = self.sign_hash(encodedTx, privateKey)
         return self.encode_dydx_tx_raw(signDoc, signature['r'] + signature['s'])
@@ -1253,7 +1255,7 @@ class dydx(Exchange, ImplicitAPI):
         self.options['dydxAccount'] = account
         return account
 
-    def pow(self, n: str, m: str):
+    def pow(self, n: str, m: Str):
         r = Precise.string_mul(n, '1')
         c = self.parse_to_int(m)
         # TODO: cap
@@ -1261,10 +1263,16 @@ class dydx(Exchange, ImplicitAPI):
             r = Precise.string_mul(r, n)
         return r
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)
         orderType = type.upper()
         market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrderRequest() requires a side argument')
         orderSide = side.upper()
         subaccountId = 0
         subaccountId, params = self.handle_option_and_params(params, 'createOrder', 'subAccountId', subaccountId)
@@ -1330,6 +1338,8 @@ class dydx(Exchange, ImplicitAPI):
         if orderFlag == 0:
             if goodTillBlock is None:
                 # short term order
+                if latestBlockHeight is None:
+                    raise ExchangeError(self.id + ' method() missing latestBlockHeight')
                 goodTillBlock = latestBlockHeight + 20
         else:
             if goodTillBlockTimeInSeconds is None:
@@ -1367,7 +1377,13 @@ class dydx(Exchange, ImplicitAPI):
             'value': orderPayload,
         }
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId'])
-        orderId = self.create_order_id_from_parts(self.get_wallet_address(), subaccountId, clientOrderId, orderFlag, marketInfo['clobPairId'])
+        walletAddress = self.get_wallet_address()
+        clobPairId = self.safe_integer(marketInfo, 'clobPairId', 0)
+        subaccountIdValue = 0 if (subaccountId is None) else subaccountId
+        clientOrderIdValue = 0 if (clientOrderId is None) else clientOrderId
+        orderFlagValue = 0 if (orderFlag is None) else orderFlag
+        clobPairIdValue = 0 if (clobPairId is None) else clobPairId
+        orderId = self.create_order_id_from_parts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
         return [orderId, self.extend(signingPayload, params)]
 
     def create_order_id_from_parts(self, address: str, subAccountNumber: float, clientOrderId: float, orderFlags: float, clobPairId: float) -> str:
@@ -1395,7 +1411,10 @@ class dydx(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result')
         info = self.safe_dict(result, 'response')
-        return self.safe_integer(info, 'last_block_height')
+        height = self.safe_integer(info, 'last_block_height')
+        if height is None:
+            raise ExchangeError(self.id + ' fetchLatestBlockHeight() could not parse last_block_height')
+        return height
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
@@ -1627,7 +1646,7 @@ class dydx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1706,7 +1725,7 @@ class dydx(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         ledgerType = {
             'TRANSFER_IN': 'transfer',
             'TRANSFER_OUT': 'transfer',
@@ -1737,7 +1756,7 @@ class dydx(Exchange, ImplicitAPI):
         response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchLedger'}))
         return self.parse_ledger(response, currency, since, limit)
 
-    async def estimate_tx_fee(self, message: Any, memo: str, account: Any) -> Any:
+    async def estimate_tx_fee(self, message: Any, memo: Str, account: Any) -> Any:
         txBytes = self.encode_dydx_tx_for_simulation(message, memo, account['sequence'], account['pub_key'])
         request = {
             'txBytes': txBytes,
@@ -1770,6 +1789,8 @@ class dydx(Exchange, ImplicitAPI):
             denom = feeDenom['CHAINTOKEN_DENOM']
         gasLimit = int(math.ceil(self.parse_to_numeric(Precise.string_mul(gasUsed, defaultFeeMultiplier))))
         feeAmount = Precise.string_mul(self.number_to_string(gasLimit), gasPrice)
+        if feeAmount is None:
+            raise ExchangeError(self.id + ' estimateTxFee() missing feeAmount')
         if feeAmount.find('.') >= 0:
             feeAmount = self.number_to_string(int(math.ceil(self.parse_to_numeric(feeAmount))))
         feeObj = {
@@ -1799,7 +1820,7 @@ class dydx(Exchange, ImplicitAPI):
         fromSubaccountId = self.safe_integer(params, 'fromSubaccountId')
         toSubaccountId = self.safe_integer(params, 'toSubaccountId')
         if fromAccount != 'main':
-            # raise error if from subaccount id is undefind
+            # raise error if from subaccount id is None
             if fromAccount is None:
                 raise NotSupported(self.id + ' transfer only support main > subaccount and subaccount <> subaccount.')
             if fromSubaccountId is None or toSubaccountId is None:
@@ -2313,7 +2334,7 @@ class dydx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'subaccount')
         return self.parse_balance(data)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         account = self.account()
         account['free'] = self.safe_string(response, 'freeCollateral')
         result = {
@@ -2336,7 +2357,7 @@ class dydx(Exchange, ImplicitAPI):
                 return wallet
         raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.')
 
-    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         pathWithParams = self.implode_params(path, params)
         url = self.urls['api'][section]
         params = self.omit(params, self.extract_params(path))
@@ -2352,7 +2373,7 @@ class dydx(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #

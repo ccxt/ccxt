@@ -431,7 +431,7 @@ export default class blockchaincom extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.fetchL3OrderBook(symbol, limit, params);
@@ -636,6 +636,9 @@ export default class blockchaincom extends Exchange {
         const uppercaseOrderType = orderType.toUpperCase();
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clOrdId', this.uuid16());
         params = this.omit(params, ['ordType', 'clientOrderId', 'clOrdId']);
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             // 'stopPx' : limit price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
@@ -754,8 +757,9 @@ export default class blockchaincom extends Exchange {
         const makerFee = this.safeNumber(response, 'makerRate');
         const takerFee = this.safeNumber(response, 'takerRate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

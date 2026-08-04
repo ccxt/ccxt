@@ -51,7 +51,7 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -102,6 +102,10 @@ public partial class bitstamp : ccxt.bitstamp
         //     }
         //
         object channel = this.safeString(message, "channel");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
         object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 3);
         object symbol = this.safeSymbol(marketId);
@@ -109,6 +113,10 @@ public partial class bitstamp : ccxt.bitstamp
         object nonce = this.safeValue(storedOrderBook, "nonce");
         object delta = this.safeValue(message, "data");
         object deltaNonce = this.safeInteger(delta, "microtimestamp");
+        if (isTrue(isEqual(deltaNonce, null)))
+        {
+            return;
+        }
         object messageHash = add("orderbook:", symbol);
         if (isTrue(isEqual(nonce, null)))
         {
@@ -158,8 +166,12 @@ public partial class bitstamp : ccxt.bitstamp
         // we will consider it a fail
         object firstElement = getValue(deltas, 0);
         object firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
+        if (isTrue(isEqual(firstElementNonce, null)))
+        {
+            return -1;
+        }
         object nonce = this.safeInteger(orderbook, "nonce");
-        if (isTrue(isLessThan(nonce, firstElementNonce)))
+        if (isTrue(isTrue((isEqual(nonce, null))) || isTrue((isLessThan(nonce, firstElementNonce)))))
         {
             return -1;
         }
@@ -228,11 +240,15 @@ public partial class bitstamp : ccxt.bitstamp
         //         "price": 6294.77
         //     }
         //
-        object microtimestamp = this.safeInteger(trade, "microtimestamp");
+        object microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         object id = this.safeString(trade, "id");
         object timestamp = this.parseToInt(divide(microtimestamp, 1000));
         object price = this.safeString(trade, "price");
         object amount = this.safeString(trade, "amount");
+        if (isTrue(isEqual(market, null)))
+        {
+            market = this.safeMarket(null, market);
+        }
         object symbol = getValue(market, "symbol");
         object sideRaw = this.safeInteger(trade, "type");
         object side = ((bool) isTrue((isEqual(sideRaw, 0)))) ? "buy" : "sell";
@@ -276,6 +292,10 @@ public partial class bitstamp : ccxt.bitstamp
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         object channel = this.safeString(message, "channel");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
         object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 2);
         object market = this.safeMarket(marketId);
@@ -458,6 +478,10 @@ public partial class bitstamp : ccxt.bitstamp
     public virtual void handleOrderBookSubscription(WebSocketClient client, object message)
     {
         object channel = this.safeString(message, "channel");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
         object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 3);
         object symbol = this.safeSymbol(marketId);
@@ -479,6 +503,10 @@ public partial class bitstamp : ccxt.bitstamp
         //     }
         //
         object channel = this.safeString(message, "channel");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
         if (isTrue(isGreaterThan(getIndexOf(channel, "order_book"), -1)))
         {
             this.handleOrderBookSubscription(client as WebSocketClient, message);
@@ -525,6 +553,10 @@ public partial class bitstamp : ccxt.bitstamp
         //     }
         //
         object channel = this.safeString(message, "channel");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
         object methods = new Dictionary<string, object>() {
             { "live_trades", this.handleTrade },
             { "diff_order_book", this.handleOrderBook },

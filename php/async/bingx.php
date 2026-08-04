@@ -908,17 +908,19 @@ class bingx extends Exchange {
                 ),
             );
             $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
-            $networks[$networkCode] = array(
-                'info' => $rawNetwork,
-                'id' => $network,
-                'network' => $networkCode,
-                'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
-                'active' => null,
-                'deposit' => $this->safe_bool($rawNetwork, 'depositEnable'),
-                'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnable'),
-                'precision' => $precision,
-                'limits' => $limits,
-            );
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $rawNetwork,
+                    'id' => $network,
+                    'network' => $networkCode,
+                    'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
+                    'active' => null,
+                    'deposit' => $this->safe_bool($rawNetwork, 'depositEnable'),
+                    'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnable'),
+                    'precision' => $precision,
+                    'limits' => $limits,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $rawCurrency,
@@ -936,7 +938,7 @@ class bingx extends Exchange {
         ));
     }
 
-    public function fetch_spot_markets($params): PromiseInterface {
+    public function fetch_spot_markets(mixed $params): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->spotV1PublicGetCommonSymbols($params));
             //
@@ -972,7 +974,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function fetch_swap_markets($params) {
+    public function fetch_swap_markets(mixed $params) {
         return Async\async(function () use ($params) {
             $response = Async\await($this->swapV2PublicGetQuoteContracts($params));
             //
@@ -1011,7 +1013,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function fetch_inverse_swap_markets($params) {
+    public function fetch_inverse_swap_markets(mixed $params) {
         return Async\async(function () use ($params) {
             $response = Async\await($this->cswapV1PublicGetMarketContracts($params));
             //
@@ -1277,7 +1279,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
         //        "open" => "19394.4",
@@ -1544,10 +1546,17 @@ class bingx extends Exchange {
         }
         $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
         if (($market !== null) && $market['swap'] && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
-            // private $trade returns num of contracts instead of base currency (as the order-related methods do)
-            $contractSize = $this->safe_string($market['info'], 'tradeMinQuantity');
-            $volume = $this->safe_string($trade, 'volume');
-            $amount = Precise::string_mul($volume, $contractSize);
+            if ($market['linear']) {
+                // private linear swap trades report 'amount' notional (quote) value, not the base $amount;
+                // 'volume' is the exchange's own base-currency fill quantity (bingx linear $contractSize is always 1),
+                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
+                $amount = $this->safe_string($trade, 'volume');
+            } else {
+                // private $trade returns num of contracts instead of base currency (as the order-related methods do)
+                $contractSize = $this->safe_string($market['info'], 'tradeMinQuantity');
+                $volume = $this->safe_string($trade, 'volume');
+                $amount = Precise::string_mul($volume, $contractSize);
+            }
         }
         return $this->safe_trade(array(
             'id' => $this->safe_string_2($trade, 'id', 't'),
@@ -1581,7 +1590,7 @@ class bingx extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1762,7 +1771,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1857,7 +1866,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1938,7 +1947,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         // {
         //     "symbol" => "LDO-USDT",
         //     "incomeType" => "FUNDING_FEE",
@@ -2027,7 +2036,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         // linear swap
         //
@@ -2553,7 +2562,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         // standard
         //
@@ -2650,7 +2659,9 @@ class bingx extends Exchange {
                 $account['free'] = $this->safe_string_2($balance, 'availableMargin', 'availableBalance');
                 $account['used'] = $this->safe_string($balance, 'usedMargin');
                 $account['total'] = $this->safe_string($balance, 'maxWithdrawAmount');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         } else {
             for ($i = 0; $i < count($spotBalances); $i++) {
@@ -2660,7 +2671,9 @@ class bingx extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
@@ -3091,7 +3104,13 @@ class bingx extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build $request
@@ -3493,7 +3512,7 @@ class bingx extends Exchange {
             $marketIds = array();
             for ($i = 0; $i < count($orders); $i++) {
                 $rawOrder = $orders[$i];
-                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $marketId = $this->safe_string($rawOrder, 'symbol', '');
                 $type = $this->safe_string($rawOrder, 'type');
                 $marketIds[] = $marketId;
                 $side = $this->safe_string($rawOrder, 'side');
@@ -3580,7 +3599,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_order_side($side) {
+    public function parse_order_side(mixed $side) {
         $sides = array(
             'BUY' => 'buy',
             'SELL' => 'sell',
@@ -5452,7 +5471,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         // {
         //     "coinId":"4",
@@ -5654,7 +5673,7 @@ class bingx extends Exchange {
         $network = $this->safe_string($transaction, 'network');
         $currencyId = $this->safe_string($transaction, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
-        if (($code !== null) && ($code !== $network) && mb_strpos($code, $network) !== false) {
+        if (($code !== null) && ($network !== null) && ($code !== $network) && mb_strpos($code, $network) !== false) {
             if ($network !== null) {
                 $code = str_replace($network, '', $code);
             }
@@ -5689,7 +5708,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function parse_transaction_status(string $status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -6148,7 +6167,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         // currencie structure
         //
@@ -6184,7 +6203,7 @@ class bingx extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -6271,7 +6290,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_params($params) {
+    public function parse_params(mixed $params) {
         // $sortedParams = $this->keysort($params);
         $copied = $this->clone($params);
         $rawKeys = is_array($params) ? array_keys($params) : array();
@@ -6399,7 +6418,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
         //         "time" => "int64",
@@ -6511,7 +6530,7 @@ class bingx extends Exchange {
                     //
                 }
             }
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         })();
     }
@@ -6783,7 +6802,7 @@ class bingx extends Exchange {
                 //    }
                 //
             }
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         })();
     }
@@ -6839,7 +6858,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $marginType = $this->safe_string_lower($marginMode, 'marginType');
         $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
@@ -6941,7 +6960,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function custom_encode($params) {
+    public function custom_encode(mixed $params) {
         // $sortedParams = $this->keysort($params);
         $rawKeys = is_array($params) ? array_keys($params) : array();
         $keys = $this->sort($rawKeys);
@@ -7025,7 +7044,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         //
         //     array(
         //         {
@@ -7059,7 +7078,7 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
@@ -7106,7 +7125,8 @@ class bingx extends Exchange {
                 $parsedParams = $this->parse_params($params);
                 $encodeRequest = $this->rawencode($parsedParams, true);
             }
-            $signature = $this->hmac($this->encode($encodeRequest), $this->encode($this->secret), 'sha256');
+            $encodeRequestSafe = ($encodeRequest === null) ? '' : $encodeRequest;
+            $signature = $this->hmac($this->encode($encodeRequestSafe), $this->encode($this->secret), 'sha256');
             $headers = array(
                 'X-BX-APIKEY' => $this->apiKey,
                 'X-SOURCE-KEY' => $this->safe_string($this->options, 'broker', 'CCXT'),
@@ -7132,7 +7152,7 @@ class bingx extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

@@ -2853,6 +2853,9 @@ class binance extends binance$1["default"] {
         };
     }
     market(symbol) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' market() requires a symbol argument');
+        }
         if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
@@ -2863,13 +2866,13 @@ class binance extends binance$1["default"] {
         const isLegacyInverse = defaultType === 'delivery';
         const isLegacy = isLegacyLinear || isLegacyInverse;
         if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
                 const market = this.markets[symbol];
                 // begin diff
                 if (isLegacy && market['spot']) {
                     const settle = isLegacyLinear ? market['quote'] : market['base'];
                     const futuresSymbol = symbol + ':' + settle;
-                    if (futuresSymbol in this.markets) {
+                    if ((this.markets !== undefined) && (futuresSymbol in this.markets)) {
                         return this.markets[futuresSymbol];
                     }
                 }
@@ -2878,7 +2881,7 @@ class binance extends binance$1["default"] {
                 }
                 // end diff
             }
-            else if (symbol in this.markets_by_id) {
+            else if ((this.markets_by_id !== undefined) && (symbol in this.markets_by_id)) {
                 const markets = this.markets_by_id[symbol];
                 // begin diff
                 if (isLegacyLinear) {
@@ -2893,7 +2896,7 @@ class binance extends binance$1["default"] {
                 // end diff
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
-                    if (market[defaultType]) {
+                    if (this.safeValue(market, defaultType)) {
                         return market;
                     }
                 }
@@ -2905,7 +2908,7 @@ class binance extends binance$1["default"] {
                     const [base, quote] = symbol.split('/');
                     const settle = (quote === 'USD') ? base : quote;
                     const futuresSymbol = symbol + ':' + settle;
-                    if (futuresSymbol in this.markets) {
+                    if ((this.markets !== undefined) && (futuresSymbol in this.markets)) {
                         return this.markets[futuresSymbol];
                     }
                 }
@@ -2918,7 +2921,7 @@ class binance extends binance$1["default"] {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -3027,8 +3030,17 @@ class binance extends binance$1["default"] {
         const result = {};
         for (let i = 0; i < responseCurrencies.length; i++) {
             const parsed = this.parseCurrency(responseCurrencies[i]);
+            if (parsed === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseCurrenciesCustom() could not resolve parsed');
+            }
             const code = parsed['code'];
+            if (parsed === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseCurrenciesCustom() could not resolve parsed');
+            }
             const marginEntry = this.safeDict(marginablesById, parsed['id']);
+            if (parsed === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseCurrenciesCustom() could not resolve parsed');
+            }
             parsed['margin'] = this.safeBool(marginEntry, 'isBorrowable');
             result[code] = parsed;
         }
@@ -3156,7 +3168,9 @@ class binance extends binance$1["default"] {
             const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
             const depositEnable = this.safeBool(networkItem, 'depositEnable');
             const withdrawEnable = this.safeBool(networkItem, 'withdrawEnable');
-            fees[networkCode] = withdrawFee;
+            if (networkCode !== undefined) {
+                fees[networkCode] = withdrawFee;
+            }
             this.safeBool(networkItem, 'isDefault');
             // todo: default networks in "setMarkets" overload
             // if (isDefault) {
@@ -3167,26 +3181,28 @@ class binance extends binance$1["default"] {
             if (withdrawPrecision === undefined && isFiat) {
                 withdrawPrecision = this.safeString(this.options, 'defaultFiatWithdrawPrecision');
             }
-            networks[networkCode] = {
-                'info': networkItem,
-                'id': network,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': depositEnable,
-                'withdraw': withdrawEnable,
-                'fee': withdrawFee,
-                'precision': this.parseNumber(withdrawPrecision),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkItem, 'withdrawMin'),
-                        'max': this.safeNumber(networkItem, 'withdrawMax'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': depositEnable,
+                    'withdraw': withdrawEnable,
+                    'fee': withdrawFee,
+                    'precision': this.parseNumber(withdrawPrecision),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkItem, 'withdrawMin'),
+                            'max': this.safeNumber(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(networkItem, 'depositDust'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(networkItem, 'depositDust'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         let type = undefined;
         if (isETF) {
@@ -3533,6 +3549,9 @@ class binance extends binance$1["default"] {
         let option = false;
         const underlying = this.safeString(market, 'underlying');
         const id = this.safeString(market, 'symbol');
+        if (id === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing id');
+        }
         const optionParts = id.split('-');
         const optionBase = this.safeString(optionParts, 0);
         const lowercaseId = this.safeStringLower(market, 'symbol');
@@ -3715,7 +3734,7 @@ class binance extends binance$1["default"] {
             entry['limits']['cost']['min'] = this.safeNumber2(filter, 'minNotional', 'notional');
             entry['limits']['cost']['max'] = this.safeNumber(filter, 'maxNotional');
         }
-        return entry;
+        return this.safeMarketStructure(entry);
     }
     parseBalanceHelper(entry) {
         const account = this.account();
@@ -3762,7 +3781,9 @@ class binance extends binance$1["default"] {
                     const totalWalletBalance = this.safeString(entry, 'totalWalletBalance');
                     account['total'] = Precise["default"].stringAdd(totalUsed, totalWalletBalance);
                 }
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         else if (!isolated && ((type === 'spot') || cross)) {
@@ -3780,7 +3801,9 @@ class binance extends binance$1["default"] {
                     const interest = this.safeString(balance, 'interest');
                     account['debt'] = Precise["default"].stringAdd(debt, interest);
                 }
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         else if (isolated) {
@@ -3794,8 +3817,12 @@ class binance extends binance$1["default"] {
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'asset'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'asset'));
                 const subResult = {};
-                subResult[baseCode] = this.parseBalanceHelper(base);
-                subResult[quoteCode] = this.parseBalanceHelper(quote);
+                if (baseCode !== undefined) {
+                    subResult[baseCode] = this.parseBalanceHelper(base);
+                }
+                if (quoteCode !== undefined) {
+                    subResult[quoteCode] = this.parseBalanceHelper(quote);
+                }
                 result[symbol] = this.safeBalance(subResult);
             }
         }
@@ -3809,7 +3836,9 @@ class binance extends binance$1["default"] {
                 const usedAndTotal = this.safeString(entry, 'amount');
                 account['total'] = usedAndTotal;
                 account['used'] = usedAndTotal;
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         else if (type === 'funding') {
@@ -3823,7 +3852,9 @@ class binance extends binance$1["default"] {
                 const withdrawing = this.safeString(entry, 'withdrawing');
                 const locked = this.safeString(entry, 'locked');
                 account['used'] = Precise["default"].stringAdd(frozen, Precise["default"].stringAdd(locked, withdrawing));
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         else {
@@ -3844,7 +3875,9 @@ class binance extends binance$1["default"] {
                 account['free'] = this.safeString(balance, 'availableBalance');
                 account['used'] = this.safeString(balance, 'initialMargin');
                 account['total'] = this.safeString2(balance, 'marginBalance', 'balance');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         result['timestamp'] = timestamp;
@@ -3919,11 +3952,16 @@ class binance extends binance$1["default"] {
             if (paramSymbols !== undefined) {
                 let symbols = '';
                 if (Array.isArray(paramSymbols)) {
-                    symbols = this.marketId(paramSymbols[0]);
+                    const mid = this.marketId(paramSymbols[0]);
+                    if (mid !== undefined) {
+                        symbols = mid;
+                    }
                     for (let i = 1; i < paramSymbols.length; i++) {
                         const symbol = paramSymbols[i];
                         const id = this.marketId(symbol);
-                        symbols += ',' + id;
+                        if (id !== undefined) {
+                            symbols += ',' + id;
+                        }
                     }
                 }
                 else {
@@ -4140,7 +4178,7 @@ class binance extends binance$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -4475,6 +4513,9 @@ class binance extends binance$1["default"] {
             const firstTicker = this.safeDict(response, 0, {});
             return this.parseTicker(firstTicker, market);
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchTicker() returned empty response');
+        }
         return this.parseTicker(response, market);
     }
     /**
@@ -4730,6 +4771,9 @@ class binance extends binance$1["default"] {
         if (Array.isArray(response)) {
             return this.parseTicker(this.safeDict(response, 0, {}), market);
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchMarkPrice() returned empty response');
+        }
         return this.parseTicker(response, market);
     }
     /**
@@ -4878,6 +4922,9 @@ class binance extends binance$1["default"] {
             'limit': limit,
         };
         const marketId = market['id'];
+        if (marketId === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchOHLCV() missing marketId');
+        }
         if (price === 'index') {
             const parts = marketId.split('_');
             const pair = this.safeString(parts, 0);
@@ -5424,7 +5471,11 @@ class binance extends binance$1["default"] {
         //         },
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -5491,10 +5542,16 @@ class binance extends binance$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'newOrderResponse');
+        const data = this.safeDict(response, 'newOrderResponse', {});
         return this.parseOrder(data, market);
     }
     editSpotOrderRequest(id, symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -5512,6 +5569,9 @@ class binance extends binance$1["default"] {
          */
         const market = this.market(symbol);
         const clientOrderId = this.safeStringN(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId']);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' editSpotOrderRequest() requires a side argument');
+        }
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase(),
@@ -5532,7 +5592,7 @@ class binance extends binance$1["default"] {
             }
         }
         request['type'] = uppercaseType;
-        const validOrderTypes = this.safeList(market['info'], 'orderTypes');
+        const validOrderTypes = this.safeList(market['info'], 'orderTypes', []);
         if (!this.inArray(uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
                 throw new errors.InvalidOrder(this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
@@ -5632,6 +5692,12 @@ class binance extends binance$1["default"] {
         return this.extend(request, params);
     }
     editContractOrderRequest(id, symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         if ((price === undefined) && !('priceMatch' in params)) {
             // moved here from editContractOrder for warning in case of calling editOrderWs() without price argument for swap orders
             throw new errors.ArgumentsRequired(this.id + ' editOrder() and editOrderWs() require a price argument for swap orders');
@@ -5639,6 +5705,9 @@ class binance extends binance$1["default"] {
         const market = this.market(symbol);
         if (!market['contract']) {
             throw new errors.NotSupported(this.id + ' editContractOrder() does not support ' + market['type'] + ' orders');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' editContractOrder() requires a side argument');
         }
         const request = {
             'symbol': market['id'],
@@ -5726,6 +5795,9 @@ class binance extends binance$1["default"] {
         //         "updateTime": 1684300587845
         //     }
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
+        }
         return this.parseOrder(response, market);
     }
     /**
@@ -6704,9 +6776,18 @@ class binance extends binance$1["default"] {
                 response = await this.privatePostOrder(request);
             }
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
+        }
         return this.parseOrder(response, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -6720,6 +6801,9 @@ class binance extends binance$1["default"] {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrderRequest() requires a side argument');
+        }
         const market = this.market(symbol);
         const marketType = this.safeString(params, 'type', market['type']);
         const clientOrderId = this.safeStringN(params, ['clientAlgoId', 'newClientOrderId', 'clientOrderId']);
@@ -6827,7 +6911,7 @@ class binance extends binance$1["default"] {
             }
         }
         else {
-            const validOrderTypes = this.safeList(market['info'], 'orderTypes');
+            const validOrderTypes = this.safeList(market['info'], 'orderTypes', []);
             if (!this.inArray(uppercaseType, validOrderTypes)) {
                 if (initialUppercaseType !== uppercaseType) {
                     throw new errors.InvalidOrder(this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
@@ -7227,6 +7311,9 @@ class binance extends binance$1["default"] {
         }
         else {
             response = await this.privateGetOrder(this.extend(request, params));
+        }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder(response, market);
     }
@@ -7857,6 +7944,9 @@ class binance extends binance$1["default"] {
         //         "priceProtect": false
         //     }
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
+        }
         return this.parseOrder(response, market);
     }
     /**
@@ -8074,6 +8164,9 @@ class binance extends binance$1["default"] {
         }
         else {
             response = await this.privateDeleteOrder(this.extend(request, params));
+        }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder(response, market);
     }
@@ -8433,7 +8526,8 @@ class binance extends binance$1["default"] {
             if ((currentTimestamp - startTime) >= oneWeek) {
                 if ((endTime === undefined) && this.safeBool(market, 'linear')) {
                     endTime = this.sum(startTime, oneWeek);
-                    endTime = Math.min(endTime, currentTimestamp);
+                    const endTimeValue = (endTime === undefined) ? 0 : endTime;
+                    endTime = Math.min(endTimeValue, currentTimestamp);
                 }
             }
         }
@@ -8618,7 +8712,11 @@ class binance extends binance$1["default"] {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -8715,7 +8813,7 @@ class binance extends binance$1["default"] {
         const earnedCurrency = bnb['code'];
         const applicantSymbol = earnedCurrency + '/' + tradedCurrency;
         let tradedCurrencyIsQuote = false;
-        if (applicantSymbol in this.markets) {
+        if ((this.markets !== undefined) && (applicantSymbol in this.markets)) {
             tradedCurrencyIsQuote = true;
         }
         const feeCostString = this.safeString(trade, 'serviceChargeAmount');
@@ -8799,7 +8897,7 @@ class binance extends binance$1["default"] {
         params = this.omit(params, 'fiatOnly');
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
-        if (fiatOnly || (code in legalMoney)) {
+        if (fiatOnly || ((code !== undefined) && (code in legalMoney))) {
             if (code !== undefined) {
                 currency = this.currency(code);
             }
@@ -8877,10 +8975,17 @@ class binance extends binance$1["default"] {
             //     }
             //   ]
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' method() returned empty response');
+        }
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'deposit';
         }
-        return this.parseTransactions(response, currency, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTransactions(responseList, currency, since, limit);
     }
     /**
      * @method
@@ -8917,7 +9022,7 @@ class binance extends binance$1["default"] {
         }
         let response = undefined;
         let currency = undefined;
-        if (fiatOnly || (code in legalMoney)) {
+        if (fiatOnly || ((code !== undefined) && (code in legalMoney))) {
             if (code !== undefined) {
                 currency = this.currency(code);
             }
@@ -9012,10 +9117,20 @@ class binance extends binance$1["default"] {
             //       }
             //     ]
         }
-        for (let i = 0; i < response.length; i++) {
-            response[i]['type'] = 'withdrawal';
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' method() returned empty response');
         }
-        return this.parseTransactions(response, currency, since, limit);
+        if (typeof response === 'string') {
+            response = this.parseJson(response);
+        }
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        for (let i = 0; i < responseList.length; i++) {
+            responseList[i]['type'] = 'withdrawal';
+        }
+        return this.parseTransactions(responseList, currency, since, limit);
     }
     parseTransactionStatusByType(status, type = undefined) {
         if (type === undefined) {
@@ -9749,13 +9864,17 @@ class binance extends binance$1["default"] {
             const currencyId = this.safeString(entry, 'coin');
             const code = this.safeCurrencyCode(currencyId);
             const networkList = this.safeList(entry, 'networkList', []);
-            withdrawFees[code] = {};
+            if (code !== undefined) {
+                withdrawFees[code] = {};
+            }
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const networkId = this.safeString(networkEntry, 'network');
                 const networkCode = this.safeCurrencyCode(networkId);
                 const fee = this.safeNumber(networkEntry, 'withdrawFee');
-                withdrawFees[code][networkCode] = fee;
+                if ((code !== undefined) && (networkCode !== undefined)) {
+                    withdrawFees[code][networkCode] = fee;
+                }
             }
         }
         return {
@@ -9878,16 +9997,18 @@ class binance extends binance$1["default"] {
                     'percentage': undefined,
                 };
             }
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': withdrawFee,
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': withdrawFee,
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return result;
     }
@@ -10031,6 +10152,9 @@ class binance extends binance$1["default"] {
         if (Array.isArray(data)) {
             data = this.safeDict(data, 0, {});
         }
+        if (data === undefined) {
+            throw new errors.NullResponse(this.id + ' parseTradingFee() returned empty response');
+        }
         return this.parseTradingFee(data, market);
     }
     /**
@@ -10130,10 +10254,15 @@ class binance extends binance$1["default"] {
             //    ]
             //
             const result = {};
+            if (response === undefined) {
+                throw new errors.NullResponse(this.id + ' method() returned empty response');
+            }
             for (let i = 0; i < response.length; i++) {
                 const fee = this.parseTradingFee(response[i]);
                 const symbol = fee['symbol'];
-                result[symbol] = fee;
+                if (symbol !== undefined) {
+                    result[symbol] = fee;
+                }
             }
             return result;
         }
@@ -10159,7 +10288,11 @@ class binance extends binance$1["default"] {
             //         ...
             //     }
             //
-            const symbols = Object.keys(this.markets);
+            const markets = this.markets;
+            if (markets === undefined) {
+                throw new errors.ExchangeError(this.id + ' markets not loaded');
+            }
+            const symbols = Object.keys(markets);
             const result = {};
             const feeTier = this.safeInteger(response, 'feeTier');
             const feeTiers = this.fees['linear']['trading']['tiers'];
@@ -10167,7 +10300,7 @@ class binance extends binance$1["default"] {
             const taker = feeTiers['taker'][feeTier][1];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                const market = this.markets[symbol];
+                const market = markets[symbol];
                 if (market['linear']) {
                     result[symbol] = {
                         'info': {
@@ -10191,7 +10324,11 @@ class binance extends binance$1["default"] {
             //         "updateTime": 0
             //     }
             //
-            const symbols = Object.keys(this.markets);
+            const markets = this.markets;
+            if (markets === undefined) {
+                throw new errors.ExchangeError(this.id + ' markets not loaded');
+            }
+            const symbols = Object.keys(markets);
             const result = {};
             const feeTier = this.safeInteger(response, 'feeTier');
             const feeTiers = this.fees['inverse']['trading']['tiers'];
@@ -10199,7 +10336,7 @@ class binance extends binance$1["default"] {
             const taker = feeTiers['taker'][feeTier][1];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                const market = this.markets[symbol];
+                const market = markets[symbol];
                 if (market['inverse']) {
                     result[symbol] = {
                         'info': {
@@ -10276,6 +10413,9 @@ class binance extends binance$1["default"] {
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchFundingRate() supports linear and inverse contracts only');
+        }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchFundingRate() returned empty response');
         }
         if (market['inverse']) {
             response = response[0];
@@ -10482,10 +10622,12 @@ class binance extends binance$1["default"] {
             const code = this.safeCurrencyCode(currencyId);
             const crossWalletBalance = this.safeString(entry, 'crossWalletBalance');
             const crossUnPnl = this.safeString(entry, 'crossUnPnl');
-            balances[code] = {
-                'crossMargin': Precise["default"].stringAdd(crossWalletBalance, crossUnPnl),
-                'crossWalletBalance': crossWalletBalance,
-            };
+            if (code !== undefined) {
+                balances[code] = {
+                    'crossMargin': Precise["default"].stringAdd(crossWalletBalance, crossUnPnl),
+                    'crossWalletBalance': crossWalletBalance,
+                };
+            }
         }
         const result = [];
         for (let i = 0; i < positions.length; i++) {
@@ -10607,6 +10749,9 @@ class binance extends binance$1["default"] {
         let initialMarginPercentageString = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
+            if (leverage === undefined) {
+                throw new errors.ExchangeError(this.id + ' method() missing leverage');
+            }
             const rational = this.isRoundNumber(1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise["default"].stringDiv(Precise["default"].stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
@@ -11043,6 +11188,9 @@ class binance extends binance$1["default"] {
                 throw new errors.NotSupported(this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
             this.options['leverageBrackets'] = this.createSafeDictionary();
+            if (response === undefined) {
+                throw new errors.NullResponse(this.id + ' loadLeverageBrackets() returned empty response');
+            }
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 const marketId = this.safeString(entry, 'symbol');
@@ -11700,6 +11848,9 @@ class binance extends binance$1["default"] {
         //     ]
         //
         const result = [];
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' method() returned empty response');
+        }
         for (let i = 0; i < response.length; i++) {
             const rawPosition = response[i];
             const entryPriceString = this.safeString(rawPosition, 'entryPrice');
@@ -11831,6 +11982,9 @@ class binance extends binance$1["default"] {
         else {
             throw new errors.NotSupported(this.id + ' setLeverage() supports linear and inverse contracts only');
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' setLeverage() returned empty response');
+        }
         return response;
     }
     /**
@@ -11901,6 +12055,9 @@ class binance extends binance$1["default"] {
                 throw e;
             }
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' setMarginMode() returned empty response');
+        }
         return response;
     }
     /**
@@ -11965,6 +12122,9 @@ class binance extends binance$1["default"] {
         //       "msg": "success"
         //     }
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' setPositionMode() returned empty response');
+        }
         return response;
     }
     /**
@@ -12331,6 +12491,9 @@ class binance extends binance$1["default"] {
         let response = undefined;
         if (type === 'option') {
             this.checkRequiredArgument('fetchLedger', code, 'code');
+            if (currency === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchLedger() could not resolve currency');
+            }
             request['currency'] = currency['id'];
             response = await this.eapiPrivateGetBill(this.extend(request, params));
         }
@@ -12478,7 +12641,8 @@ class binance extends binance$1["default"] {
             const info = this.safeDict(networks[currentNetworkCode], 'info', {});
             const siteUrl = this.safeString(info, 'contractAddressUrl');
             // check if url matches the field's value
-            if (siteUrl !== undefined && depositUrl.startsWith(this.getBaseDomainFromUrl(siteUrl))) {
+            const baseDomain = this.getBaseDomainFromUrl(siteUrl);
+            if (siteUrl !== undefined && baseDomain !== undefined && depositUrl.startsWith(baseDomain)) {
                 networkCode = currentNetworkCode;
             }
         }
@@ -12649,6 +12813,9 @@ class binance extends binance$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     getExceptionsByUrl(url, exactOrBroad) {
+        if (url === undefined) {
+            return {};
+        }
         let marketType = undefined;
         const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
         if (url.startsWith('https://api.' + hostname + '/') || url.startsWith('https://demo-api') || url.startsWith('https://testnet.binance.vision')) {
@@ -12679,7 +12846,7 @@ class binance extends binance$1["default"] {
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (code >= 400) {
+        if ((code >= 400) && (body !== undefined)) {
             if (body.indexOf('Price * QTY is zero or less') >= 0) {
                 throw new errors.InvalidOrder(this.id + ' order cost = amount * price is zero or less ' + body);
             }
@@ -12830,6 +12997,9 @@ class binance extends binance$1["default"] {
         //         "type": 1
         //     }
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseMarginModification() returned empty response');
+        }
         return this.extend(this.parseMarginModification(response, market), {
             'code': code,
         });
@@ -13649,11 +13819,11 @@ class binance extends binance$1["default"] {
                     return item;
                 }
             }
+            throw new errors.NullResponse(this.id + ' fetchOpenInterest() could not find open interest for ' + symbol);
         }
         else {
             return this.parseOpenInterest(response, market);
         }
-        return undefined;
     }
     parseOpenInterest(interest, market = undefined) {
         const timestamp = this.safeInteger2(interest, 'timestamp', 'time');
@@ -13840,7 +14010,11 @@ class binance extends binance$1["default"] {
         //     ]
         //
         const liquidations = this.safeList(response, 'rows', response);
-        return this.parseLiquidations(liquidations, market, since, limit);
+        let liquidationsList = [];
+        if (liquidations !== undefined) {
+            liquidationsList = liquidations;
+        }
+        return this.parseLiquidations(liquidationsList, market, since, limit);
     }
     parseLiquidation(liquidation, market = undefined) {
         //
@@ -14053,8 +14227,13 @@ class binance extends binance$1["default"] {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const symbol = this.safeString(market, 'symbol');
+            if (market === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchTradingLimits() could not resolve market');
+            }
             if ((symbols === undefined) || (this.inArray(symbol, symbols))) {
-                tradingLimits[symbol] = market['limits']['amount'];
+                if (symbol !== undefined) {
+                    tradingLimits[symbol] = market['limits']['amount'];
+                }
             }
         }
         return tradingLimits;
@@ -14238,6 +14417,9 @@ class binance extends binance$1["default"] {
         else {
             throw new errors.BadRequest(this.id + ' fetchMarginMode () supports linear and inverse subTypes only');
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchMarginMode() returned empty response');
+        }
         return this.parseMarginMode(response[0], market);
     }
     parseMarginMode(marginMode, market = undefined) {
@@ -14412,6 +14594,9 @@ class binance extends binance$1["default"] {
         //        ...
         //    ]
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseMarginModifications() returned empty response');
+        }
         const modifications = this.parseMarginModifications(response);
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
@@ -14441,34 +14626,36 @@ class binance extends binance$1["default"] {
             const entry = response[i];
             const id = this.safeString(entry, 'asset');
             const code = this.safeCurrencyCode(id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'fraction'))),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'fraction'))),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-            };
+                    'created': undefined,
+                };
+            }
         }
         return result;
     }
@@ -14509,6 +14696,9 @@ class binance extends binance$1["default"] {
         //
         const fromCurrency = this.currency(fromCode);
         const toCurrency = this.currency(toCode);
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseConversion() returned empty response');
+        }
         return this.parseConversion(response, fromCurrency, toCurrency);
     }
     /**
@@ -14558,6 +14748,9 @@ class binance extends binance$1["default"] {
         }
         const fromCurrency = this.currency(fromCode);
         const toCurrency = this.currency(toCode);
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseConversion() returned empty response');
+        }
         return this.parseConversion(response, fromCurrency, toCurrency);
     }
     /**
@@ -14637,6 +14830,9 @@ class binance extends binance$1["default"] {
         }
         if (toCurrencyId !== undefined) {
             toCurrency = this.currency(toCurrencyId);
+        }
+        if (data === undefined) {
+            throw new errors.NullResponse(this.id + ' parseConversion() returned empty response');
         }
         return this.parseConversion(data, fromCurrency, toCurrency);
     }
@@ -15014,6 +15210,9 @@ class binance extends binance$1["default"] {
         else {
             throw new errors.BadRequest(this.id + ' fetchADLRank() supports linear subTypes only');
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseADLRank() returned empty response');
+        }
         return this.parseADLRank(response, market);
     }
     /**
@@ -15071,7 +15270,11 @@ class binance extends binance$1["default"] {
         //         }
         //     ]
         //
-        return this.parseADLRanks(response, symbols);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseADLRanks(responseList, symbols);
     }
     parseADLRank(info, market = undefined) {
         //

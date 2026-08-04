@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\BadSymbol;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -34,6 +35,8 @@ class xt extends \ccxt\async\xt {
                 'watchOrders' => true,
                 'watchMyTrades' => true,
                 'watchPositions' => true,
+                'watchFundingRate' => true,
+                'unWatchFundingRate' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -120,7 +123,7 @@ class xt extends \ccxt\async\xt {
         })();
     }
 
-    public function get_cache_index($orderbook, $cache) {
+    public function get_cache_index(mixed $orderbook, mixed $cache) {
         // return the first index of the $cache that can be applied to the $orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_value($cache, 0);
@@ -138,7 +141,7 @@ class xt extends \ccxt\async\xt {
         return count($cache);
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $orderbook['nonce'] = $this->safe_integer_2($delta, 'i', 'u');
         $obAsks = $this->safe_list($delta, 'a', array());
         $obBids = $this->safe_list($delta, 'b', array());
@@ -514,7 +517,7 @@ class xt extends \ccxt\async\xt {
              * @param {int} [$limit] not used by xt watchOrderBook
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->levels] 5, 10, 20, or 50
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -675,6 +678,85 @@ class xt extends \ccxt\async\xt {
         })();
     }
 
+    public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watch the current funding rate
+             *
+             * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' watchFundingRate() supports swap contracts only');
+            }
+            $name = 'fund_rate@' . $market['id'];
+            return Async\await($this->subscribe($name, 'public', 'watchFundingRate', $market, null, $params));
+        })();
+    }
+
+    public function un_watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * stops watching the funding rate
+             *
+             * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' unWatchFundingRate() supports swap contracts only');
+            }
+            $name = 'fund_rate@' . $market['id'];
+            $messageHash = 'unsubscribe::' . $name;
+            return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchFundingRate', 'fund_rate', $market, null, $params));
+        })();
+    }
+
+    public function handle_funding_rate(Client $client, array $message) {
+        //
+        //     {
+        //         "topic" => "fund_rate",
+        //         "event" => "fund_rate@btc_usdt",
+        //         "data" => {
+        //             "s" => "btc_usdt",  // $symbol
+        //             "r" => "0.01",      // funding rate
+        //             "t" => 123124124    // $timestamp
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($message, 'data');
+        $marketId = $this->safe_string($data, 's');
+        if ($marketId !== null) {
+            $raw = array(
+                'symbol' => $marketId,
+                'fundingRate' => $this->safe_string($data, 'r'),
+            );
+            $fundingRate = $this->parse_funding_rate($raw);
+            $timestamp = $this->safe_integer($data, 't');
+            $fundingRate['timestamp'] = $timestamp;
+            $fundingRate['datetime'] = $this->iso8601($timestamp);
+            $symbol = $fundingRate['symbol'];
+            $this->fundingRates[$symbol] = $fundingRate;
+            $event = $this->safe_string($message, 'event');
+            $messageHash = $event . '::contract';
+            $client->resolve($fundingRate, $messageHash);
+        }
+        return $message;
+    }
+
     public function set_positions_cache(Client $client) {
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();
@@ -689,7 +771,7 @@ class xt extends \ccxt\async\xt {
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash) {
         return Async\async(function () use ($client, $messageHash) {
             $positions = Async\await($this->fetch_positions());
             $this->positions = new ArrayCacheBySymbolBySide();
@@ -710,7 +792,7 @@ class xt extends \ccxt\async\xt {
         })();
     }
 
-    public function handle_position($client, $message) {
+    public function handle_position(mixed $client, mixed $message) {
         //
         //    {
         //      topic => 'position',
@@ -1411,7 +1493,9 @@ class xt extends \ccxt\async\xt {
         $account['free'] = $this->safe_string($data, 'availableBalance');
         $account['used'] = $this->safe_string($data, 'f');
         $account['total'] = $this->safe_string_2($data, 'b', 'walletBalance');
-        $this->balance[$code] = $account;
+        if ($code !== null) {
+            $this->balance[$code] = $account;
+        }
         $this->balance = $this->safe_balance($this->balance);
         $tradeType = (is_array($data) && array_key_exists('coin' ?? '', $data)) ? 'contract' : 'spot';
         $client->resolve($this->balance, 'balance::' . $tradeType);
@@ -1470,7 +1554,7 @@ class xt extends \ccxt\async\xt {
         $client->resolve($stored, 'trade::' . $tradeType);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $event = $this->safe_string($message, 'event');
         if ($event === 'pong') {
             $client->onPong();
@@ -1487,6 +1571,7 @@ class xt extends \ccxt\async\xt {
                 'balance' => array($this, 'handle_balance'),
                 'order' => array($this, 'handle_order'),
                 'position' => array($this, 'handle_position'),
+                'fund_rate' => array($this, 'handle_funding_rate'),
             );
             $method = ($topic === null) ? null : $this->safe_value($methods, $topic);
             if ($topic === 'trade') {
@@ -1510,7 +1595,7 @@ class xt extends \ccxt\async\xt {
         return 'ping';
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         $id => '1763045665228ticker@eth_usdt',

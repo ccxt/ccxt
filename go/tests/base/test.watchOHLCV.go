@@ -50,11 +50,17 @@ func TestWatchOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, symbol a
 
 					response = (UnWrapType(<-exchange.WatchOHLCV(symbol, chosenTimeframeKey, since, limit)))
 					PanicOnError(response)
+					if IsTrue(IsEqual(response, nil)) {
+						panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
+					}
 					return nil
 				}()
 
 			}
 			if IsTrue(IsEqual(success, true)) {
+				if IsTrue(IsEqual(response, nil)) {
+					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
+				}
 				AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
 				now = exchange.Milliseconds()
 				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {

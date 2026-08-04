@@ -896,17 +896,20 @@ public partial class bingx : Exchange
                 } },
             };
             object precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", rawNetwork },
-                { "id", network },
-                { "network", networkCode },
-                { "fee", this.safeNumber(rawNetwork, "withdrawFee") },
-                { "active", null },
-                { "deposit", this.safeBool(rawNetwork, "depositEnable") },
-                { "withdraw", this.safeBool(rawNetwork, "withdrawEnable") },
-                { "precision", precision },
-                { "limits", limits },
-            };
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", rawNetwork },
+                    { "id", network },
+                    { "network", networkCode },
+                    { "fee", this.safeNumber(rawNetwork, "withdrawFee") },
+                    { "active", null },
+                    { "deposit", this.safeBool(rawNetwork, "depositEnable") },
+                    { "withdraw", this.safeBool(rawNetwork, "withdrawEnable") },
+                    { "precision", precision },
+                    { "limits", limits },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -1562,10 +1565,19 @@ public partial class bingx : Exchange
         object amount = this.safeStringN(trade, new List<object>() {"qty", "amount", "q"});
         if (isTrue(isTrue(isTrue((!isEqual(market, null))) && isTrue(getValue(market, "swap"))) && isTrue((inOp(trade, "volume")))))
         {
-            // private trade returns num of contracts instead of base currency (as the order-related methods do)
-            object contractSize = this.safeString(getValue(market, "info"), "tradeMinQuantity");
-            object volume = this.safeString(trade, "volume");
-            amount = Precise.stringMul(volume, contractSize);
+            if (isTrue(getValue(market, "linear")))
+            {
+                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
+                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
+                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
+                amount = this.safeString(trade, "volume");
+            } else
+            {
+                // private trade returns num of contracts instead of base currency (as the order-related methods do)
+                object contractSize = this.safeString(getValue(market, "info"), "tradeMinQuantity");
+                object volume = this.safeString(trade, "volume");
+                amount = Precise.stringMul(volume, contractSize);
+            }
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", this.safeString2(trade, "id", "t") },
@@ -1597,7 +1609,7 @@ public partial class bingx : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2656,7 +2668,10 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "availableMargin", "availableBalance");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "usedMargin");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "maxWithdrawAmount");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         } else
         {
@@ -2668,7 +2683,10 @@ public partial class bingx : Exchange
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -3020,20 +3038,28 @@ public partial class bingx : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name bingx#createOrderRequest
-        * @description helper function to build request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name bingx#createOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
         object market = this.market(symbol);
         object postOnly = null;
         object marketType = null;
@@ -3493,7 +3519,7 @@ public partial class bingx : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
-            object marketId = this.safeString(rawOrder, "symbol");
+            object marketId = this.safeString(rawOrder, "symbol", "");
             object type = this.safeString(rawOrder, "type");
             ((IList<object>)marketIds).Add(marketId);
             object side = this.safeString(rawOrder, "side");
@@ -3607,7 +3633,7 @@ public partial class bingx : Exchange
             { "take_profit_market", "market" },
             { "stop", "limit" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -5368,7 +5394,7 @@ public partial class bingx : Exchange
         object network = this.safeString(transaction, "network");
         object currencyId = this.safeString(transaction, "coin");
         object code = this.safeCurrencyCode(currencyId, currency);
-        if (isTrue(isTrue(isTrue((!isEqual(code, null))) && isTrue((!isEqual(code, network)))) && isTrue(isGreaterThanOrEqual(getIndexOf(code, network), 0))))
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(code, null))) && isTrue((!isEqual(network, null)))) && isTrue((!isEqual(code, network)))) && isTrue(isGreaterThanOrEqual(getIndexOf(code, network), 0))))
         {
             if (isTrue(!isEqual(network, null)))
             {
@@ -6135,7 +6161,7 @@ public partial class bingx : Exchange
                 response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
             }
         }
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -6310,7 +6336,7 @@ public partial class bingx : Exchange
         {
             response = await this.spotV1PrivatePostTradeOrderCancelReplace(request);
         }
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -6657,7 +6683,8 @@ public partial class bingx : Exchange
                 parsedParams = this.parseParams(parameters);
                 encodeRequest = this.rawencode(parsedParams, true);
             }
-            object signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256);
+            object encodeRequestSafe = ((bool) isTrue((isEqual(encodeRequest, null)))) ? "" : encodeRequest;
+            object signature = this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
                 { "X-BX-APIKEY", this.apiKey },
                 { "X-SOURCE-KEY", this.safeString(this.options, "broker", "CCXT") },

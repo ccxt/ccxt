@@ -957,6 +957,9 @@ func (this *PolymarketCore) FetchOutcome(outcomeSymbol any) <-chan any {
 				var ccxtMarketsLength any = ccxt.GetArrayLength(ccxtMarkets)
 				for i := 0; ccxt.IsLessThan(i, ccxtMarketsLength); i++ {
 					var mkt any = ccxt.GetValue(ccxtMarkets, i)
+					if ccxt.IsTrue(ccxt.IsEqual(mkt, nil)) {
+						panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchOutcome() could not resolve mkt")))
+					}
 					ccxt.AddElementToObject(this.Markets, ccxt.GetValue(mkt, "market"), mkt)
 				}
 				this.PopulateOutcomes()
@@ -969,9 +972,9 @@ func (this *PolymarketCore) FetchOutcome(outcomeSymbol any) <-chan any {
 			}
 		}
 
-		retRes90415 := (<-this.BaseExchange.FetchOutcome(outcomeSymbol))
-		ccxt.PanicOnError(retRes90415)
-		ch <- retRes90415
+		retRes90615 := (<-this.BaseExchange.FetchOutcome(outcomeSymbol))
+		ccxt.PanicOnError(retRes90615)
+		ch <- retRes90615
 		return nil
 
 	}()
@@ -1034,6 +1037,9 @@ func (this *PolymarketCore) FetchOutcomes(outcomeSymbols any) <-chan any {
 				})
 				for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(ccxtMarkets)); i++ {
 					var mkt any = ccxt.GetValue(ccxtMarkets, i)
+					if ccxt.IsTrue(ccxt.IsEqual(mkt, nil)) {
+						panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchOutcomes() could not resolve mkt")))
+					}
 					ccxt.AddElementToObject(this.Markets, ccxt.GetValue(mkt, "market"), mkt)
 				}
 				startIndex = this.Sum(startIndex, chunkSize)
@@ -1043,8 +1049,8 @@ func (this *PolymarketCore) FetchOutcomes(outcomeSymbols any) <-chan any {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomeSymbols)); i++ {
 			if !ccxt.IsTrue(this.HasOutcome(ccxt.GetValue(outcomeSymbols, i))) {
 
-				retRes96016 := (<-this.FetchOutcome(ccxt.GetValue(outcomeSymbols, i)))
-				ccxt.PanicOnError(retRes96016)
+				retRes96516 := (<-this.FetchOutcome(ccxt.GetValue(outcomeSymbols, i)))
+				ccxt.PanicOnError(retRes96516)
 			}
 		}
 
@@ -1159,8 +1165,8 @@ func (this *PolymarketCore) FetchTickers(optionalArgs ...any) <-chan any {
 		}
 		// batch-resolve the uncached outcomes (one gamma request per 50 token ids)
 
-		retRes10428 := (<-this.LoadOutcomes(outcomes))
-		ccxt.PanicOnError(retRes10428)
+		retRes10478 := (<-this.LoadOutcomes(outcomes))
+		ccxt.PanicOnError(retRes10478)
 		var targets any = []any{}
 		for oi := 0; ccxt.IsLessThan(oi, ccxt.GetArrayLength(outcomes)); oi++ {
 			ccxt.AppendToArray(&targets, ccxt.GetValue(outcomes, oi))
@@ -1801,8 +1807,8 @@ func (this *PolymarketCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes15378 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes15378)
+		retRes15428 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes15428)
 		var request any = map[string]any{}
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -1949,8 +1955,8 @@ func (this *PolymarketCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes16478 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes16478)
+		retRes16528 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes16528)
 		// the collateral balance is tied to the signature type / funder that holds the USDC
 		var signatureType any = this.SafeInteger2(params, "signatureType", "signature_type", this.SafeInteger(this.Options, "signatureType", 3))
 		var rest any = this.Omit(params, []any{"signatureType", "signature_type"})
@@ -2017,8 +2023,8 @@ func (this *PolymarketCore) FetchPositions(optionalArgs ...any) <-chan any {
 		if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
 			outcomesLength = ccxt.GetArrayLength(outcomes)
 
-			retRes169612 := (<-this.LoadOutcomes(outcomes))
-			ccxt.PanicOnError(retRes169612)
+			retRes170112 := (<-this.LoadOutcomes(outcomes))
+			ccxt.PanicOnError(retRes170112)
 		}
 		// no bulk warm-up on the unfiltered path: the positions request is self-contained and
 		// labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
@@ -2041,6 +2047,9 @@ func (this *PolymarketCore) FetchPositions(optionalArgs ...any) <-chan any {
 			return nil
 		}
 		var wantedIds any = map[string]any{}
+		if ccxt.IsTrue(ccxt.IsEqual(outcomes, nil)) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchPositions() missing outcomes")))
+		}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
 			var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
 			ccxt.AddElementToObject(wantedIds, ccxt.GetValue(outcomeObj, "outcomeId"), true)
@@ -2168,8 +2177,8 @@ func (this *PolymarketCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18118 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes18118)
+		retRes18198 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes18198)
 		var request any = map[string]any{}
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -2212,8 +2221,8 @@ func (this *PolymarketCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes18368 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes18368)
+		retRes18448 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes18448)
 		var request any = map[string]any{
 			"id": id,
 		}
@@ -2347,11 +2356,11 @@ func (this *PolymarketCore) CreateOrder(outcome any, typeVar any, side any, amou
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes19498 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes19498)
+		retRes19578 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes19578)
 
-		retRes19508 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes19508)
+		retRes19588 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes19588)
 		var built any = this.BuildClobOrderBody(outcome, typeVar, side, amount, price, params)
 
 		response := (<-this.ClobPrivatePostOrder(this.SafeDict(built, "body")))
@@ -2385,18 +2394,21 @@ func (this *PolymarketCore) CreateOrders(orders any, optionalArgs ...any) <-chan
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes19708 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes19708)
+		retRes19788 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes19788)
 		// buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
 		// requested outcomes first (one gamma request for all uncached token ids)
 		var orderOutcomes any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(orders)); i++ {
 			var o any = ccxt.GetValue(orders, i)
-			ccxt.AppendToArray(&orderOutcomes, this.SafeString(o, "outcome"))
+			var __oc any = this.SafeString(o, "outcome")
+			if ccxt.IsTrue(!ccxt.IsEqual(__oc, nil)) {
+				ccxt.AppendToArray(&orderOutcomes, __oc)
+			}
 		}
 
-		retRes19788 := (<-this.LoadOutcomes(orderOutcomes))
-		ccxt.PanicOnError(retRes19788)
+		retRes19898 := (<-this.LoadOutcomes(orderOutcomes))
+		ccxt.PanicOnError(retRes19898)
 		var bodies any = []any{}
 		var outcomes any = []any{}
 		var requests any = []any{}
@@ -2411,9 +2423,9 @@ func (this *PolymarketCore) CreateOrders(orders any, optionalArgs ...any) <-chan
 				})
 			}
 			var built any = this.BuildClobOrderBody(this.SafeString(o, "outcome"), this.SafeString(o, "type"), this.SafeString(o, "side"), this.SafeNumber(o, "amount"), this.SafeNumber(o, "price"), orderParams)
-			ccxt.AppendToArray(&bodies, this.SafeDict(built, "body"))
-			ccxt.AppendToArray(&outcomes, this.SafeDict(built, "outcome"))
-			ccxt.AppendToArray(&requests, this.SafeDict(built, "request"))
+			ccxt.AppendToArray(&bodies, this.SafeDict(built, "body", map[string]any{}))
+			ccxt.AppendToArray(&outcomes, this.SafeDict(built, "outcome", map[string]any{}))
+			ccxt.AppendToArray(&requests, this.SafeDict(built, "request", map[string]any{}))
 		}
 
 		response := (<-this.ClobPrivatePostOrders(bodies))
@@ -2624,9 +2636,9 @@ func (this *PolymarketCore) CreateMarketBuyOrderWithCost(outcome any, cost any, 
 			"cost": cost,
 		})
 
-		retRes218715 := (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
-		ccxt.PanicOnError(retRes218715)
-		ch <- retRes218715
+		retRes219815 := (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
+		ccxt.PanicOnError(retRes219815)
+		ch <- retRes219815
 		return nil
 
 	}()
@@ -2831,8 +2843,8 @@ func (this *PolymarketCore) CancelOrder(id any, optionalArgs ...any) <-chan any 
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23278 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes23278)
+		retRes23388 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes23388)
 		// cancelling by id needs no market data, so events do not have to be loaded first
 		var request any = map[string]any{
 			"orderID": id,
@@ -2877,8 +2889,8 @@ func (this *PolymarketCore) CancelOrders(ids any, optionalArgs ...any) <-chan an
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23508 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes23508)
+		retRes23618 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes23618)
 		// the request body is the bare array of order ids (DELETE /orders), so params are not merged
 
 		response := (<-this.ClobPrivateDeleteOrders(ids))
@@ -2920,8 +2932,8 @@ func (this *PolymarketCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23728 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes23728)
+		retRes23838 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes23838)
 		var response any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 			// scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
@@ -2989,6 +3001,9 @@ func (this *PolymarketCore) FetchEvents(optionalArgs ...any) <-chan any {
 		var requestedSlug any = this.SafeString(params, "slug")
 		var queries any = this.ParseSearchQueries(params)
 		var rest any = this.Omit(params, []any{"query", "queries", "eventId", "slug"})
+		if ccxt.IsTrue(ccxt.IsEqual(queries, nil)) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchEvents() missing queries")))
+		}
 		var queriesLength any = ccxt.GetArrayLength(queries)
 		var rawEvents any = []any{}
 		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(requestedEventId, nil))) || ccxt.IsTrue((!ccxt.IsEqual(requestedSlug, nil)))) {
@@ -3050,6 +3065,9 @@ func (this *PolymarketCore) FetchEvents(optionalArgs ...any) <-chan any {
 			}
 			for mi := 0; ccxt.IsLessThan(mi, ccxt.GetArrayLength(ccxtMarkets)); mi++ {
 				var m any = ccxt.GetValue(ccxtMarkets, mi)
+				if ccxt.IsTrue(ccxt.IsEqual(m, nil)) {
+					panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchEvents() missing m")))
+				}
 				ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
 			}
 			var parsedEvent any = this.ParseEvent(eventForParsing)
@@ -3109,6 +3127,9 @@ func (this *PolymarketCore) FetchEvent(id any, optionalArgs ...any) <-chan any {
 			ccxt.PanicOnError(response)
 		}
 		var eventForParsing any = this.SafeDict(response, "event", response)
+		if ccxt.IsTrue(ccxt.IsEqual(eventForParsing, nil)) {
+			eventForParsing = map[string]any{}
+		}
 		var event any = this.ParseEvent(eventForParsing)
 		this.IndexEventOutcomes(event)
 
@@ -3563,6 +3584,9 @@ func (this *PolymarketCore) CreateOrDeriveApiKey(optionalArgs ...any) <-chan any
 			}(this)
 
 		}
+		if ccxt.IsTrue(ccxt.IsEqual(creds, nil)) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " createOrDeriveApiKey() returned no credentials")))
+		}
 
 		ch <- creds
 		return nil
@@ -3605,8 +3629,8 @@ func (this *PolymarketCore) LoadApiCredentials() <-chan any {
 			var alreadyDerived any = this.SafeString(this.Options, "l2ApiKey")
 			if ccxt.IsTrue(ccxt.IsEqual(alreadyDerived, nil)) {
 
-				retRes291916 := (<-this.CreateOrDeriveApiKey())
-				ccxt.PanicOnError(retRes291916)
+				retRes294216 := (<-this.CreateOrDeriveApiKey())
+				ccxt.PanicOnError(retRes294216)
 			}
 
 			return nil
@@ -3877,9 +3901,14 @@ func (this *PolymarketCore) WatchTicker(outcome any, optionalArgs ...any) <-chan
 			"assets_ids": []any{tokenId},
 			"type":       "market",
 		}
+		if ccxt.IsTrue(ccxt.IsEqual(outcome, nil)) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchTicker() missing outcome")))
+		}
 		if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, outcome))) {
 			var seededBook any = this.OrderBook(map[string]any{})
-			ccxt.AddElementToObject(this.Orderbooks, outcome, seededBook)
+			if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
+				ccxt.AddElementToObject(this.Orderbooks, outcome, seededBook)
+			}
 		}
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 
@@ -3974,8 +4003,8 @@ func (this *PolymarketCore) WatchOrders(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes32158 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes32158)
+		retRes32438 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes32438)
 		var messageHash any = "orders"
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
@@ -4023,8 +4052,8 @@ func (this *PolymarketCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes32418 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes32418)
+		retRes32698 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes32698)
 		var messageHash any = "myTrades"
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
@@ -4071,9 +4100,9 @@ func (this *PolymarketCore) SubscribeUserChannel(messageHash any, optionalArgs .
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "wsUser")
 		var subscribeHash any = "user"
 
-		retRes326515 := (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
-		ccxt.PanicOnError(retRes326515)
-		ch <- retRes326515
+		retRes329315 := (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
+		ccxt.PanicOnError(retRes329315)
+		ch <- retRes329315
 		return nil
 
 	}()

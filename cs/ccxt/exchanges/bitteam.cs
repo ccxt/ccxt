@@ -666,7 +666,7 @@ public partial class bitteam : Exchange
         object maxWithdraw = this.safeString(txLimits, "maxWithdraw");
         object minDeposit = this.safeString(txLimits, "minDeposit");
         object fee = null;
-        object withdrawCommissionFixed = ((object)this.safeValue(txLimits, "withdrawCommissionFixed", new Dictionary<string, object>() {}));
+        object withdrawCommissionFixed = this.safeValue(txLimits, "withdrawCommissionFixed", new Dictionary<string, object>() {});
         object feesByNetworkId = new Dictionary<string, object>() {};
         object blockChain = this.safeString(currency, "blockChain");
         // if only one blockChain
@@ -690,30 +690,33 @@ public partial class bitteam : Exchange
             object networkId = getValue(networkIds, j);
             object networkCode = this.networkIdToCode(networkId, code);
             object networkFee = this.safeNumber(feesByNetworkId, networkId);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "active", active },
-                { "fee", networkFee },
-                { "precision", networkPrecision },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "deposit", deposit },
+                    { "withdraw", withdraw },
+                    { "active", active },
+                    { "fee", networkFee },
+                    { "precision", networkPrecision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.parseNumber(minWithdraw) },
+                            { "max", this.parseNumber(maxWithdraw) },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.parseNumber(minDeposit) },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdraw) },
-                        { "max", this.parseNumber(maxWithdraw) },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minDeposit) },
-                        { "max", null },
-                    } },
-                } },
-                { "info", currency },
-            };
+                    { "info", currency },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -826,7 +829,7 @@ public partial class bitteam : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2261,11 +2264,14 @@ public partial class bitteam : Exchange
             object used = this.safeString(currencyBalance, "used");
             object total = this.safeString(currencyBalance, "total");
             object currencyCode = this.safeCurrencyCode(((string)rawCurrencyId).ToLower());
-            ((IDictionary<string,object>)balance)[(string)currencyCode] = new Dictionary<string, object>() {
-                { "free", free },
-                { "used", used },
-                { "total", total },
-            };
+            if (isTrue(!isEqual(currencyCode, null)))
+            {
+                ((IDictionary<string,object>)balance)[(string)currencyCode] = new Dictionary<string, object>() {
+                    { "free", free },
+                    { "used", used },
+                    { "total", total },
+                };
+            }
         }
         return this.safeBalance(balance);
     }
@@ -2492,7 +2498,7 @@ public partial class bitteam : Exchange
             { "deposit", "deposit" },
             { "withdraw", "withdrawal" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object parseTransactionStatus(object status)

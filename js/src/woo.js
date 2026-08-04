@@ -793,7 +793,7 @@ export default class woo extends Exchange {
             inverse = false;
         }
         const active = this.safeString(market, 'status') === 'TRADING';
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -841,7 +841,7 @@ export default class woo extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -1188,7 +1188,9 @@ export default class woo extends Exchange {
             };
             const parsed = this.parseCurrency(customCurrency);
             const code = this.safeString(parsed, 'code');
-            result[code] = parsed;
+            if (code !== undefined) {
+                result[code] = parsed;
+            }
         }
         return result;
     }
@@ -1205,27 +1207,29 @@ export default class woo extends Exchange {
             const networkEntry = this.safeDict(chainsByNetworkId, networkId, {});
             const networkCode = this.networkIdToCode(networkId, code);
             const specialNetworkId = this.safeString(tokenEntry, 'token');
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'currencyNetworkId': specialNetworkId, // exchange uses special currency-ids (coin + network junction)
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',
-                'withdraw': this.safeString(networkEntry, 'allow_withdraw') === '1',
-                'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'minimum_withdrawal'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'currencyNetworkId': specialNetworkId, // exchange uses special currency-ids (coin + network junction)
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',
+                    'withdraw': this.safeString(networkEntry, 'allow_withdraw') === '1',
+                    'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'minimum_withdrawal'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': { 'network': networkEntry, 'token': tokenEntry },
-            };
+                    'info': { 'network': networkEntry, 'token': tokenEntry },
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -2280,7 +2284,7 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2660,7 +2664,9 @@ export default class woo extends Exchange {
             const account = this.account();
             account['total'] = this.safeString(balance, 'holding');
             account['free'] = this.safeString(balance, 'availableBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2703,7 +2709,7 @@ export default class woo extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         networkCode = this.networkIdToCode(networkCode, currency['code']);
-        const networkEntry = this.safeDict(currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict(currency['networks'], networkCode);
         if (networkEntry === undefined) {
             const supportedNetworks = Object.keys(currency['networks']);
             throw new BadRequest(this.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + this.json(supportedNetworks));
@@ -4423,34 +4429,36 @@ export default class woo extends Exchange {
             const entry = data[i];
             const id = this.safeString(entry, 'token');
             const code = this.safeCurrencyCode(id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.safeNumber(entry, 'tick'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': this.safeNumber(entry, 'tick'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeTimestamp(entry, 'createdTime'),
-            };
+                    'created': this.safeTimestamp(entry, 'createdTime'),
+                };
+            }
         }
         return result;
     }

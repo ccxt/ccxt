@@ -69,7 +69,7 @@ export default class nado extends Exchange {
                 'withdraw': false,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/142df520-1e1d-4a04-bfda-fe33e5768e63',
+                'logo': 'https://github.com/user-attachments/assets/811f4e1a-a8b5-4b9e-84c2-0f88997bd274',
                 'api': {
                     'gateway': 'https://gateway.prod.nado.xyz/v1',
                     'gatewayV2': 'https://gateway.prod.nado.xyz/v2',
@@ -1595,18 +1595,27 @@ export default class nado extends Exchange {
         const pairsById = {};
         for (let i = 0; i < pairs.length; i++) {
             const rawPair = pairs[i];
-            pairsById[this.safeString(rawPair, 'product_id')] = rawPair;
+            const pairProductId = this.safeString(rawPair, 'product_id');
+            if (pairProductId !== undefined) {
+                pairsById[pairProductId] = rawPair;
+            }
         }
         const assetsById = {};
         for (let i = 0; i < assets.length; i++) {
             const rawAsset = assets[i];
-            assetsById[this.safeString(rawAsset, 'product_id')] = rawAsset;
+            const assetProductId = this.safeString(rawAsset, 'product_id');
+            if (assetProductId !== undefined) {
+                assetsById[assetProductId] = rawAsset;
+            }
         }
         const assetsByCode = {};
         for (let i = 0; i < assets.length; i++) {
             const rawAsset = assets[i];
             const assetSymbol = this.safeString(rawAsset, 'symbol');
             const assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
+            if (assetCode === undefined) {
+                continue;
+            }
             const previous = this.safeDict(assetsByCode, assetCode);
             if (previous === undefined) {
                 assetsByCode[assetCode] = rawAsset;
@@ -1653,7 +1662,7 @@ export default class nado extends Exchange {
             const priceIncrement = this.parseX18(this.safeString(market, 'price_increment_x18'));
             const amountIncrement = this.parseX18(this.safeString(market, 'size_increment'));
             const minCost = this.parseX18(this.safeString(market, 'min_size'));
-            markets.push({
+            markets.push(this.safeMarketStructure({
                 'id': id,
                 'lowercaseId': undefined,
                 'symbol': symbol,
@@ -1709,7 +1718,7 @@ export default class nado extends Exchange {
                     'v2Pair': pair,
                     'v2Asset': asset,
                 }),
-            });
+            }));
         }
         return markets;
     }
@@ -1728,6 +1737,9 @@ export default class nado extends Exchange {
             const currency = response[i];
             const parsed = this.parseCurrency(currency);
             const code = this.safeString(parsed, 'code');
+            if (code === undefined) {
+                continue;
+            }
             const previous = this.safeDict(result, code);
             const canDeposit = this.safeBool(currency, 'can_deposit', false);
             const canWithdraw = this.safeBool(currency, 'can_withdraw', false);
@@ -1787,7 +1799,11 @@ export default class nado extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const tickers = await this.fetchTickers([symbol], params);
-        return this.safeTicker(this.safeDict(tickers, symbol), market);
+        const ticker = this.safeDict(tickers, symbol);
+        if (ticker === undefined) {
+            throw new BadSymbol(this.id + ' fetchTicker() ticker not found for ' + symbol);
+        }
+        return this.safeTicker(ticker, market);
     }
     /**
      * @method
@@ -2036,7 +2052,7 @@ export default class nado extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2493,7 +2509,9 @@ export default class nado extends Exchange {
             account['total'] = amount;
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
             account['free'] = amount;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2851,6 +2869,9 @@ export default class nado extends Exchange {
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
     convertToX18(value) {
+        if (value === undefined) {
+            throw new ArgumentsRequired(this.id + ' convertToX18() requires a value');
+        }
         return Precise.stringDiv(Precise.stringMul(value, '1000000000000000000'), '1', 0);
     }
     parseX18(value) {
@@ -2904,7 +2925,10 @@ export default class nado extends Exchange {
     }
     createSubaccount(walletAddress, subaccount = 'default') {
         if (walletAddress === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder() requires exchange.walletAddress');
+            throw new ArgumentsRequired(this.id + ' createSubaccount() requires walletAddress');
+        }
+        if (subaccount === undefined) {
+            subaccount = 'default';
         }
         const address = this.remove0xPrefix(walletAddress).toLowerCase();
         if (address.length !== 40) {
@@ -2933,6 +2957,9 @@ export default class nado extends Exchange {
         return '0x' + this.padHex(this.intToBase16(productId), 40);
     }
     padHex(value, length, left = true) {
+        if (length === undefined) {
+            throw new ArgumentsRequired(this.id + ' padHex() requires length');
+        }
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         const padded = left ? (zeros + value) : (value + zeros);
         if (left) {
@@ -3017,6 +3044,9 @@ export default class nado extends Exchange {
         return this.signHash(hash, this.privateKey);
     }
     signHash(hash, privateKey) {
+        if (privateKey === undefined) {
+            throw new ArgumentsRequired(this.id + ' signHash() requires privateKey');
+        }
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];

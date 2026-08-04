@@ -503,6 +503,9 @@ class dydx extends dydx$1["default"] {
         //
         const quoteId = 'USDC';
         const marketId = this.safeString(market, 'ticker');
+        if (marketId === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split('-');
         const baseName = this.safeString(parts, 0);
         const baseId = this.safeString(market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
@@ -1286,9 +1289,18 @@ class dydx extends dydx$1["default"] {
         return r;
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase();
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrderRequest() requires a side argument');
+        }
         const orderSide = side.toUpperCase();
         let subaccountId = 0;
         [subaccountId, params] = this.handleOptionAndParams(params, 'createOrder', 'subAccountId', subaccountId);
@@ -1367,6 +1379,9 @@ class dydx extends dydx$1["default"] {
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
+                if (latestBlockHeight === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing latestBlockHeight');
+                }
                 goodTillBlock = latestBlockHeight + 20;
             }
         }
@@ -1408,7 +1423,13 @@ class dydx extends dydx$1["default"] {
             'value': orderPayload,
         };
         params = this.omit(params, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId']);
-        const orderId = this.createOrderIdFromParts(this.getWalletAddress(), subaccountId, clientOrderId, orderFlag, marketInfo['clobPairId']);
+        const walletAddress = this.getWalletAddress();
+        const clobPairId = this.safeInteger(marketInfo, 'clobPairId', 0);
+        const subaccountIdValue = (subaccountId === undefined) ? 0 : subaccountId;
+        const clientOrderIdValue = (clientOrderId === undefined) ? 0 : clientOrderId;
+        const orderFlagValue = (orderFlag === undefined) ? 0 : orderFlag;
+        const clobPairIdValue = (clobPairId === undefined) ? 0 : clobPairId;
+        const orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return [orderId, this.extend(signingPayload, params)];
     }
     createOrderIdFromParts(address, subAccountNumber, clientOrderId, orderFlags, clobPairId) {
@@ -1436,7 +1457,11 @@ class dydx extends dydx$1["default"] {
         //
         const result = this.safeDict(response, 'result');
         const info = this.safeDict(result, 'response');
-        return this.safeInteger(info, 'last_block_height');
+        const height = this.safeInteger(info, 'last_block_height');
+        if (height === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchLatestBlockHeight() could not parse last_block_height');
+        }
+        return height;
     }
     /**
      * @method
@@ -1683,7 +1708,7 @@ class dydx extends dydx$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1837,6 +1862,9 @@ class dydx extends dydx$1["default"] {
         }
         const gasLimit = Math.ceil(this.parseToNumeric(Precise["default"].stringMul(gasUsed, defaultFeeMultiplier)));
         let feeAmount = Precise["default"].stringMul(this.numberToString(gasLimit), gasPrice);
+        if (feeAmount === undefined) {
+            throw new errors.ExchangeError(this.id + ' estimateTxFee() missing feeAmount');
+        }
         if (feeAmount.indexOf('.') >= 0) {
             feeAmount = this.numberToString(Math.ceil(this.parseToNumeric(feeAmount)));
         }

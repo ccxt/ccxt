@@ -417,6 +417,9 @@ class latoken extends Exchange {
             if ($baseCurrencyInfo !== null && $quoteCurrencyInfo !== null) {
                 $base = $this->safe_currency_code($this->safe_string($baseCurrencyInfo, 'tag'));
                 $quote = $this->safe_currency_code($this->safe_string($quoteCurrencyInfo, 'tag'));
+                if (($base === null) || ($quote === null)) {
+                    continue;
+                }
                 $lowercaseQuote = strtolower($quote);
                 $capitalizedQuote = $this->capitalize($lowercaseQuote);
                 $status = $this->safe_string($market, 'status');
@@ -609,7 +612,9 @@ class latoken extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'blocked');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         $result['timestamp'] = $maxTimestamp;
         $result['datetime'] = $this->iso8601($maxTimestamp);
@@ -625,7 +630,7 @@ class latoken extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -843,7 +848,7 @@ class latoken extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        if (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets)) {
+        if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
             $market = $this->market($symbol);
         }
         $id = $this->safe_string($trade, 'id');
@@ -1053,7 +1058,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($status) {
+    public function parse_order_type(mixed $status) {
         $statuses = array(
             'ORDER_TYPE_MARKET' => 'market',
             'ORDER_TYPE_LIMIT' => 'limit',
@@ -1123,7 +1128,7 @@ class latoken extends Exchange {
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
-            if (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets)) {
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
                 $market = $this->market($symbol);
             }
         }
@@ -1379,6 +1384,9 @@ class latoken extends Exchange {
         }
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $request = array(
             'baseCurrency' => $market['baseId'],
             'quoteCurrency' => $market['quoteId'],
@@ -1637,7 +1645,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'TRANSACTION_TYPE_DEPOSIT' => 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL' => 'withdrawal',
@@ -1803,7 +1811,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $requestString = $request;
         $query = $this->omit($params, $this->extract_params($path));
@@ -1827,11 +1835,11 @@ class latoken extends Exchange {
                 $body = $this->json($query);
             }
         }
-        $url = ($this->urls['api'])['rest'] . $requestString;
+        $url = $this->urls['api']['rest'] . $requestString;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null;
         }

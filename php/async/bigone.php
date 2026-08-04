@@ -548,27 +548,29 @@ class bigone extends Exchange {
             $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
             $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
             $precision = $this->parse_precision($this->safe_string_2($chain, 'withdrawal_scale', 'scale'));
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'margin' => null,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'active' => null,
-                'fee' => $this->parse_number($withdrawalFee),
-                'precision' => $this->parse_number($precision),
-                'limits' => array(
-                    'deposit' => array(
-                        'min' => $minDepositAmount,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'margin' => null,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'active' => null,
+                    'fee' => $this->parse_number($withdrawalFee),
+                    'precision' => $this->parse_number($precision),
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => $minDepositAmount,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $minWithdrawalAmount,
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $minWithdrawalAmount,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $chain,
-            );
+                    'info' => $chain,
+                );
+            }
         }
         $chainLength = count($chains);
         $type = null;
@@ -1036,6 +1038,9 @@ class bigone extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             $timestamp = $this->safe_integer($data, 'Timestamp');
+            if ($timestamp === null) {
+                throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
+            }
             return $this->parse_to_int($timestamp / 1000000);
         })();
     }
@@ -1050,7 +1055,7 @@ class bigone extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1117,7 +1122,7 @@ class bigone extends Exchange {
         })();
     }
 
-    public function parse_contract_bids_asks($bidsAsks) {
+    public function parse_contract_bids_asks(mixed $bidsAsks) {
         $bidsAsksKeys = is_array($bidsAsks) ? array_keys($bidsAsks) : array();
         $result = array();
         for ($i = 0; $i < count($bidsAsksKeys); $i++) {
@@ -1331,7 +1336,7 @@ class bigone extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "close" => "0.021562",
@@ -1427,7 +1432,7 @@ class bigone extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1441,7 +1446,9 @@ class bigone extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'balance');
             $account['used'] = $this->safe_string($balance, 'locked_balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1481,7 +1488,7 @@ class bigone extends Exchange {
         })();
     }
 
-    public function parse_type(string $type) {
+    public function parse_type(?string $type) {
         $types = array(
             'STOP_LIMIT' => 'limit',
             'STOP_MARKET' => 'market',
@@ -1623,7 +1630,7 @@ class bigone extends Exchange {
             $isLimit = $uppercaseType === 'LIMIT';
             $exchangeSpecificParam = $this->safe_bool($params, 'post_only', false);
             $postOnly = null;
-            list($postOnly, $params) = $this->handle_post_only(($uppercaseType === 'MARKET'), $exchangeSpecificParam, $params);
+            list($postOnly, $params) = $this->handle_post_only($uppercaseType === 'MARKET', $exchangeSpecificParam === true, $params);
             $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
             $request = array(
                 'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
@@ -1699,7 +1706,7 @@ class bigone extends Exchange {
             //        "updated_at":"2019-01-29T06:05:56Z"
             //    }
             //
-            $order = $this->safe_dict($response, 'data');
+            $order = $this->safe_dict($response, 'data', array());
             return $this->parse_order($order, $market);
         })();
     }
@@ -1733,7 +1740,7 @@ class bigone extends Exchange {
             //        "created_at":"2019-01-29T06:05:56Z",
             //        "updated_at":"2019-01-29T06:05:56Z"
             //    }
-            $order = $this->safe_dict($response, 'data');
+            $order = $this->safe_dict($response, 'data', array());
             return $this->parse_order($order);
         })();
     }
@@ -1992,7 +1999,7 @@ class bigone extends Exchange {
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
@@ -2436,7 +2443,7 @@ class bigone extends Exchange {
         })();
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

@@ -1032,7 +1032,7 @@ export default class phemex extends Exchange {
         //                     "symbol":"BTCUSDT",
         //                     "steps":"2000K",
         //                     "riskLimits":[
-        //                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},,
+        //                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},
         //                         {"limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"},
         //                         {"limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"},
         //                     ]
@@ -1230,7 +1230,7 @@ export default class phemex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1304,7 +1304,7 @@ export default class phemex extends Exchange {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
-        return this.toEn(price, market['priceScale']);
+        return this.toEn(price, this.safeValue(market, 'priceScale'));
     }
     fromEn(en, scale) {
         if (en === undefined || scale === undefined) {
@@ -3825,7 +3825,7 @@ export default class phemex extends Exchange {
         const networkId = this.safeString(transaction, 'chainName');
         const timestamp = this.safeIntegerN(transaction, ['createdAt', 'submitedAt', 'submittedAt']);
         let type = this.safeStringLower(transaction, 'type');
-        let feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, 'feeEv'), currency['valueScale']));
+        let feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, 'feeEv'), this.safeValue(currency, 'valueScale')));
         if (feeCost === undefined) {
             feeCost = this.safeNumber(transaction, 'feeRv');
         }
@@ -3838,7 +3838,7 @@ export default class phemex extends Exchange {
             };
         }
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
-        let amount = this.parseNumber(this.fromEn(this.safeString(transaction, 'amountEv'), currency['valueScale']));
+        let amount = this.parseNumber(this.fromEn(this.safeString(transaction, 'amountEv'), this.safeValue(currency, 'valueScale')));
         if (amount === undefined) {
             amount = this.safeNumber(transaction, 'amountRv');
         }
@@ -4728,7 +4728,7 @@ export default class phemex extends Exchange {
                 'currency': market['settle'],
                 'minNotional': minNotionalResponse,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': this.safeString(tier, 'maintenanceMargin'),
+                'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMargin'),
                 'maxLeverage': undefined,
                 'info': tier,
             });

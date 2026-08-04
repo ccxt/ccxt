@@ -743,27 +743,29 @@ export default class toobit extends Exchange {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString(rawNetwork, 'chainType');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': undefined,
-                'deposit': this.safeBool(rawNetwork, 'allowDeposit'),
-                'withdraw': this.safeBool(rawNetwork, 'allowWithdraw'),
-                'active': undefined,
-                'fee': this.safeNumber(rawNetwork, 'withdrawFee'),
-                'precision': undefined,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber(rawNetwork, 'minDepositQuantity'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': this.safeBool(rawNetwork, 'allowDeposit'),
+                    'withdraw': this.safeBool(rawNetwork, 'allowWithdraw'),
+                    'active': undefined,
+                    'fee': this.safeNumber(rawNetwork, 'withdrawFee'),
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(rawNetwork, 'minDepositQuantity'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(rawNetwork, 'minWithdrawQuantity'),
+                            'max': this.safeNumber(rawNetwork, 'maxWithdrawQuantity'),
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(rawNetwork, 'minWithdrawQuantity'),
-                        'max': this.safeNumber(rawNetwork, 'maxWithdrawQuantity'),
-                    },
-                },
-                'info': rawNetwork,
-            };
+                    'info': rawNetwork,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -1029,7 +1031,7 @@ export default class toobit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1696,7 +1698,9 @@ export default class toobit extends Exchange {
             account['free'] = this.safeString2(balance, 'free', 'availableBalance');
             account['total'] = this.safeString2(balance, 'total', 'balance');
             account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1755,6 +1759,9 @@ export default class toobit extends Exchange {
         return this.parseOrder(response, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
         const market = this.market(symbol);
         if (side === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
@@ -1791,6 +1798,12 @@ export default class toobit extends Exchange {
         return [request, params];
     }
     createContractOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],

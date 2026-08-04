@@ -480,26 +480,29 @@ public partial class bitmex : Exchange
             {
                 withdrawEnabled = true;
             }
-            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                { "info", chain },
-                { "id", networkId },
-                { "network", network },
-                { "active", active },
-                { "deposit", isDepositEnabled },
-                { "withdraw", isWithdrawEnabled },
-                { "fee", withdrawalFee },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(network, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                    { "info", chain },
+                    { "id", networkId },
+                    { "network", network },
+                    { "active", active },
+                    { "deposit", isDepositEnabled },
+                    { "withdraw", isWithdrawEnabled },
+                    { "fee", withdrawalFee },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         object currencyEnabled = this.safeValue(currency, "enabled");
         object currencyActive = isTrue(currencyEnabled) || isTrue((isTrue(depositEnabled) || isTrue(withdrawEnabled)));
@@ -590,7 +593,7 @@ public partial class bitmex : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
-            return this.parseNumber(this.convertToRealAmount(getValue(market, currencySide), rawQuantity));
+            return this.parseNumber(this.convertToRealAmount(this.safeString(market, currencySide), rawQuantity));
         }
         return this.parseNumber(rawQuantity);
     }
@@ -882,7 +885,11 @@ public partial class bitmex : Exchange
             isQuanto = null;
             linear = null;
         }
-        return new Dictionary<string, object>() {
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " parseMarket() requires a symbol")) ;
+        }
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -933,7 +940,7 @@ public partial class bitmex : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseBalance(object response)
@@ -998,7 +1005,10 @@ public partial class bitmex : Exchange
             object total = this.safeString(balance, "marginBalance");
             ((IDictionary<string,object>)account)["free"] = this.convertToRealAmount(code, free);
             ((IDictionary<string,object>)account)["total"] = this.convertToRealAmount(code, total);
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1080,7 +1090,7 @@ public partial class bitmex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1378,7 +1388,7 @@ public partial class bitmex : Exchange
             { "AffiliatePayout", "referral" },
             { "SpotTrade", "trade" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -2087,7 +2097,7 @@ public partial class bitmex : Exchange
             isInverse = (isEqual(defaultSubType, "inverse"));
         } else
         {
-            isInverse = this.safeBool(market, "inverse", false);
+            isInverse = isEqual(this.safeBool(market, "inverse", false), true);
         }
         if (isTrue(isInverse))
         {
@@ -2582,6 +2592,10 @@ public partial class bitmex : Exchange
         {
             await this.loadMarkets();
         }
+        if (isTrue(isEqual(timeout, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "timeout", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
         };
@@ -3044,6 +3058,10 @@ public partial class bitmex : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
         if (isTrue(inOp(this.currencies, symbol)))
         {
             object code = this.currency(symbol);
@@ -3294,16 +3312,19 @@ public partial class bitmex : Exchange
                 object networkCode = this.networkIdToCode(networkId, currencyCode);
                 object withdrawalFeeId = this.safeString(network, "withdrawalFee");
                 object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeId, precision));
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "fee", withdrawalFee },
-                        { "percentage", false },
-                    } },
-                };
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "fee", withdrawalFee },
+                            { "percentage", false },
+                        } },
+                    };
+                }
                 if (isTrue(isEqual(networksLength, 1)))
                 {
                     ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = withdrawalFee;
@@ -4018,6 +4039,10 @@ public partial class bitmex : Exchange
                 { "api-key", this.apiKey },
             };
             expires = this.sum(this.seconds(), expires);
+            if (isTrue(isEqual(expires, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " sign() missing expires")) ;
+            }
             object stringExpires = ((object)expires).ToString();
             auth = add(auth, stringExpires);
             ((IDictionary<string,object>)headers)["api-expires"] = stringExpires;

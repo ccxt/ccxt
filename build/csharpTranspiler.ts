@@ -4,7 +4,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
-import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
 import fs from 'fs'
@@ -37,8 +37,10 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
+    // overwriteFile() already opens+truncates+writes the file; the extra
+    // fs.writeFileSync below wrote every generated file a second time
+    // (~50 MB of redundant I/O per full build)
     overwriteFile (path, content);
-    fs.writeFileSync (path, content);
 }
 
 // this is necessary because for some reason
@@ -94,6 +96,10 @@ class NewTranspiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in the ccxt.prediction / ccxt.prediction.pro namespaces
     isPrediction = false;
+    // set once PredictionExchange.cs has been emitted in this process. A full run reaches
+    // transpilePredictionBaseMethods twice (recursive prediction pass, then the main pass)
+    // with identical inputs, so the second call would only rewrite the same bytes.
+    private _predictionBaseWritten = false;
 
     constructor() {
 
@@ -308,6 +314,28 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
         setupCsharpPrinter (this.transpiler);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        this.patchCsharpPropertyTypes ();
+    }
+
+    // Same ast-transpiler field-type hole as Java: getType() returns raw TS aliases
+    // (Dict/Str/Num/...) for class fields without VariableTypeReplacements. Without this,
+    // `skippedMethods: Dict = {}` emits `public Dict ...` and CS0246. Route field types
+    // through the existing map (exact key only).
+    patchCsharpPropertyTypes () {
+        const csharpTranspiler = (this.transpiler as any)?.csharpTranspiler;
+        if (!csharpTranspiler || typeof csharpTranspiler.getType !== 'function' || csharpTranspiler._propertyTypesPatched) {
+            return;
+        }
+        const originalGetType = csharpTranspiler.getType.bind (csharpTranspiler);
+        csharpTranspiler.getType = (node: any) => {
+            const type = originalGetType (node);
+            const replacements = csharpTranspiler.VariableTypeReplacements ?? {};
+            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call (replacements, type)) {
+                return replacements[type];
+            }
+            return type;
+        };
+        csharpTranspiler._propertyTypesPatched = true;
     }
 
     createGeneratedHeader() {
@@ -424,6 +452,9 @@ class NewTranspiler {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
             'fetchEventsParams': 'Dictionary<string, object>', // params bag; surface as a dict
+            // TS interface names whose C# structs are Currency / Fee (cs/ccxt/base/Exchange.Types.cs)
+            'CurrencyInterface': 'Currency',
+            'FeeInterface': 'Fee',
         }
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
@@ -538,10 +569,15 @@ class NewTranspiler {
                 }
             }
         } else {
+            // generated ccxt types (Currencies, MarketInterface, ...) are C# structs (value
+            // types) — an optional param can only default to null if declared nullable (CS1750)
+            const isStructType = paramType !== 'object' && paramType !== 'string'
+                && !paramType.startsWith('List<') && !paramType.startsWith('Dictionary<')
+                && paramType !== 'BaseExchange' && paramType !== 'Exchange';
             if (isOptional) {
                 if (param.initializer !== undefined) {
                         if (param.initializer === 'undefined' || param.initializer === '{}' || paramType === 'object') {
-                            return `${paramType} ${safeName} = null`
+                            return isStructType ? `${paramType}? ${safeName} = null` : `${paramType} ${safeName} = null`
                         }
                         return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
                 }
@@ -728,6 +764,9 @@ class NewTranspiler {
     }
 
     createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
+        // ast-transpiler drops the `= {}` default of a type-annotated params bag, which would
+        // emit it as a required parameter sitting after optionals (CS1737)
+        restoreParamsBagInitializers(wrappers);
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'BaseExchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
@@ -1052,6 +1091,7 @@ class NewTranspiler {
             const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
             const file = fileHeader + fields + baseMethods + "\n" + wrapperPartial;
             fs.writeFileSync (predictionBase, file);
+            this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
         }
     }
@@ -1197,7 +1237,11 @@ class NewTranspiler {
 
         this.transpileBaseMethods (exchangeBase, force)
 
-        this.transpilePredictionBaseMethods (undefined, force)
+        // the recursive prediction pass above already regenerated PredictionExchange.cs from
+        // the same inputs, so this second call would re-transpile and rewrite identical bytes
+        if (!this._predictionBaseWritten) {
+            this.transpilePredictionBaseMethods (undefined, force)
+        }
 
         if (baseOnly) {
             return;
@@ -1702,6 +1746,9 @@ class NewTranspiler {
             [ /testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)' ],
             [ /throw new Error/g, 'throw new Exception' ],
             [/class testMainClass/g, 'public partial class testMainClass'],
+            // noImplicitAny bags: keep object so safeValue assignments typecheck
+            [ /public (?:Dict|Dictionary<string, object>) skippedMethods\b/g, 'public object skippedMethods' ],
+            [ /public (?:Dict|Dictionary<string, object>) checkedPublicTests\b/g, 'public object checkedPublicTests' ],
         ])
 
         const file = [

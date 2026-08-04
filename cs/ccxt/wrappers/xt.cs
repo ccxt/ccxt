@@ -35,7 +35,7 @@ public partial class xt
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(object parameters = null)
     {
         var res = await this.fetchSpotMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
@@ -101,7 +101,7 @@ public partial class xt
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -329,13 +329,15 @@ public partial class xt
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateSpotOrder(string symbol, object type, object side, object amount, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateSpotOrder(string symbol, string type, object side, object amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createSpotOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateContractOrder(string symbol, object type, object side, object amount, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateContractOrder(string symbol, object type, object side, object amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createContractOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
@@ -945,6 +947,7 @@ public partial class xt
     /// </summary>
     /// <remarks>
     /// See <see href="https://doc.xt.com/#futures_usergetPosition"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -959,6 +962,7 @@ public partial class xt
     /// </summary>
     /// <remarks>
     /// See <see href="https://doc.xt.com/#futures_usergetPosition"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbols</term>

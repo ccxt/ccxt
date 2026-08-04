@@ -471,8 +471,9 @@ export default class exmo extends Exchange {
         //     }
         //
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             const fee = this.safeValue(response, market['id'], {});
             const makerString = this.safeString(fee, 'commission_maker_percent');
@@ -574,7 +575,9 @@ export default class exmo extends Exchange {
                 const typeInner = this.safeString(provider, 'type');
                 const commissionDesc = this.safeString(provider, 'commission_desc');
                 const fee = this.parseFixedFloatValue(commissionDesc);
-                result[code][typeInner] = fee;
+                if (code !== undefined && typeInner !== undefined) {
+                    result[code][typeInner] = fee;
+                }
             }
             result[code]['info'] = providers;
         }
@@ -656,21 +659,25 @@ export default class exmo extends Exchange {
             }
             const network = this.safeValue(result['networks'], networkCode);
             if (network === undefined) {
-                result['networks'][networkCode] = {
-                    'withdraw': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
+            }
+            if ((networkCode !== undefined) && (type !== undefined)) {
+                result['networks'][networkCode][type] = {
+                    'fee': this.parseFixedFloatValue(this.safeString(splitCommissionDesc, 0)),
+                    'percentage': percentage,
                 };
             }
-            result['networks'][networkCode][type] = {
-                'fee': this.parseFixedFloatValue(this.safeString(splitCommissionDesc, 0)),
-                'percentage': percentage,
-            };
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
@@ -747,37 +754,42 @@ export default class exmo extends Exchange {
                 const provider = providers[j];
                 const name = this.safeString(provider, 'name');
                 // get network-id by removing extra things
+                if (name === undefined) {
+                    throw new ExchangeError(this.id + ' parseCurrency() missing name');
+                }
                 let networkId = name.replace(currencyId + ' ', '');
                 networkId = networkId.replace('(', '');
                 const replaceChar = ')'; // transpiler trick
                 networkId = networkId.replace(replaceChar, '');
                 const networkCode = this.networkIdToCode(networkId, code);
-                if (!(networkCode in networks)) {
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': undefined,
-                        'deposit': undefined,
-                        'withdraw': undefined,
-                        'fee': undefined,
-                        'limits': {
-                            'withdraw': {
-                                'min': undefined,
-                                'max': undefined,
+                if ((networkCode === undefined) || !(networkCode in networks)) {
+                    if (networkCode !== undefined) {
+                        networks[networkCode] = {
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': undefined,
+                            'deposit': undefined,
+                            'withdraw': undefined,
+                            'fee': undefined,
+                            'limits': {
+                                'withdraw': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
+                                'deposit': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
                             },
-                            'deposit': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                        'info': [], // set as array, because of multiple network sub-entries
-                    };
+                            'info': [], // set as array, because of multiple network sub-entries
+                        };
+                    }
                 }
                 const typeInner = this.safeString(provider, 'type');
                 const minValue = this.safeString(provider, 'min');
                 const maxValue = this.safeString(provider, 'max');
                 const activeProvider = this.safeBool(provider, 'enabled');
-                const networkEntry = networks[networkCode];
+                const networkEntry = this.safeValue(networks, networkCode);
                 if (typeInner === 'deposit') {
                     networkEntry['deposit'] = activeProvider;
                     networkEntry['limits']['deposit']['min'] = minValue;
@@ -791,7 +803,9 @@ export default class exmo extends Exchange {
                 const info = this.safeList(networkEntry, 'info', []);
                 info.push(provider);
                 networkEntry['info'] = info;
-                networks[networkCode] = networkEntry;
+                if (networkCode !== undefined) {
+                    networks[networkCode] = networkEntry;
+                }
             }
         }
         return this.safeCurrencyStructure({
@@ -1057,7 +1071,9 @@ export default class exmo extends Exchange {
                 account['used'] = this.safeString(item, 'used');
                 account['free'] = this.safeString(item, 'free');
                 account['total'] = this.safeString(item, 'balance');
-                result[currency] = account;
+                if (currency !== undefined) {
+                    result[currency] = account;
+                }
             }
         }
         else {
@@ -1074,7 +1090,9 @@ export default class exmo extends Exchange {
                 if (currencyId in used) {
                     account['used'] = this.safeString(used, currencyId);
                 }
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1138,7 +1156,7 @@ export default class exmo extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1297,7 +1315,7 @@ export default class exmo extends Exchange {
         }
         const response = await this.publicGetTicker(params);
         const market = this.market(symbol);
-        return this.parseTicker(response[market['id']], market);
+        return this.parseTicker(this.safeValue(response, market['id']), market);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1893,7 +1911,11 @@ export default class exmo extends Exchange {
             //
         }
         const trades = this.safeList(response, 'trades');
-        return this.parseTrades(trades, market, since, limit);
+        let tradesList = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market, since, limit);
     }
     /**
      * @method
@@ -2326,7 +2348,7 @@ export default class exmo extends Exchange {
         const symbols = Object.keys(tradesBySymbol);
         const numSymbols = symbols.length;
         if (numSymbols === 1) {
-            return this.markets[symbols[0]];
+            return this.market(symbols[0]);
         }
         return undefined;
     }
@@ -2457,7 +2479,9 @@ export default class exmo extends Exchange {
                 const numParts = parts.length;
                 if (numParts === 2) {
                     address = this.safeString(parts, 1);
-                    address = address.replace(' ', '');
+                    if (address !== undefined) {
+                        address = address.replace(' ', '');
+                    }
                 }
             }
         }
@@ -2849,6 +2873,9 @@ export default class exmo extends Exchange {
             if (!success) {
                 let code = undefined;
                 const message = this.safeString2(response, 'error', 'errmsg');
+                if (message === undefined) {
+                    throw new ExchangeError(this.id + ' handleErrors() missing message');
+                }
                 const errorParts = message.split(':');
                 const numParts = errorParts.length;
                 if (numParts > 1) {

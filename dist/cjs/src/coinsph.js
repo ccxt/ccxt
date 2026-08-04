@@ -637,26 +637,28 @@ class coinsph extends coinsph$1["default"] {
             const networkItem = networkList[j];
             const network = this.safeString(networkItem, 'network');
             const networkCode = this.networkIdToCode(network, code);
-            networks[networkCode] = {
-                'info': networkItem,
-                'id': network,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeBool(networkItem, 'depositEnable'),
-                'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
-                'fee': this.safeNumber(networkItem, 'withdrawFee'),
-                'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkItem, 'withdrawMin'),
-                        'max': this.safeNumber(networkItem, 'withdrawMax'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool(networkItem, 'depositEnable'),
+                    'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
+                    'fee': this.safeNumber(networkItem, 'withdrawFee'),
+                    'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkItem, 'withdrawMin'),
+                            'max': this.safeNumber(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -1034,7 +1036,7 @@ class coinsph extends coinsph$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1377,7 +1379,9 @@ class coinsph extends coinsph$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'free');
             account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

@@ -559,7 +559,7 @@ public partial class bydfi : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -616,6 +616,10 @@ public partial class bydfi : Exchange
         object result = 1000;
         for (object i = 0; isLessThan(i, getArrayLength(limits)); postFixIncrement(ref i))
         {
+            if (isTrue(isEqual(limit, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " getClosestLimit() requires a limit argument")) ;
+            }
             if (isTrue(isLessThanOrEqual(limit, getValue(limits, i))))
             {
                 result = getValue(limits, i);
@@ -832,7 +836,7 @@ public partial class bydfi : Exchange
             { "2", "market" },
             { "3", "liquidation" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -886,6 +890,10 @@ public partial class bydfi : Exchange
             until = now;
         } else if (isTrue(isEqual(until, null)))
         {
+            if (isTrue(isEqual(startTime, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOHLCV() requires a since or until argument")) ;
+            }
             until = add(startTime, timeDelta);
             if (isTrue(isGreaterThan(until, now)))
             {
@@ -1287,7 +1295,19 @@ public partial class bydfi : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrderRequest() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
@@ -2050,7 +2070,7 @@ public partial class bydfi : Exchange
             { "TAKE_PROFIT_MARKET", "market" },
             { "TRAILING_STOP_MARKET", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object parseOrderTimeInForce(object timeInForce)
@@ -2834,7 +2854,10 @@ public partial class bydfi : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString2(balance, "total", "balance");
             ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "available", "availableBalance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }

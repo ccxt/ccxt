@@ -69,7 +69,7 @@ public class TestTicker extends BaseTest {
         Object symbolForMarket = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? symbol : exchange.safeString(entry, "symbol");
         if (Helpers.isTrue(!Helpers.isEqual(symbolForMarket, null)))
         {
-            if (Helpers.isTrue(Helpers.inOp(exchange.markets, symbolForMarket)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(exchange.markets, null))) && Helpers.isTrue((Helpers.inOp(exchange.markets, symbolForMarket)))))
             {
                 market = exchange.market(symbolForMarket);
             } else
@@ -121,12 +121,12 @@ public class TestTicker extends BaseTest {
         //
         // base & quote volumes
         //
-        Object baseVolume = exchange.omitZero(((String)exchange.safeString(entry, "baseVolume")));
-        Object quoteVolume = exchange.omitZero(((String)exchange.safeString(entry, "quoteVolume")));
-        Object high = exchange.omitZero(((String)exchange.safeString(entry, "high")));
-        Object low = exchange.omitZero(((String)exchange.safeString(entry, "low")));
-        Object open = exchange.omitZero(((String)exchange.safeString(entry, "open")));
-        Object close = exchange.omitZero(((String)exchange.safeString(entry, "close")));
+        Object baseVolume = exchange.omitZero(exchange.safeString(entry, "baseVolume"));
+        Object quoteVolume = exchange.omitZero(exchange.safeString(entry, "quoteVolume"));
+        Object high = exchange.omitZero(exchange.safeString(entry, "high"));
+        Object low = exchange.omitZero(exchange.safeString(entry, "low"));
+        Object open = exchange.omitZero(exchange.safeString(entry, "open"));
+        Object close = exchange.omitZero(exchange.safeString(entry, "close"));
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             // Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values

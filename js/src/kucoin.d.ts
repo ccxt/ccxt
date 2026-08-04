@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, NullableDict, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, NullableDict, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees } from './base/types.js';
 /**
  * @class kucoin
  * @augments Exchange
@@ -32,10 +32,10 @@ export default class kucoin extends Exchange {
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
-        updated: any;
-        eta: any;
-        url: any;
-        info: Dict;
+        updated: undefined;
+        eta: undefined;
+        url: undefined;
+        info: any;
     }>;
     /**
      * @method
@@ -49,7 +49,7 @@ export default class kucoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchContractMarkets(params?: {}): Promise<Market[]>;
+    fetchContractMarkets(params?: any): Promise<Market[]>;
     fetchUTAMarkets(params?: {}): Promise<Market[]>;
     /**
      * @method
@@ -72,7 +72,7 @@ export default class kucoin extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): Currency;
+    parseCurrency(currency: Dict): CurrencyInterface;
     /**
      * @method
      * @name kucoin#fetchAccounts
@@ -107,7 +107,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<DepositWithdrawFee>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     isFuturesMethod(methodName: any, params: any): boolean;
     parseSpotOrUtaTicker(ticker: Dict, market?: Market): Ticker;
@@ -284,7 +284,7 @@ export default class kucoin extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleTriggerPrices(params: any): any[];
@@ -359,8 +359,8 @@ export default class kucoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
-    marketOrderAmountToPrecision(symbol: string, amount: any): string;
+    createSpotOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    marketOrderAmountToPrecision(symbol: Str, amount: any): string;
     /**
      * @method
      * @name kucoin#createContractOrder
@@ -399,7 +399,7 @@ export default class kucoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createContractOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createContractOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name kucoin#createUtaOrder
@@ -437,7 +437,7 @@ export default class kucoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createUtaOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createUtaOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createUtaOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name kucoin#createMarketOrderWithCost
@@ -756,7 +756,7 @@ export default class kucoin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchUtaOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchUtaOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name kucoin#fetchClosedOrders
@@ -833,7 +833,7 @@ export default class kucoin extends Exchange {
      * Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: Str, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name kucoin#fetchSpotOrder
@@ -1017,7 +1017,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): string | undefined;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -1192,11 +1192,11 @@ export default class kucoin extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     parseBorrowRate(info: any, currency?: Currency): {
-        currency: string;
-        rate: number;
+        currency: Str;
+        rate: Num;
         period: number;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         info: any;
     };
     /**
@@ -1228,7 +1228,7 @@ export default class kucoin extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
-    fetchBorrowRateHistories(codes?: any, since?: Int, limit?: Int, params?: {}): Promise<Dict>;
+    fetchBorrowRateHistories(codes?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name kucoin#fetchBorrowRateHistory
@@ -1266,12 +1266,12 @@ export default class kucoin extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{
-        id: string;
-        currency: string;
-        amount: number;
-        symbol: any;
+        id: Str;
+        currency: Str;
+        amount: Num;
+        symbol: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         info: any;
     }>;
     /**
@@ -1287,12 +1287,12 @@ export default class kucoin extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{
-        id: string;
-        currency: string;
-        amount: number;
-        symbol: any;
+        id: Str;
+        currency: Str;
+        amount: Num;
+        symbol: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         info: any;
     }>;
     /**
@@ -1305,13 +1305,13 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
-        id: string;
-        currency: string;
-        amount: number;
-        symbol: any;
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{
+        id: Str;
+        currency: Str;
+        amount: Num;
+        symbol: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         info: any;
     }>;
     /**
@@ -1325,22 +1325,22 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
-        id: string;
-        currency: string;
-        amount: number;
-        symbol: any;
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{
+        id: Str;
+        currency: Str;
+        amount: Num;
+        symbol: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         info: any;
     }>;
     parseMarginLoan(info: any, currency?: Currency): {
-        id: string;
-        currency: string;
-        amount: number;
-        symbol: any;
+        id: Str;
+        currency: Str;
+        amount: Num;
+        symbol: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         info: any;
     };
     /**
@@ -1352,7 +1352,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     /**
      * @method
      * @name kucoin#fetchLeverage
@@ -1436,9 +1436,9 @@ export default class kucoin extends Exchange {
     parseFundingRateHistory(info: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: number;
-        timestamp: number;
-        datetime: string;
+        fundingRate: Num;
+        timestamp: Int;
+        datetime: string | undefined;
     };
     /**
      * @method
@@ -1658,10 +1658,10 @@ export default class kucoin extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
-        body: string;
+        body: Str;
         headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method
      * @name kucoin#fetchTransfers

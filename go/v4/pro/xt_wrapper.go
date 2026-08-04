@@ -319,7 +319,7 @@ func (this *Xt) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOption
  * @param {int} [limit] not used by xt watchOrderBook
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.levels] 5, 10, 20, or 50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Xt) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -518,6 +518,62 @@ func (this *Xt) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Po
 	return ccxt.NewPositionArray(res), nil
 }
 
+/**
+ * @method
+ * @name xt#watchFundingRate
+ * @description watch the current funding rate
+ * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+ */
+func (this *Xt) WatchFundingRate(symbol string, options ...ccxt.WatchFundingRateOptions) (ccxt.FundingRate, error) {
+
+	opts := ccxt.WatchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.WatchFundingRate(symbol, params)
+	if ccxt.IsError(res) {
+		return ccxt.FundingRate{}, ccxt.CreateReturnError(res)
+	}
+	return ccxt.NewFundingRate(res), nil
+}
+
+/**
+ * @method
+ * @name xt#unWatchFundingRate
+ * @description stops watching the funding rate
+ * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+ */
+func (this *Xt) UnWatchFundingRate(symbol string, options ...ccxt.UnWatchFundingRateOptions) (any, error) {
+
+	opts := ccxt.UnWatchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchFundingRate(symbol, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Xt) LoadMarkets(params ...any) (map[string]ccxt.MarketInterface, error) {
@@ -694,10 +750,10 @@ func (this *Xt) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Tran
 func (this *Xt) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Xt) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Xt) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Xt) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Xt) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Xt) FetchFreeBalance(params ...any) (ccxt.Balance, error) {

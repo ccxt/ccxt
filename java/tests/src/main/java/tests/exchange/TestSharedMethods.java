@@ -202,6 +202,10 @@ public class TestSharedMethods extends BaseTest {
                 // so, we have to compare with millisecond accururacy
                 Object dtParsed = exchange.parse8601(dt);
                 Object tsMs = Helpers.GetValue(entry, "timestamp");
+                if (Helpers.isTrue(Helpers.isEqual(dtParsed, null)))
+                {
+                    Assert(false, Helpers.add(Helpers.add("datetime is not parseable: ", dt), logText));
+                }
                 Object diff = Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(diff, 500)))
                 {
@@ -279,7 +283,7 @@ public class TestSharedMethods extends BaseTest {
     public static void AssertSymbolInMarkets(BaseExchange exchange, Object skippedProperties, Object method, Object symbol)
     {
         Object logText = logTemplate(exchange, method, new java.util.HashMap<String, Object>() {{}});
-        Assert((Helpers.inOp(exchange.markets, symbol)), Helpers.add("symbol should be present in exchange.symbols", logText));
+        Assert(Helpers.isTrue((!Helpers.isEqual(exchange.markets, null))) && Helpers.isTrue((Helpers.inOp(exchange.markets, symbol))), Helpers.add("symbol should be present in exchange.symbols", logText));
     }
     public static void AssertGreater(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
     {
@@ -777,7 +781,7 @@ public class TestSharedMethods extends BaseTest {
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 // if it's not in markets, then maybe newly added symbol, so can can compromise there
-                if (!Helpers.isTrue((Helpers.inOp(exchange.markets, symbol))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(exchange.markets, null))) || !Helpers.isTrue((Helpers.inOp(exchange.markets, symbol)))))
                 {
                     return null;
                 }

@@ -46,17 +46,17 @@ public partial class derive
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<MarketInterface>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchSpotMarkets(object parameters = null)
     {
         var res = await this.fetchSpotMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<MarketInterface>> FetchSwapMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchSwapMarkets(object parameters = null)
     {
         var res = await this.fetchSwapMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<MarketInterface>> FetchOptionMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchOptionMarkets(object parameters = null)
     {
         var res = await this.fetchOptionMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();

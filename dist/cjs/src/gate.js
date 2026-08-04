@@ -1291,7 +1291,7 @@ class gate extends gate$1["default"] {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -2023,26 +2023,28 @@ class gate extends gate$1["default"] {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'name');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': !this.safeBool(chain, 'deposit_disabled'),
-                'withdraw': !this.safeBool(chain, 'withdraw_disabled'),
-                'fee': undefined,
-                'precision': this.parseNumber('0.0001'), // temporary safe default, because no value provided from API,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': !this.safeBool(chain, 'deposit_disabled'),
+                    'withdraw': !this.safeBool(chain, 'withdraw_disabled'),
+                    'fee': undefined,
+                    'precision': this.parseNumber('0.0001'), // temporary safe default, because no value provided from API,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -2354,7 +2356,8 @@ class gate extends gate$1["default"] {
         }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const chainsIndexedById = await this.fetchDepositAddressesByNetwork(code, params);
+        const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(code, params);
+        const chainsIndexedById = chainsIndexedByIdRaw;
         const selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
         return chainsIndexedById[selectedNetworkIdOrCode];
     }
@@ -2444,8 +2447,9 @@ class gate extends gate$1["default"] {
     }
     parseTradingFees(response) {
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             result[symbol] = this.parseTradingFee(response, market);
         }
@@ -2532,7 +2536,9 @@ class gate extends gate$1["default"] {
                 for (let j = 0; j < networkIds.length; j++) {
                     const networkId = networkIds[j];
                     const networkCode = this.networkIdToCode(networkId, code);
-                    withdrawFees[networkCode] = this.parseNumber(withdrawFixOnChains[networkId]);
+                    if (networkCode !== undefined) {
+                        withdrawFees[networkCode] = this.parseNumber(withdrawFixOnChains[networkId]);
+                    }
                 }
             }
             result[code] = {
@@ -2616,16 +2622,18 @@ class gate extends gate$1["default"] {
                 const currencyId = this.safeString(fee, 'currency');
                 const code = this.safeCurrencyCode(currencyId, currency);
                 const networkCode = this.networkIdToCode(chainKey, code);
-                result['networks'][networkCode] = {
-                    'withdraw': {
-                        'fee': this.parseNumber(withdrawFixOnChains[chainKey]),
-                        'percentage': false,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': this.parseNumber(withdrawFixOnChains[chainKey]),
+                            'percentage': false,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
             }
         }
         return result;
@@ -2730,7 +2738,7 @@ class gate extends gate$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2837,6 +2845,9 @@ class gate extends gate$1["default"] {
         //     }
         //
         let timestamp = this.safeInteger(response, 'current');
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' method() missing timestamp');
+        }
         if (!market['spot']) {
             timestamp = timestamp * 1000;
         }
@@ -2896,6 +2907,9 @@ class gate extends gate$1["default"] {
         }
         else {
             ticker = this.safeValue(response, 0);
+        }
+        if (ticker === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker(ticker, market);
     }
@@ -4524,6 +4538,12 @@ class gate extends gate$1["default"] {
         return this.parseOrders(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const contract = market['contract'];
         const trigger = this.safeValue(params, 'trigger');
@@ -6423,6 +6443,9 @@ class gate extends gate$1["default"] {
         //         "pending_orders": 0
         //     }
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchPosition() returned empty response');
+        }
         return this.parsePosition(response, market);
     }
     /**
@@ -6536,7 +6559,11 @@ class gate extends gate$1["default"] {
         //         }
         //     ]
         //
-        return this.parsePositions(response, symbols);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parsePositions(responseList, symbols);
     }
     /**
      * @method
@@ -8175,6 +8202,9 @@ class gate extends gate$1["default"] {
         //
         const marketId = this.safeString(greeks, 'name');
         const symbol = this.safeSymbol(marketId, market);
+        if (market === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseGreeks() could not resolve market');
+        }
         return {
             'symbol': symbol,
             'timestamp': undefined,
@@ -8655,7 +8685,11 @@ class gate extends gate$1["default"] {
         //        ...
         //    ]
         //
-        return this.parsePositions(response, symbols, params);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parsePositions(responseList, symbols, params);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

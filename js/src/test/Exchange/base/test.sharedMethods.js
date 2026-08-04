@@ -165,6 +165,9 @@ function assertTimestampAndDatetime(exchange, skippedProperties, method, entry, 
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601(dt);
             const tsMs = entry['timestamp'];
+            if (dtParsed === undefined) {
+                assert(false, 'datetime is not parseable: ' + dt + logText);
+            }
             const diff = Math.abs(dtParsed - tsMs);
             if (diff >= 500) { // tolerate up to 500ms skew // TODO: dont know if this is a proper solution
                 const dtParsedString = exchange.iso8601(dtParsed);
@@ -226,7 +229,7 @@ function assertSymbol(exchange, skippedProperties, method, entry, key, expectedS
 }
 function assertSymbolInMarkets(exchange, skippedProperties, method, symbol) {
     const logText = logTemplate(exchange, method, {});
-    assert((symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
+    assert((exchange.markets !== undefined) && (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
 }
 function assertGreater(exchange, skippedProperties, method, entry, key, compareTo, allowNull = true) {
     if (key in skippedProperties) {
@@ -618,7 +621,7 @@ async function validateTickerExceptionForPercentage(ex, exchange, ticker) {
         const symbol = ticker['symbol'];
         if (symbol !== undefined) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if (!(symbol in exchange.markets)) {
+            if ((exchange.markets === undefined) || !(symbol in exchange.markets)) {
                 return;
             }
             // if OHLCV supported

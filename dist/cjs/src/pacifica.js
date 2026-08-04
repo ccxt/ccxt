@@ -682,6 +682,9 @@ class pacifica extends pacifica$1["default"] {
         let maxLeverage = undefined;
         let crossMargin = undefined;
         let isolatedMargin = undefined;
+        if (id === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing id');
+        }
         if (isSpot) {
             const idParts = id.split('-');
             quoteId = this.safeString(idParts, 1, quoteId);
@@ -844,7 +847,7 @@ class pacifica extends pacifica$1["default"] {
         const cacheAddress = this.walletAddress;
         let settings = undefined;
         if (userAccount === cacheAddress) {
-            settings = this.handleOption('fetchLeverage', 'settings', undefined);
+            settings = this.handleOption('fetchLeverage', 'settings');
         }
         else {
             const request = {
@@ -852,7 +855,7 @@ class pacifica extends pacifica$1["default"] {
             };
             settings = await this.fetchAccountSettings(this.extend(request, params));
         }
-        const setting = this.safeDict(settings, symbol, undefined);
+        const setting = this.safeDict(settings, symbol);
         if (setting === undefined) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
@@ -927,7 +930,7 @@ class pacifica extends pacifica$1["default"] {
         return this.parseAccountSettings(this.safeList(response, 'data', []));
     }
     async loadAccountSettings(refresh = false, params = {}) {
-        let settings = this.handleOption('loadAccountSettings', 'settings', undefined);
+        let settings = this.handleOption('loadAccountSettings', 'settings');
         if ((settings === undefined) || (refresh === true)) {
             this.options['settings'] = this.createSafeDictionary();
             settings = await this.fetchAccountSettings(params);
@@ -965,7 +968,7 @@ class pacifica extends pacifica$1["default"] {
         const cacheAddress = this.walletAddress;
         let settings = undefined;
         if (userAccount === cacheAddress) {
-            settings = this.handleOption('fetchMarginMode', 'settings', undefined);
+            settings = this.handleOption('fetchMarginMode', 'settings');
         }
         else {
             const request = {
@@ -982,7 +985,7 @@ class pacifica extends pacifica$1["default"] {
         //       "updated_at": 1758086074002
         //    },
         // }
-        const setting = this.safeDict(settings, symbol, undefined);
+        const setting = this.safeDict(settings, symbol);
         if (setting === undefined) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
@@ -1021,7 +1024,7 @@ class pacifica extends pacifica$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1517,6 +1520,12 @@ class pacifica extends pacifica$1["default"] {
         return this.safeOrder({ 'id': orderId, 'status': status, 'info': response, 'symbol': symbol });
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1737,7 +1746,7 @@ class pacifica extends pacifica$1["default"] {
         const ordersToReturn = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
-            const error = this.safeString(order, 'error', undefined);
+            const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
             if ((error !== undefined) || (!success)) {
@@ -1798,7 +1807,7 @@ class pacifica extends pacifica$1["default"] {
         const ordersToReturn = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
-            const error = this.safeString(order, 'error', undefined);
+            const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
             if ((error !== undefined) || (!success)) {
@@ -1992,6 +2001,9 @@ class pacifica extends pacifica$1["default"] {
         return this.safeOrder({ 'id': orderId, 'info': response, 'symbol': symbol });
     }
     editOrderRequest(id, symbol, type, side, amount, price, market, params = {}) {
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         if (amount === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an amount!');
         }
@@ -2129,7 +2141,9 @@ class pacifica extends pacifica$1["default"] {
             const info = data[i];
             const ticker = this.parseTicker(info);
             const symbol = this.safeString(ticker, 'symbol');
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
@@ -2464,7 +2478,7 @@ class pacifica extends pacifica$1["default"] {
         if (tifRaw !== undefined) {
             tif = tifRaw.toUpperCase();
         }
-        return this.safeString(tifMap, tif, undefined);
+        return this.safeString(tifMap, tif);
     }
     mapSide(sideRaw) {
         const sideMap = {
@@ -3226,7 +3240,7 @@ class pacifica extends pacifica$1["default"] {
     async createSubAccount(name, params = {}) {
         const finalHeaders = {};
         let agentAddress = undefined;
-        [agentAddress, params] = this.handleOption('createSubAccount', 'agentAddress', undefined);
+        [agentAddress, params] = this.handleOption('createSubAccount', 'agentAddress');
         let originAddress = undefined;
         [originAddress, params] = this.handleOriginAndSingleAddress('createSubAccount', params);
         if (originAddress === undefined) {
@@ -3392,7 +3406,7 @@ class pacifica extends pacifica$1["default"] {
         if (method === 'POST') {
             body = this.json(params);
         }
-        if (this.handleOption('sign', 'apiKey', undefined) !== undefined) {
+        if (this.handleOption('sign', 'apiKey') !== undefined) {
             headers['PF-API-KEY'] = this.options['apiKey'];
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -3402,7 +3416,7 @@ class pacifica extends pacifica$1["default"] {
         const costNumber = this.parseNumber(cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (costNumber > 1) {
-            if (this.handleOption(method, 'apiKey', undefined) !== undefined) {
+            if (this.handleOption(method, 'apiKey') !== undefined) {
                 const costWithKey = this.handleOption(method, 'maxCostHugeWithApiKey', 3);
                 return costWithKey;
             }

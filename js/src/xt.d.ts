@@ -35,7 +35,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params?: {}): Promise<List>;
+    fetchSpotMarkets(params?: any): Promise<List>;
     fetchSwapAndFutureMarkets(params?: {}): Promise<List>;
     parseMarkets(markets: any): List;
     parseMarket(market: Dict): Market;
@@ -65,7 +65,7 @@ export default class xt extends Exchange {
      * @param {string} symbol unified market symbol to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     /**
@@ -174,8 +174,8 @@ export default class xt extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createSpotOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
-    createContractOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
+    createSpotOrder(symbol: string, type: OrderType, side: any, amount: any, price?: Num, params?: {}): Promise<Order>;
+    createContractOrder(symbol: string, type: any, side: any, amount: any, price?: Num, params?: {}): Promise<Order>;
     /**
      * @method
      * @name xt#fetchOrder
@@ -301,8 +301,8 @@ export default class xt extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
+    parseOrder(order: Dict, market?: Market): Order;
+    parseOrderStatus(status: Str): Str;
     /**
      * @method
      * @name xt#fetchLedger
@@ -367,7 +367,7 @@ export default class xt extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name xt#setLeverage
@@ -416,7 +416,7 @@ export default class xt extends Exchange {
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
-    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): LeverageTiers;
+    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
     /**
      * @method
      * @name xt#fetchMarketLeverageTiers
@@ -477,17 +477,31 @@ export default class xt extends Exchange {
     parseFundingHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
-        amount: number;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
+        amount: Num;
     };
+    /**
+     * @ignore
+     * @method
+     * @param {object[]} breakList the "result" array of a position/break-list response
+     */
+    indexPositionBreakList(breakList: Dict[]): Dict;
+    /**
+     * @ignore
+     * @method
+     * @param {object} entry a single entry from a position/list response
+     * @param {object} breakBySymbolSide the result of indexPositionBreakList()
+     */
+    mergePositionBreakInfo(entry: Dict, breakBySymbolSide: Dict): Dict;
     /**
      * @method
      * @name xt#fetchPosition
      * @description fetch data on a single open contract trade position
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -498,6 +512,7 @@ export default class xt extends Exchange {
      * @name xt#fetchPositions
      * @description fetch all open positions
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} [symbols] list of unified market symbols, not supported with xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -519,14 +534,14 @@ export default class xt extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
-        id: string;
-        timestamp: any;
-        datetime: any;
-        currency: any;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
+        id: Str;
+        timestamp: undefined;
+        datetime: undefined;
+        currency: undefined;
+        amount: undefined;
+        fromAccount: undefined;
+        toAccount: undefined;
+        status: undefined;
     };
     /**
      * @method
@@ -539,7 +554,7 @@ export default class xt extends Exchange {
      * @param {string} [params.positionSide] *required* "long" or "short"
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name xt#editOrder
@@ -559,11 +574,11 @@ export default class xt extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    handleErrors(code: int, reason: string, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
-        body: string;
+        body: any;
         headers: Dict;
     };
 }

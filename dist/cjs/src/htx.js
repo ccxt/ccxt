@@ -1639,6 +1639,9 @@ class htx extends htx$1["default"] {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
+        if (symbols === undefined) {
+            throw new errors.ExchangeError(this.id + ' markets not loaded');
+        }
         const result = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -1705,7 +1708,7 @@ class htx extends htx$1["default"] {
         };
     }
     costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, number.TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision(cost, number.TRUNCATE, this.market(symbol)['precision']['cost'], this.precisionMode);
     }
     /**
      * @method
@@ -1891,6 +1894,9 @@ class htx extends htx$1["default"] {
             // check if parsed market is contract
             if (contract) {
                 id = this.safeString(market, 'contract_code');
+                if (id === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing id');
+                }
                 lowercaseId = id.toLowerCase();
                 const delivery_date = this.safeString(market, 'delivery_date');
                 const business_type = this.safeString(market, 'business_type');
@@ -1900,6 +1906,9 @@ class htx extends htx$1["default"] {
                 inverse = !linear;
                 if (swap) {
                     type = 'swap';
+                    if (id === undefined) {
+                        throw new errors.ExchangeError(this.id + ' method() missing id');
+                    }
                     const parts = id.split('-');
                     baseId = this.safeStringLower(market, 'symbol');
                     quoteId = this.safeStringLower(parts, 1);
@@ -1914,6 +1923,9 @@ class htx extends htx$1["default"] {
                     }
                     else {
                         const pair = this.safeString(market, 'pair');
+                        if (pair === undefined) {
+                            throw new errors.ExchangeError(this.id + ' method() missing pair');
+                        }
                         const parts = pair.split('-');
                         quoteId = this.safeStringLower(parts, 1);
                         settleId = quoteId;
@@ -1924,6 +1936,12 @@ class htx extends htx$1["default"] {
                 type = 'spot';
                 baseId = this.safeString(market, 'base-currency');
                 quoteId = this.safeString(market, 'quote-currency');
+                if (quoteId === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing quoteId');
+                }
+                if (baseId === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing baseId');
+                }
                 id = baseId + quoteId;
                 lowercaseId = id.toLowerCase();
             }
@@ -2057,7 +2075,7 @@ class htx extends htx$1["default"] {
         return result;
     }
     tryGetSymbolFromFutureMarkets(symbolOrMarketId) {
-        if (symbolOrMarketId in this.markets) {
+        if ((this.markets !== undefined) && (symbolOrMarketId in this.markets)) {
             return symbolOrMarketId;
         }
         // only on "future" market type (inverse & linear), market-id differs between "fetchMarkets" and "fetchTicker"
@@ -2082,7 +2100,7 @@ class htx extends htx$1["default"] {
             const market = futureMarkets[i];
             const info = this.safeValue(market, 'info', {});
             const contractType = this.safeString(info, 'contract_type');
-            const contractSuffix = futuresCharsMaps[contractType];
+            const contractSuffix = this.safeValue(futuresCharsMaps, contractType);
             // see comment on formats a bit above
             const constructedId = market['linear'] ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
             if (constructedId === symbolOrMarketId) {
@@ -2537,7 +2555,7 @@ class htx extends htx$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2612,6 +2630,9 @@ class htx extends htx$1["default"] {
         //         }
         //     }
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchOrderBook() returned empty response');
+        }
         if ('tick' in response) {
             if (!response['tick']) {
                 throw new errors.BadSymbol(this.id + ' fetchOrderBook() returned empty response: ' + this.json(response));
@@ -3472,36 +3493,44 @@ class htx extends htx$1["default"] {
         const code = this.safeCurrencyCode(currencyId);
         const assetType = this.safeString(rawCurrency, 'assetType');
         const type = (assetType === '1') ? 'crypto' : 'fiat';
-        this.options['networkChainIdsByNames'][code] = {};
+        if (code !== undefined) {
+            this.options['networkChainIdsByNames'][code] = {};
+        }
         const chains = this.safeList(rawCurrency, 'chains', []);
         const networks = {};
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = chains[j];
             const uniqueChainId = this.safeString(chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             const title = this.safeString2(chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-            this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-            this.options['networkNamesByChainIds'][uniqueChainId] = title;
+            if (code !== undefined && title !== undefined) {
+                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
+            }
+            if (uniqueChainId !== undefined) {
+                this.options['networkNamesByChainIds'][uniqueChainId] = title;
+            }
             const networkCode = this.networkIdToCode(uniqueChainId, code);
-            networks[networkCode] = {
-                'info': chainEntry,
-                'id': uniqueChainId,
-                'network': networkCode,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber(chainEntry, 'minDepositAmt'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chainEntry,
+                    'id': uniqueChainId,
+                    'network': networkCode,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(chainEntry, 'minDepositAmt'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(chainEntry, 'minWithdrawAmt'),
+                            'max': this.safeNumber(chainEntry, 'maxWithdrawAmt'),
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(chainEntry, 'minWithdrawAmt'),
-                        'max': this.safeNumber(chainEntry, 'maxWithdrawAmt'),
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeString(chainEntry, 'depositStatus') === 'allowed',
-                'withdraw': this.safeString(chainEntry, 'withdrawStatus') === 'allowed',
-                'fee': this.safeNumber(chainEntry, 'transactFeeWithdraw'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(chainEntry, 'withdrawPrecision'))),
-            };
+                    'active': undefined,
+                    'deposit': this.safeString(chainEntry, 'depositStatus') === 'allowed',
+                    'withdraw': this.safeString(chainEntry, 'withdrawStatus') === 'allowed',
+                    'fee': this.safeNumber(chainEntry, 'transactFeeWithdraw'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chainEntry, 'withdrawPrecision'))),
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': rawCurrency,
@@ -3590,7 +3619,10 @@ class htx extends htx$1["default"] {
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let subType = undefined;
         let isMultiAssetMode = undefined;
-        [subType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
+        [subType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'defaultSubType', 'subType');
+        if (subType === undefined) {
+            subType = 'linear';
+        }
         [isMultiAssetMode, params] = this.handleOptionAndParams(params, 'fetchBalance', 'multiAssetMode', false);
         const request = {};
         const spot = (type === 'spot');
@@ -3784,7 +3816,9 @@ class htx extends htx$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString(balance, 'available_margin');
                 account['total'] = this.safeString(balance, 'equity');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             result = this.safeBalance(result);
         }
@@ -3799,7 +3833,9 @@ class htx extends htx$1["default"] {
                         const balance = balances[j];
                         const currencyId = this.safeString(balance, 'currency');
                         const code = this.safeCurrencyCode(currencyId);
-                        subResult[code] = this.parseMarginBalanceHelper(balance, code, subResult);
+                        if (code !== undefined) {
+                            subResult[code] = this.parseMarginBalanceHelper(balance, code, subResult);
+                        }
                     }
                     result[symbol] = this.safeBalance(subResult);
                 }
@@ -3810,7 +3846,9 @@ class htx extends htx$1["default"] {
                     const balance = balances[i];
                     const currencyId = this.safeString(balance, 'currency');
                     const code = this.safeCurrencyCode(currencyId);
-                    result[code] = this.parseMarginBalanceHelper(balance, code, result);
+                    if (code !== undefined) {
+                        result[code] = this.parseMarginBalanceHelper(balance, code, result);
+                    }
                 }
                 result = this.safeBalance(result);
             }
@@ -3823,7 +3861,9 @@ class htx extends htx$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString(balance, 'margin_available');
                 account['used'] = this.safeString(balance, 'margin_frozen');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             result = this.safeBalance(result);
         }
@@ -4069,8 +4109,14 @@ class htx extends htx$1["default"] {
         else {
             account = this.account();
         }
+        if (account === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarginBalanceHelper() could not resolve account');
+        }
         if (balance['type'] === 'trade') {
             account['free'] = this.safeString(balance, 'balance');
+        }
+        if (account === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarginBalanceHelper() could not resolve account');
         }
         if (balance['type'] === 'frozen') {
             account['used'] = this.safeString(balance, 'balance');
@@ -5293,6 +5339,12 @@ class htx extends htx$1["default"] {
      * @returns {object} request to be sent to the exchange
      */
     async createSpotOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -5407,6 +5459,12 @@ class htx extends htx$1["default"] {
         return this.extend(request, params);
     }
     createContractOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -5804,6 +5862,9 @@ class htx extends htx$1["default"] {
             else {
                 result = this.safeDict(response, 'data', {});
             }
+            if (result === undefined) {
+                throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
+            }
             return this.extend(this.parseOrder(result, market), {
                 'type': type,
                 'side': side,
@@ -5821,6 +5882,9 @@ class htx extends htx$1["default"] {
         }
         else {
             result = this.safeValue(response, 'data', {});
+        }
+        if (result === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder(result, market);
     }
@@ -6175,6 +6239,9 @@ class htx extends htx$1["default"] {
         }
         else {
             result = response;
+        }
+        if (result === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
         }
         return this.extend(this.parseOrder(result, market), {
             'id': id,
@@ -6623,6 +6690,9 @@ class htx extends htx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        if (timeout === undefined) {
+            throw new errors.ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         const request = {
             'timeout': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
         };
@@ -6717,7 +6787,7 @@ class htx extends htx$1["default"] {
         const [networkCode, paramsOmited] = this.handleNetworkCodeAndParams(params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode];
+        return this.safeValue(indexedAddresses, selectedNetworkCode);
     }
     async fetchWithdrawAddresses(code, note = undefined, networkCode = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -6940,6 +7010,9 @@ class htx extends htx$1["default"] {
         }
         const networkId = this.safeString(transaction, 'chain');
         let txHash = this.safeString(transaction, 'tx-hash');
+        if (txHash === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseTransaction() missing txHash');
+        }
         if (networkId === 'ETH' && txHash.indexOf('0x') < 0) {
             txHash = '0x' + txHash;
         }
@@ -7027,7 +7100,11 @@ class htx extends htx$1["default"] {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId(networkCode, code);
         }
-        amount = parseFloat(this.currencyToPrecision(code, amount, networkCode));
+        let amountPrecision = this.currencyToPrecision(code, amount, networkCode);
+        if (amountPrecision === undefined) {
+            amountPrecision = '0';
+        }
+        amount = parseFloat(amountPrecision);
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
         if (this.safeBool(withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber(params, 'fee');
@@ -7045,9 +7122,21 @@ class htx extends htx$1["default"] {
             params = this.omit(params, 'fee');
             const amountString = this.numberToString(amount);
             const amountSubtractedString = Precise["default"].stringSub(amountString, feeString);
-            const amountSubtracted = parseFloat(amountSubtractedString);
-            request['fee'] = parseFloat(feeString);
-            amount = parseFloat(this.currencyToPrecision(code, amountSubtracted, networkCode));
+            let amountSubtractedParsed = amountSubtractedString;
+            if (amountSubtractedParsed === undefined) {
+                amountSubtractedParsed = '0';
+            }
+            const amountSubtracted = parseFloat(amountSubtractedParsed);
+            let feeParsed = feeString;
+            if (feeParsed === undefined) {
+                feeParsed = '0';
+            }
+            request['fee'] = parseFloat(feeParsed);
+            let amountAfterFee = this.currencyToPrecision(code, amountSubtracted, networkCode);
+            if (amountAfterFee === undefined) {
+                amountAfterFee = '0';
+            }
+            amount = parseFloat(amountAfterFee);
         }
         request['amount'] = amount;
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate(this.extend(request, params));
@@ -7141,9 +7230,13 @@ class htx extends htx$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
+        let transferAmount = this.currencyToPrecision(code, amount);
+        if (transferAmount === undefined) {
+            transferAmount = '0';
+        }
         const request = {
             'currency': currency['id'],
-            'amount': parseFloat(this.currencyToPrecision(code, amount)),
+            'amount': parseFloat(transferAmount),
         };
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('transfer', undefined, params);
@@ -7151,8 +7244,8 @@ class htx extends htx$1["default"] {
         let toAccountId = this.convertTypeToAccount(toAccount);
         const toCross = toAccountId === 'cross';
         const fromCross = fromAccountId === 'cross';
-        const toIsolated = this.inArray(toAccountId, this.ids);
-        const fromIsolated = this.inArray(fromAccountId, this.ids);
+        const toIsolated = ((this.ids !== undefined) && this.inArray(toAccountId, this.ids));
+        const fromIsolated = ((this.ids !== undefined) && this.inArray(fromAccountId, this.ids));
         const fromSpot = fromAccountId === 'pro';
         const toSpot = toAccountId === 'pro';
         if (fromSpot && toSpot) {
@@ -7212,6 +7305,9 @@ class htx extends htx$1["default"] {
         //        "print-log": true
         //    }
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseTransfer() returned empty response');
+        }
         return this.parseTransfer(response, currency);
     }
     /**
@@ -7641,7 +7737,7 @@ class htx extends htx$1["default"] {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'linear');
+        const defaultSubType = 'linear';
         let subType = undefined;
         [subType, params] = this.handleOptionAndParams(params, 'fetchFundingRates', 'subType', defaultSubType);
         if (symbols !== undefined) {
@@ -7874,7 +7970,7 @@ class htx extends htx$1["default"] {
                 }
             }
             else {
-                if (Object.keys(query).length) {
+                if ((query !== undefined) && Object.keys(query).length) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -7900,7 +7996,7 @@ class htx extends htx$1["default"] {
             hostname = hostnames;
             url += this.implodeParams(path, params);
             if (access === 'public') {
-                if (Object.keys(query).length) {
+                if ((query !== undefined) && Object.keys(query).length) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -8186,6 +8282,9 @@ class htx extends htx$1["default"] {
             //       "ts": "1641184652979"
             //     }
             //
+        }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' setLeverage() returned empty response');
         }
         return response;
     }
@@ -9696,13 +9795,15 @@ class htx extends htx$1["default"] {
                     'percentage': true,
                 };
             }
-            result['networks'][networkCode] = {
-                'withdraw': withdrawResult,
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
             result = this.assignDefaultDepositWithdrawFees(result, currency);
         }
         return result;
@@ -10041,6 +10142,9 @@ class htx extends htx$1["default"] {
         if (market['linear']) {
             const data = this.safeDict(response, 'data', {});
             return this.parseOrder(data, market);
+        }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder(response, market);
     }

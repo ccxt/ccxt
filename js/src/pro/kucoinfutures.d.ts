@@ -23,5 +23,5 @@ export default class kucoinfutures extends kucoin {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransferType(transferType: any): string;
+    parseTransferType(transferType: any): import("../base/types.js").Str;
 }

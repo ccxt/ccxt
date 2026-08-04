@@ -1012,23 +1012,26 @@ public partial class mexc : Exchange
             object chain = getValue(chains, j);
             object networkId = this.safeString2(chain, "netWork", "network");
             object network = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                { "info", chain },
-                { "id", networkId },
-                { "network", network },
-                { "active", null },
-                { "deposit", this.safeBool(chain, "depositEnable", false) },
-                { "withdraw", this.safeBool(chain, "withdrawEnable", false) },
-                { "fee", this.safeNumber(chain, "withdrawFee") },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeString(chain, "withdrawMin") },
-                        { "max", this.safeString(chain, "withdrawMax") },
+            if (isTrue(!isEqual(network, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                    { "info", chain },
+                    { "id", networkId },
+                    { "network", network },
+                    { "active", null },
+                    { "deposit", this.safeBool(chain, "depositEnable", false) },
+                    { "withdraw", this.safeBool(chain, "withdrawEnable", false) },
+                    { "fee", this.safeNumber(chain, "withdrawFee") },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeString(chain, "withdrawMin") },
+                            { "max", this.safeString(chain, "withdrawMax") },
+                        } },
                     } },
-                } },
-                { "contract", this.safeString(chain, "contract") },
-            };
+                    { "contract", this.safeString(chain, "contract") },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -1344,7 +1347,7 @@ public partial class mexc : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1841,7 +1844,7 @@ public partial class mexc : Exchange
             object length = getArrayLength(symbols);
             isSingularMarket = isEqual(length, 1);
             object firstSymbol = this.safeString(symbols, 0);
-            market = this.market(((string)firstSymbol));
+            market = this.market(firstSymbol);
         }
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
@@ -2436,15 +2439,25 @@ public partial class mexc : Exchange
         {
             type = 6;
         }
+        object volString = this.amountToPrecision(symbol, amount);
+        if (isTrue(isEqual(volString, null)))
+        {
+            volString = "0";
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "vol", parseFloat(((string)this.amountToPrecision(((string)symbol), amount))) },
+            { "vol", parseFloat(volString) },
             { "type", type },
             { "openType", openType },
         };
         if (isTrue(isTrue(isTrue((!isEqual(type, 5))) && isTrue((!isEqual(type, 6)))) && isTrue((!isEqual(type, "market")))))
         {
-            ((IDictionary<string,object>)request)["price"] = parseFloat(this.priceToPrecision(symbol, price));
+            object priceString = this.priceToPrecision(symbol, price);
+            if (isTrue(isEqual(priceString, null)))
+            {
+                priceString = "0";
+            }
+            ((IDictionary<string,object>)request)["price"] = parseFloat(priceString);
         }
         if (isTrue(isEqual(openType, 1)))
         {
@@ -2538,7 +2551,7 @@ public partial class mexc : Exchange
         {
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
-            object market = this.market(((string)marketId));
+            object market = this.market(marketId);
             if (!isTrue(getValue(market, "spot")))
             {
                 throw new NotSupported ((string)add(this.id, " createOrders() is only supported for spot markets")) ;
@@ -3885,8 +3898,14 @@ public partial class mexc : Exchange
                 object baseCode = this.safeCurrencyCode(this.safeString(bs, "asset"));
                 object quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 object subResult = new Dictionary<string, object>() {};
-                ((IDictionary<string,object>)subResult)[(string)baseCode] = this.parseBalanceHelper(bs);
-                ((IDictionary<string,object>)subResult)[(string)quoteCode] = this.parseBalanceHelper(quote);
+                if (isTrue(!isEqual(baseCode, null)))
+                {
+                    ((IDictionary<string,object>)subResult)[(string)baseCode] = this.parseBalanceHelper(bs);
+                }
+                if (isTrue(!isEqual(quoteCode, null)))
+                {
+                    ((IDictionary<string,object>)subResult)[(string)quoteCode] = this.parseBalanceHelper(quote);
+                }
                 ((IDictionary<string,object>)result)[(string)symbol] = this.safeBalance(subResult);
             }
             return result;
@@ -3900,7 +3919,10 @@ public partial class mexc : Exchange
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "availableBalance");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "frozenBalance");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
             return this.safeBalance(result);
         } else
@@ -3913,7 +3935,10 @@ public partial class mexc : Exchange
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "free");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
             return this.safeBalance(result);
         }
@@ -4815,9 +4840,9 @@ public partial class mexc : Exchange
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             object networkUnified = this.networkIdToCode(networkCode, code);
             object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-            if (isTrue(inOp(networks, networkUnified)))
+            if (isTrue(isTrue((!isEqual(networkUnified, null))) && isTrue((inOp(networks, networkUnified)))))
             {
-                object network = this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
+                object network = ((bool) isTrue((isEqual(networkUnified, null)))) ? new Dictionary<string, object>() {} : this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
                 object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
                 networkId = this.safeString(networkInfo, "network");
             } else
@@ -4876,9 +4901,9 @@ public partial class mexc : Exchange
         object networkId = null;
         object networkUnified = this.networkIdToCode(networkCode, code);
         object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-        if (isTrue(inOp(networks, networkUnified)))
+        if (isTrue(isTrue((!isEqual(networkUnified, null))) && isTrue((inOp(networks, networkUnified)))))
         {
-            object network = this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
+            object network = ((bool) isTrue((isEqual(networkUnified, null)))) ? new Dictionary<string, object>() {} : this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
             object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
             networkId = this.safeString(networkInfo, "network");
         } else
@@ -4918,7 +4943,8 @@ public partial class mexc : Exchange
         object result = null;
         if (isTrue(!isEqual(network, null)))
         {
-            result = this.safeDict(addressStructures, this.networkIdToCode(network, code));
+            object netCode = this.networkIdToCode(network, code);
+            result = ((bool) isTrue((isEqual(netCode, null)))) ? null : this.safeDict(addressStructures, netCode);
         } else
         {
             object options = this.safeDict(this.options, "defaultNetworks");
@@ -4930,7 +4956,7 @@ public partial class mexc : Exchange
             {
                 object keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
                 object key = this.safeString(keys, 0);
-                result = this.safeDict(addressStructures, ((string)key));
+                result = this.safeDict(addressStructures, key);
             }
         }
         if (isTrue(isEqual(result, null)))
@@ -5211,7 +5237,7 @@ public partial class mexc : Exchange
                 { "10", "pending" },
             } },
         };
-        object statuses = this.safeValue(statusesByType, ((string)type), new Dictionary<string, object>() {});
+        object statuses = this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
         return this.safeString(statuses, status, status);
     }
 
@@ -5467,7 +5493,7 @@ public partial class mexc : Exchange
         {
             throw new BadRequest ((string)add(add(this.id, " fetchTransfer() is not supported for "), marketType)) ;
         }
-        return null;
+        throw new BadRequest ((string)add(add(this.id, " fetchTransfer() is not supported for "), marketType)) ;
     }
 
     /**
@@ -5797,8 +5823,8 @@ public partial class mexc : Exchange
         }
         object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, ((string)network), network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId(((string)network), getValue(currency, "code"));
+        network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
+        network = this.networkCodeToId(network, getValue(currency, "code"));
         this.checkAddress(address);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -5980,7 +6006,7 @@ public partial class mexc : Exchange
         {
             object networkEntry = getValue(networkList, j);
             object networkId = this.safeString(networkEntry, "network");
-            object networkCode = this.safeString(getValue(this.options, "networks"), ((string)networkId), networkId);
+            object networkCode = this.safeString(getValue(this.options, "networks"), networkId, networkId);
             object fee = this.safeNumber(networkEntry, "withdrawFee");
             ((IDictionary<string,object>)result)[(string)((string)networkCode)] = fee;
         }
@@ -6071,16 +6097,19 @@ public partial class mexc : Exchange
             object networkEntry = getValue(networkList, j);
             object networkId = this.safeString(networkEntry, "network");
             object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
-            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                { "withdraw", new Dictionary<string, object>() {
-                    { "fee", this.safeNumber(networkEntry, "withdrawFee") },
-                    { "percentage", null },
-                } },
-                { "deposit", new Dictionary<string, object>() {
-                    { "fee", null },
-                    { "percentage", null },
-                } },
-            };
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "fee", this.safeNumber(networkEntry, "withdrawFee") },
+                        { "percentage", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "fee", null },
+                        { "percentage", null },
+                    } },
+                };
+            }
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
@@ -6293,7 +6322,7 @@ public partial class mexc : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
             throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
@@ -6349,10 +6378,10 @@ public partial class mexc : Exchange
         {
             if (isTrue(isEqual(section, "broker")))
             {
-                url = add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/"), path);
+                url = add(add(getValue(getValue(getValue(this.urls, "api"), section), ((string)access)), "/"), path);
             } else
             {
-                url = add(add(add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/api/"), this.version), "/"), path);
+                url = add(add(add(add(getValue(getValue(getValue(this.urls, "api"), section), ((string)access)), "/api/"), this.version), "/"), path);
             }
             object urlParams = parameters;
             if (isTrue(isEqual(access, "private")))
@@ -6393,7 +6422,7 @@ public partial class mexc : Exchange
             }
         } else if (isTrue(isTrue(isEqual(section, "contract")) || isTrue(isEqual(section, "spot2"))))
         {
-            url = add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/"), this.implodeParams(path, parameters));
+            url = add(add(getValue(getValue(getValue(this.urls, "api"), section), ((string)access)), "/"), this.implodeParams(path, parameters));
             parameters = this.omit(parameters, this.extractParams(path));
             if (isTrue(isEqual(access, "public")))
             {

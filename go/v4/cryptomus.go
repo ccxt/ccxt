@@ -323,6 +323,9 @@ func (this *CryptomusCore) ParseMarket(market any) any {
 	//     }
 	//
 	var marketId any = this.SafeString(market, "symbol")
+	if IsTrue(IsEqual(marketId, nil)) {
+		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
+	}
 	var parts any = Split(marketId, "_")
 	var baseId any = GetValue(parts, 0)
 	var quoteId any = GetValue(parts, 1)
@@ -446,26 +449,28 @@ func (this *CryptomusCore) ParseCurrency(rawCurrency any) any {
 		}
 		var networkId any = this.SafeString(networkEntry, "network_code")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"id":      networkId,
-			"network": networkCode,
-			"limits": map[string]any{
-				"withdraw": map[string]any{
-					"min": this.SafeNumber(networkEntry, "min_withdraw"),
-					"max": this.SafeNumber(networkEntry, "max_withdraw"),
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"id":      networkId,
+				"network": networkCode,
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(networkEntry, "min_withdraw"),
+						"max": this.SafeNumber(networkEntry, "max_withdraw"),
+					},
+					"deposit": map[string]any{
+						"min": this.SafeNumber(networkEntry, "min_deposit"),
+						"max": this.SafeNumber(networkEntry, "max_deposit"),
+					},
 				},
-				"deposit": map[string]any{
-					"min": this.SafeNumber(networkEntry, "min_deposit"),
-					"max": this.SafeNumber(networkEntry, "max_deposit"),
-				},
-			},
-			"active":    nil,
-			"deposit":   this.SafeBool(networkEntry, "can_deposit"),
-			"withdraw":  this.SafeBool(networkEntry, "can_withdraw"),
-			"fee":       nil,
-			"precision": nil,
-			"info":      networkEntry,
-		})
+				"active":    nil,
+				"deposit":   this.SafeBool(networkEntry, "can_deposit"),
+				"withdraw":  this.SafeBool(networkEntry, "can_withdraw"),
+				"fee":       nil,
+				"precision": nil,
+				"info":      networkEntry,
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":       id,
@@ -495,8 +500,8 @@ func (this *CryptomusCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes46912 := (<-this.LoadMarkets())
-			PanicOnError(retRes46912)
+			retRes47412 := (<-this.LoadMarkets())
+			PanicOnError(retRes47412)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -570,7 +575,7 @@ func (this *CryptomusCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CryptomusCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -583,8 +588,8 @@ func (this *CryptomusCore) FetchOrderBook(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes53912 := (<-this.LoadMarkets())
-			PanicOnError(retRes53912)
+			retRes54412 := (<-this.LoadMarkets())
+			PanicOnError(retRes54412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -651,8 +656,8 @@ func (this *CryptomusCore) FetchTrades(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes58612 := (<-this.LoadMarkets())
-			PanicOnError(retRes58612)
+			retRes59112 := (<-this.LoadMarkets())
+			PanicOnError(retRes59112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -676,8 +681,12 @@ func (this *CryptomusCore) FetchTrades(symbol any, optionalArgs ...any) <-chan a
 		//     }
 		//
 		var data any = this.SafeList(response, "data")
+		var dataList any = []any{}
+		if IsTrue(!IsEqual(data, nil)) {
+			dataList = data
+		}
 
-		ch <- this.ParseTrades(data, market, since, limit)
+		ch <- this.ParseTrades(dataList, market, since, limit)
 		return nil
 
 	}()
@@ -734,8 +743,8 @@ func (this *CryptomusCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes65312 := (<-this.LoadMarkets())
-			PanicOnError(retRes65312)
+			retRes66212 := (<-this.LoadMarkets())
+			PanicOnError(retRes66212)
 		}
 		var request any = map[string]any{}
 
@@ -778,7 +787,9 @@ func (this *CryptomusCore) ParseBalance(balance any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balanceEntry, "available"))
 		AddElementToObject(account, "used", this.SafeString(balanceEntry, "held"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -810,8 +821,8 @@ func (this *CryptomusCore) CreateOrder(symbol any, typeVar any, side any, amount
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes71312 := (<-this.LoadMarkets())
-			PanicOnError(retRes71312)
+			retRes72412 := (<-this.LoadMarkets())
+			PanicOnError(retRes72412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -900,8 +911,8 @@ func (this *CryptomusCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes78012 := (<-this.LoadMarkets())
-			PanicOnError(retRes78012)
+			retRes79112 := (<-this.LoadMarkets())
+			PanicOnError(retRes79112)
 		}
 		var request any = map[string]any{}
 		AddElementToObject(request, "orderId", id)
@@ -954,8 +965,8 @@ func (this *CryptomusCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-c
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes81112 := (<-this.LoadMarkets())
-			PanicOnError(retRes81112)
+			retRes82212 := (<-this.LoadMarkets())
+			PanicOnError(retRes82212)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -1053,8 +1064,8 @@ func (this *CryptomusCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes88912 := (<-this.LoadMarkets())
-			PanicOnError(retRes88912)
+			retRes90012 := (<-this.LoadMarkets())
+			PanicOnError(retRes90012)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {

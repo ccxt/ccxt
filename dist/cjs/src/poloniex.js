@@ -818,7 +818,7 @@ class poloniex extends poloniex$1["default"] {
         const active = state === 'NORMAL';
         const symbolTradeLimit = this.safeValue(market, 'symbolTradeLimit');
         // these are known defaults
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -862,7 +862,7 @@ class poloniex extends poloniex$1["default"] {
             },
             'created': this.safeInteger(market, 'tradableStartTime'),
             'info': market,
-        };
+        });
     }
     parseSwapMarket(market) {
         //
@@ -923,7 +923,7 @@ class poloniex extends poloniex$1["default"] {
             type = 'future';
         }
         const marketType = (type === 'future') ? 'future' : 'swap';
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -973,7 +973,7 @@ class poloniex extends poloniex$1["default"] {
             },
             'created': this.safeInteger(market, 'oDate'),
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -1201,27 +1201,29 @@ class poloniex extends poloniex$1["default"] {
             const chain = chains[j];
             const chainId = this.safeString(chain, 'blockchain');
             const networkCode = this.networkIdToCode(chainId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': chainId,
-                'name': undefined,
-                'code': networkCode,
-                'active': undefined,
-                'fee': this.safeNumber(chain, 'withdrawFee'),
-                'deposit': this.safeBool(chain, 'depositEnable'),
-                'withdraw': this.safeBool(chain, 'withdrawalEnable'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'withdrawMin'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': chainId,
+                    'name': undefined,
+                    'code': networkCode,
+                    'active': undefined,
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'deposit': this.safeBool(chain, 'depositEnable'),
+                    'withdraw': this.safeBool(chain, 'withdrawalEnable'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'withdrawMin'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -2410,7 +2412,9 @@ class poloniex extends poloniex$1["default"] {
                 const account = this.account();
                 account['total'] = this.safeString(balance, 'avail');
                 account['used'] = this.safeString(balance, 'im');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             return this.safeBalance(result);
         }
@@ -2425,7 +2429,9 @@ class poloniex extends poloniex$1["default"] {
                 const newAccount = this.account();
                 newAccount['free'] = this.safeString(balance, 'available');
                 newAccount['used'] = this.safeString(balance, 'hold');
-                result[code] = newAccount;
+                if (code !== undefined) {
+                    result[code] = newAccount;
+                }
             }
         }
         return this.safeBalance(result);
@@ -2527,8 +2533,9 @@ class poloniex extends poloniex$1["default"] {
         //     }
         //
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -2549,7 +2556,7 @@ class poloniex extends poloniex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2679,7 +2686,7 @@ class poloniex extends poloniex$1["default"] {
         }
         let exchangeNetworkId = undefined;
         networkCode = this.networkIdToCode(networkCode, code);
-        const networkEntry = this.safeDict(currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict(currency['networks'], networkCode);
         if (networkEntry !== undefined) {
             exchangeNetworkId = networkEntry['id'];
         }
@@ -3006,7 +3013,7 @@ class poloniex extends poloniex$1["default"] {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode(currencyId);
             const feeInfo = response[currencyId];
-            if ((codes === undefined) || (this.inArray(code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
                 const currency = this.currency(code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, currency);
                 const childChains = this.safeValue(feeInfo, 'childChains');
@@ -3019,16 +3026,18 @@ class poloniex extends poloniex$1["default"] {
                         const networkInfo = this.safeValue(response, networkId);
                         const networkObject = {};
                         const withdrawFee = this.safeNumber(networkInfo, 'withdrawalFee');
-                        networkObject[networkCode] = {
-                            'withdraw': {
-                                'fee': withdrawFee,
-                                'percentage': (withdrawFee !== undefined) ? false : undefined,
-                            },
-                            'deposit': {
-                                'fee': undefined,
-                                'percentage': undefined,
-                            },
-                        };
+                        if (networkCode !== undefined) {
+                            networkObject[networkCode] = {
+                                'withdraw': {
+                                    'fee': withdrawFee,
+                                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                                },
+                                'deposit': {
+                                    'fee': undefined,
+                                    'percentage': undefined,
+                                },
+                            };
+                        }
                         depositWithdrawFees[code]['networks'] = this.extend(depositWithdrawFees[code]['networks'], networkObject);
                     }
                 }
@@ -3053,10 +3062,12 @@ class poloniex extends poloniex$1["default"] {
         depositWithdrawFee['withdraw'] = withdrawResult;
         depositWithdrawFee['deposit'] = depositResult;
         const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
-        depositWithdrawFee['networks'][networkCode] = {
-            'withdraw': withdrawResult,
-            'deposit': depositResult,
-        };
+        if (networkCode !== undefined) {
+            depositWithdrawFee['networks'][networkCode] = {
+                'withdraw': withdrawResult,
+                'deposit': depositResult,
+            };
+        }
         return depositWithdrawFee;
     }
     /**

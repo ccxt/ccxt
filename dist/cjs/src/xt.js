@@ -259,6 +259,7 @@ class xt extends xt$1["default"] {
                             'future/user/v1/balance/funding-rate-list': 1,
                             'future/user/v1/balance/list': 1,
                             'future/user/v1/position/adl': 1,
+                            'future/user/v1/position/break-list': 1,
                             'future/user/v1/position/list': 1,
                             'future/user/v1/user/collection/list': 1,
                             'future/user/v1/user/listen-key': 1,
@@ -303,6 +304,7 @@ class xt extends xt$1["default"] {
                             'future/user/v1/balance/funding-rate-list': 1,
                             'future/user/v1/balance/list': 1,
                             'future/user/v1/position/adl': 1,
+                            'future/user/v1/position/break-list': 1,
                             'future/user/v1/position/list': 1,
                             'future/user/v1/user/collection/list': 1,
                             'future/user/v1/user/listen-key': 1,
@@ -327,6 +329,7 @@ class xt extends xt$1["default"] {
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                            'future/user/v1/position/change-type': 1,
                         },
                     },
                     'user': {
@@ -691,7 +694,7 @@ class xt extends xt$1["default"] {
                 'default': {
                     'sandbox': false,
                     'createOrder': {
-                        'marginMode': false,
+                        'marginMode': true,
                         'triggerPrice': false,
                         'triggerDirection': false,
                         'triggerPriceType': undefined,
@@ -772,6 +775,7 @@ class xt extends xt$1["default"] {
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         // todo
                         'triggerPriceType': {
@@ -910,31 +914,33 @@ class xt extends xt$1["default"] {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString(rawNetwork, 'chain');
                 const networkCode = this.networkIdToCode(networkId, code);
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': undefined,
-                    'active': undefined,
-                    'fee': this.safeNumber(rawNetwork, 'withdrawFeeAmount'),
-                    'precision': undefined,
-                    'deposit': this.safeBool(rawNetwork, 'depositEnabled'),
-                    'withdraw': this.safeBool(rawNetwork, 'withdrawEnabled'),
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
+                if (networkCode !== undefined) {
+                    networks[networkCode] = {
+                        'info': rawNetwork,
+                        'id': networkId,
+                        'network': networkCode,
+                        'name': undefined,
+                        'active': undefined,
+                        'fee': this.safeNumber(rawNetwork, 'withdrawFeeAmount'),
+                        'precision': undefined,
+                        'deposit': this.safeBool(rawNetwork, 'depositEnabled'),
+                        'withdraw': this.safeBool(rawNetwork, 'withdrawEnabled'),
+                        'limits': {
+                            'amount': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'withdraw': {
+                                'min': this.safeNumber(rawNetwork, 'withdrawMinAmount'),
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
                         },
-                        'withdraw': {
-                            'min': this.safeNumber(rawNetwork, 'withdrawMinAmount'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
+                    };
+                }
             }
             const typeRaw = this.safeString(entry, 'type');
             let type = undefined;
@@ -944,33 +950,35 @@ class xt extends xt$1["default"] {
             else {
                 type = 'other';
             }
-            result[code] = this.safeCurrencyStructure({
-                'info': entry,
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString(entry, 'fullName'),
-                'active': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision'))),
-                'deposit': this.safeString(entry, 'depositStatus') === '1',
-                'withdraw': this.safeString(entry, 'withdrawStatus') === '1',
-                'networks': networks,
-                'type': type,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = this.safeCurrencyStructure({
+                    'info': entry,
+                    'id': currencyId,
+                    'code': code,
+                    'name': this.safeString(entry, 'fullName'),
+                    'active': undefined,
+                    'fee': undefined,
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision'))),
+                    'deposit': this.safeString(entry, 'depositStatus') === '1',
+                    'withdraw': this.safeString(entry, 'withdrawStatus') === '1',
+                    'networks': networks,
+                    'type': type,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
+            }
         }
         return result;
     }
@@ -1352,8 +1360,8 @@ class xt extends xt$1["default"] {
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.safeNumber(market, 'takerFee'),
-            'maker': this.safeNumber(market, 'makerFee'),
+            'taker': this.safeNumber2(market, 'takerFee', 'takerFeeRate'),
+            'maker': this.safeNumber2(market, 'makerFee', 'makerFeeRate'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
@@ -1537,7 +1545,7 @@ class xt extends xt$1["default"] {
      * @param {string} symbol unified market symbol to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1792,7 +1800,9 @@ class xt extends xt$1["default"] {
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker(tickers[i], market);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArray(result, 'symbol', symbols);
     }
@@ -2415,7 +2425,9 @@ class xt extends xt$1["default"] {
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -3271,7 +3283,7 @@ class xt extends xt$1["default"] {
             orders = this.safeList(resultDict, 'items', []);
         }
         else {
-            orders = this.safeList(response, 'result');
+            orders = this.safeList(response, 'result', []);
         }
         return this.parseOrders(orders, market, since, limit);
     }
@@ -4747,10 +4759,47 @@ class xt extends xt$1["default"] {
         };
     }
     /**
+     * @ignore
+     * @method
+     * @param {object[]} breakList the "result" array of a position/break-list response
+     */
+    indexPositionBreakList(breakList) {
+        const breakBySymbolSide = {};
+        for (let i = 0; i < breakList.length; i++) {
+            const breakEntry = breakList[i];
+            // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
+            // endpoint, including here and on position/list; there is no one-way/net
+            // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            // both validate positionSide against exactly ['LONG', 'SHORT'])
+            const key = this.safeString(breakEntry, 'symbol') + '_' + this.safeString(breakEntry, 'positionSide');
+            breakBySymbolSide[key] = breakEntry;
+        }
+        return breakBySymbolSide;
+    }
+    /**
+     * @ignore
+     * @method
+     * @param {object} entry a single entry from a position/list response
+     * @param {object} breakBySymbolSide the result of indexPositionBreakList()
+     */
+    mergePositionBreakInfo(entry, breakBySymbolSide) {
+        const marketId = this.safeString(entry, 'symbol');
+        const key = marketId + '_' + this.safeString(entry, 'positionSide');
+        const breakEntry = this.safeDict(breakBySymbolSide, key);
+        if (breakEntry === undefined) {
+            return entry;
+        }
+        return this.extend(entry, {
+            'breakPrice': this.safeString(breakEntry, 'breakPrice'),
+            'calMarkPrice': this.safeString(breakEntry, 'calMarkPrice'),
+        });
+    }
+    /**
      * @method
      * @name xt#fetchPosition
      * @description fetch data on a single open contract trade position
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -4765,13 +4814,18 @@ class xt extends xt$1["default"] {
         };
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchPosition', market, params);
-        let response = undefined;
+        const promisesUnresolved = [];
         if (subType === 'inverse') {
-            response = await this.privateInverseGetFutureUserV1PositionList(this.extend(request, params));
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionList(this.extend(request, params)));
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionBreakList(this.extend(request, params)));
         }
         else {
-            response = await this.privateLinearGetFutureUserV1PositionList(this.extend(request, params));
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionList(this.extend(request, params)));
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, params)));
         }
+        const [response, breakResponse] = await Promise.all(promisesUnresolved);
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -4792,28 +4846,46 @@ class xt extends xt$1["default"] {
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        const positions = this.safeValue(response, 'result', []);
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        const positions = this.safeList(response, 'result', []);
+        const breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, 'result', []));
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString(entry, 'symbol');
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
             const positionSize = this.safeString(entry, 'positionSize');
             if (positionSize !== '0') {
-                return this.parsePosition(entry, marketInner);
+                const merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+                return this.parsePosition(merged, marketInner);
             }
         }
-        return undefined;
+        throw new errors.NullResponse(this.id + ' fetchPosition() could not find a position for ' + symbol);
     }
     /**
      * @method
      * @name xt#fetchPositions
      * @description fetch all open positions
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} [symbols] list of unified market symbols, not supported with xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -4824,13 +4896,18 @@ class xt extends xt$1["default"] {
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchPositions', undefined, params);
-        let response = undefined;
+        const promisesUnresolved = [];
         if (subType === 'inverse') {
-            response = await this.privateInverseGetFutureUserV1PositionList(params);
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionList(params));
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionBreakList(params));
         }
         else {
-            response = await this.privateLinearGetFutureUserV1PositionList(params);
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionList(params));
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionBreakList(params));
         }
+        const [response, breakResponse] = await Promise.all(promisesUnresolved);
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -4851,22 +4928,41 @@ class xt extends xt$1["default"] {
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        const positions = this.safeValue(response, 'result', []);
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        const positions = this.safeList(response, 'result', []);
+        const breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, 'result', []));
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString(entry, 'symbol');
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
-            result.push(this.parsePosition(entry, marketInner));
+            const merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+            result.push(this.parsePosition(merged, marketInner));
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
+        //
+        // position/list
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -4882,7 +4978,17 @@ class xt extends xt$1["default"] {
         //         "openOrderMarginFrozen": "0",
         //         "realizedProfit": "-0.00130138",
         //         "autoMargin": false,
-        //         "leverage": 25
+        //         "leverage": 25,
+        //         "markPrice": "27050"
+        //     }
+        //
+        // position/break-list
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "positionSide": "SHORT",
+        //         "breakPrice": "0",
+        //         "calMarkPrice": "27050"
         //     }
         //
         const marketId = this.safeString(position, 'symbol');
@@ -4891,6 +4997,7 @@ class xt extends xt$1["default"] {
         const positionType = this.safeString(position, 'positionType');
         const marginMode = (positionType === 'CROSSED') ? 'cross' : 'isolated';
         const collateral = this.safeNumber(position, 'isolatedMargin');
+        const liquidationPriceString = this.omitZero(this.safeString(position, 'breakPrice'));
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -4902,7 +5009,7 @@ class xt extends xt$1["default"] {
             'contracts': this.safeNumber(position, 'positionSize'),
             'contractSize': market['contractSize'],
             'entryPrice': this.safeNumber(position, 'entryPrice'),
-            'markPrice': undefined,
+            'markPrice': this.safeNumber2(position, 'markPrice', 'calMarkPrice'),
             'notional': undefined,
             'leverage': this.safeInteger(position, 'leverage'),
             'collateral': collateral,
@@ -4911,7 +5018,7 @@ class xt extends xt$1["default"] {
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': this.parseNumber(liquidationPriceString),
             'marginMode': marginMode,
             'percentage': undefined,
             'marginRatio': undefined,
@@ -5007,15 +5114,22 @@ class xt extends xt$1["default"] {
             marginMode = 'ISOLATED';
         }
         const posSide = this.safeStringUpper(params, 'positionSide');
-        if (posSide === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"');
-        }
+        this.checkRequiredArgument('setMarginMode', posSide, 'positionSide', ['LONG', 'SHORT']);
+        params = this.omit(params, 'positionSide');
         const request = {
             'positionType': marginMode,
             'positionSide': posSide,
             'symbol': market['id'],
         };
-        const response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, params));
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('setMarginMode', market, params);
+        let response;
+        if (subType === 'inverse') {
+            response = await this.privateInversePostFutureUserV1PositionChangeType(this.extend(request, params));
+        }
+        else {
+            response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, params));
+        }
         //
         // {
         //     "error": {
@@ -5230,8 +5344,14 @@ class xt extends xt$1["default"] {
             body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
+                if (body === undefined) {
+                    throw new errors.NullResponse(this.id + ' sign() returned empty body');
+                }
                 if (payload.indexOf('future') > -1) {
                     body['clientMedia'] = id;
+                    if (body === undefined) {
+                        throw new errors.NullResponse(this.id + ' sign() returned empty body');
+                    }
                 }
                 else {
                     body['media'] = id;

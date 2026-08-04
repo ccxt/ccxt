@@ -9,7 +9,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors.js';
+import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, NullResponse } from './base/errors.js';
 /**
  * @class gate
  * @augments Exchange
@@ -1292,7 +1292,7 @@ export default class gate extends Exchange {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -2024,26 +2024,28 @@ export default class gate extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'name');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': !this.safeBool(chain, 'deposit_disabled'),
-                'withdraw': !this.safeBool(chain, 'withdraw_disabled'),
-                'fee': undefined,
-                'precision': this.parseNumber('0.0001'), // temporary safe default, because no value provided from API,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': !this.safeBool(chain, 'deposit_disabled'),
+                    'withdraw': !this.safeBool(chain, 'withdraw_disabled'),
+                    'fee': undefined,
+                    'precision': this.parseNumber('0.0001'), // temporary safe default, because no value provided from API,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -2355,7 +2357,8 @@ export default class gate extends Exchange {
         }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const chainsIndexedById = await this.fetchDepositAddressesByNetwork(code, params);
+        const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(code, params);
+        const chainsIndexedById = chainsIndexedByIdRaw;
         const selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
         return chainsIndexedById[selectedNetworkIdOrCode];
     }
@@ -2445,8 +2448,9 @@ export default class gate extends Exchange {
     }
     parseTradingFees(response) {
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             result[symbol] = this.parseTradingFee(response, market);
         }
@@ -2533,7 +2537,9 @@ export default class gate extends Exchange {
                 for (let j = 0; j < networkIds.length; j++) {
                     const networkId = networkIds[j];
                     const networkCode = this.networkIdToCode(networkId, code);
-                    withdrawFees[networkCode] = this.parseNumber(withdrawFixOnChains[networkId]);
+                    if (networkCode !== undefined) {
+                        withdrawFees[networkCode] = this.parseNumber(withdrawFixOnChains[networkId]);
+                    }
                 }
             }
             result[code] = {
@@ -2617,16 +2623,18 @@ export default class gate extends Exchange {
                 const currencyId = this.safeString(fee, 'currency');
                 const code = this.safeCurrencyCode(currencyId, currency);
                 const networkCode = this.networkIdToCode(chainKey, code);
-                result['networks'][networkCode] = {
-                    'withdraw': {
-                        'fee': this.parseNumber(withdrawFixOnChains[chainKey]),
-                        'percentage': false,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': this.parseNumber(withdrawFixOnChains[chainKey]),
+                            'percentage': false,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
             }
         }
         return result;
@@ -2731,7 +2739,7 @@ export default class gate extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2838,6 +2846,9 @@ export default class gate extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger(response, 'current');
+        if (timestamp === undefined) {
+            throw new ExchangeError(this.id + ' method() missing timestamp');
+        }
         if (!market['spot']) {
             timestamp = timestamp * 1000;
         }
@@ -2897,6 +2908,9 @@ export default class gate extends Exchange {
         }
         else {
             ticker = this.safeValue(response, 0);
+        }
+        if (ticker === undefined) {
+            throw new NullResponse(this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker(ticker, market);
     }
@@ -4525,6 +4539,12 @@ export default class gate extends Exchange {
         return this.parseOrders(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const contract = market['contract'];
         const trigger = this.safeValue(params, 'trigger');
@@ -6424,6 +6444,9 @@ export default class gate extends Exchange {
         //         "pending_orders": 0
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse(this.id + ' fetchPosition() returned empty response');
+        }
         return this.parsePosition(response, market);
     }
     /**
@@ -6537,7 +6560,11 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions(response, symbols);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parsePositions(responseList, symbols);
     }
     /**
      * @method
@@ -8176,6 +8203,9 @@ export default class gate extends Exchange {
         //
         const marketId = this.safeString(greeks, 'name');
         const symbol = this.safeSymbol(marketId, market);
+        if (market === undefined) {
+            throw new ExchangeError(this.id + ' parseGreeks() could not resolve market');
+        }
         return {
             'symbol': symbol,
             'timestamp': undefined,
@@ -8656,7 +8686,11 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        return this.parsePositions(response, symbols, params);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parsePositions(responseList, symbols, params);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

@@ -419,6 +419,10 @@ public partial class bitopro : Exchange
     {
         object active = !isTrue(this.safeBool(market, "maintain"));
         object id = this.safeString(market, "pair");
+        if (isTrue(isEqual(id, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing id")) ;
+        }
         object uppercaseId = ((string)id).ToUpper();
         object baseId = this.safeString(market, "base");
         object quoteId = this.safeString(market, "quote");
@@ -443,7 +447,7 @@ public partial class bitopro : Exchange
                 { "max", null },
             } },
         };
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "uppercaseId", uppercaseId },
             { "symbol", symbol },
@@ -475,7 +479,7 @@ public partial class bitopro : Exchange
             { "active", active },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -600,7 +604,7 @@ public partial class bitopro : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -860,9 +864,10 @@ public partial class bitopro : Exchange
         object result = new Dictionary<string, object>() {};
         object maker = this.safeNumber(first, "makerFee");
         object taker = this.safeNumber(first, "takerFee");
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", first },
                 { "symbol", symbol },
@@ -1019,7 +1024,10 @@ public partial class bitopro : Exchange
                 { "free", available },
                 { "total", amount },
             };
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1110,6 +1118,10 @@ public partial class bitopro : Exchange
         object id = this.safeString2(order, "id", "orderId");
         object timestamp = this.safeInteger2(order, "timestamp", "createdTimestamp");
         object side = this.safeString(order, "action");
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseOrder() returned no side")) ;
+        }
         side = ((string)side).ToLower();
         object amount = this.safeString2(order, "amount", "originalAmount");
         object price = this.safeString(order, "price");
@@ -1320,7 +1332,10 @@ public partial class bitopro : Exchange
         object market = this.market(symbol);
         object id = getValue(market, "uppercaseId");
         object request = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)request)[(string)id] = ids;
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)[(string)id] = ids;
+        }
         object response = await this.privatePutOrders(this.extend(request, parameters));
         //
         //     {

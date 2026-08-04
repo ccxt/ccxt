@@ -538,7 +538,7 @@ class onetrading extends onetrading$1["default"] {
         if (isPerp) {
             symbol = symbol + ':' + quote;
         }
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -586,7 +586,7 @@ class onetrading extends onetrading$1["default"] {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -671,8 +671,9 @@ class onetrading extends onetrading$1["default"] {
         const firstSpotTier = this.safeDict(spotTiers, 0, {});
         const firstFuturesTier = this.safeDict(futuresTiers, 0, {});
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             const tierObject = (market['spot']) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
@@ -737,8 +738,9 @@ class onetrading extends onetrading$1["default"] {
         futuresTakerFee = Precise["default"].stringDiv(futuresTakerFee, '100');
         const result = {};
         // const tiers = this.parseFeeTiers (feeTiers);
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             const makerFee = (market['spot']) ? spotMakerFee : futuresMakerFee;
             const takerFee = (market['spot']) ? spotTakerFee : futuresTakerFee;
@@ -901,7 +903,9 @@ class onetrading extends onetrading$1["default"] {
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker(response[i]);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
@@ -913,7 +917,7 @@ class onetrading extends onetrading$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1017,10 +1021,16 @@ class onetrading extends onetrading$1["default"] {
             'MONTHS': 'M',
         };
         const lowercaseUnit = this.safeString(units, unit);
+        if ((period === undefined) || (lowercaseUnit === undefined)) {
+            throw new errors.ExchangeError(this.id + ' parseOHLCV() missing period/unit');
+        }
         const timeframe = period + lowercaseUnit;
         const durationInSeconds = this.parseTimeframe(timeframe);
         const duration = durationInSeconds * 1000;
         const timestamp = this.parse8601(this.safeString(ohlcv, 'time'));
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseOHLCV() missing timestamp');
+        }
         const alignedTimestamp = duration * this.parseToInt(timestamp / duration);
         const options = this.safeValue(this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString(options, 'volume', 'total_amount');
@@ -1051,6 +1061,9 @@ class onetrading extends onetrading$1["default"] {
         }
         const market = this.market(symbol);
         const periodUnit = this.safeString(this.timeframes, timeframe);
+        if (periodUnit === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchOHLCV() missing periodUnit');
+        }
         const [period, unit] = periodUnit.split('/');
         const durationInSeconds = this.parseTimeframe(timeframe);
         const duration = durationInSeconds * 1000;
@@ -1175,7 +1188,9 @@ class onetrading extends onetrading$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1367,6 +1382,9 @@ class onetrading extends onetrading$1["default"] {
         }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'instrument_code': market['id'],
             'type': uppercaseType, // LIMIT, MARKET, STOP

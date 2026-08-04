@@ -312,7 +312,7 @@ class bitbank extends bitbank$1["default"] {
         const quoteId = this.safeString(entry, 'quote_asset');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -362,7 +362,7 @@ class bitbank extends bitbank$1["default"] {
             },
             'created': undefined,
             'info': entry,
-        };
+        });
     }
     parseTicker(ticker, market = undefined) {
         const symbol = this.safeSymbol(undefined, market);
@@ -420,7 +420,7 @@ class bitbank extends bitbank$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -654,7 +654,9 @@ class bitbank extends bitbank$1["default"] {
             account['free'] = this.safeString(balance, 'free_amount');
             account['used'] = this.safeString(balance, 'locked_amount');
             account['total'] = this.safeString(balance, 'onhand_amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1070,8 +1072,22 @@ class bitbank extends bitbank$1["default"] {
         }
         else {
             this.checkRequiredCredentials();
+            // bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
+            // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
+            // since bitbank offers no server time endpoint to compensate against
+            const authMethod = this.safeString(this.options, 'authMethod', 'timeWindow');
+            const isTimeWindow = (authMethod === 'timeWindow');
+            const requestTime = this.milliseconds().toString();
+            const timeWindow = this.safeString(this.options, 'timeWindow', '5000');
             const nonce = this.nonce().toString();
-            let auth = nonce;
+            let auth = undefined;
+            if (isTimeWindow) {
+                auth = requestTime + timeWindow;
+            }
+            else {
+                auth = nonce;
+            }
             url += this.version + '/' + this.implodeParams(path, params);
             if (method === 'POST') {
                 body = this.json(query);
@@ -1088,9 +1104,15 @@ class bitbank extends bitbank$1["default"] {
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': this.apiKey,
-                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256),
             };
+            if (isTimeWindow) {
+                headers['ACCESS-REQUEST-TIME'] = requestTime;
+                headers['ACCESS-TIME-WINDOW'] = timeWindow;
+            }
+            else {
+                headers['ACCESS-NONCE'] = nonce;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

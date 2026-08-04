@@ -10,6 +10,9 @@ import { NotSupported } from '../errors.js';
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
 const parseTimeframe = (timeframe) => {
+    if (timeframe === undefined) {
+        throw new NotSupported('timeframe is required');
+    }
     const amount = asFloat(timeframe.slice(0, -1));
     const unit = timeframe.slice(-1);
     let scale = undefined;
@@ -62,6 +65,9 @@ const extractParams = (string) => {
     return matches;
 };
 const implodeParams = (string, params) => {
+    if (string === undefined) {
+        return '';
+    }
     if (!Array.isArray(params)) {
         const keys = Object.keys(params);
         for (let i = 0; i < keys.length; i++) {

@@ -73,7 +73,7 @@ class bullish extends \ccxt\async\bullish {
         );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //     {
         //         "id" => "7",
@@ -156,7 +156,7 @@ class bullish extends \ccxt\async\bullish {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "snapshot",
@@ -223,7 +223,7 @@ class bullish extends \ccxt\async\bullish {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "update",
@@ -295,7 +295,7 @@ class bullish extends \ccxt\async\bullish {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -312,7 +312,7 @@ class bullish extends \ccxt\async\bullish {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "snapshot",
@@ -361,7 +361,7 @@ class bullish extends \ccxt\async\bullish {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function separate_bids_or_asks($entry) {
+    public function separate_bids_or_asks(mixed $entry) {
         $result = array();
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
@@ -416,7 +416,7 @@ class bullish extends \ccxt\async\bullish {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         // snapshot
         //     {
         //         "type" => "snapshot",
@@ -535,7 +535,7 @@ class bullish extends \ccxt\async\bullish {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         // snapshot
         //     {
@@ -636,7 +636,7 @@ class bullish extends \ccxt\async\bullish {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // snapshot
         //     {
@@ -696,7 +696,9 @@ class bullish extends \ccxt\async\bullish {
             $account['total'] = $this->safe_string($data, 'availableQuantity');
             $account['used'] = $this->safe_string($data, 'lockedQuantity');
             $code = $this->safe_currency_code($assetId);
-            $this->balance[$tradingAccountId][$code] = $account;
+            if (($tradingAccountId !== null) && ($code !== null)) {
+                $this->balance[$tradingAccountId][$code] = $account;
+            }
             $this->balance[$tradingAccountId]['info'] = $message;
             $this->balance[$tradingAccountId] = $this->safe_balance($this->balance[$tradingAccountId]);
         }
@@ -739,7 +741,7 @@ class bullish extends \ccxt\async\bullish {
         })();
     }
 
-    public function handle_positions(Client $client, $message) {
+    public function handle_positions(Client $client, mixed $message) {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
         // todo => check if this works with not-sandbox mode
@@ -776,7 +778,7 @@ class bullish extends \ccxt\async\bullish {
         $client->resolve($positions, 'positions');
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         //
         //     {
         //         "data" => array(
@@ -801,7 +803,7 @@ class bullish extends \ccxt\async\bullish {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $dataType = $this->safe_string($message, 'dataType');
         $result = $this->safe_dict($message, 'result');
         if ($result !== null) {

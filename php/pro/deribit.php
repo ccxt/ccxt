@@ -115,7 +115,7 @@ class deribit extends \ccxt\async\deribit {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // subscription
         //     {
@@ -165,7 +165,9 @@ class deribit extends \ccxt\async\deribit {
         $currencyId = $this->safe_string($data, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $balance = $this->parse_balance($data);
-        $this->balance[$currencyCode] = $balance;
+        if ($currencyCode !== null) {
+            $this->balance[$currencyCode] = $balance;
+        }
         $messageHash = 'balance';
         $client->resolve($this->balance, $messageHash);
     }
@@ -258,7 +260,7 @@ class deribit extends \ccxt\async\deribit {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -338,7 +340,7 @@ class deribit extends \ccxt\async\deribit {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -365,7 +367,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'instrument_name');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -429,7 +431,7 @@ class deribit extends \ccxt\async\deribit {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -511,7 +513,7 @@ class deribit extends \ccxt\async\deribit {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -574,7 +576,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->interval] Frequency of notifications. Events will be aggregated over this interval. Possible values => 100ms, raw
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $params['callerMethodName'] = 'watchOrderBook';
             return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
@@ -591,7 +593,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $interval = null;
             list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'interval', '100ms');
@@ -615,7 +617,7 @@ class deribit extends \ccxt\async\deribit {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //  snapshot
         //     {
@@ -697,7 +699,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function clean_order_book($data) {
+    public function clean_order_book(mixed $data) {
         $bids = $this->safe_list($data, 'bids', array());
         $asks = $this->safe_list($data, 'asks', array());
         $cleanedBids = array();
@@ -713,7 +715,7 @@ class deribit extends \ccxt\async\deribit {
         return $data;
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $delta[1];
         $amount = $delta[2];
         if ($delta[0] === 'new' || $delta[0] === 'change') {
@@ -723,7 +725,7 @@ class deribit extends \ccxt\async\deribit {
         }
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -772,7 +774,7 @@ class deribit extends \ccxt\async\deribit {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         // Does not return a snapshot of current $orders
         //
         //     {
@@ -877,7 +879,7 @@ class deribit extends \ccxt\async\deribit {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -922,7 +924,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
         //        "c" => "28909.0",
@@ -944,7 +946,7 @@ class deribit extends \ccxt\async\deribit {
         );
     }
 
-    public function watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, $symbolsArray = null, $params = array()) {
+    public function watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, mixed $symbolsArray = null, $params = array()) {
         return Async\async(function () use ($channelName, $channelDescriptor, $symbolsArray, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -955,7 +957,13 @@ class deribit extends \ccxt\async\deribit {
             $isOHLCV = ($channelName === 'chart.trades');
             $symbols = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
             $this->market_symbols($symbols, null, false);
+            if ($symbolsArray === null) {
+                throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() $symbolsArray is required');
+            }
             for ($i = 0; $i < count($symbolsArray); $i++) {
+                if ($symbolsArray === null) {
+                    throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() $symbolsArray is required');
+                }
                 $current = $symbolsArray[$i];
                 $market = null;
                 if ($isOHLCV) {
@@ -988,7 +996,7 @@ class deribit extends \ccxt\async\deribit {
         })();
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // $error
         //     {
@@ -1084,7 +1092,7 @@ class deribit extends \ccxt\async\deribit {
         }
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",

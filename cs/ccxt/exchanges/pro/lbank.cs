@@ -213,7 +213,7 @@ public partial class lbank : ccxt.lbank
             object timeframeId = this.safeString(message, "kbar");
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -231,7 +231,7 @@ public partial class lbank : ccxt.lbank
             object parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -626,6 +626,10 @@ public partial class lbank : ccxt.lbank
             myOrders = new ArrayCacheBySymbolById(limit);
         }
         object order = this.parseWsOrder(message);
+        if (isTrue(isEqual(myOrders, null)))
+        {
+            return;
+        }
         callDynamically(myOrders, "append", new object[] {order});
         this.orders = myOrders;
         callDynamically(client as WebSocketClient, "resolve", new object[] {myOrders, "orders"});
@@ -788,7 +792,10 @@ public partial class lbank : ccxt.lbank
         ((IDictionary<string,object>)account)["free"] = this.safeString(data, "free");
         ((IDictionary<string,object>)account)["used"] = this.safeString(data, "freeze");
         ((IDictionary<string,object>)account)["total"] = this.safeString(data, "asset");
-        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
     }
@@ -836,7 +843,7 @@ public partial class lbank : ccxt.lbank
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -996,7 +1003,7 @@ public partial class lbank : ccxt.lbank
             { "orderUpdate", this.handleOrders },
             { "assetUpdate", this.handleBalance },
         };
-        object handler = this.safeValue(handlers, ((string)type));
+        object handler = this.safeValue(handlers, type);
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

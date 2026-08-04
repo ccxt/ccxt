@@ -1142,14 +1142,21 @@ class limitless extends limitless$1["default"] {
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             const slug = this.safeString(outcomeObj['info'], 'slug');
+            if (slug === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchTickers() missing slug');
+            }
             if (!(slug in outcomesBySlug)) {
-                outcomesBySlug[slug] = [];
+                if (slug !== undefined) {
+                    outcomesBySlug[slug] = [];
+                }
                 slugs.push(slug);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            const grouped = outcomesBySlug[slug];
+            const grouped = this.safeValue(outcomesBySlug, slug);
             grouped.push(outcomeObj);
-            outcomesBySlug[slug] = grouped;
+            if (slug !== undefined) {
+                outcomesBySlug[slug] = grouped;
+            }
         }
         const promises = [];
         for (let i = 0; i < slugs.length; i++) {
@@ -1381,6 +1388,9 @@ class limitless extends limitless$1["default"] {
                 for (let i = 0; i < rawHistory.length; i++) {
                     const series = this.safeDict(rawHistory, i, {});
                     const title = this.safeStringUpper(series, 'title', '');
+                    if (title === undefined) {
+                        throw new errors.ExchangeError(this.id + ' fetchOHLCV() missing title');
+                    }
                     if ((outcomeLabel !== undefined) && (title.indexOf(outcomeLabel) >= 0)) {
                         selectedSeries = series;
                         break;
@@ -1420,6 +1430,9 @@ class limitless extends limitless$1["default"] {
             const point = sorted[i];
             const pTs = this.safeInteger(point, 'timestamp');
             const pPrice = this.safeNumber(point, 'price');
+            if (pTs === undefined) {
+                throw new errors.ExchangeError(this.id + ' method() missing pTs');
+            }
             const bucket = this.parseToInt(pTs / ms) * ms;
             const key = bucket.toString();
             if (!(key in candles)) {
@@ -1428,8 +1441,11 @@ class limitless extends limitless$1["default"] {
             }
             else {
                 const candle = candles[key];
-                candle[2] = Math.max(candle[2], pPrice);
-                candle[3] = Math.min(candle[3], pPrice);
+                const pPriceOrZero = (pPrice === undefined) ? 0 : pPrice;
+                candle[2] = Math.max(candle[2], pPriceOrZero);
+                const candleLow = (candle[3] === undefined) ? pPrice : candle[3];
+                const pPriceOrCandleLow = (pPrice === undefined) ? candle[3] : pPrice;
+                candle[3] = Math.min(candleLow, pPriceOrCandleLow);
                 candle[4] = pPrice;
                 candles[key] = candle; // php arrays are value types - write the mutation back
             }
@@ -1853,7 +1869,7 @@ class limitless extends limitless$1["default"] {
                 feeCost = this.safeString(totals, 'contractsFee');
             }
             fee = {
-                'cost': this.applyScale(feeCost),
+                'cost': this.parseNumber(this.applyScale(feeCost)),
                 'currency': feeCurrency,
             };
         }
@@ -2030,6 +2046,9 @@ class limitless extends limitless$1["default"] {
             'buy': 0,
             'sell': 1,
         };
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const sideValue = this.safeInteger(sides, side.toLowerCase());
         const rank = this.safeDict(accountInfo, 'rank');
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
@@ -2572,13 +2591,22 @@ class limitless extends limitless$1["default"] {
         const amount = this.safeString(trade, 'outcomeTokenAmount');
         const cost = this.safeString(trade, 'collateralAmount');
         const rawSide = this.safeStringLower(trade, 'strategy');
+        if (rawSide === undefined) {
+            throw new errors.ExchangeError(this.id + ' parsePredictionTrade() missing rawSide');
+        }
         const sellIndex = rawSide.indexOf('sell');
         const side = (sellIndex >= 0) ? 'sell' : 'buy';
         let type = undefined;
         let takerOrMaker = undefined;
+        if (rawSide === undefined) {
+            throw new errors.ExchangeError(this.id + ' parsePredictionTrade() missing rawSide');
+        }
         if (rawSide.indexOf('limit') >= 0) {
             type = 'limit';
             takerOrMaker = 'maker';
+            if (rawSide === undefined) {
+                throw new errors.ExchangeError(this.id + ' method() missing rawSide');
+            }
         }
         else if (rawSide.indexOf('market') >= 0) {
             type = 'market';
@@ -2746,7 +2774,7 @@ class limitless extends limitless$1["default"] {
             return undefined;
         }
         const positions = this.safeDict(entry, 'positions');
-        const position = this.safeDict(positions, label);
+        const position = this.safeDict(positions, label, {});
         const rawMarket = this.safeDict(entry, 'market');
         const slug = this.safeString(rawMarket, 'slug');
         const outcomeObj = this.getOutcomeBySlugAndLabel(slug, label);
@@ -2833,6 +2861,9 @@ class limitless extends limitless$1["default"] {
     async fetchEvents(params = {}) {
         this.requireEventQuery(params);
         const queries = this.parseSearchQueries(params);
+        if (queries === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchEvents() missing queries');
+        }
         const queriesLength = queries.length;
         const rest = this.omit(params, ['query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status']);
         const eventId = this.safeString2(params, 'eventId', 'slug');
@@ -2845,6 +2876,9 @@ class limitless extends limitless$1["default"] {
             const limit = Math.min(requestedLimit, 50);
             const seen = {};
             for (let i = 0; i < queries.length; i++) {
+                if (queries === undefined) {
+                    throw new errors.ExchangeError(this.id + ' fetchEvents() missing queries');
+                }
                 const q = queries[i];
                 const response = await this.limitlessPublicGetMarketsSearch(this.extend({
                     'query': q,
@@ -2891,6 +2925,9 @@ class limitless extends limitless$1["default"] {
             const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], this.safeString(raw, 'slug'));
             const eventKey = groupId ? this.shortenSlug(groupId) : undefined;
             const m = this.parseMarket(raw);
+            if (m === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchEvents() missing m');
+            }
             this.markets[m['market']] = m;
             if (eventKey) {
                 if (!(eventKey in eventGroups)) {
@@ -2996,6 +3033,9 @@ class limitless extends limitless$1["default"] {
             const categoryId = this.safeString(category, 'id');
             let matched = false;
             for (let wi = 0; wi < wanted.length; wi++) {
+                if (name === undefined) {
+                    throw new errors.ExchangeError(this.id + ' fetchRawMarketsByTags() missing name');
+                }
                 if (name.indexOf(wanted[wi]) >= 0) {
                     matched = true;
                     break;

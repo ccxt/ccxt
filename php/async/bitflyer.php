@@ -227,7 +227,7 @@ class bitflyer extends Exchange {
         ));
     }
 
-    public function parse_expiry_date($expiry) {
+    public function parse_expiry_date(mixed $expiry) {
         $day = mb_substr($expiry, 0, 2 - 0);
         $monthName = mb_substr($expiry, 2, 5 - 2);
         $year = mb_substr($expiry, 5, 9 - 5);
@@ -413,7 +413,7 @@ class bitflyer extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -422,7 +422,9 @@ class bitflyer extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'amount');
             $account['free'] = $this->safe_string($balance, 'available');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -474,7 +476,7 @@ class bitflyer extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -878,7 +880,7 @@ class bitflyer extends Exchange {
         })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1115,7 +1117,7 @@ class bitflyer extends Exchange {
         })();
     }
 
-    public function parse_deposit_status($status) {
+    public function parse_deposit_status(mixed $status) {
         $statuses = array(
             'PENDING' => 'pending',
             'COMPLETED' => 'ok',
@@ -1123,7 +1125,7 @@ class bitflyer extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_withdrawal_status($status) {
+    public function parse_withdrawal_status(mixed $status) {
         $statuses = array(
             'PENDING' => 'pending',
             'COMPLETED' => 'ok',
@@ -1241,7 +1243,7 @@ class bitflyer extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //    {
         //        "current_funding_rate" => -0.003750000000
@@ -1272,7 +1274,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->version . '/';
         if ($api === 'private') {
             $request .= 'me/';
@@ -1306,7 +1308,7 @@ class bitflyer extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to the default error handler
         }

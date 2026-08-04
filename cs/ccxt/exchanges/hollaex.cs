@@ -505,22 +505,25 @@ public partial class hollaex : Exchange
             object networkId = getValue(networkIds, j);
             object networkEntry = this.safeDict(rawNetworks, networkId);
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", this.safeBool(networkEntry, "active") },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", this.safeNumber(networkEntry, "value") },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", this.safeBool(networkEntry, "active") },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", this.safeNumber(networkEntry, "value") },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                } },
-                { "info", networkEntry },
-            };
+                    { "info", networkEntry },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -587,7 +590,7 @@ public partial class hollaex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -620,7 +623,7 @@ public partial class hollaex : Exchange
         //         // ...
         //     }
         //
-        object orderbook = this.safeValue(response, ((string)getValue(market, "id")));
+        object orderbook = this.safeValue(response, getValue(market, "id"));
         object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
         return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp);
     }
@@ -806,7 +809,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeList(response, ((string)getValue(market, "id")), new List<object>() {});
+        object trades = this.safeList(response, getValue(market, "id"), new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -919,12 +922,12 @@ public partial class hollaex : Exchange
         object makerFees = this.safeValue(fees, "maker", new Dictionary<string, object>() {});
         object takerFees = this.safeValue(fees, "taker", new Dictionary<string, object>() {});
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(((object)this.symbols), i);
+            object symbol = getValue(this.symbols, i);
             object market = this.market(symbol);
-            object makerString = this.safeString(makerFees, ((string)getValue(market, "id")));
-            object takerString = this.safeString(takerFees, ((string)getValue(market, "id")));
+            object makerString = this.safeString(makerFees, getValue(market, "id"));
+            object takerString = this.safeString(takerFees, getValue(market, "id"));
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fees },
                 { "symbol", symbol },
@@ -1028,7 +1031,12 @@ public partial class hollaex : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object currencyIds = new List<object>(((IDictionary<string,object>)this.currencies_by_id).Keys);
+        object currenciesById = this.currencies_by_id;
+        if (isTrue(isEqual(currenciesById, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " currencies not loaded")) ;
+        }
+        object currencyIds = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -1036,7 +1044,10 @@ public partial class hollaex : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(response, add(currencyId, "_available"));
             ((IDictionary<string,object>)account)["total"] = this.safeString(response, add(currencyId, "_balance"));
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2068,6 +2079,10 @@ public partial class hollaex : Exchange
                 object currencyId = this.safeString(value, "symbol");
                 object currencyCode = this.safeCurrencyCode(currencyId);
                 object networkCode = this.networkIdToCode(key, currencyCode);
+                if (isTrue(isEqual(networkCode, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " requires a networkCode argument")) ;
+                }
                 object networkCodeUpper = ((string)networkCode).ToUpper(); // default to the upper case network code
                 object withdrawalFee = this.safeNumber(value, "value");
                 ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCodeUpper] = new Dictionary<string, object>() {

@@ -790,22 +790,25 @@ public partial class hitbtc : Exchange
             object networkId = this.safeString2(rawNetwork, "protocol", "network");
             object networkCode = this.networkIdToCode(networkId, code);
             networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", rawNetwork },
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", null },
-                { "fee", this.safeNumber(rawNetwork, "payout_fee") },
-                { "deposit", this.safeBool(rawNetwork, "payin_enabled") },
-                { "withdraw", this.safeBool(rawNetwork, "payout_enabled") },
-                { "precision", this.safeNumber(rawNetwork, "precision_payout") },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", rawNetwork },
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "fee", this.safeNumber(rawNetwork, "payout_fee") },
+                    { "deposit", this.safeBool(rawNetwork, "payin_enabled") },
+                    { "withdraw", this.safeBool(rawNetwork, "payout_enabled") },
+                    { "precision", this.safeNumber(rawNetwork, "precision_payout") },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", entry },
@@ -935,7 +938,10 @@ public partial class hitbtc : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "reserved");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1420,7 +1426,7 @@ public partial class hitbtc : Exchange
             { "DEPOSIT", "deposit" },
             { "WITHDRAW", "withdrawal" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -1611,7 +1617,7 @@ public partial class hitbtc : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

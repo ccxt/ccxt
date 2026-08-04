@@ -1913,7 +1913,7 @@ class bitget extends Exchange {
         return array( $productType, $params );
     }
 
-    public function handle_uta_and_params($params, ?string $methodName, bool $defaultValue = false) {
+    public function handle_uta_and_params(mixed $params, ?string $methodName, bool $defaultValue = false) {
         $uta = null;
         list($uta, $params) = $this->handle_option_and_params($params, $methodName, 'uta');
         if ($uta !== null) {
@@ -1982,7 +1982,7 @@ class bitget extends Exchange {
         return $this->fetch_default_markets($params);
     }
 
-    public function fetch_default_markets($params): array {
+    public function fetch_default_markets(mixed $params): array {
         $types = null;
         $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
         $defaultMarkets = array( 'spot', 'swap' );
@@ -2237,7 +2237,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function fetch_uta_markets($params): array {
+    public function fetch_uta_markets(mixed $params): array {
         $subTypes = array( 'SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES' );
         $promises = array();
         for ($i = 0; $i < count($subTypes); $i++) {
@@ -2550,6 +2550,9 @@ class bitget extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'chain');
             $network = $this->network_id_to_code($networkId, $code);
+            if ($network === null) {
+                throw new ArgumentsRequired($this->id . ' requires a $network argument');
+            }
             $network = strtoupper($network);
             $withdrawable = ($this->safe_string($chain, 'withdrawable') === 'true');
             $rechargeable = ($this->safe_string($chain, 'rechargeable') === 'true');
@@ -2743,7 +2746,7 @@ class bitget extends Exchange {
         return $this->parse_market_leverage_tiers($result, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         //
         // swap and future
         //
@@ -3151,7 +3154,7 @@ class bitget extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coin" => "BTC",
@@ -3189,7 +3192,7 @@ class bitget extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -4218,7 +4221,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($data, ?array $market = null) {
+    public function parse_trading_fee(mixed $data, ?array $market = null) {
         $marketId = $this->safe_string($data, 'symbol');
         return array(
             'info' => $data,
@@ -4230,7 +4233,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1645911960000",
@@ -4614,7 +4617,7 @@ class bitget extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_uta_balance($balance): array {
+    public function parse_uta_balance(mixed $balance): array {
         $result = array( 'info' => $balance );
         //
         //     {
@@ -4636,12 +4639,14 @@ class bitget extends Exchange {
             $account['used'] = $this->safe_string($entry, 'locked');
             $account['free'] = $this->safe_string($entry, 'available');
             $account['total'] = $this->safe_string($entry, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function parse_balance($balance): array {
+    public function parse_balance(mixed $balance): array {
         $result = array( 'info' => $balance );
         //
         // spot
@@ -4715,7 +4720,9 @@ class bitget extends Exchange {
                     $account['used'] = Precise::string_add($frozen, $locked);
                 }
             }
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -5220,7 +5227,13 @@ class bitget extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_uta_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_uta_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -5340,7 +5353,13 @@ class bitget extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $marketType = null;
         $marginMode = null;
@@ -6141,7 +6160,7 @@ class bitget extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_uta_orders($ids, ?string $symbol = null, $params = array()) {
+    public function cancel_uta_orders(mixed $ids, ?string $symbol = null, $params = array()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -7661,7 +7680,7 @@ class bitget extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_type($type) {
+    public function parse_ledger_type(mixed $type) {
         $types = array(
             'trans_to_cross' => 'transfer',
             'trans_from_cross' => 'transfer',
@@ -8759,7 +8778,7 @@ class bitget extends Exchange {
         return $this->fetch_funding_rates($symbols, $params);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         // fetchFundingRate => publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         //
@@ -8958,7 +8977,7 @@ class bitget extends Exchange {
         return $this->parse_funding_histories($bills, $market, $since, $limit);
     }
 
-    public function parse_funding_history($contract, ?array $market = null) {
+    public function parse_funding_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "billId" => "1111499428100472833",
@@ -8997,7 +9016,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories(mixed $contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -9016,7 +9035,7 @@ class bitget extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -9431,7 +9450,7 @@ class bitget extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         // default
         //
@@ -9638,7 +9657,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //     {
         //         "chains" => array(
@@ -9680,10 +9699,12 @@ class bitget extends Exchange {
             $networkId = $this->safe_string($chain, 'chain');
             $currencyCode = $this->safe_string($currency, 'code');
             $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-            $result['networks'][$networkCode] = array(
-                'deposit' => array( 'fee' => null, 'percentage' => null ),
-                'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
-            );
+            if ($networkCode !== null) {
+                $result['networks'][$networkCode] = array(
+                    'deposit' => array( 'fee' => null, 'percentage' => null ),
+                    'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
+                );
+            }
             if ($chainsLength === 1) {
                 $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
                 $result['withdraw']['percentage'] = false;
@@ -9692,7 +9713,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -9815,7 +9836,7 @@ class bitget extends Exchange {
         return $this->parse_margin_loan($data, $currency, $market);
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -9856,7 +9877,7 @@ class bitget extends Exchange {
         return $this->parse_margin_loan($data, $currency, $market);
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -9893,7 +9914,7 @@ class bitget extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function parse_margin_loan($info, ?array $currency = null, ?array $market = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null, ?array $market = null) {
         //
         // isolated => borrowMargin
         //
@@ -10060,7 +10081,7 @@ class bitget extends Exchange {
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         // isolated
         //
@@ -10302,7 +10323,7 @@ class bitget extends Exchange {
         return $this->parse_borrow_rate($result, $currency);
     }
 
-    public function parse_borrow_rate($info, ?array $currency = null) {
+    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
         // default
         //
@@ -11066,34 +11087,36 @@ class bitget extends Exchange {
             $entry = $data[$i];
             $id = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($id);
-            $result[$code] = array(
-                'info' => $entry,
-                'id' => $id,
-                'code' => $code,
-                'networks' => null,
-                'type' => null,
-                'name' => null,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => $this->safe_number($entry, 'available'),
-                'fee' => null,
-                'precision' => null,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $this->safe_number($entry, 'minAmount'),
-                        'max' => $this->safe_number($entry, 'maxAmount'),
+            if ($code !== null) {
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => null,
+                    'type' => null,
+                    'name' => null,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => $this->safe_number($entry, 'available'),
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => $this->safe_number($entry, 'minAmount'),
+                            'max' => $this->safe_number($entry, 'maxAmount'),
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'created' => null,
-            );
+                    'created' => null,
+                );
+            }
         }
         return $result;
     }
@@ -11239,7 +11262,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }
@@ -11291,7 +11314,7 @@ class bitget extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $pathPart = '/api';

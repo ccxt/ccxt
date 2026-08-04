@@ -146,7 +146,7 @@ xt.fetchOHLCV (symbol, timeframe, since?, limit?, params)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/en/latest/manual.html#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/en/latest/manual.html#order-book-structure)
 
 **See**
 
@@ -931,7 +931,11 @@ fetch data on a single open contract trade position
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://doc.xt.com/#futures_usergetPosition  
+**See**
+
+- https://doc.xt.com/#futures_usergetPosition
+- https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
+
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -952,7 +956,11 @@ fetch all open positions
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://doc.xt.com/#futures_usergetPosition  
+**See**
+
+- https://doc.xt.com/#futures_usergetPosition
+- https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

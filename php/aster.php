@@ -1088,7 +1088,7 @@ class aster extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // spot:
         //
@@ -1435,7 +1435,7 @@ class aster extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1711,6 +1711,9 @@ class aster extends Exchange {
         //         ...
         //     )
         //
+        if ($response === null) {
+            throw new NullResponse($this->id . ' fetchLastPrices() returned empty response');
+        }
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
             $marketId = $this->safe_string($response[$i], 'symbol');
@@ -1722,7 +1725,7 @@ class aster extends Exchange {
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
-    public function parse_last_price($entry, ?array $market = null) {
+    public function parse_last_price(mixed $entry, ?array $market = null) {
         //
         // spot & swap
         //
@@ -1785,7 +1788,7 @@ class aster extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         // fundingRate
         //
@@ -1983,7 +1986,7 @@ class aster extends Exchange {
         return $this->parse_funding_rate_histories($response, $market);
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -2050,7 +2053,7 @@ class aster extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -2060,7 +2063,9 @@ class aster extends Exchange {
             $account['free'] = $this->safe_string_2($balance, 'free', 'availableBalance');
             $account['used'] = $this->safe_string($balance, 'locked');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2713,7 +2718,13 @@ class aster extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build the $request
@@ -3176,7 +3187,7 @@ class aster extends Exchange {
         return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "INJUSDT",
@@ -3297,7 +3308,7 @@ class aster extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $addOrReduce, $params = array()) {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()) {
         $this->load_markets_and_sign_in();
         $market = $this->market($symbol);
         $amount = $this->amount_to_precision($symbol, $amount);
@@ -3347,7 +3358,7 @@ class aster extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //       "symbol" => "ETHUSDT",
@@ -3454,7 +3465,7 @@ class aster extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'TRANSFER' => 'transfer',
             'WELCOME_BONUS' => 'cashback',
@@ -3515,7 +3526,7 @@ class aster extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_position_risk($position, ?array $market = null) {
+    public function parse_position_risk(mixed $position, ?array $market = null) {
         //
         //     {
         //         "entryPrice" => "6563.66500",
@@ -3554,7 +3565,7 @@ class aster extends Exchange {
         $contracts = $this->parse_number($contractsAbs);
         $unrealizedPnlString = $this->safe_string($position, 'unRealizedProfit');
         $unrealizedPnl = $this->parse_number($unrealizedPnlString);
-        $liquidationPriceString = $this->omit_zero(($this->safe_string($position, 'liquidationPrice')));
+        $liquidationPriceString = $this->omit_zero($this->safe_string($position, 'liquidationPrice'));
         $liquidationPrice = $this->parse_number($liquidationPriceString);
         $collateralString = null;
         $marginMode = $this->safe_string($position, 'marginType');
@@ -3592,7 +3603,7 @@ class aster extends Exchange {
                     }
                     $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
                     $leftSide = Precise::string_add($inner, $entryPriceSignString);
-                    $quotePrecision = $this->precision_from_string(($this->safe_string_2($precision, 'quote', 'price')));
+                    $quotePrecision = $this->precision_from_string($this->safe_string_2($precision, 'quote', 'price'));
                     if ($quotePrecision !== null) {
                         $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
                     }
@@ -3608,7 +3619,7 @@ class aster extends Exchange {
                     }
                     $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
                     $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
-                    $basePrecision = $this->precision_from_string(($this->safe_string($precision, 'base')));
+                    $basePrecision = $this->precision_from_string($this->safe_string($precision, 'base'));
                     if ($basePrecision !== null) {
                         $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
                     }
@@ -3619,7 +3630,7 @@ class aster extends Exchange {
         }
         $collateralString = ($collateralString === null) ? '0' : $collateralString;
         $collateral = $this->parse_number($collateralString);
-        $markPrice = $this->parse_number($this->omit_zero(($this->safe_string($position, 'markPrice'))));
+        $markPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'markPrice')));
         $timestamp = $this->safe_integer($position, 'updateTime');
         if ($timestamp === 0) {
             $timestamp = null;
@@ -3765,7 +3776,7 @@ class aster extends Exchange {
         }
     }
 
-    public function parse_account_positions($account, $filterClosed = false) {
+    public function parse_account_positions(mixed $account, $filterClosed = false) {
         $positions = $this->safe_list($account, 'positions', array());
         $assets = $this->safe_list($account, 'assets', array());
         $balances = array();
@@ -3775,10 +3786,12 @@ class aster extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $crossWalletBalance = $this->safe_string($entry, 'crossWalletBalance');
             $crossUnPnl = $this->safe_string($entry, 'crossUnPnl');
-            $balances[$code] = array(
-                'crossMargin' => Precise::string_add($crossWalletBalance, $crossUnPnl),
-                'crossWalletBalance' => $crossWalletBalance,
-            );
+            if ($code !== null) {
+                $balances[$code] = array(
+                    'crossMargin' => Precise::string_add($crossWalletBalance, $crossUnPnl),
+                    'crossWalletBalance' => $crossWalletBalance,
+                );
+            }
         }
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
@@ -3803,7 +3816,7 @@ class aster extends Exchange {
         return $result;
     }
 
-    public function parse_account_position($position, ?array $market = null) {
+    public function parse_account_position(mixed $position, ?array $market = null) {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $this->safe_string($market, 'symbol');
@@ -3814,6 +3827,9 @@ class aster extends Exchange {
         $initialMarginPercentageString = null;
         if ($leverageString !== null) {
             $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
+            if ($leverage === null) {
+                throw new ExchangeError($this->id . ' parseAccountPosition() missing leverage');
+            }
             $rational = $this->is_round_number(fmod(1000, $leverage));
             if (!$rational) {
                 $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
@@ -3922,7 +3938,7 @@ class aster extends Exchange {
                 $rightSide = Precise::string_sub(Precise::string_mul(Precise::string_div('1', $entryPriceSignString), $size), $walletBalance);
                 $liquidationPriceStringRaw = Precise::string_div($leftSide, $rightSide);
             }
-            $pricePrecision = $this->precision_from_string(($this->safe_string($market['precision'], 'price')));
+            $pricePrecision = $this->precision_from_string($this->safe_string($market['precision'], 'price'));
             $pricePrecisionPlusOne = $pricePrecision + 1;
             $pricePrecisionPlusOneString = (string) $pricePrecisionPlusOne;
             // round half up
@@ -3930,6 +3946,9 @@ class aster extends Exchange {
             $rounderString = (string) $rounder;
             $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
             $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
+            if ($truncatedLiquidationPrice === null) {
+                throw new ExchangeError($this->id . ' method() missing truncatedLiquidationPrice');
+            }
             if ($truncatedLiquidationPrice[0] === '-') {
                 // user cannot be liquidated
                 // since he has more $collateral than the $size of the $position
@@ -4039,15 +4058,15 @@ class aster extends Exchange {
         return $this->options['leverageBrackets'];
     }
 
-    public function keccak_message($message) {
+    public function keccak_message(mixed $message) {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->keccak_message($message), mb_substr($privateKey, -64));
     }
 
-    public function sign_withdraw_payload($withdrawPayload, $network): string {
+    public function sign_withdraw_payload(mixed $withdrawPayload, mixed $network): string {
         $chainId = $this->safe_integer($withdrawPayload, 'chainId');
         $domain = array(
             'chainId' => $chainId,
@@ -4138,7 +4157,7 @@ class aster extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(mixed $transaction, ?array $currency = null): array {
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'withdrawId'),
@@ -4230,16 +4249,16 @@ class aster extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function hash_message($binaryMessage) {
+    public function hash_message(mixed $binaryMessage) {
         // $binaryMessage = $this->encode(message);
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
         $newline = $this->base16_to_binary('0a');
-        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode(($this->number_to_string($binaryMessageLength))));
+        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode($this->number_to_string($binaryMessageLength)));
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -4248,7 +4267,7 @@ class aster extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'fapiPublic' || $api === 'sapiPublic') {
             if ($params) {
@@ -4434,7 +4453,7 @@ class aster extends Exchange {
         return null; // just c#
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

@@ -76,7 +76,7 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual object isPrediction()
     {
-        return this.safeBool(this.has, "prediction", false);
+        return isEqual(this.safeBool(this.has, "prediction", false), true);
     }
 
     public virtual object parseSearchQueries(object parameters = null)
@@ -252,10 +252,18 @@ public partial class PredictionExchange : BaseExchange
             for (object qi = 0; isLessThan(qi, getArrayLength(queries)); postFixIncrement(ref qi))
             {
                 object q = ((string)getValue(queries, qi)).ToLower();
+                if (isTrue(isEqual(title, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " filterEventsBySearchIn() missing title")) ;
+                }
                 if (isTrue(isTrue(checkTitle) && isTrue((isGreaterThanOrEqual(getIndexOf(title, q), 0)))))
                 {
                     matched = true;
                     break;
+                }
+                if (isTrue(isEqual(description, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " filterEventsBySearchIn() missing description")) ;
                 }
                 if (isTrue(isTrue(checkDescription) && isTrue((isGreaterThanOrEqual(getIndexOf(description, q), 0)))))
                 {
@@ -306,12 +314,7 @@ public partial class PredictionExchange : BaseExchange
     {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        object tagsLength = 0;
-        if (isTrue(!isEqual(tags, null)))
-        {
-            tagsLength = getArrayLength(tags);
-        }
-        if (isTrue(isEqual(tagsLength, 0)))
+        if (isTrue(isTrue((isEqual(tags, null))) || isTrue((isEqual(getArrayLength(tags), 0)))))
         {
             return events;
         }
@@ -480,6 +483,10 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual object outcome(object outcomeSymbol)
     {
+        if (isTrue(isEqual(outcomeSymbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " outcome() requires an outcomeSymbol argument")) ;
+        }
         if (isTrue(isTrue((isEqual(this.outcomes, null))) || isTrue(this.isEmpty(this.outcomes))))
         {
             throw new ExchangeError ((string)add(this.id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
@@ -500,6 +507,10 @@ public partial class PredictionExchange : BaseExchange
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
+        if (isTrue(isEqual(outcomeIdOrSymbol, null)))
+        {
+            return false;
+        }
         if (isTrue(isTrue((!isEqual(this.outcomes, null))) && isTrue((inOp(this.outcomes, outcomeIdOrSymbol)))))
         {
             return true;
@@ -597,7 +608,10 @@ public partial class PredictionExchange : BaseExchange
         {
             object replacementKey = getValue(replacementKeys, i);
             object replacementValue = this.safeString(replacements, replacementKey);
-            s = ((string)s).Replace((string)replacementKey, (string)replacementValue);
+            if (isTrue(!isEqual(replacementValue, null)))
+            {
+                s = ((string)s).Replace((string)replacementKey, (string)replacementValue);
+            }
         }
         object rawParts = ((string)s).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object parts = new List<object>() {};
@@ -641,6 +655,10 @@ public partial class PredictionExchange : BaseExchange
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
+        if (isTrue(isEqual(outcome, null)))
+        {
+            outcome = "";
+        }
         object upper = ((string)outcome).ToUpper();
         object allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         object chars = this.stringToCharsArray(upper);
@@ -684,18 +702,18 @@ public partial class PredictionExchange : BaseExchange
             ((IDictionary<string,object>)copy)["symbol"] = this.safeString2(row, "market", "symbol");
             ((IList<object>)aliased).Add(copy);
         }
-        base.setMarkets(aliased, currencies);
+        object stored = base.setMarkets(aliased, currencies);
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        object marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        object marketKeys = new List<object>(((IDictionary<string,object>)stored).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
         {
             object key = getValue(marketKeys, i);
-            ((IDictionary<string,object>)this.markets)[(string)key] = this.omit(getValue(this.markets, key), "symbol");
+            ((IDictionary<string,object>)stored)[(string)key] = this.omit(getValue(stored, key), "symbol");
         }
         this.populateOutcomes();
-        return this.markets;
+        return stored;
     }
 
     public virtual void indexMarketOutcomes(object market)
@@ -886,14 +904,11 @@ public partial class PredictionExchange : BaseExchange
         // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
         // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
         // sane on venues whose full universe is one cheap request (hyperliquid)
-        // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
-        // but the outcome cache is cold, index them for free before hitting the network — this
-        // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-        // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
-        // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-        // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
-        // the whole listing (which would mask typos and clobber offline-injected markets)
         reload ??= false;
+        if (isTrue(isEqual(outcomeSymbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " loadOutcome() requires an outcomeSymbol argument")) ;
+        }
         if (!isTrue(reload))
         {
             if (isTrue(this.hasOutcome(outcomeSymbol)))
@@ -901,6 +916,9 @@ public partial class PredictionExchange : BaseExchange
                 return this.safeOutcome(outcomeSymbol);
             }
             object wasWarm = isTrue((!isEqual(this.outcomes, null))) && !isTrue(this.isEmpty(this.outcomes));
+            // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+            // but the outcome cache is cold, index them for free before hitting the network — this
+            // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
             if (isTrue(isTrue(!isTrue(wasWarm) && isTrue((!isEqual(this.markets, null)))) && !isTrue(this.isEmpty(this.markets))))
             {
                 this.populateOutcomes();
@@ -912,6 +930,10 @@ public partial class PredictionExchange : BaseExchange
             object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
             if (isTrue(isTrue(loadAll) && !isTrue(wasWarm)))
             {
+                // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+                // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+                // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+                // the whole listing (which would mask typos and clobber offline-injected markets)
                 await this.loadOutcomes();
                 if (isTrue(this.hasOutcome(outcomeSymbol)))
                 {
@@ -1918,6 +1940,10 @@ public partial class PredictionExchange : BaseExchange
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
     public virtual object padHexToEven(object hex)
     {
+        if (isTrue(isEqual(hex, null)))
+        {
+            return "";
+        }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
         object hexLength = ((string)hex).Length;
         if (isTrue(!isEqual((mod(hexLength, 2)), 0)))
@@ -1929,6 +1955,10 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual object padHexAddress(object address)
     {
+        if (isTrue(isEqual(address, null)))
+        {
+            return "";
+        }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
         object stripped = this.remove0xPrefix(address);
         return add("000000000000000000000000", stripped);
@@ -1936,6 +1966,10 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual object rlpEncodeBytes(object hex)
     {
+        if (isTrue(isEqual(hex, null)))
+        {
+            return "";
+        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         object byteLength = this.parseToInt(divide(((string)hex).Length, 2));
         if (isTrue(isEqual(byteLength, 0)))
@@ -1976,6 +2010,10 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual object intToRlpHex(object value)
     {
+        if (isTrue(isEqual(value, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " intToRlpHex() requires a value argument")) ;
+        }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
         if (isTrue(isEqual(value, 0)))
         {
@@ -1990,6 +2028,10 @@ public partial class PredictionExchange : BaseExchange
     {
         // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        if (isTrue(isEqual(hexValue, null)))
+        {
+            return "";
+        }
         object h = this.remove0xPrefix(hexValue);
         object start = 0;
         object total = getArrayLength(h);
@@ -2083,10 +2125,10 @@ public partial class PredictionExchange
         var res = await this.fetchEvent(id, parameters);
         return new PredictionEvent(res);
     }
-    public Dictionary<string, object> SetMarkets(object markets, object currencies = null)
+    public Dictionary<string, Market> SetMarkets(object markets, object currencies = null)
     {
         var res = this.setMarkets(markets, currencies);
-        return ((Dictionary<string, object>)res);
+        return ((Dictionary<string, Market>)res);
     }
     /// <summary>
     /// resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request

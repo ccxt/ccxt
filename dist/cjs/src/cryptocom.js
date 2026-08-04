@@ -29,7 +29,7 @@ class cryptocom extends cryptocom$1["default"] {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': true,
+                'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -630,22 +630,24 @@ class cryptocom extends cryptocom$1["default"] {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'network_id');
             const network = this.networkIdToCode(networkId, code);
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': undefined,
-                'deposit': this.safeBool(chain, 'deposit_enabled', false),
-                'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
-                'fee': this.safeNumber(chain, 'withdrawal_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'min_withdrawal_amount'),
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'deposit_enabled', false),
+                    'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
+                    'fee': this.safeNumber(chain, 'withdrawal_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': currency,
@@ -1169,7 +1171,7 @@ class cryptocom extends cryptocom$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the number of order book entries to return, max 50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1219,7 +1221,9 @@ class cryptocom extends cryptocom$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'quantity');
             account['used'] = this.safeString(balance, 'reserved_qty');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1340,6 +1344,12 @@ class cryptocom extends cryptocom$1["default"] {
         return this.parseOrder(order, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const request = {
@@ -1573,6 +1583,12 @@ class cryptocom extends cryptocom$1["default"] {
         return this.parseOrders(result);
     }
     createAdvancedOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -2132,13 +2148,15 @@ class cryptocom extends cryptocom$1["default"] {
             this.checkAddress(address);
             const networkId = this.safeString(value, 'network');
             const network = this.networkIdToCode(networkId, responseCode);
-            result[network] = {
-                'info': value,
-                'currency': responseCode,
-                'network': network,
-                'address': address,
-                'tag': tag,
-            };
+            if (network !== undefined) {
+                result[network] = {
+                    'info': value,
+                    'currency': responseCode,
+                    'network': network,
+                    'address': address,
+                    'tag': tag,
+                };
+            }
         }
         return result;
     }
@@ -2154,7 +2172,8 @@ class cryptocom extends cryptocom$1["default"] {
     async fetchDepositAddress(code, params = {}) {
         const network = this.safeStringUpper(params, 'network');
         params = this.omit(params, ['network']);
-        const depositAddresses = await this.fetchDepositAddressesByNetwork(code, params);
+        const depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, params);
+        const depositAddresses = depositAddressesRaw;
         if (network in depositAddresses) {
             return depositAddresses[network];
         }
@@ -2711,10 +2730,12 @@ class cryptocom extends cryptocom$1["default"] {
                 const networkId = this.safeString(networkInfo, 'network_id');
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
+                    };
+                }
                 if (networkListLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber(networkInfo, 'withdrawal_fee');
                     result['withdraw']['percentage'] = false;

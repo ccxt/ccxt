@@ -665,7 +665,7 @@ export default class bitget extends bitgetRest {
         if (timeframe === undefined) {
             return;
         }
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp(limit);
@@ -801,7 +801,7 @@ export default class bitget extends bitgetRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2432,7 +2432,10 @@ export default class bitget extends bitgetRest {
                     const entry = coins[j];
                     const currencyId = this.safeString(entry, 'coin');
                     const code = this.safeCurrencyCode(currencyId);
-                    const account = (code in this.balance) ? this.balance[code] : this.account();
+                    let account = this.account();
+                    if ((code !== undefined) && (code in this.balance)) {
+                        account = this.balance[code];
+                    }
                     const borrow = this.safeString(entry, 'borrow');
                     const debts = this.safeString(entry, 'debts');
                     if ((borrow !== undefined) || (debts !== undefined)) {
@@ -2441,13 +2444,18 @@ export default class bitget extends bitgetRest {
                     account['free'] = this.safeString(entry, 'available');
                     account['used'] = this.safeString(entry, 'locked');
                     account['total'] = this.safeString(entry, 'balance');
-                    this.balance[code] = account;
+                    if (code !== undefined) {
+                        this.balance[code] = account;
+                    }
                 }
             }
             else {
                 const currencyId = this.safeString2(rawBalance, 'coin', 'marginCoin');
                 const code = this.safeCurrencyCode(currencyId);
-                const account = (code in this.balance) ? this.balance[code] : this.account();
+                let account = this.account();
+                if ((code !== undefined) && (code in this.balance)) {
+                    account = this.balance[code];
+                }
                 const borrow = this.safeString(rawBalance, 'borrow');
                 if (borrow !== undefined) {
                     const interest = this.safeString(rawBalance, 'interest');
@@ -2457,7 +2465,9 @@ export default class bitget extends bitgetRest {
                 account['free'] = this.safeString(rawBalance, freeQuery);
                 account['total'] = this.safeString(rawBalance, 'equity');
                 account['used'] = this.safeString(rawBalance, 'frozen');
-                this.balance[code] = account;
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
             }
         }
         this.balance = this.safeBalance(this.balance);

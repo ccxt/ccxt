@@ -436,7 +436,7 @@ class indodax extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'return', array());
         $free = $this->safe_value($balances, 'balance', array());
         $used = $this->safe_value($balances, 'balance_hold', array());
@@ -453,7 +453,9 @@ class indodax extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($free, $currencyId);
             $account['used'] = $this->safe_string($used, $currencyId);
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -516,7 +518,7 @@ class indodax extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -700,7 +702,7 @@ class indodax extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "Time" => 1708416900,
@@ -833,6 +835,7 @@ class indodax extends Exchange {
         $price = $this->safe_string($order, 'price');
         $amount = null;
         $remaining = null;
+        $filled = null;
         $marketId = $this->safe_string($order, 'pair');
         $market = $this->safe_market($marketId, $market);
         if ($market !== null) {
@@ -846,10 +849,11 @@ class indodax extends Exchange {
                 $baseId = 'rp';
             }
             $cost = $this->safe_string($order, 'order_' . $quoteId);
-            if (!$cost) {
-                $amount = $this->safe_string($order, 'order_' . $baseId);
-                $remaining = $this->safe_string($order, 'remain_' . $baseId);
-            }
+            $amount = $this->safe_string($order, 'order_' . $baseId);
+            $remaining = $this->safe_string($order, 'remain_' . $baseId);
+            // $filled buy orders on idr-quoted markets carry the executed base $amount
+            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            $filled = $this->safe_string($order, 'receive_' . $baseId);
         }
         $timestamp = $this->safe_integer($order, 'submit_time');
         $fee = null;
@@ -871,7 +875,7 @@ class indodax extends Exchange {
             'cost' => $cost,
             'average' => null,
             'amount' => $amount,
-            'filled' => null,
+            'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
@@ -1463,31 +1467,45 @@ class indodax extends Exchange {
                     $network = null;
                     if (is_array($networks) && array_key_exists($marketId ?? '', $networks)) {
                         $networkId = $this->safe_string($networks, $marketId);
+                        if ($networkId === null) {
+                            throw new ExchangeError($this->id . ' fetchDepositAddresses() missing networkId');
+                        }
                         if (mb_strpos($networkId, ',') !== false) {
                             $network = array();
+                            if ($networkId === null) {
+                                throw new ExchangeError($this->id . ' fetchDepositAddresses() missing networkId');
+                            }
                             $networkIds = explode(',', $networkId);
                             for ($j = 0; $j < count($networkIds); $j++) {
-                                $network[] = strtoupper($this->network_id_to_code($networkIds[$j], $code));
+                                $_netIdTmp = $this->network_id_to_code($networkIds[$j], $code);
+                                if ($_netIdTmp !== null) {
+                                    $network[] = strtoupper($_netIdTmp);
+                                }
                             }
                         } else {
-                            $network = strtoupper($this->network_id_to_code($networkId, $code));
+                            $_netIdTmp = $this->network_id_to_code($networkId, $code);
+                            if ($_netIdTmp !== null) {
+                                $network = strtoupper($_netIdTmp);
+                            }
                         }
                     }
                     $finalNetwork = $network; // java req
-                    $result[$code] = array(
-                        'info' => array(),
-                        'currency' => $code,
-                        'network' => $finalNetwork,
-                        'address' => $address,
-                        'tag' => null,
-                    );
+                    if ($code !== null) {
+                        $result[$code] = array(
+                            'info' => array(),
+                            'currency' => $code,
+                            'network' => $finalNetwork,
+                            'address' => $address,
+                            'tag' => null,
+                        );
+                    }
                 }
             }
             return $result;
         })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));
@@ -1512,7 +1530,7 @@ class indodax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

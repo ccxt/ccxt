@@ -366,27 +366,30 @@ public partial class cex : Exchange
             object networkCode = this.networkIdToCode(networkId, code);
             object deposit = isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
             object withdraw = isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "margin", null },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "active", null },
-                { "fee", this.safeNumber(rawNetwork, "withdrawalFee") },
-                { "precision", currencyPrecision },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(rawNetwork, "minDeposit") },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "margin", null },
+                    { "deposit", deposit },
+                    { "withdraw", withdraw },
+                    { "active", null },
+                    { "fee", this.safeNumber(rawNetwork, "withdrawalFee") },
+                    { "precision", currencyPrecision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(rawNetwork, "minDeposit") },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(rawNetwork, "minWithdrawal") },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(rawNetwork, "minWithdrawal") },
-                        { "max", null },
-                    } },
-                } },
-                { "info", rawNetwork },
-            };
+                    { "info", rawNetwork },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -737,7 +740,7 @@ public partial class cex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -908,11 +911,15 @@ public partial class cex : Exchange
                 market = this.safeMarket(key);
             }
             object parsed = this.parseTradingFee(getValue(response, key), market);
-            ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
+            if (isTrue(!isEqual(getValue(parsed, "symbol"), null)))
+            {
+                ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
+            }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             if (!isTrue((inOp(result, symbol))))
             {
                 object market = this.market(symbol);
@@ -1054,7 +1061,10 @@ public partial class cex : Exchange
                 { "used", this.safeString(balance, "balanceOnHold") },
                 { "total", this.safeString(balance, "balance") },
             };
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1368,6 +1378,10 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "clientOrderId", this.uuid() },
             { "currency1", getValue(market, "baseId") },
@@ -1445,7 +1459,7 @@ public partial class cex : Exchange
         //             "rejectCode": 405,
         //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
         //
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -1625,7 +1639,7 @@ public partial class cex : Exchange
             { "withdraw", "withdrawal" },
             { "commission", "fee" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
