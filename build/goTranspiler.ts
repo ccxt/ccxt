@@ -635,6 +635,7 @@ class NewTranspiler {
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
             [/client\.Subscriptions/g, 'client.(ClientInterface).GetSubscriptions()'],
+            [/client\.Rejections/g, 'client.(ClientInterface).GetRejections()'],
             [/client\.(Url)/g, 'client.(ClientInterface).Get$1()'],
             [/client\.LastPong\s*=\s*(.*)/g, 'client.(ClientInterface).SetLastPong($1)'],
             [/client\.LastPong/g, 'client.(ClientInterface).GetLastPong()'],
@@ -1189,6 +1190,7 @@ class NewTranspiler {
             'watchSpotPublic',
             'watchSwapPublic',
             'watchTopics',
+            'unWatchChannels',
             // 'fetchCurrencies',
         ]); // improve this later
         if (methodName.toLowerCase().includes('uta')) {

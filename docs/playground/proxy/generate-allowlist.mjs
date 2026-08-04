@@ -38,13 +38,24 @@ function walk(v) {
   }
 }
 
-for (const id of ccxt.exchanges) {
-  try {
-    const ex = new ccxt[id]();
-    walk(ex.urls?.api); // only the API/test endpoints, not doc/referral/marketing hosts
-    walk(ex.urls?.test);
-  } catch {
-    // skip exchanges that fail to construct without config
+// Prediction-market exchanges (Polymarket, Kalshi, ...) are NOT in ccxt.exchanges
+// — they live in the separate ccxt.prediction namespace with its own id list, so
+// walking only ccxt.exchanges left every prediction host off the allowlist and
+// the playground's prediction example failed with a 403 CONNECT.
+const namespaces = [
+  [ccxt, ccxt.exchanges],
+  [ccxt.prediction, ccxt.prediction?.exchanges],
+];
+
+for (const [ns, ids] of namespaces) {
+  for (const id of ids ?? []) {
+    try {
+      const ex = new ns[id]();
+      walk(ex.urls?.api); // only the API/test endpoints, not doc/referral/marketing hosts
+      walk(ex.urls?.test);
+    } catch {
+      // skip exchanges that fail to construct without config
+    }
   }
 }
 

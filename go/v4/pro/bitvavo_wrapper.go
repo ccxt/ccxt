@@ -156,6 +156,102 @@ func (this *Bitvavo) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 
 /**
  * @method
+ * @name bitvavo#watchTradesForSymbols
+ * @description get the list of most recent trades for a list of symbols
+ * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+ * @param {string[]} symbols unified symbols of the markets to fetch trades for
+ * @param {int} [since] timestamp in ms of the earliest trade to fetch
+ * @param {int} [limit] the maximum amount of trades to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+ */
+func (this *Bitvavo) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
+
+	opts := ccxt.WatchTradesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.WatchTradesForSymbols(symbols, since, limit, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return ccxt.NewTradeArray(res), nil
+}
+
+/**
+ * @method
+ * @name bitvavo#unWatchTrades
+ * @description stop watching the list of most recent trades for a particular symbol
+ * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+ * @param {string} symbol unified symbol of the market to stop watching the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitvavo) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchTrades(symbol, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name bitvavo#unWatchTradesForSymbols
+ * @description stop watching the list of most recent trades for a list of symbols
+ * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+ * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitvavo) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchTradesForSymbols(symbols, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
  * @name bitvavo#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
@@ -201,6 +297,108 @@ func (this *Bitvavo) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions
 
 /**
  * @method
+ * @name bitvavo#watchOHLCVForSymbols
+ * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+ * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+ * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch ccxt.OHLCV data for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
+ */
+func (this *Bitvavo) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.WatchOHLCVForSymbolsOptions) (map[string]map[string][]ccxt.OHLCV, error) {
+
+	opts := ccxt.WatchOHLCVForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.WatchOHLCVForSymbols(symbolsAndTimeframes, since, limit, params)
+	if ccxt.IsError(res) {
+		return map[string]map[string][]ccxt.OHLCV{}, ccxt.CreateReturnError(res)
+	}
+	return res.(map[string]map[string][]ccxt.OHLCV), nil
+}
+
+/**
+ * @method
+ * @name bitvavo#unWatchOHLCV
+ * @description stop watching historical candlestick data for a market
+ * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+ * @param {string} symbol unified symbol of the market to stop watching the candles for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitvavo) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchOHLCV(symbol, timeframe, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name bitvavo#unWatchOHLCVForSymbols
+ * @description stop watching historical candlestick data for multiple markets
+ * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+ * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to stop watching the candles for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitvavo) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchOHLCVForSymbols(symbolsAndTimeframes, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
  * @name bitvavo#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -230,6 +428,96 @@ func (this *Bitvavo) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
 	}
 	return ccxt.NewOrderBookFromWs(res), nil
+}
+
+/**
+ * @method
+ * @name bitvavo#watchOrderBookForSymbols
+ * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+ * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+ * @param {string[]} symbols unified symbols of the markets to fetch the order book for
+ * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+ */
+func (this *Bitvavo) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
+
+	opts := ccxt.WatchOrderBookForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.WatchOrderBookForSymbols(symbols, limit, params)
+	if ccxt.IsError(res) {
+		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
+	}
+	return ccxt.NewOrderBookFromWs(res), nil
+}
+
+/**
+ * @method
+ * @name bitvavo#unWatchOrderBook
+ * @description stop watching the order book for a particular symbol
+ * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+ * @param {string} symbol unified symbol of the market to stop watching the order book for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitvavo) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
+
+	opts := ccxt.UnWatchOrderBookOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchOrderBook(symbol, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name bitvavo#unWatchOrderBookForSymbols
+ * @description stop watching the order book for multiple markets
+ * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+ * @param {string[]} symbols unified symbols of the markets to stop watching the order book for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitvavo) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (any, error) {
+
+	opts := ccxt.UnWatchOrderBookForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchOrderBookForSymbols(symbols, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
 }
 
 /**
@@ -1347,18 +1635,6 @@ func (this *Bitvavo) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (an
 func (this *Bitvavo) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Bitvavo) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Bitvavo) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Bitvavo) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Bitvavo) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
 func (this *Bitvavo) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
@@ -1367,12 +1643,6 @@ func (this *Bitvavo) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerO
 }
 func (this *Bitvavo) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Bitvavo) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Bitvavo) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
 func (this *Bitvavo) WatchBalance(params ...any) (ccxt.Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
@@ -1392,12 +1662,6 @@ func (this *Bitvavo) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyL
 func (this *Bitvavo) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt.WatchMyLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {
 	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
 }
-func (this *Bitvavo) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.WatchOHLCVForSymbolsOptions) (map[string]map[string][]ccxt.OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Bitvavo) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
 func (this *Bitvavo) WatchOrdersForSymbols(symbols []string, options ...ccxt.WatchOrdersForSymbolsOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
 }
@@ -1406,7 +1670,4 @@ func (this *Bitvavo) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.P
 }
 func (this *Bitvavo) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {
 	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Bitvavo) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
 }

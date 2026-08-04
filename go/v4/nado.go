@@ -64,7 +64,7 @@ func (this *NadoCore) Describe() any {
 			"withdraw":                     false,
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/142df520-1e1d-4a04-bfda-fe33e5768e63",
+			"logo": "https://github.com/user-attachments/assets/811f4e1a-a8b5-4b9e-84c2-0f88997bd274",
 			"api": map[string]any{
 				"gateway":   "https://gateway.prod.nado.xyz/v1",
 				"gatewayV2": "https://gateway.prod.nado.xyz/v2",

@@ -5173,11 +5173,11 @@ public partial class xt : Exchange
         if (isTrue(isEqual(subType, "inverse")))
         {
             ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters)));
-            ((IList<object>)promisesUnresolved).Add(callDynamically(this, "privateInverseGetFutureUserV1PositionBreakList", new object[] { this.extend(request, parameters) }));
+            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionBreakList(this.extend(request, parameters)));
         } else
         {
             ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, parameters)));
-            ((IList<object>)promisesUnresolved).Add(callDynamically(this, "privateLinearGetFutureUserV1PositionBreakList", new object[] { this.extend(request, parameters) }));
+            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, parameters)));
         }
         var responsebreakResponseVariable = await promiseAll(promisesUnresolved);
         var response = ((IList<object>) responsebreakResponseVariable)[0];
@@ -5266,11 +5266,11 @@ public partial class xt : Exchange
         if (isTrue(isEqual(subType, "inverse")))
         {
             ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionList(parameters));
-            ((IList<object>)promisesUnresolved).Add(callDynamically(this, "privateInverseGetFutureUserV1PositionBreakList", new object[] { parameters }));
+            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionBreakList(parameters));
         } else
         {
             ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionList(parameters));
-            ((IList<object>)promisesUnresolved).Add(callDynamically(this, "privateLinearGetFutureUserV1PositionBreakList", new object[] { parameters }));
+            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionBreakList(parameters));
         }
         var responsebreakResponseVariable = await promiseAll(promisesUnresolved);
         var response = ((IList<object>) responsebreakResponseVariable)[0];
