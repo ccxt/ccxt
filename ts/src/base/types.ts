@@ -629,6 +629,17 @@ export interface Position {
     stopLossPrice?: Num;
     takeProfitPrice?: Num;
     percentage?: Num;
+    greeks?: {
+        delta?: Num;
+        gamma?: Num;
+        theta?: Num;
+        vega?: Num;
+        rho?: Num;
+        deltaPA?: Num;
+        gammaPA?: Num;
+        thetaPA?: Num;
+        vegaPA?: Num;
+    };
 }
 
 export interface BorrowInterest {
