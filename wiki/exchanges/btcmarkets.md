@@ -184,7 +184,7 @@ btcmarkets.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>btcmarkets</code>](#btcmarkets)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1orderbook/get  
 
@@ -283,7 +283,7 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | not used by btcmarkets cancelOrders () |
+| symbol | <code>string</code> | Yes | not used by cancelOrders () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -305,7 +305,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by btcmarket cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

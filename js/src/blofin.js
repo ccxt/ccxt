@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/blofin.js';
-import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
@@ -599,7 +599,7 @@ export default class blofin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1238,6 +1238,12 @@ export default class blofin extends Exchange {
         return this.parseBalanceByType(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2187,7 +2193,7 @@ export default class blofin extends Exchange {
         const data = this.safeList(response, 'data', []);
         const position = this.safeDict(data, 0);
         if (position === undefined) {
-            return undefined;
+            throw new NullResponse(this.id + ' fetchPosition() returned empty position');
         }
         return this.parsePosition(position, market);
     }
@@ -2219,7 +2225,7 @@ export default class blofin extends Exchange {
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -2378,7 +2384,8 @@ export default class blofin extends Exchange {
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         }
         else if (initialMarginString === undefined) {
-            initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+            const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+            initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
@@ -2576,7 +2583,7 @@ export default class blofin extends Exchange {
      * @see https://blofin.com/docs#close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the blofin api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2755,7 +2762,7 @@ export default class blofin extends Exchange {
      * @description set hedged to true or false for a market
      * @see https://docs.blofin.com/index.html#set-position-mode
      * @param {bool} hedged set to true to use hedged mode, false for one-way mode
-     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */

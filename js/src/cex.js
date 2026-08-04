@@ -377,27 +377,29 @@ export default class cex extends Exchange {
             const networkCode = this.networkIdToCode(networkId, code);
             const deposit = this.safeString(rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString(rawNetwork, 'withdrawal') === 'enabled';
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': undefined,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': undefined,
-                'fee': this.safeNumber(rawNetwork, 'withdrawalFee'),
-                'precision': currencyPrecision,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber(rawNetwork, 'minDeposit'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': undefined,
+                    'fee': this.safeNumber(rawNetwork, 'withdrawalFee'),
+                    'precision': currencyPrecision,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(rawNetwork, 'minDeposit'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(rawNetwork, 'minWithdrawal'),
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(rawNetwork, 'minWithdrawal'),
-                        'max': undefined,
-                    },
-                },
-                'info': rawNetwork,
-            };
+                    'info': rawNetwork,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -718,7 +720,7 @@ export default class cex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -868,10 +870,13 @@ export default class cex extends Exchange {
                 market = this.safeMarket(key);
             }
             const parsed = this.parseTradingFee(response[key], market);
-            result[parsed['symbol']] = parsed;
+            if (parsed['symbol'] !== undefined) {
+                result[parsed['symbol']] = parsed;
+            }
         }
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             if (!(symbol in result)) {
                 const market = this.market(symbol);
                 result[symbol] = this.parseTradingFee(response, market);
@@ -993,7 +998,9 @@ export default class cex extends Exchange {
                 'used': this.safeString(balance, 'balanceOnHold'),
                 'total': this.safeString(balance, 'balance'),
             };
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1269,6 +1276,9 @@ export default class cex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'clientOrderId': this.uuid(),
             'currency1': market['baseId'],
@@ -1340,7 +1350,7 @@ export default class cex extends Exchange {
         //             "rejectCode": 405,
         //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     /**
@@ -1374,7 +1384,7 @@ export default class cex extends Exchange {
      * @name cex#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
-     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

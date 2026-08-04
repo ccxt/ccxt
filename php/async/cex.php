@@ -383,27 +383,29 @@ class cex extends Exchange {
             $networkCode = $this->network_id_to_code($networkId, $code);
             $deposit = $this->safe_string($rawNetwork, 'deposit') === 'enabled';
             $withdraw = $this->safe_string($rawNetwork, 'withdrawal') === 'enabled';
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'margin' => null,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'active' => null,
-                'fee' => $this->safe_number($rawNetwork, 'withdrawalFee'),
-                'precision' => $currencyPrecision,
-                'limits' => array(
-                    'deposit' => array(
-                        'min' => $this->safe_number($rawNetwork, 'minDeposit'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'margin' => null,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'active' => null,
+                    'fee' => $this->safe_number($rawNetwork, 'withdrawalFee'),
+                    'precision' => $currencyPrecision,
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => $this->safe_number($rawNetwork, 'minDeposit'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($rawNetwork, 'minWithdrawal'),
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($rawNetwork, 'minWithdrawal'),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $rawNetwork,
-            );
+                    'info' => $rawNetwork,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -745,7 +747,7 @@ class cex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -850,7 +852,7 @@ class cex extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -891,7 +893,7 @@ class cex extends Exchange {
         })();
     }
 
-    public function parse_trading_fees($response, $useKeyAsId = false): array {
+    public function parse_trading_fees(mixed $response, $useKeyAsId = false): array {
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -901,10 +903,13 @@ class cex extends Exchange {
                 $market = $this->safe_market($key);
             }
             $parsed = $this->parse_trading_fee($response[$key], $market);
-            $result[$parsed['symbol']] = $parsed;
+            if ($parsed['symbol'] !== null) {
+                $result[$parsed['symbol']] = $parsed;
+            }
         }
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             if (!(is_array($result) && array_key_exists($symbol ?? '', $result))) {
                 $market = $this->market($symbol);
                 $result[$symbol] = $this->parse_trading_fee($response, $market);
@@ -1021,7 +1026,7 @@ class cex extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -1034,7 +1039,9 @@ class cex extends Exchange {
                 'used' => $this->safe_string($balance, 'balanceOnHold'),
                 'total' => $this->safe_string($balance, 'balance'),
             );
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1328,6 +1335,9 @@ class cex extends Exchange {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            }
             $request = array(
                 'clientOrderId' => $this->uuid(),
                 'currency1' => $market['baseId'],
@@ -1399,7 +1409,7 @@ class cex extends Exchange {
             //             "rejectCode" => 405,
             //             "rejectReason" => "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for $market order not both",
             //
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         })();
     }
@@ -1440,7 +1450,7 @@ class cex extends Exchange {
              *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-$orders
              *
-             * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open $orders
+             * @param {string} [$symbol] unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
              */
@@ -1558,7 +1568,7 @@ class cex extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'deposit' => 'deposit',
             'withdraw' => 'withdrawal',
@@ -1843,7 +1853,7 @@ class cex extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
@@ -1857,7 +1867,7 @@ class cex extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -1887,7 +1897,7 @@ class cex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      array("ok":"ok","data":array("messageType":"executionReport", "orderRejectReason":"array(\"code\":405)") )
         // and because of `.parseJson` bug, we need extra fix

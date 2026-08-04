@@ -109,6 +109,10 @@ public partial class bittrade : ccxt.bittrade
         //
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
         object ch = this.safeString(message, "ch");
+        if (isTrue(isEqual(ch, null)))
+        {
+            return message;
+        }
         object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object market = this.safeMarket(marketId);
@@ -192,6 +196,10 @@ public partial class bittrade : ccxt.bittrade
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
         object data = this.safeValue(tick, "data", new Dictionary<string, object>() {});
         object ch = this.safeString(message, "ch");
+        if (isTrue(isEqual(ch, null)))
+        {
+            return message;
+        }
         object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object market = this.safeMarket(marketId);
@@ -279,6 +287,10 @@ public partial class bittrade : ccxt.bittrade
         //     }
         //
         object ch = this.safeString(message, "ch");
+        if (isTrue(isEqual(ch, null)))
+        {
+            return;
+        }
         object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object market = this.safeMarket(marketId);
@@ -286,7 +298,7 @@ public partial class bittrade : ccxt.bittrade
         object interval = this.safeString(parts, 3);
         object timeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -306,7 +318,7 @@ public partial class bittrade : ccxt.bittrade
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -374,7 +386,7 @@ public partial class bittrade : ccxt.bittrade
         object timestamp = this.safeInteger(message, "ts");
         object orderbook = getValue(this.orderbooks, ((string)symbol));
         object data = this.safeValue(message, "data");
-        object snapshot = this.parseOrderBook(data, ((string)symbol));
+        object snapshot = this.parseOrderBook(data, symbol);
         ((IDictionary<string,object>)snapshot)["nonce"] = this.safeInteger(data, "seqNum");
         ((IDictionary<string,object>)snapshot)["timestamp"] = timestamp;
         ((IDictionary<string,object>)snapshot)["datetime"] = this.iso8601(timestamp);
@@ -467,6 +479,10 @@ public partial class bittrade : ccxt.bittrade
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
         object seqNum = this.safeInteger(tick, "seqNum");
         object prevSeqNum = this.safeInteger(tick, "prevSeqNum");
+        if (isTrue(isTrue((isEqual(prevSeqNum, null))) || isTrue((isEqual(seqNum, null)))))
+        {
+            return orderbook;
+        }
         if (isTrue(isTrue((isLessThanOrEqual(prevSeqNum, getValue(orderbook, "nonce")))) && isTrue((isGreaterThan(seqNum, getValue(orderbook, "nonce"))))))
         {
             object asks = this.safeValue(tick, "asks", new List<object>() {});
@@ -524,12 +540,16 @@ public partial class bittrade : ccxt.bittrade
     public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
     {
         object symbol = this.safeString(subscription, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
         object limit = this.safeInteger(subscription, "limit");
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)((string)symbol));
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)((string)symbol)] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         // watch the snapshot in a separate async call
         this.spawn(this.watchOrderBookSnapshot, new object[] { client, message, subscription});
     }
@@ -545,8 +565,12 @@ public partial class bittrade : ccxt.bittrade
         //     }
         //
         object id = this.safeString(message, "id");
+        if (isTrue(isEqual(id, null)))
+        {
+            return message;
+        }
         object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-        object subscription = this.safeValue(subscriptionsById, ((string)id));
+        object subscription = this.safeValue(subscriptionsById, id);
         if (isTrue(!isEqual(subscription, null)))
         {
             object method = this.safeValue(subscription, "method");
@@ -557,7 +581,7 @@ public partial class bittrade : ccxt.bittrade
             // clean up
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
             {
-                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)((string)id));
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
             }
         }
         return message;
@@ -612,7 +636,7 @@ public partial class bittrade : ccxt.bittrade
                 { "trade", this.handleTrades },
                 { "kline", this.handleOHLCV },
             };
-            object method = this.safeValue(methods, ((string)methodName));
+            object method = this.safeValue(methods, methodName);
             if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -650,8 +674,12 @@ public partial class bittrade : ccxt.bittrade
         if (isTrue(isEqual(status, "error")))
         {
             object id = this.safeString(message, "id");
+            if (isTrue(isEqual(id, null)))
+            {
+                return false;
+            }
             object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-            object subscription = this.safeValue(subscriptionsById, ((string)id));
+            object subscription = this.safeValue(subscriptionsById, id);
             if (isTrue(!isEqual(subscription, null)))
             {
                 object errorCode = this.safeString(message, "err-code");
@@ -665,7 +693,7 @@ public partial class bittrade : ccxt.bittrade
                     ((WebSocketClient)client).reject(e, id);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
                     {
-                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)((string)id));
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
                     }
                 }
             }

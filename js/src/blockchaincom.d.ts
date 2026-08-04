@@ -23,7 +23,7 @@ export default class blockchaincom extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -91,7 +91,7 @@ export default class blockchaincom extends Exchange {
      * @name blockchaincom#cancelAllOrders
      * @description cancel all open orders
      * @see https://api.blockchain.com/v3/#deleteallorders
-     * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -221,7 +221,7 @@ export default class blockchaincom extends Exchange {
      * @description fetch information on a deposit
      * @see https://api.blockchain.com/v3/#getdepositbyid
      * @param {string} id deposit id
-     * @param {string} code not used by blockchaincom fetchDeposit ()
+     * @param {string} code not used by fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
@@ -249,8 +249,8 @@ export default class blockchaincom extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

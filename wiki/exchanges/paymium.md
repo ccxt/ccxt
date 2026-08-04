@@ -42,7 +42,7 @@ paymium.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth  
 
@@ -203,7 +203,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by paymium cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

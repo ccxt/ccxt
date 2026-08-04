@@ -143,7 +143,7 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
+| symbol | <code>string</code> | No | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
@@ -208,6 +208,7 @@ cancel all open orders in a market
 * [woo](/exchanges/woo.md#cancelallorders)
 * [woofipro](/exchanges/woofipro.md#cancelallorders)
 * [xt](/exchanges/xt.md#cancelallorders)
+* [zebpay](/exchanges/zebpay.md#cancelallorders)
 
 ---
 
@@ -530,7 +531,6 @@ cancel multiple orders
 * [weex](/exchanges/weex.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
 * [xt](/exchanges/xt.md#cancelorders)
-* [zebpay](/exchanges/zebpay.md#cancelorders)
 
 ---
 
@@ -589,8 +589,8 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | not used by cex cancelOrders() |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
+| symbol | <code>string</code> | Yes | not used by cancelOrders() |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [cex](/exchanges/cex.md#cancelordersws)
@@ -706,7 +706,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by bingx |
-| params | <code>object</code> | No | extra parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close |
 
 ##### Supported exchanges
@@ -739,7 +739,7 @@ closes open positions for a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.recvWindow | <code>string</code> | No | request valid time window value |
 
 ##### Supported exchanges
@@ -2674,7 +2674,7 @@ fetches all available currencies on an exchange
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [bitvavo](/exchanges/bitvavo.md#fetchcurrenciesws)
@@ -2878,7 +2878,7 @@ fetch deposit methods for a currency associated with this account
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the kraken api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [kraken](/exchanges/kraken.md#fetchdepositmethods)
@@ -2916,7 +2916,7 @@ fetch deposit and withdraw fees
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by binance fetchDepositWithdrawFees () |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchDepositWithdrawFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
@@ -3085,7 +3085,7 @@ fetch all deposits made to an account
 | code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [bitvavo](/exchanges/bitvavo.md#fetchdepositsws)
@@ -3248,6 +3248,7 @@ fetch the current funding rate
 * [hibachi](/exchanges/hibachi.md#fetchfundingrate)
 * [hitbtc](/exchanges/hitbtc.md#fetchfundingrate)
 * [htx](/exchanges/htx.md#fetchfundingrate)
+* [hyperliquid](/exchanges/hyperliquid.md#fetchfundingrate)
 * [kucoin](/exchanges/kucoin.md#fetchfundingrate)
 * [lbank](/exchanges/lbank.md#fetchfundingrate)
 * [mexc](/exchanges/mexc.md#fetchfundingrate)
@@ -3750,7 +3751,7 @@ fetches the history of margin added or reduced from contract isolated positions
 | type | <code>string</code> | No | "add" or "reduce" |
 | since | <code>int</code> | No | timestamp in ms of the earliest change to fetch |
 | limit | <code>int</code> | No | the maximum amount of changes to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest change to fetch |
 
 ##### Supported exchanges
@@ -3921,7 +3922,7 @@ retrieves data on all markets for alpaca
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchmarkets)
@@ -4027,7 +4028,7 @@ retrieves data on all markets for bitvavo
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [bitvavo](/exchanges/bitvavo.md#fetchmarketsws)
@@ -4068,7 +4069,7 @@ fetch all dust trades made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | not used by binance fetchMyDustTrades () |
+| symbol | <code>string</code> | Yes | not used by fetchMyDustTrades () |
 | since | <code>int</code> | No | the earliest time in ms to fetch my dust trades for |
 | limit | <code>int</code> | No | the maximum number of dust trades to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -4331,7 +4332,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the alpha api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 | params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocBars |
 
@@ -4874,7 +4875,7 @@ fetches information on an order made by the user
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -5205,7 +5206,7 @@ fetch orders by the list of order id
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | No | list of order id |
 | symbol | <code>string</code> | No | unified ccxt market symbol |
-| params | <code>object</code> | No | extra parameters specific to the kraken api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [kraken](/exchanges/kraken.md#fetchordersbyids)
@@ -5412,7 +5413,7 @@ fetches historical positions
 | symbol | <code>string</code> | Yes | unified contract symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
 | limit | <code>int</code> | No | the maximum amount of records to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch positions for |
 
 ##### Supported exchanges
@@ -5605,7 +5606,7 @@ fetches historical positions
 | symbols | <code>Array&lt;string&gt;</code> | No | unified contract symbols |
 | since | <code>int</code> | No | timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default=20, max=100 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months |
 | params.productType | <code>string</code> | No | USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
@@ -6369,7 +6370,7 @@ fetch the trading fees for multiple markets
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [bitvavo](/exchanges/bitvavo.md#fetchtradingfeesws)
@@ -6426,7 +6427,7 @@ please use fetchDepositWithdrawFees instead
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by binance fetchTransactionFees () |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchTransactionFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
@@ -6479,7 +6480,7 @@ fetches a transfer
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | transfer id |
 | code | <code>string</code> | No | unified currency code of the currency transferred |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [bitvavo](/exchanges/bitvavo.md#fetchtransfer)
@@ -6766,7 +6767,7 @@ fetch all withdrawals made from an account
 | code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [bitvavo](/exchanges/bitvavo.md#fetchwithdrawalsws)
@@ -7153,7 +7154,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market to set margin in |
 | amount | <code>float</code> | Yes | the amount to set the margin to |
-| params | <code>object</code> | No | parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#setmargin)
@@ -7219,7 +7220,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by bingx setPositionMode () |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
@@ -7334,6 +7335,7 @@ transfer currency internally between wallets on the same account
 * [bybit](/exchanges/bybit.md#transfer)
 * [budfi](/exchanges/budfi.md#transfer)
 * [cex](/exchanges/cex.md#transfer)
+* [coinbase](/exchanges/coinbase.md#transfer)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#transfer)
 * [coinex](/exchanges/coinex.md#transfer)
 * [deepcoin](/exchanges/deepcoin.md#transfer)
@@ -7593,6 +7595,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 * [bingx](/exchanges/bingx.md#unwatchohlcv)
 * [bitfinex](/exchanges/bitfinex.md#unwatchohlcv)
 * [bitget](/exchanges/bitget.md#unwatchohlcv)
+* [bitvavo](/exchanges/bitvavo.md#unwatchohlcv)
 * [bybit](/exchanges/bybit.md#unwatchohlcv)
 * [bydfi](/exchanges/bydfi.md#unwatchohlcv)
 * [cryptocom](/exchanges/cryptocom.md#unwatchohlcv)
@@ -7628,6 +7631,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 * [aster](/exchanges/aster.md#unwatchohlcvforsymbols)
 * [backpack](/exchanges/backpack.md#unwatchohlcvforsymbols)
 * [binance](/exchanges/binance.md#unwatchohlcvforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#unwatchohlcvforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchohlcvforsymbols)
 * [bydfi](/exchanges/bydfi.md#unwatchohlcvforsymbols)
 * [nado](/exchanges/nado.md#unwatchohlcvforsymbols)
@@ -7657,6 +7661,7 @@ unsubscribe from the orderbook channel
 * [binance](/exchanges/binance.md#unwatchorderbook)
 * [bingx](/exchanges/bingx.md#unwatchorderbook)
 * [bitget](/exchanges/bitget.md#unwatchorderbook)
+* [bitvavo](/exchanges/bitvavo.md#unwatchorderbook)
 * [bybit](/exchanges/bybit.md#unwatchorderbook)
 * [bydfi](/exchanges/bydfi.md#unwatchorderbook)
 * [cryptocom](/exchanges/cryptocom.md#unwatchorderbook)
@@ -7696,6 +7701,7 @@ unsubscribe from the orderbook channel
 * [aster](/exchanges/aster.md#unwatchorderbookforsymbols)
 * [backpack](/exchanges/backpack.md#unwatchorderbookforsymbols)
 * [binance](/exchanges/binance.md#unwatchorderbookforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#unwatchorderbookforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchorderbookforsymbols)
 * [bydfi](/exchanges/bydfi.md#unwatchorderbookforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#unwatchorderbookforsymbols)
@@ -7843,6 +7849,7 @@ unsubscribe from the trades channel
 * [bingx](/exchanges/bingx.md#unwatchtrades)
 * [bitfinex](/exchanges/bitfinex.md#unwatchtrades)
 * [bitget](/exchanges/bitget.md#unwatchtrades)
+* [bitvavo](/exchanges/bitvavo.md#unwatchtrades)
 * [bybit](/exchanges/bybit.md#unwatchtrades)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtrades)
 * [deepcoin](/exchanges/deepcoin.md#unwatchtrades)
@@ -7880,6 +7887,7 @@ unsubscribe from the trades channel
 * [aster](/exchanges/aster.md#unwatchtradesforsymbols)
 * [backpack](/exchanges/backpack.md#unwatchtradesforsymbols)
 * [binance](/exchanges/binance.md#unwatchtradesforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#unwatchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchtradesforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtradesforsymbols)
 * [gate](/exchanges/gate.md#unwatchtradesforsymbols)
@@ -8079,7 +8087,7 @@ watch the public liquidations of a trading pair
 | symbol | <code>string</code> | Yes | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchliquidations)
@@ -8103,7 +8111,7 @@ watch the public liquidations of a trading pair
 | symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchliquidationsforsymbols)
@@ -8174,7 +8182,7 @@ watch the private liquidations of a trading pair
 | symbol | <code>string</code> | Yes | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchmyliquidations)
@@ -8196,7 +8204,7 @@ watch the private liquidations of a trading pair
 | symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchmyliquidationsforsymbols)
@@ -8375,6 +8383,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [aster](/exchanges/aster.md#watchohlcvforsymbols)
 * [backpack](/exchanges/backpack.md#watchohlcvforsymbols)
 * [binance](/exchanges/binance.md#watchohlcvforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#watchohlcvforsymbols)
 * [blofin](/exchanges/blofin.md#watchohlcvforsymbols)
 * [bybit](/exchanges/bybit.md#watchohlcvforsymbols)
 * [bydfi](/exchanges/bydfi.md#watchohlcvforsymbols)
@@ -8393,7 +8402,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -8469,7 +8478,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -8485,6 +8494,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [binance](/exchanges/binance.md#watchorderbookforsymbols)
 * [bitget](/exchanges/bitget.md#watchorderbookforsymbols)
 * [bitmex](/exchanges/bitmex.md#watchorderbookforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#watchorderbookforsymbols)
 * [blofin](/exchanges/blofin.md#watchorderbookforsymbols)
 * [bybit](/exchanges/bybit.md#watchorderbookforsymbols)
 * [bydfi](/exchanges/bydfi.md#watchorderbookforsymbols)
@@ -8879,6 +8889,7 @@ get the list of most recent trades for a list of symbols
 * [binance](/exchanges/binance.md#watchtradesforsymbols)
 * [bitget](/exchanges/bitget.md#watchtradesforsymbols)
 * [bitmex](/exchanges/bitmex.md#watchtradesforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#watchtradesforsymbols)
 * [blofin](/exchanges/blofin.md#watchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#watchtradesforsymbols)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#watchtradesforsymbols)
@@ -8999,7 +9010,7 @@ make a withdrawal
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | Yes |  |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [bitvavo](/exchanges/bitvavo.md#withdrawws)

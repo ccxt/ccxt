@@ -7,7 +7,7 @@ import bequantRest from '../bequant.js';
 // ---------------------------------------------------------------------------
 
 export default class bequant extends hitbtc {
-    describe (): any {
+    override describe (): any {
         // eslint-disable-next-line new-cap
         const restInstance = new bequantRest ();
         const restDescribe = restInstance.describe ();

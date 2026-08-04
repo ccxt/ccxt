@@ -8,7 +8,7 @@
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/aster.js';
-import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -1444,7 +1444,7 @@ export default class aster extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1724,6 +1724,9 @@ export default class aster extends Exchange {
         //         ...
         //     ]
         //
+        if (response === undefined) {
+            throw new NullResponse(this.id + ' fetchLastPrices() returned empty response');
+        }
         const results = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString(response[i], 'symbol');
@@ -2065,7 +2068,9 @@ export default class aster extends Exchange {
             account['free'] = this.safeString2(balance, 'free', 'availableBalance');
             account['used'] = this.safeString(balance, 'locked');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2129,7 +2134,7 @@ export default class aster extends Exchange {
      * @description set hedged to true or false for a market
      * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -2718,6 +2723,12 @@ export default class aster extends Exchange {
         return this.parseOrders(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -3235,7 +3246,7 @@ export default class aster extends Exchange {
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
@@ -3793,10 +3804,12 @@ export default class aster extends Exchange {
             const code = this.safeCurrencyCode(currencyId);
             const crossWalletBalance = this.safeString(entry, 'crossWalletBalance');
             const crossUnPnl = this.safeString(entry, 'crossUnPnl');
-            balances[code] = {
-                'crossMargin': Precise.stringAdd(crossWalletBalance, crossUnPnl),
-                'crossWalletBalance': crossWalletBalance,
-            };
+            if (code !== undefined) {
+                balances[code] = {
+                    'crossMargin': Precise.stringAdd(crossWalletBalance, crossUnPnl),
+                    'crossWalletBalance': crossWalletBalance,
+                };
+            }
         }
         const result = [];
         for (let i = 0; i < positions.length; i++) {
@@ -3831,6 +3844,9 @@ export default class aster extends Exchange {
         let initialMarginPercentageString = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise.stringDiv('1', leverageString, 8);
+            if (leverage === undefined) {
+                throw new ExchangeError(this.id + ' parseAccountPosition() missing leverage');
+            }
             const rational = this.isRoundNumber(1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
@@ -3952,6 +3968,9 @@ export default class aster extends Exchange {
             const rounderString = rounder.toString();
             const liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             let truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, '1', pricePrecision);
+            if (truncatedLiquidationPrice === undefined) {
+                throw new ExchangeError(this.id + ' method() missing truncatedLiquidationPrice');
+            }
             if (truncatedLiquidationPrice[0] === '-') {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
@@ -4296,7 +4315,7 @@ export default class aster extends Exchange {
                     { 'name': 'msg', 'type': 'string' },
                 ],
             };
-            // Build v3 params: original endpoint params + nonce (macroseconds) + user + signer
+            // Build v3 params: original endpoint params + nonce (microseconds) + user + signer
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             const finalParams = this.extend({
                 'nonce': nonce.toString(),

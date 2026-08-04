@@ -241,7 +241,7 @@ aster.fetchMyTrades (symbol?, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -534,7 +534,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by bingx setPositionMode () |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -895,7 +895,7 @@ fetches the history of margin added or reduced from contract isolated positions
 | type | <code>string</code> | No | "add" or "reduce" |
 | since | <code>int</code> | No | timestamp in ms of the earliest change to fetch |
 | limit | <code>int</code> | No | the maximum amount of changes to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest change to fetch |
 
 
@@ -1505,7 +1505,7 @@ aster.unWatchTradesForSymbols (symbols, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1561,7 +1561,7 @@ aster.unWatchOrderBook (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

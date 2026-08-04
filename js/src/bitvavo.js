@@ -631,22 +631,24 @@ export default class bitvavo extends Exchange {
         for (let j = 0; j < networksArray.length; j++) {
             const networkId = networksArray[j];
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdrawal,
-                'fee': withdrawFee,
-                'precision': this.parseNumber(this.parsePrecision(precision)),
-                'limits': {
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdrawal,
+                    'fee': withdrawFee,
+                    'precision': this.parseNumber(this.parsePrecision(precision)),
+                    'limits': {
+                        'withdraw': {
+                            'min': minWithdraw,
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': rawCurrency,
@@ -1040,7 +1042,7 @@ export default class bitvavo extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1169,7 +1171,9 @@ export default class bitvavo extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'inOrder');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1202,7 +1206,7 @@ export default class bitvavo extends Exchange {
      * @name bitvavo#fetchAccounts
      * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
      * @description fetch all the accounts associated with a profile
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccounts(params = {}) {
@@ -1245,7 +1249,7 @@ export default class bitvavo extends Exchange {
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
      * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {string} [params.clientRequestId] client defined unique id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1308,7 +1312,7 @@ export default class bitvavo extends Exchange {
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1364,7 +1368,7 @@ export default class bitvavo extends Exchange {
      * @description fetches a transfer
      * @param {string} id transfer id
      * @param {string} [code] unified currency code of the currency transferred
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfer(id, code = undefined, params = {}) {
@@ -1468,6 +1472,12 @@ export default class bitvavo extends Exchange {
         };
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -1561,7 +1571,7 @@ export default class bitvavo extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopPrice] Alias for triggerPrice
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -1672,7 +1682,7 @@ export default class bitvavo extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -1735,7 +1745,7 @@ export default class bitvavo extends Exchange {
      * @name bitvavo#cancelAllOrders
      * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2205,7 +2215,7 @@ export default class bitvavo extends Exchange {
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {int} [params.page] the page number for the transaction history
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
@@ -2379,7 +2389,7 @@ export default class bitvavo extends Exchange {
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2436,7 +2446,7 @@ export default class bitvavo extends Exchange {
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2595,10 +2605,12 @@ export default class bitvavo extends Exchange {
             networkId = currencyCode;
         }
         const networkCode = this.networkIdToCode(networkId, currencyCode);
-        result['networks'][networkCode] = {
-            'deposit': result['deposit'],
-            'withdraw': result['withdraw'],
-        };
+        if (networkCode !== undefined) {
+            result['networks'][networkCode] = {
+                'deposit': result['deposit'],
+                'withdraw': result['withdraw'],
+            };
+        }
         return result;
     }
     /**

@@ -114,7 +114,7 @@ luno.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -306,7 +306,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the luno api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -508,7 +508,7 @@ luno.watchTrades (symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Streaming-API  
 

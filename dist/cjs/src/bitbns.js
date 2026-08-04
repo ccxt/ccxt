@@ -359,7 +359,7 @@ class bitbns extends bitbns$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -521,7 +521,9 @@ class bitbns extends bitbns$1["default"] {
                     currencyId = 'INR';
                 }
                 const code = this.safeCurrencyCode(currencyId);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -679,6 +681,9 @@ class bitbns extends bitbns$1["default"] {
         const targetRate = this.safeString(params, 'target_rate');
         const trailRate = this.safeString(params, 'trail_rate');
         params = this.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate']);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'side': side.toUpperCase(),
             'symbol': market['uppercaseId'],
@@ -714,7 +719,8 @@ class bitbns extends bitbns$1["default"] {
         //         "code":200
         //     }
         //
-        return this.parseOrder(response, market);
+        const parsed = (response === undefined) ? {} : response;
+        return this.parseOrder(parsed, market);
     }
     /**
      * @method
@@ -748,7 +754,8 @@ class bitbns extends bitbns$1["default"] {
         quoteSide += tail;
         request['side'] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, params));
-        return this.parseOrder(response, market);
+        const parsed = (response === undefined) ? {} : response;
+        return this.parseOrder(parsed, market);
     }
     /**
      * @method
@@ -803,7 +810,7 @@ class bitbns extends bitbns$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const first = this.safeDict(data, 0);
+        const first = this.safeDict(data, 0, {});
         return this.parseOrder(first, market);
     }
     /**

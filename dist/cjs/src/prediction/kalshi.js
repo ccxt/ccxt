@@ -353,6 +353,9 @@ class kalshi extends kalshi$1["default"] {
                 if (this.markets === undefined) {
                     this.markets = this.createSafeDictionary();
                 }
+                if (parsed === undefined) {
+                    throw new errors.ExchangeError(this.id + ' fetchOutcome() could not resolve parsed');
+                }
                 this.markets[parsed['market']] = parsed;
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
@@ -439,6 +442,9 @@ class kalshi extends kalshi$1["default"] {
             const rawMarkets = this.safeList(response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
                 const parsed = this.parseMarket(rawMarkets[i]);
+                if (parsed === undefined) {
+                    throw new errors.ExchangeError(this.id + ' fetchOutcomes() could not resolve parsed');
+                }
                 this.markets[parsed['market']] = parsed;
                 this.indexMarketOutcomes(parsed);
             }
@@ -1387,6 +1393,9 @@ class kalshi extends kalshi$1["default"] {
             // the ticker filter narrows to the market; a market has both legs, so the
             // wanted-leg filter below still drops the opposite-leg fills
             outcomeObj = this.outcome(outcome);
+            if (outcomeObj === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' requires a valid outcome');
+            }
             request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
         }
         if (limit !== undefined) {
@@ -1549,6 +1558,9 @@ class kalshi extends kalshi$1["default"] {
             return parsed;
         }
         const wantedTickers = {};
+        if (outcomes === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchPositions() missing outcomes');
+        }
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
@@ -1739,6 +1751,9 @@ class kalshi extends kalshi$1["default"] {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = this.outcome(outcome);
+            if (outcomeObj === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' requires a valid outcome');
+            }
             request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
         }
         const response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, params));
@@ -1765,6 +1780,9 @@ class kalshi extends kalshi$1["default"] {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = this.outcome(outcome);
+            if (outcomeObj === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' requires a valid outcome');
+            }
             request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
         }
         const response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, params));
@@ -2120,6 +2138,9 @@ class kalshi extends kalshi$1["default"] {
      */
     async fetchEvents(params = {}) {
         const queries = this.parseSearchQueries(params);
+        if (queries === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchEvents() missing queries');
+        }
         const queriesLength = queries.length;
         params = this.omit(params, ['query', 'queries']);
         const userLimit = this.safeInteger(params, 'limit');

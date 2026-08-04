@@ -4,15 +4,15 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType } from './base/types.js';
+import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, NullResponse } from './base/errors.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees } from './base/types.js';
 
 /**
  * @class gate
  * @augments Exchange
  */
 export default class gate extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'gate',
             'name': 'Gate',
@@ -1163,7 +1163,7 @@ export default class gate extends Exchange {
         });
     }
 
-    setSandboxMode (enable: boolean) {
+    override setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
@@ -1216,7 +1216,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicSpotGetTime (params);
         //
         //     {
@@ -1226,7 +1226,7 @@ export default class gate extends Exchange {
         return this.safeInteger (response, 'server_time');
     }
 
-    createExpiredOptionMarket (symbol: string) {
+    override createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         const quote = 'USDT';
         const settle = quote;
@@ -1243,7 +1243,7 @@ export default class gate extends Exchange {
         }
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
-        const datetime = this.convertExpireDate (expiry as string);
+        const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
         return {
             'id': base + '_' + quote + '-' + '20' + expiry + '-' + strike + '-' + optionType,
@@ -1291,9 +1291,9 @@ export default class gate extends Exchange {
         } as MarketInterface;
     }
 
-    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+    override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
@@ -1312,14 +1312,14 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
         if (this.checkRequiredCredentials (false)) {
             await this.loadUnifiedStatus ();
         }
-        const rawPromises = [];
+        const rawPromises: Promise<Dict>[] = [];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap', 'future', 'option' ]);
         for (let i = 0; i < types.length; i++) {
@@ -1341,7 +1341,7 @@ export default class gate extends Exchange {
         return this.arraysConcat (results);
     }
 
-    async fetchSpotMarkets (params = {}) {
+    async fetchSpotMarkets (params: any = {}) {
         const marginPromise = this.publicMarginGetCurrencyPairs (params);
         const spotMarketsPromise = this.publicSpotGetCurrencyPairs (params);
         const [ marginResponse, spotMarketsResponse ] = await Promise.all ([ marginPromise, spotMarketsPromise ]);
@@ -1384,11 +1384,11 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < spotMarketsResponse.length; i++) {
             const spotMarket = spotMarketsResponse[i];
             const id = this.safeString (spotMarket, 'id');
-            const marginMarket = this.safeValue (marginMarkets, id as IndexType);
+            const marginMarket = this.safeValue (marginMarkets, id);
             const market = this.deepExtend (marginMarket, spotMarket);
             const [ baseId, quoteId ] = (id as string).split ('_');
             const base = this.safeCurrencyCode (baseId);
@@ -1459,8 +1459,8 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchSwapMarkets (params = {}) {
-        const result = [];
+    async fetchSwapMarkets (params: any = {}) {
+        const result: any[] = [];
         let swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
         if (this.options['sandboxMode']) {
             swapSettlementCurrencies = [ 'usdt' ]; // gate sandbox only has usdt-margined swaps
@@ -1483,7 +1483,7 @@ export default class gate extends Exchange {
         if (this.options['sandboxMode']) {
             return []; // right now sandbox does not have inverse swaps
         }
-        const result = [];
+        const result: any[] = [];
         const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
@@ -1499,7 +1499,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    parseContractMarket (market, settleId) {
+    parseContractMarket (market: any, settleId: any) {
         //
         //  Perpetual swap
         //
@@ -1686,8 +1686,8 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchOptionMarkets (params = {}) {
-        const result = [];
+    async fetchOptionMarkets (params: any = {}) {
+        const result: any[] = [];
         const underlyings = await this.fetchOptionUnderlyings ();
         for (let i = 0; i < underlyings.length; i++) {
             const underlying = underlyings[i];
@@ -1919,7 +1919,7 @@ export default class gate extends Exchange {
         return [ request, query ];
     }
 
-    getMarginMode (trigger, params) {
+    getMarginMode (trigger: any, params: any) {
         /**
          * @ignore
          * @method
@@ -1956,7 +1956,7 @@ export default class gate extends Exchange {
         return [ marginMode, params ];
     }
 
-    getSettlementCurrencies (type, method) {
+    getSettlementCurrencies (type: any, method: any) {
         const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
         const fetchMarketsContractOptions = this.safeValue (options, method, {});
         const defaultSettle = (type === 'swap') ? [ 'usdt' ] : [ 'btc' ];
@@ -1971,7 +1971,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         // sandbox/testnet only supports future markets
         const apiBackup = this.safeValue (this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
@@ -2019,37 +2019,39 @@ export default class gate extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         const type = this.isLeveragedCurrency (currencyId) ? 'leveraged' : 'crypto';
         const chains = this.safeList (rawCurrency, 'chains', []);
-        const networks = {};
+        const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'name');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': !this.safeBool (chain, 'deposit_disabled'),
-                'withdraw': !this.safeBool (chain, 'withdraw_disabled'),
-                'fee': undefined,
-                'precision': this.parseNumber ('0.0001'), // temporary safe default, because no value provided from API,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': !this.safeBool (chain, 'deposit_disabled'),
+                    'withdraw': !this.safeBool (chain, 'withdraw_disabled'),
+                    'fee': undefined,
+                    'precision': this.parseNumber ('0.0001'), // temporary safe default, because no value provided from API,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -2075,7 +2077,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2141,7 +2143,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2149,7 +2151,7 @@ export default class gate extends Exchange {
         let market: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
-            market = this.market (firstSymbol as string);
+            market = this.market (firstSymbol);
         }
         const [ request, query ] = this.prepareRequest (market, 'swap', params);
         const response = await this.publicFuturesGetSettleContracts (this.extend (request, query));
@@ -2200,7 +2202,7 @@ export default class gate extends Exchange {
         return this.parseFundingRates (response, symbols);
     }
 
-    parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //    {
         //        "name": "BTC_USDT",
@@ -2274,7 +2276,7 @@ export default class gate extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: any) {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -2336,7 +2338,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2362,18 +2364,19 @@ export default class gate extends Exchange {
      * @param {string} [params.network] unified network code (not used directly by gate.com but used by ccxt to filter the response)
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const chainsIndexedById = await this.fetchDepositAddressesByNetwork (code, params);
+        const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork (code, params);
+        const chainsIndexedById: Dict = chainsIndexedByIdRaw as any;
         const selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, chainsIndexedById);
         return chainsIndexedById[selectedNetworkIdOrCode as string];
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         chain: "BTC",
@@ -2404,7 +2407,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2438,7 +2441,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2460,17 +2463,18 @@ export default class gate extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseTradingFees (response) {
+    parseTradingFees (response: any) {
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market (symbol);
             result[symbol] = this.parseTradingFee (response, market);
         }
         return result;
     }
 
-    parseTradingFee (info, market: Market = undefined) {
+    parseTradingFee (info: any, market: Market = undefined) {
         //
         //    {
         //        "user_id": 1486602,
@@ -2511,7 +2515,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
+    override async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2534,7 +2538,7 @@ export default class gate extends Exchange {
         //    }
         //
         const result: Dict = {};
-        let withdrawFees = {};
+        let withdrawFees: Num | Dict = {};
         for (let i = 0; i < response.length; i++) {
             withdrawFees = {};
             const entry = response[i];
@@ -2551,7 +2555,9 @@ export default class gate extends Exchange {
                 for (let j = 0; j < networkIds.length; j++) {
                     const networkId = networkIds[j];
                     const networkCode = this.networkIdToCode (networkId, code);
-                    withdrawFees[networkCode] = this.parseNumber (withdrawFixOnChains[networkId]);
+                    if (networkCode !== undefined) {
+                        withdrawFees[networkCode] = this.parseNumber (withdrawFixOnChains[networkId]);
+                    }
                 }
             }
             result[code as string] = {
@@ -2572,7 +2578,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2599,7 +2605,7 @@ export default class gate extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'currency');
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //        "currency": "MTN",
@@ -2637,16 +2643,18 @@ export default class gate extends Exchange {
                 const currencyId = this.safeString (fee, 'currency');
                 const code = this.safeCurrencyCode (currencyId, currency);
                 const networkCode = this.networkIdToCode (chainKey, code);
-                result['networks'][networkCode] = {
-                    'withdraw': {
-                        'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
-                        'percentage': false,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
+                            'percentage': false,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
             }
         }
         return result;
@@ -2664,7 +2672,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2707,8 +2715,8 @@ export default class gate extends Exchange {
         return this.parseFundingHistories (response, symbol, since, limit);
     }
 
-    parseFundingHistories (response, symbol, since, limit): FundingHistory[] {
-        const result = [];
+    parseFundingHistories (response: any, symbol: any, since: Int, limit: Int): FundingHistory[] {
+        const result: FundingHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const funding = this.parseFundingHistory (entry);
@@ -2718,7 +2726,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseFundingHistory (info, market: Market = undefined) {
+    parseFundingHistory (info: any, market: Market = undefined) {
         //
         //    {
         //        "time": 1646899200,
@@ -2753,9 +2761,9 @@ export default class gate extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2855,6 +2863,9 @@ export default class gate extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (response, 'current');
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' method() missing timestamp');
+        }
         if (!market['spot']) {
             timestamp = timestamp * 1000;
         }
@@ -2878,7 +2889,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2901,7 +2912,7 @@ export default class gate extends Exchange {
         }
         let ticker: NullableDict = undefined;
         if (market['option']) {
-            for (let i = 0; i < response.length; i++) {
+            for (let i = 0; i < (response as List).length; i++) {
                 const entry = response[i];
                 if (entry['name'] === market['id']) {
                     ticker = entry;
@@ -2911,10 +2922,13 @@ export default class gate extends Exchange {
         } else {
             ticker = this.safeValue (response, 0);
         }
+        if (ticker === undefined) {
+            throw new NullResponse (this.id + ' fetchTicker() returned empty response');
+        }
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // SPOT
         //
@@ -3041,7 +3055,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3073,7 +3087,7 @@ export default class gate extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseBalanceHelper (entry) {
+    parseBalanceHelper (entry: any) {
         const account = this.account ();
         account['used'] = this.safeString2 (entry, 'freeze', 'locked');
         account['free'] = this.safeString (entry, 'available');
@@ -3102,7 +3116,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3357,7 +3371,7 @@ export default class gate extends Exchange {
             }
             data = flatBalances;
         }
-        for (let i = 0; i < data.length; i++) {
+        for (let i = 0; i < (data as List).length; i++) {
             const entry = data[i];
             if (isolated) {
                 const marketId = this.safeString (entry, 'currency_pair');
@@ -3397,7 +3411,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3484,7 +3498,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -3536,7 +3550,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // Spot market candles
         //
@@ -3599,7 +3613,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3712,7 +3726,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
         }
@@ -3767,7 +3781,7 @@ export default class gate extends Exchange {
      * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3885,7 +3899,7 @@ export default class gate extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public
         //
@@ -4007,9 +4021,9 @@ export default class gate extends Exchange {
         const side = this.safeString2 (trade, 'side', 'type', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const feeAmount = this.safeString (trade, 'fee');
-        const gtFee = this.omitZero (this.safeString (trade, 'gt_fee') as string);
-        const pointFee = this.omitZero (this.safeString (trade, 'point_fee') as string);
-        const fees = [];
+        const gtFee = this.omitZero (this.safeString (trade, 'gt_fee'));
+        const pointFee = this.omitZero (this.safeString (trade, 'point_fee'));
+        const fees: Dict[] = [];
         if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -4065,7 +4079,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4106,7 +4120,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4146,7 +4160,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
@@ -4198,15 +4212,15 @@ export default class gate extends Exchange {
         return this.safeString (statuses, status as IndexType, status as string);
     }
 
-    parseTransactionType (type) {
+    parseTransactionType (type: any) {
         const types: Dict = {
             'd': 'deposit',
             'w': 'withdrawal',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -4355,7 +4369,7 @@ export default class gate extends Exchange {
      * @param {string} [params.clientOrderId] the clientOrderId of the order
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4461,7 +4475,7 @@ export default class gate extends Exchange {
 
     createOrdersRequest (orders: OrderRequest[], params = {}) {
         const ordersRequests: Dict[] = [];
-        const orderSymbols: Str[] = [];
+        const orderSymbols: string[] = [];
         const ordersLength = orders.length;
         if (ordersLength === 0) {
             throw new BadRequest (this.id + ' createOrders() requires at least one order');
@@ -4472,7 +4486,7 @@ export default class gate extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            orderSymbols.push (marketId);
+            orderSymbols.push (marketId as string);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
@@ -4484,7 +4498,7 @@ export default class gate extends Exchange {
                 throw new NotSupported (this.id + ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)');
             }
             extendedParams['textIsRequired'] = true; // the exchange requires a text parameter for each order here
-            const orderRequest = this.createOrderRequest (marketId as string, type as OrderType, side as OrderSide, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
@@ -4505,7 +4519,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4522,7 +4536,13 @@ export default class gate extends Exchange {
         return this.parseOrders (response);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const contract = market['contract'];
         const trigger = this.safeValue (params, 'trigger');
@@ -4558,7 +4578,7 @@ export default class gate extends Exchange {
             } else {
                 if (timeInForce === undefined) {
                     const defaultTif = this.safeString (this.options, 'defaultTimeInForce', 'IOC');
-                    const exchangeSpecificTif = this.safeString (this.options['timeInForce'], defaultTif as IndexType, 'ioc');
+                    const exchangeSpecificTif = this.safeString (this.options['timeInForce'], defaultTif, 'ioc');
                     timeInForce = exchangeSpecificTif;
                 }
             }
@@ -4618,7 +4638,7 @@ export default class gate extends Exchange {
                     // 'time_in_force': 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
                     // 'iceberg': 0, // amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
                     // 'auto_borrow': false, // used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
-                    // 'auto_repay': false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
+                    // 'auto_repay': false, // automatic repayment for automatic borrow loan generated by cross margin order, disabled by default
                 };
                 if (isMarketOrder && (side === 'buy')) {
                     let quoteAmount: Str = undefined;
@@ -4743,7 +4763,7 @@ export default class gate extends Exchange {
                         'price': this.priceToPrecision (symbol, price),
                         'amount': this.amountToPrecision (symbol, amount),
                         'account': marginMode,
-                        'time_in_force': timeInForce, // gtc, ioc (ioc is for taker only, so shouldnt't be in conditional order)
+                        'time_in_force': timeInForce, // gtc, ioc (ioc is for taker only, so shouldn't be in conditional order)
                     },
                     'market': market['id'],
                 };
@@ -4786,7 +4806,7 @@ export default class gate extends Exchange {
      * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4799,7 +4819,7 @@ export default class gate extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    editOrderRequest (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('editOrder', market, params);
@@ -4857,7 +4877,7 @@ export default class gate extends Exchange {
      * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4921,7 +4941,7 @@ export default class gate extends Exchange {
         return this.safeString (statuses, status as IndexType, status as string);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // SPOT
         // createOrder/cancelOrder/fetchOrder/editOrder
@@ -5193,7 +5213,7 @@ export default class gate extends Exchange {
         }
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
         const symbol = this.safeSymbol (exchangeSymbol, market, '_', marketType);
-        const fees = [];
+        const fees: Dict[] = [];
         const gtFee = this.safeString (order, 'gt_fee');
         if (gtFee !== undefined) {
             fees.push ({
@@ -5318,7 +5338,7 @@ export default class gate extends Exchange {
      * @param {bool} [params.unifiedAccount] set to true for fetching a unified account order
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5370,7 +5390,7 @@ export default class gate extends Exchange {
      * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params) as Order[];
     }
 
@@ -5397,7 +5417,7 @@ export default class gate extends Exchange {
      * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5416,7 +5436,7 @@ export default class gate extends Exchange {
             return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params) as Order[];
         }
         params = this.omit (params, 'type');
-        let request = {};
+        let request: Dict = {};
         [ request, params ] = this.prepareRequest (market, type, params);
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
@@ -5432,7 +5452,7 @@ export default class gate extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    prepareOrdersByStatusRequest (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    prepareOrdersByStatusRequest (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -5472,7 +5492,7 @@ export default class gate extends Exchange {
         return [ request, finalParams ];
     }
 
-    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5483,7 +5503,7 @@ export default class gate extends Exchange {
             symbol = market['symbol'];
         }
         // don't omit here, omits done in prepareOrdersByStatusRequest
-        const trigger: Bool = this.safeBool2 (params, 'trigger', 'stop');
+        const trigger = this.safeBool2 (params, 'trigger', 'stop');
         const res = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const type = this.safeString (res, 0);
         const [ request, requestParams ] = this.prepareOrdersByStatusRequest (status, symbol, since, limit, params);
@@ -5694,7 +5714,7 @@ export default class gate extends Exchange {
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5825,7 +5845,7 @@ export default class gate extends Exchange {
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5876,7 +5896,7 @@ export default class gate extends Exchange {
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+    override async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5885,7 +5905,7 @@ export default class gate extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const symbol = this.safeString (order, 'symbol');
-            const market = this.market (symbol as string);
+            const market = this.market (symbol);
             if (!market['spot']) {
                 throw new NotSupported (this.id + ' cancelOrdersForSymbols() supports only spot markets');
             }
@@ -5919,12 +5939,12 @@ export default class gate extends Exchange {
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-3
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-3
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6002,7 +6022,7 @@ export default class gate extends Exchange {
      * @param {string} [params.symbol] Unified market symbol *required for type == margin*
      * @returns A [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6053,7 +6073,7 @@ export default class gate extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //    {
         //        "currency": "BTC",
@@ -6087,7 +6107,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -6153,7 +6173,7 @@ export default class gate extends Exchange {
         return response;
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         //
         // swap and future
         //
@@ -6309,7 +6329,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}) {
+    override async fetchPosition (symbol: string, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6384,6 +6404,9 @@ export default class gate extends Exchange {
         //         "pending_orders": 0
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' fetchPosition() returned empty response');
+        }
         return this.parsePosition (response, market);
     }
 
@@ -6400,7 +6423,7 @@ export default class gate extends Exchange {
      * @param {string} [params.type] swap, future or option, if not provided this.options['defaultType'] is used
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6495,7 +6518,11 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parsePositions (responseList, symbols);
     }
 
     /**
@@ -6508,7 +6535,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+    override async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6630,7 +6657,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
+    override async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6690,7 +6717,7 @@ export default class gate extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //     [
         //         {
@@ -6738,7 +6765,7 @@ export default class gate extends Exchange {
      * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6770,7 +6797,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async repayCrossMargin (code: string, amount, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6782,7 +6809,7 @@ export default class gate extends Exchange {
         };
         let isUnifiedAccount = false;
         [ isUnifiedAccount, params ] = this.handleOptionAndParams (params, 'repayCrossMargin', 'unifiedAccount');
-        let response: Dict;
+        let response: NullableDict;
         if (isUnifiedAccount) {
             request['type'] = 'repay';
             response = await this.privateUnifiedPostLoans (this.extend (request, params));
@@ -6822,7 +6849,7 @@ export default class gate extends Exchange {
      * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
+    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6869,7 +6896,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.unifiedAccount] default true (set to false to use deprecated privateMarginPostCrossLoans method)
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async borrowCrossMargin (code: string, amount: number, params = {}) {
+    override async borrowCrossMargin (code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6907,7 +6934,7 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined) {
         //
         // Cross
         //
@@ -6976,7 +7003,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
+    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7018,7 +7045,7 @@ export default class gate extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
+    override parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         const marketId = this.safeString (info, 'currency_pair');
         market = this.safeMarket (marketId, market);
         const marginMode = (marketId !== undefined) ? 'isolated' : 'cross';
@@ -7036,11 +7063,11 @@ export default class gate extends Exchange {
         } as BorrowInterest;
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));
@@ -7134,7 +7161,7 @@ export default class gate extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async modifyMarginHelper (symbol: string, amount, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7152,7 +7179,7 @@ export default class gate extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //     {
         //         "value": "11.9257",
@@ -7208,7 +7235,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, -amount, params);
     }
 
@@ -7223,7 +7250,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, params);
     }
 
@@ -7240,7 +7267,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    async fetchOpenInterestHistory (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOpenInterestHistory (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7289,7 +7316,7 @@ export default class gate extends Exchange {
         return this.parseOpenInterestsHistory (response, market, since, limit);
     }
 
-    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //    {
         //        "long_liq_size": "0",
@@ -7460,7 +7487,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement, market) {
+    parseSettlement (settlement: any, market: any) {
         //
         // fetchSettlementHistory
         //
@@ -7511,7 +7538,7 @@ export default class gate extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market) {
+    parseSettlements (settlements: any, market: any) {
         //
         // fetchSettlementHistory
         //
@@ -7566,7 +7593,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7665,7 +7692,7 @@ export default class gate extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         // spot
         //
@@ -7750,7 +7777,7 @@ export default class gate extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -7791,7 +7818,7 @@ export default class gate extends Exchange {
             'pnl': 'trade',
             'dnw': 'deposit/withdraw',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -7805,7 +7832,7 @@ export default class gate extends Exchange {
      * @param {string} params.settle settle currency
      * @returns {object} response from the exchange
      */
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const [ request, query ] = this.prepareRequest (market, 'swap', params);
         request['dual_mode'] = hedged;
@@ -7866,7 +7893,7 @@ export default class gate extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7914,7 +7941,7 @@ export default class gate extends Exchange {
      * @param {object} [params] exchange specific parameters for the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyLiquidations() requires a symbol argument');
         }
@@ -7981,7 +8008,7 @@ export default class gate extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         // fetchLiquidations
         //
@@ -8074,7 +8101,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
+    override async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8116,7 +8143,7 @@ export default class gate extends Exchange {
         return undefined as unknown as Greeks;
     }
 
-    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
+    override parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "vega": "1.78992",
@@ -8139,6 +8166,9 @@ export default class gate extends Exchange {
         //
         const marketId = this.safeString (greeks, 'name');
         const symbol = this.safeSymbol (marketId, market);
+        if (market === undefined) {
+            throw new ExchangeError (this.id + ' parseGreeks() could not resolve market');
+        }
         return {
             'symbol': symbol,
             'timestamp': undefined,
@@ -8171,10 +8201,10 @@ export default class gate extends Exchange {
      * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side 'buy' or 'sell'
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         const request: Dict = {
             'close': true,
         };
@@ -8196,7 +8226,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.unified] default false, set to true for fetching the unified accounts leverage
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8304,7 +8334,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.unified] default false, set to true for fetching unified account leverages
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
+    override async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8346,7 +8376,7 @@ export default class gate extends Exchange {
         return this.parseLeverages (response, symbols, marketIdRequest, 'spot');
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString2 (leverage, 'currency_pair', 'id');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
@@ -8367,7 +8397,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    async fetchOption (symbol: string, params = {}): Promise<Option> {
+    override async fetchOption (symbol: string, params = {}): Promise<Option> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8430,7 +8460,7 @@ export default class gate extends Exchange {
      * @param {int} [params.expiration] unix timestamp of the expiration time
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    async fetchOptionChain (code: string, params = {}): Promise<OptionChain> {
+    override async fetchOptionChain (code: string, params = {}): Promise<OptionChain> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8484,7 +8514,7 @@ export default class gate extends Exchange {
         return this.parseOptionChain (response, undefined, 'name');
     }
 
-    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
+    override parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "is_active": true,
@@ -8558,7 +8588,7 @@ export default class gate extends Exchange {
      * @param {string[]} symbols unified conract symbols, must all have the same settle currency and the same market type
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch, default=1000
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      *
      * EXCHANGE SPECIFIC PARAMETERS
@@ -8567,7 +8597,7 @@ export default class gate extends Exchange {
      * @param {string} [params.pnl] query profit or loss
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8621,10 +8651,14 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        return this.parsePositions (response, symbols, params);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parsePositions (responseList, symbols, params);
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

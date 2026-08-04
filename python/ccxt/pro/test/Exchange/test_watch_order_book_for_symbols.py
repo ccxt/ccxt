@@ -33,7 +33,7 @@ async def test_watch_order_book_for_symbols(exchange, skipped_properties, symbol
                 raise e
             current_time = exchange.milliseconds()
             succeeded = False
-        if succeeded:
+        if (succeeded) and (response is not None):
             test_order_book(exchange, skipped_properties, method, response, None)
             test_shared_methods.assert_in_array(exchange, skipped_properties, method, response, 'symbol', symbols)
             symbol = response['symbol']

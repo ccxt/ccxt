@@ -6,7 +6,7 @@ import Exchange from './abstract/bitbns.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, NullableDict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, FeeString } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, NullableDict, Int, Market, Num, Order, O
  * @augments Exchange
  */
 export default class bitbns extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitbns',
             'name': 'Bitbns',
@@ -229,7 +229,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}) {
         const response = await this.v1GetPlatformStatus (params);
         //
         //     {
@@ -260,7 +260,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.wwwGetOrderFetchMarkets (params);
         //
         //     [
@@ -285,7 +285,7 @@ export default class bitbns extends Exchange {
         //         },
         //     ]
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
@@ -362,9 +362,9 @@ export default class bitbns extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -397,7 +397,7 @@ export default class bitbns extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol":"BTC/INR",
@@ -464,7 +464,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -504,7 +504,7 @@ export default class bitbns extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const timestamp: Int = undefined;
         const result: Dict = {
             'info': response,
@@ -527,7 +527,9 @@ export default class bitbns extends Exchange {
                     currencyId = 'INR';
                 }
                 const code = this.safeCurrencyCode (currencyId);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);
@@ -540,7 +542,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -565,7 +567,7 @@ export default class bitbns extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseStatus (status) {
+    parseStatus (status: any) {
         const statuses: Dict = {
             '-1': 'cancelled',
             '0': 'open',
@@ -581,7 +583,7 @@ export default class bitbns extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -678,7 +680,7 @@ export default class bitbns extends Exchange {
      * @param {float} [params.trail_rate] *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -687,6 +689,9 @@ export default class bitbns extends Exchange {
         const targetRate = this.safeString (params, 'target_rate');
         const trailRate = this.safeString (params, 'trail_rate');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ]);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const request: Dict = {
             'side': side.toUpperCase (),
             'symbol': market['uppercaseId'],
@@ -721,7 +726,8 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        return this.parseOrder (response, market);
+        const parsed = (response === undefined) ? {} : response;
+        return this.parseOrder (parsed, market);
     }
 
     /**
@@ -736,7 +742,7 @@ export default class bitbns extends Exchange {
      * @param {boolean} [params.trigger] true if cancelling a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -750,13 +756,14 @@ export default class bitbns extends Exchange {
             'entry_id': id,
             'symbol': market['uppercaseId'],
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         const tail = isTrigger ? 'StopLossOrder' : 'Order';
         let quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         quoteSide += tail;
         request['side'] = quoteSide;
         response = await this.v2PostCancel (this.extend (request, params));
-        return this.parseOrder (response, market);
+        const parsed = (response === undefined) ? {} : response;
+        return this.parseOrder (parsed, market);
     }
 
     /**
@@ -769,7 +776,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -812,7 +819,7 @@ export default class bitbns extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const first = this.safeDict (data, 0);
+        const first = this.safeDict (data, 0, {});
         return this.parseOrder (first, market);
     }
 
@@ -829,7 +836,7 @@ export default class bitbns extends Exchange {
      * @param {boolean} [params.trigger] true if fetching trigger orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -870,7 +877,7 @@ export default class bitbns extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchMyTrades
         //
@@ -925,7 +932,7 @@ export default class bitbns extends Exchange {
             costString = this.safeString (trade, 'quote_volume');
         }
         const symbol = market['symbol'];
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyCode = market['quote'];
@@ -961,7 +968,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1032,7 +1039,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
         }
@@ -1065,7 +1072,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
@@ -1115,7 +1122,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
@@ -1135,7 +1142,7 @@ export default class bitbns extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status, type: Str = undefined) {
+    parseTransactionStatusByType (status: any, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -1155,7 +1162,7 @@ export default class bitbns extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1231,7 +1238,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1263,11 +1270,11 @@ export default class bitbns extends Exchange {
         } as DepositAddress;
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'www', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'www', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
@@ -1306,7 +1313,7 @@ export default class bitbns extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

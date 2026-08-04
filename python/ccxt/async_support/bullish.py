@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bullish import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -251,7 +251,7 @@ class bullish(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             # exchange-specific options
             'options': {
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'BTC': 'BTC',
@@ -532,7 +532,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'symbol')
         code = self.safe_currency_code(id)
         name = self.safe_string(rawCurrency, 'name')
@@ -914,7 +914,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(not used by bullish)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1365,7 +1365,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'createdAtTimestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -1583,7 +1583,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         request = {
             'status': 'CANCELLED',
-            'method': 'privateGetV2Orders',  # current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders',  # current endpoint distinguishes between CLOSED and CANCELLED orders
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
@@ -1602,7 +1602,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         request = {
             'status': 'CLOSED',
-            'method': 'privateGetV2Orders',  # current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders',  # current endpoint distinguishes between CLOSED and CANCELLED orders
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
@@ -1676,7 +1676,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -2142,7 +2142,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_type(self, type):
+    def parse_transaction_type(self, type: Any):
         types = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2324,7 +2324,7 @@ class bullish(Exchange, ImplicitAPI):
                     data = {}  # return an empty structure if the user-defined network was not found
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         id = self.safe_string(depositAddress, 'symbol')
         network = self.safe_string(depositAddress, 'network')
         code = self.safe_currency_code(id, currency)
@@ -2379,7 +2379,7 @@ class bullish(Exchange, ImplicitAPI):
             #
             return self.parse_balance(response)
 
-    def parse_balance_for_single_currency(self, response, code: Str) -> Balances:
+    def parse_balance_for_single_currency(self, response: Any, code: Str) -> Balances:
         result = {'info': response}
         account = self.account()
         account['free'] = self.safe_string(response, 'availableQuantity')
@@ -2387,7 +2387,7 @@ class bullish(Exchange, ImplicitAPI):
         result[code] = account
         return self.safe_balance(result)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -2398,7 +2398,8 @@ class bullish(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'availableQuantity')
             account['used'] = self.safe_string(balance, 'lockedQuantity')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
@@ -2601,7 +2602,7 @@ class bullish(Exchange, ImplicitAPI):
             transfer['currency'] = code
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: Any, currency: Currency = None):
         #
         # fetchTransfers
         #     {
@@ -2640,7 +2641,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str):
         statuses = {
             'CLOSED': 'ok',
             'OPEN': 'pending',
@@ -2696,7 +2697,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_borrow_rate_history(response, code, since, limit)
 
-    def parse_borrow_rate(self, info, currency: Currency = None):
+    def parse_borrow_rate(self, info: Any, currency: Currency = None):
         #
         #     {
         #         "assetId": "1",
@@ -2778,7 +2779,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #     {
         #         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2829,7 +2830,7 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
@@ -2909,7 +2910,7 @@ class bullish(Exchange, ImplicitAPI):
         else:
             return self.token
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

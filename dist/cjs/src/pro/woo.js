@@ -127,7 +127,7 @@ class woo extends woo$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -207,6 +207,9 @@ class woo extends woo$1["default"] {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const topic = this.safeString(message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const method = this.safeString(topic.split('@'), 1);
         if (method === 'orderbookupdate') {
             if (!(symbol in this.orderbooks)) {
@@ -220,6 +223,9 @@ class woo extends woo$1["default"] {
             else {
                 try {
                     const ts = this.safeInteger(message, 'ts');
+                    if (ts === undefined) {
+                        return;
+                    }
                     if (ts > timestamp) {
                         this.handleOrderBookMessage(client, message, orderbook);
                         client.resolve(orderbook, topic);
@@ -227,7 +233,9 @@ class woo extends woo$1["default"] {
                 }
                 catch (e) {
                     delete this.orderbooks[symbol];
-                    delete client.subscriptions[topic];
+                    if (topic !== undefined) {
+                        delete client.subscriptions[topic];
+                    }
                     client.reject(e, topic);
                 }
             }
@@ -235,7 +243,7 @@ class woo extends woo$1["default"] {
         else {
             if (!(symbol in this.orderbooks)) {
                 const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
-                const subscription = client.subscriptions[topic];
+                const subscription = this.safeValue(client.subscriptions, topic);
                 const limit = this.safeInteger(subscription, 'limit', defaultLimit);
                 this.orderbooks[symbol] = this.orderBook({}, limit);
             }
@@ -250,6 +258,9 @@ class woo extends woo$1["default"] {
         const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
         const limit = this.safeInteger(subscription, 'limit', defaultLimit);
         const symbol = this.safeString(subscription, 'symbol'); // watchOrderBook
+        if (symbol === undefined) {
+            return;
+        }
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
@@ -268,12 +279,15 @@ class woo extends woo$1["default"] {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
-            const orderbook = this.orderbooks[symbol];
+            const orderbook = this.safeValue(this.orderbooks, symbol);
             orderbook.reset(snapshot);
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
                 const ts = this.safeInteger(messageItem, 'ts');
+                if (ts === undefined) {
+                    continue;
+                }
                 if (ts < orderbook['timestamp']) {
                     continue;
                 }
@@ -281,11 +295,15 @@ class woo extends woo$1["default"] {
                     this.handleOrderBookMessage(client, messageItem, orderbook);
                 }
             }
-            this.orderbooks[symbol] = orderbook;
+            if (symbol !== undefined) {
+                this.orderbooks[symbol] = orderbook;
+            }
             client.resolve(orderbook, messageHash);
         }
         catch (e) {
-            delete client.subscriptions[messageHash];
+            if (messageHash !== undefined) {
+                delete client.subscriptions[messageHash];
+            }
             client.reject(e, messageHash);
         }
     }
@@ -571,11 +589,18 @@ class woo extends woo$1["default"] {
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict(data, i);
+            if (ticker === undefined) {
+                continue;
+            }
             ticker['ts'] = timestamp;
             const parsedTicker = this.parseWsBidAsk(ticker);
             const symbol = parsedTicker['symbol'];
-            this.bidsasks[symbol] = parsedTicker;
-            result[symbol] = parsedTicker;
+            if (symbol !== undefined) {
+                this.bidsasks[symbol] = parsedTicker;
+            }
+            if (symbol !== undefined) {
+                result[symbol] = parsedTicker;
+            }
         }
         client.resolve(result, topic);
     }
@@ -687,11 +712,13 @@ class woo extends woo$1["default"] {
             this.safeFloat(data, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
         stored.append(parsed);
         client.resolve(stored, topic);
@@ -1243,7 +1270,13 @@ class woo extends woo$1["default"] {
         const messageHashes = [];
         symbols = this.marketSymbols(symbols);
         if (!this.isEmpty(symbols)) {
+            if (symbols === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
+            }
             for (let i = 0; i < symbols.length; i++) {
+                if (symbols === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
+                }
                 const symbol = symbols[i];
                 messageHashes.push('positions::' + symbol);
             }
@@ -1290,7 +1323,7 @@ class woo extends woo$1["default"] {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append(position);
             }
         }
@@ -1408,13 +1441,18 @@ class woo extends woo$1["default"] {
             const key = keys[i];
             const value = balances[key];
             const code = this.safeCurrencyCode(key);
-            const account = (code in this.balance) ? this.balance[code] : this.account();
+            let account = this.account();
+            if ((code !== undefined) && (code in this.balance)) {
+                account = this.balance[code];
+            }
             const total = this.safeString(value, 'holding');
             const used = this.safeString(value, 'frozen');
             account['total'] = total;
             account['used'] = used;
             account['free'] = Precise["default"].stringSub(total, used);
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
@@ -1457,7 +1495,9 @@ class woo extends woo$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const fundingRate = this.parseFundingRate(data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        if (symbol !== undefined) {
+            this.fundingRates[symbol] = fundingRate;
+        }
         const messageHash = this.safeString(message, 'topic');
         client.resolve(fundingRate, messageHash);
     }
@@ -1556,6 +1596,9 @@ class woo extends woo$1["default"] {
             const splitLength = splitTopic.length;
             if (splitLength === 2) {
                 const name = this.safeString(splitTopic, 1);
+                if (name === undefined) {
+                    return;
+                }
                 method = this.safeValue(methods, name);
                 if (method !== undefined) {
                     method.call(this, client, message);

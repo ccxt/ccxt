@@ -284,7 +284,7 @@ func (this *LbankCore) HandleOHLCV(client any, message any) {
  * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *LbankCore) FetchTickerWs(symbol any, optionalArgs ...any) <-chan any {
@@ -325,7 +325,7 @@ func (this *LbankCore) FetchTickerWs(symbol any, optionalArgs ...any) <-chan any
  * @see https://www.lbank.com/en-US/docs/index.html#market
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} params extra parameters specific to the lbank api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
 func (this *LbankCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
@@ -643,7 +643,7 @@ func (this *LbankCore) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @param {string} [symbol] unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the lbank api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *LbankCore) WatchOrders(optionalArgs ...any) <-chan any {
@@ -722,6 +722,9 @@ func (this *LbankCore) HandleOrders(client any, message any) {
 		myOrders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var order any = this.ParseWsOrder(message)
+	if ccxt.IsTrue(ccxt.IsEqual(myOrders, nil)) {
+		return
+	}
 	myOrders.(ccxt.Appender).Append(order)
 	this.Orders = myOrders
 	client.(ccxt.ClientInterface).Resolve(myOrders, "orders")
@@ -841,8 +844,8 @@ func (this *LbankCore) WatchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes71112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes71112)
+			retRes71412 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes71412)
 		}
 
 		key := (<-this.Authenticate(params))
@@ -856,9 +859,9 @@ func (this *LbankCore) WatchBalance(optionalArgs ...any) <-chan any {
 		}
 		var request any = this.DeepExtend(message, params)
 
-		retRes72215 := (<-this.Watch(url, messageHash, request, messageHash, request))
-		ccxt.PanicOnError(retRes72215)
-		ch <- retRes72215
+		retRes72515 := (<-this.Watch(url, messageHash, request, messageHash, request))
+		ccxt.PanicOnError(retRes72515)
+		ch <- retRes72515
 		return nil
 
 	}()
@@ -892,7 +895,9 @@ func (this *LbankCore) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(account, "free", this.SafeString(data, "free"))
 	ccxt.AddElementToObject(account, "used", this.SafeString(data, "freeze"))
 	ccxt.AddElementToObject(account, "total", this.SafeString(data, "asset"))
-	ccxt.AddElementToObject(this.Balance, code, account)
+	if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+		ccxt.AddElementToObject(this.Balance, code, account)
+	}
 	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
@@ -904,7 +909,7 @@ func (this *LbankCore) HandleBalance(client any, message any) {
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int|undefined} limit the maximum amount of order book entries to return
- * @param {object} params extra parameters specific to the lbank api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
  */
 func (this *LbankCore) FetchOrderBookWs(symbol any, optionalArgs ...any) <-chan any {
@@ -918,8 +923,8 @@ func (this *LbankCore) FetchOrderBookWs(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes77012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes77012)
+			retRes77512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes77512)
 		}
 		var market any = this.Market(symbol)
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -952,8 +957,8 @@ func (this *LbankCore) FetchOrderBookWs(symbol any, optionalArgs ...any) <-chan 
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int|undefined} limit the maximum amount of order book entries to return
- * @param {object} params extra parameters specific to the lbank api endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+ * @param {object} params extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *LbankCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -966,8 +971,8 @@ func (this *LbankCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes80112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes80112)
+			retRes80612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes80612)
 		}
 		var market any = this.Market(symbol)
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -1106,11 +1111,11 @@ func (this *LbankCore) HandlePing(client any, message any) <-chan any {
 				}()
 				// try block:
 
-				retRes91612 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+				retRes92112 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 					"action": "pong",
 					"pong":   pingId,
 				}))
-				ccxt.PanicOnError(retRes91612)
+				ccxt.PanicOnError(retRes92112)
 				return nil
 			}(this)
 
@@ -1149,7 +1154,7 @@ func (this *LbankCore) Authenticate(optionalArgs ...any) <-chan any {
 		defer close(ch)
 		defer ccxt.ReturnPanicError(ch)
 		// when we implement more private streams, we need to refactor the authentication
-		// to be concurent-safe and respect the same authentication token
+		// to be concurrent-safe and respect the same authentication token
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")

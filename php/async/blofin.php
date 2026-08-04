@@ -10,6 +10,7 @@ use ccxt\async\abstract\blofin as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\NullResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -607,7 +608,7 @@ class blofin extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -928,7 +929,7 @@ class blofin extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1678928760000", // timestamp
@@ -1056,7 +1057,7 @@ class blofin extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate" => "0.00027815",
@@ -1131,7 +1132,7 @@ class blofin extends Exchange {
         })();
     }
 
-    public function parse_balance_by_type($response) {
+    public function parse_balance_by_type(mixed $response) {
         $data = $this->safe_list($response, 'data');
         if (($data !== null) && (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_funding_balance($response);
@@ -1140,7 +1141,7 @@ class blofin extends Exchange {
         }
     }
 
-    public function parse_balance($response) {
+    public function parse_balance(mixed $response) {
         //
         // "data" similar for REST & WS
         //
@@ -1197,7 +1198,7 @@ class blofin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_funding_balance($response) {
+    public function parse_funding_balance(mixed $response) {
         //
         //  {
         //      "code" => "0",
@@ -1272,7 +1273,13 @@ class blofin extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
@@ -1544,7 +1551,7 @@ class blofin extends Exchange {
         })();
     }
 
-    public function create_tpsl_order_request(string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function create_tpsl_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $hedged = $this->safe_bool($params, 'hedged', false);
         $positionSide = 'net';
@@ -2047,7 +2054,7 @@ class blofin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             '1' => 'transfer', // transfer
             '2' => 'trade', // trade
@@ -2088,7 +2095,7 @@ class blofin extends Exchange {
         ), $currency);
     }
 
-    public function parse_ids($ids) {
+    public function parse_ids(mixed $ids) {
         /**
          * @ignore
          * @param {string[]|string} $ids order $ids
@@ -2242,7 +2249,7 @@ class blofin extends Exchange {
             $data = $this->safe_list($response, 'data', array());
             $position = $this->safe_dict($data, 0);
             if ($position === null) {
-                return null;
+                throw new NullResponse($this->id . ' fetchPosition() returned empty position');
             }
             return $this->parse_position($position, $market);
         })();
@@ -2281,7 +2288,7 @@ class blofin extends Exchange {
              * @param {string[]} [$symbols] unified contract $symbols
              * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
              * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
-             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest position to fetch, max range for $params["until"] - $since is 3 months
              * @param {string} [$params->productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
              * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
@@ -2437,7 +2444,8 @@ class blofin extends Exchange {
         if ($initialMarginPercentage === null) {
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
         } elseif ($initialMarginString === null) {
-            $initialMarginString = Precise::string_mul($initialMarginPercentage, $notionalString);
+            $initialMarginPercentageString = $this->number_to_string($initialMarginPercentage);
+            $initialMarginString = Precise::string_mul($initialMarginPercentageString, $notionalString);
         }
         $rounder = '0.00005'; // round to closest 0.01%
         $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4));
@@ -2647,7 +2655,7 @@ class blofin extends Exchange {
              *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} [$side] 'buy' or 'sell', leave in net mode
-             * @param {array} [$params] extra parameters specific to the blofin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] a unique identifier for the order
              * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;
              * @param {string} [$params->code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2841,7 +2849,7 @@ class blofin extends Exchange {
              * @see https://docs.blofin.com/index.html#set-position-mode
              *
              * @param {bool} $hedged set to true to use $hedged mode, false for one-way mode
-             * @param {string} [$symbol] not used by blofin setPositionMode ()
+             * @param {string} [$symbol] not used by setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
@@ -2950,7 +2958,7 @@ class blofin extends Exchange {
         );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -2986,7 +2994,7 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . $request;

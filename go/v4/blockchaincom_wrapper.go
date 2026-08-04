@@ -50,7 +50,7 @@ func (this *Blockchaincom) FetchMarkets(params ...any) ([]MarketInterface, error
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Blockchaincom) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -270,7 +270,7 @@ func (this *Blockchaincom) CancelOrder(id string, options ...CancelOrderOptions)
  * @name blockchaincom#cancelAllOrders
  * @description cancel all open orders
  * @see https://api.blockchain.com/v3/#deleteallorders
- * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+ * @param {string} [symbol] unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -721,7 +721,7 @@ func (this *Blockchaincom) FetchDeposits(options ...FetchDepositsOptions) ([]Tra
  * @description fetch information on a deposit
  * @see https://api.blockchain.com/v3/#getdepositbyid
  * @param {string} id deposit id
- * @param {string} code not used by blockchaincom fetchDeposit ()
+ * @param {string} code not used by fetchDeposit ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -954,10 +954,10 @@ func (this *Blockchaincom) FetchDepositAddressesByNetwork(code string, options .
 func (this *Blockchaincom) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Blockchaincom) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Blockchaincom) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Blockchaincom) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Blockchaincom) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Blockchaincom) FetchFreeBalance(params ...any) (Balance, error) {

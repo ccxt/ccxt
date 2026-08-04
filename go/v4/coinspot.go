@@ -379,7 +379,9 @@ func (this *CoinspotCore) ParseBalance(response any) any {
 				var code any = this.SafeCurrencyCode(currencyId)
 				var account any = this.Account()
 				AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-				AddElementToObject(result, code, account)
+				if IsTrue(!IsEqual(code, nil)) {
+					AddElementToObject(result, code, account)
+				}
 			}
 		}
 	} else {
@@ -389,7 +391,9 @@ func (this *CoinspotCore) ParseBalance(response any) any {
 			var code any = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
 			AddElementToObject(account, "total", this.SafeString(balances, currencyId))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 	}
 	return this.SafeBalance(result)
@@ -412,8 +416,8 @@ func (this *CoinspotCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes34012 := (<-this.LoadMarkets())
-			PanicOnError(retRes34012)
+			retRes34412 := (<-this.LoadMarkets())
+			PanicOnError(retRes34412)
 		}
 		var method any = this.SafeString(this.Options, "fetchBalance", "private_post_my_balances")
 
@@ -451,7 +455,7 @@ func (this *CoinspotCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CoinspotCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -464,8 +468,8 @@ func (this *CoinspotCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes37512 := (<-this.LoadMarkets())
-			PanicOnError(retRes37512)
+			retRes37912 := (<-this.LoadMarkets())
+			PanicOnError(retRes37912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -537,8 +541,8 @@ func (this *CoinspotCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes43212 := (<-this.LoadMarkets())
-			PanicOnError(retRes43212)
+			retRes43612 := (<-this.LoadMarkets())
+			PanicOnError(retRes43612)
 		}
 		var market any = this.Market(symbol)
 
@@ -588,8 +592,8 @@ func (this *CoinspotCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes46612 := (<-this.LoadMarkets())
-			PanicOnError(retRes46612)
+			retRes47012 := (<-this.LoadMarkets())
+			PanicOnError(retRes47012)
 		}
 
 		response := (<-this.PublicGetLatest(params))
@@ -655,8 +659,8 @@ func (this *CoinspotCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes51412 := (<-this.LoadMarkets())
-			PanicOnError(retRes51412)
+			retRes51812 := (<-this.LoadMarkets())
+			PanicOnError(retRes51812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -708,8 +712,8 @@ func (this *CoinspotCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes54612 := (<-this.LoadMarkets())
-			PanicOnError(retRes54612)
+			retRes55012 := (<-this.LoadMarkets())
+			PanicOnError(retRes55012)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -860,8 +864,8 @@ func (this *CoinspotCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes68012 := (<-this.LoadMarkets())
-			PanicOnError(retRes68012)
+			retRes68412 := (<-this.LoadMarkets())
+			PanicOnError(retRes68412)
 		}
 		if IsTrue(IsEqual(side, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
@@ -908,7 +912,7 @@ func (this *CoinspotCore) CreateOrder(symbol any, typeVar any, side any, amount 
  * @see https://www.coinspot.com.au/api#cancelbuyorder
  * @see https://www.coinspot.com.au/api#cancelsellorder
  * @param {string} id order id
- * @param {string} symbol not used by coinspot cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */

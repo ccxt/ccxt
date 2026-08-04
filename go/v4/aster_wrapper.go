@@ -227,7 +227,7 @@ func (this *Aster) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Aster) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -620,7 +620,7 @@ func (this *Aster) FetchPositionMode(options ...FetchPositionModeOptions) (map[s
  * @description set hedged to true or false for a market
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by bingx setPositionMode ()
+ * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
@@ -1134,7 +1134,7 @@ func (this *Aster) FetchMarginModes(options ...FetchMarginModesOptions) (MarginM
  * @param {string} [type] "add" or "reduce"
  * @param {int} [since] timestamp in ms of the earliest change to fetch
  * @param {int} [limit] the maximum amount of changes to fetch
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
@@ -1596,10 +1596,10 @@ func (this *Aster) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction
 func (this *Aster) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Aster) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Aster) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Aster) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Aster) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Aster) FetchFreeBalance(params ...any) (Balance, error) {

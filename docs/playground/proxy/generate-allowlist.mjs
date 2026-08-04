@@ -38,13 +38,24 @@ function walk(v) {
   }
 }
 
-for (const id of ccxt.exchanges) {
-  try {
-    const ex = new ccxt[id]();
-    walk(ex.urls?.api); // only the API/test endpoints, not doc/referral/marketing hosts
-    walk(ex.urls?.test);
-  } catch {
-    // skip exchanges that fail to construct without config
+// Prediction-market exchanges (Polymarket, Kalshi, ...) are NOT in ccxt.exchanges
+// — they live in the separate ccxt.prediction namespace with its own id list, so
+// walking only ccxt.exchanges left every prediction host off the allowlist and
+// the playground's prediction example failed with a 403 CONNECT.
+const namespaces = [
+  [ccxt, ccxt.exchanges],
+  [ccxt.prediction, ccxt.prediction?.exchanges],
+];
+
+for (const [ns, ids] of namespaces) {
+  for (const id of ids ?? []) {
+    try {
+      const ex = new ns[id]();
+      walk(ex.urls?.api); // only the API/test endpoints, not doc/referral/marketing hosts
+      walk(ex.urls?.test);
+    } catch {
+      // skip exchanges that fail to construct without config
+    }
   }
 }
 
@@ -54,8 +65,10 @@ for (const id of ccxt.exchanges) {
 const domains = new Set();
 for (const h of hosts) domains.add("." + registrable(h));
 
-// The server-side AI assistant calls OpenRouter; allow it so the feature works.
-domains.add(".openrouter.ai");
+// Nothing else is added here: the AI assistant posts to PLAYGROUND_AI_URL, which
+// is expected to be deployment-local and reached directly (NO_PROXY), not out
+// through this allowlist. Point it at a remote endpoint and you must add that
+// host here too.
 
 process.stdout.write([...domains].sort().join("\n") + "\n");
 process.stderr.write(`allowlist: ${hosts.size} hosts -> ${domains.size} domain rules\n`);

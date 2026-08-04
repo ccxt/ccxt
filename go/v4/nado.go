@@ -64,7 +64,7 @@ func (this *NadoCore) Describe() any {
 			"withdraw":                     false,
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/142df520-1e1d-4a04-bfda-fe33e5768e63",
+			"logo": "https://github.com/user-attachments/assets/811f4e1a-a8b5-4b9e-84c2-0f88997bd274",
 			"api": map[string]any{
 				"gateway":   "https://gateway.prod.nado.xyz/v1",
 				"gatewayV2": "https://gateway.prod.nado.xyz/v2",
@@ -2016,18 +2016,27 @@ func (this *NadoCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		var pairsById any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(pairs)); i++ {
 			var rawPair any = GetValue(pairs, i)
-			AddElementToObject(pairsById, this.SafeString(rawPair, "product_id"), rawPair)
+			var pairProductId any = this.SafeString(rawPair, "product_id")
+			if IsTrue(!IsEqual(pairProductId, nil)) {
+				AddElementToObject(pairsById, pairProductId, rawPair)
+			}
 		}
 		var assetsById any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
 			var rawAsset any = GetValue(assets, i)
-			AddElementToObject(assetsById, this.SafeString(rawAsset, "product_id"), rawAsset)
+			var assetProductId any = this.SafeString(rawAsset, "product_id")
+			if IsTrue(!IsEqual(assetProductId, nil)) {
+				AddElementToObject(assetsById, assetProductId, rawAsset)
+			}
 		}
 		var assetsByCode any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
 			var rawAsset any = GetValue(assets, i)
 			var assetSymbol any = this.SafeString(rawAsset, "symbol")
 			var assetCode any = this.SafeCurrencyCode(this.RemoveMarketSuffix(assetSymbol))
+			if IsTrue(IsEqual(assetCode, nil)) {
+				continue
+			}
 			var previous any = this.SafeDict(assetsByCode, assetCode)
 			if IsTrue(IsEqual(previous, nil)) {
 				AddElementToObject(assetsByCode, assetCode, rawAsset)
@@ -2073,7 +2082,7 @@ func (this *NadoCore) FetchMarkets(optionalArgs ...any) <-chan any {
 			var priceIncrement any = this.ParseX18(this.SafeString(market, "price_increment_x18"))
 			var amountIncrement any = this.ParseX18(this.SafeString(market, "size_increment"))
 			var minCost any = this.ParseX18(this.SafeString(market, "min_size"))
-			AppendToArray(&markets, map[string]any{
+			AppendToArray(&markets, this.SafeMarketStructure(map[string]any{
 				"id":             id,
 				"lowercaseId":    nil,
 				"symbol":         symbol,
@@ -2129,7 +2138,7 @@ func (this *NadoCore) FetchMarkets(optionalArgs ...any) <-chan any {
 					"v2Pair":    pair,
 					"v2Asset":   asset,
 				}),
-			})
+			}))
 		}
 
 		ch <- markets
@@ -2162,6 +2171,9 @@ func (this *NadoCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 			var currency any = GetValue(response, i)
 			var parsed any = this.ParseCurrency(currency)
 			var code any = this.SafeString(parsed, "code")
+			if IsTrue(IsEqual(code, nil)) {
+				continue
+			}
 			var previous any = this.SafeDict(result, code)
 			var canDeposit any = this.SafeBool(currency, "can_deposit", false)
 			var canWithdraw any = this.SafeBool(currency, "can_withdraw", false)
@@ -2202,8 +2214,8 @@ func (this *NadoCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes17728 := (<-this.LoadMarkets())
-		PanicOnError(retRes17728)
+		retRes17848 := (<-this.LoadMarkets())
+		PanicOnError(retRes17848)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.ArchiveV2PublicGetTickers(params))
@@ -2248,14 +2260,18 @@ func (this *NadoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes18038 := (<-this.LoadMarkets())
-		PanicOnError(retRes18038)
+		retRes18158 := (<-this.LoadMarkets())
+		PanicOnError(retRes18158)
 		var market any = this.Market(symbol)
 
 		tickers := (<-this.FetchTickers([]any{symbol}, params))
 		PanicOnError(tickers)
+		var ticker any = this.SafeDict(tickers, symbol)
+		if IsTrue(IsEqual(ticker, nil)) {
+			panic(BadSymbol(Add(Add(this.Id, " fetchTicker() ticker not found for "), symbol)))
+		}
 
-		ch <- this.SafeTicker(this.SafeDict(tickers, symbol), market)
+		ch <- this.SafeTicker(ticker, market)
 		return nil
 
 	}()
@@ -2280,8 +2296,8 @@ func (this *NadoCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes18208 := (<-this.LoadMarkets())
-		PanicOnError(retRes18208)
+		retRes18368 := (<-this.LoadMarkets())
+		PanicOnError(retRes18368)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -2354,8 +2370,8 @@ func (this *NadoCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires walletAddress")))
 		}
 
-		retRes18738 := (<-this.LoadMarkets())
-		PanicOnError(retRes18738)
+		retRes18898 := (<-this.LoadMarkets())
+		PanicOnError(retRes18898)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingHistory() supports swap contracts only")))
@@ -2425,8 +2441,8 @@ func (this *NadoCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes19278 := (<-this.LoadMarkets())
-		PanicOnError(retRes19278)
+		retRes19438 := (<-this.LoadMarkets())
+		PanicOnError(retRes19438)
 		symbols = this.MarketSymbols(symbols, "swap", true)
 
 		response := (<-this.ArchiveV2PublicGetContracts(params))
@@ -2486,8 +2502,8 @@ func (this *NadoCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes19738 := (<-this.LoadMarkets())
-		PanicOnError(retRes19738)
+		retRes19898 := (<-this.LoadMarkets())
+		PanicOnError(retRes19898)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchOpenInterest() supports swap contracts only")))
@@ -2548,8 +2564,8 @@ func (this *NadoCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes20188 := (<-this.LoadMarkets())
-		PanicOnError(retRes20188)
+		retRes20348 := (<-this.LoadMarkets())
+		PanicOnError(retRes20348)
 		symbols = this.MarketSymbols(symbols, "swap", true)
 
 		response := (<-this.ArchiveV2PublicGetContracts(params))
@@ -2599,7 +2615,7 @@ func (this *NadoCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *NadoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2611,8 +2627,8 @@ func (this *NadoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes20648 := (<-this.LoadMarkets())
-		PanicOnError(retRes20648)
+		retRes20808 := (<-this.LoadMarkets())
+		PanicOnError(retRes20808)
 		var market any = this.Market(symbol)
 		var tickerId any = this.SafeString(GetValue(market, "info"), "ticker_id")
 		var request any = map[string]any{
@@ -2670,8 +2686,8 @@ func (this *NadoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes21048 := (<-this.LoadMarkets())
-		PanicOnError(retRes21048)
+		retRes21208 := (<-this.LoadMarkets())
+		PanicOnError(retRes21208)
 		var market any = this.Market(symbol)
 		var tickerId any = this.SafeString(GetValue(market, "info"), "ticker_id")
 		var request any = map[string]any{
@@ -2732,8 +2748,8 @@ func (this *NadoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes21458 := (<-this.LoadMarkets())
-		PanicOnError(retRes21458)
+		retRes21618 := (<-this.LoadMarkets())
+		PanicOnError(retRes21618)
 		var market any = this.Market(symbol)
 		var until any = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
@@ -3114,7 +3130,9 @@ func (this *NadoCore) ParseBalance(response any) any {
 		AddElementToObject(account, "total", amount)
 		// the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
 		AddElementToObject(account, "free", amount)
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -3473,6 +3491,9 @@ func (this *NadoCore) ParseOrderTimeInForce(timeInForce any) any {
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
 func (this *NadoCore) ConvertToX18(value any) any {
+	if IsTrue(IsEqual(value, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " convertToX18() requires a value")))
+	}
 	return Precise.StringDiv(Precise.StringMul(value, "1000000000000000000"), "1", 0)
 }
 func (this *NadoCore) ParseX18(value any) any {
@@ -3527,7 +3548,10 @@ func (this *NadoCore) CreateSubaccount(walletAddress any, optionalArgs ...any) a
 	subaccount := GetArg(optionalArgs, 0, "default")
 	_ = subaccount
 	if IsTrue(IsEqual(walletAddress, nil)) {
-		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires exchange.walletAddress")))
+		panic(ArgumentsRequired(Add(this.Id, " createSubaccount() requires walletAddress")))
+	}
+	if IsTrue(IsEqual(subaccount, nil)) {
+		subaccount = "default"
 	}
 	var address any = ToLower(this.Remove0xPrefix(walletAddress))
 	if IsTrue(!IsEqual(GetArrayLength(address), 40)) {
@@ -3573,6 +3597,9 @@ func (this *NadoCore) OrderVerifyingContract(productId any) any {
 func (this *NadoCore) PadHex(value any, length any, optionalArgs ...any) any {
 	left := GetArg(optionalArgs, 0, true)
 	_ = left
+	if IsTrue(IsEqual(length, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " padHex() requires length")))
+	}
 	var zeros any = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	var padded any = Ternary(IsTrue(left), (Add(zeros, value)), (Add(value, zeros)))
 	if IsTrue(left) {
@@ -3683,6 +3710,9 @@ func (this *NadoCore) SignFetchTriggerOrders(tx any, chainId any, endpointAddres
 	return this.SignHash(hash, this.PrivateKey)
 }
 func (this *NadoCore) SignHash(hash any, privateKey any) any {
+	if IsTrue(IsEqual(privateKey, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " signHash() requires privateKey")))
+	}
 	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")

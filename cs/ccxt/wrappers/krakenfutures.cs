@@ -342,6 +342,12 @@ public partial class krakenfutures
     /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : Unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// dict : Exchange specific params

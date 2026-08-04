@@ -1034,7 +1034,7 @@ export default class paradex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1381,6 +1381,9 @@ export default class paradex extends Exchange {
         const now = this.nonce();
         if (cachedToken !== undefined) {
             const cachedExpires = this.safeInteger(this.options, 'expires');
+            if (cachedExpires === undefined) {
+                throw new ExchangeError(this.id + ' authenticateRest() missing cachedExpires');
+            }
             if (now < cachedExpires) {
                 return cachedToken;
             }
@@ -1543,6 +1546,12 @@ export default class paradex extends Exchange {
         return Precise.stringMul(num, '100000000');
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         let reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase();
@@ -1635,6 +1644,9 @@ export default class paradex extends Exchange {
         const account = await this.retrieveAccount();
         const now = this.nonce();
         const orderType = this.safeString(request, 'type');
+        if (orderType === undefined) {
+            throw new ExchangeError(this.id + ' signOrderRequest() missing orderType');
+        }
         const isMarket = (orderType.indexOf('MARKET') >= 0);
         const orderReq = {
             'timestamp': now * 1000,
@@ -1904,7 +1916,7 @@ export default class paradex extends Exchange {
      * @description cancel multiple orders
      * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
      * @param {string[]} ids order ids
-     * @param {string} [symbol] unified market symbol, not used by paradex cancelOrders()
+     * @param {string} [symbol] unified market symbol, not used by cancelOrders()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1958,7 +1970,7 @@ export default class paradex extends Exchange {
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
             const marketId = this.safeString(result, 'market');
-            const market = this.safeMarket(marketId, undefined);
+            const market = this.safeMarket(marketId);
             const status = this.safeString(result, 'status');
             let orderStatus = undefined;
             if (status === 'QUEUED_FOR_CANCELLATION') {
@@ -2240,7 +2252,9 @@ export default class paradex extends Exchange {
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['total'] = this.safeString(balance, 'size');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2844,8 +2858,8 @@ export default class paradex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let leverage = undefined;
-        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', 1);
+        let leverage = 1;
+        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', leverage);
         const request = {
             'market': market['id'],
             'leverage': leverage,

@@ -183,20 +183,24 @@ public partial class mudrex : Exchange
         }
         object url = add(add(bs, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        headers = ((bool) isTrue((!isEqual(headers, null)))) ? this.extend(new Dictionary<string, object>() {}, headers) : new Dictionary<string, object>() {};
+        object requestHeaders = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(headers, null)))
+        {
+            requestHeaders = this.extend(new Dictionary<string, object>() {}, headers);
+        }
         object brokerId = this.safeString(this.options, "broker");
         if (isTrue(!isEqual(brokerId, null)))
         {
-            ((IDictionary<string,object>)headers)["Partner-Id"] = brokerId;
+            ((IDictionary<string,object>)requestHeaders)["Partner-Id"] = brokerId;
         }
         object methodUpper = ((string)method).ToUpper();
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            ((IDictionary<string,object>)headers)["X-Authentication"] = this.secret;
+            ((IDictionary<string,object>)requestHeaders)["X-Authentication"] = this.secret;
             if (isTrue(isTrue(isTrue(isEqual(methodUpper, "POST")) || isTrue(isEqual(methodUpper, "PATCH"))) || isTrue(isEqual(methodUpper, "DELETE"))))
             {
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
                 // is_symbol is a query-string flag even on write requests
                 object isSymbol = this.safeString(query, "is_symbol");
                 if (isTrue(!isEqual(isSymbol, null)))
@@ -212,7 +216,7 @@ public partial class mudrex : Exchange
                         { "url", url },
                         { "method", methodUpper },
                         { "body", null },
-                        { "headers", headers },
+                        { "headers", requestHeaders },
                     };
                 }
                 object bodyStr = this.json(query);
@@ -220,7 +224,7 @@ public partial class mudrex : Exchange
                     { "url", url },
                     { "method", methodUpper },
                     { "body", bodyStr },
-                    { "headers", headers },
+                    { "headers", requestHeaders },
                 };
             }
         }
@@ -232,7 +236,7 @@ public partial class mudrex : Exchange
             { "url", url },
             { "method", methodUpper },
             { "body", null },
-            { "headers", headers },
+            { "headers", requestHeaders },
         };
     }
 
@@ -330,6 +334,10 @@ public partial class mudrex : Exchange
         } else
         {
             startTime = subtract(now, multiply(duration, requestLimit));
+        }
+        if (isTrue(isEqual(startTime, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchOHLCV() missing startTime")) ;
         }
         object endTime = add(startTime, multiply(duration, requestLimit));
         object until = this.safeInteger(parameters, "until");
@@ -566,7 +574,7 @@ public partial class mudrex : Exchange
         }
         object priceStep = this.safeString(asset, "price_step", "0.01");
         object qtyStep = this.safeString(asset, "quantity_step", "0.001");
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", ms },
             { "lowercaseId", null },
             { "symbol", symbol },
@@ -613,7 +621,7 @@ public partial class mudrex : Exchange
             } },
             { "info", asset },
             { "created", null },
-        };
+        });
     }
 
     /**
@@ -660,6 +668,10 @@ public partial class mudrex : Exchange
         if (isTrue(isEqual(currency, null)))
         {
             currency = "USDT";
+        }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " fetchBalance() returned empty response")) ;
         }
         ((IDictionary<string,object>)response)["currency"] = currency;
         return this.parseBalance(response);

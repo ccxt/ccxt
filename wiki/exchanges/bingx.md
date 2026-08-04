@@ -203,7 +203,7 @@ bingx.fetchTrades (symbol, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -494,7 +494,7 @@ fetches historical positions
 | symbol | <code>string</code> | Yes | unified contract symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
 | limit | <code>int</code> | No | the maximum amount of records to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch positions for |
 
 
@@ -1166,7 +1166,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market to set margin in |
 | amount | <code>float</code> | Yes | the amount to set the margin to |
-| params | <code>object</code> | No | parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -1350,7 +1350,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by bingx |
-| params | <code>object</code> | No | extra parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close |
 
 
@@ -1393,7 +1393,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by bingx setPositionMode () |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1631,7 +1631,7 @@ bingx.unWatchTrades (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

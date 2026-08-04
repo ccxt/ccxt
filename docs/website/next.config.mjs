@@ -29,6 +29,23 @@ const config = {
     if (process.env.NEXT_OUTPUT === 'export') return [];
     return [{ source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*' }];
   },
+  // Allow the apex marketing site (https://ccxt.com, GitHub Pages) to embed docs in an
+  // iframe. Do NOT send X-Frame-Options here — SAMEORIGIN would block that embed, and
+  // CSP frame-ancestors supersedes XFO in modern browsers. The docs deploy also drops
+  // any leftover nginx X-Frame-Options: SAMEORIGIN (see docs-fumadocs.yml).
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' https://ccxt.com",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withMDX(config);

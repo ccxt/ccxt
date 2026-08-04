@@ -225,7 +225,7 @@ class phemex extends Exchange {
                         'api-data/g-futures/trades' => 5, // ?symbol=<symbol>
                         'api-data/futures/trading-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees' => 5, // ?symbol=<symbol>
-                        'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'api-data/g-futures/closedPosition' => 5,
                         'g-orders/activeList' => 1, // ?symbol=<symbol>
                         'orders/activeList' => 1, // ?symbol=<symbol>
@@ -1040,7 +1040,7 @@ class phemex extends Exchange {
             //                     "symbol":"BTCUSDT",
             //                     "steps":"2000K",
             //                     "riskLimits":array(
-            //                         array("limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"),,
+            //                         array("limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"),
             //                         array("limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"),
             //                         array("limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"),
             //                     )
@@ -1199,7 +1199,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function custom_parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, ?array $market = null) {
+    public function custom_parse_bid_ask(mixed $bidask, $priceKey = 0, $amountKey = 1, ?array $market = null) {
         if ($market === null) {
             throw new ArgumentsRequired($this->id . ' customParseBidAsk() requires a $market argument');
         }
@@ -1213,7 +1213,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, ?array $market = null) {
+    public function custom_parse_order_book(mixed $orderbook, mixed $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, ?array $market = null) {
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1245,7 +1245,7 @@ class phemex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order $book for
              * @param {int} [$limit] the maximum amount of order $book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-$book-structure order $book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-$book-structure order $book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1299,7 +1299,7 @@ class phemex extends Exchange {
         })();
     }
 
-    public function to_en($n, $scale) {
+    public function to_en(mixed $n, mixed $scale) {
         $stringN = $this->number_to_string($n);
         $precise = new Precise($stringN);
         $precise->decimals = $precise->decimals - $scale;
@@ -1308,21 +1308,21 @@ class phemex extends Exchange {
         return $this->parse_to_numeric($preciseString);
     }
 
-    public function to_ev($amount, ?array $market = null) {
+    public function to_ev(mixed $amount, ?array $market = null) {
         if (($amount === null) || ($market === null)) {
             return $amount;
         }
         return $this->to_en($amount, $market['valueScale']);
     }
 
-    public function to_ep($price, ?array $market = null) {
+    public function to_ep(mixed $price, ?array $market = null) {
         if (($price === null) || ($market === null)) {
             return $price;
         }
-        return $this->to_en($price, $market['priceScale']);
+        return $this->to_en($price, $this->safe_value($market, 'priceScale'));
     }
 
-    public function from_en($en, $scale) {
+    public function from_en(mixed $en, mixed $scale) {
         if ($en === null || $scale === null) {
             return null;
         }
@@ -1332,28 +1332,28 @@ class phemex extends Exchange {
         return (string) $precise;
     }
 
-    public function from_ep($ep, ?array $market = null) {
+    public function from_ep(mixed $ep, ?array $market = null) {
         if (($ep === null) || ($market === null)) {
             return $ep;
         }
         return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
     }
 
-    public function from_ev($ev, ?array $market = null) {
+    public function from_ev(mixed $ev, ?array $market = null) {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
         return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
     }
 
-    public function from_er($er, ?array $market = null) {
+    public function from_er(mixed $er, ?array $market = null) {
         if (($er === null) || ($market === null)) {
             return $er;
         }
         return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1592467200, // timestamp
@@ -2023,7 +2023,7 @@ class phemex extends Exchange {
         ), $market);
     }
 
-    public function parse_spot_balance($response) {
+    public function parse_spot_balance(mixed $response) {
         //
         //     {
         //         "code":0,
@@ -2076,7 +2076,7 @@ class phemex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_swap_balance($response) {
+    public function parse_swap_balance(mixed $response) {
         // usdt
         //   {
         //       "info" => {
@@ -2463,7 +2463,7 @@ class phemex extends Exchange {
         ), $market);
     }
 
-    public function parse_order_side($side) {
+    public function parse_order_side(mixed $side) {
         $sides = array(
             '1' => 'buy',
             '2' => 'sell',
@@ -2471,7 +2471,7 @@ class phemex extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function parse_swap_order($order, ?array $market = null) {
+    public function parse_swap_order(mixed $order, ?array $market = null) {
         //
         //     {
         //         "bizError":0,
@@ -3814,7 +3814,7 @@ class phemex extends Exchange {
         $networkId = $this->safe_string($transaction, 'chainName');
         $timestamp = $this->safe_integer_n($transaction, array( 'createdAt', 'submitedAt', 'submittedAt' ));
         $type = $this->safe_string_lower($transaction, 'type');
-        $feeCost = $this->parse_number($this->from_en($this->safe_string($transaction, 'feeEv'), $currency['valueScale']));
+        $feeCost = $this->parse_number($this->from_en($this->safe_string($transaction, 'feeEv'), $this->safe_value($currency, 'valueScale')));
         if ($feeCost === null) {
             $feeCost = $this->safe_number($transaction, 'feeRv');
         }
@@ -3827,7 +3827,7 @@ class phemex extends Exchange {
             );
         }
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $amount = $this->parse_number($this->from_en($this->safe_string($transaction, 'amountEv'), $currency['valueScale']));
+        $amount = $this->parse_number($this->from_en($this->safe_string($transaction, 'amountEv'), $this->safe_value($currency, 'valueScale')));
         if ($amount === null) {
             $amount = $this->safe_number($transaction, 'amountRv');
         }
@@ -4008,7 +4008,7 @@ class phemex extends Exchange {
              * @param {string} $symbol unified contract $symbol
              * @param {int} [$since] the earliest time in ms to fetch $positions for
              * @param {int} [$limit] the maximum amount of records to fetch
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch $positions for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
              */
@@ -4314,7 +4314,7 @@ class phemex extends Exchange {
         })();
     }
 
-    public function parse_funding_fee_to_precision($value, ?array $market = null, ?string $currencyCode = null) {
+    public function parse_funding_fee_to_precision(mixed $value, ?array $market = null, ?string $currencyCode = null) {
         if ($value === null || $currencyCode === null || $market === null) {
             return $value;
         }
@@ -4381,7 +4381,7 @@ class phemex extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "askEp" => 2332500,
@@ -4482,7 +4482,7 @@ class phemex extends Exchange {
         })();
     }
 
-    public function parse_margin_status($status) {
+    public function parse_margin_status(mixed $status) {
         $statuses = array(
             '0' => 'ok',
         );
@@ -4572,7 +4572,7 @@ class phemex extends Exchange {
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
              *
              * @param {bool} $hedged set to true to use dualSidePosition
-             * @param {string} $symbol not used by binance setPositionMode ()
+             * @param {string} $symbol not used by setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
@@ -4699,7 +4699,7 @@ class phemex extends Exchange {
         })();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         /**
          * @param {array} $info Exchange $market response for 1 $market
          * @param {array} $market CCXT $market
@@ -4730,7 +4730,7 @@ class phemex extends Exchange {
                 'currency' => $market['settle'],
                 'minNotional' => $minNotionalResponse,
                 'maxNotional' => $maxNotional,
-                'maintenanceMarginRate' => $this->safe_string($tier, 'maintenanceMargin'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
                 'maxLeverage' => null,
                 'info' => $tier,
             );
@@ -4739,7 +4739,7 @@ class phemex extends Exchange {
         return $tiers;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $requestPath = '/' . $this->implode_params($path, $params);
         $url = $requestPath;
@@ -5143,7 +5143,7 @@ class phemex extends Exchange {
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the phemex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] unified network $code
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
              */
@@ -5257,7 +5257,7 @@ class phemex extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //    {
         //        closeRp => '67550.1',
@@ -5866,7 +5866,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

@@ -1475,7 +1475,7 @@ func (this *ExchangeTyped) FetchTransactionFees(options ...FetchTransactionFeesO
 	}
 	return res.(map[string]any), nil
 }
-func (this *ExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -1494,11 +1494,11 @@ func (this *ExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositWithd
 	}
 	res := <-this.Exchange.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
-func (this *ExchangeTyped) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 
 	opts := FetchDepositWithdrawFeeOptionsStruct{}
 
@@ -1512,9 +1512,9 @@ func (this *ExchangeTyped) FetchDepositWithdrawFee(code string, options ...Fetch
 	}
 	res := <-this.Exchange.FetchDepositWithdrawFee(code, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFee{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFee(res), nil
 }
 func (this *ExchangeTyped) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 
@@ -7267,7 +7267,7 @@ func (this *BaseExchangeTyped) FetchTransactionFees(options ...FetchTransactionF
 	}
 	return res.(map[string]any), nil
 }
-func (this *BaseExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -7286,11 +7286,11 @@ func (this *BaseExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositW
 	}
 	res := <-this.BaseExchange.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
-func (this *BaseExchangeTyped) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 
 	opts := FetchDepositWithdrawFeeOptionsStruct{}
 
@@ -7304,9 +7304,9 @@ func (this *BaseExchangeTyped) FetchDepositWithdrawFee(code string, options ...F
 	}
 	res := <-this.BaseExchange.FetchDepositWithdrawFee(code, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFee{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFee(res), nil
 }
 func (this *BaseExchangeTyped) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 

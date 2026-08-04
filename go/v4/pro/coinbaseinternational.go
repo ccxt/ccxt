@@ -333,7 +333,7 @@ func (this *CoinbaseinternationalCore) GetActiveSymbols() any {
 	var output any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = ccxt.GetValue(this.Markets, symbol)
+		var market any = this.Market(symbol)
 		if ccxt.IsTrue(ccxt.GetValue(market, "active")) {
 			ccxt.AppendToArray(&output, symbol)
 		}

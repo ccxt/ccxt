@@ -310,13 +310,13 @@ class bitbank extends Exchange {
         })();
     }
 
-    public function parse_market($entry): array {
+    public function parse_market(mixed $entry): array {
         $id = $this->safe_string($entry, 'name');
         $baseId = $this->safe_string($entry, 'base_asset');
         $quoteId = $this->safe_string($entry, 'quote_asset');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -366,7 +366,7 @@ class bitbank extends Exchange {
             ),
             'created' => null,
             'info' => $entry,
-        );
+        ));
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -431,7 +431,7 @@ class bitbank extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -583,7 +583,7 @@ class bitbank extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "0.02501786",
@@ -661,7 +661,7 @@ class bitbank extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -677,7 +677,9 @@ class bitbank extends Exchange {
             $account['free'] = $this->safe_string($balance, 'free_amount');
             $account['used'] = $this->safe_string($balance, 'locked_amount');
             $account['total'] = $this->safe_string($balance, 'onhand_amount');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1111,7 +1113,7 @@ class bitbank extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/';
         if (($api === 'public') || ($api === 'markets')) {
@@ -1121,8 +1123,21 @@ class bitbank extends Exchange {
             }
         } else {
             $this->check_required_credentials();
+            // bitbank supports two $auth methods, see https://github.com/bitbankinc/bitbank-$api-docs/blob/master/rest-$api->md#authorization
+            // 'timeWindow' (default) => request time . validity window, stateless and safe for concurrent use of one key
+            // 'nonce' => legacy strictly-increasing $nonce, kept escape hatch for clients with drifting clocks,
+            // since bitbank offers no server time endpoint to compensate against
+            $authMethod = $this->safe_string($this->options, 'authMethod', 'timeWindow');
+            $isTimeWindow = ($authMethod === 'timeWindow');
+            $requestTime = (string) $this->milliseconds();
+            $timeWindow = $this->safe_string($this->options, 'timeWindow', '5000');
             $nonce = (string) $this->nonce();
-            $auth = $nonce;
+            $auth = null;
+            if ($isTimeWindow) {
+                $auth = $requestTime . $timeWindow;
+            } else {
+                $auth = $nonce;
+            }
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             if ($method === 'POST') {
                 $body = $this->json($query);
@@ -1138,14 +1153,19 @@ class bitbank extends Exchange {
             $headers = array(
                 'Content-Type' => 'application/json',
                 'ACCESS-KEY' => $this->apiKey,
-                'ACCESS-NONCE' => $nonce,
                 'ACCESS-SIGNATURE' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
+            if ($isTimeWindow) {
+                $headers['ACCESS-REQUEST-TIME'] = $requestTime;
+                $headers['ACCESS-TIME-WINDOW'] = $timeWindow;
+            } else {
+                $headers['ACCESS-NONCE'] = $nonce;
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

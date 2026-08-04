@@ -243,6 +243,7 @@ public partial class xt : Exchange
                             { "future/user/v1/balance/funding-rate-list", 1 },
                             { "future/user/v1/balance/list", 1 },
                             { "future/user/v1/position/adl", 1 },
+                            { "future/user/v1/position/break-list", 1 },
                             { "future/user/v1/position/list", 1 },
                             { "future/user/v1/user/collection/list", 1 },
                             { "future/user/v1/user/listen-key", 1 },
@@ -287,6 +288,7 @@ public partial class xt : Exchange
                             { "future/user/v1/balance/funding-rate-list", 1 },
                             { "future/user/v1/balance/list", 1 },
                             { "future/user/v1/position/adl", 1 },
+                            { "future/user/v1/position/break-list", 1 },
                             { "future/user/v1/position/list", 1 },
                             { "future/user/v1/user/collection/list", 1 },
                             { "future/user/v1/user/listen-key", 1 },
@@ -311,6 +313,7 @@ public partial class xt : Exchange
                             { "future/user/v1/position/margin", 1 },
                             { "future/user/v1/user/collection/add", 1 },
                             { "future/user/v1/user/collection/cancel", 1 },
+                            { "future/user/v1/position/change-type", 1 },
                         } },
                     } },
                     { "user", new Dictionary<string, object>() {
@@ -623,7 +626,7 @@ public partial class xt : Exchange
                 { "default", new Dictionary<string, object>() {
                     { "sandbox", false },
                     { "createOrder", new Dictionary<string, object>() {
-                        { "marginMode", false },
+                        { "marginMode", true },
                         { "triggerPrice", false },
                         { "triggerDirection", false },
                         { "triggerPriceType", null },
@@ -704,6 +707,7 @@ public partial class xt : Exchange
                 { "forDerivatives", new Dictionary<string, object>() {
                     { "extends", "default" },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "triggerPrice", true },
                         { "triggerPriceType", new Dictionary<string, object>() {
                             { "last", true },
@@ -748,7 +752,7 @@ public partial class xt : Exchange
      * @name xt#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the xt server
      * @see https://doc.xt.com/#market1serverInfo
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the xt server
      */
     public async override Task<object> fetchTime(object parameters = null)
@@ -774,7 +778,7 @@ public partial class xt : Exchange
      * @name xt#fetchCurrencies
      * @description fetches all available currencies on an exchange
      * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     public async override Task<object> fetchCurrencies(object parameters = null)
@@ -853,31 +857,34 @@ public partial class xt : Exchange
                 object rawNetwork = getValue(rawNetworks, j);
                 object networkId = this.safeString(rawNetwork, "chain");
                 object networkCode = this.networkIdToCode(networkId, code);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", rawNetwork },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "name", null },
-                    { "active", null },
-                    { "fee", this.safeNumber(rawNetwork, "withdrawFeeAmount") },
-                    { "precision", null },
-                    { "deposit", this.safeBool(rawNetwork, "depositEnabled") },
-                    { "withdraw", this.safeBool(rawNetwork, "withdrawEnabled") },
-                    { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                        { "info", rawNetwork },
+                        { "id", networkId },
+                        { "network", networkCode },
+                        { "name", null },
+                        { "active", null },
+                        { "fee", this.safeNumber(rawNetwork, "withdrawFeeAmount") },
+                        { "precision", null },
+                        { "deposit", this.safeBool(rawNetwork, "depositEnabled") },
+                        { "withdraw", this.safeBool(rawNetwork, "withdrawEnabled") },
+                        { "limits", new Dictionary<string, object>() {
+                            { "amount", new Dictionary<string, object>() {
+                                { "min", null },
+                                { "max", null },
+                            } },
+                            { "withdraw", new Dictionary<string, object>() {
+                                { "min", this.safeNumber(rawNetwork, "withdrawMinAmount") },
+                                { "max", null },
+                            } },
+                            { "deposit", new Dictionary<string, object>() {
+                                { "min", null },
+                                { "max", null },
+                            } },
                         } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(rawNetwork, "withdrawMinAmount") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
+                    };
+                }
             }
             object typeRaw = this.safeString(entry, "type");
             object type = null;
@@ -888,33 +895,36 @@ public partial class xt : Exchange
             {
                 type = "other";
             }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", entry },
-                { "id", currencyId },
-                { "code", code },
-                { "name", this.safeString(entry, "fullName") },
-                { "active", null },
-                { "fee", null },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "maxPrecision"))) },
-                { "deposit", isEqual(this.safeString(entry, "depositStatus"), "1") },
-                { "withdraw", isEqual(this.safeString(entry, "withdrawStatus"), "1") },
-                { "networks", networks },
-                { "type", type },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "info", entry },
+                    { "id", currencyId },
+                    { "code", code },
+                    { "name", this.safeString(entry, "fullName") },
+                    { "active", null },
+                    { "fee", null },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "maxPrecision"))) },
+                    { "deposit", isEqual(this.safeString(entry, "depositStatus"), "1") },
+                    { "withdraw", isEqual(this.safeString(entry, "withdrawStatus"), "1") },
+                    { "networks", networks },
+                    { "type", type },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-            });
+                });
+            }
         }
         return result;
     }
@@ -925,7 +935,7 @@ public partial class xt : Exchange
      * @description retrieves data on all markets for xt
      * @see https://doc.xt.com/#market2symbol
      * @see https://doc.xt.com/#futures_quotesgetSymbols
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
@@ -1318,8 +1328,8 @@ public partial class xt : Exchange
             { "contract", contract },
             { "linear", linear },
             { "inverse", inverse },
-            { "taker", this.safeNumber(market, "takerFee") },
-            { "maker", this.safeNumber(market, "makerFee") },
+            { "taker", this.safeNumber2(market, "takerFee", "takerFeeRate") },
+            { "maker", this.safeNumber2(market, "makerFee", "makerFeeRate") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -1363,7 +1373,7 @@ public partial class xt : Exchange
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1511,8 +1521,8 @@ public partial class xt : Exchange
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified market symbol to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} params extra parameters specific to the xt api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1616,7 +1626,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#market10ticker24h
      * @see https://doc.xt.com/#futures_quotesgetAggTicker
      * @param {string} symbol unified market symbol to fetch the ticker for
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
@@ -1702,7 +1712,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#market10ticker24h
      * @see https://doc.xt.com/#futures_quotesgetAggTickers
      * @param {string} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -1792,7 +1802,10 @@ public partial class xt : Exchange
         {
             object ticker = this.parseTicker(getValue(tickers, i), market);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            }
         }
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -1803,7 +1816,7 @@ public partial class xt : Exchange
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://doc.xt.com/#market9tickerBook
      * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
@@ -1945,7 +1958,7 @@ public partial class xt : Exchange
      * @param {string} symbol unified market symbol to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
@@ -2030,7 +2043,7 @@ public partial class xt : Exchange
      * @param {string} [symbol] unified market symbol to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2343,7 +2356,7 @@ public partial class xt : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://doc.xt.com/#balancebalancesGet
      * @see https://doc.xt.com/#futures_usergetBalances
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -2477,7 +2490,10 @@ public partial class xt : Exchange
             ((IDictionary<string,object>)account)["free"] = free;
             ((IDictionary<string,object>)account)["used"] = used;
             ((IDictionary<string,object>)account)["total"] = total;
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2520,7 +2536,7 @@ public partial class xt : Exchange
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
      * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
      * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
@@ -2733,7 +2749,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#futures_entrustgetProfitById
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -2933,7 +2949,7 @@ public partial class xt : Exchange
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3424,7 +3440,7 @@ public partial class xt : Exchange
             orders = this.safeList(resultDict, "items", new List<object>() {});
         } else
         {
-            orders = this.safeList(response, "result");
+            orders = this.safeList(response, "result", new List<object>() {});
         }
         return this.parseOrders(orders, market, since, limit);
     }
@@ -3440,7 +3456,7 @@ public partial class xt : Exchange
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3462,7 +3478,7 @@ public partial class xt : Exchange
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3484,7 +3500,7 @@ public partial class xt : Exchange
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3505,7 +3521,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#futures_entrustcancelProfit
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3609,7 +3625,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
      * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3694,7 +3710,7 @@ public partial class xt : Exchange
         //         "result": true
         //     }
         //
-        return new List<object> {this.safeOrder(response)};
+        return new List<object> {this.safeOrder(((object)response))};
     }
 
     /**
@@ -3704,7 +3720,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#orderbatchOrderDel
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -3741,7 +3757,7 @@ public partial class xt : Exchange
         //         "result": null
         //     }
         //
-        return new List<object> {this.safeOrder(response)};
+        return new List<object> {this.safeOrder(((object)response))};
     }
 
     public override object parseOrder(object order, object market = null)
@@ -3882,6 +3898,25 @@ public partial class xt : Exchange
         object filledQuantity = this.safeNumber(order, "executedQty");
         object filled = ((bool) isTrue((isEqual(marketType, "spot")))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(getValue(market, "contractSize")));
         object lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
+        object side = this.safeStringLower2(order, "side", "orderSide");
+        if (isTrue(isEqual(side, null)))
+        {
+            // the stop loss and take profit entries carry only the position
+            // side, they close the position, so a long position closes with a
+            // sell and a short position closes with a buy
+            // see https://github.com/ccxt/ccxt/issues/25288
+            object positionSide = this.safeString(order, "positionSide");
+            if (isTrue(!isEqual(positionSide, null)))
+            {
+                if (isTrue(isEqual(positionSide, "LONG")))
+                {
+                    side = "sell";
+                } else
+                {
+                    side = "buy";
+                }
+            }
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeStringN(order, new List<object>() {"orderId", "result", "cancelId", "entrustId", "profitId"}) },
@@ -3894,7 +3929,7 @@ public partial class xt : Exchange
             { "type", this.safeStringLower2(order, "type", "orderType") },
             { "timeInForce", this.safeString(order, "timeInForce") },
             { "postOnly", null },
-            { "side", this.safeStringLower2(order, "side", "orderSide") },
+            { "side", side },
             { "price", this.safeNumber(order, "price") },
             { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "stopLoss", this.safeNumber(order, "triggerStopPrice") },
@@ -3941,7 +3976,7 @@ public partial class xt : Exchange
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -4065,7 +4100,7 @@ public partial class xt : Exchange
             { "FEE", "fee" },
             { "ADL", "auto-deleveraging" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
@@ -4074,7 +4109,7 @@ public partial class xt : Exchange
      * @description fetch the deposit address for a currency associated with this account
      * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
      * @param {string} code unified currency code
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} params.network required network id
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
      */
@@ -4139,7 +4174,7 @@ public partial class xt : Exchange
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of transaction structures to retrieve
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -4204,7 +4239,7 @@ public partial class xt : Exchange
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of transaction structures to retrieve
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
@@ -4270,7 +4305,7 @@ public partial class xt : Exchange
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -4414,7 +4449,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#futures_useradjustLeverage
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
      * @returns {object} response from the exchange
      */
@@ -4475,7 +4510,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#futures_useradjustMargin
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
@@ -4492,7 +4527,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#futures_useradjustMargin
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
@@ -4563,7 +4598,7 @@ public partial class xt : Exchange
      * @description retrieve information on the maximum leverage for different trade sizes
      * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
      * @param {string} [symbols] a list of unified market symbols
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
@@ -4660,7 +4695,7 @@ public partial class xt : Exchange
      * @description retrieve information on the maximum leverage for different trade sizes of a single market
      * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
      * @param {string} symbol unified market symbol
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
@@ -4761,7 +4796,7 @@ public partial class xt : Exchange
      * @param {string} [symbol] unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} params.paginate true/false whether to use the pagination helper to aumatically paginate through the results
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
      */
@@ -4873,7 +4908,7 @@ public partial class xt : Exchange
      * @description fetch the current funding rate
      * @see https://doc.xt.com/#futures_quotesgetFundingRate
      * @param {string} symbol unified market symbol
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -4968,7 +5003,7 @@ public partial class xt : Exchange
      * @param {string} symbol unified market symbol
      * @param {int} [since] the starting timestamp in milliseconds
      * @param {int} [limit] the number of entries to return
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -5068,12 +5103,55 @@ public partial class xt : Exchange
     }
 
     /**
+     * @ignore
+     * @method
+     * @param {object[]} breakList the "result" array of a position/break-list response
+     */
+    public virtual object indexPositionBreakList(object breakList)
+    {
+        object breakBySymbolSide = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(breakList)); postFixIncrement(ref i))
+        {
+            object breakEntry = getValue(breakList, i);
+            // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
+            // endpoint, including here and on position/list; there is no one-way/net
+            // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            // both validate positionSide against exactly ['LONG', 'SHORT'])
+            object key = add(add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
+            ((IDictionary<string,object>)breakBySymbolSide)[(string)key] = breakEntry;
+        }
+        return breakBySymbolSide;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @param {object} entry a single entry from a position/list response
+     * @param {object} breakBySymbolSide the result of indexPositionBreakList()
+     */
+    public virtual object mergePositionBreakInfo(object entry, object breakBySymbolSide)
+    {
+        object marketId = this.safeString(entry, "symbol");
+        object key = add(add(marketId, "_"), this.safeString(entry, "positionSide"));
+        object breakEntry = this.safeDict(breakBySymbolSide, key);
+        if (isTrue(isEqual(breakEntry, null)))
+        {
+            return entry;
+        }
+        return this.extend(entry, new Dictionary<string, object>() {
+            { "breakPrice", this.safeString(breakEntry, "breakPrice") },
+            { "calMarkPrice", this.safeString(breakEntry, "calMarkPrice") },
+        });
+    }
+
+    /**
      * @method
      * @name xt#fetchPosition
      * @description fetch data on a single open contract trade position
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} symbol unified market symbol of the market the position is held in
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
@@ -5091,14 +5169,21 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPosition", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object response = null;
+        object promisesUnresolved = new List<object>() {};
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters));
+            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters)));
+            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionBreakList(this.extend(request, parameters)));
         } else
         {
-            response = await this.privateLinearGetFutureUserV1PositionList(this.extend(request, parameters));
+            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, parameters)));
+            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, parameters)));
         }
+        var responsebreakResponseVariable = await promiseAll(promisesUnresolved);
+        var response = ((IList<object>) responsebreakResponseVariable)[0];
+        var breakResponse = ((IList<object>) responsebreakResponseVariable)[1];
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -5119,12 +5204,28 @@ public partial class xt : Exchange
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        object positions = this.safeValue(response, "result", new List<object>() {});
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        object positions = this.safeList(response, "result", new List<object>() {});
+        object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object entry = getValue(positions, i);
@@ -5133,10 +5234,11 @@ public partial class xt : Exchange
             object positionSize = this.safeString(entry, "positionSize");
             if (isTrue(!isEqual(positionSize, "0")))
             {
-                return this.parsePosition(entry, marketInner);
+                object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+                return this.parsePosition(merged, marketInner);
             }
         }
-        return null;
+        throw new NullResponse ((string)add(add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
     }
 
     /**
@@ -5144,8 +5246,9 @@ public partial class xt : Exchange
      * @name xt#fetchPositions
      * @description fetch all open positions
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} [symbols] list of unified market symbols, not supported with xt
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -5159,14 +5262,21 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object response = null;
+        object promisesUnresolved = new List<object>() {};
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await this.privateInverseGetFutureUserV1PositionList(parameters);
+            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionList(parameters));
+            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionBreakList(parameters));
         } else
         {
-            response = await this.privateLinearGetFutureUserV1PositionList(parameters);
+            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionList(parameters));
+            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionBreakList(parameters));
         }
+        var responsebreakResponseVariable = await promiseAll(promisesUnresolved);
+        var response = ((IList<object>) responsebreakResponseVariable)[0];
+        var breakResponse = ((IList<object>) responsebreakResponseVariable)[1];
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -5187,25 +5297,44 @@ public partial class xt : Exchange
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        object positions = this.safeValue(response, "result", new List<object>() {});
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        object positions = this.safeList(response, "result", new List<object>() {});
+        object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object entry = getValue(positions, i);
             object marketId = this.safeString(entry, "symbol");
             object marketInner = this.safeMarket(marketId, null, null, "contract");
-            ((IList<object>)result).Add(this.parsePosition(entry, marketInner));
+            object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+            ((IList<object>)result).Add(this.parsePosition(merged, marketInner));
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
     }
 
     public override object parsePosition(object position, object market = null)
     {
+        //
+        // position/list
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -5221,7 +5350,17 @@ public partial class xt : Exchange
         //         "openOrderMarginFrozen": "0",
         //         "realizedProfit": "-0.00130138",
         //         "autoMargin": false,
-        //         "leverage": 25
+        //         "leverage": 25,
+        //         "markPrice": "27050"
+        //     }
+        //
+        // position/break-list
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "positionSide": "SHORT",
+        //         "breakPrice": "0",
+        //         "calMarkPrice": "27050"
         //     }
         //
         object marketId = this.safeString(position, "symbol");
@@ -5230,6 +5369,7 @@ public partial class xt : Exchange
         object positionType = this.safeString(position, "positionType");
         object marginMode = ((bool) isTrue((isEqual(positionType, "CROSSED")))) ? "cross" : "isolated";
         object collateral = this.safeNumber(position, "isolatedMargin");
+        object liquidationPriceString = this.omitZero(this.safeString(position, "breakPrice"));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -5241,7 +5381,7 @@ public partial class xt : Exchange
             { "contracts", this.safeNumber(position, "positionSize") },
             { "contractSize", getValue(market, "contractSize") },
             { "entryPrice", this.safeNumber(position, "entryPrice") },
-            { "markPrice", null },
+            { "markPrice", this.safeNumber2(position, "markPrice", "calMarkPrice") },
             { "notional", null },
             { "leverage", this.safeInteger(position, "leverage") },
             { "collateral", collateral },
@@ -5250,7 +5390,7 @@ public partial class xt : Exchange
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
             { "unrealizedPnl", null },
-            { "liquidationPrice", null },
+            { "liquidationPrice", this.parseNumber(liquidationPriceString) },
             { "marginMode", marginMode },
             { "percentage", null },
             { "marginRatio", null },
@@ -5266,7 +5406,7 @@ public partial class xt : Exchange
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
      * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
-     * @param {object} params extra parameters specific to the whitebit api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
@@ -5360,16 +5500,25 @@ public partial class xt : Exchange
             marginMode = "ISOLATED";
         }
         object posSide = this.safeStringUpper(parameters, "positionSide");
-        if (isTrue(isEqual(posSide, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a positionSide parameter, either \"LONG\" or \"SHORT\"")) ;
-        }
+        this.checkRequiredArgument("setMarginMode", posSide, "positionSide", new List<object>() {"LONG", "SHORT"});
+        parameters = this.omit(parameters, "positionSide");
         object request = new Dictionary<string, object>() {
             { "positionType", marginMode },
             { "positionSide", posSide },
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters));
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("setMarginMode", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.privateInversePostFutureUserV1PositionChangeType(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters));
+        }
         //
         // {
         //     "error": {
@@ -5581,9 +5730,17 @@ public partial class xt : Exchange
             if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(payload, "/v4/order"))) || isTrue((isEqual(payload, "/future/trade/v1/order/create")))) || isTrue((isEqual(payload, "/future/trade/v1/entrust/create-plan")))) || isTrue((isEqual(payload, "/future/trade/v1/entrust/create-profit")))) || isTrue((isEqual(payload, "/future/trade/v1/order/create-batch")))))
             {
                 object id = "CCXT";
+                if (isTrue(isEqual(body, null)))
+                {
+                    throw new NullResponse ((string)add(this.id, " sign() returned empty body")) ;
+                }
                 if (isTrue(isGreaterThan(getIndexOf(payload, "future"), -1)))
                 {
                     ((IDictionary<string,object>)body)["clientMedia"] = id;
+                    if (isTrue(isEqual(body, null)))
+                    {
+                        throw new NullResponse ((string)add(this.id, " sign() returned empty body")) ;
+                    }
                 } else
                 {
                     ((IDictionary<string,object>)body)["media"] = id;

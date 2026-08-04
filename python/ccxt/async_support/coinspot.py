@@ -300,7 +300,7 @@ class coinspot(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
@@ -313,7 +313,8 @@ class coinspot(Exchange, ImplicitAPI):
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
                     account['total'] = self.safe_string(balance, 'balance')
-                    result[code] = account
+                    if code is not None:
+                        result[code] = account
         else:
             currencyIds = list(balances.keys())
             for i in range(0, len(currencyIds)):
@@ -321,7 +322,8 @@ class coinspot(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['total'] = self.safe_string(balances, currencyId)
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -364,7 +366,7 @@ class coinspot(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -687,7 +689,7 @@ class coinspot(Exchange, ImplicitAPI):
         https://www.coinspot.com.au/api#cancelsellorder
 
         :param str id: order id
-        :param str symbol: not used by coinspot cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -710,7 +712,7 @@ class coinspot(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         status = self.safe_string(response, 'status')
@@ -719,7 +721,7 @@ class coinspot(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isVersionedApi = isinstance(api, list)
         version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api
