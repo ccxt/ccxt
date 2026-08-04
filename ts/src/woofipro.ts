@@ -1427,9 +1427,9 @@ export default class woofipro extends Exchange {
             status = (success) ? 'NEW' : 'REJECTED';
         }
         const side = this.safeStringLower (order, 'side');
-        const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
+        const filled = this.safeStringN (order, [ 'total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed' ]);
         const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
-        const remaining = Precise.stringSub (cost, filled);
+        const remaining = Precise.stringSub (amount, filled);
         const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue (order, 'Transactions');
