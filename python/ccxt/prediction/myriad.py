@@ -695,11 +695,13 @@ class myriad(PredictionExchange, ImplicitAPI):
         sHex = self.safe_string(signature, 's')
         if rHex is None:
             raise ExchangeError(self.id + ' signEvmTransaction() missing rHex')
-        if (len(rHex) % 2) != 0:
+        rHexLength = len(rHex)
+        if (rHexLength % 2) != 0:
             rHex = '0' + rHex
         if sHex is None:
             raise ExchangeError(self.id + ' signEvmTransaction() missing sHex')
-        if (len(sHex) % 2) != 0:
+        sHexLength = len(sHex)
+        if (sHexLength % 2) != 0:
             sHex = '0' + sHex
         yParity = self.safe_integer(signature, 'v')
         signedFields = []
@@ -2813,7 +2815,8 @@ class myriad(PredictionExchange, ImplicitAPI):
                     self.markets[marketHandle] = m
                 filteredMarkets.append(m)
             # skip question events that contribute no new markets after de-duplicating by market handle
-            if (evMarketsLength > 0) and (len(filteredMarkets) == 0):
+            filteredMarketsLength = len(filteredMarkets)
+            if (evMarketsLength > 0) and (filteredMarketsLength == 0):
                 continue
             ev['markets'] = filteredMarkets
             result.append(ev)

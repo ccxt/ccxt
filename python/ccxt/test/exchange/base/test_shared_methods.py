@@ -567,7 +567,7 @@ def exchange_prop(exchange, key, default_value=None):
 
 def validate_ticker_exception_for_percentage(ex, exchange, ticker):
     # only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-    e_message = exchange.exception_message(ex, False)
+    e_message = exchange.exception_message(ex, False)  # typed string so the php transpile uses mb_strpos, not in_array
     if 'percentage should be above' in e_message or 'percentage should be below' in e_message:
         symbol = ticker['symbol']
         if symbol is not None:
