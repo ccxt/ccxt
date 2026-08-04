@@ -749,7 +749,7 @@ public partial class testMainClass : BaseTest
         async public Task validateTickerExceptionForPercentage(object ex, BaseExchange exchange, object ticker)
         {
             // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-            object eMessage = exchange.exceptionMessage(ex, false);
+            object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
             if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(eMessage, "percentage should be above"), 0)) || isTrue(isGreaterThanOrEqual(getIndexOf(eMessage, "percentage should be below"), 0))))
             {
                 object symbol = getValue(ticker, "symbol");

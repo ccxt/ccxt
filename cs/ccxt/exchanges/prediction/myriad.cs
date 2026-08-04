@@ -793,7 +793,8 @@ public partial class myriad : PredictionExchange
         {
             throw new ExchangeError ((string)add(this.id, " signEvmTransaction() missing rHex")) ;
         }
-        if (isTrue(!isEqual((mod(((string)rHex).Length, 2)), 0)))
+        object rHexLength = ((string)rHex).Length;
+        if (isTrue(!isEqual((mod(rHexLength, 2)), 0)))
         {
             rHex = add("0", rHex);
         }
@@ -801,7 +802,8 @@ public partial class myriad : PredictionExchange
         {
             throw new ExchangeError ((string)add(this.id, " signEvmTransaction() missing sHex")) ;
         }
-        if (isTrue(!isEqual((mod(((string)sHex).Length, 2)), 0)))
+        object sHexLength = ((string)sHex).Length;
+        if (isTrue(!isEqual((mod(sHexLength, 2)), 0)))
         {
             sHex = add("0", sHex);
         }
@@ -3408,7 +3410,8 @@ public partial class myriad : PredictionExchange
                 ((IList<object>)filteredMarkets).Add(m);
             }
             // skip question events that contribute no new markets after de-duplicating by market handle
-            if (isTrue(isTrue((isGreaterThan(evMarketsLength, 0))) && isTrue((isEqual(getArrayLength(filteredMarkets), 0)))))
+            object filteredMarketsLength = getArrayLength(filteredMarkets);
+            if (isTrue(isTrue((isGreaterThan(evMarketsLength, 0))) && isTrue((isEqual(filteredMarketsLength, 0)))))
             {
                 continue;
             }
