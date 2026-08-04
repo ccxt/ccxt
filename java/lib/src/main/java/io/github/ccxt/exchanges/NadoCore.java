@@ -69,7 +69,7 @@ public class NadoCore extends NadoApi
                 put( "withdraw", false );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/142df520-1e1d-4a04-bfda-fe33e5768e63" );
+                put( "logo", "https://github.com/user-attachments/assets/811f4e1a-a8b5-4b9e-84c2-0f88997bd274" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "gateway", "https://gateway.prod.nado.xyz/v1" );
                     put( "gatewayV2", "https://gateway.prod.nado.xyz/v2" );
