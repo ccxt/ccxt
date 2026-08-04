@@ -640,7 +640,7 @@ function exchangeProp (exchange: Exchange, key: string, defaultValue: any = unde
 
 async function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, ticker: any) {
     // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-    const eMessage = exchange.exceptionMessage (ex, false);
+    const eMessage: string = exchange.exceptionMessage (ex, false); // typed string so the php transpile uses mb_strpos, not in_array
     if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
         const symbol = ticker['symbol'];
         if (symbol !== undefined) {
