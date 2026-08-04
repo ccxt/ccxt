@@ -1189,6 +1189,7 @@ class NewTranspiler {
             'watchSpotPublic',
             'watchSwapPublic',
             'watchTopics',
+            'unWatchChannels',
             // 'fetchCurrencies',
         ]); // improve this later
         if (methodName.toLowerCase().includes('uta')) {
