@@ -24,6 +24,8 @@ export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutPr
   // so the deprecated layout-level `i18n` prop isn't needed here.
   return {
     nav: {
+      // Brand mark opens the marketing site (not the docs home).
+      url: 'https://ccxt.com',
       title: (
         <>
           <CcxtMark className="size-5" />
