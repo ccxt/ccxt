@@ -670,8 +670,8 @@ function exchange_prop($exchange, $key, $default_value = null) {
 
 function validate_ticker_exception_for_percentage($ex, $exchange, $ticker) {
     // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-    $e_message = $exchange->exception_message($ex, false);
-    if (in_array('percentage should be above', $e_message) || in_array('percentage should be below', $e_message)) {
+    $e_message = $exchange->exception_message($ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+    if (mb_strpos($e_message, 'percentage should be above') !== false || mb_strpos($e_message, 'percentage should be below') !== false) {
         $symbol = $ticker['symbol'];
         if ($symbol !== null) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there

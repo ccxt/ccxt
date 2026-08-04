@@ -757,13 +757,15 @@ class myriad extends Exchange {
         if ($rHex === null) {
             throw new ExchangeError($this->id . ' signEvmTransaction() missing rHex');
         }
-        if ((strlen(fmod($rHex), 2)) !== 0) {
+        $rHexLength = count($rHex);
+        if ((fmod($rHexLength, 2)) !== 0) {
             $rHex = '0' . $rHex;
         }
         if ($sHex === null) {
             throw new ExchangeError($this->id . ' signEvmTransaction() missing sHex');
         }
-        if ((strlen(fmod($sHex), 2)) !== 0) {
+        $sHexLength = count($sHex);
+        if ((fmod($sHexLength, 2)) !== 0) {
             $sHex = '0' . $sHex;
         }
         $yParity = $this->safe_integer($signature, 'v');
@@ -3112,7 +3114,8 @@ class myriad extends Exchange {
                     $filteredMarkets[] = $m;
                 }
                 // skip question events that contribute no new markets after de-duplicating by market handle
-                if (($evMarketsLength > 0) && (strlen($filteredMarkets) === 0)) {
+                $filteredMarketsLength = count($filteredMarkets);
+                if (($evMarketsLength > 0) && ($filteredMarketsLength === 0)) {
                     continue;
                 }
                 $ev['markets'] = $filteredMarkets;
