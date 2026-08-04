@@ -33,7 +33,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
