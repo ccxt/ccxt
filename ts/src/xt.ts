@@ -4870,7 +4870,7 @@ export default class xt extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new BadSymbol (this.id + ' fetchOpenInterest() supports swap contracts only');
+            throw new NotSupported (this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -4935,7 +4935,7 @@ export default class xt extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new BadSymbol (this.id + ' fetchTradingFee() supports swap contracts only');
+            throw new NotSupported (this.id + ' fetchTradingFee() supports swap contracts only');
         }
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFee', market, params);
