@@ -52,7 +52,6 @@ export default class woo extends wooRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'requestId': {},
-                'listenKeyRefreshRate': 82800000, // listen keys are valid for 24 hours, refresh after 23
                 'watchPositions': {
                     'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
@@ -953,8 +952,16 @@ export default class woo extends wooRest {
         const data = this.safeDict (response, 'data', {});
         listenKey = this.safeString (data, 'authKey');
         this.options['listenKey'] = listenKey;
-        const refreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 82800000);
-        this.options['listenKeyExpires'] = now + refreshRate;
+        // creating a new listen key immediately expires the previous one,
+        // and there is no keep-alive endpoint, so reuse this key until its
+        // real expiry and only mint a new one after that or after an
+        // authentication failure
+        const expiredTime = this.safeInteger (data, 'expiredTime'); // in milliseconds, now + 24 hours
+        if (expiredTime !== undefined) {
+            this.options['listenKeyExpires'] = expiredTime - 60000; // 1 minute of safety margin
+        } else {
+            this.options['listenKeyExpires'] = now + 86340000; // 24 hours minus 1 minute of safety margin
+        }
         return listenKey;
     }
 
@@ -1681,6 +1688,12 @@ export default class woo extends wooRest {
             }
             throw new ExchangeError (feedback);
         } catch (error) {
+            if (error instanceof AuthenticationError) {
+                // the cached listen key is dead or expired, drop it so that
+                // the next watchPrivate call mints a fresh one
+                this.options['listenKey'] = undefined;
+                this.options['listenKeyExpires'] = 0;
+            }
             client.reject (error);
             return true;
         }
