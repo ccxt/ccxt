@@ -4151,11 +4151,29 @@ final Object finalClientOrderId = clientOrderId;
             postOnly = (Helpers.isEqual(tif, "ALO"));
         }
         Object triggerPx = ((Helpers.isTrue(this.safeBool(entry, "isTrigger")))) ? this.safeNumber(entry, "triggerPx") : null;
+        // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
+        // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
+        Object orderTypeRaw = ((String)this.safeStringLower(entry, "orderType", ""));
+        Object stopLossPrice = null;
+        Object takeProfitPrice = null;
+        if (Helpers.isTrue(!Helpers.isEqual(triggerPx, null)))
+        {
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderTypeRaw, "stop"), 0)))
+            {
+                stopLossPrice = triggerPx;
+            } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderTypeRaw, "take profit"), 0)))
+            {
+                takeProfitPrice = triggerPx;
+            }
+        }
         final Object finalOrder = order;
         final Object finalEntry = entry;
         final Object finalTif = tif;
         final Object finalPostOnly = postOnly;
         final Object finalSide = side;
+        final Object finalTriggerPx = triggerPx;
+        final Object finalStopLossPrice = stopLossPrice;
+        final Object finalTakeProfitPrice = takeProfitPrice;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", finalOrder );
             put( "id", HyperliquidCore.this.safeString(finalEntry, "oid") );
@@ -4171,7 +4189,9 @@ final Object finalClientOrderId = clientOrderId;
             put( "reduceOnly", HyperliquidCore.this.safeBool(finalEntry, "reduceOnly") );
             put( "side", finalSide );
             put( "price", HyperliquidCore.this.safeString(finalEntry, "limitPx") );
-            put( "triggerPrice", triggerPx );
+            put( "triggerPrice", finalTriggerPx );
+            put( "stopLossPrice", finalStopLossPrice );
+            put( "takeProfitPrice", finalTakeProfitPrice );
             put( "amount", totalAmount );
             put( "cost", null );
             put( "average", HyperliquidCore.this.safeString(finalEntry, "avgPx") );
