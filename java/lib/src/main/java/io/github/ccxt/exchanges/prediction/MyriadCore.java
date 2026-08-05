@@ -864,7 +864,8 @@ public class MyriadCore extends MyriadApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " signEvmTransaction() missing rHex")) ;
         }
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(((String)rHex).length(), 2)), 0)))
+        Object rHexLength = ((String)rHex).length();
+        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(rHexLength, 2)), 0)))
         {
             rHex = Helpers.add("0", rHex);
         }
@@ -872,7 +873,8 @@ public class MyriadCore extends MyriadApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " signEvmTransaction() missing sHex")) ;
         }
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(((String)sHex).length(), 2)), 0)))
+        Object sHexLength = ((String)sHex).length();
+        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(sHexLength, 2)), 0)))
         {
             sHex = Helpers.add("0", sHex);
         }
@@ -3690,7 +3692,8 @@ final Object finalNetworkId = networkId;
                     ((java.util.List<Object>)filteredMarkets).add(m);
                 }
                 // skip question events that contribute no new markets after de-duplicating by market handle
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(evMarketsLength, 0))) && Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(filteredMarkets), 0)))))
+                Object filteredMarketsLength = Helpers.getArrayLength(filteredMarkets);
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(evMarketsLength, 0))) && Helpers.isTrue((Helpers.isEqual(filteredMarketsLength, 0)))))
                 {
                     continue;
                 }

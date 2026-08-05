@@ -40,7 +40,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': True,
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': False,
                 'cancelAllOrders': True,

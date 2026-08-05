@@ -25,9 +25,8 @@ func NewXt(userConfig map[string]any) *Xt {
  * @method
  * @name xt#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publictickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/ccxt.Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
@@ -56,9 +55,8 @@ func (this *Xt) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (
  * @method
  * @name xt#unWatchTicker
  * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publictickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/ccxt.Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
@@ -87,9 +85,8 @@ func (this *Xt) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOption
  * @method
  * @name xt#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publicallTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/ccxt.Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} [symbols] unified market symbols
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
@@ -123,9 +120,8 @@ func (this *Xt) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers,
  * @method
  * @name xt#unWatchTickers
  * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publicallTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/ccxt.Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} [symbols] unified market symbols
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
@@ -159,8 +155,8 @@ func (this *Xt) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, erro
  * @method
  * @name xt#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#websocket_publicsymbolKline
- * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
  * @param {int} [since] not used by xt watchOHLCV
@@ -206,8 +202,8 @@ func (this *Xt) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]
  * @method
  * @name xt#unWatchOHLCV
  * @description stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#websocket_publicsymbolKline
- * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -241,8 +237,8 @@ func (this *Xt) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions)
  * @method
  * @name xt#watchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://doc.xt.com/#websocket_publicdealRecord
- * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -282,8 +278,8 @@ func (this *Xt) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) (
  * @method
  * @name xt#unWatchTrades
  * @description stops watching the list of most recent trades for a particular symbol
- * @see https://doc.xt.com/#websocket_publicdealRecord
- * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
@@ -311,10 +307,10 @@ func (this *Xt) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOption
  * @method
  * @name xt#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://doc.xt.com/#websocket_publiclimitDepth
- * @see https://doc.xt.com/#websocket_publicincreDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] not used by xt watchOrderBook
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -349,10 +345,10 @@ func (this *Xt) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOpti
  * @method
  * @name xt#unWatchOrderBook
  * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://doc.xt.com/#websocket_publiclimitDepth
- * @see https://doc.xt.com/#websocket_publicincreDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.levels] 5, 10, 20, or 50
@@ -381,8 +377,8 @@ func (this *Xt) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBook
  * @method
  * @name xt#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://doc.xt.com/#websocket_privatebalanceChange
- * @see https://doc.xt.com/#futures_user_websocket_v2balance
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/BalanceChange
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/BalanceChange
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -424,8 +420,8 @@ func (this *Xt) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, e
  * @method
  * @name xt#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://doc.xt.com/#websocket_privateorderDeal
- * @see https://doc.xt.com/#futures_user_websocket_v2trade
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderFilled
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/Transactions
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -476,7 +472,7 @@ func (this *Xt) WatchBalance(params ...any) (ccxt.Balances, error) {
 /**
  * @method
  * @name xt#watchPositions
- * @see https://doc.xt.com/#futures_user_websocket_v2position
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/ChangePosition
  * @description watch all open positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {number} [since] since timestamp
@@ -522,7 +518,7 @@ func (this *Xt) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Po
  * @method
  * @name xt#watchFundingRate
  * @description watch the current funding rate
- * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
@@ -550,7 +546,7 @@ func (this *Xt) WatchFundingRate(symbol string, options ...ccxt.WatchFundingRate
  * @method
  * @name xt#unWatchFundingRate
  * @description stops watching the funding rate
- * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}

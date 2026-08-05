@@ -1639,9 +1639,9 @@ func (this *WoofiproCore) ParseOrder(order any, optionalArgs ...any) any {
 		status = Ternary(IsTrue((success)), "NEW", "REJECTED")
 	}
 	var side any = this.SafeStringLower(order, "side")
-	var filled any = this.OmitZero(this.SafeValue2(order, "executed", "totalExecutedQuantity"))
+	var filled any = this.SafeStringN(order, []any{"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"})
 	var average any = this.OmitZero(this.SafeString2(order, "average_executed_price", "averageExecutedPrice"))
-	var remaining any = Precise.StringSub(cost, filled)
+	var remaining any = Precise.StringSub(amount, filled)
 	var fee any = this.SafeValue2(order, "total_fee", "totalFee")
 	var feeCurrency any = this.SafeString2(order, "fee_asset", "feeAsset")
 	var transactions any = this.SafeValue(order, "Transactions")

@@ -3446,6 +3446,19 @@ class hyperliquid extends hyperliquid$1["default"] {
             postOnly = (tif === 'ALO');
         }
         const triggerPx = this.safeBool(entry, 'isTrigger') ? this.safeNumber(entry, 'triggerPx') : undefined;
+        // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
+        // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
+        const orderTypeRaw = this.safeStringLower(entry, 'orderType', '');
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        if (triggerPx !== undefined) {
+            if (orderTypeRaw.indexOf('stop') >= 0) {
+                stopLossPrice = triggerPx;
+            }
+            else if (orderTypeRaw.indexOf('take profit') >= 0) {
+                takeProfitPrice = triggerPx;
+            }
+        }
         return this.safeOrder({
             'info': order,
             'id': this.safeString(entry, 'oid'),
@@ -3462,6 +3475,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             'side': side,
             'price': this.safeString(entry, 'limitPx'),
             'triggerPrice': triggerPx,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': totalAmount,
             'cost': undefined,
             'average': this.safeString(entry, 'avgPx'),

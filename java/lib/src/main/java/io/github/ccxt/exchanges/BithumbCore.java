@@ -1395,6 +1395,9 @@ public class BithumbCore extends BithumbApi
             body = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "endpoint", finalEndpoint );
             }}, query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            Object bodyParts = Helpers.split(body, "%20");
+            body = String.join((String)"+", (java.util.List<String>)bodyParts);
             Object nonce = String.valueOf(this.nonce());
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());

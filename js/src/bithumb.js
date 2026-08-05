@@ -1236,6 +1236,9 @@ export default class bithumb extends Exchange {
             body = this.urlencode(this.extend({
                 'endpoint': endpoint,
             }, query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            const bodyParts = body.split('%20');
+            body = bodyParts.join('+');
             const nonce = this.nonce().toString();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);

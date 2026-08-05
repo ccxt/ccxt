@@ -1588,9 +1588,9 @@ public class WoofiproCore extends WoofiproApi
             status = ((Helpers.isTrue((success)))) ? "NEW" : "REJECTED";
         }
         Object side = this.safeStringLower(order, "side");
-        Object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
+        Object filled = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed")));
         Object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        Object remaining = Precise.stringSub(cost, filled);
+        Object remaining = Precise.stringSub(amount, filled);
         Object fee = this.safeValue2(order, "total_fee", "totalFee");
         Object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         Object transactions = this.safeValue(order, "Transactions");

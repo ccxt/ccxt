@@ -3458,6 +3458,18 @@ class hyperliquid extends Exchange {
             $postOnly = ($tif === 'ALO');
         }
         $triggerPx = $this->safe_bool($entry, 'isTrigger') ? $this->safe_number($entry, 'triggerPx') : null;
+        // standalone stop / take-profit orders carry their trigger in $triggerPx - surface it
+        // through the unified $stopLossPrice / $takeProfitPrice fields, see #24318
+        $orderTypeRaw = $this->safe_string_lower($entry, 'orderType', '');
+        $stopLossPrice = null;
+        $takeProfitPrice = null;
+        if ($triggerPx !== null) {
+            if (mb_strpos($orderTypeRaw, 'stop') !== false) {
+                $stopLossPrice = $triggerPx;
+            } elseif (mb_strpos($orderTypeRaw, 'take profit') !== false) {
+                $takeProfitPrice = $triggerPx;
+            }
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($entry, 'oid'),
@@ -3474,6 +3486,8 @@ class hyperliquid extends Exchange {
             'side' => $side,
             'price' => $this->safe_string($entry, 'limitPx'),
             'triggerPrice' => $triggerPx,
+            'stopLossPrice' => $stopLossPrice,
+            'takeProfitPrice' => $takeProfitPrice,
             'amount' => $totalAmount,
             'cost' => null,
             'average' => $this->safe_string($entry, 'avgPx'),

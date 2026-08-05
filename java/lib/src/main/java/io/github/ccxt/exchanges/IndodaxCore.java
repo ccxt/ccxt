@@ -1155,7 +1155,7 @@ public class IndodaxCore extends IndodaxApi
                 quantityIsRequired = true;
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "quoteId")), this.parseToNumeric(Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
+                    Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "quoteId")), this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)))));
                 }
             }
             if (Helpers.isTrue(priceIsRequired))

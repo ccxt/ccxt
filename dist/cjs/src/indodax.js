@@ -1002,7 +1002,7 @@ class indodax extends indodax$1["default"] {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side === 'buy') {
-                request[market['quoteId']] = this.parseToNumeric(Precise["default"].stringMul(this.numberToString(amount), this.numberToString(price)));
+                request[market['quoteId']] = this.parseToNumeric(this.costToPrecision(symbol, Precise["default"].stringMul(this.numberToString(amount), this.numberToString(price))));
             }
         }
         if (priceIsRequired) {

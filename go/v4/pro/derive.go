@@ -197,7 +197,7 @@ func (this *DeriveCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any 
 			ccxt.PanicOnError(retRes15512)
 		}
 		var market any = this.Market(symbol)
-		var topic any = ccxt.Add(ccxt.Add("ticker.", ccxt.GetValue(market, "id")), ".100")
+		var topic any = ccxt.Add(ccxt.Add("ticker_slim.", ccxt.GetValue(market, "id")), ".100") // the venue deprecated the fat ticker channel in favor of ticker_slim
 		var request any = map[string]any{
 			"method": "subscribe",
 			"params": map[string]any{
@@ -286,8 +286,35 @@ func (this *DeriveCore) HandleTicker(client any, message any) any {
 	var params any = this.SafeDict(message, "params")
 	var rawData any = this.SafeDict(params, "data")
 	var data any = this.SafeDict(rawData, "instrument_ticker", map[string]any{})
-	var topic any = this.SafeValue(params, "channel")
-	var ticker any = this.ParseTicker(data)
+	var topic any = this.SafeString(params, "channel")
+	var ticker any = nil
+	if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(topic, nil)) && ccxt.IsTrue(ccxt.StartsWith(topic, "ticker_slim"))) {
+		// the slim payload uses short keys and does not carry the instrument name,
+		// so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+		var parts any = ccxt.Split(topic, ".")
+		var marketId any = this.SafeString(parts, 1)
+		var market any = this.SafeMarket(marketId)
+		var stats any = this.SafeDict(data, "stats", map[string]any{})
+		ticker = this.SafeTicker(map[string]any{
+			"symbol":      ccxt.GetValue(market, "symbol"),
+			"timestamp":   this.SafeInteger(data, "t"),
+			"datetime":    this.Iso8601(this.SafeInteger(data, "t")),
+			"bid":         this.SafeString(data, "b"),
+			"bidVolume":   this.SafeString(data, "B"),
+			"ask":         this.SafeString(data, "a"),
+			"askVolume":   this.SafeString(data, "A"),
+			"high":        this.SafeString(stats, "h"),
+			"low":         this.SafeString(stats, "l"),
+			"baseVolume":  this.SafeString(stats, "c"),
+			"quoteVolume": this.SafeString(stats, "v"),
+			"percentage":  this.SafeString(stats, "p"),
+			"markPrice":   this.SafeString(data, "M"),
+			"indexPrice":  this.SafeString(data, "I"),
+			"info":        rawData,
+		}, market)
+	} else {
+		ticker = this.ParseTicker(data)
+	}
 	var tickerSymbol any = ccxt.GetValue(ticker, "symbol")
 	if ccxt.IsTrue(!ccxt.IsEqual(tickerSymbol, nil)) {
 		ccxt.AddElementToObject(this.Tickers, tickerSymbol, ticker)
@@ -314,8 +341,8 @@ func (this *DeriveCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes26412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes26412)
+			retRes29112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes29112)
 		}
 		var limit any = this.SafeInteger(params, "limit")
 		if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
@@ -334,9 +361,9 @@ func (this *DeriveCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan
 			"name": topic,
 		}
 
-		retRes28415 := (<-this.UnWatchPublic(messageHash, request, subscription))
-		ccxt.PanicOnError(retRes28415)
-		ch <- retRes28415
+		retRes31115 := (<-this.UnWatchPublic(messageHash, request, subscription))
+		ccxt.PanicOnError(retRes31115)
+		ch <- retRes31115
 		return nil
 
 	}()
@@ -360,8 +387,8 @@ func (this *DeriveCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes29712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes29712)
+			retRes32412 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes32412)
 		}
 		var market any = this.Market(symbol)
 		var topic any = ccxt.Add("trades.", ccxt.GetValue(market, "id"))
@@ -376,9 +403,9 @@ func (this *DeriveCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan an
 			"name": topic,
 		}
 
-		retRes31315 := (<-this.UnWatchPublic(messageHah, request, subscription))
-		ccxt.PanicOnError(retRes31315)
-		ch <- retRes31315
+		retRes34015 := (<-this.UnWatchPublic(messageHah, request, subscription))
+		ccxt.PanicOnError(retRes34015)
+		ch <- retRes34015
 		return nil
 
 	}()
@@ -399,9 +426,9 @@ func (this *DeriveCore) UnWatchPublic(messageHash any, message any, subscription
 			"method": "unsubscribe",
 		})
 
-		retRes32615 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-		ccxt.PanicOnError(retRes32615)
-		ch <- retRes32615
+		retRes35315 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
+		ccxt.PanicOnError(retRes35315)
+		ch <- retRes35315
 		return nil
 
 	}()
@@ -487,8 +514,8 @@ func (this *DeriveCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes40012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes40012)
+			retRes42712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes42712)
 		}
 		var market any = this.Market(symbol)
 		var topic any = ccxt.Add("trades.", ccxt.GetValue(market, "id"))
@@ -574,9 +601,9 @@ func (this *DeriveCore) Authenticate(optionalArgs ...any) <-chan any {
 			this.Watch(url, messageHash, message, messageHash, message)
 		}
 
-		retRes47615 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes47615)
-		ch <- retRes47615
+		retRes50315 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes50315)
+		ch <- retRes50315
 		return nil
 
 	}()
@@ -588,8 +615,8 @@ func (this *DeriveCore) WatchPrivate(messageHash any, message any, subscription 
 		defer close(ch)
 		defer ccxt.ReturnPanicError(ch)
 
-		retRes4808 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes4808)
+		retRes5078 := (<-this.Authenticate())
+		ccxt.PanicOnError(retRes5078)
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 		var requestId any = this.RequestId(url)
 		var request any = this.Extend(message, map[string]any{
@@ -600,9 +627,9 @@ func (this *DeriveCore) WatchPrivate(messageHash any, message any, subscription 
 			"method": "subscribe",
 		})
 
-		retRes49015 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-		ccxt.PanicOnError(retRes49015)
-		ch <- retRes49015
+		retRes51715 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
+		ccxt.PanicOnError(retRes51715)
+		ch <- retRes51715
 		return nil
 
 	}()
@@ -636,8 +663,8 @@ func (this *DeriveCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes50712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes50712)
+			retRes53412 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes53412)
 		}
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("watchOrders", params)
@@ -780,8 +807,8 @@ func (this *DeriveCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes63112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes63112)
+			retRes65812 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes65812)
 		}
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("watchMyTrades", params)
@@ -894,11 +921,12 @@ func (this *DeriveCore) HandleMessage(client any, message any) {
 		return
 	}
 	var methods any = map[string]any{
-		"orderbook": this.HandleOrderBook,
-		"ticker":    this.HandleTicker,
-		"trades":    this.HandleTrade,
-		"orders":    this.HandleOrder,
-		"mytrades":  this.HandleMyTrade,
+		"orderbook":   this.HandleOrderBook,
+		"ticker":      this.HandleTicker,
+		"ticker_slim": this.HandleTicker,
+		"trades":      this.HandleTrade,
+		"orders":      this.HandleOrder,
+		"mytrades":    this.HandleMyTrade,
 	}
 	var event any = nil
 	var params any = this.SafeDict(message, "params")

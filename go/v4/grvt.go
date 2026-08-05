@@ -4010,7 +4010,20 @@ func (this *GrvtCore) Sign(path any, optionalArgs ...any) any {
 			url = Add(url, Add("?", queryString))
 		}
 	} else if IsTrue(IsEqual(method, "POST")) {
-		body = this.Json(params)
+		// the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+		// the private branch below sets its own headers, this covers the public market-data endpoints
+		headers = map[string]any{
+			"Content-Type": "application/json",
+		}
+		// an empty params dict must serialize as an empty json object, not an empty json array,
+		// php json_encode would produce [] here which the venue rejects with the same 1003 error
+		var paramsKeys any = ObjectKeys(params)
+		var paramsKeysLength any = GetArrayLength(paramsKeys)
+		if IsTrue(IsEqual(paramsKeysLength, 0)) {
+			body = "{}"
+		} else {
+			body = this.Json(params)
+		}
 	}
 	var isPrivate any = StartsWith(api, "private")
 	if IsTrue(isPrivate) {

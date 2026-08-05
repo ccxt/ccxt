@@ -36,7 +36,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "spot", true );
                 put( "margin", true );
                 put( "swap", true );
-                put( "future", true );
+                put( "future", false );
                 put( "option", false );
                 put( "addMargin", false );
                 put( "cancelAllOrders", true );

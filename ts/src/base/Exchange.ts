@@ -166,7 +166,7 @@ const {
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 // ----------------------------------------------------------------------------
 //
-const dynamicImport = async (moduleName: string) => await import (/* webpackIgnore: true */ moduleName);
+const dynamicImport = async (moduleName: string) => await import (/* webpackIgnore: true */ /* @vite-ignore */ moduleName); // both bundler hints needed so optional proxy-agent modules are not statically resolved, see https://github.com/ccxt/ccxt/issues/21555
 //
 // ----------------------------------------------------------------------------
 //
@@ -8290,13 +8290,21 @@ export class BaseExchange {
         const time = this.parseTimeframe (timeframe) * 1000;
         maxEntriesPerRequest = this.requireValue (maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
         const step = time * maxEntriesPerRequest;
+        const until = this.safeInteger2 (params, 'until', 'till'); // do not omit it here
         let currentSince = current - (maxCalls * step) - 1;
         if (since !== undefined) {
-            currentSince = Math.max (currentSince, since);
+            if (until !== undefined) {
+                // the recent-window floor below would jump past a fully-historical [ since, until ]
+                // range and return an empty result - requiredCalls is validated against maxCalls
+                // further down, so anchoring at since directly is safe here,
+                // see https://github.com/ccxt/ccxt/issues/26252
+                currentSince = since;
+            } else {
+                currentSince = Math.max (currentSince, since);
+            }
         } else {
             currentSince = Math.max (currentSince, 1241440531000); // avoid timestamps older than 2009
         }
-        const until = this.safeInteger2 (params, 'until', 'till'); // do not omit it here
         if (until !== undefined) {
             if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set');

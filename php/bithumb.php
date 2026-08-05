@@ -1249,6 +1249,9 @@ class bithumb extends Exchange {
             $body = $this->urlencode($this->extend(array(
                 'endpoint' => $endpoint,
             ), $query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            $bodyParts = explode('%20', $body);
+            $body = implode('+', $bodyParts);
             $nonce = (string) $this->nonce();
             $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');

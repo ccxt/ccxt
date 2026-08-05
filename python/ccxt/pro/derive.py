@@ -153,7 +153,7 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        topic = 'ticker.' + market['id'] + '.100'
+        topic = 'ticker_slim.' + market['id'] + '.100'  # the venue deprecated the fat ticker channel in favor of ticker_slim
         request = {
             'method': 'subscribe',
             'params': {
@@ -237,8 +237,34 @@ class derive(ccxt.async_support.derive):
         params = self.safe_dict(message, 'params')
         rawData = self.safe_dict(params, 'data')
         data = self.safe_dict(rawData, 'instrument_ticker', {})
-        topic = self.safe_value(params, 'channel')
-        ticker = self.parse_ticker(data)
+        topic = self.safe_string(params, 'channel')
+        ticker = None
+        if topic is not None and topic.startswith('ticker_slim'):
+            # the slim payload uses short keys and does not carry the instrument name,
+            # so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+            parts = topic.split('.')
+            marketId = self.safe_string(parts, 1)
+            market = self.safe_market(marketId)
+            stats = self.safe_dict(data, 'stats', {})
+            ticker = self.safe_ticker({
+                'symbol': market['symbol'],
+                'timestamp': self.safe_integer(data, 't'),
+                'datetime': self.iso8601(self.safe_integer(data, 't')),
+                'bid': self.safe_string(data, 'b'),
+                'bidVolume': self.safe_string(data, 'B'),
+                'ask': self.safe_string(data, 'a'),
+                'askVolume': self.safe_string(data, 'A'),
+                'high': self.safe_string(stats, 'h'),
+                'low': self.safe_string(stats, 'l'),
+                'baseVolume': self.safe_string(stats, 'c'),
+                'quoteVolume': self.safe_string(stats, 'v'),
+                'percentage': self.safe_string(stats, 'p'),
+                'markPrice': self.safe_string(data, 'M'),
+                'indexPrice': self.safe_string(data, 'I'),
+                'info': rawData,
+            }, market)
+        else:
+            ticker = self.parse_ticker(data)
         tickerSymbol = ticker['symbol']
         if tickerSymbol is not None:
             self.tickers[tickerSymbol] = ticker
@@ -660,6 +686,7 @@ class derive(ccxt.async_support.derive):
         methods = {
             'orderbook': self.handle_order_book,
             'ticker': self.handle_ticker,
+            'ticker_slim': self.handle_ticker,
             'trades': self.handle_trade,
             'orders': self.handle_order,
             'mytrades': self.handle_my_trade,

@@ -756,7 +756,7 @@ func (this *XtCore) Nonce() any {
  * @method
  * @name xt#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the xt server
- * @see https://doc.xt.com/#market1serverInfo
+ * @see https://doc.xt.com/docs/spot/Market/GetServerTime
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the xt server
  */
@@ -793,7 +793,7 @@ func (this *XtCore) FetchTime(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetSupportedCurrencies
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -952,8 +952,8 @@ func (this *XtCore) FetchCurrencies(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchMarkets
  * @description retrieves data on all markets for xt
- * @see https://doc.xt.com/#market2symbol
- * @see https://doc.xt.com/#futures_quotesgetSymbols
+ * @see https://doc.xt.com/docs/spot/Market/GetSymbolInformation
+ * @see https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1400,8 +1400,8 @@ func (this *XtCore) ParseMarket(market any) any {
  * @method
  * @name xt#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#market4kline
- * @see https://doc.xt.com/#futures_quotesgetKLine
+ * @see https://doc.xt.com/docs/spot/Market/GetKlineData
+ * @see https://doc.xt.com/docs/futures/MarketData/get-trading-pair-information-of-kline
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1446,7 +1446,11 @@ func (this *XtCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
 		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "startTime", since)
+			// xt rounds startTime down to the candle boundary, which makes a mid-candle
+			// window start return one pre-since candle, shifting paginated windows and
+			// dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
+			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+			AddElementToObject(request, "startTime", Multiply(MathCeil(Divide(since, duration)), duration))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			if IsTrue(GetValue(market, "spot")) {
@@ -1564,8 +1568,8 @@ func (this *XtCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 /**
  * @method
  * @name xt#fetchOrderBook
- * @see https://doc.xt.com/#market3depth
- * @see https://doc.xt.com/#futures_quotesgetDepth
+ * @see https://doc.xt.com/docs/spot/Market/GetDepthData
+ * @see https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified market symbol to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -1583,8 +1587,8 @@ func (this *XtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes155412 := (<-this.LoadMarkets())
-			PanicOnError(retRes155412)
+			retRes155812 := (<-this.LoadMarkets())
+			PanicOnError(retRes155812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1683,8 +1687,8 @@ func (this *XtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#market10ticker24h
- * @see https://doc.xt.com/#futures_quotesgetAggTicker
+ * @see https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+ * @see https://doc.xt.com/docs/futures/MarketData/get-aggregated-market-information-for-specific-trading-pair
  * @param {string} symbol unified market symbol to fetch the ticker for
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1698,8 +1702,8 @@ func (this *XtCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes164812 := (<-this.LoadMarkets())
-			PanicOnError(retRes164812)
+			retRes165212 := (<-this.LoadMarkets())
+			PanicOnError(retRes165212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1783,8 +1787,8 @@ func (this *XtCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchTickers
  * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
- * @see https://doc.xt.com/#market10ticker24h
- * @see https://doc.xt.com/#futures_quotesgetAggTickers
+ * @see https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+ * @see https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs
  * @param {string} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1800,8 +1804,8 @@ func (this *XtCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes172712 := (<-this.LoadMarkets())
-			PanicOnError(retRes172712)
+			retRes173112 := (<-this.LoadMarkets())
+			PanicOnError(retRes173112)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -1900,7 +1904,7 @@ func (this *XtCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://doc.xt.com/#market9tickerBook
+ * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
  * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1916,8 +1920,8 @@ func (this *XtCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes181812 := (<-this.LoadMarkets())
-			PanicOnError(retRes181812)
+			retRes182212 := (<-this.LoadMarkets())
+			PanicOnError(retRes182212)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -2049,8 +2053,8 @@ func (this *XtCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @method
  * @name xt#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://doc.xt.com/#market5tradeRecent
- * @see https://doc.xt.com/#futures_quotesgetDeal
+ * @see https://doc.xt.com/docs/spot/Market/QueryRecentTransactions
+ * @see https://doc.xt.com/docs/futures/MarketData/get-latest-transaction-information-of-trading-pairs
  * @param {string} symbol unified market symbol to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -2070,8 +2074,8 @@ func (this *XtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes195012 := (<-this.LoadMarkets())
-			PanicOnError(retRes195012)
+			retRes195412 := (<-this.LoadMarkets())
+			PanicOnError(retRes195412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2148,8 +2152,8 @@ func (this *XtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://doc.xt.com/#tradetradeGet
- * @see https://doc.xt.com/#futures_ordergetTrades
+ * @see https://doc.xt.com/docs/spot/Trade/QueryTrade
+ * @see https://doc.xt.com/docs/futures/Order/see-transaction-details
  * @param {string} [symbol] unified market symbol to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -2171,8 +2175,8 @@ func (this *XtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes202612 := (<-this.LoadMarkets())
-			PanicOnError(retRes202612)
+			retRes203012 := (<-this.LoadMarkets())
+			PanicOnError(retRes203012)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2465,8 +2469,8 @@ func (this *XtCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @method
  * @name xt#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://doc.xt.com/#balancebalancesGet
- * @see https://doc.xt.com/#futures_usergetBalances
+ * @see https://doc.xt.com/docs/spot/Balance/GetBalances
+ * @see https://doc.xt.com/docs/futures/User/GetUserFunds
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
  */
@@ -2479,8 +2483,8 @@ func (this *XtCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes230812 := (<-this.LoadMarkets())
-			PanicOnError(retRes230812)
+			retRes231212 := (<-this.LoadMarkets())
+			PanicOnError(retRes231212)
 		}
 		var typeVar any = nil
 		var subType any = nil
@@ -2618,7 +2622,7 @@ func (this *XtCore) ParseBalance(response any) any {
 /**
  * @method
  * @name xt#createMarketBuyOrderWithCost
- * @see https://doc.xt.com/#orderorderPost
+ * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
  * @description create a market buy order by providing the symbol and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -2634,17 +2638,17 @@ func (this *XtCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalA
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes243912 := (<-this.LoadMarkets())
-			PanicOnError(retRes243912)
+			retRes244312 := (<-this.LoadMarkets())
+			PanicOnError(retRes244312)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 
-		retRes244515 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
-		PanicOnError(retRes244515)
-		ch <- retRes244515
+		retRes244915 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
+		PanicOnError(retRes244915)
+		ch <- retRes244915
 		return nil
 
 	}()
@@ -2655,10 +2659,10 @@ func (this *XtCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalA
  * @method
  * @name xt#createOrder
  * @description create a trade order
- * @see https://doc.xt.com/#orderorderPost
- * @see https://doc.xt.com/#futures_ordercreate
- * @see https://doc.xt.com/#futures_entrustcreatePlan
- * @see https://doc.xt.com/#futures_entrustcreateProfit
+ * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
+ * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
+ * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2685,22 +2689,22 @@ func (this *XtCore) CreateOrder(symbol any, typeVar any, side any, amount any, o
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes247312 := (<-this.LoadMarkets())
-			PanicOnError(retRes247312)
+			retRes247712 := (<-this.LoadMarkets())
+			PanicOnError(retRes247712)
 		}
 		var market any = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
 		if IsTrue(GetValue(market, "spot")) {
 
-			retRes247819 := (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
-			PanicOnError(retRes247819)
-			ch <- retRes247819
+			retRes248219 := (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
+			PanicOnError(retRes248219)
+			ch <- retRes248219
 			return nil
 		} else {
 
-			retRes248019 := (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
-			PanicOnError(retRes248019)
-			ch <- retRes248019
+			retRes248419 := (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
+			PanicOnError(retRes248419)
+			ch <- retRes248419
 			return nil
 		}
 
@@ -2718,8 +2722,8 @@ func (this *XtCore) CreateSpotOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes248612 := (<-this.LoadMarkets())
-			PanicOnError(retRes248612)
+			retRes249012 := (<-this.LoadMarkets())
+			PanicOnError(retRes249012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2799,8 +2803,8 @@ func (this *XtCore) CreateContractOrder(symbol any, typeVar any, side any, amoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes254912 := (<-this.LoadMarkets())
-			PanicOnError(retRes254912)
+			retRes255312 := (<-this.LoadMarkets())
+			PanicOnError(retRes255312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2897,10 +2901,10 @@ func (this *XtCore) CreateContractOrder(symbol any, typeVar any, side any, amoun
  * @method
  * @name xt#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://doc.xt.com/#orderorderGet
- * @see https://doc.xt.com/#futures_ordergetById
- * @see https://doc.xt.com/#futures_entrustgetPlanById
- * @see https://doc.xt.com/#futures_entrustgetProfitById
+ * @see https://doc.xt.com/docs/spot/Order/GetSingleOrder
+ * @see https://doc.xt.com/docs/futures/Order/see-orders-by-id
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -2919,8 +2923,8 @@ func (this *XtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes264212 := (<-this.LoadMarkets())
-			PanicOnError(retRes264212)
+			retRes264612 := (<-this.LoadMarkets())
+			PanicOnError(retRes264612)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3110,9 +3114,9 @@ func (this *XtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://doc.xt.com/#orderhistoryOrderGet
- * @see https://doc.xt.com/#futures_ordergetHistory
- * @see https://doc.xt.com/#futures_entrustgetPlanHistory
+ * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-order-history
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3135,8 +3139,8 @@ func (this *XtCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes282112 := (<-this.LoadMarkets())
-			PanicOnError(retRes282112)
+			retRes282512 := (<-this.LoadMarkets())
+			PanicOnError(retRes282512)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -3324,8 +3328,8 @@ func (this *XtCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes297612 := (<-this.LoadMarkets())
-			PanicOnError(retRes297612)
+			retRes298012 := (<-this.LoadMarkets())
+			PanicOnError(retRes298012)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -3632,10 +3636,10 @@ func (this *XtCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-chan 
  * @method
  * @name xt#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://doc.xt.com/#orderopenOrderGet
- * @see https://doc.xt.com/#futures_ordergetOrders
- * @see https://doc.xt.com/#futures_entrustgetPlan
- * @see https://doc.xt.com/#futures_entrustgetProfit
+ * @see https://doc.xt.com/docs/spot/Order/QueryOpenOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -3658,9 +3662,9 @@ func (this *XtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes326915 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
-		PanicOnError(retRes326915)
-		ch <- retRes326915
+		retRes327315 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
+		PanicOnError(retRes327315)
+		ch <- retRes327315
 		return nil
 
 	}()
@@ -3671,10 +3675,10 @@ func (this *XtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://doc.xt.com/#orderhistoryOrderGet
- * @see https://doc.xt.com/#futures_ordergetOrders
- * @see https://doc.xt.com/#futures_entrustgetPlan
- * @see https://doc.xt.com/#futures_entrustgetProfit
+ * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3697,9 +3701,9 @@ func (this *XtCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes328915 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
-		PanicOnError(retRes328915)
-		ch <- retRes328915
+		retRes329315 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
+		PanicOnError(retRes329315)
+		ch <- retRes329315
 		return nil
 
 	}()
@@ -3710,10 +3714,10 @@ func (this *XtCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://doc.xt.com/#orderhistoryOrderGet
- * @see https://doc.xt.com/#futures_ordergetOrders
- * @see https://doc.xt.com/#futures_entrustgetPlan
- * @see https://doc.xt.com/#futures_entrustgetProfit
+ * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3736,9 +3740,9 @@ func (this *XtCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes330915 := (<-this.FetchOrdersByStatus("canceled", symbol, since, limit, params))
-		PanicOnError(retRes330915)
-		ch <- retRes330915
+		retRes331315 := (<-this.FetchOrdersByStatus("canceled", symbol, since, limit, params))
+		PanicOnError(retRes331315)
+		ch <- retRes331315
 		return nil
 
 	}()
@@ -3749,10 +3753,10 @@ func (this *XtCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#cancelOrder
  * @description cancels an open order
- * @see https://doc.xt.com/#orderorderDel
- * @see https://doc.xt.com/#futures_ordercancel
- * @see https://doc.xt.com/#futures_entrustcancelPlan
- * @see https://doc.xt.com/#futures_entrustcancelProfit
+ * @see https://doc.xt.com/docs/spot/Order/CancelOrder
+ * @see https://doc.xt.com/docs/futures/Order/cancel-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -3771,8 +3775,8 @@ func (this *XtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes332912 := (<-this.LoadMarkets())
-			PanicOnError(retRes332912)
+			retRes333312 := (<-this.LoadMarkets())
+			PanicOnError(retRes333312)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3867,10 +3871,10 @@ func (this *XtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://doc.xt.com/#orderopenOrderDel
- * @see https://doc.xt.com/#futures_ordercancelBatch
- * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
- * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
+ * @see https://doc.xt.com/docs/spot/Order/CancelCurrentPendingOrder
+ * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
@@ -3888,8 +3892,8 @@ func (this *XtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes341312 := (<-this.LoadMarkets())
-			PanicOnError(retRes341312)
+			retRes341712 := (<-this.LoadMarkets())
+			PanicOnError(retRes341712)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -3980,7 +3984,7 @@ func (this *XtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#cancelOrders
  * @description cancel multiple orders
- * @see https://doc.xt.com/#orderbatchOrderDel
+ * @see https://doc.xt.com/docs/spot/Order/CancelBatchOrder
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -3997,8 +4001,8 @@ func (this *XtCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes348912 := (<-this.LoadMarkets())
-			PanicOnError(retRes348912)
+			retRes349312 := (<-this.LoadMarkets())
+			PanicOnError(retRes349312)
 		}
 		var request any = map[string]any{
 			"orderIds": ids,
@@ -4241,7 +4245,7 @@ func (this *XtCore) ParseOrderStatus(status any) any {
  * @method
  * @name xt#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://doc.xt.com/#futures_usergetBalanceBill
+ * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Account%20Flow%20Information
  * @param {string} [code] unified currency code
  * @param {int} [since] timestamp in ms of the earliest ledger entry
  * @param {int} [limit] max number of ledger entries to return
@@ -4263,8 +4267,8 @@ func (this *XtCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes373412 := (<-this.LoadMarkets())
-			PanicOnError(retRes373412)
+			retRes373812 := (<-this.LoadMarkets())
+			PanicOnError(retRes373812)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -4388,7 +4392,7 @@ func (this *XtCore) ParseLedgerEntryType(typeVar any) any {
  * @method
  * @name xt#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositAddress
  * @param {string} code unified currency code
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.network required network id
@@ -4403,8 +4407,8 @@ func (this *XtCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes385312 := (<-this.LoadMarkets())
-			PanicOnError(retRes385312)
+			retRes385712 := (<-this.LoadMarkets())
+			PanicOnError(retRes385712)
 		}
 		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -4463,7 +4467,7 @@ func (this *XtCore) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @method
  * @name xt#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositHistory
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of transaction structures to retrieve
@@ -4485,8 +4489,8 @@ func (this *XtCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes391112 := (<-this.LoadMarkets())
-			PanicOnError(retRes391112)
+			retRes391512 := (<-this.LoadMarkets())
+			PanicOnError(retRes391512)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -4543,7 +4547,7 @@ func (this *XtCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/WithdrawHistory
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of transaction structures to retrieve
@@ -4565,8 +4569,8 @@ func (this *XtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes397012 := (<-this.LoadMarkets())
-			PanicOnError(retRes397012)
+			retRes397412 := (<-this.LoadMarkets())
+			PanicOnError(retRes397412)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -4623,7 +4627,7 @@ func (this *XtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#withdraw
  * @description make a withdrawal
- * @see https://doc.xt.com/#deposit_withdrawalwithdraw
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -4643,8 +4647,8 @@ func (this *XtCore) Withdraw(code any, amount any, address any, optionalArgs ...
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes403112 := (<-this.LoadMarkets())
-			PanicOnError(retRes403112)
+			retRes403512 := (<-this.LoadMarkets())
+			PanicOnError(retRes403512)
 		}
 		var currency any = this.Currency(code)
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
@@ -4780,7 +4784,7 @@ func (this *XtCore) ParseTransactionStatus(status any) any {
  * @method
  * @name xt#setLeverage
  * @description set the level of leverage for a market
- * @see https://doc.xt.com/#futures_useradjustLeverage
+ * @see https://doc.xt.com/docs/futures/User/Adjust%20Leverage
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -4806,8 +4810,8 @@ func (this *XtCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes417312 := (<-this.LoadMarkets())
-			PanicOnError(retRes417312)
+			retRes417712 := (<-this.LoadMarkets())
+			PanicOnError(retRes417712)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue((GetValue(market, "contract"))) {
@@ -4852,7 +4856,7 @@ func (this *XtCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#addMargin
  * @description add margin to a position
- * @see https://doc.xt.com/#futures_useradjustMargin
+ * @see https://doc.xt.com/docs/futures/User/Alter%20Margin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -4867,9 +4871,9 @@ func (this *XtCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes421515 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
-		PanicOnError(retRes421515)
-		ch <- retRes421515
+		retRes421915 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+		PanicOnError(retRes421915)
+		ch <- retRes421915
 		return nil
 
 	}()
@@ -4880,7 +4884,7 @@ func (this *XtCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-cha
  * @method
  * @name xt#reduceMargin
  * @description remove margin from a position
- * @see https://doc.xt.com/#futures_useradjustMargin
+ * @see https://doc.xt.com/docs/futures/User/Alter%20Margin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -4895,9 +4899,9 @@ func (this *XtCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes423015 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
-		PanicOnError(retRes423015)
-		ch <- retRes423015
+		retRes423415 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
+		PanicOnError(retRes423415)
+		ch <- retRes423415
 		return nil
 
 	}()
@@ -4914,8 +4918,8 @@ func (this *XtCore) ModifyMarginHelper(symbol any, amount any, addOrReduce any, 
 		this.CheckRequiredArgument("setLeverage", positionSide, "positionSide", []any{"LONG", "SHORT"})
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes423712 := (<-this.LoadMarkets())
-			PanicOnError(retRes423712)
+			retRes424112 := (<-this.LoadMarkets())
+			PanicOnError(retRes424112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4974,7 +4978,7 @@ func (this *XtCore) ParseMarginModification(data any, optionalArgs ...any) any {
  * @method
  * @name xt#fetchLeverageTiers
  * @description retrieve information on the maximum leverage for different trade sizes
- * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
+ * @see https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
  * @param {string} [symbols] a list of unified market symbols
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
@@ -4990,8 +4994,8 @@ func (this *XtCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes429112 := (<-this.LoadMarkets())
-			PanicOnError(retRes429112)
+			retRes429512 := (<-this.LoadMarkets())
+			PanicOnError(retRes429512)
 		}
 		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchLeverageTiers", nil, params)
@@ -5083,7 +5087,7 @@ func (this *XtCore) ParseLeverageTiers(response any, optionalArgs ...any) any {
  * @method
  * @name xt#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage for different trade sizes of a single market
- * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
+ * @see https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
@@ -5097,8 +5101,8 @@ func (this *XtCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <-
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes437612 := (<-this.LoadMarkets())
-			PanicOnError(retRes437612)
+			retRes438012 := (<-this.LoadMarkets())
+			PanicOnError(retRes438012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -5193,7 +5197,7 @@ func (this *XtCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
  * @method
  * @name xt#fetchFundingRateHistory
  * @description fetches historical funding rates
- * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
+ * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-records
  * @param {string} [symbol] unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
@@ -5219,8 +5223,8 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes447212 := (<-this.LoadMarkets())
-			PanicOnError(retRes447212)
+			retRes447612 := (<-this.LoadMarkets())
+			PanicOnError(retRes447612)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -5228,9 +5232,9 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes447719 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "id", "id", 1, 200))
-			PanicOnError(retRes447719)
-			ch <- retRes447719
+			retRes448119 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "id", "id", 1, 200))
+			PanicOnError(retRes448119)
+			ch <- retRes448119
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -5308,7 +5312,7 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://doc.xt.com/#futures_quotesgetFundingRate
+ * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -5321,9 +5325,9 @@ func (this *XtCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes454915 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes454915)
-		ch <- retRes454915
+		retRes455315 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes455315)
+		ch <- retRes455315
 		return nil
 
 	}()
@@ -5334,7 +5338,7 @@ func (this *XtCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-chan
  * @method
  * @name xt#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://doc.xt.com/#futures_quotesgetFundingRate
+ * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -5348,8 +5352,8 @@ func (this *XtCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes456312 := (<-this.LoadMarkets())
-			PanicOnError(retRes456312)
+			retRes456712 := (<-this.LoadMarkets())
+			PanicOnError(retRes456712)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -5437,7 +5441,7 @@ func (this *XtCore) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @method
  * @name xt#fetchFundingHistory
  * @description fetch the funding history
- * @see https://doc.xt.com/#futures_usergetFunding
+ * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
  * @param {string} symbol unified market symbol
  * @param {int} [since] the starting timestamp in milliseconds
  * @param {int} [limit] the number of entries to return
@@ -5459,8 +5463,8 @@ func (this *XtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes464812 := (<-this.LoadMarkets())
-			PanicOnError(retRes464812)
+			retRes465212 := (<-this.LoadMarkets())
+			PanicOnError(retRes465212)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -5596,7 +5600,7 @@ func (this *XtCore) MergePositionBreakInfo(entry any, breakBySymbolSide any) any
  * @method
  * @name xt#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://doc.xt.com/#futures_usergetPosition
+ * @see https://doc.xt.com/docs/futures/User/Get%20Position%20Information
  * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -5611,8 +5615,8 @@ func (this *XtCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes478012 := (<-this.LoadMarkets())
-			PanicOnError(retRes478012)
+			retRes478412 := (<-this.LoadMarkets())
+			PanicOnError(retRes478412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -5699,7 +5703,7 @@ func (this *XtCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#fetchPositions
  * @description fetch all open positions
- * @see https://doc.xt.com/#futures_usergetPosition
+ * @see https://doc.xt.com/docs/futures/User/Get%20Position%20Information
  * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
  * @param {string} [symbols] list of unified market symbols, not supported with xt
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -5716,8 +5720,8 @@ func (this *XtCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes486612 := (<-this.LoadMarkets())
-			PanicOnError(retRes486612)
+			retRes487012 := (<-this.LoadMarkets())
+			PanicOnError(retRes487012)
 		}
 		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", nil, params)
@@ -5864,7 +5868,7 @@ func (this *XtCore) ParsePosition(position any, optionalArgs ...any) any {
  * @method
  * @name xt#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://doc.xt.com/#transfersubTransferPost
+ * @see https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
@@ -5881,8 +5885,8 @@ func (this *XtCore) Transfer(code any, amount any, fromAccount any, toAccount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes501312 := (<-this.LoadMarkets())
-			PanicOnError(retRes501312)
+			retRes501712 := (<-this.LoadMarkets())
+			PanicOnError(retRes501712)
 		}
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeValue(this.Options, "accountsById")
@@ -5939,7 +5943,7 @@ func (this *XtCore) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @method
  * @name xt#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://doc.xt.com/#futures_userchangePositionType
+ * @see https://doc.xt.com/docs/futures/User/Change%20Position%20Type
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} [symbol] required
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5960,8 +5964,8 @@ func (this *XtCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes507412 := (<-this.LoadMarkets())
-			PanicOnError(retRes507412)
+			retRes507812 := (<-this.LoadMarkets())
+			PanicOnError(retRes507812)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
@@ -6021,9 +6025,9 @@ func (this *XtCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan an
  * @method
  * @name xt#editOrder
  * @description cancels an order and places a new order
- * @see https://doc.xt.com/#orderorderUpdate
- * @see https://doc.xt.com/#futures_orderupdate
- * @see https://doc.xt.com/#futures_entrustupdateProfit
+ * @see https://doc.xt.com/docs/spot/Order/UpdateOrderLimit
+ * @see https://doc.xt.com/docs/futures/Order/update-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/AlterStopLimit
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -6051,8 +6055,8 @@ func (this *XtCore) EditOrder(id any, symbol any, typeVar any, side any, optiona
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes514212 := (<-this.LoadMarkets())
-			PanicOnError(retRes514212)
+			retRes514612 := (<-this.LoadMarkets())
+			PanicOnError(retRes514612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}

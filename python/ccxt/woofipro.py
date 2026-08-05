@@ -1377,9 +1377,9 @@ class woofipro(Exchange, ImplicitAPI):
         if success is not None:
             status = 'NEW' if (success) else 'REJECTED'
         side = self.safe_string_lower(order, 'side')
-        filled = self.omit_zero(self.safe_value_2(order, 'executed', 'totalExecutedQuantity'))
+        filled = self.safe_string_n(order, ['total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed'])
         average = self.omit_zero(self.safe_string_2(order, 'average_executed_price', 'averageExecutedPrice'))
-        remaining = Precise.string_sub(cost, filled)
+        remaining = Precise.string_sub(amount, filled)
         fee = self.safe_value_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
         transactions = self.safe_value(order, 'Transactions')

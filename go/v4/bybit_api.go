@@ -823,6 +823,10 @@ func (this *BybitCore) PrivateGetV5SpotLeverTokenOrderRecord(args ...any) <-chan
 	return this.callEndpointAsync("privateGetV5SpotLeverTokenOrderRecord", args...)
 }
 
+func (this *BybitCore) PrivateGetV5SpotMarginTradeFlexibleAvailableInventory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeFlexibleAvailableInventory", args...)
+}
+
 func (this *BybitCore) PrivateGetV5SpotMarginTradeInterestRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5SpotMarginTradeInterestRateHistory", args...)
 }

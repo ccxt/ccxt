@@ -3615,7 +3615,22 @@ public partial class grvt : Exchange
             }
         } else if (isTrue(isEqual(method, "POST")))
         {
-            body = this.json(parameters);
+            // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+            // the private branch below sets its own headers, this covers the public market-data endpoints
+            headers = new Dictionary<string, object>() {
+                { "Content-Type", "application/json" },
+            };
+            // an empty params dict must serialize as an empty json object, not an empty json array,
+            // php json_encode would produce [] here which the venue rejects with the same 1003 error
+            object paramsKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+            object paramsKeysLength = getArrayLength(paramsKeys);
+            if (isTrue(isEqual(paramsKeysLength, 0)))
+            {
+                body = "{}";
+            } else
+            {
+                body = this.json(parameters);
+            }
         }
         object isPrivate = ((string)api).StartsWith(((string)"private"));
         if (isTrue(isPrivate))

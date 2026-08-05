@@ -5115,11 +5115,17 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param boolean [params.historical]: *swap only* True for using historical endpoint
         :param bool [params.unifiedAccount]: set to True for fetching unified account orders
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         await self.load_unified_status()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        if paginate:
+            # see https://github.com/ccxt/ccxt/issues/22825
+            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         until = self.safe_integer(params, 'until')
         market = None
         if symbol is not None:

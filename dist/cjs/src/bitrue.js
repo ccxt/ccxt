@@ -1736,7 +1736,13 @@ class bitrue extends bitrue$1["default"] {
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict(data, i, {});
-            const market = this.safeMarket(this.safeString(ticker, 'symbol'));
+            // skip entries without a symbol: an undefined market id would become a null
+            // dictionary key here, which crashes fetchTickers in the C# build
+            const marketId = this.safeString(ticker, 'symbol');
+            if (marketId === undefined) {
+                continue;
+            }
+            const market = this.safeMarket(marketId);
             tickers[market['id']] = ticker;
         }
         return this.parseTickers(tickers, symbols);

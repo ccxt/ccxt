@@ -130,7 +130,12 @@ public class TestTicker extends BaseTest {
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             // Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))))
+            // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+            // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+            // far above baseVolume * high), so the spot-derived invariant does not hold there,
+            // see https://github.com/ccxt/ccxt/pull/29563
+            Object isInverse = exchange.safeBool(market, "inverse", false);
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && !Helpers.isTrue(isInverse)))
             {
                 Object baseLow = Precise.stringMul(baseVolume, low);
                 Object baseHigh = Precise.stringMul(baseVolume, high);
@@ -194,7 +199,8 @@ public class TestTicker extends BaseTest {
         Object bidString = exchange.safeString(entry, "bid");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(askString, null))) && Helpers.isTrue((!Helpers.isEqual(bidString, null)))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "spread")))))
         {
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "ask", ((String)exchange.safeString(entry, "bid")));
+            // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
+            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", ((String)exchange.safeString(entry, "bid")));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
         Object allowedPercentageVariation = "0.01";
@@ -212,7 +218,7 @@ public class TestTicker extends BaseTest {
             //
             // percentage
             //
-            Object maxIncrease = "100"; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+            Object maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
             if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
             {
                 // - should be above -100 and below MAX

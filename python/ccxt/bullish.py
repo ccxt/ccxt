@@ -43,7 +43,7 @@ class bullish(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': False,
                 'swap': True,
-                'future': False,
+                'future': True,
                 'option': False,
                 'addMargin': False,
                 'borrowMargin': False,
