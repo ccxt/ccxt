@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
+import math
 from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1414,7 +1415,11 @@ class xt(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
-            request['startTime'] = since
+            # xt rounds startTime down to the candle boundary, which makes a mid-candle
+            # window start return one pre-since candle, shifting paginated windows and
+            # dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
+            duration = self.parse_timeframe(timeframe) * 1000
+            request['startTime'] = int(math.ceil(since / duration)) * duration
         if limit is not None:
             if market['spot']:
                 limit = min(limit, 1000)  # spot max limit
