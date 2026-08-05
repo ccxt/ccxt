@@ -237,10 +237,12 @@ export default class binance extends binanceRest {
             // record this hash's contribution so an unsubscription can refund exactly what was
             // added and a later resubscription re-increments consistently,
             // see https://github.com/ccxt/ccxt/pull/24025 and the discussion therein
-            if (this.safeValue (this.options, 'numSubscriptionsByHash') === undefined) {
-                this.options['numSubscriptionsByHash'] = this.createSafeDictionary ();
+            if (subscriptionHash !== undefined) {
+                if (this.safeValue (this.options, 'numSubscriptionsByHash') === undefined) {
+                    this.options['numSubscriptionsByHash'] = this.createSafeDictionary ();
+                }
+                this.options['numSubscriptionsByHash'][subscriptionHash] = numSubscriptions;
             }
-            this.options['numSubscriptionsByHash'][subscriptionHash] = numSubscriptions;
         }
         return stream;
     }
@@ -1711,7 +1713,10 @@ export default class binance extends binanceRest {
             'symbolsAndTimeframes': symbolsAndTimeframes,
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
-            'streamHash': 'multipleOHLCV',
+            // intentionally no 'streamHash' here: ohlcv shares the single 'multipleOHLCV' bucket
+            // charged one slot in total, and refunding it on a partial unsubscription would tear
+            // down the accounting for ohlcv subscriptions still live on the wire - the one slot
+            // is bounded and left in place, see https://github.com/ccxt/ccxt/pull/29563
             'topic': 'ohlcv',
         };
         params = this.omit (params, 'callerMethodName');
