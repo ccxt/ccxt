@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -23,13 +23,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: Int;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name delta#fetchCurrencies

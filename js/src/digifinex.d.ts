@@ -1,5 +1,5 @@
 import Exchange from './abstract/digifinex.js';
-import type { Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, DepositWithdrawFees } from './base/types.js';
+import type { Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, DepositWithdrawFees, Status } from './base/types.js';
 /**
  * @class digifinex
  * @augments Exchange
@@ -95,13 +95,7 @@ export default class digifinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name digifinex#fetchTrades

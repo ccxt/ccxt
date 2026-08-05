@@ -1,5 +1,5 @@
 import Exchange from './abstract/paradex.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, NullableDict } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, NullableDict, Status } from './base/types.js';
 /**
  * @class paradex
  * @description Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solution. To access private methods you can either use the ETH public key and private key by setting (exchange.privateKey and exchange.walletAddress)
@@ -25,13 +25,7 @@ export default class paradex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name paradex#fetchMarkets

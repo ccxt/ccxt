@@ -1,5 +1,5 @@
 import Exchange from './abstract/kraken.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, Status } from './base/types.js';
 /**
  * @class kraken
  * @augments Exchange
@@ -25,13 +25,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name kraken#fetchCurrencies

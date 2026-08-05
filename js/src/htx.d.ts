@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, CurrencyInterface, DepositWithdrawFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, CurrencyInterface, DepositWithdrawFees, Status } from './base/types.js';
 /**
  * @class htx
  * @augments Exchange
@@ -18,13 +18,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: Str;
-        updated: number | Str;
-        eta: undefined;
-        url: Str;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name htx#fetchTime

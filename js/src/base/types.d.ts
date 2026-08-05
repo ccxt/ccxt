@@ -801,6 +801,17 @@ export interface MarginModification {
     'timestamp': Int;
     'datetime': Str;
 }
+export interface Status {
+    status: Str;
+    updated: Int;
+    eta: Int;
+    url: Str;
+    info: any;
+}
+export interface PositionModeInfo {
+    info: any;
+    hedged: Bool;
+}
 export interface Leverages extends Dictionary<Leverage> {
 }
 export interface LastPrices extends Dictionary<LastPrice> {

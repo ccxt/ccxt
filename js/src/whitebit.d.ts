@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, DepositWithdrawFees } from './base/types.js';
+import type { Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, DepositWithdrawFees, Status } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -177,13 +177,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: Str;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name whitebit#fetchTime

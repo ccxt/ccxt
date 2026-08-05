@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, NullableDict, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, NullableDict, int, Status } from './base/types.js';
 /**
  * @class bitfinex
  * @augments Exchange
@@ -18,13 +18,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: Str;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name bitfinex#fetchMarkets

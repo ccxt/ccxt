@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, List, NullableDict, CurrencyInterface, DepositWithdrawFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, List, NullableDict, CurrencyInterface, DepositWithdrawFees, Status, PositionModeInfo } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -109,13 +109,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: Str;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name binance#fetchTicker
@@ -1514,10 +1508,7 @@ export default class binance extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
-        info: any;
-        hedged: boolean | undefined;
-    }>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
     /**
      * @method
      * @name binance#fetchMarginModes

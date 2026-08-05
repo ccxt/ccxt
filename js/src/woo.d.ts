@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import type { ADL, Account, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
+import type { ADL, Account, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, Status } from './base/types.js';
 /**
  * @class woo
  * @augments Exchange
@@ -14,13 +14,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name woo#fetchTime
