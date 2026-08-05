@@ -1423,7 +1423,11 @@ class xt extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($since !== null) {
-            $request['startTime'] = $since;
+            // xt rounds startTime down to the candle boundary, which makes a mid-candle
+            // window start return one pre-$since candle, shifting paginated windows and
+            // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $request['startTime'] = (int) ceil($since / $duration) * $duration;
         }
         if ($limit !== null) {
             if ($market['spot']) {
