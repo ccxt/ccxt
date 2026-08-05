@@ -1551,7 +1551,7 @@ func (this *Toobit) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Toobit) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Toobit) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Toobit) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Toobit) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1596,7 +1596,7 @@ func (this *Toobit) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Toobit) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Toobit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Toobit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Toobit) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

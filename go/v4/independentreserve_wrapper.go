@@ -906,7 +906,7 @@ func (this *Independentreserve) FetchBalanceWs(params ...any) (Balances, error) 
 func (this *Independentreserve) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Independentreserve) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Independentreserve) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Independentreserve) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -951,7 +951,7 @@ func (this *Independentreserve) FetchTradesWs(symbol string, options ...FetchTra
 func (this *Independentreserve) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Independentreserve) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Independentreserve) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Independentreserve) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

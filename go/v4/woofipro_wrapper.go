@@ -1654,7 +1654,7 @@ func (this *Woofipro) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Woofipro) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Woofipro) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Woofipro) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Woofipro) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1699,7 +1699,7 @@ func (this *Woofipro) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Woofipro) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Woofipro) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Woofipro) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Woofipro) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

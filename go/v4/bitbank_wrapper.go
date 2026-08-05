@@ -915,7 +915,7 @@ func (this *Bitbank) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bitbank) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bitbank) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bitbank) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bitbank) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -960,7 +960,7 @@ func (this *Bitbank) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Bitbank) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bitbank) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bitbank) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bitbank) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

@@ -979,7 +979,7 @@ func (this *Hyperliquid) Withdraw(code string, amount float64, address string, o
 func (this *Hyperliquid) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
-func (this *Hyperliquid) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Hyperliquid) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Hyperliquid) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptions) ([]ccxt.OHLCV, error) {
@@ -991,7 +991,7 @@ func (this *Hyperliquid) FetchOrdersByStatusWs(status string, options ...ccxt.Fe
 func (this *Hyperliquid) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Hyperliquid) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Hyperliquid) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Hyperliquid) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {

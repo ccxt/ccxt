@@ -502,7 +502,7 @@ func (this *Okxus) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Okxus) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Okxus) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Okxus) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Okxus) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -547,7 +547,7 @@ func (this *Okxus) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Okxus) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Okxus) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Okxus) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Okxus) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

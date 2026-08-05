@@ -1348,7 +1348,7 @@ func (this *Grvt) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Grvt) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Grvt) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Grvt) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Grvt) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1393,7 +1393,7 @@ func (this *Grvt) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Grvt) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Grvt) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Grvt) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Grvt) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

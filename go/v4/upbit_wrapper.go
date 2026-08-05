@@ -1413,7 +1413,7 @@ func (this *Upbit) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Upbit) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Upbit) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Upbit) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Upbit) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1458,7 +1458,7 @@ func (this *Upbit) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Upbit) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Upbit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Upbit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Upbit) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

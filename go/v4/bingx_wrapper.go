@@ -2323,7 +2323,7 @@ func (this *Bingx) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bingx) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bingx) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bingx) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bingx) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2368,7 +2368,7 @@ func (this *Bingx) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Bingx) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bingx) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bingx) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bingx) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

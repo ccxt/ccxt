@@ -947,7 +947,7 @@ func (this *P2b) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *P2b) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *P2b) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *P2b) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *P2b) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -992,7 +992,7 @@ func (this *P2b) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) (
 func (this *P2b) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *P2b) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *P2b) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *P2b) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

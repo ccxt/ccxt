@@ -1329,7 +1329,7 @@ func (this *Alpaca) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Alpaca) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Alpaca) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Alpaca) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Alpaca) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1374,7 +1374,7 @@ func (this *Alpaca) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Alpaca) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Alpaca) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Alpaca) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Alpaca) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

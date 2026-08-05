@@ -1174,7 +1174,7 @@ func (this *Luno) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Luno) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Luno) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Luno) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Luno) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1219,7 +1219,7 @@ func (this *Luno) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Luno) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Luno) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Luno) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Luno) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

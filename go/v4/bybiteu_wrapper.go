@@ -502,7 +502,7 @@ func (this *Bybiteu) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bybiteu) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bybiteu) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bybiteu) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bybiteu) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -547,7 +547,7 @@ func (this *Bybiteu) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Bybiteu) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bybiteu) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bybiteu) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bybiteu) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

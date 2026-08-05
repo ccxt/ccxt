@@ -1664,7 +1664,7 @@ func (this *Kraken) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Kraken) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Kraken) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Kraken) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Kraken) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1709,7 +1709,7 @@ func (this *Kraken) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Kraken) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Kraken) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Kraken) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Kraken) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

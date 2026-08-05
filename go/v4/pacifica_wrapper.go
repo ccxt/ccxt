@@ -1750,7 +1750,7 @@ func (this *Pacifica) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Pacifica) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Pacifica) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Pacifica) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Pacifica) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1795,7 +1795,7 @@ func (this *Pacifica) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Pacifica) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Pacifica) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Pacifica) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Pacifica) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

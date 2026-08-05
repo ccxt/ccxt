@@ -1439,7 +1439,7 @@ func (this *Gate) CreateTriggerOrderWs(symbol string, typeVar string, side strin
 func (this *Gate) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
-func (this *Gate) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Gate) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Gate) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {
@@ -1475,7 +1475,7 @@ func (this *Gate) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsOpti
 func (this *Gate) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Gate) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Gate) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Gate) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {

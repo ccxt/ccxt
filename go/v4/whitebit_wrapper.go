@@ -2135,7 +2135,7 @@ func (this *Whitebit) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Whitebit) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Whitebit) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Whitebit) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Whitebit) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2180,7 +2180,7 @@ func (this *Whitebit) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Whitebit) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Whitebit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Whitebit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Whitebit) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

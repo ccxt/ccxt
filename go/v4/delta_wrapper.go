@@ -1506,7 +1506,7 @@ func (this *Delta) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Delta) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Delta) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Delta) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Delta) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1551,7 +1551,7 @@ func (this *Delta) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Delta) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Delta) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Delta) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Delta) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

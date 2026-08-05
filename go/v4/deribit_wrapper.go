@@ -1717,7 +1717,7 @@ func (this *Deribit) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Deribit) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Deribit) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Deribit) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Deribit) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1762,7 +1762,7 @@ func (this *Deribit) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Deribit) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Deribit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Deribit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Deribit) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

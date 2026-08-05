@@ -1559,7 +1559,7 @@ func (this *Cryptocom) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Cryptocom) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Cryptocom) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Cryptocom) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Cryptocom) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1604,7 +1604,7 @@ func (this *Cryptocom) FetchTradesWs(symbol string, options ...FetchTradesWsOpti
 func (this *Cryptocom) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Cryptocom) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Cryptocom) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Cryptocom) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

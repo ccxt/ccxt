@@ -987,7 +987,7 @@ func (this *Bitvavo) WithdrawWs(code string, amount float64, address string, opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bitvavo) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 
 	opts := ccxt.FetchWithdrawalsWsOptionsStruct{}
 
@@ -1016,9 +1016,9 @@ func (this *Bitvavo) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOption
 	}
 	res := <-this.Core.FetchWithdrawalsWs(code, since, limit, params)
 	if ccxt.IsError(res) {
-		return map[string]any{}, ccxt.CreateReturnError(res)
+		return nil, ccxt.CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return ccxt.NewTransactionArray(res), nil
 }
 
 /**
@@ -1078,7 +1078,7 @@ func (this *Bitvavo) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bitvavo) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 
 	opts := ccxt.FetchDepositsWsOptionsStruct{}
 
@@ -1107,9 +1107,9 @@ func (this *Bitvavo) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (ma
 	}
 	res := <-this.Core.FetchDepositsWs(code, since, limit, params)
 	if ccxt.IsError(res) {
-		return map[string]any{}, ccxt.CreateReturnError(res)
+		return nil, ccxt.CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return ccxt.NewTransactionArray(res), nil
 }
 
 /**

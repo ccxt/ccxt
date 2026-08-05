@@ -1371,7 +1371,7 @@ func (this *Dydx) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Dydx) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Dydx) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Dydx) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Dydx) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1416,7 +1416,7 @@ func (this *Dydx) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Dydx) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Dydx) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Dydx) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Dydx) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

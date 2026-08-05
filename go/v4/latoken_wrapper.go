@@ -1124,7 +1124,7 @@ func (this *Latoken) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Latoken) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Latoken) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Latoken) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Latoken) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1169,7 +1169,7 @@ func (this *Latoken) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Latoken) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Latoken) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Latoken) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Latoken) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
