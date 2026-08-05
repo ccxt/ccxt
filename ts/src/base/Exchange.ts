@@ -3808,7 +3808,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchFundingRates() is not supported yet');
     }
 
-    async watchFundingRatesForSymbols (symbols: string[], params = {}): Promise<{}> {
+    async watchFundingRatesForSymbols (symbols: string[], params = {}): Promise<FundingRates> {
         return await this.watchFundingRates (symbols, params);
     }
 
@@ -7079,11 +7079,11 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
-    async fetchDepositsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
+    async fetchDepositsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         throw new NotSupported (this.id + ' fetchDepositsWs() is not supported yet');
     }
 
-    async fetchWithdrawalsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
+    async fetchWithdrawalsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         throw new NotSupported (this.id + ' fetchWithdrawalsWs() is not supported yet');
     }
 
@@ -8856,7 +8856,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchOHLCV () is not supported yet');
     }
 
-    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<{}> {
+    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name exchange#withdrawWs
@@ -9986,7 +9986,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
     }
 
-    async cancelUnifiedOrder (order: Order, params = {}): Promise<{}> {
+    async cancelUnifiedOrder (order: Order, params = {}): Promise<Order> {
         return this.cancelOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
     }
 
