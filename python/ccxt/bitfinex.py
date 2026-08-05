@@ -896,11 +896,19 @@ class bitfinex(Exchange, ImplicitAPI):
         fee = self.safe_number(fees, 1)
         undl = self.safe_list(indexed['undl'], id, [])
         defaultCurrencyPrecision = self.safe_string(self.options, 'defaultCurrencyPrecision', '8')  # kept here for backward-compatibility
-        precision = self.handle_option('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision)
+        # numberToString instead of an `as string` cast: the describe() default for self option is the
+        # NUMBER 8(and users may override with numbers too), and the hard cast makes the C# build throw
+        # InvalidCastException Int32 to str here, breaking bitfinex loadMarkets entirely in C#
+        precision = self.number_to_string(self.handle_option('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision))
         networks = {}
         networkIds = self.safe_list(indexedNetworks, id, [])
         for j in range(0, len(networkIds)):
-            networkId = networkIds[j]
+            # safeString instead of raw access: the venue config payload can carry numeric
+            # network ids, and the raw value flows into toLowerCase and a dictionary key,
+            # which hard-casts to string in the C# build and throws InvalidCastException
+            networkId = self.safe_string(networkIds, j)
+            if networkId is None:
+                continue
             network = self.network_id_to_code(networkId, code)
             dwStatuses = self.safe_list(indexed['statuses'], networkId, [])
             if network is not None:
