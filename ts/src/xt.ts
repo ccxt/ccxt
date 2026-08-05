@@ -2766,7 +2766,7 @@ export default class xt extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
-        const trigger = this.safeBool (params, 'stop');
+        const trigger = this.safeBool2 (params, 'trigger', 'stop');
         const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
         const trailing = this.safeBool (params, 'trailing');
         if (trailing) {
@@ -2785,7 +2785,7 @@ export default class xt extends Exchange {
             request['orderId'] = id;
         }
         if (trigger) {
-            params = this.omit (params, 'stop');
+            params = this.omit (params, [ 'trigger', 'stop' ]);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanDetail (this.extend (request, params));
             } else {
