@@ -1449,7 +1449,7 @@ public class HtxCore extends HtxApi
                 {
                     status = ((Helpers.isTrue((Helpers.isEqual(statusRaw, "ok"))))) ? "ok" : "maintenance"; // 'ok', 'error'
                 }
-                updated = this.safeString(response, "ts");
+                updated = this.safeInteger(response, "ts");
             } else
             {
                 Object statusData = this.safeValue(response, "status", new java.util.HashMap<String, Object>() {{}});

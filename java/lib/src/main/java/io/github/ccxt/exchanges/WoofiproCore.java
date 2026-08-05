@@ -1779,17 +1779,11 @@ public class WoofiproCore extends WoofiproApi
         } else if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
         {
             Helpers.addElementToObject(request, "algo_type", "TP_SL");
-            Object outterOrder = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
-                put( "reduce_only", false );
-                put( "algo_type", "POSITIONAL_TP_SL" );
-                put( "child_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
-            }};
-            Object childOrders = Helpers.GetValue(outterOrder, "child_orders");
+            Object childOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object closeSide = ((Helpers.isTrue((Helpers.isEqual(orderSide, "BUY"))))) ? "SELL" : "BUY";
             if (Helpers.isTrue(hasStopLoss))
             {
-                Object stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
+                Object stopLossPrice = this.safeValue2(stopLoss, "triggerPrice", "price", stopLoss);
                 Object stopLossOrder = new java.util.HashMap<String, Object>() {{
                     put( "side", closeSide );
                     put( "algo_type", "TP_SL" );
@@ -1801,7 +1795,7 @@ public class WoofiproCore extends WoofiproApi
             }
             if (Helpers.isTrue(hasTakeProfit))
             {
-                Object takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
+                Object takeProfitPrice = this.safeValue2(takeProfit, "triggerPrice", "price", takeProfit);
                 Object takeProfitOrder = new java.util.HashMap<String, Object>() {{
                     put( "side", closeSide );
                     put( "algo_type", "TP_SL" );
@@ -1811,6 +1805,12 @@ public class WoofiproCore extends WoofiproApi
                 }};
                 ((java.util.List<Object>)childOrders).add(takeProfitOrder);
             }
+            Object outterOrder = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "reduce_only", false );
+                put( "algo_type", "POSITIONAL_TP_SL" );
+                put( "child_orders", childOrders );
+            }};
             Helpers.addElementToObject(request, "child_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList(outterOrder)));
         }
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit")));

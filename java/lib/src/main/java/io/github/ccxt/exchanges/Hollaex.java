@@ -466,6 +466,18 @@ public class Hollaex extends HollaexCore {
     }
 
     @SuppressWarnings("unchecked")
+    public Status fetchStatus(Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchStatus(params));
+        return new Status(res);
+    }
+    public Status fetchStatus() { return fetchStatus((Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Status> fetchStatusAsync(Map<String, Object> params) {
+        return super.fetchStatus(params).thenApply(Status::new);
+    }
+    public CompletableFuture<Status> fetchStatusAsync() { return fetchStatusAsync((Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
     public DepositWithdrawFees fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFees(codes, params));
         return new DepositWithdrawFees(res);
@@ -585,6 +597,16 @@ public class Hollaex extends HollaexCore {
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Conversion>> fetchConvertTradeHistoryAsync(String code, Long since, Long limit, Map<String, Object> params) {
         return super.fetchConvertTradeHistory(code, since, limit, params).thenApply(res -> toTypedList(res, Conversion::new));
+    }
+
+    @SuppressWarnings("unchecked")
+    public PositionModeInfo fetchPositionMode(String symbol, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchPositionMode(symbol, params));
+        return new PositionModeInfo(res);
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<PositionModeInfo> fetchPositionModeAsync(String symbol, Map<String, Object> params) {
+        return super.fetchPositionMode(symbol, params).thenApply(PositionModeInfo::new);
     }
 
     @SuppressWarnings("unchecked")
