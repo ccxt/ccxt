@@ -3400,13 +3400,15 @@ export default class xt extends Exchange {
         } else {
             orders = this.safeList (response, 'result', []);
         }
-        const parsedOrders = this.parseOrders (orders, market, since, limit);
         if (trailing) {
             // the track endpoints do not support a server-side state filter
-            // and return entries in every state, so filter locally
-            return this.filterBy (parsedOrders, 'status', status) as Order[];
+            // and return entries in every state, so filter by status first,
+            // otherwise since/limit could cut off matching rows
+            const parsedOrders = this.parseOrders (orders, market);
+            const filteredOrders = this.filterBy (parsedOrders, 'status', status) as Order[];
+            return this.filterBySinceLimit (filteredOrders, since, limit);
         }
-        return parsedOrders;
+        return this.parseOrders (orders, market, since, limit);
     }
 
     /**
