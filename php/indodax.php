@@ -1009,7 +1009,7 @@ class indodax extends Exchange {
             $priceIsRequired = true;
             $quantityIsRequired = true;
             if ($side === 'buy') {
-                $request[$market['quoteId']] = $this->parse_to_numeric(Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price)));
+                $request[$market['quoteId']] = $this->parse_to_numeric($this->cost_to_precision($symbol, Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price))));
             }
         }
         if ($priceIsRequired) {
