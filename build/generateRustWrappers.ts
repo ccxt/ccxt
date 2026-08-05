@@ -357,7 +357,12 @@ function mapParamType(p: any): ParamInfo | null {
 // (reading 'statements')`) on these. Mirrors `stripTsOverloadSignatures` in
 // build/rustTranspiler.ts.
 function stripTsOverloadSignatures(content: string): string {
-    const sigRe = /^ {4}(?:async )?[A-Za-z_][A-Za-z0-9_]*\s*\([^;{]*\)\s*:\s*[^;{]+;\s*$/;
+    // The `(?:<[^>(){};]*>\s*)?` clause matches an optional generic parameter
+    // list between the method name and `(` — required for generic overloads
+    // like `requireValue <T>(...)` and `handleOptionAndParams <T>(...)`, whose
+    // `<T>` would otherwise defeat the match and let the bodyless signature
+    // reach ast-transpiler (which crashes on the missing body).
+    const sigRe = /^ {4}(?:async )?[A-Za-z_][A-Za-z0-9_]*\s*(?:<[^>(){};]*>\s*)?\([^;{]*\)\s*:\s*[^;{]+;\s*$/;
     return content
         .split('\n')
         .filter((line) => {

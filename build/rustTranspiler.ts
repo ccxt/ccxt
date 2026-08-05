@@ -2348,8 +2348,14 @@ class RustTranspilerBuilder {
         const abstractSrc = fs.readFileSync(abstractPath, 'utf8');
         // Interface method decls look like:
         //   traderPrivateGetV2Clock (params?: {}): Promise<implicitReturnType>;
+        // The name class must allow `_`: versioned endpoints carry an
+        // underscore in the identifier (coinone's `v2_1PrivatePostOrderLimit`).
+        // Without it the capture stops at `v2`, the full snake name never
+        // enters `names`, the call isn't routed through call_method(), and its
+        // bare arg never gets folded into the `&[Value]` slice the generated
+        // `<id>_api.rs` method expects (E0308: expected `&[Value]`, found `Value`).
         const names = new Set<string>();
-        const re = /^\s*([a-zA-Z][a-zA-Z0-9]*)\s*\([^)]*\):\s*Promise/gm;
+        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise/gm;
         let m: RegExpExecArray | null;
         while ((m = re.exec(abstractSrc)) !== null) {
             names.add(toSnakeCase(m[1]));
@@ -6104,7 +6110,14 @@ impl std::ops::DerefMut for ${coreName} {
      * no `=`/`=>` (not a field or arrow-typed property).
      */
     stripTsOverloadSignatures(content: string): string {
-        const sigRe = /^ {4}(?:async )?[A-Za-z_][A-Za-z0-9_]*\s*\([^;{]*\)\s*:\s*[^;{]+;\s*$/;
+        // Match a single-line bodyless overload signature: 4-space indent, method
+        // name, an optional generic clause (`<T>`, `<T extends X>`), the param
+        // list, and a return type terminated by `;`. The `(?:<[^>(){};]*>\s*)?`
+        // clause is required for generic overloads like `requireValue <T>(...)`
+        // and `handleOptionAndParams <T>(...)` — without it the `<T>` between the
+        // name and `(` defeats the match and the bodyless signature reaches
+        // ast-transpiler, which crashes on `node.body.statements` (undefined).
+        const sigRe = /^ {4}(?:async )?[A-Za-z_][A-Za-z0-9_]*\s*(?:<[^>(){};]*>\s*)?\([^;{]*\)\s*:\s*[^;{]+;\s*$/;
         return content
             .split('\n')
             .filter((line) => {
