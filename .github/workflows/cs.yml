@@ -130,7 +130,12 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: cs-files
-        path: cs/
+        path: |
+          cs/
+          !cs/**/bin
+          !cs/**/bin/**
+          !cs/**/obj
+          !cs/**/obj/**
     - name: Get App bot user ID
       if: github.ref == 'refs/heads/master'
       id: app-user
@@ -187,6 +192,12 @@ jobs:
         with:
           name: cs-files
           path: cs/
+      - name: Clean cs intermediates
+        # the artifact must never carry compiled state from the self-hosted build runner:
+        # a foreign obj/ makes msbuild on this runner skip rebuilding the ccxt project
+        # reference and the tests compile dies with CS0006 (missing ccxt.dll), which has
+        # been failing every exchange in this lane
+        run: rm -rf cs/**/bin cs/**/obj cs/tests/bin cs/tests/obj cs/ccxt/bin cs/ccxt/obj
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v5
