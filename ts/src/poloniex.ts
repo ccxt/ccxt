@@ -3231,9 +3231,9 @@ export default class poloniex extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3257,7 +3257,19 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.swapPrivatePostV3PositionLeverage (this.extend (request, params));
-        return response;
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "Success",
+        //         "data": {
+        //             "symbol": "BTC_USDT_PERP",
+        //             "lever": 20,
+        //             "mgnMode": "CROSS",
+        //             "posSide": ""
+        //         }
+        //     }
+        //
+        return this.parseLeverage (response, market);
     }
 
     /**
@@ -3323,11 +3335,32 @@ export default class poloniex extends Exchange {
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        // fetchLeverage
+        //
+        //     {
+        //         "code": "200",
+        //         "msg": "",
+        //         "data": [ { "symbol": "BTC_USDT_PERP", "lever": "10", "mgnMode": "CROSS", "posSide": "BOTH" } ]
+        //     }
+        //
+        // setLeverage
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "Success",
+        //         "data": { "symbol": "BTC_USDT_PERP", "lever": 20, "mgnMode": "CROSS", "posSide": "" }
+        //     }
+        //
         let shortLeverage: Int = undefined;
         let longLeverage: Int = undefined;
         let marketId: Str = undefined;
         let marginMode: Str = undefined;
-        const data = this.safeList (leverage, 'data', []);
+        let data = this.safeList (leverage, 'data');
+        if (data === undefined) {
+            const dataDict = this.safeDict (leverage, 'data', {});
+            data = [ dataDict ];
+        }
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             marketId = this.safeString (entry, 'symbol');

@@ -3764,9 +3764,9 @@ export default class weex extends Exchange {
      * or to cross margin mode if marginMode is 'cross'
      * If marginMode is not provided and specific leverage parameters are not provided too
      * the leverage value will be applied to cross leverage
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3793,7 +3793,17 @@ export default class weex extends Exchange {
                 request['crossLeverage'] = leverage;
             }
         }
-        return await this.contractPrivatePostCapiV3AccountLeverage (this.extend (request, params));
+        const response = await this.contractPrivatePostCapiV3AccountLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "marginType": "ISOLATED",
+        //         "crossLeverage": "0",
+        //         "isolatedLongLeverage": "20",
+        //         "isolatedShortLeverage": "20"
+        //     }
+        //
+        return this.parseLeverage (response, market);
     }
 
     /**

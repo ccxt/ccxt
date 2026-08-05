@@ -5874,13 +5874,31 @@ export default class bingx extends Exchange {
         //         "availableShortVol": "4000000"
         //     }
         //
+        // setLeverage linear swap
+        //
+        //     {
+        //         "leverage": 10,
+        //         "symbol": "BTC-USDT",
+        //         "availableLongVol": "0.0000",
+        //         "availableShortVol": "0.0000"
+        //     }
+        //
         const marketId = this.safeString (leverage, 'symbol');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        let longLeverage = this.safeInteger (leverage, 'longLeverage');
+        let shortLeverage = this.safeInteger (leverage, 'shortLeverage');
+        if (longLeverage === undefined) {
+            longLeverage = leverageValue;
+        }
+        if (shortLeverage === undefined) {
+            shortLeverage = leverageValue;
+        }
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),
             'marginMode': undefined,
-            'longLeverage': this.safeInteger (leverage, 'longLeverage'),
-            'shortLeverage': this.safeInteger (leverage, 'shortLeverage'),
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
         } as Leverage;
     }
 
@@ -5894,9 +5912,9 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -5911,8 +5929,9 @@ export default class bingx extends Exchange {
             'side': side,
             'leverage': leverage,
         };
+        let response: Dict;
         if (market['inverse']) {
-            return await this.cswapV1PrivatePostTradeLeverage (this.extend (request, params));
+            response = await this.cswapV1PrivatePostTradeLeverage (this.extend (request, params));
             //
             //     {
             //         "code": 0,
@@ -5930,7 +5949,7 @@ export default class bingx extends Exchange {
             //     }
             //
         } else {
-            return await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
+            response = await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
             //
             //     {
             //         "code": 0,
@@ -5948,6 +5967,8 @@ export default class bingx extends Exchange {
             //     }
             //
         }
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**

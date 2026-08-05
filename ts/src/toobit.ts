@@ -3048,9 +3048,9 @@ export default class toobit extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3066,7 +3066,7 @@ export default class toobit extends Exchange {
         //
         // {"code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19"}
         //
-        return response;
+        return this.parseLeverage (response, market);
     }
 
     /**
@@ -3101,10 +3101,30 @@ export default class toobit extends Exchange {
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        const marketId = this.safeString (leverage, 'symbol');
+        //
+        // fetchLeverage
+        //
+        //     {
+        //         "symbol": "BTC-SWAP-USDT",
+        //         "leverage": "20",
+        //         "marginType": "CROSS"
+        //     }
+        //
+        // setLeverage
+        //
+        //     {
+        //         "code": 200,
+        //         "symbolId": "BTC-SWAP-USDT",
+        //         "leverage": "19"
+        //     }
+        //
+        const marketId = this.safeString2 (leverage, 'symbol', 'symbolId');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         const marginType = this.safeString (leverage, 'marginType');
-        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        let marginMode: Str = undefined;
+        if (marginType !== undefined) {
+            marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        }
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),

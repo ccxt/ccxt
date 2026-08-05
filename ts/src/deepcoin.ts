@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, Leverage, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -2679,9 +2679,9 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' (default is cross)
      * @param {string} [params.mrgPosition] 'merge' or 'split', default is merge
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2725,7 +2725,39 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        return response;
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#parseLeverage
+     * @ignore
+     * @description parses a leverage structure from an exchange response
+     * @param {object} leverage the raw leverage entry returned by the exchange
+     * @param {object} [market] the unified market this leverage belongs to
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        //     {
+        //         instId: 'ETH-USDT-SWAP',
+        //         lever: '2',
+        //         mgnMode: 'cross',
+        //         mrgPosition: 'merge',
+        //         sCode: '0',
+        //         sMsg: ''
+        //     }
+        //
+        const marketId = this.safeString (leverage, 'instId');
+        const leverageValue = this.safeInteger (leverage, 'lever');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverage, 'mgnMode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     /**
