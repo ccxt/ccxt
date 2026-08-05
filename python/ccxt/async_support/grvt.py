@@ -3122,7 +3122,19 @@ class grvt(Exchange, ImplicitAPI):
                 queryString = self.urlencode(query)
                 url += '?' + queryString
         elif method == 'POST':
-            body = self.json(params)
+            # the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+            # the private branch below sets its own headers, self covers the public market-data endpoints
+            headers = {
+                'Content-Type': 'application/json',
+            }
+            # an empty params dict must serialize empty json object, not an empty json array,
+            # php json_encode would produce [] here which the venue rejects with the same 1003 error
+            paramsKeys = list(params.keys())
+            paramsKeysLength = len(paramsKeys)
+            if paramsKeysLength == 0:
+                body = '{}'
+            else:
+                body = self.json(params)
         isPrivate = api.startswith('private')
         if isPrivate:
             self.check_required_credentials()
