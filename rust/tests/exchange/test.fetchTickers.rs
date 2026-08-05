@@ -46,7 +46,12 @@ async fn fetchTickersHelperTest(mut exchange: Value, mut skippedProperties: Valu
             testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let ex: Value = panic_to_value(_try_err);
-            crate::tests_support::shared::validate_ticker_exception_for_percentage(ex.clone(), exchange.clone(), ticker.clone()).await;
+            let mut ohlcv: Value = Value::Null;
+            let mut tickerSymbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
+            if is_true(&(!is_equal(&tickerSymbol, &Value::Null))) && is_true(&crate::tests_support::shared::ticker_exception_needs_ohlcv(ex.clone(), exchange.clone(), ticker.clone())) {
+                ohlcv = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![tickerSymbol.clone(), Value::Str("1d".to_string()), Value::Null, Value::Int(5)]).await;
+            }
+            crate::tests_support::shared::validate_ticker_exception_for_percentage(ex.clone(), exchange.clone(), ticker.clone(), ohlcv.clone());
         }
     }
     }

@@ -168,13 +168,13 @@ pub mod shared {
     pub fn remove_proxy_options<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn get_active_markets<E: AsValue>(_e: E) -> Value { Value::List(vec![]) }
 
-    /// Ported from `test.sharedMethods.validateTickerExceptionForPercentage`.
-    /// Runs on the exception path of a ticker test: tolerate a "percentage
-    /// too far" error only when the symbol looks newly-listed (not yet in
-    /// markets); otherwise rethrow. The live "first day of listing" OHLCV
-    /// compromise can't be reproduced offline, so those cases fall through
-    /// and re-raise (mirroring the TS `assert(eMessage === '', eMessage)`).
-    pub async fn validate_ticker_exception_for_percentage(ex: Value, exchange: Value, ticker: Value) {
+    /// Ported from `test.sharedMethods.tickerExceptionNeedsOhlcv`. Pure (no
+    /// awaits): tells the per-lane caller whether a "percentage too far" ticker
+    /// exception warrants an OHLCV probe — true only when the symbol is a known
+    /// market that advertises fetchOHLCV (`featureValue(symbol,'fetchOHLCV')`,
+    /// approximated here by `has['fetchOHLCV']`). The caller fetches the candles
+    /// and passes them to `validate_ticker_exception_for_percentage`.
+    pub fn ticker_exception_needs_ohlcv(ex: Value, exchange: Value, ticker: Value) -> bool {
         let e_message = match &ex {
             Value::Str(s) => s.clone(),
             other => ccxt::runtime::stringify_param(other),
@@ -183,8 +183,43 @@ pub mod shared {
             || e_message.contains("percentage should be below");
         if percentage_case {
             let symbol = ccxt::get_value(&ticker, &Value::Str("symbol".to_string()));
-            if !matches!(symbol, Value::Null) && !market_exists(&exchange, &symbol) {
-                return;
+            if !matches!(symbol, Value::Null) && market_exists(&exchange, &symbol) {
+                let has_ohlcv = ccxt::get_value(
+                    &ccxt::get_value(&exchange, &Value::Str("has".to_string())),
+                    &Value::Str("fetchOHLCV".to_string()),
+                );
+                if ccxt::runtime::is_true(&has_ohlcv) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    /// Ported from `test.sharedMethods.validateTickerExceptionForPercentage`.
+    /// Runs on the exception path of a ticker test: tolerate a "percentage
+    /// too far" error when the symbol looks newly-listed (not yet in markets)
+    /// or when the caller-supplied `ohlcv` shows only a single day of candles
+    /// (first day of listing); otherwise rethrow (mirroring the TS
+    /// `assert(eMessage === '', eMessage)`).
+    pub async fn validate_ticker_exception_for_percentage(ex: Value, exchange: Value, ticker: Value, ohlcv: Value) {
+        let e_message = match &ex {
+            Value::Str(s) => s.clone(),
+            other => ccxt::runtime::stringify_param(other),
+        };
+        let percentage_case = e_message.contains("percentage should be above")
+            || e_message.contains("percentage should be below");
+        if percentage_case {
+            let symbol = ccxt::get_value(&ticker, &Value::Str("symbol".to_string()));
+            if !matches!(symbol, Value::Null) {
+                if !market_exists(&exchange, &symbol) {
+                    return;
+                }
+                if let Value::Arr(candles) = &ohlcv {
+                    if candles.len() <= 1 {
+                        return;
+                    }
+                }
             }
         }
         if !e_message.is_empty() {
