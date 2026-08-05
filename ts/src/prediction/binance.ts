@@ -134,6 +134,9 @@ export default class binance extends Exchange {
                 'marketsPageLimit': 100,       // market/list page size
                 'maxFetchMarketsLimit': 200,   // cap on topics collected by an unscoped fetchMarkets
                 'loadAllOutcomes': false,
+                // the market listing is bounded (maxFetchEventsResults), so an unscoped
+                // fetchEvents pages a capped listing instead of requiring a search scope
+                'allowUnscopedFetchEvents': true,
                 // venue-specific fetchEvents scope params accepted by requireEventQuery in
                 // addition to the unified query/queries/tags/eventId/slug
                 'eventScopeParams': [ 'l1Category', 'l2Category' ],

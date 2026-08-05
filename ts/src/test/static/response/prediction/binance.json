@@ -2,6 +2,7 @@
     "exchange": "binance",
     "asyncOnly": true,
     "skipKeys": [
+        "datetime",
         "timestamp",
         "signature"
     ],
@@ -14,6 +15,295 @@
         }
     },
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "a non-primary (NO) outcome mirrors the quoted primary price as 1 - price",
+                "method": "fetchTicker",
+                "input": [
+                    "FED_RATE_HIKE_2026:NO"
+                ],
+                "httpResponse": {
+                    "marketId": 2860,
+                    "lastTradePrice": "0.99"
+                },
+                "parsedResponse": {
+                    "timestamp": 1785932793880,
+                    "datetime": "2026-08-05T12:26:33.880Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "open": null,
+                    "close": 0.01,
+                    "last": 0.01,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "openInterest": null,
+                    "outcome": "FED_RATE_HIKE_2026:NO",
+                    "outcomeId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                    "label": "NO",
+                    "market": "FED_RATE_HIKE_2026",
+                    "event": null,
+                    "info": {
+                        "marketId": 2860,
+                        "lastTradePrice": "0.99"
+                    }
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "an OPENING limit order parses as an open prediction order",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "FED_RATE_HIKE_2026:NO"
+                ],
+                "httpResponse": {
+                    "total": 1,
+                    "offset": 0,
+                    "limit": 20,
+                    "orders": [
+                        {
+                            "orderId": "26080500001781874577",
+                            "vendorOrderId": "0x1234abcd",
+                            "vendor": "PREDICT_FUN",
+                            "marketTopicId": 176,
+                            "slug": "fed-rate-hike-in-2026",
+                            "marketTopicTitle": "Fed rate hike in 2026?",
+                            "marketId": 2860,
+                            "marketTitle": "Fed rate hike in 2026?",
+                            "outcome": "No",
+                            "outcomeIndex": 1,
+                            "status": "OPENING",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "createTime": 1785930900000,
+                            "modifyTime": 1785930900000,
+                            "makerUsdtAmount": "10",
+                            "makerShareQty": "1000",
+                            "filledUsdtAmount": "0.00",
+                            "filledShareQty": "0.00",
+                            "fillPercentage": "0.00",
+                            "price": "0.01",
+                            "marketProviderFee": "0",
+                            "networkFee": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "26080500001781874577",
+                        "clientOrderId": null,
+                        "timestamp": 1785930900000,
+                        "datetime": "2026-08-05T11:55:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": 0.01,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": "FED_RATE_HIKE_2026:NO",
+                        "outcomeId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                        "label": "NO",
+                        "market": "FED_RATE_HIKE_2026",
+                        "event": null,
+                        "info": {
+                            "orderId": "26080500001781874577",
+                            "vendorOrderId": "0x1234abcd",
+                            "vendor": "PREDICT_FUN",
+                            "marketTopicId": 176,
+                            "slug": "fed-rate-hike-in-2026",
+                            "marketTopicTitle": "Fed rate hike in 2026?",
+                            "marketId": 2860,
+                            "marketTitle": "Fed rate hike in 2026?",
+                            "outcome": "No",
+                            "outcomeIndex": 1,
+                            "status": "OPENING",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "createTime": 1785930900000,
+                            "modifyTime": 1785930900000,
+                            "makerUsdtAmount": "10",
+                            "makerShareQty": "1000",
+                            "filledUsdtAmount": "0.00",
+                            "filledShareQty": "0.00",
+                            "fillPercentage": "0.00",
+                            "price": "0.01",
+                            "marketProviderFee": "0",
+                            "networkFee": "0"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "a spot outcome position parses shares, entry price and pnl",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "summary": {},
+                    "counts": {},
+                    "positions": [
+                        {
+                            "positionId": 1001,
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "tokenId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                            "collateralSymbol": "USDT",
+                            "topicType": "FLAT",
+                            "marketTopicId": 176,
+                            "marketId": 2860,
+                            "marketTopicTitle": "Fed rate hike in 2026?",
+                            "marketTitle": "Fed rate hike in 2026?",
+                            "outcomeName": "No",
+                            "outcomeIndex": 1,
+                            "shares": "31.73",
+                            "avgPrice": "0.30549898",
+                            "totalCost": "9.69",
+                            "value": "22.53",
+                            "currentPrice": "0.71",
+                            "toWin": "31.73",
+                            "positionStatus": "OPEN",
+                            "canClaim": false,
+                            "endDate": 1798761600000,
+                            "unrealizedPnl": "2.07",
+                            "unrealizedPnlPercent": "21.43",
+                            "realizedPnl": "0.00",
+                            "pnl": "2.07",
+                            "createdTime": 1785930000000,
+                            "updatedTime": 1785931000000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1001",
+                        "timestamp": 1785930000000,
+                        "datetime": "2026-08-05T11:40:00.000Z",
+                        "contracts": null,
+                        "contractSize": 31.73,
+                        "side": "long",
+                        "notional": 22.53,
+                        "unrealizedPnl": 2.07,
+                        "realizedPnl": 0,
+                        "collateral": 9.69,
+                        "entryPrice": 0.30549898,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "percentage": 21.43,
+                        "resolved": null,
+                        "won": null,
+                        "settleFraction": null,
+                        "payout": null,
+                        "outcome": "FED_RATE_HIKE_2026:NO",
+                        "outcomeId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                        "label": null,
+                        "market": "FED_RATE_HIKE_2026",
+                        "event": null,
+                        "info": {
+                            "positionId": 1001,
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "tokenId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                            "collateralSymbol": "USDT",
+                            "topicType": "FLAT",
+                            "marketTopicId": 176,
+                            "marketId": 2860,
+                            "marketTopicTitle": "Fed rate hike in 2026?",
+                            "marketTitle": "Fed rate hike in 2026?",
+                            "outcomeName": "No",
+                            "outcomeIndex": 1,
+                            "shares": "31.73",
+                            "avgPrice": "0.30549898",
+                            "totalCost": "9.69",
+                            "value": "22.53",
+                            "currentPrice": "0.71",
+                            "toWin": "31.73",
+                            "positionStatus": "OPEN",
+                            "canClaim": false,
+                            "endDate": 1798761600000,
+                            "unrealizedPnl": "2.07",
+                            "unrealizedPnlPercent": "21.43",
+                            "realizedPnl": "0.00",
+                            "pnl": "2.07",
+                            "createdTime": 1785930000000,
+                            "updatedTime": 1785931000000
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "the requested payment-option account type maps to the USDT balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "CeDeFi"
+                    }
+                ],
+                "httpResponse": {
+                    "items": [
+                        {
+                            "accountType": "CeDeFi",
+                            "availableBalanceDisplay": "59.37",
+                            "enabled": true
+                        },
+                        {
+                            "accountType": "SPOT",
+                            "availableBalanceDisplay": "0.0",
+                            "enabled": true
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "items": [
+                            {
+                                "accountType": "CeDeFi",
+                                "availableBalanceDisplay": "59.37",
+                                "enabled": true
+                            },
+                            {
+                                "accountType": "SPOT",
+                                "availableBalanceDisplay": "0.0",
+                                "enabled": true
+                            }
+                        ]
+                    },
+                    "USDT": {
+                        "free": 59.37,
+                        "used": null,
+                        "total": null
+                    },
+                    "free": {
+                        "USDT": 59.37
+                    },
+                    "used": {
+                        "USDT": null
+                    },
+                    "total": {
+                        "USDT": null
+                    }
+                }
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetch OB by outcome label",
@@ -494,7 +784,7 @@
                         "cost": 10,
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0.181"
+                            "cost": 0.181
                         },
                         "realizedPnl": null,
                         "outcome": "FED_DECISION_JULY_181_50_BPS_HIKE:YES",

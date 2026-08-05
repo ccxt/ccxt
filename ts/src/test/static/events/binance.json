@@ -1160,5 +1160,289 @@
             "endDate": 1785369600000,
             "status": "REGISTERED"
         }
+    },
+    {
+        "id": "2562",
+        "slug": "fed-rate-hike-in-2026",
+        "event": "FED_RATE_HIKE_2026",
+        "title": "Fed rate hike in 2026?",
+        "description": null,
+        "markets": [
+            {
+                "id": "2860",
+                "market": "FED_RATE_HIKE_2026",
+                "base": "USDT",
+                "quote": "USDT",
+                "settle": null,
+                "baseId": "2860",
+                "quoteId": "USDT",
+                "settleId": null,
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 1796774400000,
+                "expiryDatetime": "2026-12-09T00:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "taker": 0.02,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1.5,
+                        "max": null
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "33343582238002842848411378798219742328595215582814312977455608183150188680006",
+                        "outcomeId": "33343582238002842848411378798219742328595215582814312977455608183150188680006",
+                        "outcome": "FED_RATE_HIKE_2026:YES",
+                        "market": "FED_RATE_HIKE_2026",
+                        "label": "YES",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "33343582238002842848411378798219742328595215582814312977455608183150188680006",
+                            "marketId": "2860",
+                            "marketTopicId": "2562",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-rate-hike-in-2026",
+                            "marketTitle": "Fed rate hike in 2026?",
+                            "outcomeLabel": "YES",
+                            "index": "0",
+                            "price": "0.629",
+                            "chance": "0.6245",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0x206f22b3f32d51897ffe043c1460678a9ae4bd0bea4a1b347bb93a14fc4fee3a",
+                            "externalId": "1882"
+                        }
+                    },
+                    {
+                        "id": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                        "outcomeId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                        "outcome": "FED_RATE_HIKE_2026:NO",
+                        "market": "FED_RATE_HIKE_2026",
+                        "label": "NO",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                            "marketId": "2860",
+                            "marketTopicId": "2562",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-rate-hike-in-2026",
+                            "marketTitle": "Fed rate hike in 2026?",
+                            "outcomeLabel": "NO",
+                            "index": "1",
+                            "price": "0.371",
+                            "chance": "0.3755",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0x206f22b3f32d51897ffe043c1460678a9ae4bd0bea4a1b347bb93a14fc4fee3a",
+                            "externalId": "1882"
+                        }
+                    }
+                ],
+                "info": {
+                    "marketId": 2860,
+                    "externalId": "1882",
+                    "title": "Fed rate hike in 2026?",
+                    "question": "Fed rate hike in 2026?",
+                    "description": "This market will resolve to “Yes” if the upper bound of the target federal funds rate is increased at any point between January 1, 2026 and the Fed's December 2026 meeting, currently scheduled for December 8-9, 2026. Otherwise, this market will resolve to “No”.\n\nThis market may not resolve to \"No\" until the Fed has released its rate change decision following its December meeting.\n\nThe primary resolution source for this market will be the official website of the Federal Reserve (https://www.federalreserve.gov/monetarypolicy/openmarket.htm), however a consensus of credible reporting may also be used.",
+                    "conditionId": "0x206f22b3f32d51897ffe043c1460678a9ae4bd0bea4a1b347bb93a14fc4fee3a",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782993449330_dwp6z1s9ylh1zq02ox3570rl9l7p3go8_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782993449330_dwp6z1s9ylh1zq02ox3570rl9l7p3go8_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782993449330_dwp6z1s9ylh1zq02ox3570rl9l7p3go8_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782993449330_dwp6z1s9ylh1zq02ox3570rl9l7p3go8_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "43631.64",
+                    "liquidity": 183418.73,
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.629",
+                            "chance": "0.6245",
+                            "index": 0,
+                            "tokenId": "33343582238002842848411378798219742328595215582814312977455608183150188680006"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.371",
+                            "chance": "0.3755",
+                            "index": 1,
+                            "tokenId": "29193512788410035077160621265655953593161318406168685671276005587233150887532"
+                        }
+                    ],
+                    "marketTopicId": "2562",
+                    "vendor": "PREDICT_FUN",
+                    "slug": "fed-rate-hike-in-2026",
+                    "volume": 43631.64
+                },
+                "created": 1767886657867
+            }
+        ],
+        "active": true,
+        "volume": 43631.64,
+        "liquidity": 183418.73,
+        "url": null,
+        "image": "https://static.predict.fun/fed-rate-hike-in-2026",
+        "created": 1767886657867,
+        "createdDatetime": "2026-01-08T15:37:37.867Z",
+        "end": 1796774400000,
+        "endDatetime": "2026-12-09T00:00:00.000Z",
+        "category": null,
+        "resolved": null,
+        "info": {
+            "marketTopicId": 2562,
+            "vendor": "PREDICT_FUN",
+            "chainId": "56",
+            "slug": "fed-rate-hike-in-2026",
+            "title": "Fed rate hike in 2026?",
+            "question": "Fed rate hike in 2026?",
+            "imageUrl": "https://static.predict.fun/fed-rate-hike-in-2026",
+            "thumbnailPaths": [
+                {
+                    "size": "800x800",
+                    "path": "file-center/web3-prediction/S3/topic/1782993455875_beuw7fz8ta4l286b8qafynkz9227vrg1_NEF_q80_800x800"
+                },
+                {
+                    "size": "400x400",
+                    "path": "file-center/web3-prediction/S3/topic/1782993455875_beuw7fz8ta4l286b8qafynkz9227vrg1_NEF_q80_400x400"
+                },
+                {
+                    "size": "96x96",
+                    "path": "file-center/web3-prediction/S3/topic/1782993455875_beuw7fz8ta4l286b8qafynkz9227vrg1_NEF_q80_96x96"
+                },
+                {
+                    "size": "64x64",
+                    "path": "file-center/web3-prediction/S3/topic/1782993455875_beuw7fz8ta4l286b8qafynkz9227vrg1_NEF_q80_64x64"
+                }
+            ],
+            "topicType": "FLAT",
+            "participantCount": 4113,
+            "collateral": "USDT",
+            "feeRateBps": 200,
+            "slippageBps": 1000,
+            "isYieldBearing": true,
+            "exchangeContractAddress": "0x6bEb5a40C032AFc305961162d8204CDA16DECFa5",
+            "markets": [
+                {
+                    "marketId": 2860,
+                    "externalId": "1882",
+                    "title": "Fed rate hike in 2026?",
+                    "question": "Fed rate hike in 2026?",
+                    "description": "This market will resolve to “Yes” if the upper bound of the target federal funds rate is increased at any point between January 1, 2026 and the Fed's December 2026 meeting, currently scheduled for December 8-9, 2026. Otherwise, this market will resolve to “No”.\n\nThis market may not resolve to \"No\" until the Fed has released its rate change decision following its December meeting.\n\nThe primary resolution source for this market will be the official website of the Federal Reserve (https://www.federalreserve.gov/monetarypolicy/openmarket.htm), however a consensus of credible reporting may also be used.",
+                    "conditionId": "0x206f22b3f32d51897ffe043c1460678a9ae4bd0bea4a1b347bb93a14fc4fee3a",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782993449330_dwp6z1s9ylh1zq02ox3570rl9l7p3go8_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782993449330_dwp6z1s9ylh1zq02ox3570rl9l7p3go8_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782993449330_dwp6z1s9ylh1zq02ox3570rl9l7p3go8_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782993449330_dwp6z1s9ylh1zq02ox3570rl9l7p3go8_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "43631.64",
+                    "liquidity": "183418.73",
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.629",
+                            "chance": "0.6245",
+                            "index": 0,
+                            "tokenId": "33343582238002842848411378798219742328595215582814312977455608183150188680006"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.371",
+                            "chance": "0.3755",
+                            "index": 1,
+                            "tokenId": "29193512788410035077160621265655953593161318406168685671276005587233150887532"
+                        }
+                    ]
+                }
+            ],
+            "tradeVolume": "43631.64",
+            "liquidity": "183418.73",
+            "publishedAt": 1767886657867,
+            "startDate": 1767884234030,
+            "endDate": 1796774400000,
+            "status": "REGISTERED"
+        }
     }
 ]
