@@ -20,10 +20,10 @@ public partial class bitbns
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// retrieves data on all markets for bitbns

@@ -167,10 +167,10 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -2895,10 +2895,10 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
-    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PositionModeInfo> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionMode(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PositionModeInfo(res);
     }
     /// <summary>
     /// fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned

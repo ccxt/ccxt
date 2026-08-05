@@ -1044,10 +1044,10 @@ public partial class bydfi
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
-    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PositionModeInfo> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionMode(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PositionModeInfo(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
