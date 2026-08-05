@@ -755,7 +755,8 @@ export default class gate extends Exchange {
                     'ADA': 'ADA', // CARDANO
                     'AVAXC': 'AVAX_C',
                     'NEAR': 'NEAR',
-                    'ARBONE': 'ARBEVM',
+                    'ARBITRUM': 'ARBEVM',
+                    'OPTIMISM': 'OP',
                     'BASE': 'BASEEVM',
                     'SUI': 'SUI',
                     'CRONOS': 'CRO',
@@ -769,6 +770,12 @@ export default class gate extends Exchange {
                     // SEI: ['SEI', 'SEIEVM']
                     'LINEA': 'LINEAETH',
                     'BLAST': 'BLASTETH',
+                    'MODE': 'MODEETH',
+                    'MANTA': 'MANTAETH',
+                    'MTL': 'MTLETH',
+                    'KAVA': 'KAVAEVM',
+                    'KLAY': 'KAIA',
+                    'SONIC': 'S',
                     'XLM': 'XLM',
                     'RSK': 'RBTC',
                     'TON': 'TON',
@@ -777,7 +784,7 @@ export default class gate extends Exchange {
                     'CELO': 'CELO',
                     'HBAR': 'HBAR',
                     // 'FTM': SONIC REBRAND, todo
-                    'ZKSERA': 'ZKSERA',
+                    'ZKSYNC': 'ZKSERA',
                     'KLAY': 'KLAY',
                     'EOS': 'EOS',
                     'ACA': 'ACA',
@@ -793,7 +800,7 @@ export default class gate extends Exchange {
                     'GATECHAIN': 'GTEVM',
                     'KUSAMA': 'KSMSM',
                     'OKC': 'OKT',
-                    'POLKADOT': 'DOTSM', // todo: DOT for main DOT
+                    'DOT': 'DOTSM', // todo: DOT for main DOT
                     'LUNA': 'LUNC',
                 },
                 'networksById': {
