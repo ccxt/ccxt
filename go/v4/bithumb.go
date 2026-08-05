@@ -1418,6 +1418,9 @@ func (this *BithumbCore) Sign(path any, optionalArgs ...any) any {
 		body = this.Urlencode(this.Extend(map[string]any{
 			"endpoint": endpoint,
 		}, query))
+		// bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+		var bodyParts any = Split(body, "%20")
+		body = Join(bodyParts, "+")
 		var nonce any = ToString(this.Nonce())
 		var auth any = Add(Add(Add(Add(endpoint, "//"+"0"), body), "//"+"0"), nonce) // eslint-disable-line quotes
 		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)

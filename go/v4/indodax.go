@@ -1200,7 +1200,7 @@ func (this *IndodaxCore) CreateOrder(symbol any, typeVar any, side any, amount a
 			priceIsRequired = true
 			quantityIsRequired = true
 			if IsTrue(IsEqual(side, "buy")) {
-				AddElementToObject(request, GetValue(market, "quoteId"), this.ParseToNumeric(Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))))
+				AddElementToObject(request, GetValue(market, "quoteId"), this.ParseToNumeric(this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))))
 			}
 		}
 		if IsTrue(priceIsRequired) {
