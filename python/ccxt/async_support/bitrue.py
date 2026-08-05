@@ -1687,7 +1687,12 @@ class bitrue(Exchange, ImplicitAPI):
         tickers = {}
         for i in range(0, len(data)):
             ticker = self.safe_dict(data, i, {})
-            market = self.safe_market(self.safe_string(ticker, 'symbol'))
+            # skip entries without a symbol: an None market id would become a null
+            # dictionary key here, which crashes fetchTickers in the C# build
+            marketId = self.safe_string(ticker, 'symbol')
+            if marketId is None:
+                continue
+            market = self.safe_market(marketId)
             tickers[(market['id'])] = ticker
         return self.parse_tickers(tickers, symbols)
 
