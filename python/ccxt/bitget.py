@@ -7739,7 +7739,10 @@ class bitget(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
+    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Any = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/api'
@@ -7754,16 +7757,24 @@ class bitget(Exchange, ImplicitAPI):
                 url = url + '?' + self.urlencode(query)
         if signed:
             self.check_required_credentials()
-            timestamp = str(self.milliseconds())
+            timestamp = str(self.nonce())
             auth = timestamp + method + payload
             if method == 'POST':
                 body = self.json(params)
                 auth += body
             else:
                 if params:
-                    queryInner = '?' + self.urlencode(self.keysort(params))
+                    sortedParams = self.keysort(params)
+                    queryInner = '?' + self.urlencode(sortedParams, True)
+                    # check  #21169 pr
+                    if queryInner.find('%24') > -1:
+                        queryInner = queryInner.replace('%24', '$')
                     url += queryInner
-                    auth += queryInner
+                    # bitget signs the raw(non-percent-encoded) query string, so the
+                    # signature must use the decoded values(e.g. non-ascii market ids).
+                    # sort explicitly(True) so the signed order matches the url order in Go,
+                    # where map iteration is not ordered(keysort's order is otherwise lost)
+                    auth += '?' + self.rawencode(sortedParams, True)
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             broker = self.safe_string(self.options, 'broker')
             headers = {
@@ -7775,6 +7786,14 @@ class bitget(Exchange, ImplicitAPI):
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
+        sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
+        if sandboxMode and (path != 'v2/public/time') and (path != 'v3/market/current-fund-rate'):
+            # https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
+            if headers is None:
+                headers = {}
+            productType = self.safe_string(params, 'productType')
+            if (productType != 'SCOIN-FUTURES') and (productType != 'SUSDT-FUTURES') and (productType != 'SUSDC-FUTURES'):
+                headers['PAPTRADING'] = '1'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_api_account_details(self):
