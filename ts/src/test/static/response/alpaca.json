@@ -1456,7 +1456,8 @@
                         "internal": false,
                         "fee": null
                     }
-                ]
+                ],
+                "disabledGO": true
             }
         ],
         "fetchBalance": [
