@@ -3118,7 +3118,7 @@ export default class xt extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3447,7 +3447,7 @@ export default class xt extends Exchange {
      * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
@@ -3469,7 +3469,7 @@ export default class xt extends Exchange {
      * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
@@ -3491,7 +3491,7 @@ export default class xt extends Exchange {
      * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('canceled', symbol, since, limit, params);
     }
 
