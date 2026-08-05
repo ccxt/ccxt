@@ -577,7 +577,7 @@ class bitfinex extends Exchange {
         return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *

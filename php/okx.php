@@ -1542,7 +1542,7 @@ class okx extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -7125,7 +7125,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration

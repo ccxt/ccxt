@@ -452,7 +452,7 @@ class woofipro extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API

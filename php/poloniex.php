@@ -3346,7 +3346,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetches the position mode, $hedged or one way, $hedged is set identically for all linear markets or all inverse markets
          *

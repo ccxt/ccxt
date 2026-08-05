@@ -2448,7 +2448,7 @@ class bydfi extends Exchange {
         return $this->privatePostV1FapiUserDataPositionSideDual($this->extend($request, $params));
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, $hedged or one way, $hedged for bydfi is set identically for all markets with same settle currency
          *

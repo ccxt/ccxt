@@ -1051,7 +1051,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -5834,7 +5834,7 @@ class mexc extends Exchange {
         return $response;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
          *

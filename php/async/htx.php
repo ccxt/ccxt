@@ -1314,7 +1314,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -1526,7 +1526,7 @@ class htx extends Exchange {
                 } else {
                     $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
                 }
-                $updated = $this->safe_string($response, 'ts');
+                $updated = $this->safe_integer($response, 'ts');
             } else {
                 $statusData = $this->safe_value($response, 'status', array());
                 $statusRaw = $this->safe_string($statusData, 'indicator');
