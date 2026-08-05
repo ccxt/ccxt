@@ -115,7 +115,12 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $close = $exchange->omit_zero($exchange->safe_string($entry, 'close'));
     if (!(is_array($skipped_properties) && array_key_exists('compareQuoteVolumeBaseVolume', $skipped_properties))) {
         // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-        if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null)) {
+        // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+        // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+        // far above baseVolume * high), so the spot-derived invariant does not hold there,
+        // see https://github.com/ccxt/ccxt/pull/29563
+        $is_inverse = $exchange->safe_bool($market, 'inverse', false);
+        if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null) && !$is_inverse) {
             $base_low = Precise::string_mul($base_volume, $low);
             $base_high = Precise::string_mul($base_volume, $high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
