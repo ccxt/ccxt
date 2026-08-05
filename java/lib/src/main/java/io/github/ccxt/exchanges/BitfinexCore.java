@@ -1698,12 +1698,12 @@ public class BitfinexCore extends BitfinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "timeframe", BitfinexCore.this.safeString(BitfinexCore.this.timeframes, timeframe, timeframe) );
-                put( "sort", 1 );
                 put( "limit", finalLimit );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start", since);
+                Helpers.addElementToObject(request, "sort", 1);
             }
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);

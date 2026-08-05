@@ -1493,7 +1493,8 @@ public class PhemexCore extends PhemexApi
                     } else
                     {
                         // when 'to' is defined since is mandatory
-                        since = Helpers.subtract((Helpers.divide(until, 100)), (Helpers.multiply(maxLimit, candleDuration)));
+                        since = Helpers.subtract(Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(until, 1000)))), (Helpers.multiply(maxLimit, candleDuration)));
+                        Helpers.addElementToObject(request, "from", since);
                     }
                     if (Helpers.isTrue(!Helpers.isEqual(until, null)))
                     {
