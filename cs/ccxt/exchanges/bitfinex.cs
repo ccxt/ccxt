@@ -851,12 +851,22 @@ public partial class bitfinex : Exchange
         object fee = this.safeNumber(fees, 1);
         object undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
         object defaultCurrencyPrecision = this.safeString(this.options, "defaultCurrencyPrecision", "8"); // kept here for backward-compatibility
-        object precision = ((string)this.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
+        // numberToString instead of an `as string` cast: the describe() default for this option is the
+        // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
+        // InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
+        object precision = this.numberToString(this.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
         object networks = new Dictionary<string, object>() {};
         object networkIds = this.safeList(indexedNetworks, id, new List<object>() {});
         for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
         {
-            object networkId = getValue(networkIds, j);
+            // safeString instead of raw access: the venue config payload can carry numeric
+            // network ids, and the raw value flows into toLowerCase and a dictionary key,
+            // which hard-casts to string in the C# build and throws InvalidCastException
+            object networkId = this.safeString(networkIds, j);
+            if (isTrue(isEqual(networkId, null)))
+            {
+                continue;
+            }
             object network = this.networkIdToCode(networkId, code);
             object dwStatuses = this.safeList(getValue(indexed, "statuses"), networkId, new List<object>() {});
             if (isTrue(!isEqual(network, null)))
