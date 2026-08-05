@@ -910,6 +910,20 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "swap ohlcv with until only",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=BTCUSDT&resolution=60&limit=2000&from=1718517717&to=1718637717",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  2000,
+                  {
+                    "until": 1718637717000
+                  }
+                ]
             }
         ],
         "fetchFundingRateHistory": [
