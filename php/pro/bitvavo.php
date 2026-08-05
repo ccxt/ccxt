@@ -1376,7 +1376,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($trades, $messageHash);
     }
 
-    public function withdraw_ws(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    public function withdraw_ws(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1417,7 +1417,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($withdraw, $messageHash);
     }
 
-    public function fetch_withdrawals_ws(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_withdrawals_ws(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              *
@@ -1488,7 +1488,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function fetch_deposits_ws(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_deposits_ws(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              *

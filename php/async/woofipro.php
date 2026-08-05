@@ -2413,7 +2413,7 @@ class woofipro extends Exchange {
             $code = $this->safe_currency_code($this->safe_string($balance, 'token'));
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
-            $account['frozen'] = $this->safe_string($balance, 'frozen');
+            $account['used'] = $this->safe_string($balance, 'frozen');
             if ($code !== null) {
                 $result[$code] = $account;
             }
