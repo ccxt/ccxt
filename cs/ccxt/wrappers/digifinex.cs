@@ -29,10 +29,10 @@ public partial class digifinex
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchMarketsV2(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarketsV2(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketsV2(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<Dictionary<string, object>>> FetchMarketsV1(Dictionary<string, object> parameters = null)
     {
