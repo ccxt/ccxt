@@ -1008,7 +1008,7 @@ export default class xt extends Exchange {
         return this.arrayConcat (spotMarkets, swapAndFutureMarkets);
     }
 
-    async fetchSpotMarkets (params: any = {}) {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const response = await this.publicSpotGetSymbol (params);
         //
         //     {
@@ -2976,7 +2976,7 @@ export default class xt extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

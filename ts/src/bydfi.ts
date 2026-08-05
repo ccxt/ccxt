@@ -1636,7 +1636,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
         }
@@ -2812,7 +2812,7 @@ export default class bydfi extends Exchange {
         return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
     }
 
-    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any) {
+    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
         const methodName = (type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a code argument');

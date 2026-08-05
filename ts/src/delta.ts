@@ -3200,7 +3200,7 @@ export default class delta extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {

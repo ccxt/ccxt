@@ -1916,7 +1916,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

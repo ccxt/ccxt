@@ -962,7 +962,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async fetchSwapMarkets (params: any) {
+    async fetchSwapMarkets (params: any): Promise<Market[]> {
         const response = await this.swapV2PublicGetQuoteContracts (params);
         //
         //    {

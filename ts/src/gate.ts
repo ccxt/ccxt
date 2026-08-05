@@ -1341,7 +1341,7 @@ export default class gate extends Exchange {
         return this.arraysConcat (results);
     }
 
-    async fetchSpotMarkets (params: any = {}) {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const marginPromise = this.publicMarginGetCurrencyPairs (params);
         const spotMarketsPromise = this.publicSpotGetCurrencyPairs (params);
         const [ marginResponse, spotMarketsResponse ] = await Promise.all ([ marginPromise, spotMarketsPromise ]);
@@ -1459,7 +1459,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchSwapMarkets (params: any = {}) {
+    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
         const result: any[] = [];
         let swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
         if (this.options['sandboxMode']) {
@@ -1479,7 +1479,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchFutureMarkets (params = {}) {
+    async fetchFutureMarkets (params = {}): Promise<Market[]> {
         if (this.options['sandboxMode']) {
             return []; // right now sandbox does not have inverse swaps
         }
@@ -1686,7 +1686,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchOptionMarkets (params: any = {}) {
+    async fetchOptionMarkets (params: any = {}): Promise<Market[]> {
         const result: any[] = [];
         const underlyings = await this.fetchOptionUnderlyings ();
         for (let i = 0; i < underlyings.length; i++) {
@@ -5499,7 +5499,7 @@ export default class gate extends Exchange {
         return [ request, finalParams ];
     }
 
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7364,7 +7364,7 @@ export default class gate extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
@@ -7855,7 +7855,7 @@ export default class gate extends Exchange {
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
-    async fetchUnderlyingAssets (params = {}) {
+    async fetchUnderlyingAssets (params = {}): Promise<string[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7877,7 +7877,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        const underlyings: Str[] = [];
+        const underlyings: string[] = [];
         for (let i = 0; i < response.length; i++) {
             const underlying = response[i];
             const name = this.safeString (underlying, 'name');

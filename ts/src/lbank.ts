@@ -536,7 +536,7 @@ export default class lbank extends Exchange {
         return this.arrayConcat (resolvedMarkets[0], resolvedMarkets[1]);
     }
 
-    async fetchSpotMarkets (params: any = {}) {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const response = await this.spotPublicGetAccuracy (params);
         //
         //     {
@@ -617,7 +617,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    async fetchSwapMarkets (params: any = {}) {
+    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
         const request: Dict = {
             'productGroup': 'SwapU',
         };

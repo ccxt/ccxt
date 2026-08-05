@@ -4153,7 +4153,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

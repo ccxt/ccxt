@@ -2538,7 +2538,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params = {}) {
+    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
