@@ -4,7 +4,7 @@ import Exchange from '../abstract/prediction/sxbet.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired, BadRequest, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
 import type { Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -242,6 +242,27 @@ export default class sxbet extends Exchange {
     /**
      * @ignore
      * @method
+     * @name sxbet#filterRawMarketsByFixture
+     * @description keeps only the raw markets belonging to one fixture — the venue's own sportXeventId filter on /markets/active is unreliable (observed live returning every fixture), so the scope is enforced client-side
+     * @param {object[]} rawMarkets the raw sx.bet market objects
+     * @param {string} sportXeventId the fixture id to keep
+     * @returns {object[]} the raw markets of that fixture only
+     */
+    filterRawMarketsByFixture (rawMarkets: any[], sportXeventId: string): any[] {
+        const result: any[] = [];
+        const rawMarketsLength = rawMarkets.length;
+        for (let i = 0; i < rawMarketsLength; i++) {
+            const raw = rawMarkets[i];
+            if (this.safeString (raw, 'sportXeventId') === sportXeventId) {
+                result.push (raw);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name sxbet#parseSxbetMarket
      * @description converts a single raw sx.bet market into one ccxt market with its two sides as outcomes
      * @param {object} raw the raw sx.bet market object
@@ -391,6 +412,9 @@ export default class sxbet extends Exchange {
         let rawMarkets: any[];
         if (eventId !== undefined) {
             rawMarkets = await this.fetchRawActiveMarkets (this.extend ({ 'sportXeventId': eventId }, rest), undefined);
+            // the venue's sportXeventId filter on /markets/active is unreliable (observed live
+            // returning every fixture) — enforce the scope client-side
+            rawMarkets = this.filterRawMarketsByFixture (rawMarkets, eventId);
         } else if (leagueId !== undefined) {
             rawMarkets = await this.fetchRawActiveMarkets (this.extend ({ 'leagueId': leagueId }, rest), undefined);
         } else if (sportId !== undefined) {
@@ -457,7 +481,13 @@ export default class sxbet extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
-        const rawMarkets = await this.fetchRawActiveMarkets (this.extend ({ 'sportXeventId': id }, params), undefined);
+        let rawMarkets = await this.fetchRawActiveMarkets (this.extend ({ 'sportXeventId': id }, params), undefined);
+        // enforce the fixture scope client-side — see filterRawMarketsByFixture
+        rawMarkets = this.filterRawMarketsByFixture (rawMarkets, id);
+        const rawMarketsLength = rawMarkets.length;
+        if (rawMarketsLength === 0) {
+            throw new BadSymbol (this.id + ' fetchEvent() could not find an active fixture ' + id);
+        }
         const event: any = this.parseSxbetEvent (id, rawMarkets);
         this.indexEventOutcomes (event);
         return event;
