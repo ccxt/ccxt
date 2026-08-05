@@ -1466,7 +1466,11 @@ public class XtCore extends XtApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Helpers.addElementToObject(request, "startTime", since);
+                // xt rounds startTime down to the candle boundary, which makes a mid-candle
+                // window start return one pre-since candle, shifting paginated windows and
+                // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
+                Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                Helpers.addElementToObject(request, "startTime", Helpers.multiply(Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(since, duration)))), duration));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {

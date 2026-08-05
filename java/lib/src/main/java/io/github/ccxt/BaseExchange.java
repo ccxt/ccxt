@@ -11750,15 +11750,25 @@ public Object describe()
             Object time = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             maxEntriesPerRequest = this.requireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
             Object step = Helpers.multiply(time, maxEntriesPerRequest);
+            Object until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
             Object currentSince = Helpers.subtract(Helpers.subtract(current, (Helpers.multiply(maxCalls, step))), 1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                currentSince = Helpers.mathMax(currentSince, since);
+                if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+                {
+                    // the recent-window floor below would jump past a fully-historical [ since, until ]
+                    // range and return an empty result - requiredCalls is validated against maxCalls
+                    // further down, so anchoring at since directly is safe here,
+                    // see https://github.com/ccxt/ccxt/issues/26252
+                    currentSince = since;
+                } else
+                {
+                    currentSince = Helpers.mathMax(currentSince, since);
+                }
             } else
             {
                 currentSince = Helpers.mathMax(currentSince, 1241440531000L); // avoid timestamps older than 2009
             }
-            Object until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(since, null)))
