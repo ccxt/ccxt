@@ -1092,7 +1092,7 @@ func (this *Bitopro) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Bitopro) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitopro) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitopro) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitopro) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1110,7 +1110,7 @@ func (this *Bitopro) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bitopro) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitopro) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitopro) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitopro) FetchTime(params ...any) (int64, error) {

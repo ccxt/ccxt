@@ -602,7 +602,7 @@ func (this *Coinspot) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Coinspot) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinspot) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinspot) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinspot) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -620,7 +620,7 @@ func (this *Coinspot) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Coinspot) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinspot) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinspot) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinspot) FetchTime(params ...any) (int64, error) {

@@ -765,7 +765,7 @@ func (this *Independentreserve) FetchPosition(symbol string, options ...FetchPos
 func (this *Independentreserve) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Independentreserve) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Independentreserve) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Independentreserve) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -783,7 +783,7 @@ func (this *Independentreserve) FetchPositionsRisk(options ...FetchPositionsRisk
 func (this *Independentreserve) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Independentreserve) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Independentreserve) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Independentreserve) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {

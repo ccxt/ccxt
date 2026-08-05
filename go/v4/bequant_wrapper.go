@@ -349,7 +349,7 @@ func (this *Bequant) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Bequant) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bequant) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bequant) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bequant) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -367,7 +367,7 @@ func (this *Bequant) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bequant) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bequant) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bequant) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bequant) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

@@ -1287,7 +1287,7 @@ func (this *Krakenfutures) FetchPosition(symbol string, options ...FetchPosition
 func (this *Krakenfutures) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Krakenfutures) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Krakenfutures) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Krakenfutures) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1302,7 +1302,7 @@ func (this *Krakenfutures) FetchPositionsRisk(options ...FetchPositionsRiskOptio
 func (this *Krakenfutures) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Krakenfutures) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Krakenfutures) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Krakenfutures) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

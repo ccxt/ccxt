@@ -15055,7 +15055,7 @@ final Object finalMarket = market;
         Object currencyId = this.safeString(info, "asset");
         Object timestamp = this.safeInteger(info, "updateTime");
         return new java.util.HashMap<String, Object>() {{
-            put( "id", BinanceCore.this.safeInteger(info, "tranId") );
+            put( "id", BinanceCore.this.safeString(info, "tranId") );
             put( "currency", BinanceCore.this.safeCurrencyCode(currencyId, currency) );
             put( "amount", BinanceCore.this.safeNumber(info, "amount") );
             put( "symbol", null );

@@ -882,7 +882,7 @@ func (this *Indodax) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Indodax) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Indodax) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Indodax) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Indodax) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -900,7 +900,7 @@ func (this *Indodax) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Indodax) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Indodax) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Indodax) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Indodax) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

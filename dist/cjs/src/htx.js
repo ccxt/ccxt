@@ -1521,7 +1521,7 @@ class htx extends htx$1["default"] {
             else {
                 status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
             }
-            updated = this.safeString(response, 'ts');
+            updated = this.safeInteger(response, 'ts');
         }
         else {
             const statusData = this.safeValue(response, 'status', {});

@@ -2487,7 +2487,7 @@ func (this *Bitget) FetchPaymentMethods(params ...any) (map[string]any, error) {
 func (this *Bitget) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitget) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitget) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitget) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -2499,7 +2499,7 @@ func (this *Bitget) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Bitget) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitget) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitget) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitget) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {

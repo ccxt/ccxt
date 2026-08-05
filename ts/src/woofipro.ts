@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict, FeeString } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict, FeeString, Status } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -459,7 +459,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.v1PublicGetPublicSystemInfo (params);
         //
         //     {
@@ -1591,16 +1591,10 @@ export default class woofipro extends Exchange {
             request['algo_type'] = 'STOP';
         } else if (hasStopLoss || hasTakeProfit) {
             request['algo_type'] = 'TP_SL';
-            const outterOrder: Dict = {
-                'symbol': market['id'],
-                'reduce_only': false,
-                'algo_type': 'POSITIONAL_TP_SL',
-                'child_orders': [],
-            };
-            const childOrders = outterOrder['child_orders'];
+            const childOrders = [];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (hasStopLoss) {
-                const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
+                const stopLossPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'price', stopLoss);
                 const stopLossOrder: Dict = {
                     'side': closeSide,
                     'algo_type': 'TP_SL',
@@ -1611,7 +1605,7 @@ export default class woofipro extends Exchange {
                 childOrders.push (stopLossOrder);
             }
             if (hasTakeProfit) {
-                const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
+                const takeProfitPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'price', takeProfit);
                 const takeProfitOrder: Dict = {
                     'side': closeSide,
                     'algo_type': 'TP_SL',
@@ -1621,6 +1615,12 @@ export default class woofipro extends Exchange {
                 };
                 childOrders.push (takeProfitOrder);
             }
+            const outterOrder: Dict = {
+                'symbol': market['id'],
+                'reduce_only': false,
+                'algo_type': 'POSITIONAL_TP_SL',
+                'child_orders': childOrders,
+            };
             request['child_orders'] = [ outterOrder ];
         }
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);

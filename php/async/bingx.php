@@ -974,7 +974,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function fetch_swap_markets(mixed $params) {
+    public function fetch_swap_markets(mixed $params): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->swapV2PublicGetQuoteContracts($params));
             //
@@ -6602,7 +6602,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets

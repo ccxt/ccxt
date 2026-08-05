@@ -1017,7 +1017,7 @@ func (this *Tokocrypto) FetchPosition(symbol string, options ...FetchPositionOpt
 func (this *Tokocrypto) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Tokocrypto) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Tokocrypto) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Tokocrypto) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1035,7 +1035,7 @@ func (this *Tokocrypto) FetchPositionsRisk(options ...FetchPositionsRiskOptions)
 func (this *Tokocrypto) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Tokocrypto) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Tokocrypto) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Tokocrypto) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

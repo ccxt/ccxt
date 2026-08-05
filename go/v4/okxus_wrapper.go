@@ -349,7 +349,7 @@ func (this *Okxus) FetchPosition(symbol string, options ...FetchPositionOptions)
 func (this *Okxus) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Okxus) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Okxus) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Okxus) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -367,7 +367,7 @@ func (this *Okxus) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 func (this *Okxus) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Okxus) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Okxus) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Okxus) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

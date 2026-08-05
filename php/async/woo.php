@@ -647,7 +647,7 @@ class woo extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -3339,7 +3339,7 @@ class woo extends Exchange {
         })();
     }
 
-    public function repay_margin(string $code, float $amount, ?string $symbol = null, $params = array()) {
+    public function repay_margin(string $code, float $amount, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * repay borrowed margin and interest
@@ -3379,7 +3379,7 @@ class woo extends Exchange {
         })();
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "success" => true,

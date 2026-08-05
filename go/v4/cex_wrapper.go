@@ -1063,7 +1063,7 @@ func (this *Cex) FetchPosition(symbol string, options ...FetchPositionOptions) (
 func (this *Cex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Cex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Cex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Cex) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1081,7 +1081,7 @@ func (this *Cex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Pos
 func (this *Cex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Cex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Cex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Cex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

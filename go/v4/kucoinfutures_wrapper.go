@@ -408,7 +408,7 @@ func (this *Kucoinfutures) FetchPosition(symbol string, options ...FetchPosition
 func (this *Kucoinfutures) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Kucoinfutures) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Kucoinfutures) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Kucoinfutures) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -426,7 +426,7 @@ func (this *Kucoinfutures) FetchPositionsRisk(options ...FetchPositionsRiskOptio
 func (this *Kucoinfutures) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Kucoinfutures) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Kucoinfutures) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Kucoinfutures) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

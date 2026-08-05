@@ -1446,7 +1446,7 @@ func (this *HtxCore) FetchStatus(optionalArgs ...any) <-chan any {
 			} else {
 				status = Ternary(IsTrue((IsEqual(statusRaw, "ok"))), "ok", "maintenance") // 'ok', 'error'
 			}
-			updated = this.SafeString(response, "ts")
+			updated = this.SafeInteger(response, "ts")
 		} else {
 			var statusData any = this.SafeValue(response, "status", map[string]any{})
 			var statusRaw any = this.SafeString(statusData, "indicator")

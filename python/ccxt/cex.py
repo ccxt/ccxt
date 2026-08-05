@@ -1088,7 +1088,7 @@ class cex(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an open order made by the user
 
@@ -1107,7 +1107,7 @@ class cex(Exchange, ImplicitAPI):
         result = self.fetch_open_orders(symbol, None, None, self.extend(request, params))
         return result[0]
 
-    def fetch_closed_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_closed_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an closed order made by the user
 

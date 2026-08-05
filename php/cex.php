@@ -1131,7 +1131,7 @@ class cex extends Exchange {
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an open order made by the user
          *
@@ -1152,7 +1152,7 @@ class cex extends Exchange {
         return $result[0];
     }
 
-    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an closed order made by the user
          *

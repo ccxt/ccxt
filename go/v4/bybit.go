@@ -9056,7 +9056,7 @@ func (this *BybitCore) ParseMarginLoan(info any, optionalArgs ...any) any {
 	return map[string]any{
 		"id":        nil,
 		"currency":  this.SafeCurrencyCode(currencyId, currency),
-		"amount":    this.SafeString(info, "amount"),
+		"amount":    this.SafeNumber(info, "amount"),
 		"symbol":    nil,
 		"timestamp": nil,
 		"datetime":  nil,

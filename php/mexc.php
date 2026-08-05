@@ -1051,7 +1051,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1244,7 +1244,7 @@ class mexc extends Exchange {
         return $this->array_concat($spotMarket, $swapMarket);
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): array {
         /**
          * @ignore
          * retrieves $data on all spot markets for mexc
@@ -1371,7 +1371,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_swap_markets($params = array()) {
+    public function fetch_swap_markets($params = array()): array {
         /**
          * @ignore
          * retrieves $data on all swap markets for mexc
@@ -3027,7 +3027,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()) {
+    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -5834,7 +5834,7 @@ class mexc extends Exchange {
         return $response;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
          *

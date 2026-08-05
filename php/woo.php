@@ -638,7 +638,7 @@ class woo extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -3260,7 +3260,7 @@ class woo extends Exchange {
         return $this->parse_transaction($transactionData, $currency);
     }
 
-    public function repay_margin(string $code, float $amount, ?string $symbol = null, $params = array()) {
+    public function repay_margin(string $code, float $amount, ?string $symbol = null, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -3298,7 +3298,7 @@ class woo extends Exchange {
         ));
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "success" => true,

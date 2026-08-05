@@ -1477,7 +1477,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_transactions_helper(mixed $types, mixed $code, mixed $since, mixed $limit, mixed $params) {
+    public function fetch_transactions_helper(mixed $types, mixed $code, mixed $since, mixed $limit, mixed $params): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2219,7 +2219,7 @@ class hitbtc extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open order by it's $id
          *

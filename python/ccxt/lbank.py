@@ -536,7 +536,7 @@ class lbank(Exchange, ImplicitAPI):
         resolvedMarkets = marketsPromises
         return self.array_concat(resolvedMarkets[0], resolvedMarkets[1])
 
-    def fetch_spot_markets(self, params: Any = {}):
+    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         response = self.spotPublicGetAccuracy(params)
         #
         #     {
@@ -615,7 +615,7 @@ class lbank(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_swap_markets(self, params: Any = {}):
+    def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         request = {
             'productGroup': 'SwapU',
         }

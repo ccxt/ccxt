@@ -1033,7 +1033,7 @@ func (this *Luno) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Luno) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Luno) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Luno) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Luno) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1051,7 +1051,7 @@ func (this *Luno) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Luno) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Luno) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Luno) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Luno) FetchTime(params ...any) (int64, error) {

@@ -349,7 +349,7 @@ func (this *Fmfwio) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Fmfwio) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Fmfwio) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Fmfwio) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Fmfwio) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -367,7 +367,7 @@ func (this *Fmfwio) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Fmfwio) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Fmfwio) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Fmfwio) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Fmfwio) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

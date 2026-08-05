@@ -5406,9 +5406,9 @@ final Object finalI = i;
         Object marketId = this.safeString(info, "market");
         Object timestamp = this.safeInteger(info, "expired_at");
         return new java.util.HashMap<String, Object>() {{
-            put( "id", CoinexCore.this.safeInteger(info, "borrow_id") );
+            put( "id", CoinexCore.this.safeString(info, "borrow_id") );
             put( "currency", CoinexCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", CoinexCore.this.safeString(info, "borrow_amount") );
+            put( "amount", CoinexCore.this.safeNumber(info, "borrow_amount") );
             put( "symbol", CoinexCore.this.safeSymbol(marketId, null, null, "spot") );
             put( "timestamp", timestamp );
             put( "datetime", CoinexCore.this.iso8601(timestamp) );

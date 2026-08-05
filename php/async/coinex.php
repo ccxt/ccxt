@@ -925,7 +925,7 @@ class coinex extends Exchange {
         })();
     }
 
-    public function fetch_contract_markets(mixed $params) {
+    public function fetch_contract_markets(mixed $params): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->v2PublicGetFuturesMarket($params));
             //
@@ -3650,7 +3650,7 @@ class coinex extends Exchange {
         })();
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              * fetch a list of orders
@@ -5746,7 +5746,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -5799,7 +5799,7 @@ class coinex extends Exchange {
         })();
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -5840,7 +5840,7 @@ class coinex extends Exchange {
         })();
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "borrow_id" => 13784021,
@@ -5857,9 +5857,9 @@ class coinex extends Exchange {
         $marketId = $this->safe_string($info, 'market');
         $timestamp = $this->safe_integer($info, 'expired_at');
         return array(
-            'id' => $this->safe_integer($info, 'borrow_id'),
+            'id' => $this->safe_string($info, 'borrow_id'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
-            'amount' => $this->safe_string($info, 'borrow_amount'),
+            'amount' => $this->safe_number($info, 'borrow_amount'),
             'symbol' => $this->safe_symbol($marketId, null, null, 'spot'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

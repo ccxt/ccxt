@@ -1002,7 +1002,7 @@ class xt extends Exchange {
         return $this->array_concat($spotMarkets, $swapAndFutureMarkets);
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): array {
         $response = $this->publicSpotGetSymbol($params);
         //
         //     {
@@ -2970,7 +2970,7 @@ class xt extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

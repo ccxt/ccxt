@@ -427,7 +427,7 @@ func (this *BinanceCore) HandleLiquidation(client any, message any) {
 	//            "q":"1",                   // Original Quantity
 	//            "p":"9425.5",              // Price
 	//            "ap":"9496.5",             // Average Price
-	//            "X":"FILLED",              // ccxt.Order Status
+	//            "X":"FILLED",              // ccxt.Order ccxt.Status
 	//            "l":"1",                   // ccxt.Order Last Filled Quantity
 	//            "z":"1",                   // ccxt.Order Filled Accumulated Quantity
 	//            "T": 1591154240949,        // ccxt.Order ccxt.Trade Time
@@ -474,7 +474,7 @@ func (this *BinanceCore) ParseWsLiquidation(liquidation any, optionalArgs ...any
 	//        "q":"1",                   // Original Quantity
 	//        "p":"9425.5",              // Price
 	//        "ap":"9496.5",             // Average Price
-	//        "X":"FILLED",              // ccxt.Order Status
+	//        "X":"FILLED",              // ccxt.Order ccxt.Status
 	//        "l":"1",                   // ccxt.Order Last Filled Quantity
 	//        "z":"1",                   // ccxt.Order Filled Accumulated Quantity
 	//        "T": 1591154240949,        // ccxt.Order ccxt.Trade Time
@@ -495,7 +495,7 @@ func (this *BinanceCore) ParseWsLiquidation(liquidation any, optionalArgs ...any
 	//        "ap":"0",                   // Average Price
 	//        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
 	//        "x":"NEW",                  // Execution Type
-	//        "X":"NEW",                  // ccxt.Order Status
+	//        "X":"NEW",                  // ccxt.Order ccxt.Status
 	//        "i":8886774,                // ccxt.Order Id
 	//        "l":"0",                    // ccxt.Order Last Filled Quantity
 	//        "z":"0",                    // ccxt.Order Filled Accumulated Quantity
@@ -663,7 +663,7 @@ func (this *BinanceCore) HandleMyLiquidation(client any, message any) {
 	//        "ap":"0",                   // Average Price
 	//        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
 	//        "x":"NEW",                  // Execution Type
-	//        "X":"NEW",                  // ccxt.Order Status
+	//        "X":"NEW",                  // ccxt.Order ccxt.Status
 	//        "i":8886774,                // ccxt.Order Id
 	//        "l":"0",                    // ccxt.Order Last Filled Quantity
 	//        "z":"0",                    // ccxt.Order Filled Accumulated Quantity
@@ -4904,7 +4904,7 @@ func (this *BinanceCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	//         "ap":"0",                      // Average Price
 	//         "sp":"7103.04",                // Stop Price. Please ignore with TRAILING_STOP_MARKET order
 	//         "x":"NEW",                     // Execution Type
-	//         "X":"NEW",                     // ccxt.Order Status
+	//         "X":"NEW",                     // ccxt.Order ccxt.Status
 	//         "i":8886774,                   // ccxt.Order Id
 	//         "l":"0",                       // ccxt.Order Last Filled Quantity
 	//         "z":"0",                       // ccxt.Order Filled Accumulated Quantity
@@ -5081,7 +5081,7 @@ func (this *BinanceCore) HandleOrderUpdate(client any, message any) {
 	//             "ap":"0",                       // Average Price
 	//             "sp":"7103.04",                 // Stop Price. Please ignore with TRAILING_STOP_MARKET order
 	//             "x":"NEW",                      // Execution Type
-	//             "X":"NEW",                      // ccxt.Order Status
+	//             "X":"NEW",                      // ccxt.Order ccxt.Status
 	//             "i":8886774,                    // ccxt.Order Id
 	//             "l":"0",                        // ccxt.Order Last Filled Quantity
 	//             "z":"0",                        // ccxt.Order Filled Accumulated Quantity

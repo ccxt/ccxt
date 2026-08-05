@@ -1225,7 +1225,7 @@ func (this *Bittrade) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Bittrade) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bittrade) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bittrade) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bittrade) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1243,7 +1243,7 @@ func (this *Bittrade) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Bittrade) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bittrade) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bittrade) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bittrade) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

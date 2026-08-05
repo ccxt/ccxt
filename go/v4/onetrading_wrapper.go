@@ -899,7 +899,7 @@ func (this *Onetrading) FetchPosition(symbol string, options ...FetchPositionOpt
 func (this *Onetrading) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Onetrading) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Onetrading) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Onetrading) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -917,7 +917,7 @@ func (this *Onetrading) FetchPositionsRisk(options ...FetchPositionsRiskOptions)
 func (this *Onetrading) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Onetrading) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Onetrading) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Onetrading) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {

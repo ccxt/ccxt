@@ -9883,7 +9883,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -9921,7 +9921,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -9963,7 +9963,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -10006,7 +10006,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -10045,7 +10045,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null, ?array $market = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null, ?array $market = null): array {
         //
         // isolated => borrowMargin
         //

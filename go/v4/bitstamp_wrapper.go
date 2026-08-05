@@ -1252,7 +1252,7 @@ func (this *Bitstamp) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Bitstamp) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitstamp) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitstamp) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitstamp) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1270,7 +1270,7 @@ func (this *Bitstamp) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Bitstamp) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitstamp) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitstamp) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitstamp) FetchTime(params ...any) (int64, error) {

@@ -1239,7 +1239,7 @@ func (this *Dydx) FetchPaymentMethods(params ...any) (map[string]any, error) {
 func (this *Dydx) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Dydx) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Dydx) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Dydx) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1254,7 +1254,7 @@ func (this *Dydx) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Dydx) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Dydx) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Dydx) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Dydx) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

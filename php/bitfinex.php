@@ -577,7 +577,7 @@ class bitfinex extends Exchange {
         return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -2115,7 +2115,7 @@ class bitfinex extends Exchange {
         return $this->parse_orders($ordersList, $market);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open $order by it's $id
          *
@@ -2138,7 +2138,7 @@ class bitfinex extends Exchange {
         return $order;
     }
 
-    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open $order by it's $id
          *

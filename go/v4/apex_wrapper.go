@@ -1124,7 +1124,7 @@ func (this *Apex) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Apex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Apex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Apex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Apex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1139,7 +1139,7 @@ func (this *Apex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Apex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Apex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Apex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Apex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

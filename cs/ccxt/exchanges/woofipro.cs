@@ -1671,17 +1671,11 @@ public partial class woofipro : Exchange
         } else if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
             ((IDictionary<string,object>)request)["algo_type"] = "TP_SL";
-            object outterOrder = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
-                { "reduce_only", false },
-                { "algo_type", "POSITIONAL_TP_SL" },
-                { "child_orders", new List<object>() {} },
-            };
-            object childOrders = getValue(outterOrder, "child_orders");
+            object childOrders = new List<object>() {};
             object closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
             if (isTrue(hasStopLoss))
             {
-                object stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
+                object stopLossPrice = this.safeValue2(stopLoss, "triggerPrice", "price", stopLoss);
                 object stopLossOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algo_type", "TP_SL" },
@@ -1693,7 +1687,7 @@ public partial class woofipro : Exchange
             }
             if (isTrue(hasTakeProfit))
             {
-                object takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
+                object takeProfitPrice = this.safeValue2(takeProfit, "triggerPrice", "price", takeProfit);
                 object takeProfitOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algo_type", "TP_SL" },
@@ -1703,6 +1697,12 @@ public partial class woofipro : Exchange
                 };
                 ((IList<object>)childOrders).Add(takeProfitOrder);
             }
+            object outterOrder = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "reduce_only", false },
+                { "algo_type", "POSITIONAL_TP_SL" },
+                { "child_orders", childOrders },
+            };
             ((IDictionary<string,object>)request)["child_orders"] = new List<object>() {outterOrder};
         }
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"});

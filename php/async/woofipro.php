@@ -452,7 +452,7 @@ class woofipro extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -1616,16 +1616,10 @@ class woofipro extends Exchange {
             $request['algo_type'] = 'STOP';
         } elseif ($hasStopLoss || $hasTakeProfit) {
             $request['algo_type'] = 'TP_SL';
-            $outterOrder = array(
-                'symbol' => $market['id'],
-                'reduce_only' => false,
-                'algo_type' => 'POSITIONAL_TP_SL',
-                'child_orders' => array(),
-            );
-            $childOrders = $outterOrder['child_orders'];
+            $childOrders = array();
             $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
             if ($hasStopLoss) {
-                $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
+                $stopLossPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
                 $stopLossOrder = array(
                     'side' => $closeSide,
                     'algo_type' => 'TP_SL',
@@ -1636,7 +1630,7 @@ class woofipro extends Exchange {
                 $childOrders[] = $stopLossOrder;
             }
             if ($hasTakeProfit) {
-                $takeProfitPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
+                $takeProfitPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
                 $takeProfitOrder = array(
                     'side' => $closeSide,
                     'algo_type' => 'TP_SL',
@@ -1646,6 +1640,12 @@ class woofipro extends Exchange {
                 );
                 $childOrders[] = $takeProfitOrder;
             }
+            $outterOrder = array(
+                'symbol' => $market['id'],
+                'reduce_only' => false,
+                'algo_type' => 'POSITIONAL_TP_SL',
+                'child_orders' => $childOrders,
+            );
             $request['child_orders'] = array( $outterOrder );
         }
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ));

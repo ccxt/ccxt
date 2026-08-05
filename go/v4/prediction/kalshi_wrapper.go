@@ -1196,7 +1196,7 @@ func (this *Kalshi) FetchPosition(outcome string, options ...ccxt.FetchPositionO
 	}
 	return ccxt.NewPredictionPosition(res), nil
 }
-func (this *Kalshi) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Kalshi) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Kalshi) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {

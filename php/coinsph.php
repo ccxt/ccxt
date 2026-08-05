@@ -702,7 +702,7 @@ class coinsph extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *

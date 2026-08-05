@@ -1618,7 +1618,7 @@ func (this *Pacifica) FetchPaymentMethods(params ...any) (map[string]any, error)
 func (this *Pacifica) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Pacifica) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Pacifica) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Pacifica) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1633,7 +1633,7 @@ func (this *Pacifica) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Pacifica) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Pacifica) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Pacifica) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Pacifica) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

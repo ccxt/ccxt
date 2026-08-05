@@ -1194,7 +1194,7 @@ func (this *Alpaca) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Alpaca) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Alpaca) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Alpaca) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Alpaca) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1212,7 +1212,7 @@ func (this *Alpaca) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Alpaca) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Alpaca) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Alpaca) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Alpaca) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

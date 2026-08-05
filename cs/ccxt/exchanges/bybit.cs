@@ -8500,7 +8500,7 @@ public partial class bybit : Exchange
         return new Dictionary<string, object>() {
             { "id", null },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "amount", this.safeString(info, "amount") },
+            { "amount", this.safeNumber(info, "amount") },
             { "symbol", null },
             { "timestamp", null },
             { "datetime", null },

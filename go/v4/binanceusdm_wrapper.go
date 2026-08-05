@@ -386,7 +386,7 @@ func (this *Binanceusdm) FetchPosition(symbol string, options ...FetchPositionOp
 func (this *Binanceusdm) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Binanceusdm) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Binanceusdm) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Binanceusdm) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -404,7 +404,7 @@ func (this *Binanceusdm) FetchPositionsRisk(options ...FetchPositionsRiskOptions
 func (this *Binanceusdm) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Binanceusdm) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Binanceusdm) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Binanceusdm) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

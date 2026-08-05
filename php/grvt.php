@@ -2447,7 +2447,7 @@ class grvt extends Exchange {
         return $this->parse_leverages($results, $symbols);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a $market
          *

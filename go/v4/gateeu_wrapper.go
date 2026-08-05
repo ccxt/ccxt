@@ -349,7 +349,7 @@ func (this *Gateeu) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Gateeu) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Gateeu) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Gateeu) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Gateeu) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -367,7 +367,7 @@ func (this *Gateeu) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Gateeu) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Gateeu) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Gateeu) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Gateeu) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

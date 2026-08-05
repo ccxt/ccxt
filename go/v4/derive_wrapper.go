@@ -1139,7 +1139,7 @@ func (this *Derive) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Derive) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Derive) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Derive) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Derive) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1154,7 +1154,7 @@ func (this *Derive) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Derive) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Derive) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Derive) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Derive) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {

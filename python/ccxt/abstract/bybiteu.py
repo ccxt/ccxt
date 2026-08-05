@@ -206,6 +206,7 @@ class ImplicitAPI:
     private_get_v5_affiliate_aff_user_list = privateGetV5AffiliateAffUserList = Entry('v5/affiliate/aff-user-list', 'private', 'GET', {'cost': 5})
     private_get_v5_affiliate_affiliate_sub_list = privateGetV5AffiliateAffiliateSubList = Entry('v5/affiliate/affiliate-sub-list', 'private', 'GET', {'cost': 5})
     private_get_v5_spot_lever_token_order_record = privateGetV5SpotLeverTokenOrderRecord = Entry('v5/spot-lever-token/order-record', 'private', 'GET', {'cost': 1})
+    private_get_v5_spot_margin_trade_flexible_available_inventory = privateGetV5SpotMarginTradeFlexibleAvailableInventory = Entry('v5/spot-margin-trade/flexible-available-inventory', 'private', 'GET', {'cost': 5})
     private_get_v5_spot_margin_trade_interest_rate_history = privateGetV5SpotMarginTradeInterestRateHistory = Entry('v5/spot-margin-trade/interest-rate-history', 'private', 'GET', {'cost': 5})
     private_get_v5_spot_margin_trade_state = privateGetV5SpotMarginTradeState = Entry('v5/spot-margin-trade/state', 'private', 'GET', {'cost': 5})
     private_get_v5_spot_margin_trade_max_borrowable = privateGetV5SpotMarginTradeMaxBorrowable = Entry('v5/spot-margin-trade/max-borrowable', 'private', 'GET', {'cost': 5})

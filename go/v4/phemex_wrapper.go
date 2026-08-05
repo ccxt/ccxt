@@ -1653,7 +1653,7 @@ func (this *Phemex) FetchPaymentMethods(params ...any) (map[string]any, error) {
 func (this *Phemex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 	return this.exchangeTyped.FetchPosition(symbol, options...)
 }
-func (this *Phemex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Phemex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Phemex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1668,7 +1668,7 @@ func (this *Phemex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Phemex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Phemex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Phemex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Phemex) FetchTime(params ...any) (int64, error) {
