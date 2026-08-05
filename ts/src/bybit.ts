@@ -426,6 +426,7 @@ export default class bybit extends Exchange {
                         // spot leverage token
                         'v5/spot-lever-token/order-record': 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
+                        'v5/spot-margin-trade/flexible-available-inventory': 5,
                         'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
                         'v5/spot-margin-trade/max-borrowable': 5,
