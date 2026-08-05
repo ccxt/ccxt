@@ -166,7 +166,7 @@ const {
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 // ----------------------------------------------------------------------------
 //
-const dynamicImport = async (moduleName: string) => await import (/* webpackIgnore: true */ moduleName);
+const dynamicImport = async (moduleName: string) => await import (/* webpackIgnore: true */ /* @vite-ignore */ moduleName); // both bundler hints needed so optional proxy-agent modules are not statically resolved, see https://github.com/ccxt/ccxt/issues/21555
 //
 // ----------------------------------------------------------------------------
 //
