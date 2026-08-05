@@ -974,22 +974,24 @@ class hitbtc extends Exchange {
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
-            $networks[$networkCode] = array(
-                'info' => $rawNetwork,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => null,
-                'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
-                'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
-                'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
-                'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $rawNetwork,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
+                    'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
+                    'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
+                    'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $entry,
@@ -1096,7 +1098,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -1105,7 +1107,9 @@ class hitbtc extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($entry, 'available');
             $account['used'] = $this->safe_string($entry, 'reserved');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1473,7 +1477,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_transactions_helper($types, $code, $since, $limit, $params) {
+    public function fetch_transactions_helper(mixed $types, mixed $code, mixed $since, mixed $limit, mixed $params) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1533,7 +1537,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'DEPOSIT' => 'deposit',
             'WITHDRAW' => 'withdrawal',
@@ -1716,7 +1720,7 @@ class hitbtc extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1910,7 +1914,7 @@ class hitbtc extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // Spot and Swap
         //
@@ -2269,7 +2273,7 @@ class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#cancel-futures-orders
          * @see https://api.hitbtc.com/#cancel-all-margin-orders
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for canceling margin orders
@@ -2430,7 +2434,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(array $market, string $marketType, string $type, string $side, float $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_order_request(array $market, string $marketType, string $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
         $isLimit = ($type === 'limit');
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -2700,7 +2704,7 @@ class hitbtc extends Exchange {
         return $this->parse_margin_modes($config, $symbols, 'symbol');
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         return array(
             'info' => $marginMode,
@@ -2772,7 +2776,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function convert_currency_network(string $code, $amount, $fromNetwork, $toNetwork, $params) {
+    public function convert_currency_network(string $code, mixed $amount, mixed $fromNetwork, mixed $toNetwork, mixed $params) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3004,7 +3008,7 @@ class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#get-futures-margin-accounts
          * @see https://api.hitbtc.com/#get-all-margin-accounts
          *
-         * @param {string[]|null} $symbols not used by hitbtc fetchPositions ()
+         * @param {string[]|null} $symbols not used by fetchPositions ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
          * @param {bool} [$params->margin] true for fetching spot-margin positions
@@ -3230,7 +3234,7 @@ class hitbtc extends Exchange {
         ));
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3384,7 +3388,7 @@ class hitbtc extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3424,7 +3428,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3680,7 +3684,7 @@ class hitbtc extends Exchange {
         return $this->privatePutFuturesAccountIsolatedSymbol($this->extend($request, $params));
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -3722,7 +3726,7 @@ class hitbtc extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
         //         "full_name" => "ConnectWealth",
@@ -3784,7 +3788,7 @@ class hitbtc extends Exchange {
          *
          * @param {string} $symbol unified ccxt $market $symbol
          * @param {string} $side 'buy' or 'sell'
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->symbol] *required* unified $market $symbol
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
          * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~
@@ -3818,7 +3822,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array(), mixed $defaultValue = null): array {
+    public function handle_margin_mode_and_params(string $methodName, $params = array(), mixed $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -3837,7 +3841,7 @@ class hitbtc extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         //     {
         //       "error" => {
@@ -3866,7 +3870,7 @@ class hitbtc extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . '/' . $implodedPath;

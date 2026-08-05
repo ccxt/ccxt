@@ -625,7 +625,7 @@ export default class ndax extends Exchange {
         const sessionStatus = this.safeString(market, 'SessionStatus');
         const isDisable = this.safeValue(market, 'IsDisable');
         const sessionRunning = (sessionStatus === 'Running');
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -673,7 +673,7 @@ export default class ndax extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8, countOrIdKey = 2) {
         let nonce = undefined;
@@ -725,7 +725,7 @@ export default class ndax extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
@@ -1250,12 +1250,14 @@ export default class ndax extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString(balance, 'ProductId');
-            if ((currencyId !== undefined) && (currencyId in this.currencies_by_id)) {
+            if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['total'] = this.safeString(balance, 'Amount');
                 account['used'] = this.safeString(balance, 'Hold');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1612,7 +1614,11 @@ export default class ndax extends Exchange {
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            request['LimitPrice'] = parseFloat(this.priceToPrecision(symbol, price));
+            let limitPriceString = this.priceToPrecision(symbol, price);
+            if (limitPriceString === undefined) {
+                limitPriceString = '0';
+            }
+            request['LimitPrice'] = parseFloat(limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1678,7 +1684,11 @@ export default class ndax extends Exchange {
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            request['LimitPrice'] = parseFloat(this.priceToPrecision(symbol, price));
+            let limitPriceString = this.priceToPrecision(symbol, price);
+            if (limitPriceString === undefined) {
+                limitPriceString = '0';
+            }
+            request['LimitPrice'] = parseFloat(limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1789,7 +1799,7 @@ export default class ndax extends Exchange {
      * @name ndax#cancelAllOrders
      * @description cancel all open orders
      * @see https://apidoc.ndax.io/#cancelallorders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

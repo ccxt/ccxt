@@ -315,6 +315,9 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const marketId = this.safeString(market, 'symbol');
+        if (marketId === undefined) {
+            throw new ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split('_');
         const baseId = parts[0];
         const quoteId = parts[1];
@@ -412,7 +415,7 @@ export default class cryptomus extends Exchange {
     }
     parseCurrency(rawCurrency) {
         // currency here is array of networks
-        let id = undefined; // all entried have same id, as they were grouped by
+        let id = undefined; // all entries have same id, as they were grouped by
         let code = undefined;
         const networks = {};
         for (let i = 0; i < rawCurrency.length; i++) {
@@ -424,26 +427,28 @@ export default class cryptomus extends Exchange {
             }
             const networkId = this.safeString(networkEntry, 'network_code');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'min_withdraw'),
-                        'max': this.safeNumber(networkEntry, 'max_withdraw'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'min_withdraw'),
+                            'max': this.safeNumber(networkEntry, 'max_withdraw'),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(networkEntry, 'min_deposit'),
+                            'max': this.safeNumber(networkEntry, 'max_deposit'),
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(networkEntry, 'min_deposit'),
-                        'max': this.safeNumber(networkEntry, 'max_deposit'),
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool(networkEntry, 'can_deposit'),
-                'withdraw': this.safeBool(networkEntry, 'can_withdraw'),
-                'fee': undefined,
-                'precision': undefined,
-                'info': networkEntry,
-            };
+                    'active': undefined,
+                    'deposit': this.safeBool(networkEntry, 'can_deposit'),
+                    'withdraw': this.safeBool(networkEntry, 'can_withdraw'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -527,7 +532,7 @@ export default class cryptomus extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -599,7 +604,11 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data');
-        return this.parseTrades(data, market, since, limit);
+        let dataList = [];
+        if (data !== undefined) {
+            dataList = data;
+        }
+        return this.parseTrades(dataList, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -678,7 +687,9 @@ export default class cryptomus extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(balanceEntry, 'available');
             account['used'] = this.safeString(balanceEntry, 'held');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

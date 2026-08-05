@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -529,6 +529,8 @@ class deribit(Exchange, ImplicitAPI):
         else:
             settle = base
         splitBase = base
+        if base is None:
+            raise ExchangeError(self.id + ' createExpiredOptionMarket() missing base')
         if base.find('_') > -1:
             splitSymbol = base.split('_')
             splitBase = self.safe_string(splitSymbol, 0)
@@ -585,7 +587,7 @@ class deribit(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')))
-        if isOption and not (marketId in self.markets_by_id):
+        if isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(deribit, self).safe_market(marketId, market, delimiter, marketType)
@@ -649,7 +651,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'result', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(currencyId)
         return self.safe_currency_structure({
@@ -680,7 +682,7 @@ class deribit(Exchange, ImplicitAPI):
             'networks': None,
         })
 
-    def code_from_options(self, methodName, params={}):
+    def code_from_options(self, methodName: Any, params={}):
         defaultCode = self.safe_value(self.options, 'code', 'BTC')
         options = self.safe_value(self.options, methodName, {})
         code = self.safe_value(options, 'code', defaultCode)
@@ -768,7 +770,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_accounts(result)
 
-    def parse_account(self, account):
+    def parse_account(self, account: Any):
         #
         #      {
         #          "username": "someusername_1",
@@ -930,8 +932,14 @@ class deribit(Exchange, ImplicitAPI):
                 settle = self.safe_currency_code(settleId)
                 settlementPeriod = self.safe_value(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
+                if kind is None:
+                    raise ExchangeError(self.id + ' method() missing kind')
                 future = not swap and (kind.find('future') >= 0)
+                if kind is None:
+                    raise ExchangeError(self.id + ' method() missing kind')
                 option = (kind.find('option') >= 0)
+                if kind is None:
+                    raise ExchangeError(self.id + ' method() missing kind')
                 isComboMarket = kind.find('combo') >= 0
                 expiry = self.safe_integer(market, 'expiration_timestamp')
                 strike = None
@@ -962,7 +970,8 @@ class deribit(Exchange, ImplicitAPI):
                 parsedMarketValue = self.safe_value(parsedMarkets, symbol)
                 if parsedMarketValue:
                     continue
-                parsedMarkets[symbol] = True
+                if symbol is not None:
+                    parsedMarkets[symbol] = True
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
                 result.append({
@@ -1018,13 +1027,13 @@ class deribit(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_balance(self, balance) -> Balances:
+    def parse_balance(self, balance: Any) -> Balances:
         result = {
             'info': balance,
         }
         summaries = []
         if 'summaries' in balance:
-            summaries = self.safe_list(balance, 'summaries')
+            summaries = self.safe_list(balance, 'summaries', [])
         else:
             summaries = [balance]
         for i in range(0, len(summaries)):
@@ -1035,7 +1044,8 @@ class deribit(Exchange, ImplicitAPI):
             account['free'] = self.safe_string(data, 'available_funds')
             account['used'] = self.safe_string(data, 'maintenance_margin')
             account['total'] = self.safe_string(data, 'equity')
-            result[currencyCode] = account
+            if currencyCode is not None:
+                result[currencyCode] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1394,7 +1404,8 @@ class deribit(Exchange, ImplicitAPI):
         for i in range(0, len(result)):
             ticker = self.parse_ticker(result[i])
             symbol = ticker['symbol']
-            tickers[symbol] = ticker
+            if symbol is not None:
+                tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -1708,8 +1719,9 @@ class deribit(Exchange, ImplicitAPI):
                     'taker': self.safe_number(fee, 'taker_fee'),
                 }
         parsedFees = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             fee = {
                 'info': market,
@@ -1737,7 +1749,7 @@ class deribit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1812,7 +1824,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order_type(self, orderType):
+    def parse_order_type(self, orderType: Any):
         orderTypes = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
@@ -2172,7 +2184,7 @@ class deribit(Exchange, ImplicitAPI):
         https://docs.deribit.com/#private-cancel
 
         :param str id: order id
-        :param str symbol: not used by deribit cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2192,7 +2204,7 @@ class deribit(Exchange, ImplicitAPI):
         https://docs.deribit.com/#private-cancel_all
         https://docs.deribit.com/#private-cancel_all_by_instrument
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2792,7 +2804,7 @@ class deribit(Exchange, ImplicitAPI):
         #
         return self.parse_volatility_history(response)
 
-    def parse_volatility_history(self, volatility):
+    def parse_volatility_history(self, volatility: Any):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -3002,7 +3014,7 @@ class deribit(Exchange, ImplicitAPI):
         response = self.privateGetWithdraw(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #
         #    {
         #      "withdrawal_priorities": [],
@@ -3028,7 +3040,7 @@ class deribit(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -3143,6 +3155,8 @@ class deribit(Exchange, ImplicitAPI):
             request['end_timestamp'] = time
         if 'isDeribitPaginationCall' in params:
             params = self.omit(params, 'isDeribitPaginationCall')
+            if limit is None:
+                raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a limit argument')
             maxUntil = self.sum(since, limit * duration)
             request['end_timestamp'] = min(request['end_timestamp'], maxUntil)
         response = self.publicGetGetFundingRateHistory(self.extend(request, params))
@@ -3169,7 +3183,7 @@ class deribit(Exchange, ImplicitAPI):
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #   {
         #       "jsonrpc":"2.0",
@@ -3273,7 +3287,7 @@ class deribit(Exchange, ImplicitAPI):
         settlementsWithCursor = self.add_pagination_cursor_to_result(cursor, settlements)
         return self.parse_liquidations(settlementsWithCursor, market, since, limit)
 
-    def add_pagination_cursor_to_result(self, cursor, data):
+    def add_pagination_cursor_to_result(self, cursor: Any, data: Any):
         if cursor is not None:
             dataLength = len(data)
             if dataLength > 0:
@@ -3341,7 +3355,7 @@ class deribit(Exchange, ImplicitAPI):
         settlements = self.safe_list(result, 'settlements', [])
         return self.parse_liquidations(settlements, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market: Market = None):
+    def parse_liquidation(self, liquidation: Any, market: Market = None):
         #
         #     {
         #         "type": "bankruptcy",
@@ -3709,7 +3723,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_dict(result, 0, {})
         return self.parse_open_interest(data, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #     {
         #         "high": 93099.5,
@@ -3755,7 +3769,7 @@ class deribit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + 'api/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if params:
@@ -3776,7 +3790,7 @@ class deribit(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #

@@ -1164,7 +1164,7 @@ public partial class gate : Exchange
         }
         object strike = this.safeString(optionParts, 2);
         object optionType = this.safeString(optionParts, 3);
-        object datetime = this.convertExpireDate(((string)expiry));
+        object datetime = this.convertExpireDate(expiry);
         object timestamp = this.parse8601(datetime);
         return new Dictionary<string, object>() {
             { "id", add(add(add(add(add(add(add(add(add(bs, "_"), quote), "-"), "20"), expiry), "-"), strike), "-"), optionType) },
@@ -1215,7 +1215,7 @@ public partial class gate : Exchange
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((isGreaterThan(getIndexOf(marketId, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(marketId, "-P"), -1)))));
-        if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
+        if (isTrue(isTrue(isOption) && isTrue((isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -2028,26 +2028,29 @@ public partial class gate : Exchange
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "name");
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", chain },
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", null },
-                { "deposit", !isTrue(this.safeBool(chain, "deposit_disabled")) },
-                { "withdraw", !isTrue(this.safeBool(chain, "withdraw_disabled")) },
-                { "fee", null },
-                { "precision", this.parseNumber("0.0001") },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", chain },
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", !isTrue(this.safeBool(chain, "deposit_disabled")) },
+                    { "withdraw", !isTrue(this.safeBool(chain, "withdraw_disabled")) },
+                    { "fee", null },
+                    { "precision", this.parseNumber("0.0001") },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -2157,7 +2160,7 @@ public partial class gate : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object firstSymbol = this.safeString(symbols, 0);
-            market = this.market(((string)firstSymbol));
+            market = this.market(firstSymbol);
         }
         var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
         var request = ((IList<object>) requestqueryVariable)[0];
@@ -2393,7 +2396,8 @@ public partial class gate : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object chainsIndexedById = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object chainsIndexedById = ((object)chainsIndexedByIdRaw);
         object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
         return getValue(chainsIndexedById, ((string)selectedNetworkIdOrCode));
     }
@@ -2495,9 +2499,10 @@ public partial class gate : Exchange
     public virtual object parseTradingFees(object response)
     {
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(response, market);
         }
@@ -2594,7 +2599,10 @@ public partial class gate : Exchange
                 {
                     object networkId = getValue(networkIds, j);
                     object networkCode = this.networkIdToCode(networkId, code);
-                    ((IDictionary<string,object>)withdrawFees)[(string)networkCode] = this.parseNumber(getValue(withdrawFixOnChains, networkId));
+                    if (isTrue(!isEqual(networkCode, null)))
+                    {
+                        ((IDictionary<string,object>)withdrawFees)[(string)networkCode] = this.parseNumber(getValue(withdrawFixOnChains, networkId));
+                    }
                 }
             }
             ((IDictionary<string,object>)result)[(string)((string)code)] = new Dictionary<string, object>() {
@@ -2686,16 +2694,19 @@ public partial class gate : Exchange
                 object currencyId = this.safeString(fee, "currency");
                 object code = this.safeCurrencyCode(currencyId, currency);
                 object networkCode = this.networkIdToCode(chainKey, code);
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "fee", this.parseNumber(getValue(withdrawFixOnChains, chainKey)) },
-                        { "percentage", false },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
-                };
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "fee", this.parseNumber(getValue(withdrawFixOnChains, chainKey)) },
+                            { "percentage", false },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                    };
+                }
             }
         }
         return result;
@@ -2818,7 +2829,7 @@ public partial class gate : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2933,6 +2944,10 @@ public partial class gate : Exchange
         //     }
         //
         object timestamp = this.safeInteger(response, "current");
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " method() missing timestamp")) ;
+        }
         if (!isTrue(getValue(market, "spot")))
         {
             timestamp = multiply(timestamp, 1000);
@@ -3003,6 +3018,10 @@ public partial class gate : Exchange
         } else
         {
             ticker = this.safeValue(response, 0);
+        }
+        if (isTrue(isEqual(ticker, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " fetchTicker() returned empty response")) ;
         }
         return this.parseTicker(ticker, market);
     }
@@ -4226,8 +4245,8 @@ public partial class gate : Exchange
         object side = this.safeString2(trade, "side", "type", contractSide);
         object orderId = this.safeString(trade, "order_id");
         object feeAmount = this.safeString(trade, "fee");
-        object gtFee = this.omitZero(((string)this.safeString(trade, "gt_fee")));
-        object pointFee = this.omitZero(((string)this.safeString(trade, "point_fee")));
+        object gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
+        object pointFee = this.omitZero(this.safeString(trade, "point_fee"));
         object fees = new List<object>() {};
         if (isTrue(!isEqual(feeAmount, null)))
         {
@@ -4459,7 +4478,7 @@ public partial class gate : Exchange
             { "d", "deposit" },
             { "w", "withdrawal" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -4751,7 +4770,7 @@ public partial class gate : Exchange
         {
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
-            ((IList<object>)orderSymbols).Add(marketId);
+            ((IList<object>)orderSymbols).Add(((string)marketId));
             object type = this.safeString(rawOrder, "type");
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
@@ -4764,7 +4783,7 @@ public partial class gate : Exchange
                 throw new NotSupported ((string)add(this.id, " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")) ;
             }
             ((IDictionary<string,object>)extendedParams)["textIsRequired"] = true; // the exchange requires a text parameter for each order here
-            object orderRequest = this.createOrderRequest(((string)marketId), type, side, amount, price, extendedParams);
+            object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -4811,6 +4830,14 @@ public partial class gate : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object contract = getValue(market, "contract");
         object trigger = this.safeValue(parameters, "trigger");
@@ -6374,7 +6401,7 @@ public partial class gate : Exchange
         {
             object order = getValue(orders, i);
             object symbol = this.safeString(order, "symbol");
-            object market = this.market(((string)symbol));
+            object market = this.market(symbol);
             if (!isTrue(getValue(market, "spot")))
             {
                 throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols() supports only spot markets")) ;
@@ -6409,7 +6436,7 @@ public partial class gate : Exchange
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-3
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-3
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -6934,6 +6961,10 @@ public partial class gate : Exchange
         //         "pending_orders": 0
         //     }
         //
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " fetchPosition() returned empty response")) ;
+        }
         return this.parsePosition(response, market);
     }
 
@@ -7061,7 +7092,12 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        return this.parsePositions(response, symbols);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        return this.parsePositions(responseList, symbols);
     }
 
     /**
@@ -8497,7 +8533,7 @@ public partial class gate : Exchange
             { "pnl", "trade" },
             { "dnw", "deposit/withdraw" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
@@ -8891,6 +8927,10 @@ public partial class gate : Exchange
         //
         object marketId = this.safeString(greeks, "name");
         object symbol = this.safeSymbol(marketId, market);
+        if (isTrue(isEqual(market, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseGreeks() could not resolve market")) ;
+        }
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -8923,7 +8963,7 @@ public partial class gate : Exchange
      * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side 'buy' or 'sell'
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
@@ -9241,7 +9281,7 @@ public partial class gate : Exchange
      * @param {string[]} symbols unified conract symbols, must all have the same settle currency and the same market type
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch, default=1000
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      *
      * EXCHANGE SPECIFIC PARAMETERS
@@ -9319,7 +9359,12 @@ public partial class gate : Exchange
         //        ...
         //    ]
         //
-        return this.parsePositions(response, symbols, parameters);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        return this.parsePositions(responseList, symbols, parameters);
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

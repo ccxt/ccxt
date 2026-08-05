@@ -392,7 +392,7 @@ func (this *HashkeyCore) HandleTrades(client any, message any) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *HashkeyCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1014,7 +1014,9 @@ func (this *HashkeyCore) HandleBalance(client any, message any) {
 	var account any = this.Account()
 	ccxt.AddElementToObject(account, "free", this.SafeString(balanceUpdate, "f"))
 	ccxt.AddElementToObject(account, "used", this.SafeString(balanceUpdate, "l"))
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(typeVar, nil))) && ccxt.IsTrue((!ccxt.IsEqual(code, nil)))) {
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
+	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
 	var messageHash any = ccxt.Add("balance:", typeVar)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
@@ -1086,8 +1088,8 @@ func (this *HashkeyCore) KeepAliveListenKey(listenKey any, optionalArgs ...any) 
 				}()
 				// try block:
 
-				retRes84712 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
-				ccxt.PanicOnError(retRes84712)
+				retRes84912 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes84912)
 				var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
 				return nil

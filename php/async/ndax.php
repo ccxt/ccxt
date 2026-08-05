@@ -638,7 +638,7 @@ class ndax extends Exchange {
         $sessionStatus = $this->safe_string($market, 'SessionStatus');
         $isDisable = $this->safe_value($market, 'IsDisable');
         $sessionRunning = ($sessionStatus === 'Running');
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -686,10 +686,10 @@ class ndax extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
-    public function parse_order_book($orderbook, $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
+    public function parse_order_book(mixed $orderbook, mixed $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
         $nonce = null;
         $result = array(
             'symbol' => $symbol,
@@ -740,7 +740,7 @@ class ndax extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             if ($this->markets === null) {
@@ -955,7 +955,7 @@ class ndax extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1501603632000, // 0 DateTime
@@ -1270,7 +1270,7 @@ class ndax extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1279,12 +1279,14 @@ class ndax extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
-            if (($currencyId !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
+            if (($currencyId !== null) && ($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId ?? '', $this->currencies_by_id))) {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balance, 'Amount');
                 $account['used'] = $this->safe_string($balance, 'Hold');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
@@ -1351,7 +1353,7 @@ class ndax extends Exchange {
         })();
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'Trade' => 'trade',
             'Deposit' => 'transaction',
@@ -1650,7 +1652,11 @@ class ndax extends Exchange {
             );
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if ($price !== null) {
-                $request['LimitPrice'] = floatval($this->price_to_precision($symbol, $price));
+                $limitPriceString = $this->price_to_precision($symbol, $price);
+                if ($limitPriceString === null) {
+                    $limitPriceString = '0';
+                }
+                $request['LimitPrice'] = floatval($limitPriceString);
             }
             if ($clientOrderId !== null) {
                 $request['ClientOrderId'] = $clientOrderId;
@@ -1719,7 +1725,11 @@ class ndax extends Exchange {
             );
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if ($price !== null) {
-                $request['LimitPrice'] = floatval($this->price_to_precision($symbol, $price));
+                $limitPriceString = $this->price_to_precision($symbol, $price);
+                if ($limitPriceString === null) {
+                    $limitPriceString = '0';
+                }
+                $request['LimitPrice'] = floatval($limitPriceString);
             }
             if ($clientOrderId !== null) {
                 $request['ClientOrderId'] = $clientOrderId;
@@ -1837,7 +1847,7 @@ class ndax extends Exchange {
              *
              * @see https://apidoc.ndax.io/#cancelallorders
              *
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -2313,7 +2323,7 @@ class ndax extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         // fetchDepositAddress, createDepositAddress
         //
@@ -2594,10 +2604,10 @@ class ndax extends Exchange {
         $currencyId = $this->safe_string($transaction, 'ProductId');
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = null;
-        if (is_array($transaction) && array_key_exists('DepositId', $transaction)) {
+        if (is_array($transaction) && array_key_exists('DepositId' ?? '', $transaction)) {
             $id = $this->safe_string($transaction, 'DepositId');
             $type = 'deposit';
-        } elseif (is_array($transaction) && array_key_exists('WithdrawId', $transaction)) {
+        } elseif (is_array($transaction) && array_key_exists('WithdrawId' ?? '', $transaction)) {
             $id = $this->safe_string($transaction, 'WithdrawId');
             $type = 'withdrawal';
         }
@@ -2715,7 +2725,7 @@ class ndax extends Exchange {
             $withdrawTemplate = json_decode($template, $as_associative_array = true);
             $withdrawTemplate['ExternalAddress'] = $address;
             if ($tag !== null) {
-                if (is_array($withdrawTemplate) && array_key_exists('Memo', $withdrawTemplate)) {
+                if (is_array($withdrawTemplate) && array_key_exists('Memo' ?? '', $withdrawTemplate)) {
                     $withdrawTemplate['Memo'] = $tag;
                 }
             }
@@ -2740,7 +2750,7 @@ class ndax extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -2794,7 +2804,7 @@ class ndax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($code === 404) {
             throw new AuthenticationError($this->id . ' ' . $body);
         }

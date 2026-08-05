@@ -527,7 +527,7 @@ class coinbaseexchange extends Exchange {
         })();
     }
 
-    public function parse_currency($rawCurrency): array {
+    public function parse_currency(mixed $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 'id');
         $name = $this->safe_string($rawCurrency, 'name');
         $code = $this->safe_currency_code($id);
@@ -538,24 +538,26 @@ class coinbaseexchange extends Exchange {
             $network = $supportedNetworks[$j];
             $networkId = $this->safe_string($network, 'id');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'name' => $this->safe_string($network, 'name'),
-                'network' => $networkCode,
-                'active' => $this->safe_string($network, 'status') === 'online',
-                'withdraw' => null,
-                'deposit' => null,
-                'fee' => null,
-                'precision' => null,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($network, 'min_withdrawal_amount'),
-                        'max' => $this->safe_number($network, 'max_withdrawal_amount'),
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'name' => $this->safe_string($network, 'name'),
+                    'network' => $networkCode,
+                    'active' => $this->safe_string($network, 'status') === 'online',
+                    'withdraw' => null,
+                    'deposit' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($network, 'min_withdrawal_amount'),
+                            'max' => $this->safe_number($network, 'max_withdrawal_amount'),
+                        ),
                     ),
-                ),
-                'contract' => $this->safe_string($network, 'contract_address'),
-                'info' => $network,
-            );
+                    'contract' => $this->safe_string($network, 'contract_address'),
+                    'info' => $network,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -744,7 +746,7 @@ class coinbaseexchange extends Exchange {
         })();
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //     {
         //         "id" => "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
@@ -764,7 +766,7 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -774,7 +776,9 @@ class coinbaseexchange extends Exchange {
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'hold');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -807,7 +811,7 @@ class coinbaseexchange extends Exchange {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1095,7 +1099,7 @@ class coinbaseexchange extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -1204,8 +1208,8 @@ class coinbaseexchange extends Exchange {
             $maker = $this->safe_number($response, 'maker_fee_rate');
             $taker = $this->safe_number($response, 'taker_fee_rate');
             $result = array();
-            for ($i = 0; $i < count(($this->symbols)); $i++) {
-                $symbol = ($this->symbols)[$i];
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
                 $result[$symbol] = array(
                     'info' => $response,
                     'symbol' => $symbol,
@@ -1219,7 +1223,7 @@ class coinbaseexchange extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1591514160,
@@ -1699,7 +1703,7 @@ class coinbaseexchange extends Exchange {
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
              *
              * cancel all open orders
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -1749,9 +1753,9 @@ class coinbaseexchange extends Exchange {
                 'amount' => $amount,
             );
             $method = 'privatePostWithdrawals';
-            if (is_array($params) && array_key_exists('payment_method_id', $params)) {
+            if (is_array($params) && array_key_exists('payment_method_id' ?? '', $params)) {
                 $method .= 'PaymentMethod';
-            } elseif (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
+            } elseif (is_array($params) && array_key_exists('coinbase_account_id' ?? '', $params)) {
                 $method .= 'CoinbaseAccount';
             } else {
                 $method .= 'Crypto';
@@ -1768,7 +1772,7 @@ class coinbaseexchange extends Exchange {
         })();
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'transfer' => 'transfer', // Funds moved between portfolios
             'match' => 'trade',       // Funds moved result of a trade
@@ -2055,7 +2059,7 @@ class coinbaseexchange extends Exchange {
         })();
     }
 
-    public function parse_transaction_status($transaction) {
+    public function parse_transaction_status(mixed $transaction) {
         $canceled = $this->safe_value($transaction, 'canceled_at');
         if ($canceled) {
             return 'canceled';
@@ -2195,7 +2199,7 @@ class coinbaseexchange extends Exchange {
         })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
@@ -2233,7 +2237,7 @@ class coinbaseexchange extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
                 $message = $this->safe_string($response, 'message');
@@ -2247,11 +2251,11 @@ class coinbaseexchange extends Exchange {
         return null;
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array()) {
+    public function request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             if (gettype($response) !== 'string') {
-                if (is_array($response) && array_key_exists('message', $response)) {
+                if (is_array($response) && array_key_exists('message' ?? '', $response)) {
                     throw new ExchangeError($this->id . ' ' . $this->json($response));
                 }
             }

@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var sha2_js = require('@noble/hashes/sha2.js');
 var bybit$1 = require('../bybit.js');
 var errors = require('../base/errors.js');
+var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
@@ -125,7 +126,7 @@ class bybit extends bybit$1["default"] {
                 },
                 'watchMyTrades': {
                     // filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
-                    'filterExecTypes': [
+                    'execType': [
                         'Trade', 'AdlTrade', 'BustTrade', 'Settle',
                     ],
                 },
@@ -880,7 +881,7 @@ class bybit extends bybit$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1456,7 +1457,23 @@ class bybit extends bybit$1["default"] {
         }
         const trades = this.myTrades;
         const symbols = {};
-        const filterExecTypes = this.handleOption('watchMyTrades', 'filterExecTypes', []);
+        // the option was renamed from filterExecTypes to execType to mirror
+        // the exchange's own field name, the old key is still read as a
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        let execTypeOption = this.handleOption('watchMyTrades', 'execType');
+        if (execTypeOption === undefined) {
+            execTypeOption = this.handleOption('watchMyTrades', 'filterExecTypes');
+        }
+        let execTypes = undefined;
+        if (typeof execTypeOption === 'string') {
+            // a single execution type is accepted as a plain string as well
+            execTypes = [execTypeOption];
+        }
+        else {
+            execTypes = execTypeOption;
+        }
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             let parsed = undefined;
@@ -1469,7 +1486,7 @@ class bybit extends bybit$1["default"] {
                 if (executionFast) {
                     execType = 'Trade';
                 }
-                if (!this.inArray(execType, filterExecTypes)) {
+                if ((execTypes !== undefined) && !this.inArray(execType, execTypes)) {
                     continue;
                 }
                 parsed = this.parseTrade(rawTrade);
@@ -2297,17 +2314,35 @@ class bybit extends bybit$1["default"] {
         const account = this.account();
         const currencyId = this.safeString2(balance, 'a', 'coin');
         const code = this.safeCurrencyCode(currencyId);
-        account['free'] = this.safeStringN(balance, ['availableToWithdraw', 'f', 'free', 'availableToWithdraw']);
-        account['used'] = this.safeString2(balance, 'l', 'locked');
-        account['total'] = this.safeString(balance, 'walletBalance');
+        account['free'] = this.safeStringN(balance, ['availableToWithdraw', 'f', 'free']);
+        const used = this.safeString2(balance, 'l', 'locked');
+        if (used !== undefined) {
+            account['used'] = used;
+        }
+        else {
+            // the unified account wallet stream has no locked field, the margin
+            // lives in the per coin initial margin fields, so the used amount
+            // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
+            const totalPositionIm = this.safeString(balance, 'totalPositionIM', '0');
+            const totalOrderIm = this.safeString(balance, 'totalOrderIM', '0');
+            account['used'] = Precise["default"].stringAdd(totalPositionIm, totalOrderIm);
+        }
+        // on the unified rows the free amount and the margin are both measured
+        // against the equity, which includes the unrealized pnl, so the equity
+        // is the consistent total, the spot rows fall back to the wallet balance
+        account['total'] = this.safeString2(balance, 'equity', 'walletBalance');
         if (accountType !== undefined) {
             if (this.safeValue(this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         }
         else {
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
     }
     async watchTopics(url, messageHashes, topics, params = {}) {
@@ -2427,15 +2462,29 @@ class bybit extends bybit$1["default"] {
             return false;
         }
         catch (error) {
-            if (error instanceof errors.AuthenticationError) {
-                const messageHash = 'authenticated';
+            const messageHash = this.safeString2(message, 'req_id', 'reqId');
+            if (messageHash !== undefined) {
                 client.reject(error, messageHash);
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
+            }
+            else if (error instanceof errors.AuthenticationError) {
+                const authenticatedHash = 'authenticated';
+                client.reject(error, authenticatedHash);
+                if (authenticatedHash in client.subscriptions) {
+                    delete client.subscriptions[authenticatedHash];
+                }
+                const op = this.safeString(message, 'op');
+                if ((op !== undefined) && (op !== 'auth')) {
+                    // an operation response that carries no reqId, e.g. bybit
+                    // omits it on some permission rejections of trade ops,
+                    // would leave the awaiting future pending forever, and
+                    // since nothing on this client can proceed without
+                    // authentication, reject everything pending, mirroring the
+                    // behavior of unattributable non auth errors, see
+                    // https://github.com/ccxt/ccxt/issues/29361
+                    client.reject(error);
                 }
             }
             else {
-                const messageHash = this.safeString2(message, 'req_id', 'reqId');
                 client.reject(error, messageHash);
             }
             return true;

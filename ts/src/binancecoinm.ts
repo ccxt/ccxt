@@ -6,7 +6,7 @@ import binance from './binance.js';
 //  ---------------------------------------------------------------------------
 
 export default class binancecoinm extends binance {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',
@@ -39,12 +39,12 @@ export default class binancecoinm extends binance {
         });
     }
 
-    async transferIn (code: string, amount, params = {}) {
+    async transferIn (code: string, amount: any, params = {}) {
         // transfer from spot wallet to coinm futures wallet
         return await this.futuresTransfer (code, amount, 3, params);
     }
 
-    async transferOut (code: string, amount, params = {}) {
+    async transferOut (code: string, amount: any, params = {}) {
         // transfer from coinm futures wallet to spot wallet
         return await this.futuresTransfer (code, amount, 4, params);
     }

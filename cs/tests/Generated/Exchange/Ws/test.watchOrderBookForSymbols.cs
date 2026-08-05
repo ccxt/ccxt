@@ -34,10 +34,8 @@ public partial class testMainClass : BaseTest
             }
             if (isTrue(isTrue((isEqual(succeeded, true))) && isTrue((!isEqual(response, null)))))
             {
-                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return a dictionary. "), exchange.json(response)));
-                currentTime = exchange.milliseconds();
-                testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 testOrderBook(exchange, skippedProperties, method, response, null);
+                testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 object symbol = getValue(response, "symbol");
                 if (isTrue(isTrue((!isEqual(symbol, null))) && !isTrue(exchange.inArray(symbol, seenSymbols))))
                 {

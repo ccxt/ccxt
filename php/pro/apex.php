@@ -120,7 +120,7 @@ class apex extends \ccxt\async\apex {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "recentlyTrade.H.BTCUSDT",
@@ -164,7 +164,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // public
         //    {
@@ -227,7 +227,7 @@ class apex extends \ccxt\async\apex {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -256,7 +256,7 @@ class apex extends \ccxt\async\apex {
         })();
     }
 
-    public function watch_topics($url, $messageHashes, $topics, $params = array()) {
+    public function watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
         return Async\async(function () use ($url, $messageHashes, $topics, $params) {
             // apex's server rejects a subscribe whose args include any
             // already-subscribed topic ("topic:already subscribed ..."). Since the
@@ -267,7 +267,7 @@ class apex extends \ccxt\async\apex {
             $newTopics = array();
             $newTopicsCount = 0;
             for ($i = 0; $i < count($topics); $i++) {
-                if (!(is_array($client->subscriptions) && array_key_exists($messageHashes[$i], $client->subscriptions))) {
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHashes[$i] ?? '', $client->subscriptions))) {
                     $newTopics[] = $topics[$i];
                     $newTopicsCount = $newTopicsCount + 1;
                 }
@@ -308,7 +308,7 @@ class apex extends \ccxt\async\apex {
         return $url;
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "orderbook25.H.BTCUSDT",
@@ -349,7 +349,7 @@ class apex extends \ccxt\async\apex {
         $market = $this->safe_market($marketId, null, null);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($message, 'ts', 0.001);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -369,12 +369,12 @@ class apex extends \ccxt\async\apex {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -440,7 +440,7 @@ class apex extends \ccxt\async\apex {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         // "topic":"instrumentInfo.H.BTCUSDT",
         //     "type":"snapshot",
         //     "data":array(
@@ -547,7 +547,7 @@ class apex extends \ccxt\async\apex {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "candle.5.BTCUSDT",
@@ -581,10 +581,10 @@ class apex extends \ccxt\async\apex {
         $marketType = $isSpot ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -598,7 +598,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "start" => 1670363160000,
@@ -728,7 +728,7 @@ class apex extends \ccxt\async\apex {
         })();
     }
 
-    public function handle_my_trades(Client $client, $lists) {
+    public function handle_my_trades(Client $client, mixed $lists) {
         // array(
         //     {
         //         "symbol":"ETH-USDT",
@@ -769,7 +769,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve($trades, $messageHash);
     }
 
-    public function handle_order(Client $client, $lists) {
+    public function handle_order(Client $client, mixed $lists) {
         // array(
         //     {
         //         "symbol":"ETH-USDT",
@@ -825,13 +825,13 @@ class apex extends \ccxt\async\apex {
             return;
         }
         $messageHash = 'fetchPositionsSnapshot';
-        if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+        if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
             $client->future($messageHash);
             $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash) {
         return Async\async(function () use ($client, $messageHash) {
             // one ws channel gives $positions for all types, for snapshot must load all $positions
             $fetchFunctions = array(
@@ -848,7 +848,7 @@ class apex extends \ccxt\async\apex {
                 }
             }
             // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve($cache);
                 $client->resolve($cache, 'positions');
@@ -856,7 +856,7 @@ class apex extends \ccxt\async\apex {
         })();
     }
 
-    public function handle_positions($client, $lists) {
+    public function handle_positions(mixed $client, mixed $lists) {
         //
         // array(
         //     {
@@ -918,7 +918,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function authenticate($url, $params = array()) {
+    public function authenticate(mixed $url, $params = array()) {
         return Async\async(function () use ($url, $params) {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
@@ -952,7 +952,7 @@ class apex extends \ccxt\async\apex {
         })();
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //   {
         //       "success" => false,
@@ -1030,7 +1030,7 @@ class apex extends \ccxt\async\apex {
             if ($error instanceof AuthenticationError) {
                 $messageHash = 'authenticated';
                 $client->reject($error, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
@@ -1041,7 +1041,7 @@ class apex extends \ccxt\async\apex {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -1090,7 +1090,7 @@ class apex extends \ccxt\async\apex {
         );
     }
 
-    public function pong($client, $message) {
+    public function pong(Client $client, mixed $message) {
         return Async\async(function () use ($client, $message) {
             //
             //     array("op" => "ping", "args" => ["1761069137485"])
@@ -1105,7 +1105,7 @@ class apex extends \ccxt\async\apex {
         })();
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //   {
         //       "success" => true,
@@ -1120,11 +1120,11 @@ class apex extends \ccxt\async\apex {
         return $message;
     }
 
-    public function handle_ping(Client $client, $message) {
+    public function handle_ping(Client $client, mixed $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_account(Client $client, $message) {
+    public function handle_account(Client $client, mixed $message) {
         $contents = $this->safe_dict($message, 'contents', array());
         $fills = $this->safe_list($contents, 'fills', array());
         if ($fills !== null) {
@@ -1140,7 +1140,7 @@ class apex extends \ccxt\async\apex {
         }
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         //
         //    {
         //        "success" => true,
@@ -1158,14 +1158,14 @@ class apex extends \ccxt\async\apex {
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //    {
         //        "topic" => "kline",

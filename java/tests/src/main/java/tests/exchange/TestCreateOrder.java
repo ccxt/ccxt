@@ -255,7 +255,7 @@ public class TestCreateOrder extends BaseTest {
                 // if it was limit order, try to cancel it before exiting the script
                 (tcoTryCancelOrder(exchange, symbol, order, skippedProperties)).join();
             }
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
         return order;
         });
@@ -321,6 +321,10 @@ public class TestCreateOrder extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object orderFetched = (TestSharedMethods.fetchOrder(exchange, symbol, Helpers.GetValue(order, "id"), skippedProperties)).join();
+        if (Helpers.isTrue(Helpers.isEqual(orderFetched, null)))
+        {
+            return true;
+        }
         Object needsCancel = exchange.inArray(Helpers.GetValue(orderFetched, "status"), new java.util.ArrayList<Object>(java.util.Arrays.asList("open", "pending", null)));
         // if it was not reported as closed/filled, then try to cancel it
         if (Helpers.isTrue(needsCancel))

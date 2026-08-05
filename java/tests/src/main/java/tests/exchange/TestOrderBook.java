@@ -30,8 +30,6 @@ public class TestOrderBook extends BaseTest {
             put( "nonce", 134234234 );
         }};
         Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("nonce"));
-        // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-        orderbook = exchange.deepExtend(new java.util.HashMap<String, Object>() {{}}, orderbook);
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, orderbook);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);

@@ -950,19 +950,19 @@ func WithWatchOHLCVParams(params map[string]any) WatchOHLCVOptions {
 }
 
 type FetchWebEndpointOptionsStruct struct {
-	StartRegex *any
-	EndRegex   *any
+	StartRegex *string
+	EndRegex   *string
 }
 
 type FetchWebEndpointOptions func(opts *FetchWebEndpointOptionsStruct)
 
-func WithFetchWebEndpointStartRegex(startRegex any) FetchWebEndpointOptions {
+func WithFetchWebEndpointStartRegex(startRegex string) FetchWebEndpointOptions {
 	return func(opts *FetchWebEndpointOptionsStruct) {
 		opts.StartRegex = &startRegex
 	}
 }
 
-func WithFetchWebEndpointEndRegex(endRegex any) FetchWebEndpointOptions {
+func WithFetchWebEndpointEndRegex(endRegex string) FetchWebEndpointOptions {
 	return func(opts *FetchWebEndpointOptionsStruct) {
 		opts.EndRegex = &endRegex
 	}
@@ -5175,91 +5175,6 @@ func WithFetchClosedOrderParams(params map[string]any) FetchClosedOrderOptions {
 	}
 }
 
-type FetchOrdersByStatusOptionsStruct struct {
-	Symbol *string
-	Since  *int64
-	Limit  *int64
-	Params *map[string]any
-}
-
-type FetchOrdersByStatusOptions func(opts *FetchOrdersByStatusOptionsStruct)
-
-func WithFetchOrdersByStatusSymbol(symbol string) FetchOrdersByStatusOptions {
-	return func(opts *FetchOrdersByStatusOptionsStruct) {
-		opts.Symbol = &symbol
-	}
-}
-
-func WithFetchOrdersByStatusSince(since int64) FetchOrdersByStatusOptions {
-	return func(opts *FetchOrdersByStatusOptionsStruct) {
-		opts.Since = &since
-	}
-}
-
-func WithFetchOrdersByStatusLimit(limit int64) FetchOrdersByStatusOptions {
-	return func(opts *FetchOrdersByStatusOptionsStruct) {
-		opts.Limit = &limit
-	}
-}
-
-func WithFetchOrdersByStatusParams(params map[string]any) FetchOrdersByStatusOptions {
-	return func(opts *FetchOrdersByStatusOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchTransactionsByTypeOptionsStruct struct {
-	Code   *string
-	Since  *int64
-	Limit  *int64
-	Params *map[string]any
-}
-
-type FetchTransactionsByTypeOptions func(opts *FetchTransactionsByTypeOptionsStruct)
-
-func WithFetchTransactionsByTypeCode(code string) FetchTransactionsByTypeOptions {
-	return func(opts *FetchTransactionsByTypeOptionsStruct) {
-		opts.Code = &code
-	}
-}
-
-func WithFetchTransactionsByTypeSince(since int64) FetchTransactionsByTypeOptions {
-	return func(opts *FetchTransactionsByTypeOptionsStruct) {
-		opts.Since = &since
-	}
-}
-
-func WithFetchTransactionsByTypeLimit(limit int64) FetchTransactionsByTypeOptions {
-	return func(opts *FetchTransactionsByTypeOptionsStruct) {
-		opts.Limit = &limit
-	}
-}
-
-func WithFetchTransactionsByTypeParams(params map[string]any) FetchTransactionsByTypeOptions {
-	return func(opts *FetchTransactionsByTypeOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchDepositOptionsStruct struct {
-	Code   *string
-	Params *map[string]any
-}
-
-type FetchDepositOptions func(opts *FetchDepositOptionsStruct)
-
-func WithFetchDepositCode(code string) FetchDepositOptions {
-	return func(opts *FetchDepositOptionsStruct) {
-		opts.Code = &code
-	}
-}
-
-func WithFetchDepositParams(params map[string]any) FetchDepositOptions {
-	return func(opts *FetchDepositOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
 type FetchWithdrawalOptionsStruct struct {
 	Code   *string
 	Params *map[string]any
@@ -5279,28 +5194,21 @@ func WithFetchWithdrawalParams(params map[string]any) FetchWithdrawalOptions {
 	}
 }
 
-type FetchWithdrawAddressesOptionsStruct struct {
-	Note        *any
-	NetworkCode *any
-	Params      *map[string]any
+type FetchDepositOptionsStruct struct {
+	Code   *string
+	Params *map[string]any
 }
 
-type FetchWithdrawAddressesOptions func(opts *FetchWithdrawAddressesOptionsStruct)
+type FetchDepositOptions func(opts *FetchDepositOptionsStruct)
 
-func WithFetchWithdrawAddressesNote(note any) FetchWithdrawAddressesOptions {
-	return func(opts *FetchWithdrawAddressesOptionsStruct) {
-		opts.Note = &note
+func WithFetchDepositCode(code string) FetchDepositOptions {
+	return func(opts *FetchDepositOptionsStruct) {
+		opts.Code = &code
 	}
 }
 
-func WithFetchWithdrawAddressesNetworkCode(networkCode any) FetchWithdrawAddressesOptions {
-	return func(opts *FetchWithdrawAddressesOptionsStruct) {
-		opts.NetworkCode = &networkCode
-	}
-}
-
-func WithFetchWithdrawAddressesParams(params map[string]any) FetchWithdrawAddressesOptions {
-	return func(opts *FetchWithdrawAddressesOptionsStruct) {
+func WithFetchDepositParams(params map[string]any) FetchDepositOptions {
+	return func(opts *FetchDepositOptionsStruct) {
 		opts.Params = &params
 	}
 }
@@ -5636,6 +5544,39 @@ func WithFetchVolatilityHistoryParams(params map[string]any) FetchVolatilityHist
 	}
 }
 
+type FetchOrdersByStatusOptionsStruct struct {
+	Symbol *string
+	Since  *int64
+	Limit  *int64
+	Params *map[string]any
+}
+
+type FetchOrdersByStatusOptions func(opts *FetchOrdersByStatusOptionsStruct)
+
+func WithFetchOrdersByStatusSymbol(symbol string) FetchOrdersByStatusOptions {
+	return func(opts *FetchOrdersByStatusOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithFetchOrdersByStatusSince(since int64) FetchOrdersByStatusOptions {
+	return func(opts *FetchOrdersByStatusOptionsStruct) {
+		opts.Since = &since
+	}
+}
+
+func WithFetchOrdersByStatusLimit(limit int64) FetchOrdersByStatusOptions {
+	return func(opts *FetchOrdersByStatusOptionsStruct) {
+		opts.Limit = &limit
+	}
+}
+
+func WithFetchOrdersByStatusParams(params map[string]any) FetchOrdersByStatusOptions {
+	return func(opts *FetchOrdersByStatusOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type TransferBetweenMainAndSubAccountOptionsStruct struct {
 	Params *map[string]any
 }
@@ -5841,6 +5782,39 @@ func WithFetchOrdersWithMethodLimit(limit int64) FetchOrdersWithMethodOptions {
 
 func WithFetchOrdersWithMethodParams(params map[string]any) FetchOrdersWithMethodOptions {
 	return func(opts *FetchOrdersWithMethodOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchTransactionsByTypeOptionsStruct struct {
+	Code   *string
+	Since  *int64
+	Limit  *int64
+	Params *map[string]any
+}
+
+type FetchTransactionsByTypeOptions func(opts *FetchTransactionsByTypeOptionsStruct)
+
+func WithFetchTransactionsByTypeCode(code string) FetchTransactionsByTypeOptions {
+	return func(opts *FetchTransactionsByTypeOptionsStruct) {
+		opts.Code = &code
+	}
+}
+
+func WithFetchTransactionsByTypeSince(since int64) FetchTransactionsByTypeOptions {
+	return func(opts *FetchTransactionsByTypeOptionsStruct) {
+		opts.Since = &since
+	}
+}
+
+func WithFetchTransactionsByTypeLimit(limit int64) FetchTransactionsByTypeOptions {
+	return func(opts *FetchTransactionsByTypeOptionsStruct) {
+		opts.Limit = &limit
+	}
+}
+
+func WithFetchTransactionsByTypeParams(params map[string]any) FetchTransactionsByTypeOptions {
+	return func(opts *FetchTransactionsByTypeOptionsStruct) {
 		opts.Params = &params
 	}
 }
@@ -6287,6 +6261,32 @@ func WithCreateSpotOrderRequestParams(params map[string]any) CreateSpotOrderRequ
 	}
 }
 
+type FetchWithdrawAddressesOptionsStruct struct {
+	Note        *string
+	NetworkCode *string
+	Params      *map[string]any
+}
+
+type FetchWithdrawAddressesOptions func(opts *FetchWithdrawAddressesOptionsStruct)
+
+func WithFetchWithdrawAddressesNote(note string) FetchWithdrawAddressesOptions {
+	return func(opts *FetchWithdrawAddressesOptionsStruct) {
+		opts.Note = &note
+	}
+}
+
+func WithFetchWithdrawAddressesNetworkCode(networkCode string) FetchWithdrawAddressesOptions {
+	return func(opts *FetchWithdrawAddressesOptionsStruct) {
+		opts.NetworkCode = &networkCode
+	}
+}
+
+func WithFetchWithdrawAddressesParams(params map[string]any) FetchWithdrawAddressesOptions {
+	return func(opts *FetchWithdrawAddressesOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type CancelTwapOrderOptionsStruct struct {
 	Symbol *string
 	Params *map[string]any
@@ -6605,7 +6605,7 @@ func WithTransferClassicParams(params map[string]any) TransferClassicOptions {
 }
 
 type FetchBorrowRateHistoriesOptionsStruct struct {
-	Codes  *any
+	Codes  *[]string
 	Since  *int64
 	Limit  *int64
 	Params *map[string]any
@@ -6613,7 +6613,7 @@ type FetchBorrowRateHistoriesOptionsStruct struct {
 
 type FetchBorrowRateHistoriesOptions func(opts *FetchBorrowRateHistoriesOptionsStruct)
 
-func WithFetchBorrowRateHistoriesCodes(codes any) FetchBorrowRateHistoriesOptions {
+func WithFetchBorrowRateHistoriesCodes(codes []string) FetchBorrowRateHistoriesOptions {
 	return func(opts *FetchBorrowRateHistoriesOptionsStruct) {
 		opts.Codes = &codes
 	}
@@ -6776,7 +6776,7 @@ func WithFetchNonceParams(params map[string]any) FetchNonceOptions {
 type FetchLedgerByEntriesOptionsStruct struct {
 	Code   *string
 	Entry  *any
-	Limit  *any
+	Limit  *int64
 	Params *map[string]any
 }
 
@@ -6794,7 +6794,7 @@ func WithFetchLedgerByEntriesEntry(entry any) FetchLedgerByEntriesOptions {
 	}
 }
 
-func WithFetchLedgerByEntriesLimit(limit any) FetchLedgerByEntriesOptions {
+func WithFetchLedgerByEntriesLimit(limit int64) FetchLedgerByEntriesOptions {
 	return func(opts *FetchLedgerByEntriesOptionsStruct) {
 		opts.Limit = &limit
 	}

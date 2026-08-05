@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -523,7 +523,7 @@ class modetrade(Exchange, ImplicitAPI):
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -571,7 +571,7 @@ class modetrade(Exchange, ImplicitAPI):
             },
             'created': self.safe_integer(market, 'created_time'),
             'info': market,
-        }
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -658,7 +658,7 @@ class modetrade(Exchange, ImplicitAPI):
         tokenRows = self.safe_list(data, 'rows', [])
         return self.parse_currencies(tokenRows)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'token')
         networks = self.safe_list(rawCurrency, 'chain_details', [])
         code = self.safe_currency_code(currencyId)
@@ -714,7 +714,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def parse_token_and_fee_temp(self, item, feeTokenKey, feeAmountKey):
+    def parse_token_and_fee_temp(self, item: Any, feeTokenKey: Any, feeAmountKey: Any):
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -829,7 +829,7 @@ class modetrade(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: Any, market: Market = None) -> FundingRate:
         #
         #         {
         #             "symbol":"PERP_AAVE_USDT",
@@ -871,7 +871,7 @@ class modetrade(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval):
+    def parse_funding_interval(self, interval: Any):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -1028,7 +1028,7 @@ class modetrade(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1186,7 +1186,7 @@ class modetrade(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1219,7 +1219,7 @@ class modetrade(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'start_timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -1426,7 +1426,11 @@ class modetrade(Exchange, ImplicitAPI):
             return None
         return self.safe_string_lower(types, type, type)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
         """
  @ignore
         helper function to build the request
@@ -1512,7 +1516,7 @@ class modetrade(Exchange, ImplicitAPI):
                     'type': 'LIMIT',
                     'reduce_only': True,
                 }
-                outterOrder.append(takeProfitOrder)
+                childOrders.append(takeProfitOrder)
             request['child_orders'] = [outterOrder]
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
@@ -1835,7 +1839,7 @@ class modetrade(Exchange, ImplicitAPI):
         https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
 
         cancel all open orders in a market
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -2184,7 +2188,7 @@ class modetrade(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -2195,7 +2199,8 @@ class modetrade(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
             account['used'] = self.safe_string(balance, 'frozen')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -2300,7 +2305,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': item,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
@@ -2446,17 +2451,17 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.safe_number(data, 'withdraw_nonce')
 
-    def hash_message(self, message):
+    def hash_message(self, message: Any):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: Any, privateKey: Any):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: Any, privateKey: Any):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
@@ -2537,7 +2542,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_leverage(self, leverage, market: Market = None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         leverageValue = self.safe_integer(leverage, 'max_leverage')
         return {
             'info': leverage,
@@ -2682,7 +2687,7 @@ class modetrade(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_position(self, symbol: Str, params={}):
+    def fetch_position(self, symbol: str, params={}):
         """
 
         https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
@@ -2788,7 +2793,7 @@ class modetrade(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, section='public', method='GET', params: dict = {}, headers: dict = None, body: Any = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -2845,7 +2850,7 @@ class modetrade(Exchange, ImplicitAPI):
             headers['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #

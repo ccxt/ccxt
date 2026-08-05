@@ -298,7 +298,7 @@ class zebpay extends Exchange {
          * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
          * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
          *
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
         $promisesUnresolved = array();
@@ -398,26 +398,28 @@ class zebpay extends Exchange {
             if ($minNetworkDepositString !== null) {
                 $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
             }
-            $networks[$networkCode] = array(
-                'info' => $chain,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => $depositAllowed && $withdrawAllowed,
-                'deposit' => $depositAllowed,
-                'withdraw' => $withdrawAllowed,
-                'fee' => $this->parse_number($withdrawFeeString),
-                'precision' => $precision,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->parse_number($minNetworkWithdrawString),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => $depositAllowed && $withdrawAllowed,
+                    'deposit' => $depositAllowed,
+                    'withdraw' => $withdrawAllowed,
+                    'fee' => $this->parse_number($withdrawFeeString),
+                    'precision' => $precision,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->parse_number($minNetworkWithdrawString),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_number($minNetworkDepositString),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->parse_number($minNetworkDepositString),
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $rawCurrency,
@@ -501,7 +503,7 @@ class zebpay extends Exchange {
             // }
             //
             $responseData = $this->safe_list($response, 'data', array());
-            $data = $this->safe_dict($responseData, 0);
+            $data = $this->safe_dict($responseData, 0, array());
         }
         return $this->parse_trading_fee($data, $market);
     }
@@ -542,7 +544,9 @@ class zebpay extends Exchange {
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
             $symbol = $fee['symbol'];
-            $result[$symbol] = $fee;
+            if ($symbol !== null) {
+                $result[$symbol] = $fee;
+            }
         }
         return $result;
     }
@@ -557,7 +561,7 @@ class zebpay extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1024,6 +1028,9 @@ class zebpay extends Exchange {
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $params = $this->omit($params, array( 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ));
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -1070,9 +1077,9 @@ class zebpay extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function order_request($symbol, $type, $amount, $request, $price = null, $params = array()) {
+    public function order_request(mixed $symbol, mixed $type, mixed $amount, mixed $request, ?float $price = null, $params = array()) {
         $upperCaseType = strtoupper($type);
-        $triggerPrice = $this->safe_string($params, 'stopLossPrice', null);
+        $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $clientOrderId = $this->safe_string($params, 'clientOrderId', $this->uuid());
@@ -1134,7 +1141,7 @@ class zebpay extends Exchange {
         //        ),
         //    }
         //
-        return $this->parse_order($this->safe_dict($response, 'data'));
+        return $this->parse_order($this->safe_dict($response, 'data', array()));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
@@ -1143,10 +1150,10 @@ class zebpay extends Exchange {
          *
          * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
          *
-         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {string} [$symbol] unified $symbol of the market the orders were made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {array} [$params->timestamp] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         * @param {int} [$params->timestamp] the timestamp of the request in ms
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
@@ -1239,7 +1246,7 @@ class zebpay extends Exchange {
         return $this->parse_orders($orders, $market, null, $limit);
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -1325,7 +1332,7 @@ class zebpay extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $status = $this->safe_string_lower($order, 'status');
-        $orderId = $this->safe_string($order, 'orderId', null);
+        $orderId = $this->safe_string($order, 'orderId');
         $parsedOrder = $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
@@ -1362,7 +1369,7 @@ class zebpay extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $side not used by kucoinfutures closePositions
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->positionId] client order id of the order
          * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
          */
@@ -1735,7 +1742,7 @@ class zebpay extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1750,7 +1757,9 @@ class zebpay extends Exchange {
             $account['used'] = $this->safe_string($entry, 'used');
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1877,7 +1886,7 @@ class zebpay extends Exchange {
         ), $market);
     }
 
-    public function parse_margin_modification($info, ?array $market = null): array {
+    public function parse_margin_modification(mixed $info, ?array $market = null): array {
         //
         //    {
         //         "symbol" => "BTCINR",
@@ -1902,7 +1911,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $params = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
         $marketType = $isV1 ? 'swap' : 'spot';
@@ -1950,7 +1959,7 @@ class zebpay extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;

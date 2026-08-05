@@ -108,8 +108,14 @@ def test_market(exchange, skipped_properties, method, market):
         empty_allowed_for.append('quoteId')
         empty_allowed_for.append('base')
         empty_allowed_for.append('quote')
+    if exchange.safe_string(market, 'type') == 'prediction':
+        # prediction market rows carry the unified 'market' handle, the
+        # deprecated 'symbol' key is intentionally absent from their structures
+        format = exchange.omit(format, ['symbol'])
     test_shared_methods.assert_structure(exchange, skipped_properties, method, market, format, empty_allowed_for)
-    test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
+    # prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+    if market['type'] != 'prediction':
+        test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
     # check taker/maker
     # todo: check not all to be within 0-1.0

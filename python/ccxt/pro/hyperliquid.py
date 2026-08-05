@@ -222,7 +222,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -270,7 +270,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Any, message: Any):
         #
         #     {
         #         "channel": "l2Book",
@@ -466,7 +466,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message):
+    def handle_ws_tickers(self, client: Client, message: Any):
         # hip3 mids
         # {
         #     channel: 'allMids',
@@ -502,10 +502,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.resolve(self.tickers, messageHash)
         return True
 
-    def parse_ws_ticker(self, rawTicker, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, rawTicker: Any, market: Market = None) -> Ticker:
         return self.parse_ticker(rawTicker, market)
 
-    def handle_my_trades(self, client: Client, message):
+    def handle_my_trades(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "userFills",
@@ -616,7 +616,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "trades",
@@ -693,7 +693,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         amount = self.safe_string(trade, 'sz')
         coin = self.safe_string(trade, 'coin')
         marketId = self.coinToMarketId(coin)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         id = self.safe_string(trade, 'tid')
         side = self.safe_string(trade, 'side')
@@ -778,7 +778,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messagehash, message, messagehash)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         channel: 'candle',
@@ -909,7 +909,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         # spot
         # {
@@ -993,7 +993,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         self.balance[account] = self.safe_balance(self.balance[account])
         client.resolve(self.balance[account], messageHash)
 
-    def parse_ws_balance(self, balance, accountType: Str = None):
+    def parse_ws_balance(self, balance: Any, accountType: Str = None):
         #
         # spot
         #     {
@@ -1039,9 +1039,11 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if accountType is not None:
             if self.safe_value(self.balance, accountType) is None:
                 self.balance[accountType] = {}
-            self.balance[accountType][code] = account
+            if (accountType is not None) and (code is not None):
+                self.balance[accountType][code] = account
         else:
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
@@ -1093,7 +1095,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             return
         self.positions = ArrayCacheBySymbolBySide()
 
-    def handle_positions(self, client, message):
+    def handle_positions(self, client: Any, message: Any):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1220,7 +1222,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         #     {
         #         channel: 'orderUpdates',
@@ -1264,7 +1266,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #    {
         #      "channel": "post",
@@ -1411,7 +1413,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if 'spot' in self.balance:
             del self.balance['spot']
 
-    def handle_subscription_response(self, client: Client, message):
+    def handle_subscription_response(self, client: Client, message: Any):
         # {
         #     "channel":"subscriptionResponse",
         #     "data":{
@@ -1456,7 +1458,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             elif type == 'spotState':
                 self.handle_spot_balance_unsubscription(client, subscription)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         #
         # {
         #     "channel":"subscriptionResponse",
@@ -1504,7 +1506,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'ping',
         }
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         #
         #   {
         #       "channel": "pong"

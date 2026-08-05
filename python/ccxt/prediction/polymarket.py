@@ -11,6 +11,7 @@ import math
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
 from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionTradingFee, PredictionOrderRequest
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -380,7 +381,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         self.events = eventsDict
         return flatMarkets
 
-    async def fetch_raw_events_by_search(self, queries: List[Any], params={}) -> List[Any]:
+    async def fetch_raw_events_by_search(self, queries: List[str], params={}) -> List[Any]:
         """
  @ignore
         fetches raw gamma event objects matching the given search terms, paginating through all result pages
@@ -838,6 +839,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 ccxtMarketsLength = len(ccxtMarkets)
                 for i in range(0, ccxtMarketsLength):
                     mkt = ccxtMarkets[i]
+                    if mkt is None:
+                        raise ExchangeError(self.id + ' fetchOutcome() could not resolve mkt')
                     self.markets[mkt['market']] = mkt
                 self.populate_outcomes()
                 byId = self.safe_value(self.outcomes_by_id, outcomeSymbol)
@@ -885,6 +888,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 ccxtMarkets = self.parse_event_to_markets({'markets': rawMarkets})
                 for i in range(0, len(ccxtMarkets)):
                     mkt = ccxtMarkets[i]
+                    if mkt is None:
+                        raise ExchangeError(self.id + ' fetchOutcomes() could not resolve mkt')
                     self.markets[mkt['market']] = mkt
                 startIndex = self.sum(startIndex, chunkSize)
             self.populate_outcomes()
@@ -1114,7 +1119,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_order_book(self, outcome: str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
         """
         fetches the CLOB order book for a single outcome token
 
@@ -1250,7 +1255,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             return self.array_slice(candles, -limit)
         return candles
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         # Unused: fetchOHLCV performs client-side bucket aggregation directly.
         #
         #     {
@@ -1321,7 +1326,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         first = self.safe_dict(response, 0, {})
         return self.parse_prediction_open_interest(first, outcomeObj)
 
-    def parse_prediction_open_interest(self, interest, market: Market = None) -> PredictionOpenInterest:
+    def parse_prediction_open_interest(self, interest: dict, market: Market = None) -> PredictionOpenInterest:
         #
         #     {"market": "0x7976b8...92", "value": 4925662.470476}
         #
@@ -1530,7 +1535,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         response = await self.clobPrivateGetBalanceAllowance(self.extend(request, rest))
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         """
  @ignore
         parses a balance-allowance response into a balances object with a USDC entry
@@ -1579,6 +1584,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if outcomesLength == 0:
             return parsed
         wantedIds = {}
+        if outcomes is None:
+            raise ExchangeError(self.id + ' fetchPositions() missing outcomes')
         for i in range(0, len(outcomes)):
             outcomeObj = self.outcome(outcomes[i])
             wantedIds[outcomeObj['outcomeId']] = True
@@ -1821,7 +1828,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         orderOutcomes = []
         for i in range(0, len(orders)):
             o = orders[i]
-            orderOutcomes.append(self.safe_string(o, 'outcome'))
+            __oc = self.safe_string(o, 'outcome')
+            if __oc is not None:
+                orderOutcomes.append(__oc)
         await self.load_outcomes(orderOutcomes)
         bodies = []
         outcomes = []
@@ -1834,9 +1843,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 # a distinct salt per order so two identical orders in one batch don't collide
                 orderParams = self.extend(orderParams, {'salt': self.number_to_string(self.sum(batchSalt, i))})
             built = self.build_clob_order_body(self.safe_string(o, 'outcome'), self.safe_string(o, 'type'), self.safe_string(o, 'side'), self.safe_number(o, 'amount'), self.safe_number(o, 'price'), orderParams)
-            bodies.append(self.safe_dict(built, 'body'))
-            outcomes.append(self.safe_dict(built, 'outcome'))
-            requests.append(self.safe_dict(built, 'request'))
+            bodies.append(self.safe_dict(built, 'body', {}))
+            outcomes.append(self.safe_dict(built, 'outcome', {}))
+            requests.append(self.safe_dict(built, 'request', {}))
         response = await self.clobPrivatePostOrders(bodies)
         result = []
         if isinstance(response, list):
@@ -1850,7 +1859,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             result.append(self.parse_prediction_order(response))
         return result
 
-    def build_clob_order_body(self, outcome: str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
+    def build_clob_order_body(self, outcome: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
         """
  @ignore
         builds and signs a single CLOB order request body(shared by createOrder and createOrders)
@@ -2015,7 +2024,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         request = self.extend(params, {'cost': cost})
         return await self.create_order(outcome, 'market', 'buy', cost, None, request)
 
-    def polymarket_order_raw_amounts(self, side: str, size: float, price: float, tickSize: str, cost: Num = None) -> dict:
+    def polymarket_order_raw_amounts(self, side: Str, size: Num, price: Num, tickSize: Str, cost: Num = None) -> dict:
         configs = {
             '0.1': {'price': 1, 'size': 2, 'amount': 3},
             '0.01': {'price': 2, 'size': 2, 'amount': 4},
@@ -2232,6 +2241,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         requestedSlug = self.safe_string(params, 'slug')
         queries = self.parse_search_queries(params)
         rest = self.omit(params, ['query', 'queries', 'eventId', 'slug'])
+        if queries is None:
+            raise ExchangeError(self.id + ' fetchEvents() missing queries')
         queriesLength = len(queries)
         rawEvents = []
         if (requestedEventId is not None) or (requestedSlug is not None):
@@ -2272,6 +2283,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     ccxtMarkets = self.parse_event_to_markets(eventForParsing)
             for mi in range(0, len(ccxtMarkets)):
                 m = ccxtMarkets[mi]
+                if m is None:
+                    raise ExchangeError(self.id + ' fetchEvents() missing m')
                 self.markets[m['market']] = m
             parsedEvent = self.parse_event(eventForParsing)
             result.append(parsedEvent)
@@ -2307,6 +2320,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         else:
             response = await self.gammaPublicGetEventsId(self.extend({'id': id}, params))
         eventForParsing = self.safe_dict(response, 'event', response)
+        if eventForParsing is None:
+            eventForParsing = {}
         event = self.parse_event(eventForParsing)
         self.index_event_outcomes(event)
         return event
@@ -2652,6 +2667,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
             creds = await self.derive_api_key(params)
         except Exception as e:
             creds = await self.create_api_key(params)
+        if creds is None:
+            raise ExchangeError(self.id + ' createOrDeriveApiKey() returned no credentials')
         return creds
 
     def set_api_credentials(self, response: dict) -> dict:
@@ -2869,9 +2886,12 @@ class polymarket(PredictionExchange, ImplicitAPI):
         messageHash = 'ticker::' + outcome
         subscribeHash = 'subscribe::' + tokenId
         subscribeMsg = {'assets_ids': [tokenId], 'type': 'market'}
+        if outcome is None:
+            raise ExchangeError(self.id + ' watchTicker() missing outcome')
         if not (outcome in self.orderbooks):
             seededBook = self.order_book({})
-            self.orderbooks[outcome] = seededBook
+            if outcome is not None:
+                self.orderbooks[outcome] = seededBook
         url = self.urls['api']['ws']
         orderbook = await self.watch(url, messageHash, subscribeMsg, subscribeHash)
         bids = orderbook['bids']
@@ -3009,7 +3029,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             client.resolve(stored, 'myTrades::' + outcome)
 
-    def token_id_to_symbol(self, tokenId: str) -> Str:
+    def token_id_to_symbol(self, tokenId: Str) -> Str:
         if not tokenId:
             return None
         # outcome tokens are keyed in outcomes_by_id(populated by fetchEvents/loadMarkets)

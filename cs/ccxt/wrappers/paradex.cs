@@ -212,7 +212,7 @@ public partial class paradex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -456,7 +456,7 @@ public partial class paradex
     /// <item>
     /// <term>symbol</term>
     /// <description>
-    /// string : unified market symbol, not used by paradex cancelOrders()
+    /// string : unified market symbol, not used by cancelOrders()
     /// </description>
     /// </item>
     /// <item>

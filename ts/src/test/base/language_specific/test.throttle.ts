@@ -1,10 +1,11 @@
 /* eslint-disable */
 import { Throttler } from '../../../base/functions/throttle.js'
+import type { Dict } from '../../../base/types.js'
 
 function testThrottle () {
 
     const delta = 10
-    const testCases = [
+    const testCases: Dict[] = [
         {
             'tokens': 0,
             'refillRate': 1 / 50,
@@ -77,7 +78,7 @@ function testThrottle () {
         test['expected'] = remaining * test['cost'] / test['refillRate']
     }
 
-    async function runner (test) {
+    async function runner (test: Dict) {
         const throttler = new Throttler ({
             'refillRate': test['refillRate'],
             'tokens': test['tokens'],

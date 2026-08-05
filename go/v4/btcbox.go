@@ -317,7 +317,7 @@ func (this *BtcboxCore) ParseMarket(market any) any {
 	var quoteId any = this.SafeString(market, "quote")
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             this.SafeString(market, "symbol"),
 		"uppercaseId":    nil,
 		"symbol":         symbol,
@@ -366,7 +366,7 @@ func (this *BtcboxCore) ParseMarket(market any) any {
 		"active":  nil,
 		"created": nil,
 		"info":    market,
-	}
+	})
 }
 func (this *BtcboxCore) ParseBalance(response any) any {
 	var result any = map[string]any{
@@ -428,7 +428,7 @@ func (this *BtcboxCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BtcboxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -446,7 +446,7 @@ func (this *BtcboxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
-		var numSymbols any = Ternary(IsTrue((IsEqual(this.Symbols, nil))), 0, GetArrayLength(this.Symbols))
+		var numSymbols any = GetArrayLength(this.Symbols)
 		if IsTrue(IsGreaterThan(numSymbols, 1)) {
 			AddElementToObject(request, "coin", GetValue(market, "baseId"))
 		}
@@ -512,7 +512,7 @@ func (this *BtcboxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
-		var numSymbols any = Ternary(IsTrue((IsEqual(this.Symbols, nil))), 0, GetArrayLength(this.Symbols))
+		var numSymbols any = GetArrayLength(this.Symbols)
 		if IsTrue(IsGreaterThan(numSymbols, 1)) {
 			AddElementToObject(request, "coin", GetValue(market, "baseId"))
 		}
@@ -626,7 +626,7 @@ func (this *BtcboxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
-		var numSymbols any = Ternary(IsTrue((IsEqual(this.Symbols, nil))), 0, GetArrayLength(this.Symbols))
+		var numSymbols any = GetArrayLength(this.Symbols)
 		if IsTrue(IsGreaterThan(numSymbols, 1)) {
 			AddElementToObject(request, "coin", GetValue(market, "baseId"))
 		}

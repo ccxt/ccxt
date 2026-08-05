@@ -117,7 +117,7 @@ func (this *ModetradeCore) WatchPublic(messageHash any, message any) <-chan any 
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ModetradeCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -550,7 +550,7 @@ func (this *ModetradeCore) HandleOHLCV(client any, message any) {
 	}
 	var parsed any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
 		var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -1516,13 +1516,18 @@ func (this *ModetradeCore) HandleBalance(client any, message any) {
 		var key any = ccxt.GetValue(keys, i)
 		var value any = ccxt.GetValue(balances, key)
 		var code any = this.SafeCurrencyCode(key)
-		var account any = ccxt.Ternary(ccxt.IsTrue((ccxt.InOp(this.Balance, code))), ccxt.GetValue(this.Balance, code), this.Account())
+		var account any = this.Account()
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(code, nil))) && ccxt.IsTrue((ccxt.InOp(this.Balance, code)))) {
+			account = ccxt.GetValue(this.Balance, code)
+		}
 		var total any = this.SafeString(value, "holding")
 		var used any = this.SafeString(value, "frozen")
 		ccxt.AddElementToObject(account, "total", total)
 		ccxt.AddElementToObject(account, "used", used)
 		ccxt.AddElementToObject(account, "free", ccxt.Precise.StringSub(total, used))
-		ccxt.AddElementToObject(this.Balance, code, account)
+		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+			ccxt.AddElementToObject(this.Balance, code, account)
+		}
 	}
 	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
@@ -1646,10 +1651,10 @@ func (this *ModetradeCore) Pong(client any, message any) <-chan any {
 		defer close(ch)
 		defer ccxt.ReturnPanicError(ch)
 
-		retRes13788 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+		retRes13838 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 			"event": "pong",
 		}))
-		ccxt.PanicOnError(retRes13788)
+		ccxt.PanicOnError(retRes13838)
 		return nil
 	}()
 	return ch

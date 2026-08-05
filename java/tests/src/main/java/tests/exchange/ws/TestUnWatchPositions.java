@@ -43,7 +43,7 @@ public class TestUnWatchPositions extends BaseTest {
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
             {
-                throw new RuntimeException(e);
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             // If we can't subscribe, we can't test unsubscribe, so skip this test
             return false;
@@ -69,9 +69,9 @@ public class TestUnWatchPositions extends BaseTest {
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
             {
-                throw new RuntimeException(e);
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
         // Verify the response for unwatching all positions
         Assert(!Helpers.isEqual(responseAll, null), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return a response when unwatching all positions, returned "), exchange.json(responseAll)));
@@ -86,7 +86,7 @@ public class TestUnWatchPositions extends BaseTest {
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
             {
-                throw new RuntimeException(e);
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             throw new RuntimeException((String)Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
         }

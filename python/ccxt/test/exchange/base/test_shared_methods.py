@@ -78,16 +78,14 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
         for i in range(0, len(format)):
             empty_allowed_for_this_key = (empty_allowed_for is None) or exchange.in_array(i, empty_allowed_for)
             value = entry[i]
-            if i in skipped_properties:
-                continue
             # check when:
             # - it's not inside "allowe empty values" list
             # - it's not undefined
-            if empty_allowed_for_this_key and (value is None):
+            if (empty_allowed_for_this_key and (value is None)) or (i in skipped_properties):
                 continue
             assert value is not None, str(i) + ' index is expected to have a value' + log_text
             # because of other langs, this is needed for arrays
-            type_assertion = assert_type(exchange, skipped_properties, entry, i, format)
+            type_assertion = assert_type(exchange, {}, entry, i, format)
             assert type_assertion, str(i) + ' index does not have an expected type ' + log_text
     else:
         assert exchange.is_dictionary(entry), 'entry is not a dict' + log_text
@@ -97,12 +95,10 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             if key in skipped_properties:
                 continue
             assert key in entry, '"' + string_value(key) + '" key is missing from structure' + log_text
-            if key in skipped_properties:
-                continue
             empty_allowed_for_this_key = (empty_allowed_for is None) or exchange.in_array(key, empty_allowed_for)
             value = entry[key]
             # check when:
-            # - it's not inside "allowe empty values" list
+            # - it's not inside "allowed empty values" list
             # - it's not undefined
             if empty_allowed_for_this_key and (value is None):
                 continue
@@ -110,7 +106,7 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             assert value is not None, '"' + string_value(key) + '" key is expected to have a value' + log_text
             # add exclusion for info key, as it can be any type
             if key != 'info':
-                type_assertion = assert_type(exchange, skipped_properties, entry, key, format)
+                type_assertion = assert_type(exchange, {}, entry, key, format)
                 assert type_assertion, '"' + string_value(key) + '" key is neither undefined, neither of expected type' + log_text
                 if deep:
                     if exchange.is_dictionary(value) or isinstance(value, list):
@@ -162,6 +158,8 @@ def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, n
             # so, we have to compare with millisecond accururacy
             dt_parsed = exchange.parse8601(dt)
             ts_ms = entry['timestamp']
+            if dt_parsed is None:
+                assert False, 'datetime is not parseable: ' + dt + log_text
             diff = abs(dt_parsed - ts_ms)
             if diff >= 500:
                 dt_parsed_string = exchange.iso8601(dt_parsed)
@@ -214,7 +212,7 @@ def assert_symbol(exchange, skipped_properties, method, entry, key, expected_sym
 
 def assert_symbol_in_markets(exchange, skipped_properties, method, symbol):
     log_text = log_template(exchange, method, {})
-    assert (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
+    assert (exchange.markets is not None) and (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
 
 
 def assert_greater(exchange, skipped_properties, method, entry, key, compare_to, allow_null=True):
@@ -574,7 +572,7 @@ def validate_ticker_exception_for_percentage(ex, exchange, ticker):
         symbol = ticker['symbol']
         if symbol is not None:
             # if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if not (symbol in exchange.markets):
+            if (exchange.markets is None) or not (symbol in exchange.markets):
                 return
             # if OHLCV supported
             if exchange.feature_value(symbol, 'fetchOHLCV') is not None:

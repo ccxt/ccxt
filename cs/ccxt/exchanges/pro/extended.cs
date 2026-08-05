@@ -52,7 +52,7 @@ public partial class extended : ccxt.extended
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] set to '1' to receive best bid and ask snapshots only
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -901,8 +901,8 @@ public partial class extended : ccxt.extended
         object candleType = this.safeString(subscription, "candleType");
         object cacheKey = ((bool) isTrue((isEqual(candleType, "trades")))) ? timeframe : add(add(timeframe, ":"), candleType);
         object messageHash = this.safeString(subscription, "messageHash");
-        ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, ((string)symbol), new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), ((string)cacheKey));
+        ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), cacheKey);
         if (isTrue(isEqual(stored, null)))
         {
             object defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);

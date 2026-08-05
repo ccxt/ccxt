@@ -70,6 +70,9 @@ class OrderBookSide(list):
     def __repr__(self):
         return str(list(self))
 
+    def copy(self):
+        return self.__class__([delta[:] for delta in self], self._depth)
+
 # -----------------------------------------------------------------------------
 # overwrites absolute volumes at price levels
 # or deletes price levels based on order counts (3rd value in a bidask delta)

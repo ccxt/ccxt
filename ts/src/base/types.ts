@@ -6,6 +6,8 @@ export type Num = number | undefined;
 export type Bool = boolean | undefined;
 // must be an integer in other langs
 export type IndexType = number | string;
+// nullable dict/list key for safe* lookups (undefined short-circuits in prop)
+export type NullableIndexType = IndexType | undefined;
 export type OrderSide = 'buy' | 'sell' | string | undefined;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
@@ -15,8 +17,10 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 
+// url trees are open-ended bags: exchanges nest arbitrary depth under
+// 'api', 'test', 'hostnames', 'demo', ... and index them dynamically
 export interface NestedDictionary {
-    [key: string]: string | NestedDictionary;
+    [key: string]: any;
 }
 
 export type Dict = Dictionary<any>;
@@ -39,6 +43,14 @@ export interface FeeInterface {
     rate?: Num;
 }
 
+// intermediate fee bag carried through the Precise/safeTrade pipeline, before
+// parseFeeNumeric() converts cost/rate to numbers; the unified Trade/Order fee is Fee
+export interface FeeStringInterface {
+    currency: Str;
+    cost: Str;
+    rate?: Str;
+}
+
 export interface TradingFeeInterface {
     info: any;
     symbol: Str;
@@ -50,9 +62,11 @@ export interface TradingFeeInterface {
 
 export type Fee = FeeInterface | undefined;
 
+export type FeeString = FeeStringInterface | undefined;
+
 export interface MarketMarginModes {
-    isolated: boolean;
-    cross: boolean;
+    isolated: Bool;
+    cross: Bool;
 }
 
 export interface Precision {
@@ -74,20 +88,20 @@ export interface MarketInterface {
     active: Bool;
     type: MarketType;
     subType?: SubType;
-    spot: boolean;
-    margin: boolean;
-    swap: boolean;
-    future: boolean;
-    option: boolean;
-    stock: boolean;
-    prediction?: boolean;
-    contract: boolean;
+    spot: Bool;
+    margin: Bool;
+    swap: Bool;
+    future: Bool;
+    option: Bool;
+    stock: Bool;
+    prediction?: Bool;
+    contract: Bool;
     settle: Str;
     settleId: Str;
     contractSize: Num;
     linear: Bool;
     inverse: Bool;
-    quanto?: boolean;
+    quanto?: Bool;
     expiry: Int;
     expiryDatetime: Str;
     strike: Num;
@@ -435,6 +449,7 @@ export interface OrderBook {
     timestamp: Int;
     nonce: Int;
     symbol: Str;
+    copy (): OrderBook;
 }
 
 export interface OrderBooks extends Dictionary<OrderBook> {
@@ -528,6 +543,9 @@ export interface BalanceAccount {
     free: Str,
     used: Str,
     total: Str,
+    debt?: Str,
+    frozen?: Str,
+    info?: any,
 }
 
 export interface Account {
@@ -665,6 +683,9 @@ export interface DepositWithdrawFee {
     withdraw?: DepositWithdrawFeeNetwork,
     deposit?: DepositWithdrawFeeNetwork,
     networks?: Dictionary<DepositWithdrawFeeNetwork>;
+}
+
+export interface DepositWithdrawFees extends Dictionary<DepositWithdrawFee> {
 }
 
 export interface TransferEntry {

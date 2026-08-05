@@ -30,7 +30,7 @@ export default class cryptocom extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': true,
+                'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -631,22 +631,24 @@ export default class cryptocom extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'network_id');
             const network = this.networkIdToCode(networkId, code);
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': undefined,
-                'deposit': this.safeBool(chain, 'deposit_enabled', false),
-                'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
-                'fee': this.safeNumber(chain, 'withdrawal_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'min_withdrawal_amount'),
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'deposit_enabled', false),
+                    'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
+                    'fee': this.safeNumber(chain, 'withdrawal_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': currency,
@@ -1170,7 +1172,7 @@ export default class cryptocom extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the number of order book entries to return, max 50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1220,7 +1222,9 @@ export default class cryptocom extends Exchange {
             const account = this.account();
             account['total'] = this.safeString(balance, 'quantity');
             account['used'] = this.safeString(balance, 'reserved_qty');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1341,6 +1345,12 @@ export default class cryptocom extends Exchange {
         return this.parseOrder(order, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const request = {
@@ -1574,6 +1584,12 @@ export default class cryptocom extends Exchange {
         return this.parseOrders(result);
     }
     createAdvancedOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1756,7 +1772,7 @@ export default class cryptocom extends Exchange {
      * @name cryptocom#cancelAllOrders
      * @description cancel all open orders
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
-     * @param {string} symbol unified market symbol of the orders to cancel
+     * @param {string} [symbol] unified market symbol of the orders to cancel
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2133,13 +2149,15 @@ export default class cryptocom extends Exchange {
             this.checkAddress(address);
             const networkId = this.safeString(value, 'network');
             const network = this.networkIdToCode(networkId, responseCode);
-            result[network] = {
-                'info': value,
-                'currency': responseCode,
-                'network': network,
-                'address': address,
-                'tag': tag,
-            };
+            if (network !== undefined) {
+                result[network] = {
+                    'info': value,
+                    'currency': responseCode,
+                    'network': network,
+                    'address': address,
+                    'tag': tag,
+                };
+            }
         }
         return result;
     }
@@ -2155,7 +2173,8 @@ export default class cryptocom extends Exchange {
     async fetchDepositAddress(code, params = {}) {
         const network = this.safeStringUpper(params, 'network');
         params = this.omit(params, ['network']);
-        const depositAddresses = await this.fetchDepositAddressesByNetwork(code, params);
+        const depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, params);
+        const depositAddresses = depositAddressesRaw;
         if (network in depositAddresses) {
             return depositAddresses[network];
         }
@@ -2712,10 +2731,12 @@ export default class cryptocom extends Exchange {
                 const networkId = this.safeString(networkInfo, 'network_id');
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
+                    };
+                }
                 if (networkListLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber(networkInfo, 'withdrawal_fee');
                     result['withdraw']['percentage'] = false;
@@ -3418,7 +3439,7 @@ export default class cryptocom extends Exchange {
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by cryptocom.closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.type] LIMIT or MARKET

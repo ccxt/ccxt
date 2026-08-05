@@ -41,6 +41,8 @@ restore cs/ccxt/wrappers
 restore cs/ccxt/base/Exchange.Wrappers.cs
 restore cs/ccxt/base/Exchange.BaseMethods.cs
 restore cs/ccxt/base/Exchange.MetaData.cs
+restore cs/ccxt/base/Exchange.Types.cs
+restore cs/ccxt/base/PredictionTypes.cs
 restore ts/ccxt.ts
 restore ts/src/abstract
 restore python
@@ -49,6 +51,7 @@ restore dist
 restore examples
 restore go/v4/exchange_metadata.go
 restore go/v4/pro/exchange_metadata.go
+restore java/lib/src/main/java/io/github/ccxt/types
 restore wiki/Exchange-Markets.md
 restore wiki/Manual.md
 

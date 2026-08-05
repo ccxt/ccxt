@@ -264,7 +264,7 @@ public partial class lighter
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -1015,7 +1015,7 @@ public partial class lighter
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : parameters specific to the bingx api endpoint
+    /// object : parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

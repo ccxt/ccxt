@@ -1,4 +1,5 @@
 name: PHP
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
 
 env:
   HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
@@ -11,12 +12,17 @@ on:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, php ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    timeout-minutes: 30
     steps:
     - name: Print vars
       run: |
@@ -24,15 +30,19 @@ jobs:
           echo "GITHUB_EVENT_NAME: {{ github.event_name }}"
           echo "GITHUB_EVENT_PUSH_NAME: {{ github.event.pusher.name }}"
           echo "GITHUB_REF: {{ github.ref }}"
-    - uses: actions/checkout@v4
+    - name: Generate App token
       if: github.ref == 'refs/heads/master'
+      id: app-token
+      uses: actions/create-github-app-token@v3
       with:
-        token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 2
-    - uses: actions/checkout@v4
-      if: github.ref != 'refs/heads/master'
+        client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+        private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+        permission-contents: write
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 2
+        clean: false
+        token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
@@ -41,17 +51,16 @@ jobs:
           exit 0
         fi
     - name: Setup PHP with PECL extension
+      if: runner.environment == 'github-hosted'
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.4.6'
-        # cache: true
+        php-version: '8.5'
         ini-values: |
           zend.assertions=1
           display_errors=On
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
-        node-version: '20'
-        cache: 'npm'
+        node-version: '22'
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Composer install
@@ -130,27 +139,50 @@ jobs:
         name: php-files
         path: php/
 
-    - name: Push PHP changes to master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Get App bot user ID
       if: github.ref == 'refs/heads/master'
+      id: app-user
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout HEAD README.md wiki  # only JS does wiki pushback
-          git pull origin master
-          git add php/ examples/php
-          git commit -m "[Automated changes] PHP files" || echo "No changes to commit."
-          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git config --global pull.rebase false
-          git pull --rebase --autostash origin master
-          git push
+        id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+          "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
+          | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
+        echo "id=${id}" >> "$GITHUB_OUTPUT"
+
+    - name: Push PHP changes to master
+      if: github.ref == 'refs/heads/master' && github.actor != 'ccxt-release[bot]'
+      env:
+        APP_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+        git config user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+        git remote set-url origin \
+          "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+        git checkout HEAD README.md wiki  # only JS does wiki pushback
+
+        git add php/ examples/php
+
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+          exit 0
+        fi
+
+        git commit -m "[Automated changes] PHP files"
+
+        git fetch origin master
+        git rebase --autostash origin/master
+        git push origin HEAD:master
 
   live-tests:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          clean: false
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
@@ -165,15 +197,15 @@ jobs:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4.6'
+          php-version: '8.5'
           extensions: protobuf
           # cache: true
           ini-values: |
             zend.assertions=1
             display_errors=On
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev

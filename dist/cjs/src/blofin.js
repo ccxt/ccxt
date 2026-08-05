@@ -516,7 +516,7 @@ class blofin extends blofin$1["default"] {
         const contract = swap || future;
         const baseId = this.safeString(market, 'baseCurrency');
         const quoteId = this.safeString(market, 'quoteCurrency');
-        const settleId = this.safeString(market, 'quoteCurrency');
+        const settleId = this.safeString(market, 'settleCurrency', quoteId);
         const settle = this.safeCurrencyCode(settleId);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
@@ -535,6 +535,9 @@ class blofin extends blofin$1["default"] {
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const isActive = (this.safeString(market, 'state') === 'live');
         const isMargin = spot && (Precise["default"].stringGt(maxLeverage, '1'));
+        const contractType = this.safeString(market, 'contractType');
+        const maxLimitAmount = this.safeNumber(market, 'maxLimitSize');
+        const maxSpotCost = this.safeNumber(market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -554,8 +557,8 @@ class blofin extends blofin$1["default"] {
             'taker': taker,
             'maker': maker,
             'contract': contract,
-            'linear': contract ? (quoteId === settleId) : undefined,
-            'inverse': contract ? (baseId === settleId) : undefined,
+            'linear': contract ? (contractType === 'linear') : undefined,
+            'inverse': contract ? (contractType === 'inverse') : undefined,
             'contractSize': contract ? this.safeNumber(market, 'contractValue') : undefined,
             'expiry': expiry,
             'expiryDatetime': expiry,
@@ -573,7 +576,7 @@ class blofin extends blofin$1["default"] {
                 },
                 'amount': {
                     'min': this.safeNumber(market, 'minSize'),
-                    'max': undefined,
+                    'max': maxLimitAmount,
                 },
                 'price': {
                     'min': undefined,
@@ -581,7 +584,7 @@ class blofin extends blofin$1["default"] {
                 },
                 'cost': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
@@ -595,7 +598,7 @@ class blofin extends blofin$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1234,6 +1237,12 @@ class blofin extends blofin$1["default"] {
         return this.parseBalanceByType(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2183,7 +2192,7 @@ class blofin extends blofin$1["default"] {
         const data = this.safeList(response, 'data', []);
         const position = this.safeDict(data, 0);
         if (position === undefined) {
-            return undefined;
+            throw new errors.NullResponse(this.id + ' fetchPosition() returned empty position');
         }
         return this.parsePosition(position, market);
     }
@@ -2215,7 +2224,7 @@ class blofin extends blofin$1["default"] {
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -2374,7 +2383,8 @@ class blofin extends blofin$1["default"] {
             initialMarginPercentage = this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString, 4));
         }
         else if (initialMarginString === undefined) {
-            initialMarginString = Precise["default"].stringMul(initialMarginPercentage, notionalString);
+            const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+            initialMarginString = Precise["default"].stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
@@ -2572,7 +2582,7 @@ class blofin extends blofin$1["default"] {
      * @see https://blofin.com/docs#close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the blofin api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2751,7 +2761,7 @@ class blofin extends blofin$1["default"] {
      * @description set hedged to true or false for a market
      * @see https://docs.blofin.com/index.html#set-position-mode
      * @param {bool} hedged set to true to use hedged mode, false for one-way mode
-     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */

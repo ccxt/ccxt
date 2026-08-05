@@ -364,7 +364,7 @@ class bitbns extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -506,7 +506,7 @@ class bitbns extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $timestamp = null;
         $result = array(
             'info' => $response,
@@ -529,7 +529,9 @@ class bitbns extends Exchange {
                     $currencyId = 'INR';
                 }
                 $code = $this->safe_currency_code($currencyId);
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
@@ -567,7 +569,7 @@ class bitbns extends Exchange {
         })();
     }
 
-    public function parse_status($status) {
+    public function parse_status(mixed $status) {
         $statuses = array(
             '-1' => 'cancelled',
             '0' => 'open',
@@ -690,6 +692,9 @@ class bitbns extends Exchange {
             $targetRate = $this->safe_string($params, 'target_rate');
             $trailRate = $this->safe_string($params, 'trail_rate');
             $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ));
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            }
             $request = array(
                 'side' => strtoupper($side),
                 'symbol' => $market['uppercaseId'],
@@ -724,7 +729,8 @@ class bitbns extends Exchange {
             //         "code":200
             //     }
             //
-            return $this->parse_order($response, $market);
+            $parsed = ($response === null) ? array() : $response;
+            return $this->parse_order($parsed, $market);
         })();
     }
 
@@ -761,7 +767,8 @@ class bitbns extends Exchange {
             $quoteSide .= $tail;
             $request['side'] = $quoteSide;
             $response = Async\await($this->v2PostCancel($this->extend($request, $params)));
-            return $this->parse_order($response, $market);
+            $parsed = ($response === null) ? array() : $response;
+            return $this->parse_order($parsed, $market);
         })();
     }
 
@@ -819,7 +826,7 @@ class bitbns extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
-            $first = $this->safe_dict($data, 0);
+            $first = $this->safe_dict($data, 0, array());
             return $this->parse_order($first, $market);
         })();
     }
@@ -1145,7 +1152,7 @@ class bitbns extends Exchange {
         })();
     }
 
-    public function parse_transaction_status_by_type($status, ?string $type = null) {
+    public function parse_transaction_status_by_type(mixed $status, ?string $type = null) {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -1277,9 +1284,9 @@ class bitbns extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'www', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'www', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $urls = $this->urls;
-        if (!(is_array($urls['api']) && array_key_exists($api, $urls['api']))) {
+        if (!(is_array($urls['api']) && array_key_exists($api ?? '', $urls['api']))) {
             throw new ExchangeError($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
         }
         if ($api !== 'www') {
@@ -1316,7 +1323,7 @@ class bitbns extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

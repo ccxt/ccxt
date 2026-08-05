@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitteam import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -368,7 +368,7 @@ class bitteam(Exchange, ImplicitAPI):
 
         https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
 
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetTradeApiCcxtPairs(params)
@@ -536,7 +536,7 @@ class bitteam(Exchange, ImplicitAPI):
 
         https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
 
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         response = await self.publicGetTradeApiCurrencies(params)
@@ -632,7 +632,7 @@ class bitteam(Exchange, ImplicitAPI):
         #
         responseResult = self.safe_value(response, 'result', {})
         currencies = self.safe_value(responseResult, 'currencies', [])
-        # usding another endpoint to fetch statuses of deposits and withdrawals
+        # using another endpoint to fetch statuses of deposits and withdrawals
         statusesResponse = await self.publicGetTradeApiCmcAssets()
         #
         #     {
@@ -660,7 +660,7 @@ class bitteam(Exchange, ImplicitAPI):
         del self.options['_temp_currencies_statuses']
         return result
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         statusesResponse = self.safe_value(self.options, '_temp_currencies_statuses', {})
         id = self.safe_string(currency, 'symbol')
         numericId = self.safe_integer(currency, 'id')
@@ -692,30 +692,31 @@ class bitteam(Exchange, ImplicitAPI):
             networkId = networkIds[j]
             networkCode = self.network_id_to_code(networkId, code)
             networkFee = self.safe_number(feesByNetworkId, networkId)
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': active,
-                'fee': networkFee,
-                'precision': networkPrecision,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': active,
+                    'fee': networkFee,
+                    'precision': networkPrecision,
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.parse_number(minWithdraw),
+                            'max': self.parse_number(maxWithdraw),
+                        },
+                        'deposit': {
+                            'min': self.parse_number(minDeposit),
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': self.parse_number(minWithdraw),
-                        'max': self.parse_number(maxWithdraw),
-                    },
-                    'deposit': {
-                        'min': self.parse_number(minDeposit),
-                        'max': None,
-                    },
-                },
-                'info': currency,
-            }
+                    'info': currency,
+                }
         return self.safe_currency_structure({
             'id': id,
             'numericId': numericId,
@@ -752,7 +753,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         if self.markets is None:
@@ -795,7 +796,7 @@ class bitteam(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "t": 1669680000,
@@ -823,8 +824,8 @@ class bitteam(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -873,7 +874,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve(default 10)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: the status of the order - 'active', 'closed', 'cancelled', 'all', 'history'(default 'all')
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
@@ -983,8 +984,8 @@ class bitteam(Exchange, ImplicitAPI):
         https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
 
         :param int|str id: order id
-        :param str symbol: not used by bitteam fetchOrder()
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param str symbol: not used by fetchOrder()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if self.markets is None:
@@ -1045,7 +1046,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve(default 10)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if self.markets is None:
@@ -1064,7 +1065,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of closed order structures to retrieve(default 10)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if self.markets is None:
@@ -1083,7 +1084,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of canceled order structures to retrieve(default 10)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if self.markets is None:
@@ -1104,7 +1105,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if self.markets is None:
@@ -1155,8 +1156,8 @@ class bitteam(Exchange, ImplicitAPI):
         https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
 
         :param str id: order id
-        :param str symbol: not used by bitteam cancelOrder()
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param str symbol: not used by cancelOrder()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if self.markets is None:
@@ -1182,8 +1183,8 @@ class bitteam(Exchange, ImplicitAPI):
 
         https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
 
-        :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if self.markets is None:
@@ -1360,14 +1361,14 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
+    def parse_order_type(self, status: Any):
         statuses = {
             'market': 'market',
             'limit': 'limit',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_value_to_pricision(self, valueObject, valueKey, preciseObject, precisionKey):
+    def parse_value_to_pricision(self, valueObject: Any, valueKey: Any, preciseObject: Any, precisionKey: Any):
         valueRawString = self.safe_string(valueObject, valueKey)
         precisionRawString = self.safe_string(preciseObject, precisionKey)
         if valueRawString is None or precisionRawString is None:
@@ -1382,7 +1383,7 @@ class bitteam(Exchange, ImplicitAPI):
         https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         if self.markets is None:
@@ -1435,7 +1436,7 @@ class bitteam(Exchange, ImplicitAPI):
         https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
 
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         if self.markets is None:
@@ -1767,7 +1768,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         if self.markets is None:
@@ -1809,7 +1810,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve(default 10)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         if self.markets is None:
@@ -2068,7 +2069,7 @@ class bitteam(Exchange, ImplicitAPI):
 
         https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
 
-        :param dict [params]: extra parameters specific to the betteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         if self.markets is None:
@@ -2076,7 +2077,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.privateGetTradeApiCcxtBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         #     {
         #         "ok": True,
@@ -2134,11 +2135,12 @@ class bitteam(Exchange, ImplicitAPI):
             used = self.safe_string(currencyBalance, 'used')
             total = self.safe_string(currencyBalance, 'total')
             currencyCode = self.safe_currency_code(rawCurrencyId.lower())
-            balance[currencyCode] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            if currencyCode is not None:
+                balance[currencyCode] = {
+                    'free': free,
+                    'used': used,
+                    'total': total,
+                }
         return self.safe_balance(balance)
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2150,7 +2152,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param str [code]: unified currency code for the currency of the deposit/withdrawals
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal
         :param int [limit]: max number of deposit/withdrawals to return(default 10)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         if self.markets is None:
@@ -2344,7 +2346,7 @@ class bitteam(Exchange, ImplicitAPI):
             'internal': False,
         }
 
-    def parse_transaction_type(self, type):
+    def parse_transaction_type(self, type: Any):
         types = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -2358,7 +2360,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
@@ -2380,7 +2382,7 @@ class bitteam(Exchange, ImplicitAPI):
             url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         if code != 200:

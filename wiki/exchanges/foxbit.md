@@ -119,7 +119,7 @@ foxbit.fetchTradingFees (params?)
 Exports a copy of the order book of a specific market.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findOrderbook  
 
@@ -332,12 +332,12 @@ Cancel all open orders or all open orders for a specific market.
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market to cancel orders in |
+| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-foxbit.cancelAllOrders (symbol, params?)
+foxbit.cancelAllOrders (symbol?, params?)
 ```
 
 

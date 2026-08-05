@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.foxbit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -380,7 +380,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         precision = self.safe_integer(rawCurrency, 'precision')
         currencyId = self.safe_string(rawCurrency, 'symbol')
         name = self.safe_string(rawCurrency, 'name')
@@ -398,31 +398,32 @@ class foxbit(Exchange, ImplicitAPI):
             networkDepositInfo = self.safe_dict(network, 'deposit_info')
             isWithdrawEnabled = self.safe_string(networkWithdrawInfo, 'status') == 'ENABLED'
             isDepositEnabled = self.safe_string(networkDepositInfo, 'status') == 'ENABLED'
-            parsedNetworks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'name': self.safe_string(network, 'name'),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'active': True,
-                'precision': precision,
-                'fee': self.safe_number(networkWithdrawInfo, 'fee'),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                parsedNetworks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': self.safe_string(network, 'name'),
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'active': True,
+                    'precision': precision,
+                    'fee': self.safe_number(networkWithdrawInfo, 'fee'),
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(depositInfo, 'min_amount'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(withdrawInfo, 'min_amount'),
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': self.safe_number(depositInfo, 'min_amount'),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': self.safe_number(withdrawInfo, 'min_amount'),
-                        'max': None,
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
@@ -686,7 +687,7 @@ class foxbit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return, the maximum is 100
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -842,7 +843,8 @@ class foxbit(Exchange, ImplicitAPI):
                 'used': used,
                 'total': total,
             }
-            result[currencyCode] = balanceObj
+            if currencyCode is not None:
+                result[currencyCode] = balanceObj
         return self.safe_balance(result)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -923,6 +925,8 @@ class foxbit(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.safe_bool(params, 'postOnly', False)
         triggerPrice = self.safe_number(params, 'triggerPrice')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'market_symbol': market['id'],
             'side': side.upper(),
@@ -1065,7 +1069,7 @@ class foxbit(Exchange, ImplicitAPI):
 
         https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
 
-        :param str symbol: unified market symbol of the market to cancel orders in
+        :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1444,6 +1448,8 @@ class foxbit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a side argument')
         request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
@@ -1651,7 +1657,7 @@ class foxbit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -1661,7 +1667,7 @@ class foxbit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade: Any, market: Market = None) -> Trade:
         timestamp = self.parse_date(self.safe_string(trade, 'created_at'))
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'volume', self.safe_string(trade, 'quantity'))
@@ -1700,7 +1706,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         symbol = self.safe_string(order, 'market_symbol')
         if market is None and symbol is not None:
             market = self.market(symbol)
@@ -1753,7 +1759,7 @@ class foxbit(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None):
         network = self.safe_dict(depositAddress, 'network')
         networkId = self.safe_string(network, 'code')
         currencyCode = self.safe_currency_code(None, currency)
@@ -1786,7 +1792,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None, since: Int = None, limit: Int = None) -> Transaction:
+    def parse_transaction(self, transaction: Any, currency: Currency = None, since: Int = None, limit: Int = None) -> Transaction:
         cryptoDetails = self.safe_dict(transaction, 'details_crypto')
         address = self.safe_string_2(cryptoDetails, 'receiving_address', 'destination_address')
         sn = self.safe_string(transaction, 'sn')
@@ -1834,7 +1840,7 @@ class foxbit(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             'DEPOSITING': 'transaction',
             'WITHDRAWING': 'transaction',
@@ -1871,9 +1877,17 @@ class foxbit(Exchange, ImplicitAPI):
             'cost': self.safe_number(item, 'fee'),
             'currency': currencySymbol,
         }
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
         if amount < 0:
             direction = 'out'
+            if amount is None:
+                raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
             realAmount = amount * -1
+        if balance is None:
+            raise ExchangeError(self.id + ' parseLedgerEntry() missing balance')
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
         return {
             'id': id,
             'info': item,
@@ -1892,7 +1906,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)
@@ -1934,7 +1948,7 @@ class foxbit(Exchange, ImplicitAPI):
             headers['X-FB-ACCESS-SIGNATURE'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         error = self.safe_dict(response, 'error')

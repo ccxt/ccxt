@@ -3330,8 +3330,8 @@
                         "side": null,
                         "takerOrMaker": null,
                         "price": 65.2965,
-                        "amount": 1,
-                        "cost": 65.2965,
+                        "amount": 10,
+                        "cost": 652.965,
                         "fee": {
                             "cost": 0.0326,
                             "currency": "USDT"
@@ -3339,6 +3339,78 @@
                         "fees": [
                             {
                                 "cost": 0.0326,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "Swap trade amount is taken from volume directly, not volume * tradeMinQuantity (regression for issue #29476, 3x inflated amount)",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "fill_orders": [
+                            {
+                                "filledTm": "2026-07-28T10:00:00Z",
+                                "volume": "1.3",
+                                "price": "8.281",
+                                "amount": "10.7653",
+                                "commission": "-0.0053824",
+                                "currency": "USDT",
+                                "orderId": "2082074120363917312",
+                                "liquidatedPrice": "",
+                                "liquidatedMarginRatio": "",
+                                "filledTime": "2026-07-28T10:00:00.000+0800",
+                                "clientOrderID": "",
+                                "symbol": "LTC-USDT",
+                                "onlyOnePosition": false
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "info": {
+                            "filledTm": "2026-07-28T10:00:00Z",
+                            "volume": "1.3",
+                            "price": "8.281",
+                            "amount": "10.7653",
+                            "commission": "-0.0053824",
+                            "currency": "USDT",
+                            "orderId": "2082074120363917312",
+                            "liquidatedPrice": "",
+                            "liquidatedMarginRatio": "",
+                            "filledTime": "2026-07-28T10:00:00.000+0800",
+                            "clientOrderID": "",
+                            "symbol": "LTC-USDT",
+                            "onlyOnePosition": false
+                        },
+                        "timestamp": 1785232800000,
+                        "datetime": "2026-07-28T10:00:00.000Z",
+                        "symbol": "LTC/USDT:USDT",
+                        "order": "2082074120363917312",
+                        "type": null,
+                        "side": null,
+                        "takerOrMaker": null,
+                        "price": 8.281,
+                        "amount": 1.3,
+                        "cost": 10.7653,
+                        "fee": {
+                            "cost": 0.0053824,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.0053824,
                                 "currency": "USDT"
                             }
                         ]
@@ -3688,7 +3760,7 @@
                     },
                     "currency": "USDT",
                     "network": "BEP20",
-                    "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                    "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
                     "tag": null
                   },
                   "HECO": {

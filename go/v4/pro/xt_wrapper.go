@@ -29,7 +29,7 @@ func NewXt(userConfig map[string]any) *Xt {
  * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
  * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
@@ -60,7 +60,7 @@ func (this *Xt) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (
  * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
  * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
@@ -91,7 +91,7 @@ func (this *Xt) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOption
  * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
  * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
  * @param {string} [symbols] unified market symbols
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
@@ -127,7 +127,7 @@ func (this *Xt) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers,
  * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
  * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
  * @param {string} [symbols] unified market symbols
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
@@ -165,7 +165,7 @@ func (this *Xt) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, erro
  * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
  * @param {int} [since] not used by xt watchOHLCV
  * @param {int} [limit] not used by xt watchOHLCV
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Xt) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {
@@ -210,7 +210,7 @@ func (this *Xt) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]
  * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Xt) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
@@ -246,7 +246,7 @@ func (this *Xt) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions)
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
 func (this *Xt) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
@@ -285,7 +285,7 @@ func (this *Xt) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) (
  * @see https://doc.xt.com/#websocket_publicdealRecord
  * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
  * @param {string} symbol unified symbol of the market to fetch trades for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
 func (this *Xt) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
@@ -317,9 +317,9 @@ func (this *Xt) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOption
  * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] not used by xt watchOrderBook
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.levels] 5, 10, 20, or 50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Xt) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -354,7 +354,7 @@ func (this *Xt) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOpti
  * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
  * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.levels] 5, 10, 20, or 50
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
  */
@@ -383,7 +383,7 @@ func (this *Xt) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBook
  * @description watches information on multiple orders made by the user
  * @see https://doc.xt.com/#websocket_privatebalanceChange
  * @see https://doc.xt.com/#futures_user_websocket_v2balance
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Xt) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
@@ -429,7 +429,7 @@ func (this *Xt) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, e
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve
- * @param {object} params extra parameters specific to the kucoin api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Xt) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {
@@ -516,6 +516,62 @@ func (this *Xt) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Po
 		return nil, ccxt.CreateReturnError(res)
 	}
 	return ccxt.NewPositionArray(res), nil
+}
+
+/**
+ * @method
+ * @name xt#watchFundingRate
+ * @description watch the current funding rate
+ * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+ */
+func (this *Xt) WatchFundingRate(symbol string, options ...ccxt.WatchFundingRateOptions) (ccxt.FundingRate, error) {
+
+	opts := ccxt.WatchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.WatchFundingRate(symbol, params)
+	if ccxt.IsError(res) {
+		return ccxt.FundingRate{}, ccxt.CreateReturnError(res)
+	}
+	return ccxt.NewFundingRate(res), nil
+}
+
+/**
+ * @method
+ * @name xt#unWatchFundingRate
+ * @description stops watching the funding rate
+ * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+ */
+func (this *Xt) UnWatchFundingRate(symbol string, options ...ccxt.UnWatchFundingRateOptions) (any, error) {
+
+	opts := ccxt.UnWatchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchFundingRate(symbol, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
 }
 
 // missing typed methods from base
@@ -694,10 +750,10 @@ func (this *Xt) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Tran
 func (this *Xt) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Xt) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Xt) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Xt) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Xt) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Xt) FetchFreeBalance(params ...any) (ccxt.Balance, error) {

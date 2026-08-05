@@ -7,7 +7,7 @@ export default class lighter extends lighterRest {
     subscribePublic(messageHash: any, params?: {}): Promise<any>;
     subscribePublicMultiple(messageHashes: any, params?: {}): Promise<any>;
     unsubscribe(messageHash: any, params?: {}): Promise<any>;
-    subscribePrivate(messageHash: any, params?: {}): Promise<any>;
+    subscribePrivate(messageHash: any, params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
@@ -20,7 +20,7 @@ export default class lighter extends lighterRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -139,7 +139,7 @@ export default class lighter extends lighterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    parseWsOrderTrade(trade: any, market?: Market): Trade;
+    parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     handleMyTrades(client: Client, message: any): boolean;
     /**
      * @method
@@ -163,7 +163,7 @@ export default class lighter extends lighterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
-    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
+    parseWsLiquidation(liquidation: any, market?: Market): Liquidation | undefined;
     handleLiquidation(client: Client, message: any): void;
     /**
      * @method
@@ -210,10 +210,10 @@ export default class lighter extends lighterRest {
      */
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): boolean;
-    handleErrorMessage(client: any, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleUnSubscription(client: Client, subscription: Dict): void;
     handlePing(client: Client, message: any): void;
-    pong(client: any, message: any): Promise<void>;
+    pong(client: Client, message: any): Promise<void>;
 }
