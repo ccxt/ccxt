@@ -8139,7 +8139,7 @@ func (this *GateCore) ParseMarginLoan(info any, optionalArgs ...any) any {
 	var currencyId any = this.SafeString(info, "currency")
 	var marketId any = this.SafeString(info, "currency_pair")
 	return map[string]any{
-		"id":        this.SafeInteger(info, "id"),
+		"id":        this.SafeString(info, "id"),
 		"currency":  this.SafeCurrencyCode(currencyId, currency),
 		"amount":    this.SafeNumber(info, "amount"),
 		"symbol":    this.SafeSymbol(marketId, nil, "_", "margin"),

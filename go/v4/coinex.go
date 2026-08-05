@@ -5586,9 +5586,9 @@ func (this *CoinexCore) ParseMarginLoan(info any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(info, "market")
 	var timestamp any = this.SafeInteger(info, "expired_at")
 	return map[string]any{
-		"id":        this.SafeInteger(info, "borrow_id"),
+		"id":        this.SafeString(info, "borrow_id"),
 		"currency":  this.SafeCurrencyCode(currencyId, currency),
-		"amount":    this.SafeString(info, "borrow_amount"),
+		"amount":    this.SafeNumber(info, "borrow_amount"),
 		"symbol":    this.SafeSymbol(marketId, nil, nil, "spot"),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),

@@ -55,6 +55,7 @@ type FundingHistory = ccxt.FundingHistory
 type LedgerEntry = ccxt.LedgerEntry
 type Greeks = ccxt.Greeks
 type MarginModification = ccxt.MarginModification
+type MarginLoan = ccxt.MarginLoan
 type Status = ccxt.Status
 type PositionModeInfo = ccxt.PositionModeInfo
 type Currencies = ccxt.Currencies

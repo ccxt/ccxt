@@ -14987,7 +14987,7 @@ func (this *BinanceCore) ParseMarginLoan(info any, optionalArgs ...any) any {
 	var currencyId any = this.SafeString(info, "asset")
 	var timestamp any = this.SafeInteger(info, "updateTime")
 	return map[string]any{
-		"id":        this.SafeInteger(info, "tranId"),
+		"id":        this.SafeString(info, "tranId"),
 		"currency":  this.SafeCurrencyCode(currencyId, currency),
 		"amount":    this.SafeNumber(info, "amount"),
 		"symbol":    nil,
