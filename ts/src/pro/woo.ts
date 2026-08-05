@@ -157,8 +157,9 @@ export default class woo extends wooRest {
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', defaultMethod);
         let topic: Str = undefined;
+        let depth: Str = undefined;
         if (method === 'orderbookupdate') {
-            let depth = this.safeString (params, 'depth');
+            depth = this.safeString (params, 'depth');
             params = this.omit (params, 'depth');
             if (depth === undefined) {
                 if ((limit === undefined) || (limit <= 50)) {
@@ -184,6 +185,7 @@ export default class woo extends wooRest {
             'id': requestId.toString (),
             'name': method,
             'topic': topic,
+            'depth': depth,
             'symbol': market['symbol'],
             'limit': limit,
             'params': params,
@@ -216,28 +218,30 @@ export default class woo extends wooRest {
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', defaultMethod);
         let subHash: Str = undefined;
         if (method === 'orderbookupdate') {
-            let depth = this.safeString (params, 'depth');
+            const depth = this.safeString (params, 'depth');
             params = this.omit (params, 'depth');
-            const topicPrefix = 'orderbookupdate@' + market['id'] + '@';
             if (depth !== undefined) {
-                subHash = topicPrefix + depth;
+                subHash = 'orderbookupdate@' + market['id'] + '@' + depth;
             } else {
-                // find the depth of the active subscription instead of guessing,
-                // watchOrderBook derives it from the limit argument
+                // recover the exact topic from the active subscription instead
+                // of guessing, watchOrderBook stores the topic and the depth
+                // that it derived from the limit argument on the subscription
                 const url = this.urls['api']['ws']['public'];
                 const client = this.safeValue (this.clients, url);
                 if (client !== undefined) {
                     const subscriptionHashes = Object.keys (client.subscriptions);
                     for (let i = 0; i < subscriptionHashes.length; i++) {
                         const subscriptionHash = subscriptionHashes[i];
-                        if (subscriptionHash.indexOf (topicPrefix) === 0) {
-                            subHash = subscriptionHash;
+                        const subscription = this.safeDict (client.subscriptions, subscriptionHash, {});
+                        const subscriptionName = this.safeString (subscription, 'name');
+                        const subscriptionSymbol = this.safeString (subscription, 'symbol');
+                        if ((subscriptionName === 'orderbookupdate') && (subscriptionSymbol === market['symbol'])) {
+                            subHash = this.safeString (subscription, 'topic');
                         }
                     }
                 }
                 if (subHash === undefined) {
-                    depth = '50';
-                    subHash = topicPrefix + depth;
+                    subHash = 'orderbookupdate@' + market['id'] + '@50';
                 }
             }
         } else {
