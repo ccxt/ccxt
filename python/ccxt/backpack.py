@@ -1803,7 +1803,7 @@ class backpack(Exchange, ImplicitAPI):
         response = self.privateGetApiV1Orders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 

@@ -598,7 +598,7 @@ class digifinex(Exchange, ImplicitAPI):
             return await self.fetch_markets_v2(params)
         return await self.fetch_markets_v1(params)
 
-    async def fetch_markets_v2(self, params={}):
+    async def fetch_markets_v2(self, params={}) -> List[Market]:
         defaultType = self.safe_string(self.options, 'defaultType')
         marginMode, query = self.handle_margin_mode_and_params('fetchMarketsV2', params)
         promisesRaw = []

@@ -8771,7 +8771,7 @@ class htx(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         Fetches historical settlement records
 

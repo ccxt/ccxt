@@ -7234,7 +7234,7 @@ class binance(Exchange, ImplicitAPI):
             response = await self.privateGetOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by the id
 
@@ -11294,7 +11294,7 @@ class binance(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 

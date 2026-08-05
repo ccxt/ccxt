@@ -3078,7 +3078,7 @@ class delta(Exchange, ImplicitAPI):
         #
         return await self.privatePostProductsProductIdOrdersLeverage(self.extend(request, params))
 
-    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 

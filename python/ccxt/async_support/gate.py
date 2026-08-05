@@ -1344,7 +1344,7 @@ class gate(Exchange, ImplicitAPI):
         results = await asyncio.gather(*rawPromises)
         return self.arrays_concat(results)
 
-    async def fetch_spot_markets(self, params: Any = {}):
+    async def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         marginPromise = self.publicMarginGetCurrencyPairs(params)
         spotMarketsPromise = self.publicSpotGetCurrencyPairs(params)
         marginResponse, spotMarketsResponse = await asyncio.gather(*[marginPromise, spotMarketsPromise])
@@ -1460,7 +1460,7 @@ class gate(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_swap_markets(self, params: Any = {}):
+    async def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
         if self.options['sandboxMode']:
@@ -1476,7 +1476,7 @@ class gate(Exchange, ImplicitAPI):
                 result.append(parsedMarket)
         return result
 
-    async def fetch_future_markets(self, params={}):
+    async def fetch_future_markets(self, params={}) -> List[Market]:
         if self.options['sandboxMode']:
             return []  # right now sandbox does not have inverse swaps
         result = []
@@ -1676,7 +1676,7 @@ class gate(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    async def fetch_option_markets(self, params: Any = {}):
+    async def fetch_option_markets(self, params: Any = {}) -> List[Market]:
         result = []
         underlyings = await self.fetch_option_underlyings()
         for i in range(0, len(underlyings)):
@@ -5181,7 +5181,7 @@ class gate(Exchange, ImplicitAPI):
             request['last_id'] = lastId
         return [request, finalParams]
 
-    async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         if self.markets is None:
             await self.load_markets()
         await self.load_unified_status()
@@ -6905,7 +6905,7 @@ class gate(Exchange, ImplicitAPI):
             'info': interest,
         }
 
-    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 
@@ -7366,7 +7366,7 @@ class gate(Exchange, ImplicitAPI):
         request['dual_mode'] = hedged
         return await self.privateFuturesPostSettleDualMode(self.extend(request, query))
 
-    async def fetch_underlying_assets(self, params={}):
+    async def fetch_underlying_assets(self, params={}) -> List[str]:
         """
         fetches the market ids of underlying assets for a specific contract market type
 

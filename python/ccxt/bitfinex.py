@@ -2027,7 +2027,7 @@ class bitfinex(Exchange, ImplicitAPI):
             ordersList.append({'result': orders[i]})
         return self.parse_orders(ordersList, market)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 
@@ -2048,7 +2048,7 @@ class bitfinex(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    def fetch_closed_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_closed_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 

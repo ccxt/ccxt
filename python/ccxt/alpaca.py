@@ -1643,7 +1643,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any):
+    def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any) -> List[Transaction]:
         if self.markets is None:
             self.load_markets()
         currency = None

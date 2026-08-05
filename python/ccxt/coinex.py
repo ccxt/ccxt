@@ -917,7 +917,7 @@ class coinex(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_contract_markets(self, params: Any):
+    def fetch_contract_markets(self, params: Any) -> List[Market]:
         response = self.v2PublicGetFuturesMarket(params)
         #
         #     {
@@ -3448,7 +3448,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch a list of orders
 

@@ -1542,7 +1542,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by the id
 
@@ -2657,7 +2657,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
 
-    async def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any):
+    async def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any) -> List[Transaction]:
         methodName = 'fetchDeposits' if (type == 'deposit') else 'fetchWithdrawals'
         if code is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a code argument')

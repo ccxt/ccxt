@@ -5101,7 +5101,7 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'items', [])
         return self.parse_orders(orders, market, None, None, {'status': 'canceled'})
 
-    async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches a list of orders placed on the exchange
 

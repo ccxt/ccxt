@@ -2381,7 +2381,7 @@ class kraken(Exchange, ImplicitAPI):
             result = self.array_concat(result, tradesFilteredBySymbol)
         return result
 
-    def fetch_orders_by_ids(self, ids: Any, symbol: Str = None, params={}):
+    def fetch_orders_by_ids(self, ids: Any, symbol: Str = None, params={}) -> List[Order]:
         """
         fetch orders by the list of order id
 

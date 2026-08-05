@@ -7805,7 +7805,7 @@ class okx(Exchange, ImplicitAPI):
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
 
-    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 
@@ -7901,7 +7901,7 @@ class okx(Exchange, ImplicitAPI):
                 }))
         return result
 
-    def fetch_underlying_assets(self, params={}):
+    def fetch_underlying_assets(self, params={}) -> List[str]:
         """
         fetches the market ids of underlying assets for a specific contract market type
 

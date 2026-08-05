@@ -2320,7 +2320,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by the id
 

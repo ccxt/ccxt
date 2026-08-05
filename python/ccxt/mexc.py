@@ -1254,7 +1254,7 @@ class mexc(Exchange, ImplicitAPI):
         spotMarket, swapMarket = [spotMarketPromise, swapMarketPromise]
         return self.array_concat(spotMarket, swapMarket)
 
-    def fetch_spot_markets(self, params: Any = {}):
+    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         """
  @ignore
         retrieves data on all spot markets for mexc
@@ -1378,7 +1378,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_swap_markets(self, params: Any = {}):
+    def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         """
  @ignore
         retrieves data on all swap markets for mexc
@@ -2912,7 +2912,7 @@ class mexc(Exchange, ImplicitAPI):
             merged = self.array_concat(ordersOfTrigger, ordersOfRegular)
             return self.parse_orders(merged, market, since, limit, params)
 
-    def fetch_orders_by_ids(self, ids: Any, symbol: Str = None, params={}):
+    def fetch_orders_by_ids(self, ids: Any, symbol: Str = None, params={}) -> List[Order]:
         if self.markets is None:
             self.load_markets()
         request = {}

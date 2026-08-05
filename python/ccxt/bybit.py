@@ -7741,7 +7741,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         rows = self.safe_list(data, 'rows', [])
         return self.parse_deposit_withdraw_fees(rows, codes, 'coin')
 
-    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 

@@ -1012,7 +1012,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = promises[1]
         return self.array_concat(spotMarkets, swapAndFutureMarkets)
 
-    async def fetch_spot_markets(self, params: Any = {}):
+    async def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         response = await self.publicSpotGetSymbol(params)
         #
         #     {
@@ -2862,7 +2862,7 @@ class xt(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         if self.markets is None:
             await self.load_markets()
         request = {}

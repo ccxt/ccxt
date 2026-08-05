@@ -3362,7 +3362,7 @@ class bitmex(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 

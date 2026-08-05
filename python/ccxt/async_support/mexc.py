@@ -1255,7 +1255,7 @@ class mexc(Exchange, ImplicitAPI):
         spotMarket, swapMarket = await asyncio.gather(*[spotMarketPromise, swapMarketPromise])
         return self.array_concat(spotMarket, swapMarket)
 
-    async def fetch_spot_markets(self, params: Any = {}):
+    async def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         """
  @ignore
         retrieves data on all spot markets for mexc
@@ -1379,7 +1379,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_swap_markets(self, params: Any = {}):
+    async def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         """
  @ignore
         retrieves data on all swap markets for mexc
@@ -2913,7 +2913,7 @@ class mexc(Exchange, ImplicitAPI):
             merged = self.array_concat(ordersOfTrigger, ordersOfRegular)
             return self.parse_orders(merged, market, since, limit, params)
 
-    async def fetch_orders_by_ids(self, ids: Any, symbol: Str = None, params={}):
+    async def fetch_orders_by_ids(self, ids: Any, symbol: Str = None, params={}) -> List[Order]:
         if self.markets is None:
             await self.load_markets()
         request = {}

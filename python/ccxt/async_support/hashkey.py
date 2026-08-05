@@ -3924,7 +3924,7 @@ class hashkey(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}) -> Leverage:
         """
         set the level of leverage for a market
 
