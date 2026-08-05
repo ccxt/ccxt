@@ -950,6 +950,7 @@ fetches information on multiple closed orders made by the user
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used |
 | params.historical | <code>boolean</code> | No | *swap only* true for using historical endpoint |
 | params.unifiedAccount | <code>bool</code> | No | set to true for fetching unified account orders |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
