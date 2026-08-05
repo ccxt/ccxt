@@ -1560,11 +1560,11 @@ class bitfinex extends bitfinex$1["default"] {
         let request = {
             'symbol': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
-            'sort': 1,
             'limit': limit,
         };
         if (since !== undefined) {
             request['start'] = since;
+            request['sort'] = 1;
         }
         [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, params));
