@@ -1952,9 +1952,9 @@ export default class bydfi extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -1970,8 +1970,20 @@ export default class bydfi extends Exchange {
             'wallet': wallet,
         };
         const response = await this.privatePostV1FapiTradeLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "symbol": "ETH-USDC",
+        //             "leverage": "2",
+        //             "maxNotionalValue": "60000000"
+        //         },
+        //         "success": true
+        //     }
+        //
         const data = this.safeDict (response, 'data', {});
-        return data;
+        return this.parseLeverage (data, market);
     }
 
     /**

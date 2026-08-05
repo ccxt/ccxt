@@ -2458,11 +2458,33 @@ export default class bitmex extends Exchange {
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        // fetchLeverages (parsed positions)
+        //
+        //     {
+        //         "symbol": "BTC/USDT:USDT",
+        //         "marginMode": "cross",
+        //         "leverage": 3
+        //     }
+        //
+        // setLeverage (raw position)
+        //
+        //     {
+        //         "symbol": "XBTUSDT",
+        //         "leverage": 25,
+        //         "crossMargin": false
+        //     }
+        //
         const marketId = this.safeString (leverage, 'symbol');
+        let marginMode = this.safeStringLower (leverage, 'marginMode');
+        const crossMargin = this.safeBool (leverage, 'crossMargin');
+        if ((marginMode === undefined) && (crossMargin !== undefined)) {
+            marginMode = crossMargin ? 'cross' : 'isolated';
+        }
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),
-            'marginMode': this.safeStringLower (leverage, 'marginMode'),
+            'marginMode': marginMode,
             'longLeverage': this.safeInteger (leverage, 'leverage'),
             'shortLeverage': this.safeInteger (leverage, 'leverage'),
         } as Leverage;
@@ -2940,9 +2962,9 @@ export default class bitmex extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2960,7 +2982,16 @@ export default class bitmex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePostPositionLeverage (this.extend (request, params));
+        const response = await this.privatePostPositionLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "XBTUSDT",
+        //         "leverage": 25,
+        //         "crossMargin": false,
+        //         ...
+        //     }
+        //
+        return this.parseLeverage (response, market);
     }
 
     /**

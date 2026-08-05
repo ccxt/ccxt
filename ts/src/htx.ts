@@ -6,7 +6,7 @@ import Exchange from './abstract/htx.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Leverage, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -8047,9 +8047,9 @@ export default class htx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Dict> {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -8113,7 +8113,50 @@ export default class htx extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' setLeverage() returned empty response');
         }
-        return response;
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    /**
+     * @method
+     * @name htx#parseLeverage
+     * @ignore
+     * @description parses a leverage structure from an exchange response
+     * @param {object} leverage the raw leverage entry returned by the exchange
+     * @param {object} [market] the unified market this leverage belongs to
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        // linear swap
+        //
+        //     {
+        //         "contract_code": "BTC-USDT",
+        //         "margin_mode": "cross",
+        //         "lever_rate": 10
+        //     }
+        //
+        // inverse future
+        //
+        //     { "symbol": "BTC", "lever_rate": 5 }
+        //
+        // inverse swap
+        //
+        //     { "contract_code": "BTC-USD", "lever_rate": "5" }
+        //
+        const marketId = this.safeString (leverage, 'contract_code');
+        const leverageValue = this.safeInteger (leverage, 'lever_rate');
+        let symbol = this.safeString (market, 'symbol');
+        if ((symbol === undefined) && (marketId !== undefined)) {
+            symbol = this.safeSymbol (marketId, market);
+        }
+        return {
+            'info': leverage,
+            'symbol': symbol,
+            'marginMode': this.safeStringLower (leverage, 'margin_mode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     override parseIncome (income: any, market: Market = undefined) {

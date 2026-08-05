@@ -1455,9 +1455,9 @@ export default class zebpay extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -1473,7 +1473,8 @@ export default class zebpay extends Exchange {
         // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
         //
         const response = await this.privateSwapPostV1TradeUpdateUserLeverage (this.extend (request, params));
-        return response;
+        const data = this.safeDict (response, 'data', {}) as Dict;
+        return this.parseLeverage (data, market);
     }
 
     /**
@@ -1811,14 +1812,21 @@ export default class zebpay extends Exchange {
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        //     {
+        //         "symbol": "ETHINR",
+        //         "shortLeverage": 1,
+        //         "longLeverage": 10,
+        //         "marginMode": "isolated"
+        //     }
+        //
         const marketId = this.safeString (leverage, 'symbol');
-        const info = this.safeDict (leverage, 'info');
         const leverageValue = this.safeInteger (leverage, 'longLeverage');
         const leverageValueShort = this.safeInteger (leverage, 'shortLeverage');
-        const marginMode = this.safeString (leverage, 'marginMode');
+        const marginMode = this.safeStringLower (leverage, 'marginMode');
         return {
-            'info': info,
-            'symbol': marketId,
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
             'marginMode': marginMode,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValueShort,

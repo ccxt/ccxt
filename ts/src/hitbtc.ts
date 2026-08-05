@@ -3673,9 +3673,9 @@ export default class hitbtc extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3700,7 +3700,19 @@ export default class hitbtc extends Exchange {
             'margin_balance': this.amountToPrecision (symbol, amount),
             // 'strict_validate': false,
         };
-        return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+        const response = await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "100.00",
+        //         "created_at": "2024-07-01T21:43:19.727Z",
+        //         "updated_at": "2024-07-01T23:24:46.27Z",
+        //         "currencies": [ { "code": "USDT", "margin_balance": "123.4455" } ],
+        //         "positions": null
+        //     }
+        //
+        return this.parseLeverage (response, market);
     }
 
     /**

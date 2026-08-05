@@ -11744,9 +11744,9 @@ export default class binance extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Dict> {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -11784,7 +11784,14 @@ export default class binance extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' setLeverage() returned empty response');
         }
-        return response;
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "leverage": 21,
+        //         "maxNotionalValue": "1000000"
+        //     }
+        //
+        return this.parseLeverage (response, market);
     }
 
     /**

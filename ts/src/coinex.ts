@@ -4448,9 +4448,9 @@ export default class coinex extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -4474,7 +4474,7 @@ export default class coinex extends Exchange {
             'margin_mode': marginMode,
             'leverage': leverage,
         };
-        return await this.v2PrivatePostFuturesAdjustPositionLeverage (this.extend (request, params));
+        const response = await this.v2PrivatePostFuturesAdjustPositionLeverage (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -4485,6 +4485,8 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**
@@ -6004,6 +6006,8 @@ export default class coinex extends Exchange {
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         //
+        // fetchLeverage
+        //
         //     {
         //         "market": "BTCUSDT",
         //         "ccy": "USDT",
@@ -6013,12 +6017,27 @@ export default class coinex extends Exchange {
         //         "daily_interest_rate": "0.001"
         //     }
         //
+        // setLeverage
+        //
+        //     {
+        //         "leverage": 1,
+        //         "margin_mode": "isolated"
+        //     }
+        //
         const marketId = this.safeString (leverage, 'market');
         const leverageValue = this.safeInteger (leverage, 'leverage');
+        let marginMode = this.safeStringLower (leverage, 'margin_mode');
+        let symbol: Str = undefined;
+        if (marginMode === undefined) {
+            marginMode = 'isolated';
+            symbol = this.safeSymbol (marketId, market, undefined, 'spot');
+        } else {
+            symbol = this.safeSymbol (marketId, market, undefined, 'swap');
+        }
         return {
             'info': leverage,
-            'symbol': this.safeSymbol (marketId, market, undefined, 'spot'),
-            'marginMode': 'isolated',
+            'symbol': symbol,
+            'marginMode': marginMode,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         } as Leverage;

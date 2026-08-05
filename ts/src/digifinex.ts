@@ -6,7 +6,7 @@ import Exchange from './abstract/digifinex.js';
 import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, NullableList, DepositWithdrawFees, Status } from './base/types.js';
+import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Leverage, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, NullableList, DepositWithdrawFees, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3904,9 +3904,9 @@ export default class digifinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] either 'cross' or 'isolated', default is cross
      * @param {string} [params.side] either 'long' or 'short', required for isolated markets only
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3940,7 +3940,7 @@ export default class digifinex extends Exchange {
                 this.checkRequiredArgument ('setLeverage', side, 'side', [ 'long', 'short' ]);
             }
         }
-        return await this.privateSwapPostAccountLeverage (this.extend (request, params));
+        const response = await this.privateSwapPostAccountLeverage (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3952,6 +3952,53 @@ export default class digifinex extends Exchange {
         //         }
         //     }
         //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    /**
+     * @method
+     * @name digifinex#parseLeverage
+     * @ignore
+     * @description parses a leverage structure from an exchange response
+     * @param {object} leverage the raw leverage entry returned by the exchange
+     * @param {object} [market] the unified market this leverage belongs to
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        //     {
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "leverage": 30,
+        //         "margin_mode": "crossed",
+        //         "side": "both"
+        //     }
+        //
+        const marketId = this.safeString (leverage, 'instrument_id');
+        const marginModeRaw = this.safeStringLower (leverage, 'margin_mode');
+        let marginMode: Str = undefined;
+        if (marginModeRaw !== undefined) {
+            marginMode = (marginModeRaw === 'crossed') ? 'cross' : 'isolated';
+        }
+        const side = this.safeStringLower (leverage, 'side');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        let longLeverage: Int = undefined;
+        let shortLeverage: Int = undefined;
+        if ((side === undefined) || (side === 'both')) {
+            longLeverage = leverageValue;
+            shortLeverage = leverageValue;
+        } else if (side === 'long') {
+            longLeverage = leverageValue;
+        } else if (side === 'short') {
+            shortLeverage = leverageValue;
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
     }
 
     /**

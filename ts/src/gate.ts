@@ -6112,9 +6112,9 @@ export default class gate extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -6177,7 +6177,7 @@ export default class gate extends Exchange {
         //         "liq_price": "0"
         //     }
         //
-        return response;
+        return this.parseLeverage (response, market);
     }
 
     override parsePosition (position: Dict, market: Market = undefined) {
@@ -8384,6 +8384,38 @@ export default class gate extends Exchange {
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        // fetchLeverages (spot margin)
+        //
+        //     {
+        //         "currency_pair": "1INCH_USDT",
+        //         "leverage": "3"
+        //     }
+        //
+        // setLeverage (futures position)
+        //
+        //     {
+        //         "contract": "BTC_USDT",
+        //         "leverage": "5",
+        //         "cross_leverage_limit": "0",
+        //         "mode": "single"
+        //     }
+        //
+        const contractId = this.safeString (leverage, 'contract');
+        if (contractId !== undefined) {
+            const isolatedLeverage = this.safeString (leverage, 'leverage');
+            const isCross = Precise.stringEq (isolatedLeverage, '0');
+            const marginMode = isCross ? 'cross' : 'isolated';
+            const leverageKey = isCross ? 'cross_leverage_limit' : 'leverage';
+            const contractLeverage = this.safeInteger (leverage, leverageKey);
+            return {
+                'info': leverage,
+                'symbol': this.safeSymbol (contractId, market, '_', 'contract'),
+                'marginMode': marginMode,
+                'longLeverage': contractLeverage,
+                'shortLeverage': contractLeverage,
+            } as Leverage;
+        }
         const marketId = this.safeString2 (leverage, 'currency_pair', 'id');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
