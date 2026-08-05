@@ -905,6 +905,16 @@ export interface MarginModification {
     'datetime': Str,
 }
 
+export interface MarginLoan {
+    id: Str; // the transaction id
+    currency: Str; // the currency that is borrowed or repaid
+    amount: Num; // the amount of currency that was borrowed or repaid
+    symbol: Str; // unified market symbol
+    timestamp: Int; // the timestamp of when the transaction was made
+    datetime: Str; // the datetime of when the transaction was made
+    info: any;
+}
+
 export interface Status {
     status: Str; // 'ok', 'shutdown', 'error', 'maintenance'
     updated: Int; // last updated timestamp in milliseconds, if updated via the API

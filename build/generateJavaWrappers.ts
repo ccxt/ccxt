@@ -31,7 +31,7 @@ const KNOWN_TYPES = new Set([
     'Position', 'FundingRate', 'FundingRates', 'FundingRateHistory',
     'OpenInterest', 'OpenInterests', 'Liquidation',
     'LeverageTier', 'LeverageTiers', 'Leverage', 'Leverages',
-    'MarginMode', 'MarginModes', 'MarginModification',
+    'MarginMode', 'MarginModes', 'MarginModification', 'MarginLoan',
     'Status', 'PositionModeInfo',
     'Transaction', 'DepositAddress', 'TransferEntry',
     'LedgerEntry', 'TradingFeeInterface', 'TradingFees',

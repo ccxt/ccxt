@@ -1904,6 +1904,28 @@ func NewMarginModification(data any) MarginModification {
 	}
 }
 
+type MarginLoan struct {
+	Id        *string
+	Currency  *string
+	Amount    *float64
+	Symbol    *string
+	Timestamp *int64
+	Datetime  *string
+	Info      map[string]any
+}
+
+func NewMarginLoan(data any) MarginLoan {
+	return MarginLoan{
+		Id:        SafeStringTyped(data, "id"),
+		Currency:  SafeStringTyped(data, "currency"),
+		Amount:    SafeFloatTyped(data, "amount"),
+		Symbol:    SafeStringTyped(data, "symbol"),
+		Timestamp: SafeInt64Typed(data, "timestamp"),
+		Datetime:  SafeStringTyped(data, "datetime"),
+		Info:      GetInfo(data),
+	}
+}
+
 type Status struct {
 	Status  *string
 	Updated *int64
