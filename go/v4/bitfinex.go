@@ -1674,11 +1674,11 @@ func (this *BitfinexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		var request any = map[string]any{
 			"symbol":    GetValue(market, "id"),
 			"timeframe": this.SafeString(this.Timeframes, timeframe, timeframe),
-			"sort":      1,
 			"limit":     limit,
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start", since)
+			AddElementToObject(request, "sort", 1)
 		}
 		requestparamsVariable := this.HandleUntilOption("end", request, params)
 		request = GetValue(requestparamsVariable, 0)
