@@ -905,6 +905,19 @@ export interface MarginModification {
     'datetime': Str,
 }
 
+export interface Status {
+    status: Str; // 'ok', 'shutdown', 'error', 'maintenance'
+    updated: Int; // last updated timestamp in milliseconds, if updated via the API
+    eta: Int; // when the maintenance or outage is expected to end
+    url: Str; // a link to a GitHub issue or to an exchange post on the subject
+    info: any;
+}
+
+export interface PositionModeInfo {
+    info: any;
+    hedged: Bool;
+}
+
 export interface Leverages extends Dictionary<Leverage> {
 }
 

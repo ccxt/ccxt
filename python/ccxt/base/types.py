@@ -507,6 +507,19 @@ class MarginModification(TypedDict):
     datetime: Str
 
 
+class Status(TypedDict):
+    status: Str
+    updated: Int
+    eta: Int
+    url: Str
+    info: Dict[str, Any]
+
+
+class PositionModeInfo(TypedDict):
+    info: Dict[str, Any]
+    hedged: Bool
+
+
 class CrossBorrowRate(TypedDict):
     info: Dict[str, Any]
     currency: Str
