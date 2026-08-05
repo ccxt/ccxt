@@ -5422,6 +5422,12 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadUnifiedStatus ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        if (paginate) {
+            // see https://github.com/ccxt/ccxt/issues/22825
+            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
+        }
         const until = this.safeInteger (params, 'until');
         let market: Market = undefined;
         if (symbol !== undefined) {
