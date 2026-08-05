@@ -110,6 +110,26 @@
                 ],
                 "output": "endpoint=%2Ftrade%2Fcancel&order_id=1429500241523&type=bid&order_currency=BTC&payment_currency=KRW"
             }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw with space-bearing en_name param signs spaces as +",
+                "method": "withdraw",
+                "url": "https://api.bithumb.com/trade/btc_withdrawal",
+                "input": [
+                    "BTC",
+                    1,
+                    "3PCyNbarWk4yQ9WdvCdMqKfCUSZ1M6cLrK",
+                    null,
+                    {
+                        "exchange_name": "Bithumb",
+                        "cust_type_cd": "01",
+                        "ko_name": "홍길동",
+                        "en_name": "Hong Gildong"
+                    }
+                ],
+                "output": "endpoint=%2Ftrade%2Fbtc_withdrawal&units=1&address=3PCyNbarWk4yQ9WdvCdMqKfCUSZ1M6cLrK&currency=BTC&exchange_name=Bithumb&cust_type_cd=01&ko_name=%ED%99%8D%EA%B8%B8%EB%8F%99&en_name=Hong+Gildong"
+            }
         ]
     }
 }
