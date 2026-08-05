@@ -1480,7 +1480,7 @@ export default class hitbtc extends Exchange {
         }, market);
     }
 
-    async fetchTransactionsHelper (types: any, code: any, since: any, limit: any, params: any) {
+    async fetchTransactionsHelper (types: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2241,7 +2241,7 @@ export default class hitbtc extends Exchange {
      * @param {bool} [params.margin] true for fetching an open margin order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

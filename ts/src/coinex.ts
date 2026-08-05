@@ -914,7 +914,7 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    async fetchContractMarkets (params: any) {
+    async fetchContractMarkets (params: any): Promise<Market[]> {
         const response = await this.v2PublicGetFuturesMarket (params);
         //
         //     {
@@ -3617,7 +3617,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
