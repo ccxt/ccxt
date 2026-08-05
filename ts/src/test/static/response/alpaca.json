@@ -1101,7 +1101,10 @@
                         "comment": null,
                         "internal": null
                     }
-                ]
+                ],
+                "options": {
+                    "sandboxMode": false
+                }
             }
         ],
         "fetchWithdrawals": [
@@ -1183,7 +1186,10 @@
                         "comment": null,
                         "internal": null
                     }
-                ]
+                ],
+                "options": {
+                    "sandboxMode": false
+                }
             }
         ],
         "fetchDepositsWithdrawals": [
@@ -1304,7 +1310,10 @@
                         "comment": null,
                         "internal": null
                     }
-                ]
+                ],
+                "options": {
+                    "sandboxMode": false
+                }
             },
             {
                 "description": "sandbox activities entries parse to unified transactions",
@@ -1456,8 +1465,7 @@
                         "internal": false,
                         "fee": null
                     }
-                ],
-                "disabledGO": true
+                ]
             }
         ],
         "fetchBalance": [
