@@ -188,7 +188,6 @@ export default class binance extends Exchange {
             for (let mi = 0; mi < eventMarketsLength; mi++) {
                 flatMarkets.push (eventMarkets[mi]);
             }
-            return [];
         }
         this.setEvents (parsedEvents);
         return flatMarkets;
@@ -343,6 +342,10 @@ export default class binance extends Exchange {
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+        const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
+        if (!allowUnscopedFetchEvents) {
+            this.requireEventQuery (params);
+        }
         const queries = this.parseSearchQueries (params);
         // binance has no tag taxonomy — resolve requested tags through the semantic search too
         const tags = this.safeList (params, 'tags', []);
@@ -399,7 +402,9 @@ export default class binance extends Exchange {
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
                 const m = parsedMarkets[mi];
-                this.markets[m['symbol']] = m;
+                // prediction market rows are keyed by the unified 'market' handle
+                const handle = this.safeString2 (m, 'market', 'symbol');
+                this.markets[handle] = m;
             }
         }
         this.populateOutcomes ();
@@ -697,8 +702,8 @@ export default class binance extends Exchange {
             'expiryDatetime': this.iso8601 (endDate),
             'strike': undefined,
             'optionType': undefined,
-            'taker': 0,
-            'maker': feeRate,
+            'taker': feeRate,
+            'maker': 0,
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
@@ -881,8 +886,8 @@ export default class binance extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'SPOT');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = undefined;
+        [ type, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'type', 'SPOT');
         const response = await this.sapiPrivateGetBalancePaymentOptions (params);
         //
         // {
@@ -909,7 +914,7 @@ export default class binance extends Exchange {
                 result['USDT'] = account;
             }
         }
-        return result;
+        return this.safeBalance (result);
     }
 
     /**
@@ -954,7 +959,7 @@ export default class binance extends Exchange {
             const marketId = this.safeString (order, 'marketId');
             const outcome = this.safeStringUpper (order, 'outcome');
             const market = this.safeMarket (marketId);
-            let outcomeName = market['market'];
+            let outcomeName = this.safeString (market, 'market');
             if (outcomeName === undefined) {
                 outcomeName = marketId;
             }
@@ -1133,7 +1138,7 @@ export default class binance extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['startDate'] = this.yyyymmdd (limit);
+            request['startDate'] = this.yyyymmdd (since);
         }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
@@ -1260,7 +1265,19 @@ export default class binance extends Exchange {
         //
         const data = this.safeList (response, 'positions');
         const positions = this.parsePredictionPositions (data);
-        return positions;
+        if (outcomes === undefined) {
+            return positions;
+        }
+        const filtered: PredictionPosition[] = [];
+        const positionsLength = positions.length;
+        for (let i = 0; i < positionsLength; i++) {
+            const position = positions[i];
+            const positionOutcome = this.safeString (position, 'outcome');
+            if ((positionOutcome !== undefined) && (positionOutcome in requestedOutcomeSymbols)) {
+                filtered.push (position);
+            }
+        }
+        return filtered;
     }
 
     /**
@@ -1306,7 +1323,7 @@ export default class binance extends Exchange {
             const marketId = this.safeString (position, 'marketId');
             const outcome = this.safeStringUpper (position, 'outcomeName');
             const market = this.safeMarket (marketId);
-            let outcomeName = market['market'];
+            let outcomeName = this.safeString (market, 'market');
             if (outcomeName === undefined) {
                 outcomeName = marketId;
             }
@@ -1388,7 +1405,7 @@ export default class binance extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['startDate'] = this.yyyymmdd (limit);
+            request['startDate'] = this.yyyymmdd (since);
         }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
@@ -1479,7 +1496,7 @@ export default class binance extends Exchange {
             const marketId = this.safeString (trade, 'marketId');
             const outcome = this.safeStringUpper (trade, 'outcome');
             const market = this.safeMarket (marketId);
-            let outcomeName = market['market'];
+            let outcomeName = this.safeString (market, 'market');
             if (outcomeName === undefined) {
                 outcomeName = marketId;
             }
@@ -1584,7 +1601,7 @@ export default class binance extends Exchange {
      * @returns {object} a quote
      */
     async fetchQuote (request, params = {}): Promise<any> {
-        const response = this.sapiPrivatePostTradeGetQuote (this.extend (request, params));
+        const response = await this.sapiPrivatePostTradeGetQuote (this.extend (request, params));
         //
         // {
         //     "quoteId": "q_20260525_abc123xyz",
@@ -1672,9 +1689,9 @@ export default class binance extends Exchange {
         const cost = this.safeString (params, 'cost');
         const slippageBps = this.parseToInt (Precise.stringMul (slippage, '10000'));
         const commonRequest = {
-            "walletAddress": wallet['walletAddress'],
-            "orderType": typeUpper,
-            "slippageBps": slippageBps,
+            'walletAddress': wallet['walletAddress'],
+            'orderType': typeUpper,
+            'slippageBps': slippageBps,
         };
         let amountStr = this.numberToString (amount);
         const priceStr = this.numberToString (price);
@@ -1712,9 +1729,9 @@ export default class binance extends Exchange {
         }
         params = this.omit (params, [ 'timeInForce', 'accountType', 'cost' ]);
         const quoteRequest = this.extend (commonRequest, {
-            "tokenId": outcomeObj['id'],
-            "side": sideUpper,
-            "amountIn": Precise.stringMul (this.amountToPrecision (marketSymbol, amountStr), '1000000000000000000'),
+            'tokenId': outcomeObj['id'],
+            'side': sideUpper,
+            'amountIn': Precise.stringMul (this.amountToPrecision (marketSymbol, amountStr), '1000000000000000000'),
         });
         const quote = await this.fetchQuote (quoteRequest, params);
         const quoteId = this.safeString (quote, 'quoteId');
