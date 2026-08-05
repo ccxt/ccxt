@@ -742,7 +742,7 @@ func (this *Btcturk) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Btcturk) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Btcturk) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Btcturk) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Btcturk) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -760,7 +760,7 @@ func (this *Btcturk) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Btcturk) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Btcturk) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Btcturk) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Btcturk) FetchTime(params ...any) (int64, error) {

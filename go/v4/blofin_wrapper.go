@@ -1102,7 +1102,7 @@ func (this *Blofin) SetMarginMode(marginMode string, options ...SetMarginModeOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Blofin) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Blofin) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -1121,9 +1121,9 @@ func (this *Blofin) FetchPositionMode(options ...FetchPositionModeOptions) (map[
 	}
 	res := <-this.Core.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 
 /**
@@ -1465,7 +1465,7 @@ func (this *Blofin) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Blofin) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Blofin) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Blofin) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Blofin) FetchTime(params ...any) (int64, error) {

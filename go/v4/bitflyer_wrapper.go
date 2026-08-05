@@ -947,7 +947,7 @@ func (this *Bitflyer) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Bitflyer) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitflyer) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitflyer) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitflyer) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -962,7 +962,7 @@ func (this *Bitflyer) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Bitflyer) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitflyer) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitflyer) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitflyer) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {

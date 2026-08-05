@@ -1069,7 +1069,7 @@ func (this *Bitso) FetchPosition(symbol string, options ...FetchPositionOptions)
 func (this *Bitso) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitso) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitso) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitso) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1087,7 +1087,7 @@ func (this *Bitso) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 func (this *Bitso) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitso) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitso) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitso) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {

@@ -50,12 +50,12 @@ func (this *Coinsph) FetchCurrencies(params ...any) (Currencies, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Coinsph) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinsph) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 
 /**
@@ -1090,7 +1090,7 @@ func (this *Coinsph) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Coinsph) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinsph) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinsph) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinsph) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {

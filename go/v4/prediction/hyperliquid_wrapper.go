@@ -907,13 +907,13 @@ func (this *Hyperliquid) FetchPosition(outcome string, options ...ccxt.FetchPosi
 	}
 	return ccxt.NewPredictionPosition(res), nil
 }
-func (this *Hyperliquid) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Hyperliquid) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Hyperliquid) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Hyperliquid) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Hyperliquid) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Hyperliquid) FetchTime(params ...any) (int64, error) {

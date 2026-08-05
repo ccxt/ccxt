@@ -1564,7 +1564,7 @@ func (this *Deepcoin) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Deepcoin) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Deepcoin) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Deepcoin) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Deepcoin) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
@@ -1576,7 +1576,7 @@ func (this *Deepcoin) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Deepcoin) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Deepcoin) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Deepcoin) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Deepcoin) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

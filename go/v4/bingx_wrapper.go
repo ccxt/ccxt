@@ -1798,7 +1798,7 @@ func (this *Bingx) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Bingx) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bingx) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -1817,9 +1817,9 @@ func (this *Bingx) FetchPositionMode(options ...FetchPositionModeOptions) (map[s
 	}
 	res := <-this.Core.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 
 /**
@@ -2224,7 +2224,7 @@ func (this *Bingx) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 func (this *Bingx) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bingx) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bingx) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bingx) FetchTradingFees(params ...any) (TradingFees, error) {

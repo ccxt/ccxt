@@ -1229,7 +1229,7 @@ func (this *Coinbaseinternational) FetchPaymentMethods(params ...any) (map[strin
 func (this *Coinbaseinternational) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinbaseinternational) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinbaseinternational) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinbaseinternational) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1244,7 +1244,7 @@ func (this *Coinbaseinternational) FetchPositionsRisk(options ...FetchPositionsR
 func (this *Coinbaseinternational) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinbaseinternational) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinbaseinternational) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinbaseinternational) FetchTime(params ...any) (int64, error) {

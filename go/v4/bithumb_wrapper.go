@@ -744,7 +744,7 @@ func (this *Bithumb) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Bithumb) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bithumb) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bithumb) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bithumb) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -762,7 +762,7 @@ func (this *Bithumb) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bithumb) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bithumb) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bithumb) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bithumb) FetchTime(params ...any) (int64, error) {

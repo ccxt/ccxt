@@ -1086,7 +1086,7 @@ func (this *Blockchaincom) FetchPosition(symbol string, options ...FetchPosition
 func (this *Blockchaincom) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Blockchaincom) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Blockchaincom) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Blockchaincom) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1104,7 +1104,7 @@ func (this *Blockchaincom) FetchPositionsRisk(options ...FetchPositionsRiskOptio
 func (this *Blockchaincom) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Blockchaincom) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Blockchaincom) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Blockchaincom) FetchTime(params ...any) (int64, error) {

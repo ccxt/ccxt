@@ -1370,7 +1370,7 @@ func (this *Exmo) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Exmo) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Exmo) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Exmo) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Exmo) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1388,7 +1388,7 @@ func (this *Exmo) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Exmo) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Exmo) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Exmo) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Exmo) FetchTime(params ...any) (int64, error) {

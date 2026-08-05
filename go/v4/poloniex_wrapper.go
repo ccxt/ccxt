@@ -1099,7 +1099,7 @@ func (this *Poloniex) FetchLeverage(symbol string, options ...FetchLeverageOptio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Poloniex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Poloniex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -1118,9 +1118,9 @@ func (this *Poloniex) FetchPositionMode(options ...FetchPositionModeOptions) (ma
 	}
 	res := <-this.Core.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 
 /**
@@ -1463,7 +1463,7 @@ func (this *Poloniex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Poloniex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Poloniex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Poloniex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Poloniex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

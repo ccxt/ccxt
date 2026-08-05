@@ -1068,13 +1068,13 @@ func (this *Limitless) FetchPosition(outcome string, options ...ccxt.FetchPositi
 	}
 	return ccxt.NewPredictionPosition(res), nil
 }
-func (this *Limitless) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Limitless) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Limitless) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Limitless) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Limitless) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Limitless) FetchTime(params ...any) (int64, error) {

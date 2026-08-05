@@ -1087,7 +1087,7 @@ func (this *Bigone) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Bigone) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bigone) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bigone) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bigone) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1105,7 +1105,7 @@ func (this *Bigone) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Bigone) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bigone) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bigone) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bigone) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

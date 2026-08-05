@@ -1427,12 +1427,12 @@ func (this *ExchangeTyped) FetchTotalBalance(params ...any) (Balance, error) {
 	}
 	return NewBalance(res), nil
 }
-func (this *ExchangeTyped) FetchStatus(params ...any) (map[string]any, error) {
+func (this *ExchangeTyped) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Exchange.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 func (this *ExchangeTyped) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 
@@ -1764,7 +1764,7 @@ func (this *ExchangeTyped) FetchConvertTradeHistory(options ...FetchConvertTrade
 	}
 	return NewConversionArray(res), nil
 }
-func (this *ExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -1783,9 +1783,9 @@ func (this *ExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions
 	}
 	res := <-this.Exchange.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 func (this *ExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOptions) (ADL, error) {
 
@@ -7219,12 +7219,12 @@ func (this *BaseExchangeTyped) FetchTotalBalance(params ...any) (Balance, error)
 	}
 	return NewBalance(res), nil
 }
-func (this *BaseExchangeTyped) FetchStatus(params ...any) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchStatus(params ...any) (Status, error) {
 	res := <-this.BaseExchange.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 func (this *BaseExchangeTyped) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 
@@ -7556,7 +7556,7 @@ func (this *BaseExchangeTyped) FetchConvertTradeHistory(options ...FetchConvertT
 	}
 	return NewConversionArray(res), nil
 }
-func (this *BaseExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -7575,9 +7575,9 @@ func (this *BaseExchangeTyped) FetchPositionMode(options ...FetchPositionModeOpt
 	}
 	res := <-this.BaseExchange.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 func (this *BaseExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOptions) (ADL, error) {
 

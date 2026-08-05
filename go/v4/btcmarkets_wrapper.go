@@ -1046,7 +1046,7 @@ func (this *Btcmarkets) FetchPosition(symbol string, options ...FetchPositionOpt
 func (this *Btcmarkets) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Btcmarkets) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Btcmarkets) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Btcmarkets) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1064,7 +1064,7 @@ func (this *Btcmarkets) FetchPositionsRisk(options ...FetchPositionsRiskOptions)
 func (this *Btcmarkets) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Btcmarkets) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Btcmarkets) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Btcmarkets) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {

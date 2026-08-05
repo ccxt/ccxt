@@ -1931,7 +1931,7 @@ func (this *FoxbitCore) FetchStatus(optionalArgs ...any) <-chan any {
 
 		ch <- map[string]any{
 			"status":  this.SafeString(statusMap, statusRaw, statusRaw),
-			"updated": this.SafeString(attributes, "updatedAt"),
+			"updated": this.Parse8601(this.SafeString(attributes, "updatedAt")),
 			"eta":     nil,
 			"url":     nil,
 			"info":    response,

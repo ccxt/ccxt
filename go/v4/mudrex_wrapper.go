@@ -1058,7 +1058,7 @@ func (this *Mudrex) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Mudrex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Mudrex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Mudrex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Mudrex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1070,7 +1070,7 @@ func (this *Mudrex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Mudrex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Mudrex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Mudrex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Mudrex) FetchTime(params ...any) (int64, error) {

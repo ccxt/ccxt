@@ -854,12 +854,12 @@ func (this *Foxbit) FetchTransactions(options ...FetchTransactionsOptions) ([]Tr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Foxbit) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Foxbit) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 
 /**
@@ -1255,7 +1255,7 @@ func (this *Foxbit) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Foxbit) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Foxbit) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Foxbit) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Foxbit) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {

@@ -726,7 +726,7 @@ func (this *Coinone) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Coinone) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinone) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinone) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinone) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -744,7 +744,7 @@ func (this *Coinone) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Coinone) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinone) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinone) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinone) FetchTime(params ...any) (int64, error) {

@@ -774,7 +774,7 @@ func (this *Bitbank) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Bitbank) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitbank) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitbank) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitbank) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -792,7 +792,7 @@ func (this *Bitbank) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bitbank) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitbank) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitbank) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitbank) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {

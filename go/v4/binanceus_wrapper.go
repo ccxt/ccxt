@@ -349,7 +349,7 @@ func (this *Binanceus) FetchPosition(symbol string, options ...FetchPositionOpti
 func (this *Binanceus) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Binanceus) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Binanceus) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Binanceus) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -367,7 +367,7 @@ func (this *Binanceus) FetchPositionsRisk(options ...FetchPositionsRiskOptions) 
 func (this *Binanceus) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Binanceus) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Binanceus) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Binanceus) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {

@@ -803,7 +803,7 @@ func (this *P2b) FetchPosition(symbol string, options ...FetchPositionOptions) (
 func (this *P2b) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *P2b) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *P2b) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *P2b) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -821,7 +821,7 @@ func (this *P2b) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Pos
 func (this *P2b) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *P2b) FetchStatus(params ...any) (map[string]any, error) {
+func (this *P2b) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *P2b) FetchTime(params ...any) (int64, error) {

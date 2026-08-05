@@ -1163,7 +1163,7 @@ func (this *Hollaex) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Hollaex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Hollaex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Hollaex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Hollaex) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1181,7 +1181,7 @@ func (this *Hollaex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Hollaex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Hollaex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Hollaex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Hollaex) FetchTime(params ...any) (int64, error) {

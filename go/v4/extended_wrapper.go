@@ -1727,7 +1727,7 @@ func (this *Extended) FetchPaymentMethods(params ...any) (map[string]any, error)
 func (this *Extended) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Extended) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Extended) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Extended) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1739,7 +1739,7 @@ func (this *Extended) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Extended) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Extended) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Extended) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Extended) FetchTime(params ...any) (int64, error) {

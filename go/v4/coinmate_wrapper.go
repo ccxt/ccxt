@@ -860,7 +860,7 @@ func (this *Coinmate) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Coinmate) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinmate) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinmate) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinmate) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -878,7 +878,7 @@ func (this *Coinmate) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Coinmate) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinmate) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinmate) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinmate) FetchTradingFees(params ...any) (TradingFees, error) {

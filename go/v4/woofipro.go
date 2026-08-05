@@ -1803,16 +1803,10 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 		AddElementToObject(request, "algo_type", "STOP")
 	} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		AddElementToObject(request, "algo_type", "TP_SL")
-		var outterOrder any = map[string]any{
-			"symbol":       GetValue(market, "id"),
-			"reduce_only":  false,
-			"algo_type":    "POSITIONAL_TP_SL",
-			"child_orders": []any{},
-		}
-		var childOrders any = GetValue(outterOrder, "child_orders")
+		var childOrders any = []any{}
 		var closeSide any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), "SELL", "BUY")
 		if IsTrue(hasStopLoss) {
-			var stopLossPrice any = this.SafeNumber2(stopLoss, "triggerPrice", "price", stopLoss)
+			var stopLossPrice any = this.SafeValue2(stopLoss, "triggerPrice", "price", stopLoss)
 			var stopLossOrder any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
@@ -1823,7 +1817,7 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 			AppendToArray(&childOrders, stopLossOrder)
 		}
 		if IsTrue(hasTakeProfit) {
-			var takeProfitPrice any = this.SafeNumber2(takeProfit, "triggerPrice", "price", takeProfit)
+			var takeProfitPrice any = this.SafeValue2(takeProfit, "triggerPrice", "price", takeProfit)
 			var takeProfitOrder any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
@@ -1832,6 +1826,12 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 				"reduce_only":   true,
 			}
 			AppendToArray(&childOrders, takeProfitOrder)
+		}
+		var outterOrder any = map[string]any{
+			"symbol":       GetValue(market, "id"),
+			"reduce_only":  false,
+			"algo_type":    "POSITIONAL_TP_SL",
+			"child_orders": childOrders,
 		}
 		AddElementToObject(request, "child_orders", []any{outterOrder})
 	}

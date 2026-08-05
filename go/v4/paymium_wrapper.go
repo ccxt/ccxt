@@ -637,7 +637,7 @@ func (this *Paymium) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Paymium) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Paymium) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Paymium) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Paymium) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -655,7 +655,7 @@ func (this *Paymium) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Paymium) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Paymium) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Paymium) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Paymium) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {

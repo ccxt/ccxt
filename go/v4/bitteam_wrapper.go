@@ -935,7 +935,7 @@ func (this *Bitteam) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Bitteam) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitteam) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitteam) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitteam) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -953,7 +953,7 @@ func (this *Bitteam) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bitteam) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitteam) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitteam) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitteam) FetchTime(params ...any) (int64, error) {

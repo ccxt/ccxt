@@ -1202,7 +1202,7 @@ func (this *Bitmex) FetchPositionsADLRank(options ...FetchPositionsADLRankOption
  * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Bitmex) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) (map[string]any, error) {
+func (this *Bitmex) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchSettlementHistoryOptionsStruct{}
 
@@ -1231,9 +1231,9 @@ func (this *Bitmex) FetchSettlementHistory(options ...FetchSettlementHistoryOpti
 	}
 	res := <-this.Core.FetchSettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 // missing typed methods from base
@@ -1484,7 +1484,7 @@ func (this *Bitmex) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Bitmex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitmex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitmex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitmex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1499,7 +1499,7 @@ func (this *Bitmex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Bitmex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitmex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitmex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitmex) FetchTime(params ...any) (int64, error) {

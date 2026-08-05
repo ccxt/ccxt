@@ -1639,7 +1639,7 @@ func (this *Hitbtc) FetchPaymentMethods(params ...any) (map[string]any, error) {
 func (this *Hitbtc) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Hitbtc) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Hitbtc) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Hitbtc) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1654,7 +1654,7 @@ func (this *Hitbtc) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Hitbtc) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Hitbtc) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Hitbtc) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Hitbtc) FetchTime(params ...any) (int64, error) {

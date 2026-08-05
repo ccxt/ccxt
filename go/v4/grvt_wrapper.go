@@ -1216,7 +1216,7 @@ func (this *Grvt) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Grvt) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Grvt) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Grvt) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Grvt) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1231,7 +1231,7 @@ func (this *Grvt) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Grvt) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Grvt) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Grvt) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Grvt) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
