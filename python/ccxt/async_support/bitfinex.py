@@ -1525,11 +1525,11 @@ class bitfinex(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
-            'sort': 1,
             'limit': limit,
         }
         if since is not None:
             request['start'] = since
+            request['sort'] = 1
         request, params = self.handle_until_option('end', request, params)
         response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         #
