@@ -7790,7 +7790,7 @@ class okx extends Exchange {
         );
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a $loan to borrow margin (need to be VIP 5 and above)
          *
@@ -7831,7 +7831,7 @@ class okx extends Exchange {
         return $this->parse_margin_loan($loan, $currency);
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -7879,7 +7879,7 @@ class okx extends Exchange {
         return $this->parse_margin_loan($loan, $currency);
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "amt" => "102",

@@ -9780,7 +9780,7 @@ class kucoin extends Exchange {
         })();
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -9820,7 +9820,7 @@ class kucoin extends Exchange {
         })();
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -9864,7 +9864,7 @@ class kucoin extends Exchange {
         })();
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -9902,7 +9902,7 @@ class kucoin extends Exchange {
         })();
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -9944,7 +9944,7 @@ class kucoin extends Exchange {
         })();
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "orderNo" => "5da6dba0f943c0c81f5d5db5",

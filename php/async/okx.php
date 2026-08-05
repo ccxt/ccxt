@@ -7929,7 +7929,7 @@ class okx extends Exchange {
         );
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a $loan to borrow margin (need to be VIP 5 and above)
@@ -7972,7 +7972,7 @@ class okx extends Exchange {
         })();
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -8022,7 +8022,7 @@ class okx extends Exchange {
         })();
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "amt" => "102",

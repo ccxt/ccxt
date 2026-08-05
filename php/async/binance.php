@@ -13420,7 +13420,7 @@ class binance extends Exchange {
         );
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -13486,7 +13486,7 @@ class binance extends Exchange {
         })();
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -13522,7 +13522,7 @@ class binance extends Exchange {
         })();
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -13564,7 +13564,7 @@ class binance extends Exchange {
         })();
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -13600,7 +13600,7 @@ class binance extends Exchange {
         })();
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "tranId" => 108988250265,
@@ -13620,7 +13620,7 @@ class binance extends Exchange {
         $currencyId = $this->safe_string($info, 'asset');
         $timestamp = $this->safe_integer($info, 'updateTime');
         return array(
-            'id' => $this->safe_integer($info, 'tranId'),
+            'id' => $this->safe_string($info, 'tranId'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($info, 'amount'),
             'symbol' => null,

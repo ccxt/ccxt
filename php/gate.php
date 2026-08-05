@@ -6732,7 +6732,7 @@ class gate extends Exchange {
         return $tiers;
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -6764,7 +6764,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay cross margin borrowed margin and interest
          *
@@ -6816,7 +6816,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -6863,7 +6863,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -6912,7 +6912,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         // Cross
         //
@@ -6957,7 +6957,7 @@ class gate extends Exchange {
         $currencyId = $this->safe_string($info, 'currency');
         $marketId = $this->safe_string($info, 'currency_pair');
         return array(
-            'id' => $this->safe_integer($info, 'id'),
+            'id' => $this->safe_string($info, 'id'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($info, 'amount'),
             'symbol' => $this->safe_symbol($marketId, null, '_', 'margin'),

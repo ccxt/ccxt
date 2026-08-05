@@ -7775,7 +7775,7 @@ class bybit extends Exchange {
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -7811,7 +7811,7 @@ class bybit extends Exchange {
         return $this->parse_margin_loan($result, $currency);
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -7868,7 +7868,7 @@ class bybit extends Exchange {
         return array(
             'id' => null,
             'currency' => $this->safe_currency_code($currencyId, $currency),
-            'amount' => $this->safe_string($info, 'amount'),
+            'amount' => $this->safe_number($info, 'amount'),
             'symbol' => null,
             'timestamp' => null,
             'datetime' => null,

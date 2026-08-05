@@ -9616,7 +9616,7 @@ class kucoin extends Exchange {
         return $this->parse_borrow_rate($data, $currency);
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9654,7 +9654,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9696,7 +9696,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9732,7 +9732,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9772,7 +9772,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "orderNo" => "5da6dba0f943c0c81f5d5db5",

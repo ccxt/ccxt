@@ -9178,7 +9178,7 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9216,7 +9216,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9251,7 +9251,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9294,7 +9294,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9335,7 +9335,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         // borrowMargin cross
         //
