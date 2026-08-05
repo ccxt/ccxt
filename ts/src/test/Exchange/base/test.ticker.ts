@@ -102,7 +102,12 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const close = exchange.omitZero (exchange.safeString (entry, 'close'));
     if (!('compareQuoteVolumeBaseVolume' in skippedProperties)) {
         // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
+        // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+        // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+        // far above baseVolume * high), so the spot-derived invariant does not hold there,
+        // see https://github.com/ccxt/ccxt/pull/29563
+        const isInverse = exchange.safeBool (market, 'inverse', false);
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined) && !isInverse) {
             let baseLow = Precise.stringMul (baseVolume, low);
             let baseHigh = Precise.stringMul (baseVolume, high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
