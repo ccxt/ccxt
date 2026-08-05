@@ -1338,7 +1338,7 @@ class gate extends Exchange {
         return $this->arrays_concat($results);
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): array {
         $marginPromise = $this->publicMarginGetCurrencyPairs($params);
         $spotMarketsPromise = $this->publicSpotGetCurrencyPairs($params);
         list($marginResponse, $spotMarketsResponse) = array( $marginPromise, $spotMarketsPromise );
@@ -1456,7 +1456,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_swap_markets($params = array()) {
+    public function fetch_swap_markets($params = array()): array {
         $result = array();
         $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
         if ($this->options['sandboxMode']) {
@@ -1476,7 +1476,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_future_markets($params = array()) {
+    public function fetch_future_markets($params = array()): array {
         if ($this->options['sandboxMode']) {
             return array(); // right now sandbox does not have inverse swaps
         }
@@ -1683,7 +1683,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_option_markets($params = array()) {
+    public function fetch_option_markets($params = array()): array {
         $result = array();
         $underlyings = $this->fetch_option_underlyings();
         for ($i = 0; $i < count($underlyings); $i++) {
@@ -5478,7 +5478,7 @@ class gate extends Exchange {
         return array( $request, $finalParams );
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -7323,7 +7323,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical settlement records
          *
@@ -7815,7 +7815,7 @@ class gate extends Exchange {
         return $this->privateFuturesPostSettleDualMode($this->extend($request, $query));
     }
 
-    public function fetch_underlying_assets($params = array()) {
+    public function fetch_underlying_assets($params = array()): array {
         /**
          * fetches the market ids of $underlying assets for a specific contract market type
          *

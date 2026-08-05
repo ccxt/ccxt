@@ -1615,7 +1615,7 @@ class bydfi extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open $order by the $id
          *
@@ -2803,7 +2803,7 @@ class bydfi extends Exchange {
         return $this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params);
     }
 
-    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params) {
+    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): array {
         $methodName = ($type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $code argument');

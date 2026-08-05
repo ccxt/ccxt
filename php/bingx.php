@@ -956,7 +956,7 @@ class bingx extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_swap_markets(mixed $params) {
+    public function fetch_swap_markets(mixed $params): array {
         $response = $this->swapV2PublicGetQuoteContracts($params);
         //
         //    {

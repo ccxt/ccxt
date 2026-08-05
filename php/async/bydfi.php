@@ -1654,7 +1654,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open $order by the $id
@@ -2876,7 +2876,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params) {
+    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): PromiseInterface {
         return Async\async(function () use ($type, $code, $since, $limit, $params) {
             $methodName = ($type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
             if ($code === null) {

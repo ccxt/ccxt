@@ -925,7 +925,7 @@ class coinex extends Exchange {
         })();
     }
 
-    public function fetch_contract_markets(mixed $params) {
+    public function fetch_contract_markets(mixed $params): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->v2PublicGetFuturesMarket($params));
             //
@@ -3650,7 +3650,7 @@ class coinex extends Exchange {
         })();
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              * fetch a list of orders

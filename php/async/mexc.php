@@ -1265,7 +1265,7 @@ class mexc extends Exchange {
         })();
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @ignore
@@ -1394,7 +1394,7 @@ class mexc extends Exchange {
         })();
     }
 
-    public function fetch_swap_markets($params = array()) {
+    public function fetch_swap_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @ignore
@@ -3080,7 +3080,7 @@ class mexc extends Exchange {
         })();
     }
 
-    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()) {
+    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());

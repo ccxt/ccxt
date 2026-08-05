@@ -907,7 +907,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function fetch_contract_markets(mixed $params) {
+    public function fetch_contract_markets(mixed $params): array {
         $response = $this->v2PublicGetFuturesMarket($params);
         //
         //     {
@@ -3586,7 +3586,7 @@ class coinex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a list of orders
          *

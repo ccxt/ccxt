@@ -2115,7 +2115,7 @@ class bitfinex extends Exchange {
         return $this->parse_orders($ordersList, $market);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open $order by it's $id
          *
@@ -2138,7 +2138,7 @@ class bitfinex extends Exchange {
         return $order;
     }
 
-    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open $order by it's $id
          *

@@ -1359,7 +1359,7 @@ class gate extends Exchange {
         })();
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             $marginPromise = $this->publicMarginGetCurrencyPairs($params);
             $spotMarketsPromise = $this->publicSpotGetCurrencyPairs($params);
@@ -1479,7 +1479,7 @@ class gate extends Exchange {
         })();
     }
 
-    public function fetch_swap_markets($params = array()) {
+    public function fetch_swap_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             $result = array();
             $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
@@ -1501,7 +1501,7 @@ class gate extends Exchange {
         })();
     }
 
-    public function fetch_future_markets($params = array()) {
+    public function fetch_future_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             if ($this->options['sandboxMode']) {
                 return array(); // right now sandbox does not have inverse swaps
@@ -1710,7 +1710,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_option_markets($params = array()) {
+    public function fetch_option_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             $result = array();
             $underlyings = Async\await($this->fetch_option_underlyings());
@@ -5571,7 +5571,7 @@ class gate extends Exchange {
         return array( $request, $finalParams );
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -7456,7 +7456,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical settlement records
@@ -7956,7 +7956,7 @@ class gate extends Exchange {
         })();
     }
 
-    public function fetch_underlying_assets($params = array()) {
+    public function fetch_underlying_assets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the market ids of $underlying assets for a specific contract market type

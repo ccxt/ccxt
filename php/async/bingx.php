@@ -974,7 +974,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function fetch_swap_markets(mixed $params) {
+    public function fetch_swap_markets(mixed $params): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->swapV2PublicGetQuoteContracts($params));
             //

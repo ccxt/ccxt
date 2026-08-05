@@ -1764,7 +1764,7 @@ class alpaca extends Exchange {
         })();
     }
 
-    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params) {
+    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): PromiseInterface {
         return Async\async(function () use ($type, $code, $since, $limit, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());

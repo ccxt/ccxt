@@ -580,7 +580,7 @@ class digifinex extends Exchange {
         return $this->fetch_markets_v1($params);
     }
 
-    public function fetch_markets_v2($params = array()) {
+    public function fetch_markets_v2($params = array()): array {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchMarketsV2', $params);
         $promisesRaw = array();
