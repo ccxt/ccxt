@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees, MarginLoan } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -858,15 +858,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{
-        id: Str;
-        currency: Str;
-        amount: number;
-        symbol: Str;
-        timestamp: undefined;
-        datetime: undefined;
-        info: any;
-    }>;
+    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<MarginLoan>;
     /**
      * @method
      * @name bitget#borrowIsolatedMargin
@@ -878,15 +870,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{
-        id: Str;
-        currency: Str;
-        amount: number;
-        symbol: Str;
-        timestamp: undefined;
-        datetime: undefined;
-        info: any;
-    }>;
+    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<MarginLoan>;
     /**
      * @method
      * @name bitget#repayIsolatedMargin
@@ -898,15 +882,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{
-        id: Str;
-        currency: Str;
-        amount: number;
-        symbol: Str;
-        timestamp: undefined;
-        datetime: undefined;
-        info: any;
-    }>;
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<MarginLoan>;
     /**
      * @method
      * @name bitget#repayCrossMargin
@@ -917,24 +893,8 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{
-        id: Str;
-        currency: Str;
-        amount: number;
-        symbol: Str;
-        timestamp: undefined;
-        datetime: undefined;
-        info: any;
-    }>;
-    parseMarginLoan(info: any, currency?: Currency, market?: Market): {
-        id: Str;
-        currency: Str;
-        amount: number;
-        symbol: Str;
-        timestamp: undefined;
-        datetime: undefined;
-        info: any;
-    };
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    parseMarginLoan(info: any, currency?: Currency, market?: Market): MarginLoan;
     /**
      * @method
      * @name bitget#fetchMyLiquidations

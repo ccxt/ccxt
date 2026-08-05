@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, List, NullableDict, CurrencyInterface, DepositWithdrawFees, Status, PositionModeInfo } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, List, NullableDict, CurrencyInterface, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -1345,15 +1345,7 @@ export default class binance extends Exchange {
      * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{
-        id: Int;
-        currency: Str;
-        amount: Num;
-        symbol: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        info: any;
-    }>;
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<MarginLoan>;
     /**
      * @method
      * @name binance#repayIsolatedMargin
@@ -1365,15 +1357,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{
-        id: Int;
-        currency: Str;
-        amount: Num;
-        symbol: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        info: any;
-    }>;
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<MarginLoan>;
     /**
      * @method
      * @name binance#borrowCrossMargin
@@ -1386,15 +1370,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{
-        id: Int;
-        currency: Str;
-        amount: Num;
-        symbol: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        info: any;
-    }>;
+    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<MarginLoan>;
     /**
      * @method
      * @name binance#borrowIsolatedMargin
@@ -1406,24 +1382,8 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{
-        id: Int;
-        currency: Str;
-        amount: Num;
-        symbol: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        info: any;
-    }>;
-    parseMarginLoan(info: any, currency?: Currency): {
-        id: Int;
-        currency: Str;
-        amount: Num;
-        symbol: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        info: any;
-    };
+    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    parseMarginLoan(info: any, currency?: Currency): MarginLoan;
     /**
      * @method
      * @name binance#fetchOpenInterestHistory

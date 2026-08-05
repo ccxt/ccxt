@@ -7896,7 +7896,7 @@ export default class bybit extends Exchange {
         return {
             'id': undefined,
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'amount': this.safeString(info, 'amount'),
+            'amount': this.safeNumber(info, 'amount'),
             'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,

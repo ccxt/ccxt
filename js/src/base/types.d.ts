@@ -801,6 +801,15 @@ export interface MarginModification {
     'timestamp': Int;
     'datetime': Str;
 }
+export interface MarginLoan {
+    id: Str;
+    currency: Str;
+    amount: Num;
+    symbol: Str;
+    timestamp: Int;
+    datetime: Str;
+    info: any;
+}
 export interface Status {
     status: Str;
     updated: Int;

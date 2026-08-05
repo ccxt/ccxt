@@ -1,5 +1,5 @@
 import bitvavoRest from '../bitvavo.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies, Market } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitvavo extends bitvavoRest {
     describe(): any;
@@ -324,7 +324,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<any>;
+    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     handleWithdraw(client: Client, message: any): void;
     /**
      * @method
@@ -337,7 +337,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     handleWithdraws(client: Client, message: any): void;
     /**
      * @method
@@ -363,7 +363,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     handleDeposits(client: Client, message: any): void;
     /**
      * @method

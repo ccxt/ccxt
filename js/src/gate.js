@@ -7024,7 +7024,7 @@ export default class gate extends Exchange {
         const currencyId = this.safeString(info, 'currency');
         const marketId = this.safeString(info, 'currency_pair');
         return {
-            'id': this.safeInteger(info, 'id'),
+            'id': this.safeString(info, 'id'),
             'currency': this.safeCurrencyCode(currencyId, currency),
             'amount': this.safeNumber(info, 'amount'),
             'symbol': this.safeSymbol(marketId, undefined, '_', 'margin'),
