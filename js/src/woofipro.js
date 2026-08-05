@@ -1570,16 +1570,10 @@ export default class woofipro extends Exchange {
         }
         else if (hasStopLoss || hasTakeProfit) {
             request['algo_type'] = 'TP_SL';
-            const outterOrder = {
-                'symbol': market['id'],
-                'reduce_only': false,
-                'algo_type': 'POSITIONAL_TP_SL',
-                'child_orders': [],
-            };
-            const childOrders = outterOrder['child_orders'];
+            const childOrders = [];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (hasStopLoss) {
-                const stopLossPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'price', stopLoss);
+                const stopLossPrice = this.safeValue2(stopLoss, 'triggerPrice', 'price', stopLoss);
                 const stopLossOrder = {
                     'side': closeSide,
                     'algo_type': 'TP_SL',
@@ -1590,7 +1584,7 @@ export default class woofipro extends Exchange {
                 childOrders.push(stopLossOrder);
             }
             if (hasTakeProfit) {
-                const takeProfitPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'price', takeProfit);
+                const takeProfitPrice = this.safeValue2(takeProfit, 'triggerPrice', 'price', takeProfit);
                 const takeProfitOrder = {
                     'side': closeSide,
                     'algo_type': 'TP_SL',
@@ -1600,6 +1594,12 @@ export default class woofipro extends Exchange {
                 };
                 childOrders.push(takeProfitOrder);
             }
+            const outterOrder = {
+                'symbol': market['id'],
+                'reduce_only': false,
+                'algo_type': 'POSITIONAL_TP_SL',
+                'child_orders': childOrders,
+            };
             request['child_orders'] = [outterOrder];
         }
         params = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
