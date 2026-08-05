@@ -125,7 +125,12 @@ public partial class testMainClass : BaseTest
         if (!isTrue((inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-            if (isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))))
+            // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+            // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+            // far above baseVolume * high), so the spot-derived invariant does not hold there,
+            // see https://github.com/ccxt/ccxt/pull/29563
+            object isInverse = exchange.safeBool(market, "inverse", false);
+            if (isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))) && !isTrue(isInverse)))
             {
                 object baseLow = Precise.stringMul(baseVolume, low);
                 object baseHigh = Precise.stringMul(baseVolume, high);
