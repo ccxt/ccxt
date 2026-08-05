@@ -1720,6 +1720,11 @@ export default class alpaca extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
+    override setSandboxMode (enable: boolean) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
+    }
+
     async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1728,7 +1733,7 @@ export default class alpaca extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const sandboxMode = this.isSandboxModeEnabled || this.safeBool (this.options, 'sandboxMode', false);
         if (sandboxMode) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
