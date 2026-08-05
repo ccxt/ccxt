@@ -111,7 +111,12 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var close any = exchange.OmitZero(exchange.SafeString(entry, "close"))
 	if !IsTrue((InOp(skippedProperties, "compareQuoteVolumeBaseVolume"))) {
 		// Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-		if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) {
+		// skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+		// volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+		// far above baseVolume * high), so the spot-derived invariant does not hold there,
+		// see https://github.com/ccxt/ccxt/pull/29563
+		var isInverse any = exchange.SafeBool(market, "inverse", false)
+		if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) && !IsTrue(isInverse)) {
 			var baseLow any = ccxt.Precise.StringMul(baseVolume, low)
 			var baseHigh any = ccxt.Precise.StringMul(baseVolume, high)
 			// to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
