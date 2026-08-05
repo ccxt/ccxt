@@ -387,6 +387,7 @@ public partial class bybit : Exchange
                         { "v5/affiliate/aff-user-list", 5 },
                         { "v5/affiliate/affiliate-sub-list", 5 },
                         { "v5/spot-lever-token/order-record", 1 },
+                        { "v5/spot-margin-trade/flexible-available-inventory", 5 },
                         { "v5/spot-margin-trade/interest-rate-history", 5 },
                         { "v5/spot-margin-trade/state", 5 },
                         { "v5/spot-margin-trade/max-borrowable", 5 },
