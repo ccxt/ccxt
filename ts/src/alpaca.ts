@@ -1728,6 +1728,39 @@ export default class alpaca extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        if (sandboxMode) {
+            // paper-trading hosts do not serve the crypto wallets api at all, so route
+            // through the account activities ledger instead, filtered to transfer-like
+            // entries, see https://github.com/ccxt/ccxt/issues/24847
+            const request: Dict = {
+                'activity_types': 'CSD,CSW,TRANS',
+            };
+            const activities = await this.traderPrivateGetV2AccountActivities (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+            //             "activity_type": "CSD",
+            //             "date": "2025-01-10",
+            //             "net_amount": "1000",
+            //             "status": "executed"
+            //         }
+            //     ]
+            //
+            const filtered: Transaction[] = [];
+            for (let i = 0; i < activities.length; i++) {
+                const entry = activities[i];
+                const activityType = this.safeString (entry, 'activity_type');
+                const amount = this.safeString (entry, 'net_amount');
+                const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (amount, '0'));
+                const entryDirection = isIncoming ? 'INCOMING' : 'OUTGOING';
+                if ((type === 'BOTH') || (entryDirection === type)) {
+                    filtered.push (entry);
+                }
+            }
+            return this.parseTransactions (filtered, currency, since, limit, params);
+        }
         const response = await this.traderPrivateGetV2WalletsTransfers (params);
         //
         //     {
@@ -1805,6 +1838,66 @@ export default class alpaca extends Exchange {
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        const activityType = this.safeString (transaction, 'activity_type');
+        if (activityType !== undefined) {
+            // account activities entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+            //
+            //     {
+            //         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+            //         "activity_type": "CSD",
+            //         "date": "2025-01-10",
+            //         "net_amount": "1000",
+            //         "status": "executed"
+            //     }
+            //
+            const netAmount = this.safeString (transaction, 'net_amount');
+            const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (netAmount, '0'));
+            const activityDate = this.safeString (transaction, 'date');
+            const activityTimestamp = this.parse8601 (activityDate + 'T00:00:00Z');
+            const activityStatusRaw = this.safeString (transaction, 'status');
+            let activityStatus: Str = undefined;
+            if (activityStatusRaw === 'executed') {
+                activityStatus = 'ok';
+            } else if (activityStatusRaw === 'canceled') {
+                activityStatus = 'canceled';
+            } else {
+                activityStatus = 'pending';
+            }
+            // cash ledger rows carry no per-entry asset field and are USD, while crypto
+            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            const activityCurrencyId = this.safeString2 (transaction, 'symbol', 'asset');
+            let activityCode: Str = undefined;
+            if (activityCurrencyId !== undefined) {
+                activityCode = this.safeCurrencyCode (activityCurrencyId);
+            } else if ((activityType === 'CSD') || (activityType === 'CSW')) {
+                activityCode = 'USD';
+            } else {
+                activityCode = this.safeCurrencyCode (undefined, currency);
+            }
+            return {
+                'info': transaction,
+                'id': this.safeString (transaction, 'id'),
+                'txid': undefined,
+                'timestamp': activityTimestamp,
+                'datetime': this.iso8601 (activityTimestamp),
+                'network': undefined,
+                'address': undefined,
+                'addressTo': undefined,
+                'addressFrom': undefined,
+                'tag': undefined,
+                'tagTo': undefined,
+                'tagFrom': undefined,
+                'type': isIncoming ? 'deposit' : 'withdrawal',
+                'amount': this.parseNumber (Precise.stringAbs (netAmount)),
+                'currency': activityCode,
+                'status': activityStatus,
+                'updated': undefined,
+                'comment': activityType,
+                'internal': (activityType !== 'TRANS'),
+                'fee': undefined,
+            } as Transaction;
+        }
         //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
