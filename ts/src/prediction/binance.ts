@@ -385,10 +385,21 @@ export default class binance extends Exchange {
             if (l2Category !== undefined) {
                 listingRequest['l2Category'] = l2Category;
             }
-            const sortBy = this.safeStringUpper2 (params, 'sort', 'sortBy');
+            let sortBy = this.safeStringUpper2 (params, 'sortBy', 'sort');
             if (sortBy !== undefined) {
-                listingRequest['sortBy'] = sortBy;
-                params = this.omit (params, [ 'sort', 'sortBy' ]);
+                // map the unified sort values onto the server enum
+                // ('RECOMMENDED' | 'VOLUME' | 'PARTICIPANTS' | 'CREATED_TIME' | 'END_DATE');
+                // 'liquidity' has no server-side equivalent and stays in params so the
+                // base applyEventFetchParams sorts it client-side instead
+                if (sortBy === 'NEWEST') {
+                    sortBy = 'CREATED_TIME';
+                } else if (sortBy === 'LIQUIDITY') {
+                    sortBy = undefined;
+                }
+                if (sortBy !== undefined) {
+                    listingRequest['sortBy'] = sortBy;
+                    params = this.omit (params, [ 'sort', 'sortBy' ]);
+                }
             }
             const listed = await this.fetchRawTopics (fetchCap, this.extend (listingRequest, rest));
             rawTopics = await this.completeRawTopics (listed);
