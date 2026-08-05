@@ -4,7 +4,7 @@ import Exchange from './abstract/alpaca.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
+import type{ Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 /**
@@ -1838,66 +1838,18 @@ export default class alpaca extends Exchange {
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
-        const activityType = this.safeString (transaction, 'activity_type');
-        if (activityType !== undefined) {
-            // account activities entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
-            //
-            //     {
-            //         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
-            //         "activity_type": "CSD",
-            //         "date": "2025-01-10",
-            //         "net_amount": "1000",
-            //         "status": "executed"
-            //     }
-            //
-            const netAmount = this.safeString (transaction, 'net_amount');
-            const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (netAmount, '0'));
-            const activityDate = this.safeString (transaction, 'date');
-            const activityTimestamp = this.parse8601 (activityDate + 'T00:00:00Z');
-            const activityStatusRaw = this.safeString (transaction, 'status');
-            let activityStatus: Str = undefined;
-            if (activityStatusRaw === 'executed') {
-                activityStatus = 'ok';
-            } else if (activityStatusRaw === 'canceled') {
-                activityStatus = 'canceled';
-            } else {
-                activityStatus = 'pending';
-            }
-            // cash ledger rows carry no per-entry asset field and are USD, while crypto
-            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
-            // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
-            const activityCurrencyId = this.safeString2 (transaction, 'symbol', 'asset');
-            let activityCode: Str = undefined;
-            if (activityCurrencyId !== undefined) {
-                activityCode = this.safeCurrencyCode (activityCurrencyId);
-            } else if ((activityType === 'CSD') || (activityType === 'CSW')) {
-                activityCode = 'USD';
-            } else {
-                activityCode = this.safeCurrencyCode (undefined, currency);
-            }
-            return {
-                'info': transaction,
-                'id': this.safeString (transaction, 'id'),
-                'txid': undefined,
-                'timestamp': activityTimestamp,
-                'datetime': this.iso8601 (activityTimestamp),
-                'network': undefined,
-                'address': undefined,
-                'addressTo': undefined,
-                'addressFrom': undefined,
-                'tag': undefined,
-                'tagTo': undefined,
-                'tagFrom': undefined,
-                'type': isIncoming ? 'deposit' : 'withdrawal',
-                'amount': this.parseNumber (Precise.stringAbs (netAmount)),
-                'currency': activityCode,
-                'status': activityStatus,
-                'updated': undefined,
-                'comment': activityType,
-                'internal': (activityType !== 'TRANS'),
-                'fee': undefined,
-            } as Transaction;
-        }
+        //
+        // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        //
+        //     {
+        //         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+        //         "activity_type": "CSD",
+        //         "date": "2025-01-10",
+        //         "net_amount": "1000",
+        //         "status": "executed"
+        //     }
+        //
+        // crypto wallets api entry
         //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -1915,45 +1867,97 @@ export default class alpaca extends Exchange {
         //         "fees": "0.1"
         //     }
         //
-        const datetime = this.safeString (transaction, 'created_at');
-        const currencyId = this.safeString (transaction, 'asset');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        const fees = this.safeString (transaction, 'fees');
-        const networkFee = this.safeString (transaction, 'network_fee');
-        const totalFee = Precise.stringAdd (fees, networkFee);
-        const fee = {
-            'cost': this.parseNumber (totalFee),
-            'currency': code,
-        };
+        const activityType = this.safeString (transaction, 'activity_type');
+        let txid: Str = undefined;
+        let timestamp: Int = undefined;
+        let datetime: Str = undefined;
+        let network: Str = undefined;
+        let address: Str = undefined;
+        let addressTo: Str = undefined;
+        let addressFrom: Str = undefined;
+        let type: Str = undefined;
+        let amount: Num = undefined;
+        let code: Str = undefined;
+        let status: Str = undefined;
+        let comment: Str = undefined;
+        let internal: Bool = undefined;
+        let fee = undefined;
+        if (activityType !== undefined) {
+            const netAmount = this.safeString (transaction, 'net_amount');
+            const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (netAmount, '0'));
+            timestamp = this.parse8601 (this.safeString (transaction, 'date') + 'T00:00:00Z');
+            datetime = this.iso8601 (timestamp);
+            type = isIncoming ? 'deposit' : 'withdrawal';
+            amount = this.parseNumber (Precise.stringAbs (netAmount));
+            // cash ledger rows carry no per-entry asset field and are USD, while crypto
+            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            const activityCurrencyId = this.safeString2 (transaction, 'symbol', 'asset');
+            if (activityCurrencyId !== undefined) {
+                code = this.safeCurrencyCode (activityCurrencyId);
+            } else if ((activityType === 'CSD') || (activityType === 'CSW')) {
+                code = 'USD';
+            } else {
+                code = this.safeCurrencyCode (undefined, currency);
+            }
+            status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+            comment = activityType;
+            internal = (activityType !== 'TRANS');
+        } else {
+            txid = this.safeString (transaction, 'tx_hash');
+            datetime = this.safeString (transaction, 'created_at');
+            timestamp = this.parse8601 (datetime);
+            network = this.safeString (transaction, 'chain');
+            address = this.safeString (transaction, 'to_address');
+            addressTo = this.safeString (transaction, 'to_address');
+            addressFrom = this.safeString (transaction, 'from_address');
+            type = this.parseTransactionType (this.safeString (transaction, 'direction'));
+            amount = this.safeNumber (transaction, 'amount');
+            const currencyId = this.safeString (transaction, 'asset');
+            code = this.safeCurrencyCode (currencyId, currency);
+            status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+            const fees = this.safeString (transaction, 'fees');
+            const networkFee = this.safeString (transaction, 'network_fee');
+            const totalFee = Precise.stringAdd (fees, networkFee);
+            fee = {
+                'cost': this.parseNumber (totalFee),
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction, 'tx_hash'),
-            'timestamp': this.parse8601 (datetime),
+            'txid': txid,
+            'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString (transaction, 'chain'),
-            'address': this.safeString (transaction, 'to_address'),
-            'addressTo': this.safeString (transaction, 'to_address'),
-            'addressFrom': this.safeString (transaction, 'from_address'),
+            'network': network,
+            'address': address,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': this.parseTransactionType (this.safeString (transaction, 'direction')),
-            'amount': this.safeNumber (transaction, 'amount'),
+            'type': type,
+            'amount': amount,
             'currency': code,
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'status': status,
             'updated': undefined,
+            'comment': comment,
+            'internal': internal,
             'fee': fee,
-            'comment': undefined,
-            'internal': undefined,
         } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {
         const statuses: Dict = {
+            // crypto wallets api
             'PROCESSING': 'pending',
             'FAILED': 'failed',
             'COMPLETE': 'ok',
+            // account activities ledger, see https://github.com/ccxt/ccxt/issues/24847
+            'executed': 'ok',
+            'canceled': 'canceled',
+            'pending': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
