@@ -1424,7 +1424,11 @@ class xt extends xt$1["default"] {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
-            request['startTime'] = since;
+            // xt rounds startTime down to the candle boundary, which makes a mid-candle
+            // window start return one pre-since candle, shifting paginated windows and
+            // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            request['startTime'] = Math.ceil(since / duration) * duration;
         }
         if (limit !== undefined) {
             if (market['spot']) {
