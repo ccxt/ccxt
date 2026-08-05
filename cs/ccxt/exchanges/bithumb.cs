@@ -1272,6 +1272,9 @@ public partial class bithumb : Exchange
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "endpoint", endpoint },
             }, query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            object bodyParts = ((string)body).Split(new [] {((string)"%20")}, StringSplitOptions.None).ToList<object>();
+            body = String.Join("+", ((IList<object>)bodyParts).ToArray());
             object nonce = ((object)this.nonce()).ToString();
             object auth = add(add(add(add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
             object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
