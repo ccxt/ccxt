@@ -1017,7 +1017,7 @@ export default class indodax extends Exchange {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side === 'buy') {
-                request[market['quoteId'] as string] = this.parseToNumeric (Precise.stringMul (this.numberToString (amount), this.numberToString (price)));
+                request[market['quoteId'] as string] = this.parseToNumeric (this.costToPrecision (symbol, Precise.stringMul (this.numberToString (amount), this.numberToString (price))));
             }
         }
         if (priceIsRequired) {
