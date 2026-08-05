@@ -8999,7 +8999,7 @@ public class BybitCore extends BybitApi
         return new java.util.HashMap<String, Object>() {{
             put( "id", null );
             put( "currency", BybitCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", BybitCore.this.safeString(info, "amount") );
+            put( "amount", BybitCore.this.safeNumber(info, "amount") );
             put( "symbol", null );
             put( "timestamp", null );
             put( "datetime", null );

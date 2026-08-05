@@ -8027,7 +8027,7 @@ final Object finalI = i;
         Object marketId = this.safeString(info, "currency_pair");
         final Object finalTimestamp = timestamp;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", GateCore.this.safeInteger(info, "id") );
+            put( "id", GateCore.this.safeString(info, "id") );
             put( "currency", GateCore.this.safeCurrencyCode(currencyId, currency) );
             put( "amount", GateCore.this.safeNumber(info, "amount") );
             put( "symbol", GateCore.this.safeSymbol(marketId, null, "_", "margin") );
