@@ -823,6 +823,10 @@ func (this *BybiteuCore) PrivateGetV5SpotLeverTokenOrderRecord(args ...any) <-ch
 	return this.callEndpointAsync("privateGetV5SpotLeverTokenOrderRecord", args...)
 }
 
+func (this *BybiteuCore) PrivateGetV5SpotMarginTradeFlexibleAvailableInventory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeFlexibleAvailableInventory", args...)
+}
+
 func (this *BybiteuCore) PrivateGetV5SpotMarginTradeInterestRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5SpotMarginTradeInterestRateHistory", args...)
 }
