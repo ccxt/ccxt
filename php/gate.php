@@ -5401,6 +5401,12 @@ class gate extends Exchange {
             $this->load_markets();
         }
         $this->load_unified_status();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+        if ($paginate) {
+            // see https://github.com/ccxt/ccxt/issues/22825
+            return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params);
+        }
         $until = $this->safe_integer($params, 'until');
         $market = null;
         if ($symbol !== null) {
