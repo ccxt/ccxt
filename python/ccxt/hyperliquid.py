@@ -3238,6 +3238,16 @@ class hyperliquid(Exchange, ImplicitAPI):
         if tif is not None:
             postOnly = (tif == 'ALO')
         triggerPx = self.safe_number(entry, 'triggerPx') if self.safe_bool(entry, 'isTrigger') else None
+        # standalone stop / take-profit orders carry their trigger in triggerPx - surface it
+        # through the unified stopLossPrice / takeProfitPrice fields, see  #24318
+        orderTypeRaw = self.safe_string_lower(entry, 'orderType', '')
+        stopLossPrice = None
+        takeProfitPrice = None
+        if triggerPx is not None:
+            if orderTypeRaw.find('stop') >= 0:
+                stopLossPrice = triggerPx
+            elif orderTypeRaw.find('take profit') >= 0:
+                takeProfitPrice = triggerPx
         return self.safe_order({
             'info': order,
             'id': self.safe_string(entry, 'oid'),
@@ -3254,6 +3264,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'side': side,
             'price': self.safe_string(entry, 'limitPx'),
             'triggerPrice': triggerPx,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': totalAmount,
             'cost': None,
             'average': self.safe_string(entry, 'avgPx'),
