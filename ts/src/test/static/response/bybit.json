@@ -6994,7 +6994,7 @@
                 "parsedResponse": {
                     "id": null,
                     "currency": "BTC",
-                    "amount": "0.001",
+                    "amount": 0.001,
                     "symbol": null,
                     "timestamp": null,
                     "datetime": null,
