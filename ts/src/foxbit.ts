@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1479,7 +1479,7 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.statusPublicGetStatus (params);
         // {
         //     "data": {
@@ -1504,7 +1504,7 @@ export default class foxbit extends Exchange {
         };
         return {
             'status': this.safeString (statusMap, statusRaw, statusRaw),
-            'updated': this.safeString (attributes, 'updatedAt'),
+            'updated': this.parse8601 (this.safeString (attributes, 'updatedAt')),
             'eta': undefined,
             'url': undefined,
             'info': response,

@@ -498,6 +498,38 @@ public struct MarginModification
     }
 }
 
+public struct Status
+{
+    public string? status;
+    public Int64? updated;
+    public Int64? eta;
+    public string? url;
+    public Dictionary<string, object> info;
+
+    public Status(object status2)
+    {
+        var status3 = (Dictionary<string, object>)status2;
+        status = Exchange.SafeString(status3, "status");
+        updated = Exchange.SafeInteger(status3, "updated");
+        eta = Exchange.SafeInteger(status3, "eta");
+        url = Exchange.SafeString(status3, "url");
+        info = Helper.GetInfo(status3);
+    }
+}
+
+public struct PositionModeInfo
+{
+    public Dictionary<string, object> info;
+    public bool? hedged;
+
+    public PositionModeInfo(object positionModeInfo2)
+    {
+        var positionModeInfo = (Dictionary<string, object>)positionModeInfo2;
+        info = Helper.GetInfo(positionModeInfo);
+        hedged = Exchange.SafeBool(positionModeInfo, "hedged");
+    }
+}
+
 public struct LastPrices
 {
     public Dictionary<string, object> info;

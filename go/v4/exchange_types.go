@@ -1904,6 +1904,36 @@ func NewMarginModification(data any) MarginModification {
 	}
 }
 
+type Status struct {
+	Status  *string
+	Updated *int64
+	Eta     *int64
+	Url     *string
+	Info    map[string]any
+}
+
+func NewStatus(data any) Status {
+	return Status{
+		Status:  SafeStringTyped(data, "status"),
+		Updated: SafeInt64Typed(data, "updated"),
+		Eta:     SafeInt64Typed(data, "eta"),
+		Url:     SafeStringTyped(data, "url"),
+		Info:    GetInfo(data),
+	}
+}
+
+type PositionModeInfo struct {
+	Info   map[string]any
+	Hedged *bool
+}
+
+func NewPositionModeInfo(data any) PositionModeInfo {
+	return PositionModeInfo{
+		Info:   GetInfo(data),
+		Hedged: SafeBoolTyped(data, "hedged"),
+	}
+}
+
 type Currencies struct {
 	Info       map[string]any
 	Currencies map[string]Currency
