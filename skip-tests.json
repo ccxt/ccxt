@@ -2315,8 +2315,6 @@
     "xt": {
         "skipMethods": {
             "loadMarkets": {
-                "taker": "is undefined",
-                "maker": "is undefined",
                 "currencyIdAndCode": "different",
                 "limits": "incorrect for some currencies"
             },
