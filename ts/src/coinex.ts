@@ -7,7 +7,7 @@ import Exchange from './abstract/coinex.js';
 import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, NullableDict, FeeString, List, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest, DepositWithdrawFee, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, NullableDict, FeeString, List, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest, DepositWithdrawFee, DepositWithdrawFees, MarginLoan } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -5657,7 +5657,7 @@ export default class coinex extends Exchange {
      * @param {boolean} [params.isAutoRenew] whether to renew the margin loan automatically or not, default is false
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
+    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5689,7 +5689,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const transaction = this.parseMarginLoan (data, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (data, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
@@ -5708,7 +5708,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.borrow_id] extra parameter that is not required
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5728,14 +5728,14 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const transaction = this.parseMarginLoan (data, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (data, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
         });
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "borrow_id": 13784021,
@@ -5752,9 +5752,9 @@ export default class coinex extends Exchange {
         const marketId = this.safeString (info, 'market');
         const timestamp = this.safeInteger (info, 'expired_at');
         return {
-            'id': this.safeInteger (info, 'borrow_id'),
+            'id': this.safeString (info, 'borrow_id'),
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.safeString (info, 'borrow_amount'),
+            'amount': this.safeNumber (info, 'borrow_amount'),
             'symbol': this.safeSymbol (marketId, undefined, undefined, 'spot'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

@@ -498,6 +498,29 @@ public struct MarginModification
     }
 }
 
+public struct MarginLoan
+{
+    public string? id;
+    public string? currency;
+    public double? amount;
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+    public Dictionary<string, object> info;
+
+    public MarginLoan(object marginLoan2)
+    {
+        var marginLoan3 = (Dictionary<string, object>)marginLoan2;
+        id = Exchange.SafeString(marginLoan3, "id");
+        currency = Exchange.SafeString(marginLoan3, "currency");
+        amount = Exchange.SafeFloat(marginLoan3, "amount");
+        symbol = Exchange.SafeString(marginLoan3, "symbol");
+        timestamp = Exchange.SafeInteger(marginLoan3, "timestamp");
+        datetime = Exchange.SafeString(marginLoan3, "datetime");
+        info = Helper.GetInfo(marginLoan3);
+    }
+}
+
 public struct Status
 {
     public string? status;

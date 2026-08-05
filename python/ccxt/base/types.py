@@ -507,6 +507,16 @@ class MarginModification(TypedDict):
     datetime: Str
 
 
+class MarginLoan(TypedDict):
+    id: Str
+    currency: Str
+    amount: Num
+    symbol: Str
+    timestamp: Int
+    datetime: Str
+    info: Dict[str, Any]
+
+
 class Status(TypedDict):
     status: Str
     updated: Int
