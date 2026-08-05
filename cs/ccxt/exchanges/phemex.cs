@@ -1438,7 +1438,8 @@ public partial class phemex : Exchange
                 } else
                 {
                     // when 'to' is defined since is mandatory
-                    since = subtract((divide(until, 100)), (multiply(maxLimit, candleDuration)));
+                    since = subtract(Math.Round(Convert.ToDouble(divide(until, 1000))), (multiply(maxLimit, candleDuration)));
+                    ((IDictionary<string,object>)request)["from"] = since;
                 }
                 if (isTrue(!isEqual(until, null)))
                 {

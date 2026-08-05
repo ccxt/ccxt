@@ -1683,7 +1683,14 @@ public partial class bitrue : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.safeDict(data, i, new Dictionary<string, object>() {});
-            object market = this.safeMarket(this.safeString(ticker, "symbol"));
+            // skip entries without a symbol: an undefined market id would become a null
+            // dictionary key here, which crashes fetchTickers in the C# build
+            object marketId = this.safeString(ticker, "symbol");
+            if (isTrue(isEqual(marketId, null)))
+            {
+                continue;
+            }
+            object market = this.safeMarket(marketId);
             ((IDictionary<string,object>)tickers)[(string)((string)getValue(market, "id"))] = ticker;
         }
         return this.parseTickers(tickers, symbols);
