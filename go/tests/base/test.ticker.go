@@ -165,7 +165,8 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var askString any = exchange.SafeString(entry, "ask")
 	var bidString any = exchange.SafeString(entry, "bid")
 	if IsTrue(IsTrue(IsTrue((!IsEqual(askString, nil))) && IsTrue((!IsEqual(bidString, nil)))) && !IsTrue((InOp(skippedProperties, "spread")))) {
-		AssertGreater(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
+		// greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
+		AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
 	}
 	// last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
 	var allowedPercentageVariation any = "0.01"
@@ -181,7 +182,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		//
 		// percentage
 		//
-		var maxIncrease any = "100" // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+		var maxIncrease any = "1000" // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
 		if IsTrue(!IsEqual(percentage, nil)) {
 			// - should be above -100 and below MAX
 			Assert(ccxt.Precise.StringGe(percentage, "-100"), Add("percentage should be above -100% ", logText))
