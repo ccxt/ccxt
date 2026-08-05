@@ -5120,6 +5120,11 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         await self.load_unified_status()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        if paginate:
+            # see https://github.com/ccxt/ccxt/issues/22825
+            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         until = self.safe_integer(params, 'until')
         market = None
         if symbol is not None:
