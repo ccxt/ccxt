@@ -1,5 +1,6 @@
 import Exchange from '../abstract/prediction/binance.js';
 import { Precise } from '../base/Precise.js';
+import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound } from '../base/errors.js';
 import type {
@@ -414,7 +415,7 @@ export default class binance extends Exchange {
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
                 const m = parsedMarkets[mi];
                 // prediction market rows are keyed by the unified 'market' handle
-                const handle = this.safeString2 (m, 'market', 'symbol');
+                const handle = this.safeString (m, 'market');
                 this.markets[handle] = m;
             }
         }
@@ -775,12 +776,21 @@ export default class binance extends Exchange {
         //
         const marketAny = market as any;
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
-        const label = this.safeStringUpper (outcomeObj, 'label', 'YES');
-        const isNo = (label === 'NO');
+        // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
+        // any other outcome of a binary market mirrors as 1 - price
+        const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
+        const outcomeIndex = this.safeString (outcomeInfo, 'index');
+        let isMirrored = false;
+        if (outcomeIndex !== undefined) {
+            isMirrored = (outcomeIndex !== '0');
+        } else {
+            const label = this.safeStringUpper (outcomeObj, 'label', 'YES');
+            isMirrored = (label === 'NO') || (label === 'DOWN');
+        }
         const lastString = this.safeString (raw, 'lastTradePrice');
         let last = undefined;
         if (lastString !== undefined) {
-            if (isNo) {
+            if (isMirrored) {
                 last = this.parseNumber (Precise.stringSub ('1', lastString));
             } else {
                 last = this.parseNumber (lastString);
@@ -1520,11 +1530,13 @@ export default class binance extends Exchange {
         const price = this.safeString (trade, 'price');
         const orderType = this.safeStringLower (trade, 'orderType');
         let fee = undefined;
-        if (orderType === 'market') {
-            const feeCost = Precise.stringSub (cost, Precise.stringMul (price, filled));
+        if ((orderType === 'market') && (cost !== undefined) && (price !== undefined) && (filled !== undefined)) {
+            // buys pay cost above price*filled, sells receive proceeds net of the fee —
+            // either way the fee is the absolute difference
+            const feeCost = Precise.stringAbs (Precise.stringSub (cost, Precise.stringMul (price, filled)));
             fee = {
                 'currency': 'USDT',
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
             };
         }
         return this.safePredictionTrade ({
@@ -1652,7 +1664,7 @@ export default class binance extends Exchange {
         if (prec > 0) {
             decimals = this.precisionFromString (this.numberToString (prec));
         }
-        return this.decimalToPrecision (price, 1, decimals, 2, this.paddingMode);
+        return this.decimalToPrecision (price, ROUND, decimals, DECIMAL_PLACES, this.paddingMode);
     }
 
     amountToPrecision (outcome: string, amount: any): string {
@@ -1662,7 +1674,8 @@ export default class binance extends Exchange {
         if (prec > 0) {
             decimals = this.precisionFromString (this.numberToString (prec));
         }
-        return this.decimalToPrecision (amount, 1, decimals, 2, this.paddingMode);
+        // amounts truncate so a rounded-up value can never exceed the caller's balance
+        return this.decimalToPrecision (amount, TRUNCATE, decimals, DECIMAL_PLACES, this.paddingMode);
     }
 
     /**
