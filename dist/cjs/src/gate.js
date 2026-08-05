@@ -5441,6 +5441,12 @@ class gate extends gate$1["default"] {
             await this.loadMarkets();
         }
         await this.loadUnifiedStatus();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
+        if (paginate) {
+            // see https://github.com/ccxt/ccxt/issues/22825
+            return await this.fetchPaginatedCallDynamic('fetchClosedOrders', symbol, since, limit, params);
+        }
         const until = this.safeInteger(params, 'until');
         let market = undefined;
         if (symbol !== undefined) {
