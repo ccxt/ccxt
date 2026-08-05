@@ -169,7 +169,8 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $ask_string = $exchange->safe_string($entry, 'ask');
     $bid_string = $exchange->safe_string($entry, 'bid');
     if (($ask_string !== null) && ($bid_string !== null) && !(is_array($skipped_properties) && array_key_exists('spread', $skipped_properties))) {
-        assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', $exchange->safe_string($entry, 'bid'));
+        // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
+        assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'ask', $exchange->safe_string($entry, 'bid'));
     }
     // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
     $allowed_percentage_variation = '0.01';
@@ -185,7 +186,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         //
         // percentage
         //
-        $max_increase = '100'; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+        $max_increase = '1000'; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if ($percentage !== null) {
             // - should be above -100 and below MAX
             assert(Precise::string_ge($percentage, '-100'), 'percentage should be above -100% ' . $log_text);
