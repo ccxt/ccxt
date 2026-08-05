@@ -2521,7 +2521,7 @@ public partial class woofipro : Exchange
             object code = this.safeCurrencyCode(this.safeString(balance, "token"));
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");
-            ((IDictionary<string,object>)account)["frozen"] = this.safeString(balance, "frozen");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
             if (isTrue(!isEqual(code, null)))
             {
                 ((IDictionary<string,object>)result)[(string)code] = account;
