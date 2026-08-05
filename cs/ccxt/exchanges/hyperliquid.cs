@@ -3860,6 +3860,21 @@ public partial class hyperliquid : Exchange
             postOnly = (isEqual(tif, "ALO"));
         }
         object triggerPx = ((bool) isTrue(this.safeBool(entry, "isTrigger"))) ? this.safeNumber(entry, "triggerPx") : null;
+        // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
+        // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
+        object orderTypeRaw = ((string)this.safeStringLower(entry, "orderType", ""));
+        object stopLossPrice = null;
+        object takeProfitPrice = null;
+        if (isTrue(!isEqual(triggerPx, null)))
+        {
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(orderTypeRaw, "stop"), 0)))
+            {
+                stopLossPrice = triggerPx;
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(orderTypeRaw, "take profit"), 0)))
+            {
+                takeProfitPrice = triggerPx;
+            }
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString(entry, "oid") },
@@ -3876,6 +3891,8 @@ public partial class hyperliquid : Exchange
             { "side", side },
             { "price", this.safeString(entry, "limitPx") },
             { "triggerPrice", triggerPx },
+            { "stopLossPrice", stopLossPrice },
+            { "takeProfitPrice", takeProfitPrice },
             { "amount", totalAmount },
             { "cost", null },
             { "average", this.safeString(entry, "avgPx") },

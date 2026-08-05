@@ -1401,7 +1401,11 @@ public partial class xt : Exchange
         };
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["startTime"] = since;
+            // xt rounds startTime down to the candle boundary, which makes a mid-candle
+            // window start return one pre-since candle, shifting paginated windows and
+            // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
+            object duration = multiply(this.parseTimeframe(timeframe), 1000);
+            ((IDictionary<string,object>)request)["startTime"] = multiply(Math.Ceiling(Convert.ToDouble(divide(since, duration))), duration);
         }
         if (isTrue(!isEqual(limit, null)))
         {
