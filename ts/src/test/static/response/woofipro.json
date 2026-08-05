@@ -4,6 +4,55 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch swap balance with frozen amount",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1702989203989,
+                    "data": {
+                        "holding": [
+                            {
+                                "updated_time": 1580794149000,
+                                "token": "USDC",
+                                "holding": 146.86,
+                                "frozen": 23,
+                                "pending_short": 0
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "holding": [
+                            {
+                                "updated_time": 1580794149000,
+                                "token": "USDC",
+                                "holding": 146.86,
+                                "frozen": 23,
+                                "pending_short": 0
+                            }
+                        ]
+                    },
+                    "USDC": {
+                        "free": 123.86,
+                        "used": 23,
+                        "total": 146.86
+                    },
+                    "free": {
+                        "USDC": 123.86
+                    },
+                    "used": {
+                        "USDC": 23
+                    },
+                    "total": {
+                        "USDC": 146.86
+                    }
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Swap trades",

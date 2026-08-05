@@ -2364,7 +2364,7 @@ export default class woofipro extends Exchange {
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
-            account['frozen'] = this.safeString (balance, 'frozen');
+            account['used'] = this.safeString (balance, 'frozen');
             if (code !== undefined) {
                 result[code] = account;
             }
