@@ -5869,7 +5869,7 @@ export default class binance extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
             'EXPIRED_IN_MATCH': 'expired',
-            'S': 'canceled',
+            'S': 'ok', // success for creating order and canceling order
             'F': 'rejected',
         };
         return this.safeString (statuses, status, status);
@@ -6418,62 +6418,78 @@ export default class binance extends Exchange {
         //         "msg": "success"
         //     }
         //
+        // createOrder: tokenized equities
+        //
+        //     {
+        //         "status": "S",
+        //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+        //         "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4"
+        //     }
+        //
         // cancelOrder: tokenized equities
         //
         //     {
-        //         "orderId": "c3c58f49-7b0d-4b9e-a2db-1a2f9a3b8c71",
+        //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
         //         "status": "S"
         //     }
         //
-        // fetchOpenOrders, fetchOrders: tokenized equities
+        // fetchOpenOrders: tokenized equities
         //
         //     {
-        //         "orderId": "c3c58f49-7b0d-4b9e-a2db-1a2f9a3b8c71",
+        //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+        //         "symbol": "AAPL",
+        //         "quoteAsset": "USDC",
+        //         "side": "BUY",
+        //         "orderType": "LIMIT",
+        //         "limitPrice": "290",
+        //         "qty": "0.05",
+        //         "filledQty": "0",
+        //         "filledNotional": "0",
+        //         "totalCost": "14.67",
+        //         "filledPercent": "0",
+        //         "status": "NEW",
+        //         "session": "24H",
+        //         "createdAt": 1785924334509,
+        //         "updatedAt": 1785924334514
+        //     }
+        //
+        // fetchOrders: tokenized equities
+        //
+        //     {
+        //         "orderId": "1ef94d47-0c95-4785-9834-37376312834e",
         //         "symbol": "AAPL",
         //         "quote": "USDC",
         //         "side": "BUY",
         //         "orderType": "LIMIT",
-        //         "limitPrice": "180.50",
-        //         "avgFilledPrice": null,
-        //         "qty": "1",
-        //         "notional": null,
+        //         "limitPrice": "290",
+        //         "qty": "0.05",
         //         "filledQty": "0",
-        //         "filledTotal": null,
+        //         "filledTotal": "0",
         //         "fee": "0",
-        //         "session": "RTH",
-        //         "status": "NEW",
-        //         "createdAt": 1735900000000,
-        //         "updatedAt": 1735900000000
+        //         "session": "24H",
+        //         "status": "CANCELED",
+        //         "createdAt": 1785925755841,
+        //         "updatedAt": 1785925792975
         //     }
         //
         // fetchOrder: tokenized equities
         //
         //     {
-        //         "orderId": "c3c58f49-7b0d-4b9e-a2db-1a2f9a3b8c71",
+        //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
         //         "symbol": "AAPL",
         //         "quote": "USDC",
         //         "side": "BUY",
         //         "orderType": "LIMIT",
-        //         "limitPrice": "180.50",
-        //         "avgFilledPrice": "180.48",
-        //         "qty": "1",
-        //         "notional": null,
-        //         "filledQty": "1",
-        //         "filledTotal": null,
-        //         "fee": "0.10",
-        //         "session": "RTH",
-        //         "status": "FILLED",
-        //         "createdAt": 1735900000000,
-        //         "updatedAt": 1735900120000,
-        //         "trades": [
-        //             {
-        //                 "executionId": "exec-20260504-0001",
-        //                 "executionAt": 1735900115000,
-        //                 "price": "180.48",
-        //                 "qty": "1",
-        //                 "fee": "0.10"
-        //             }
-        //         ]
+        //         "limitPrice": "290",
+        //         "qty": "0.05",
+        //         "filledQty": "0",
+        //         "filledTotal": "0",
+        //         "session": "24H",
+        //         "status": "NEW",
+        //         "createdAt": 1785924334509,
+        //         "updatedAt": 1785924334514,
+        //         "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4",
+        //         "trades": []
         //     }
         //
         const code = this.safeString (order, 'code');
@@ -6971,26 +6987,42 @@ export default class binance extends Exchange {
         //     TRAILING_STOP_MARKET callbackRate
         //
         if (uppercaseType === 'MARKET') {
-            if (market['spot']) {
+            if (stock) {
+                if (upperCaseSide === 'BUY') {
+                    const precision = this.safeValue (market['precision'], 'price');
+                    const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
+                    if (quoteOrderQtyNew !== undefined) {
+                        request['notional'] = (precision === undefined) ? quoteOrderQtyNew : this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
+                    } else if (price !== undefined) {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const notional = Precise.stringMul (amountString, priceString);
+                        request['notional'] = (precision === undefined) ? notional : this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
+                    } else {
+                        const precisionAvailable = this.safeValue (market['precision'], 'price');
+                        const notional = this.numberToString (amount);
+                        request['notional'] = (precisionAvailable === undefined) ? notional : this.decimalToPrecision (notional, TRUNCATE, precisionAvailable, this.precisionMode);
+                    }
+                } else {
+                    const marketAmountPrecision = this.safeString (market['precision'], 'amount');
+                    if (marketAmountPrecision !== undefined) {
+                        request['quantity'] = this.amountToPrecision (symbol, amount);
+                    } else {
+                        request['quantity'] = this.parseToNumeric (amount);
+                    }
+                }
+            } else if (market['spot']) {
                 const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true) as Bool;
                 if (quoteOrderQty) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
                     const precision = this.safeValue (market['precision'], 'price');
                     if (quoteOrderQtyNew !== undefined) {
-                        if (stock) {
-                            request['notional'] = (precision === undefined) ? quoteOrderQtyNew : this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
-                        } else {
-                            request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
-                        }
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                     } else if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
                         const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
-                        if (stock) {
-                            request['notional'] = (precision === undefined) ? quoteOrderQuantity : this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
-                        } else {
-                            request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
-                        }
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
                     } else {
                         quantityIsRequired = true;
                     }
@@ -7597,6 +7629,32 @@ export default class binance extends Exchange {
         //             "preventedQuantity": null
         //         },
         //     ]
+        //
+        // stock
+        //
+        //     {
+        //         "page": 1,
+        //         "size": 20,
+        //         "total": 2,
+        //         "rows": [
+        //             {
+        //                 "orderId": "1ef94d47-0c95-4785-9834-37376312834e",
+        //                 "symbol": "AAPL",
+        //                 "quote": "USDC",
+        //                 "side": "BUY",
+        //                 "orderType": "LIMIT",
+        //                 "limitPrice": "290",
+        //                 "qty": "0.05",
+        //                 "filledQty": "0",
+        //                 "filledTotal": "0",
+        //                 "fee": "0",
+        //                 "session": "24H",
+        //                 "status": "CANCELED",
+        //                 "createdAt": 1785925755841,
+        //                 "updatedAt": 1785925792975
+        //             },
+        //         ]
+        //     }
         //
         if (stock) {
             const result = this.safeList (response, 'rows', []);
