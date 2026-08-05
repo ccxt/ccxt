@@ -203,7 +203,7 @@ export default class woo extends wooRest {
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'orderbookupdate' (default for swap markets) or 'orderbook10' (default for spot markets), must match the subscription
-     * @param {int} [params.depth] the depth used when subscribing, one of 50, 200 or 500, default is 50
+     * @param {int} [params.depth] the depth used when subscribing, one of 50, 200 or 500, when omitted the depth of the active subscription is used
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
@@ -218,10 +218,28 @@ export default class woo extends wooRest {
         if (method === 'orderbookupdate') {
             let depth = this.safeString (params, 'depth');
             params = this.omit (params, 'depth');
-            if (depth === undefined) {
-                depth = '50';
+            const topicPrefix = 'orderbookupdate@' + market['id'] + '@';
+            if (depth !== undefined) {
+                subHash = topicPrefix + depth;
+            } else {
+                // find the depth of the active subscription instead of guessing,
+                // watchOrderBook derives it from the limit argument
+                const url = this.urls['api']['ws']['public'];
+                const client = this.safeValue (this.clients, url);
+                if (client !== undefined) {
+                    const subscriptionHashes = Object.keys (client.subscriptions);
+                    for (let i = 0; i < subscriptionHashes.length; i++) {
+                        const subscriptionHash = subscriptionHashes[i];
+                        if (subscriptionHash.indexOf (topicPrefix) === 0) {
+                            subHash = subscriptionHash;
+                        }
+                    }
+                }
+                if (subHash === undefined) {
+                    depth = '50';
+                    subHash = topicPrefix + depth;
+                }
             }
-            subHash = 'orderbookupdate@' + market['id'] + '@' + depth;
         } else {
             subHash = 'orderbook10@' + market['id'];
         }
