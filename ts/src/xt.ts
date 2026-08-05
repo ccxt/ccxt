@@ -2663,6 +2663,9 @@ export default class xt extends Exchange {
         const isStopLoss = (stopLoss !== undefined);
         const isTakeProfit = (takeProfit !== undefined);
         const isTrailing = (trailingPercent !== undefined) || (trailingAmount !== undefined);
+        if (isTrailing && !market['swap']) {
+            throw new NotSupported (this.id + ' createOrder() trailing orders are only supported on swap markets');
+        }
         if (price !== undefined) {
             if (!(isStopLoss) && !(isTakeProfit) && !(isTrailing)) {
                 request['price'] = this.priceToPrecision (symbol, price);
