@@ -205,6 +205,7 @@ impl crate::exchange_generated::ExchangeBase for MexcCore {
                 "cancel_all_orders" => self.cancel_all_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "close_all_positions" => self.close_all_positions(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "create_deposit_address" => self.create_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
                 "create_market_sell_order_with_cost" => self.create_market_sell_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
@@ -335,7 +336,7 @@ impl MexcCore {
         m.insert("cancelAllOrders".to_string(), Value::Bool(true));
         m.insert("cancelOrder".to_string(), Value::Bool(true));
         m.insert("cancelOrders".to_string(), Value::Null);
-        m.insert("closeAllPositions".to_string(), Value::Bool(false));
+        m.insert("closeAllPositions".to_string(), Value::Bool(true));
         m.insert("closePosition".to_string(), Value::Bool(false));
         m.insert("createDepositAddress".to_string(), Value::Bool(true));
         m.insert("createMarketBuyOrderWithCost".to_string(), Value::Bool(true));
@@ -469,7 +470,7 @@ impl MexcCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.mexc.com/".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://mexcdevelop.github.io/apidocs/".to_string())]));
+        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://www.mexc.com/api-docs/spot-v3/introduction".to_string()), Value::Str("https://www.mexc.com/api-docs/futures/integration-guide".to_string())]));
         m.insert("fees".to_string(), Value::List(vec![Value::Str("https://www.mexc.com/fee".to_string())]));
         m.insert("referral".to_string(), Value::Str("https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1".to_string()));
     m
@@ -486,16 +487,16 @@ impl MexcCore {
         m.insert("time".to_string(), Value::Int(1));
         m.insert("defaultSymbols".to_string(), Value::Int(1));
         m.insert("symbol/offline".to_string(), Value::Int(10));
-        m.insert("exchangeInfo".to_string(), Value::Int(10));
-        m.insert("depth".to_string(), Value::Int(1));
+        m.insert("exchangeInfo".to_string(), Value::Int(25));
+        m.insert("depth".to_string(), Value::Int(3));
         m.insert("trades".to_string(), Value::Int(5));
         m.insert("historicalTrades".to_string(), Value::Int(1));
         m.insert("aggTrades".to_string(), Value::Int(1));
         m.insert("klines".to_string(), Value::Int(1));
         m.insert("avgPrice".to_string(), Value::Int(1));
-        m.insert("ticker/24hr".to_string(), Value::Int(1));
-        m.insert("ticker/price".to_string(), Value::Int(1));
-        m.insert("ticker/bookTicker".to_string(), Value::Int(1));
+        m.insert("ticker/24hr".to_string(), Value::Int(25));
+        m.insert("ticker/price".to_string(), Value::Int(10));
+        m.insert("ticker/bookTicker".to_string(), Value::Int(10));
         m.insert("etf/info".to_string(), Value::Int(1));
     m
 }));
@@ -514,12 +515,12 @@ impl MexcCore {
         m.insert("myTrades".to_string(), Value::Int(10));
         m.insert("strategy/group".to_string(), Value::Int(20));
         m.insert("strategy/group/uid".to_string(), Value::Int(20));
-        m.insert("tradeFee".to_string(), Value::Int(10));
+        m.insert("tradeFee".to_string(), Value::Int(20));
         m.insert("sub-account/list".to_string(), Value::Int(1));
         m.insert("sub-account/apiKey".to_string(), Value::Int(1));
         m.insert("sub-account/asset".to_string(), Value::Int(1));
         m.insert("capital/config/getall".to_string(), Value::Int(10));
-        m.insert("capital/deposit/hisrec".to_string(), Value::Int(1));
+        m.insert("capital/deposit/hisrec".to_string(), Value::Int(10));
         m.insert("capital/withdraw/history".to_string(), Value::Int(1));
         m.insert("capital/withdraw/address".to_string(), Value::Int(10));
         m.insert("capital/deposit/address".to_string(), Value::Int(10));
@@ -553,6 +554,7 @@ impl MexcCore {
         m.insert("rebate/affiliate/campaign".to_string(), Value::Int(1));
         m.insert("rebate/affiliate/referral".to_string(), Value::Int(1));
         m.insert("rebate/affiliate/subaffiliates".to_string(), Value::Int(1));
+        m.insert("rebate/affiliate/list".to_string(), Value::Int(1));
         m.insert("mxDeduct/enable".to_string(), Value::Int(1));
         m.insert("userDataStream".to_string(), Value::Int(1));
         m.insert("selfSymbols".to_string(), Value::Int(1));
@@ -563,6 +565,7 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), Value::Int(1));
         m.insert("order/test".to_string(), Value::Int(1));
+        m.insert("apiKeyInfo".to_string(), Value::Int(1));
         m.insert("sub-account/virtualSubAccount".to_string(), Value::Int(1));
         m.insert("sub-account/apiKey".to_string(), Value::Int(1));
         m.insert("sub-account/futures".to_string(), Value::Int(1));
@@ -571,7 +574,7 @@ impl MexcCore {
         m.insert("strategy/group".to_string(), Value::Int(20));
         m.insert("capital/withdraw/apply".to_string(), Value::Int(1));
         m.insert("capital/withdraw".to_string(), Value::Int(1));
-        m.insert("capital/transfer".to_string(), Value::Int(1));
+        m.insert("capital/transfer".to_string(), Value::Int(50));
         m.insert("capital/transfer/internal".to_string(), Value::Int(1));
         m.insert("capital/deposit/address".to_string(), Value::Int(1));
         m.insert("capital/sub-account/universalTransfer".to_string(), Value::Int(1));
@@ -589,6 +592,7 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), Value::Int(1));
         m.insert("openOrders".to_string(), Value::Int(1));
+        m.insert("order/all".to_string(), Value::Int(1));
         m.insert("sub-account/apiKey".to_string(), Value::Int(1));
         m.insert("strategy/group".to_string(), Value::Int(1));
         m.insert("strategy/group/uid".to_string(), Value::Int(1));
@@ -685,7 +689,7 @@ impl MexcCore {
         m.insert("position/change_leverage".to_string(), Value::Int(2));
         m.insert("position/change_position_mode".to_string(), Value::Int(2));
         m.insert("position/reverse".to_string(), Value::Int(2));
-        m.insert("position/close_all".to_string(), Value::Int(2));
+        m.insert("position/close_all".to_string(), Value::Int(10));
         m.insert("order/create".to_string(), Value::Int(2));
         m.insert("order/submit".to_string(), Value::Int(2));
         m.insert("order/submit_batch".to_string(), Value::Int(40));
@@ -1178,6 +1182,28 @@ impl MexcCore {
         m.insert("-1128".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-2011".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-1121".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("401".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("402".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("403".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("406".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("429".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("500".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("501".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("503".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("504".to_string(), Value::Str("RequestTimeout".to_string()).clone());
+        m.insert("510".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("511".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("513".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("601".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("603".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("604".to_string(), Value::Str("OnMaintenance".to_string()).clone());
+        m.insert("701".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("702".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("703".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("704".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("801".to_string(), Value::Str("OnMaintenance".to_string()).clone());
+        m.insert("1000".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("1001".to_string(), Value::Str("BadSymbol".to_string()).clone());
         m.insert("10101".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
         m.insert("2009".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("2011".to_string(), Value::Str("BadRequest".to_string()).clone());
@@ -1225,6 +1251,7 @@ impl MexcCore {
         m.insert("10259".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("10265".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("10268".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("11444".to_string(), Value::Str("OnMaintenance".to_string()).clone());
         m.insert("20001".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("20002".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("22222".to_string(), Value::Str("BadRequest".to_string()).clone());
@@ -1303,8 +1330,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/test-connectivity // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -1355,8 +1382,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/check-server-time // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -1385,7 +1412,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -1420,13 +1447,14 @@ impl MexcCore {
         let mut chains: Value = self.safe_value_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_918: bool = true;
-            while { if !__for_first_918 { j = add(&j, &Value::Int(1)); } __for_first_918 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_905: bool = true;
+            while { if !__for_first_905 { j = add(&j, &Value::Int(1)); } __for_first_905 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string2(chain.clone(), Value::Str("netWork".to_string()), Value::Str("network".to_string()), &[]);
             let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            add_element_to_object(&mut networks, &network, Value::Map({
+            if !is_equal(&network, &Value::Null) {
+                add_element_to_object(&mut networks, &network, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -1449,6 +1477,7 @@ impl MexcCore {
         m.insert("contract".to_string(), self.safe_string_k(chain.clone(), "contract", &[]));
     m
 }));
+            }
         }
         }
         return self.safe_currency_structure(Value::Map({
@@ -1484,8 +1513,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchMarkets
  * @description retrieves data on all markets for mexc
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info // swap
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1512,7 +1541,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchMarkets
  * @description retrieves data on all spot markets for mexc
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1568,8 +1597,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_919: bool = true;
-            while { if !__for_first_919 { i = add(&i, &Value::Int(1)); } __for_first_919 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_906: bool = true;
+            while { if !__for_first_906 { i = add(&i, &Value::Int(1)); } __for_first_906 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1664,7 +1693,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchMarkets
  * @description retrieves data on all swap markets for mexc
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1725,8 +1754,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_920: bool = true;
-            while { if !__for_first_920 { i = add(&i, &Value::Int(1)); } __for_first_920 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_907: bool = true;
+            while { if !__for_first_907 { i = add(&i, &Value::Int(1)); } __for_first_907 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1813,13 +1842,13 @@ impl MexcCore {
 /*
  * @method
  * @name mexc#fetchOrderBook
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/order-book // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-order-book-depth // swap
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1909,9 +1938,9 @@ impl MexcCore {
 /*
  * @method
  * @name mexc#fetchTrades
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/recent-trades-list // spot
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/compressedaggregate-trades-list // spot aggregated
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-recent-trades // swap
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -2153,8 +2182,10 @@ impl MexcCore {
 /*
  * @method
  * @name mexc#fetchOHLCV
- * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints#klinecandlestick-data
- * @see https://www.mexc.com/api-docs/futures/market-endpoints#get-candlestick-data
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/klinecandlestick-data // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-candlestick-data // swap
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-index-price-candles // index
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-fair-price-candles // mark
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -2299,8 +2330,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2381,8 +2412,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2572,7 +2603,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/symbol-order-book-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2615,7 +2646,7 @@ impl MexcCore {
  * @method
  * @name mexc#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2648,7 +2679,7 @@ impl MexcCore {
  * @method
  * @name mexc#createMarketSellOrderWithCost
  * @description create a market sell order by providing the symbol and cost
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2681,10 +2712,9 @@ impl MexcCore {
  * @method
  * @name mexc#createOrder
  * @description create a trade order
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
- * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order // swap trigger
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2800,7 +2830,7 @@ impl MexcCore {
  * @method
  * @name mexc#createSpotOrder
  * @description create a trade order
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
  * @param {string} market unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2868,10 +2898,8 @@ impl MexcCore {
  * @method
  * @name mexc#createSwapOrder
  * @description create a trade order
- * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order
  * @param {string} market unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2926,16 +2954,24 @@ impl MexcCore {
         }  else if is_equal(&type_var, &Value::Str("market".to_string())) {
             type_var = Value::Int(6);
         }
+        let mut volString: Value = self.amount_to_precision(symbol.clone(), amount.clone());
+        if is_equal(&volString, &Value::Null) {
+            volString = Value::Str("0".to_string());
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
-                m.insert("vol".to_string(), crate::runtime::parse_float(&self.amount_to_precision(symbol.clone(), amount.clone())));
+                m.insert("vol".to_string(), crate::runtime::parse_float(&volString));
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("openType".to_string(), openType.clone());
             m
         });
         if is_true(&(!is_equal(&type_var, &Value::Int(5)))) && is_true(&(!is_equal(&type_var, &Value::Int(6)))) && is_true(&(!is_equal(&type_var, &Value::Str("market".to_string())))) {
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), crate::runtime::parse_float(&self.price_to_precision(symbol.clone(), price.clone())));
+            let mut priceString: Value = self.price_to_precision(symbol.clone(), price.clone());
+            if is_equal(&priceString, &Value::Null) {
+                priceString = Value::Str("0".to_string());
+            }
+            add_element_to_object(&mut request, &Value::Str("price".to_string()), crate::runtime::parse_float(&priceString));
         }
         if is_equal(&openType, &Value::Int(1)) {
             let mut leverage: Value = self.safe_integer_k(params.clone(), "leverage", &[]);
@@ -3006,7 +3042,7 @@ impl MexcCore {
  * @method
  * @name mexc#createOrders
  * @description *spot only*  *all orders must have the same symbol* create a list of trade orders
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/batch-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to api endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3023,8 +3059,8 @@ impl MexcCore {
         let mut symbol: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_921: bool = true;
-            while { if !__for_first_921 { i = add(&i, &Value::Int(1)); } __for_first_921 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_908: bool = true;
+            while { if !__for_first_908 { i = add(&i, &Value::Int(1)); } __for_first_908 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3068,8 +3104,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-order // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-order-information-by-order-id // swap
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3166,9 +3202,9 @@ impl MexcCore {
  * @method
  * @name mexc#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3403,9 +3439,9 @@ impl MexcCore {
  * @method
  * @name mexc#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/current-open-orders // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-current-orders // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -3470,9 +3506,9 @@ impl MexcCore {
  * @method
  * @name mexc#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3496,9 +3532,9 @@ impl MexcCore {
  * @method
  * @name mexc#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] max number of orders to return, default is undefined
@@ -3554,9 +3590,9 @@ impl MexcCore {
  * @method
  * @name mexc#cancelOrder
  * @description cancels an open order
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-order
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-order-under-maintenance
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-order // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-planned-orders // swap trigger
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3654,7 +3690,7 @@ impl MexcCore {
  * @method
  * @name mexc#cancelOrders
  * @description cancel multiple orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3700,12 +3736,12 @@ impl MexcCore {
  * @method
  * @name mexc#cancelAllOrders
  * @description cancel all open orders
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-symbol
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-open-orders-on-a-symbol // spot
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders // spot all symbols
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -3717,32 +3753,24 @@ impl MexcCore {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = ternary(is_true(&(!is_equal(&symbol, &Value::Null))), self.market(symbol.clone()), Value::Null);
+        let mut market: Value = Value::Null;
+        if !is_equal(&symbol, &Value::Null) {
+            market = self.market(symbol.clone());
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelAllOrders".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut marginModequeryVariable = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".to_string()), &[params.clone()]);
-        let mut marginMode: Value = get_value(&marginModequeryVariable, &Value::Int(0));
-        let mut query: Value = get_value(&marginModequeryVariable, &Value::Int(1));
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
             if is_equal(&symbol, &Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument on spot".to_string()))));
+                self.spot_private_delete_order_all(&[params.clone()]).await;
+                return Value::List(vec![]);
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
-            let mut response: Value = Value::Null;
-            if !is_equal(&marginMode, &Value::Null) {
-                if !is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                    panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&self.id, &Value::Str(" cancelAllOrders() does not support marginMode ".to_string())), &marginMode), &Value::Str(" for spot-margin trading".to_string()))));
-                }
-                let __ws_arg_32 = self.extend(request.clone(), &[query.clone()]);
-                response = self.spot_private_delete_margin_open_orders(&[__ws_arg_32]).await;
-            }  else {
-                let __ws_arg_33 = self.extend(request.clone(), &[query.clone()]);
-                response = self.spot_private_delete_open_orders(&[__ws_arg_33]).await;
-            }
+            let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.spot_private_delete_open_orders(&[__ws_arg_32]).await;
             return self.parse_orders(response.clone(), &[market.clone()]);
         }  else {
             if !is_equal(&symbol, &Value::Null) {
@@ -3751,17 +3779,17 @@ impl MexcCore {
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let mut method: Value = self.safe_string_k(self.options.clone(), "cancelAllOrders", &[Value::Str("contractPrivatePostOrderCancelAll".to_string())]);
-            method = self.safe_string_k(query.clone(), "method", &[method.clone()]);
+            method = self.safe_string_k(params.clone(), "method", &[method.clone()]);
             let mut response: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             if is_equal(&method, &Value::Str("contractPrivatePostOrderCancelAll".to_string())) {
-                let __ws_arg_34 = self.extend(request.clone(), &[query.clone()]);
-                response = self.contract_private_post_order_cancel_all(&[__ws_arg_34]).await;
+                let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+                response = self.contract_private_post_order_cancel_all(&[__ws_arg_33]).await;
             }  else if is_equal(&method, &Value::Str("contractPrivatePostPlanorderCancelAll".to_string())) {
-                let __ws_arg_35 = self.extend(request.clone(), &[query.clone()]);
-                response = self.contract_private_post_planorder_cancel_all(&[__ws_arg_35]).await;
+                let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+                response = self.contract_private_post_planorder_cancel_all(&[__ws_arg_34]).await;
             }
             //
             //     {
@@ -4106,8 +4134,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
@@ -4128,8 +4156,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_922: bool = true;
-            while { if !__for_first_922 { i = add(&i, &Value::Int(1)); } __for_first_922 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_909: bool = true;
+            while { if !__for_first_909 { i = add(&i, &Value::Int(1)); } __for_first_909 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut account: Value = get_value(&data, &i);
             let mut account: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string2(account.clone(), Value::Str("asset".to_string()), Value::Str("currency".to_string()), &[]);
@@ -4153,7 +4181,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-symbol-commission
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -4175,8 +4203,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.spot_private_get_trade_fee(&[__ws_arg_36]).await;
+        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_get_trade_fee(&[__ws_arg_35]).await;
         //
         //  {
         //      "data":{
@@ -4283,8 +4311,8 @@ impl MexcCore {
         if is_equal(&marketType, &Value::Str("margin".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_923: bool = true;
-                while { if !__for_first_923 { i = add(&i, &Value::Int(1)); } __for_first_923 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_910: bool = true;
+                while { if !__for_first_910 { i = add(&i, &Value::Int(1)); } __for_first_910 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -4303,8 +4331,12 @@ impl MexcCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                add_element_to_object(&mut subResult, &baseCode, self.parse_balance_helper(base.clone()));
-                add_element_to_object(&mut subResult, &quoteCode, self.parse_balance_helper(quote.clone()));
+                if !is_equal(&baseCode, &Value::Null) {
+                    add_element_to_object(&mut subResult, &baseCode, self.parse_balance_helper(base.clone()));
+                }
+                if !is_equal(&quoteCode, &Value::Null) {
+                    add_element_to_object(&mut subResult, &quoteCode, self.parse_balance_helper(quote.clone()));
+                }
                 add_element_to_object(&mut result, &symbol, self.safe_balance(subResult.clone()));
             }
             }
@@ -4312,8 +4344,8 @@ impl MexcCore {
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_924: bool = true;
-                while { if !__for_first_924 { i = add(&i, &Value::Int(1)); } __for_first_924 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_911: bool = true;
+                while { if !__for_first_911 { i = add(&i, &Value::Int(1)); } __for_first_911 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -4321,15 +4353,17 @@ impl MexcCore {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "availableBalance", &[]));
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "frozenBalance", &[]));
-                add_element_to_object(&mut result, &code, account.clone());
+                if !is_equal(&code, &Value::Null) {
+                    add_element_to_object(&mut result, &code, account.clone());
+                }
             }
             }
             return self.safe_balance(result.clone());
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_925: bool = true;
-                while { if !__for_first_925 { i = add(&i, &Value::Int(1)); } __for_first_925 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_912: bool = true;
+                while { if !__for_first_912 { i = add(&i, &Value::Int(1)); } __for_first_912 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
@@ -4337,7 +4371,9 @@ impl MexcCore {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "free", &[]));
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "locked", &[]));
-                add_element_to_object(&mut result, &code, account.clone());
+                if !is_equal(&code, &Value::Null) {
+                    add_element_to_object(&mut result, &code, account.clone());
+                }
             }
             }
             return self.safe_balance(result.clone());
@@ -4363,8 +4399,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
  * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.symbols] // required for margin, market id's separated by commas
@@ -4407,14 +4443,14 @@ impl MexcCore {
             marketType = Value::Str("margin".to_string());
             add_element_to_object(&mut request, &Value::Str("symbols".to_string()), parsedSymbols.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("symbol".to_string()), Value::Str("symbols".to_string())]), &[]);
-            let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
-            response = self.spot_private_get_margin_isolated_account(&[__ws_arg_37]).await;
+            let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_private_get_margin_isolated_account(&[__ws_arg_36]).await;
         }  else if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
-            response = self.spot_private_get_account(&[__ws_arg_38]).await;
+            let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_private_get_account(&[__ws_arg_37]).await;
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
-            let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
-            response = self.contract_private_get_account_assets(&[__ws_arg_39]).await;
+            let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_get_account_assets(&[__ws_arg_38]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalance() not support this method".to_string()))));
         }
@@ -4427,8 +4463,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+ * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order // swap legacy endpoint
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -4471,8 +4507,8 @@ impl MexcCore {
                 params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             }
-            let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
-            trades = self.spot_private_get_my_trades(&[__ws_arg_40]).await;
+            let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+            trades = self.spot_private_get_my_trades(&[__ws_arg_39]).await;
         }  else {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("start_time".to_string()), since.clone());
@@ -4484,8 +4520,8 @@ impl MexcCore {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
             }
-            let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
-            let mut response: Value = self.contract_private_get_order_list_order_deals(&[__ws_arg_41]).await;
+            let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.contract_private_get_order_list_order_deals(&[__ws_arg_40]).await;
             //
             //     {
             //         "success": true,
@@ -4520,8 +4556,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-trade-records-by-order-id // swap
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -4558,12 +4594,12 @@ impl MexcCore {
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
-            let __ws_arg_42 = self.extend(request.clone(), &[query.clone()]);
-            trades = self.spot_private_get_my_trades(&[__ws_arg_42]).await;
+            let __ws_arg_41 = self.extend(request.clone(), &[query.clone()]);
+            trades = self.spot_private_get_my_trades(&[__ws_arg_41]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
-            let __ws_arg_43 = self.extend(request.clone(), &[query.clone()]);
-            let mut response: Value = self.contract_private_get_order_deal_details_order_id(&[__ws_arg_43]).await;
+            let __ws_arg_42 = self.extend(request.clone(), &[query.clone()]);
+            let mut response: Value = self.contract_private_get_order_deal_details_order_id(&[__ws_arg_42]).await;
             //
             //     {
             //         "success": true,
@@ -4613,8 +4649,8 @@ impl MexcCore {
                 m.insert("type".to_string(), addOrReduce.clone());
             m
         });
-        let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.contract_private_post_position_change_margin(&[__ws_arg_44]).await;
+        let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_post_position_change_margin(&[__ws_arg_43]).await;
         return response;
 
     Value::Null
@@ -4624,7 +4660,7 @@ impl MexcCore {
  * @method
  * @name mexc#reduceMargin
  * @description remove margin from a position
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4644,7 +4680,7 @@ impl MexcCore {
  * @method
  * @name mexc#addMargin
  * @description add margin
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4664,7 +4700,7 @@ impl MexcCore {
  * @method
  * @name mexc#setLeverage
  * @description set the level of leverage for a market
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4699,8 +4735,8 @@ impl MexcCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("positionId".to_string()), positionId.clone());
         }
-        let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
-        return self.contract_private_post_position_change_leverage(&[__ws_arg_45]).await;
+        let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
+        return self.contract_private_post_position_change_leverage(&[__ws_arg_44]).await;
 
     Value::Null
 }
@@ -4709,7 +4745,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-funding-fee-details
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -4739,8 +4775,8 @@ impl MexcCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.contract_private_get_position_funding_records(&[__ws_arg_46]).await;
+        let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_position_funding_records(&[__ws_arg_45]).await;
         //
         //     {
         //         "success": true,
@@ -4781,8 +4817,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_926: bool = true;
-            while { if !__for_first_926 { i = add(&i, &Value::Int(1)); } __for_first_926 = false; is_less_than(&i, &get_array_length(&resultList)) } {
+            let mut __for_first_913: bool = true;
+            while { if !__for_first_913 { i = add(&i, &Value::Int(1)); } __for_first_913 = false; is_less_than(&i, &get_array_length(&resultList)) } {
             let mut entry: Value = get_value(&resultList, &i);
             let mut entry: Value = get_value(&resultList, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "settleTime", &[]);
@@ -4865,7 +4901,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -4884,7 +4920,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -4903,8 +4939,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.contract_public_get_funding_rate_symbol(&[__ws_arg_47]).await;
+        let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_public_get_funding_rate_symbol(&[__ws_arg_46]).await;
         //
         //     {
         //         "success": true,
@@ -4933,7 +4969,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] not used by mexc, but filtered internally by ccxt
  * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
@@ -4963,8 +4999,8 @@ impl MexcCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.contract_public_get_funding_rate_history(&[__ws_arg_48]).await;
+        let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_public_get_funding_rate_history(&[__ws_arg_47]).await;
         //
         //    {
         //        "success": true,
@@ -4994,8 +5030,8 @@ impl MexcCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_927: bool = true;
-            while { if !__for_first_927 { i = add(&i, &Value::Int(1)); } __for_first_927 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_914: bool = true;
+            while { if !__for_first_914 { i = add(&i, &Value::Int(1)); } __for_first_914 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5022,7 +5058,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
@@ -5210,7 +5246,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchDepositAddressesByNetwork
  * @description fetch a dictionary of addresses for a currency, indexed by network
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
@@ -5238,11 +5274,14 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if is_true(&Value::Bool(in_op(&networks, &networkUnified))) {
-                let mut network: Value = self.safe_dict(networks.clone(), networkUnified.clone(), &[Value::Map({
+            if is_true(&(!is_equal(&networkUnified, &Value::Null))) && is_true(&(Value::Bool(in_op(&networks, &networkUnified)))) {
+                let mut network: Value = ternary(is_true(&(is_equal(&networkUnified, &Value::Null))), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}), self.safe_dict(networks.clone(), networkUnified.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]));
                 let mut networkInfo: Value = self.safe_value_k(network.clone(), "info", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -5256,8 +5295,8 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("network".to_string()), networkId.clone());
         }
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
-        let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.spot_private_get_capital_deposit_address(&[__ws_arg_49]).await;
+        let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_get_capital_deposit_address(&[__ws_arg_48]).await;
         //
         //    [
         //        {
@@ -5279,7 +5318,7 @@ impl MexcCore {
  * @method
  * @name mexc#createDepositAddress
  * @description create a currency deposit address
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/generate-deposit-address-supporting-network
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the blockchain network name
@@ -5310,11 +5349,14 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if is_true(&Value::Bool(in_op(&networks, &networkUnified))) {
-            let mut network: Value = self.safe_dict(networks.clone(), networkUnified.clone(), &[Value::Map({
+        if is_true(&(!is_equal(&networkUnified, &Value::Null))) && is_true(&(Value::Bool(in_op(&networks, &networkUnified)))) {
+            let mut network: Value = ternary(is_true(&(is_equal(&networkUnified, &Value::Null))), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}), self.safe_dict(networks.clone(), networkUnified.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]));
             let mut networkInfo: Value = self.safe_value_k(network.clone(), "info", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -5327,8 +5369,8 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("network".to_string()), networkId.clone());
         }
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
-        let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.spot_private_post_capital_deposit_address(&[__ws_arg_50]).await;
+        let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_post_capital_deposit_address(&[__ws_arg_49]).await;
         return self.parse_deposit_address(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -5338,7 +5380,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
@@ -5353,7 +5395,8 @@ impl MexcCore {
         let mut addressStructures: Value = self.fetch_deposit_addresses_by_network(code.clone(), &[params.clone()]).await;
         let mut result: Value = Value::Null;
         if !is_equal(&network, &Value::Null) {
-            result = self.safe_dict(addressStructures.clone(), self.network_id_to_code(&[network.clone(), code.clone()]), &[]);
+            let mut netCode: Value = self.network_id_to_code(&[network.clone(), code.clone()]);
+            result = ternary(is_true(&(is_equal(&netCode, &Value::Null))), Value::Null, self.safe_dict(addressStructures.clone(), netCode.clone(), &[]));
         }  else {
             let mut options: Value = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]);
             let mut defaultNetworkForCurrency: Value = self.safe_string(options.clone(), code.clone(), &[]);
@@ -5377,7 +5420,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-historysupporting-network
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -5420,8 +5463,8 @@ impl MexcCore {
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_51 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_51]).await;
+        let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_50]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5431,7 +5474,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdraw-history-supporting-network
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -5467,8 +5510,8 @@ impl MexcCore {
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_52 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.spot_private_get_capital_withdraw_history(&[__ws_arg_52]).await;
+        let __ws_arg_51 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_get_capital_withdraw_history(&[__ws_arg_51]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5632,9 +5675,39 @@ impl MexcCore {
 
 /*
  * @method
+ * @name mexc#closeAllPositions
+ * @description closes all open swap positions
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/close-all
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+    pub async fn close_all_positions(&mut self, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut response: Value = self.contract_private_post_position_close_all(&[params.clone()]).await;
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": []
+        //     }
+        //
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        return self.parse_positions(data.clone(), &[]);
+
+    Value::Null
+}
+
+/*
+ * @method
  * @name mexc#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -5653,8 +5726,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.fetch_positions(&[Value::Null, __ws_arg_53]).await;
+        let __ws_arg_52 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.fetch_positions(&[Value::Null, __ws_arg_52]).await;
         return self.safe_value(response.clone(), Value::Int(0), &[]);
 
     Value::Null
@@ -5664,7 +5737,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchPositions
  * @description fetch all open positions
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -5831,7 +5904,7 @@ impl MexcCore {
  * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
  * @param {string} id transfer id
  * @param {string} [code] not used by mexc fetchTransfer
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn fetch_transfer(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
@@ -5852,8 +5925,8 @@ impl MexcCore {
                     m.insert("transact_id".to_string(), id.clone());
                 m
             });
-            let __ws_arg_54 = self.extend(request.clone(), &[query.clone()]);
-            let mut response: Value = self.spot_private_get_asset_internal_transfer_record(&[__ws_arg_54]).await;
+            let __ws_arg_53 = self.extend(request.clone(), &[query.clone()]);
+            let mut response: Value = self.spot_private_get_asset_internal_transfer_record(&[__ws_arg_53]).await;
             //
             //     {
             //         "code": "200",
@@ -5875,7 +5948,7 @@ impl MexcCore {
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
             panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchTransfer() is not supported for ".to_string())), &marketType)));
         }
-        return Value::Null;
+        panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchTransfer() is not supported for ".to_string())), &marketType)));
 
     Value::Null
 }
@@ -5884,9 +5957,8 @@ impl MexcCore {
  * @method
  * @name mexc#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
- * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-user-universal-transfer-history // spot universal transfer
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-asset-transfer-records // swap
  * @param {string} [code] unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -5950,8 +6022,8 @@ impl MexcCore {
                 }
                 add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
             }
-            let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
-            let mut response: Value = self.spot_private_get_capital_transfer(&[__ws_arg_55]).await;
+            let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.spot_private_get_capital_transfer(&[__ws_arg_54]).await;
             //
             //
             // {
@@ -5975,8 +6047,8 @@ impl MexcCore {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
             }
-            let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
-            let mut response: Value = self.contract_private_get_account_transfer_record(&[__ws_arg_56]).await;
+            let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.contract_private_get_account_transfer_record(&[__ws_arg_55]).await;
             let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
             resultList = self.safe_value_k(data.clone(), "resultList", &[]);
         }
@@ -5989,7 +6061,7 @@ impl MexcCore {
  * @method
  * @name mexc#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/user-universal-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
@@ -6041,8 +6113,8 @@ impl MexcCore {
             let mut market: Value = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.spot_private_post_capital_transfer(&[__ws_arg_57]).await;
+        let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_post_capital_transfer(&[__ws_arg_56]).await;
         //
         //     {
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
@@ -6171,8 +6243,8 @@ impl MexcCore {
  * @method
  * @name mexc#withdraw
  * @description make a withdrawal
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
- * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdrawnew // on-chain withdrawal
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/internal-transfer // internal transfer
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -6207,8 +6279,8 @@ impl MexcCore {
             if is_equal(&toAccountType, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE".to_string()))));
             }
-            let __ws_arg_58 = self.extend(requestForInternal.clone(), &[params.clone()]);
-            let mut responseForInternal: Value = self.spot_private_post_capital_transfer_internal(&[__ws_arg_58]).await;
+            let __ws_arg_57 = self.extend(requestForInternal.clone(), &[params.clone()]);
+            let mut responseForInternal: Value = self.spot_private_post_capital_transfer_internal(&[__ws_arg_57]).await;
             return self.parse_transaction(responseForInternal.clone(), &[currency.clone()]);
         }
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
@@ -6233,8 +6305,8 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("netWork".to_string()), network.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("network".to_string()), Value::Str("netWork".to_string())]), &[]);
         }
-        let __ws_arg_59 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.spot_private_post_capital_withdraw(&[__ws_arg_59]).await;
+        let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_post_capital_withdraw(&[__ws_arg_58]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -6244,9 +6316,9 @@ impl MexcCore {
  * @method
  * @name mexc#setPositionMode
  * @description set hedged to true or false for a market
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by mexc setPositionMode ()
+ * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
@@ -6261,8 +6333,8 @@ impl MexcCore {
                 m.insert("positionMode".to_string(), ternary(is_true(&hedged), Value::Int(1), Value::Int(2)));
             m
         });
-        let __ws_arg_60 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.contract_private_post_position_change_position_mode(&[__ws_arg_60]).await;
+        let __ws_arg_59 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_post_position_change_position_mode(&[__ws_arg_59]).await;
         return response;
 
     Value::Null
@@ -6272,7 +6344,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchPositionMode
  * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-user-position-mode
  * @param {string} symbol not used by mexc fetchPositionMode
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
@@ -6306,7 +6378,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchTransactionFees
  * @description fetch deposit and withdrawal fees
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
  * @param {string[]|undefined} codes returns fees for all currencies if undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -6334,8 +6406,8 @@ impl MexcCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_928: bool = true;
-            while { if !__for_first_928 { i = add(&i, &Value::Int(1)); } __for_first_928 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_915: bool = true;
+            while { if !__for_first_915 { i = add(&i, &Value::Int(1)); } __for_first_915 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
@@ -6395,8 +6467,8 @@ impl MexcCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_929: bool = true;
-            while { if !__for_first_929 { j = add(&j, &Value::Int(1)); } __for_first_929 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_916: bool = true;
+            while { if !__for_first_916 { j = add(&j, &Value::Int(1)); } __for_first_916 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
@@ -6414,7 +6486,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchDepositWithdrawFees
  * @description fetch deposit and withdrawal fees
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
  * @param {string[]|undefined} codes returns fees for all currencies if undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -6466,13 +6538,14 @@ impl MexcCore {
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_930: bool = true;
-            while { if !__for_first_930 { j = add(&j, &Value::Int(1)); } __for_first_930 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_917: bool = true;
+            while { if !__for_first_917 { j = add(&j, &Value::Int(1)); } __for_first_917 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(currency.clone(), "code", &[])]);
-            add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
+            if !is_equal(&networkCode, &Value::Null) {
+                add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6488,6 +6561,7 @@ impl MexcCore {
 }));
     m
 }));
+            }
         }
         }
         return self.assign_default_deposit_withdraw_fees(result.clone(), &[]);
@@ -6499,7 +6573,7 @@ impl MexcCore {
  * @method
  * @name mexc#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-position-leverage-multipliers
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -6518,8 +6592,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_61 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.contract_private_get_position_leverage(&[__ws_arg_61]).await;
+        let __ws_arg_60 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_position_leverage(&[__ws_arg_60]).await;
         //
         //     {
         //         "success": true,
@@ -6563,8 +6637,8 @@ impl MexcCore {
         let mut shortLeverage: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_931: bool = true;
-            while { if !__for_first_931 { i = add(&i, &Value::Int(1)); } __for_first_931 = false; is_less_than(&i, &get_array_length(&leverage)) } {
+            let mut __for_first_918: bool = true;
+            while { if !__for_first_918 { i = add(&i, &Value::Int(1)); } __for_first_918 = false; is_less_than(&i, &get_array_length(&leverage)) } {
             let mut entry: Value = get_value(&leverage, &i);
             let mut entry: Value = get_value(&leverage, &i);
             let mut openType: Value = self.safe_integer_k(entry.clone(), "openType", &[]);
@@ -6620,11 +6694,11 @@ impl MexcCore {
  * @method
  * @name mexc#fetchPositionsHistory
  * @description fetches historical positions
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-historical-positions
  * @param {string[]} [symbols] unified contract symbols
  * @param {int} [since] not used by mexc fetchPositionsHistory
  * @param {int} [limit] the maximum amount of candles to fetch, default=1000
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {int} [params.type] position type，1: long, 2: short
@@ -6656,8 +6730,8 @@ impl MexcCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.contract_private_get_position_list_history_positions(&[__ws_arg_62]).await;
+        let __ws_arg_61 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_position_list_history_positions(&[__ws_arg_61]).await;
         //
         //    {
         //        success: true,
@@ -6709,7 +6783,7 @@ impl MexcCore {
  * @method
  * @name mexc#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} [symbol] required when there is no position, else provide params["positionId"]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6752,8 +6826,8 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("positionType".to_string()), ternary(is_true(&(is_equal(&direction, &Value::Str("short".to_string())))), Value::Int(2), Value::Int(1)));
         }
         params = self.omit(params.clone(), Value::Str("direction".to_string()), &[]);
-        let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.contract_private_post_position_change_leverage(&[__ws_arg_63]).await;
+        let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_post_position_change_leverage(&[__ws_arg_62]).await;
         return self.parse_leverage(response.clone(), &[market.clone()]);
 
     Value::Null

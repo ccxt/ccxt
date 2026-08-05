@@ -637,9 +637,21 @@ impl AlpacaCore {
         //     }
         //
         let mut timestamp: Value = self.safe_string_k(response.clone(), "timestamp", &[]);
+        if is_equal(&timestamp, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchTime() missing timestamp".to_string()))));
+        }
         let mut localTime: Value = slice(&timestamp, &Value::Int(0), &Value::Int(23));
+        if is_equal(&timestamp, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchTime() missing timestamp".to_string()))));
+        }
         let mut jetlagStrStart: Value = subtract(&get_array_length(&timestamp), &Value::Int(6));
+        if is_equal(&timestamp, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchTime() missing timestamp".to_string()))));
+        }
         let mut jetlagStrEnd: Value = subtract(&get_array_length(&timestamp), &Value::Int(3));
+        if is_equal(&timestamp, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchTime() missing timestamp".to_string()))));
+        }
         let mut jetlag: Value = slice(&timestamp, &jetlagStrStart, &jetlagStrEnd);
         let mut iso: Value = subtract(&self.parse_to_int(self.parse8601(localTime.clone())), &multiply(&multiply(&self.parse_to_numeric(jetlag.clone()), &Value::Int(3600)), &Value::Int(1000)));
         return iso;
@@ -652,7 +664,7 @@ impl AlpacaCore {
  * @name alpaca#fetchMarkets
  * @description retrieves data on all markets for alpaca
  * @see https://docs.alpaca.markets/reference/get-v2-assets
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_markets(&mut self, optional_args: &[Value]) -> Value {
@@ -695,6 +707,9 @@ impl AlpacaCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
+        if is_equal(&marketId, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseMarket() missing marketId".to_string()))));
+        }
         let mut parts: Value = split(&marketId, &Value::Str("/".to_string()));
         let mut assetClass: Value = self.safe_string_k(asset.clone(), "class", &[]);
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
@@ -712,7 +727,7 @@ impl AlpacaCore {
         let mut minAmount: Value = self.safe_number_k(asset.clone(), "min_order_size", &[]);
         let mut amount: Value = self.safe_number_k(asset.clone(), "min_trade_increment", &[]);
         let mut price: Value = self.safe_number_k(asset.clone(), "price_increment", &[]);
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -774,7 +789,7 @@ impl AlpacaCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), asset.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -873,7 +888,11 @@ impl AlpacaCore {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchTrades() does not support ".to_string())), &method), &Value::Str(", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported".to_string()))));
         }
-        return self.parse_trades(symbolTrades.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        let mut symbolTradesList: Value = Value::List(vec![]);
+        if !is_equal(&symbolTrades, &Value::Null) {
+            symbolTradesList = symbolTrades.clone();
+        }
+        return self.parse_trades(symbolTradesList.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -887,7 +906,7 @@ impl AlpacaCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
- * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -970,7 +989,7 @@ impl AlpacaCore {
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
- * @param {object} [params] extra parameters specific to the alpha api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1218,8 +1237,8 @@ impl AlpacaCore {
         let mut marketIds: Value = object_keys(&snapshots);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_208: bool = true;
-            while { if !__for_first_208 { i = add(&i, &Value::Int(1)); } __for_first_208 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_210: bool = true;
+            while { if !__for_first_210 { i = add(&i, &Value::Int(1)); } __for_first_210 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1477,7 +1496,7 @@ impl AlpacaCore {
  * @name alpaca#cancelAllOrders
  * @description cancel all open orders in a market
  * @see https://docs.alpaca.markets/reference/deleteallorders
- * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+ * @param {string} [symbol] alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2075,8 +2094,8 @@ impl AlpacaCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_209: bool = true;
-            while { if !__for_first_209 { i = add(&i, &Value::Int(1)); } __for_first_209 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_211: bool = true;
+            while { if !__for_first_211 { i = add(&i, &Value::Int(1)); } __for_first_211 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);
@@ -2281,7 +2300,9 @@ impl AlpacaCore {
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(response.clone(), "cash", &[]));
         add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(response.clone(), "equity", &[]));
-        add_element_to_object(&mut result, &code, account.clone());
+        if !is_equal(&code, &Value::Null) {
+            add_element_to_object(&mut result, &code, account.clone());
+        }
         return self.safe_balance(result.clone());
 
     Value::Null

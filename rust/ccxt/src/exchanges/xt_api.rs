@@ -447,6 +447,11 @@ impl XtCore {
         self.call_method(Value::Str("private_linear_get_future_user_v1_position_adl".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateLinearGetFutureUserV1PositionBreakList` implicit endpoint.
+    pub async fn private_linear_get_future_user_v1_position_break_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_user_v1_position_break_list".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateLinearGetFutureUserV1PositionList` implicit endpoint.
     pub async fn private_linear_get_future_user_v1_position_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_linear_get_future_user_v1_position_list".to_string()), optional_args).await
@@ -637,6 +642,11 @@ impl XtCore {
         self.call_method(Value::Str("private_inverse_get_future_user_v1_position_adl".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateInverseGetFutureUserV1PositionBreakList` implicit endpoint.
+    pub async fn private_inverse_get_future_user_v1_position_break_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_user_v1_position_break_list".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateInverseGetFutureUserV1PositionList` implicit endpoint.
     pub async fn private_inverse_get_future_user_v1_position_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_inverse_get_future_user_v1_position_list".to_string()), optional_args).await
@@ -745,6 +755,11 @@ impl XtCore {
     /// Auto-generated wrapper for the `privateInversePostFutureUserV1UserCollectionCancel` implicit endpoint.
     pub async fn private_inverse_post_future_user_v1_user_collection_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_inverse_post_future_user_v1_user_collection_cancel".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateInversePostFutureUserV1PositionChangeType` implicit endpoint.
+    pub async fn private_inverse_post_future_user_v1_position_change_type(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_post_future_user_v1_position_change_type".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateUserGetUserAccount` implicit endpoint.

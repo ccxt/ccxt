@@ -30,8 +30,6 @@ pub mod bitget;
 #[cfg(feature = "transpiled-ws")]
 pub mod bithumb;
 #[cfg(feature = "transpiled-ws")]
-pub mod bitmart;
-#[cfg(feature = "transpiled-ws")]
 pub mod bitmex;
 #[cfg(feature = "transpiled-ws")]
 pub mod bitopro;
@@ -109,8 +107,6 @@ pub mod kraken;
 pub mod krakenfutures;
 #[cfg(feature = "transpiled-ws")]
 pub mod kucoin;
-#[cfg(feature = "transpiled-ws")]
-pub mod kucoineu;
 #[cfg(feature = "transpiled-ws")]
 pub mod kucoinfutures;
 #[cfg(feature = "transpiled-ws")]

@@ -694,8 +694,8 @@ impl FoxbitCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_660: bool = true;
-            while { if !__for_first_660 { j = add(&j, &Value::Int(1)); } __for_first_660 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_647: bool = true;
+            while { if !__for_first_647 { j = add(&j, &Value::Int(1)); } __for_first_647 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut network: Value = get_value(&networks, &j);
             let mut network: Value = get_value(&networks, &j);
             let mut networkId: Value = self.safe_string_k(network.clone(), "code", &[]);
@@ -704,7 +704,8 @@ impl FoxbitCore {
             let mut networkDepositInfo: Value = self.safe_dict_k(network.clone(), "deposit_info", &[]);
             let mut isWithdrawEnabled: Value = Value::Bool(is_equal(&self.safe_string_k(networkWithdrawInfo.clone(), "status", &[]), &Value::Str("ENABLED".to_string())));
             let mut isDepositEnabled: Value = Value::Bool(is_equal(&self.safe_string_k(networkDepositInfo.clone(), "status", &[]), &Value::Str("ENABLED".to_string())));
-            add_element_to_object(&mut parsedNetworks, &networkCode, Value::Map({
+            if !is_equal(&networkCode, &Value::Null) {
+                add_element_to_object(&mut parsedNetworks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -739,6 +740,7 @@ impl FoxbitCore {
 }));
     m
 }));
+            }
         }
         }
         return self.safe_currency_structure(Value::Map({
@@ -1040,8 +1042,8 @@ impl FoxbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_661: bool = true;
-            while { if !__for_first_661 { i = add(&i, &Value::Int(1)); } __for_first_661 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_648: bool = true;
+            while { if !__for_first_648 { i = add(&i, &Value::Int(1)); } __for_first_648 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "market_symbol", &[]);
@@ -1063,7 +1065,7 @@ impl FoxbitCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return, the maximum is 100
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1246,8 +1248,8 @@ impl FoxbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_662: bool = true;
-            while { if !__for_first_662 { i = add(&i, &Value::Int(1)); } __for_first_662 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+            let mut __for_first_649: bool = true;
+            while { if !__for_first_649 { i = add(&i, &Value::Int(1)); } __for_first_649 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             let mut currencyId: Value = self.safe_string_k(account.clone(), "currency_symbol", &[]);
@@ -1262,7 +1264,9 @@ impl FoxbitCore {
                     m.insert("total".to_string(), total.clone());
                 m
             });
-            add_element_to_object(&mut result, &currencyCode, balanceObj.clone());
+            if !is_equal(&currencyCode, &Value::Null) {
+                add_element_to_object(&mut result, &currencyCode, balanceObj.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -1403,6 +1407,9 @@ impl FoxbitCore {
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         let mut triggerPrice: Value = self.safe_number_k(params.clone(), "triggerPrice", &[]);
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a side argument".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -1468,8 +1475,8 @@ impl FoxbitCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_663: bool = true;
-            while { if !__for_first_663 { i = add(&i, &Value::Int(1)); } __for_first_663 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_650: bool = true;
+            while { if !__for_first_650 { i = add(&i, &Value::Int(1)); } __for_first_650 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.clone());
@@ -1601,7 +1608,7 @@ impl FoxbitCore {
  * @name foxbit#cancelAllOrders
  * @description Cancel all open orders or all open orders for a specific market.
  * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
- * @param {string} symbol unified market symbol of the market to cancel orders in
+ * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2096,6 +2103,9 @@ impl FoxbitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires a side argument".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("mode".to_string(), Value::Str("ALLOW_FAILURE".to_string()));
@@ -2634,9 +2644,21 @@ impl FoxbitCore {
                 m.insert("currency".to_string(), currencySymbol.clone());
             m
         });
+        if is_equal(&amount, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" parseLedgerEntry() requires a amount argument".to_string()))));
+        }
         if is_less_than(&amount, &Value::Int(0)) {
             direction = Value::Str("out".to_string());
+            if is_equal(&amount, &Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" parseLedgerEntry() requires a amount argument".to_string()))));
+            }
             realAmount = multiply(&amount, &negate(&Value::Int(1)));
+        }
+        if is_equal(&balance, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseLedgerEntry() missing balance".to_string()))));
+        }
+        if is_equal(&amount, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" parseLedgerEntry() requires a amount argument".to_string()))));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2691,8 +2713,8 @@ impl FoxbitCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_664: bool = true;
-                while { if !__for_first_664 { i = add(&i, &Value::Int(1)); } __for_first_664 = false; is_less_than(&i, &get_array_length(&paramKeys)) } {
+                let mut __for_first_651: bool = true;
+                while { if !__for_first_651 { i = add(&i, &Value::Int(1)); } __for_first_651 = false; is_less_than(&i, &get_array_length(&paramKeys)) } {
                 let mut key: Value = get_value(&paramKeys, &i);
                 let mut key: Value = get_value(&paramKeys, &i);
                 let mut value: Value = self.safe_string(params.clone(), key.clone(), &[]);
@@ -2749,8 +2771,8 @@ impl FoxbitCore {
         if is_true(&details) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_665: bool = true;
-                while { if !__for_first_665 { i = add(&i, &Value::Int(1)); } __for_first_665 = false; is_less_than(&i, &get_array_length(&details)) } {
+                let mut __for_first_652: bool = true;
+                while { if !__for_first_652 { i = add(&i, &Value::Int(1)); } __for_first_652 = false; is_less_than(&i, &get_array_length(&details)) } {
                 detailsString = add(&add(&detailsString, &get_value(&details, &i)), &Value::Str(" ".to_string()));
             }
             }

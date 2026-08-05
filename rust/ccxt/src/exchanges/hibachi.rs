@@ -610,7 +610,7 @@ impl HibachiCore {
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut symbol: Value = add(&add(&add(&add(&base, &Value::Str("/".to_string())), &quote), &Value::Str(":".to_string())), &settle);
         let mut created: Value = self.safe_integer_product(market.clone(), Value::Str("marketCreationTimestamp".to_string()), Value::Int(1000), &[]);
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
         m.insert("numericId".to_string(), numericId.clone());
@@ -673,7 +673,7 @@ impl HibachiCore {
         m.insert("created".to_string(), created.clone());
         m.insert("info".to_string(), market.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -765,7 +765,8 @@ impl HibachiCore {
     m
 }));
         let mut code: Value = self.safe_currency_code(Value::Str("USDT".to_string()), &[]);
-        add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        if !is_equal(&code, &Value::Null) {
+            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("USDT".to_string()));
         m.insert("name".to_string(), Value::Str("USDT".to_string()));
@@ -799,6 +800,7 @@ impl HibachiCore {
 }));
     m
 })));
+        }
         return result;
 
     Value::Null
@@ -815,7 +817,9 @@ impl HibachiCore {
         let mut account: Value = self.account();
         add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(response.clone(), "balance", &[]));
         add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(response.clone(), "maximalWithdraw", &[]));
-        add_element_to_object(&mut result, &code, account.clone());
+        if !is_equal(&code, &Value::Null) {
+            add_element_to_object(&mut result, &code, account.clone());
+        }
         return self.safe_balance(result.clone());
 
     Value::Null
@@ -972,7 +976,7 @@ impl HibachiCore {
  * @param {string} symbol unified market symbol
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
- * @param {object} [params] extra parameters specific to the hibachi api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of recent [trade structures]
  */
     pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1006,7 +1010,11 @@ impl HibachiCore {
         // }
         //
         let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[Value::List(vec![])]);
-        return self.parse_trades(trades.clone(), &[market.clone()]);
+        let mut tradesList: Value = Value::List(vec![]);
+        if !is_equal(&trades, &Value::Null) {
+            tradesList = trades.clone();
+        }
+        return self.parse_trades(tradesList.clone(), &[market.clone()]);
 
     Value::Null
 }
@@ -1018,7 +1026,7 @@ impl HibachiCore {
  * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
  * @description fetches a price ticker and the related information for the past 24h
  * @param {string} symbol unified symbol of the market
- * @param {object} [params] extra parameters specific to the hibachi api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1232,11 +1240,13 @@ impl HibachiCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
+        let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_719: bool = true;
-            while { if !__for_first_719 { i = add(&i, &Value::Int(1)); } __for_first_719 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
-            let mut symbol: Value = get_value(&self.symbols, &i);
+            let mut __for_first_706: bool = true;
+            while { if !__for_first_706 { i = add(&i, &Value::Int(1)); } __for_first_706 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut symbol: Value = get_value(&symbols, &i);
+            let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1255,6 +1265,12 @@ impl HibachiCore {
 
     pub fn order_message(&self, mut market: Value, mut nonce: Value, mut feeRate: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
+        if is_equal(&type_var, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a type argument".to_string()))));
+        }
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a side argument".to_string()))));
+        }
         let mut sideInternal: Value = Value::Int(0);
         if is_equal(&side, &Value::Str("sell".to_string())) {
             sideInternal = Value::Int(0);
@@ -1312,8 +1328,18 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if is_equal(&type_var, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a type argument".to_string()))));
+        }
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a side argument".to_string()))));
+        }
         let mut market: Value = self.market(symbol.clone());
-        let mut feeRate: Value = crate::runtime::Math::max(&self.safe_number_k(market.clone(), "taker", &[self.safe_number(self.options.clone(), Value::Str("defaultTakerFee".to_string()), &[Value::Float(0.00045)])]), &self.safe_number_k(market.clone(), "maker", &[self.safe_number(self.options.clone(), Value::Str("defaultMakerFee".to_string()), &[Value::Float(0.00015)])]));
+        let mut takerFee: Value = self.safe_number_k(market.clone(), "taker", &[self.safe_number(self.options.clone(), Value::Str("defaultTakerFee".to_string()), &[Value::Float(0.00045)])]);
+        let mut makerFee: Value = self.safe_number_k(market.clone(), "maker", &[self.safe_number(self.options.clone(), Value::Str("defaultMakerFee".to_string()), &[Value::Float(0.00015)])]);
+        let mut takerFeeValue: Value = ternary(is_true(&(is_equal(&takerFee, &Value::Null))), Value::Int(0), takerFee.clone());
+        let mut makerFeeValue: Value = ternary(is_true(&(is_equal(&makerFee, &Value::Null))), Value::Int(0), makerFee.clone());
+        let mut feeRate: Value = crate::runtime::Math::max(&takerFeeValue, &makerFeeValue);
         let mut sideInternal: Value = Value::Str("".to_string());
         if is_equal(&side, &Value::Str("sell".to_string())) {
             sideInternal = Value::Str("ASK".to_string());
@@ -1415,8 +1441,8 @@ impl HibachiCore {
         let mut requestOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_720: bool = true;
-            while { if !__for_first_720 { i = add(&i, &Value::Int(1)); } __for_first_720 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_707: bool = true;
+            while { if !__for_first_707 { i = add(&i, &Value::Int(1)); } __for_first_707 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -1448,8 +1474,8 @@ impl HibachiCore {
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_721: bool = true;
-            while { if !__for_first_721 { i = add(&i, &Value::Int(1)); } __for_first_721 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
+            let mut __for_first_708: bool = true;
+            while { if !__for_first_708 { i = add(&i, &Value::Int(1)); } __for_first_708 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             append_to_array(&mut ret, self.safe_order(Value::Map({
@@ -1473,8 +1499,18 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if is_equal(&type_var, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a type argument".to_string()))));
+        }
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a side argument".to_string()))));
+        }
         let mut market: Value = self.market(symbol.clone());
-        let mut feeRate: Value = crate::runtime::Math::max(&self.safe_number_k(market.clone(), "taker", &[]), &self.safe_number_k(market.clone(), "maker", &[]));
+        let mut takerFee: Value = self.safe_number_k(market.clone(), "taker", &[Value::Int(0)]);
+        let mut makerFee: Value = self.safe_number_k(market.clone(), "maker", &[Value::Int(0)]);
+        let mut takerFeeValue: Value = ternary(is_true(&(is_equal(&takerFee, &Value::Null))), Value::Int(0), takerFee.clone());
+        let mut makerFeeValue: Value = ternary(is_true(&(is_equal(&makerFee, &Value::Null))), Value::Int(0), makerFee.clone());
+        let mut feeRate: Value = crate::runtime::Math::max(&takerFeeValue, &makerFeeValue);
         let mut message: Value = self.order_message(market.clone(), nonce.clone(), feeRate.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone()]);
         let mut signature: Value = self.sign_message(message.clone(), self.privateKey.clone());
         let mut request: Value = Value::Map({
@@ -1551,8 +1587,8 @@ impl HibachiCore {
         let mut requestOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_722: bool = true;
-            while { if !__for_first_722 { i = add(&i, &Value::Int(1)); } __for_first_722 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_709: bool = true;
+            while { if !__for_first_709 { i = add(&i, &Value::Int(1)); } __for_first_709 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
@@ -1585,8 +1621,8 @@ impl HibachiCore {
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_723: bool = true;
-            while { if !__for_first_723 { i = add(&i, &Value::Int(1)); } __for_first_723 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
+            let mut __for_first_710: bool = true;
+            while { if !__for_first_710 { i = add(&i, &Value::Int(1)); } __for_first_710 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             append_to_array(&mut ret, self.safe_order(Value::Map({
@@ -1669,8 +1705,8 @@ impl HibachiCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_724: bool = true;
-            while { if !__for_first_724 { i = add(&i, &Value::Int(1)); } __for_first_724 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_711: bool = true;
+            while { if !__for_first_711 { i = add(&i, &Value::Int(1)); } __for_first_711 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut orderRequest: Value = self.cancel_order_request(get_value(&ids, &i));
             add_element_to_object(&mut orderRequest, &Value::Str("action".to_string()), Value::Str("cancel".to_string()));
             append_to_array(&mut orders, orderRequest.clone());
@@ -1691,8 +1727,8 @@ impl HibachiCore {
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_725: bool = true;
-            while { if !__for_first_725 { i = add(&i, &Value::Int(1)); } __for_first_725 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
+            let mut __for_first_712: bool = true;
+            while { if !__for_first_712 { i = add(&i, &Value::Int(1)); } __for_first_712 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             append_to_array(&mut ret, self.safe_order(Value::Map({
@@ -1714,7 +1750,7 @@ impl HibachiCore {
  * @name hibachi#cancelAllOrders
  * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1895,7 +1931,7 @@ impl HibachiCore {
  * @param {string} symbol unified symbol of the market
  * @param {int} [limit] currently unused
  * @param {object} [params] extra parameters to be passed -- see documentation link above
- * @returns {object} A dictionary containg [orderbook information]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1980,7 +2016,11 @@ impl HibachiCore {
         // }
         //
         let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[]);
-        return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
+        let mut tradesList: Value = Value::List(vec![]);
+        if !is_equal(&trades, &Value::Null) {
+            tradesList = trades.clone();
+        }
+        return self.parse_trades(tradesList.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
 }
@@ -2601,7 +2641,7 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut rowsCapitalHistory: Value = self.safe_list_k(responseCapitalHistory.clone(), "transactions", &[]);
+        let mut rowsCapitalHistory: Value = self.safe_list_k(responseCapitalHistory.clone(), "transactions", &[Value::List(vec![])]);
         let mut responseTradingHistory: Value = get_value(&promises, &Value::Int(1));
         //
         // {
@@ -2629,7 +2669,7 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut rowsTradingHistory: Value = self.safe_list_k(responseTradingHistory.clone(), "tradingHistory", &[]);
+        let mut rowsTradingHistory: Value = self.safe_list_k(responseTradingHistory.clone(), "tradingHistory", &[Value::List(vec![])]);
         let mut rows: Value = self.array_concat(rowsCapitalHistory.clone(), rowsTradingHistory.clone());
         return self.parse_ledger(rows.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -2857,8 +2897,8 @@ impl HibachiCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_726: bool = true;
-            while { if !__for_first_726 { i = add(&i, &Value::Int(1)); } __for_first_726 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_713: bool = true;
+            while { if !__for_first_713 { i = add(&i, &Value::Int(1)); } __for_first_713 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), &[market.clone()]));
         }
         }
@@ -3114,8 +3154,8 @@ impl HibachiCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_727: bool = true;
-            while { if !__for_first_727 { i = add(&i, &Value::Int(1)); } __for_first_727 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_714: bool = true;
+            while { if !__for_first_714 { i = add(&i, &Value::Int(1)); } __for_first_714 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_product(entry.clone(), Value::Str("fundingTimestamp".to_string()), Value::Int(1000), &[]);

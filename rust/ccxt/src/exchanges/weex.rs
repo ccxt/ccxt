@@ -1123,12 +1123,13 @@ impl WeexCore {
         let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1048: bool = true;
-            while { if !__for_first_1048 { j = add(&j, &Value::Int(1)); } __for_first_1048 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_1053: bool = true;
+            while { if !__for_first_1053 { j = add(&j, &Value::Int(1)); } __for_first_1053 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            add_element_to_object(&mut networks, &networkCode, Value::Map({
+            if !is_equal(&networkCode, &Value::Null) {
+                add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -1157,6 +1158,7 @@ impl WeexCore {
 }));
     m
 }));
+            }
         }
         }
         let mut networkKeys: Value = object_keys(&networks);
@@ -1313,7 +1315,7 @@ impl WeexCore {
                 isInverse = Value::Bool(true);
             }
         }  else {
-            active = self.safe_bool_k(market.clone(), "enableTrade", &[]);
+            active = Value::Bool(is_equal(&self.safe_bool_k(market.clone(), "enableTrade", &[Value::Bool(false)]), &Value::Bool(true)));
         }
         let mut amountPrecision: Value = self.safe_number_k(market.clone(), "stepSize", &[]);
         let mut pricePrecision: Value = self.safe_number_k(market.clone(), "tickSize", &[]);
@@ -1327,6 +1329,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
+        if is_equal(&id, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" method() missing id".to_string()))));
+        }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1577,6 +1582,7 @@ impl WeexCore {
         }
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
         let mut timestamp: Value = self.safe_integer2(ticker.clone(), Value::Str("closeTime".to_string()), Value::Str("time".to_string()), &[]);
+        let mut percentage: Value = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "priceChangePercent", &[]), &Value::Str("100".to_string()));
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
@@ -1594,7 +1600,7 @@ impl WeexCore {
         m.insert("last".to_string(), self.safe_string_k(ticker.clone(), "lastPrice", &[]));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "priceChange", &[]));
-        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "priceChangePercent", &[]));
+        m.insert("percentage".to_string(), percentage.clone());
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "volume", &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "quoteVolume", &[]));
@@ -1616,7 +1622,7 @@ impl WeexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 15, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1824,6 +1830,9 @@ impl WeexCore {
                     endTime = now.clone();
                     startTime = subtract(&now, &timeDelta);
                 }  else if is_equal(&since, &Value::Null) {
+                    if is_equal(&until, &Value::Null) {
+                        panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOHLCV() requires a since or until argument".to_string()))));
+                    }
                     startTime = subtract(&until, &timeDelta);
                 }  else {
                     endTime = add(&since, &timeDelta);
@@ -1899,7 +1908,24 @@ impl WeexCore {
             let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
             response = self.contract_get_capi_v3_market_trades(&[__ws_arg_10]).await;
         }
-        return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        //
+        //     [
+        //         {
+        //             "id": "875fba11-f8a1-42ad-915d-012ccb375e8a",
+        //             "price": "2114.77",
+        //             "qty": "0.01000",
+        //             "quoteQty": "21.1477000",
+        //             "time": 1775594995485,
+        //             "isBuyerMaker": false,
+        //             "isBestMatch": true
+        //         }
+        //     ]
+        //
+        let mut responseList: Value = Value::List(vec![]);
+        if !is_equal(&response, &Value::Null) {
+            responseList = response.clone();
+        }
+        return self.parse_trades(responseList.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -2294,8 +2320,8 @@ impl WeexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1049: bool = true;
-            while { if !__for_first_1049 { i = add(&i, &Value::Int(1)); } __for_first_1049 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1054: bool = true;
+            while { if !__for_first_1054 { i = add(&i, &Value::Int(1)); } __for_first_1054 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
@@ -2303,7 +2329,9 @@ impl WeexCore {
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(entry.clone(), Value::Str("availableBalance".to_string()), Value::Str("free".to_string()), &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string2(entry.clone(), Value::Str("frozen".to_string()), Value::Str("locked".to_string()), &[]));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "balance", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -2459,6 +2487,17 @@ impl WeexCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_spot_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = self.private_post_api_v3_order(&[request.clone()]).await;
+        //
+        //     {
+        //         "symbol": "DOGEUSDT",
+        //         "orderId": 736557215397183592,
+        //         "clientOrderId": "c4551206d34641efbeb64abaa066946d",
+        //         "transactTime": 1775608924724
+        //     }
+        //
+        if is_equal(&response, &Value::Null) {
+            panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" parseOrder() returned empty response".to_string()))));
+        }
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -2470,7 +2509,16 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if is_equal(&type_var, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a type argument".to_string()))));
+        }
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a side argument".to_string()))));
+        }
         let mut market: Value = self.market(symbol.clone());
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createSpotOrderRequest() requires a side argument".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -2539,6 +2587,9 @@ impl WeexCore {
         }  else {
             response = self.contract_private_post_capi_v3_order(&[request.clone()]).await;
         }
+        if is_equal(&response, &Value::Null) {
+            panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" createOrder() returned empty response".to_string()))));
+        }
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -2550,7 +2601,16 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if is_equal(&type_var, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a type argument".to_string()))));
+        }
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a side argument".to_string()))));
+        }
         let mut market: Value = self.market(symbol.clone());
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createContractOrderRequest() requires a side argument".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -2745,6 +2805,9 @@ impl WeexCore {
         }  else {
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
             response = self.contract_private_delete_capi_v3_order(&[__ws_arg_17]).await;
+        }
+        if is_equal(&response, &Value::Null) {
+            panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" parseOrder() returned empty response".to_string()))));
         }
         let mut order: Value = self.parse_order(response.clone(), &[market.clone()]);
         add_element_to_object(&mut order, &Value::Str("status".to_string()), Value::Str("canceled".to_string()));
@@ -2951,6 +3014,9 @@ impl WeexCore {
         }  else {
             let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
             response = self.contract_private_get_capi_v3_order(&[__ws_arg_24]).await;
+        }
+        if is_equal(&response, &Value::Null) {
+            panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" parseOrder() returned empty response".to_string()))));
         }
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -3663,7 +3729,11 @@ impl WeexCore {
             let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
             response = self.contract_private_get_capi_v3_user_trades(&[__ws_arg_32]).await;
         }
-        return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        let mut responseList: Value = Value::List(vec![]);
+        if !is_equal(&response, &Value::Null) {
+            responseList = response.clone();
+        }
+        return self.parse_trades(responseList.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -3718,6 +3788,9 @@ impl WeexCore {
             currency = self.currency(code.clone());
         }
         if is_equal(&accountType, &Value::Str("contract".to_string())) {
+            if is_equal(&currency, &Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchLedger() could not resolve currency".to_string()))));
+            }
             if !is_equal(&code, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
             }
@@ -3811,6 +3884,9 @@ impl WeexCore {
         let mut before: Value = crate::precise::Precise::stringSub(&after, &amountRaw);
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]);
         let mut direction: Value = Value::Str("in".to_string());
+        if is_equal(&amountRaw, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseLedgerEntry() missing amountRaw".to_string()))));
+        }
         if is_greater_than_or_equal(&get_index_of(&amountRaw, &Value::Str("-".to_string())), &Value::Int(0)) {
             direction = Value::Str("out".to_string());
         }

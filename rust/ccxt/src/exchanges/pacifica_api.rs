@@ -17,6 +17,11 @@ impl PacificaCore {
         self.call_method(Value::Str("public_get_info".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetInfoFees` implicit endpoint.
+    pub async fn public_get_info_fees(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_info_fees".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetInfoPrices` implicit endpoint.
     pub async fn public_get_info_prices(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_info_prices".to_string()), optional_args).await
@@ -47,9 +52,19 @@ impl PacificaCore {
         self.call_method(Value::Str("public_get_funding_rate_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetLoanPool` implicit endpoint.
+    pub async fn public_get_loan_pool(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_loan_pool".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetAccount` implicit endpoint.
     pub async fn public_get_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_account".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetAccountLoan` implicit endpoint.
+    pub async fn public_get_account_loan(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_account_loan".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetAccountSettings` implicit endpoint.
@@ -82,6 +97,26 @@ impl PacificaCore {
         self.call_method(Value::Str("public_get_account_balance_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetAccountSpotBalanceHistory` implicit endpoint.
+    pub async fn public_get_account_spot_balance_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_account_spot_balance_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetAccountSpotAssetDepositHistory` implicit endpoint.
+    pub async fn public_get_account_spot_asset_deposit_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_account_spot_asset_deposit_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetAccountSpotAssetWithdrawHistory` implicit endpoint.
+    pub async fn public_get_account_spot_asset_withdraw_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_account_spot_asset_withdraw_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetAccountSpotAssetWithdrawPending` implicit endpoint.
+    pub async fn public_get_account_spot_asset_withdraw_pending(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_account_spot_asset_withdraw_pending".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetOrders` implicit endpoint.
     pub async fn public_get_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_orders".to_string()), optional_args).await
@@ -95,6 +130,26 @@ impl PacificaCore {
     /// Auto-generated wrapper for the `publicGetOrdersHistoryById` implicit endpoint.
     pub async fn public_get_orders_history_by_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_orders_history_by_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetSpotAssets` implicit endpoint.
+    pub async fn public_get_spot_assets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_spot_assets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetSpotAssetsBridgeInfo` implicit endpoint.
+    pub async fn public_get_spot_assets_bridge_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_spot_assets_bridge_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetSpotAssetsBridgeParametersSymbol` implicit endpoint.
+    pub async fn public_get_spot_assets_bridge_parameters_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_spot_assets_bridge_parameters_symbol".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetLakeList` implicit endpoint.
+    pub async fn public_get_lake_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_lake_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetAccountBuilderCodesApprovals` implicit endpoint.
@@ -117,6 +172,21 @@ impl PacificaCore {
         self.call_method(Value::Str("private_post_account_withdraw".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostAccountSettingsAutoLendDisabled` implicit endpoint.
+    pub async fn private_post_account_settings_auto_lend_disabled(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_account_settings_auto_lend_disabled".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAccountSettingsSpot` implicit endpoint.
+    pub async fn private_post_account_settings_spot(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_account_settings_spot".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAccountSpotAssetWithdraw` implicit endpoint.
+    pub async fn private_post_account_spot_asset_withdraw(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_account_spot_asset_withdraw".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAccountSubaccountCreate` implicit endpoint.
     pub async fn private_post_account_subaccount_create(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_subaccount_create".to_string()), optional_args).await
@@ -130,6 +200,16 @@ impl PacificaCore {
     /// Auto-generated wrapper for the `privatePostAccountSubaccountTransfer` implicit endpoint.
     pub async fn private_post_account_subaccount_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_subaccount_transfer".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAccountSubaccountSpotAssetTransfer` implicit endpoint.
+    pub async fn private_post_account_subaccount_spot_asset_transfer(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_account_subaccount_spot_asset_transfer".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostPositionsAddIsolatedMargin` implicit endpoint.
+    pub async fn private_post_positions_add_isolated_margin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_positions_add_isolated_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrdersCreate` implicit endpoint.
@@ -205,6 +285,66 @@ impl PacificaCore {
     /// Auto-generated wrapper for the `privatePostAccountApiKeys` implicit endpoint.
     pub async fn private_post_account_api_keys(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_api_keys".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeAddBlacklist` implicit endpoint.
+    pub async fn private_post_lake_add_blacklist(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_add_blacklist".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeAddMaxLeverage` implicit endpoint.
+    pub async fn private_post_lake_add_max_leverage(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_add_max_leverage".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeAddWhitelist` implicit endpoint.
+    pub async fn private_post_lake_add_whitelist(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_add_whitelist".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeClaimManager` implicit endpoint.
+    pub async fn private_post_lake_claim_manager(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_claim_manager".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeClaimReferralCode` implicit endpoint.
+    pub async fn private_post_lake_claim_referral_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_claim_referral_code".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeCreate` implicit endpoint.
+    pub async fn private_post_lake_create(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_create".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeDeposit` implicit endpoint.
+    pub async fn private_post_lake_deposit(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_deposit".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeRemoveBlacklist` implicit endpoint.
+    pub async fn private_post_lake_remove_blacklist(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_remove_blacklist".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeRemoveMaxLeverage` implicit endpoint.
+    pub async fn private_post_lake_remove_max_leverage(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_remove_max_leverage".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeRemoveWhitelist` implicit endpoint.
+    pub async fn private_post_lake_remove_whitelist(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_remove_whitelist".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeUpdateDepositCap` implicit endpoint.
+    pub async fn private_post_lake_update_deposit_cap(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_update_deposit_cap".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLakeWithdraw` implicit endpoint.
+    pub async fn private_post_lake_withdraw(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lake_withdraw".to_string()), optional_args).await
     }
 
 }

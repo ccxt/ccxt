@@ -241,7 +241,7 @@ impl OnetradingCore {
         m.insert("CORS".to_string(), Value::Null);
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(false));
+        m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("addMargin".to_string(), Value::Bool(false));
@@ -389,7 +389,7 @@ impl OnetradingCore {
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("account/balances".to_string()), Value::Str("account/fees".to_string()), Value::Str("account/orders".to_string()), Value::Str("account/orders/{order_id}".to_string()), Value::Str("account/orders/{order_id}/trades".to_string()), Value::Str("account/trades".to_string()), Value::Str("account/trades/{trade_id}".to_string())]));
+        m.insert("get".to_string(), Value::List(vec![Value::Str("account/balances".to_string()), Value::Str("account/fees".to_string()), Value::Str("account/orders".to_string()), Value::Str("account/orders/{order_id}".to_string()), Value::Str("account/orders/client/{client_id}".to_string()), Value::Str("account/orders/{order_id}/trades".to_string()), Value::Str("account/trades".to_string()), Value::Str("account/trade/{trade_id}".to_string())]));
         m.insert("post".to_string(), Value::List(vec![Value::Str("account/orders".to_string())]));
         m.insert("delete".to_string(), Value::List(vec![Value::Str("account/orders".to_string()), Value::Str("account/orders/{order_id}".to_string()), Value::Str("account/orders/client/{client_id}".to_string())]));
     m
@@ -783,7 +783,7 @@ impl OnetradingCore {
         if is_true(&isPerp) {
             symbol = add(&add(&symbol, &Value::Str(":".to_string())), &quote);
         }
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -845,7 +845,7 @@ impl OnetradingCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -960,11 +960,13 @@ impl OnetradingCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
+        let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_981: bool = true;
-            while { if !__for_first_981 { i = add(&i, &Value::Int(1)); } __for_first_981 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
-            let mut symbol: Value = get_value(&self.symbols, &i);
+            let mut __for_first_987: bool = true;
+            while { if !__for_first_987 { i = add(&i, &Value::Int(1)); } __for_first_987 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut symbol: Value = get_value(&symbols, &i);
+            let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut tierObject: Value = ternary(is_true(&(get_value(&market, &Value::Str("spot".to_string())))), firstSpotTier.clone(), firstFuturesTier.clone());
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -1047,11 +1049,14 @@ impl OnetradingCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
+        // const tiers = this.parseFeeTiers (feeTiers);
+        let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_982: bool = true;
-            while { if !__for_first_982 { i = add(&i, &Value::Int(1)); } __for_first_982 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
-            let mut symbol: Value = get_value(&self.symbols, &i);
+            let mut __for_first_988: bool = true;
+            while { if !__for_first_988 { i = add(&i, &Value::Int(1)); } __for_first_988 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut symbol: Value = get_value(&symbols, &i);
+            let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut makerFee: Value = ternary(is_true(&(get_value(&market, &Value::Str("spot".to_string())))), spotMakerFee.clone(), futuresMakerFee.clone());
             let mut takerFee: Value = ternary(is_true(&(get_value(&market, &Value::Str("spot".to_string())))), spotTakerFee.clone(), futuresTakerFee.clone());
@@ -1079,8 +1084,8 @@ impl OnetradingCore {
         let mut makerFees: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_983: bool = true;
-            while { if !__for_first_983 { i = add(&i, &Value::Int(1)); } __for_first_983 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
+            let mut __for_first_989: bool = true;
+            while { if !__for_first_989 { i = add(&i, &Value::Int(1)); } __for_first_989 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
@@ -1236,11 +1241,13 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_984: bool = true;
-            while { if !__for_first_984 { i = add(&i, &Value::Int(1)); } __for_first_984 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_990: bool = true;
+            while { if !__for_first_990 { i = add(&i, &Value::Int(1)); } __for_first_990 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&response, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut result, &symbol, ticker.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut result, &symbol, ticker.clone());
+            }
         }
         }
         return self.filter_by_array_tickers(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
@@ -1256,7 +1263,7 @@ impl OnetradingCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1368,10 +1375,16 @@ impl OnetradingCore {
             m
         });
         let mut lowercaseUnit: Value = self.safe_string(units.clone(), unit.clone(), &[]);
+        if is_true(&(is_equal(&period, &Value::Null))) || is_true(&(is_equal(&lowercaseUnit, &Value::Null))) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseOHLCV() missing period/unit".to_string()))));
+        }
         let mut timeframe: Value = add(&period, &lowercaseUnit);
         let mut durationInSeconds: Value = self.parse_timeframe(timeframe.clone());
         let mut duration: Value = multiply(&durationInSeconds, &Value::Int(1000));
         let mut timestamp: Value = self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[]));
+        if is_equal(&timestamp, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseOHLCV() missing timestamp".to_string()))));
+        }
         let mut alignedTimestamp: Value = multiply(&duration, &self.parse_to_int(divide(&timestamp, &duration)));
         let mut options: Value = self.safe_value_k(self.options.clone(), "fetchOHLCV", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1408,6 +1421,9 @@ impl OnetradingCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut periodUnit: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[]);
+        if is_equal(&periodUnit, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchOHLCV() missing periodUnit".to_string()))));
+        }
         let mut periodunitVariable = split(&periodUnit, &Value::Str("/".to_string()));
         let mut period: Value = get_value(&periodunitVariable, &Value::Int(0));
         let mut unit: Value = get_value(&periodunitVariable, &Value::Int(1));
@@ -1547,8 +1563,8 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_985: bool = true;
-            while { if !__for_first_985 { i = add(&i, &Value::Int(1)); } __for_first_985 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_991: bool = true;
+            while { if !__for_first_991 { i = add(&i, &Value::Int(1)); } __for_first_991 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency_code", &[]);
@@ -1556,7 +1572,9 @@ impl OnetradingCore {
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "locked", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -1768,6 +1786,9 @@ impl OnetradingCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut uppercaseType: Value = to_upper(&type_var);
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a side argument".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_code".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -1816,7 +1837,7 @@ impl OnetradingCore {
  * @see https://docs.onetrading.com/rest/trading/cancel-order-order-id
  * @see https://docs.onetrading.com/rest/trading/cancel-order-client-id
  * @param {string} id order id
- * @param {string} symbol not used by bitmex cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1860,7 +1881,7 @@ impl OnetradingCore {
  * @name onetrading#cancelAllOrders
  * @description cancel all open orders
  * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

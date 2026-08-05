@@ -693,8 +693,8 @@ impl LatokenCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_886: bool = true;
-            while { if !__for_first_886 { i = add(&i, &Value::Int(1)); } __for_first_886 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_873: bool = true;
+            while { if !__for_first_873 { i = add(&i, &Value::Int(1)); } __for_first_873 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -708,6 +708,9 @@ impl LatokenCore {
             if !is_equal(&baseCurrencyInfo, &Value::Null) && !is_equal(&quoteCurrencyInfo, &Value::Null) {
                 let mut base: Value = self.safe_currency_code(self.safe_string_k(baseCurrencyInfo.clone(), "tag", &[]), &[]);
                 let mut quote: Value = self.safe_currency_code(self.safe_string_k(quoteCurrencyInfo.clone(), "tag", &[]), &[]);
+                if is_true(&(is_equal(&base, &Value::Null))) || is_true(&(is_equal(&quote, &Value::Null))) {
+                    continue;
+                }
                 let mut lowercaseQuote: Value = to_lower(&quote);
                 let mut capitalizedQuote: Value = self.capitalize(lowercaseQuote.clone());
                 let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
@@ -902,8 +905,8 @@ impl LatokenCore {
         let mut balances: Value = self.safe_value(balancesByType.clone(), accountType.clone(), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_887: bool = true;
-            while { if !__for_first_887 { i = add(&i, &Value::Int(1)); } __for_first_887 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_874: bool = true;
+            while { if !__for_first_874 { i = add(&i, &Value::Int(1)); } __for_first_874 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -919,7 +922,9 @@ impl LatokenCore {
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "blocked", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         add_element_to_object(&mut result, &Value::Str("timestamp".to_string()), maxTimestamp.clone());
@@ -937,7 +942,7 @@ impl LatokenCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1130,7 +1135,7 @@ impl LatokenCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
-        if is_true(&Value::Bool(in_op(&self.markets, &symbol))) {
+        if is_true(&(!is_equal(&self.markets, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets, &symbol)))) {
             market = self.market(symbol.clone());
         }
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
@@ -1438,7 +1443,7 @@ impl LatokenCore {
         let mut symbol: Value = Value::Null;
         if is_true(&(!is_equal(&base, &Value::Null))) && is_true(&(!is_equal(&quote, &Value::Null))) {
             symbol = add(&add(&base, &Value::Str("/".to_string())), &quote);
-            if is_true(&Value::Bool(in_op(&self.markets, &symbol))) {
+            if is_true(&(!is_equal(&self.markets, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets, &symbol)))) {
                 market = self.market(symbol.clone());
             }
         }
@@ -1677,6 +1682,9 @@ impl LatokenCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut uppercaseType: Value = to_upper(&type_var);
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a side argument".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("baseCurrency".to_string(), get_value(&market, &Value::Str("baseId".to_string())));
@@ -1715,7 +1723,7 @@ impl LatokenCore {
  * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
  * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
  * @param {string} id order id
- * @param {string} symbol not used by latoken cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if cancelling a trigger order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1755,7 +1763,7 @@ impl LatokenCore {
  * @description cancel all open orders in a market
  * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
  * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
- * @param {string} symbol unified market symbol of the market to cancel orders in
+ * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if cancelling trigger orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}

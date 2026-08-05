@@ -15,6 +15,7 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&exchange, &Value::Str("markets".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&get_value(&exchange, &Value::Str("symbols".to_string())))))));
     let mut symbolsLength: Value = get_array_length(&get_value(&exchange, &Value::Str("symbols".to_string())));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&exchange, &Value::Str("markets".to_string())), &Value::Null)))));
     let mut marketKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".to_string())));
     let mut marketKeysLength: Value = get_array_length(&marketKeys);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&symbolsLength, &Value::Int(0))))));
@@ -23,8 +24,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut marketValues: Value = object_values(&markets);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1363: bool = true;
-        while { if !__for_first_1363 { i = add(&i, &Value::Int(1)); } __for_first_1363 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+        let mut __for_first_1378: bool = true;
+        while { if !__for_first_1378 { i = add(&i, &Value::Int(1)); } __for_first_1378 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&marketValues, &i));
     }
     }

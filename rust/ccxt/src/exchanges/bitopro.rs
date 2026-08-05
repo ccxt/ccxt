@@ -724,6 +724,9 @@ impl BitoproCore {
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut active: Value = Value::Bool(!is_true(&self.safe_bool_k(market.clone(), "maintain", &[])));
         let mut id: Value = self.safe_string_k(market.clone(), "pair", &[]);
+        if is_equal(&id, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseMarket() missing id".to_string()))));
+        }
         let mut uppercaseId: Value = to_upper(&id);
         let mut baseId: Value = self.safe_string_k(market.clone(), "base", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote", &[]);
@@ -758,7 +761,7 @@ impl BitoproCore {
 }));
             m
         });
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("uppercaseId".to_string(), uppercaseId.clone());
@@ -794,7 +797,7 @@ impl BitoproCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -910,7 +913,7 @@ impl BitoproCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1155,11 +1158,13 @@ impl BitoproCore {
         });
         let mut maker: Value = self.safe_number_k(first.clone(), "makerFee", &[]);
         let mut taker: Value = self.safe_number_k(first.clone(), "takerFee", &[]);
+        let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_383: bool = true;
-            while { if !__for_first_383 { i = add(&i, &Value::Int(1)); } __for_first_383 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
-            let mut symbol: Value = get_value(&self.symbols, &i);
+            let mut __for_first_369: bool = true;
+            while { if !__for_first_369 { i = add(&i, &Value::Int(1)); } __for_first_369 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut symbol: Value = get_value(&symbols, &i);
+            let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), first.clone());
@@ -1315,8 +1320,8 @@ impl BitoproCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_384: bool = true;
-            while { if !__for_first_384 { i = add(&i, &Value::Int(1)); } __for_first_384 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_370: bool = true;
+            while { if !__for_first_370 { i = add(&i, &Value::Int(1)); } __for_first_370 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1329,7 +1334,9 @@ impl BitoproCore {
                     m.insert("total".to_string(), amount.clone());
                 m
             });
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -1416,6 +1423,9 @@ impl BitoproCore {
         let mut id: Value = self.safe_string2(order.clone(), Value::Str("id".to_string()), Value::Str("orderId".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("timestamp".to_string()), Value::Str("createdTimestamp".to_string()), &[]);
         let mut side: Value = self.safe_string_k(order.clone(), "action", &[]);
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseOrder() returned no side".to_string()))));
+        }
         side = to_lower(&side);
         let mut amount: Value = self.safe_string2(order.clone(), Value::Str("amount".to_string()), Value::Str("originalAmount".to_string()), &[]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
@@ -1578,16 +1588,16 @@ impl BitoproCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_386: bool = true;
-            while { if !__for_first_386 { i = add(&i, &Value::Int(1)); } __for_first_386 = false; is_less_than(&i, &get_array_length(&dataKeys)) } {
+            let mut __for_first_372: bool = true;
+            while { if !__for_first_372 { i = add(&i, &Value::Int(1)); } __for_first_372 = false; is_less_than(&i, &get_array_length(&dataKeys)) } {
             let mut marketId: Value = get_value(&dataKeys, &i);
             let mut marketId: Value = get_value(&dataKeys, &i);
             let mut orderIds: Value = get_value(&data, &marketId);
             let mut orderIds: Value = get_value(&data, &marketId);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_385: bool = true;
-                while { if !__for_first_385 { j = add(&j, &Value::Int(1)); } __for_first_385 = false; is_less_than(&j, &get_array_length(&orderIds)) } {
+                let mut __for_first_371: bool = true;
+                while { if !__for_first_371 { j = add(&j, &Value::Int(1)); } __for_first_371 = false; is_less_than(&j, &get_array_length(&orderIds)) } {
                 append_to_array(&mut orders, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), get_value(&orderIds, &j));
@@ -1632,7 +1642,9 @@ impl BitoproCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        add_element_to_object(&mut request, &id, ids.clone());
+        if !is_equal(&id, &Value::Null) {
+            add_element_to_object(&mut request, &id, ids.clone());
+        }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_put_orders(&[__ws_arg_6]).await;
         //
@@ -1656,7 +1668,7 @@ impl BitoproCore {
  * @name bitopro#cancelAllOrders
  * @description cancel all open orders
  * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

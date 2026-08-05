@@ -810,7 +810,7 @@ impl BtcmarketsCore {
         if is_equal(&quote, &Value::Str("AUD".to_string())) {
             minPrice = pricePrecision.clone();
         }
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -874,7 +874,7 @@ impl BtcmarketsCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -906,8 +906,8 @@ impl BtcmarketsCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_444: bool = true;
-            while { if !__for_first_444 { i = add(&i, &Value::Int(1)); } __for_first_444 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_430: bool = true;
+            while { if !__for_first_430 { i = add(&i, &Value::Int(1)); } __for_first_430 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "assetName", &[]);
@@ -915,7 +915,9 @@ impl BtcmarketsCore {
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "locked", &[]));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -1003,7 +1005,7 @@ impl BtcmarketsCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1349,7 +1351,7 @@ impl BtcmarketsCore {
  * @description cancel multiple orders
  * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete
  * @param {string[]} ids order ids
- * @param {string} symbol not used by btcmarkets cancelOrders ()
+ * @param {string} symbol not used by cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1365,8 +1367,8 @@ impl BtcmarketsCore {
         let mut numericIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_445: bool = true;
-            while { if !__for_first_445 { i = add(&i, &Value::Int(1)); } __for_first_445 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_431: bool = true;
+            while { if !__for_first_431 { i = add(&i, &Value::Int(1)); } __for_first_431 = false; is_less_than(&i, &get_array_length(&ids)) } {
             // numericIds[i] = parseInt (ids[i]);
             append_to_array(&mut numericIds, crate::runtime::parse_int(&get_value(&ids, &i)));
         }
@@ -1410,7 +1412,7 @@ impl BtcmarketsCore {
  * @description cancels an open order
  * @see https://docs.btcmarkets.net/v3/#operation/cancelOrder
  * @param {string} id order id
- * @param {string} symbol not used by btcmarket cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1453,7 +1455,7 @@ impl BtcmarketsCore {
          * @param {object} params
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
-        let mut market: Value = get_value(&self.markets, &symbol);
+        let mut market: Value = self.market(symbol.clone());
         let mut currency: Value = Value::Null;
         let mut cost: Value = Value::Null;
         if is_equal(&get_value(&market, &Value::Str("quote".to_string())), &Value::Str("AUD".to_string())) {
@@ -1466,15 +1468,18 @@ impl BtcmarketsCore {
             currency = get_value(&market, &Value::Str("base".to_string()));
             cost = self.amount_to_precision(symbol.clone(), amount.clone());
         }
-        let mut rate: Value = get_value(&market, &takerOrMaker);
-        let mut rate: Value = get_value(&market, &takerOrMaker);
+        let mut rate: Value = self.safe_value(market.clone(), takerOrMaker.clone(), &[]);
         let mut rateCost: Value = crate::precise::Precise::stringMul(&self.number_to_string(rate.clone()), &cost);
+        let mut feeCost: Value = self.fee_to_precision(symbol.clone(), rateCost.clone());
+        if is_equal(&feeCost, &Value::Null) {
+            feeCost = Value::Str("0".to_string());
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), takerOrMaker.clone());
         m.insert("currency".to_string(), currency.clone());
         m.insert("rate".to_string(), rate.clone());
-        m.insert("cost".to_string(), crate::runtime::parse_float(&self.fee_to_precision(symbol.clone(), rateCost.clone())));
+        m.insert("cost".to_string(), crate::runtime::parse_float(&feeCost));
     m
 });
 

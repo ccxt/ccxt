@@ -503,8 +503,8 @@ impl BitbnsCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_303: bool = true;
-            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_305: bool = true;
+            while { if !__for_first_305 { i = add(&i, &Value::Int(1)); } __for_first_305 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -613,7 +613,7 @@ impl BitbnsCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -761,8 +761,8 @@ impl BitbnsCore {
         let mut keys: Value = object_keys(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_306: bool = true;
+            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut parts: Value = split(&key, &Value::Str("availableorder".to_string()));
@@ -777,7 +777,9 @@ impl BitbnsCore {
                     currencyId = Value::Str("INR".to_string());
                 }
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-                add_element_to_object(&mut result, &code, account.clone());
+                if !is_equal(&code, &Value::Null) {
+                    add_element_to_object(&mut result, &code, account.clone());
+                }
             }
         }
         }
@@ -939,6 +941,9 @@ impl BitbnsCore {
         let mut targetRate: Value = self.safe_string_k(params.clone(), "target_rate", &[]);
         let mut trailRate: Value = self.safe_string_k(params.clone(), "trail_rate", &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("trail_rate".to_string()), Value::Str("target_rate".to_string()), Value::Str("t_rate".to_string())]), &[]);
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a side argument".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("side".to_string(), to_upper(&side));
@@ -964,7 +969,20 @@ impl BitbnsCore {
         }
         let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.call_method(method.clone(), &[__ws_arg_1]).await;
-        return self.parse_order(response.clone(), &[market.clone()]);
+        //
+        //     {
+        //         "data":"Successfully placed bid to purchase currency",
+        //         "status":1,
+        //         "error":null,
+        //         "id":5424475,
+        //         "code":200
+        //     }
+        //
+        let mut parsed: Value = ternary(is_true(&(is_equal(&response, &Value::Null))), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), response.clone());
+        return self.parse_order(parsed.clone(), &[market.clone()]);
 
     Value::Null
 }
@@ -1009,7 +1027,11 @@ impl BitbnsCore {
         add_element_to_object(&mut request, &Value::Str("side".to_string()), quoteSide.clone());
         let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
         response = self.v2_post_cancel(&[__ws_arg_2]).await;
-        return self.parse_order(response.clone(), &[market.clone()]);
+        let mut parsed: Value = ternary(is_true(&(is_equal(&response, &Value::Null))), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), response.clone());
+        return self.parse_order(parsed.clone(), &[market.clone()]);
 
     Value::Null
 }
@@ -1075,7 +1097,10 @@ impl BitbnsCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
+        let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_order(first.clone(), &[market.clone()]);
 
     Value::Null

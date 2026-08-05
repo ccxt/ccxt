@@ -38,8 +38,8 @@ async fn fetchTickersHelperTest(mut exchange: Value, mut skippedProperties: Valu
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1358: bool = true;
-        while { if !__for_first_1358 { i = add(&i, &Value::Int(1)); } __for_first_1358 = false; is_less_than(&i, &get_array_length(&values)) } {
+        let mut __for_first_1373: bool = true;
+        while { if !__for_first_1373 { i = add(&i, &Value::Int(1)); } __for_first_1373 = false; is_less_than(&i, &get_array_length(&values)) } {
         // todo: symbol check here
         let mut ticker: Value = get_value(&values, &i);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -69,6 +69,9 @@ fn fetchTickersAmountsTest(mut exchange: Value, mut skippedProperties: Value, mu
         // ensure tickers length is less than markets length
         //
         let mut allMarkets: Value = get_value(&exchange, &Value::Str("markets".to_string()));
+        if is_equal(&allMarkets, &Value::Null) {
+            return;
+        }
         let mut allMarketsLength: Value = get_array_length(&object_keys(&allMarkets));
         assert!(ccxt::runtime::is_true(&(Value::Bool(is_less_than_or_equal(&obtainedTickersLength, &allMarketsLength)))));
     }

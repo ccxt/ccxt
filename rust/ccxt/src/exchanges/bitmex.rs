@@ -824,8 +824,8 @@ impl BitmexCore {
         let mut precision: Value = self.parse_number(precisionString.clone(), &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_375: bool = true;
-            while { if !__for_first_375 { j = add(&j, &Value::Int(1)); } __for_first_375 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_361: bool = true;
+            while { if !__for_first_361 { j = add(&j, &Value::Int(1)); } __for_first_361 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "asset", &[]);
@@ -841,7 +841,8 @@ impl BitmexCore {
             if is_true(&isWithdrawEnabled) {
                 withdrawEnabled = Value::Bool(true);
             }
-            add_element_to_object(&mut networks, &network, Value::Map({
+            if !is_equal(&network, &Value::Null) {
+                add_element_to_object(&mut networks, &network, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -869,6 +870,7 @@ impl BitmexCore {
 }));
     m
 }));
+            }
         }
         }
         let mut currencyEnabled: Value = self.safe_value_k(currency.clone(), "enabled", &[]);
@@ -968,7 +970,7 @@ impl BitmexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            return self.parse_number(self.convert_to_real_amount(get_value(&market, &currencySide), rawQuantity.clone()), &[]);
+            return self.parse_number(self.convert_to_real_amount(self.safe_string(market.clone(), currencySide.clone(), &[]), rawQuantity.clone()), &[]);
         }
         return self.parse_number(rawQuantity.clone(), &[]);
 
@@ -1075,7 +1077,10 @@ impl BitmexCore {
             isQuanto = Value::Null;
             linear = Value::Null;
         }
-        return Value::Map({
+        if is_equal(&symbol, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" parseMarket() requires a symbol".to_string()))));
+        }
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1140,7 +1145,7 @@ impl BitmexCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -1200,8 +1205,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_376: bool = true;
-            while { if !__for_first_376 { i = add(&i, &Value::Int(1)); } __for_first_376 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_362: bool = true;
+            while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1211,7 +1216,9 @@ impl BitmexCore {
             let mut total: Value = self.safe_string_k(balance.clone(), "marginBalance", &[]);
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.convert_to_real_amount(code.clone(), free.clone()));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.convert_to_real_amount(code.clone(), total.clone()));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -1255,7 +1262,7 @@ impl BitmexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1289,8 +1296,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_377: bool = true;
-            while { if !__for_first_377 { i = add(&i, &Value::Int(1)); } __for_first_377 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut order: Value = get_value(&response, &i);
             let mut order: Value = get_value(&response, &i);
             let mut side: Value = ternary(is_true(&(is_equal(&get_value(&order, &Value::Str("side".to_string())), &Value::Str("Sell".to_string())))), Value::Str("asks".to_string()), Value::Str("bids".to_string()));
@@ -1300,9 +1307,7 @@ impl BitmexCore {
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null price in the orderbook
             if !is_equal(&price, &Value::Null) {
-                let mut resultSide: Value = get_value(&result, &side);
-                append_to_array(&mut resultSide, Value::List(vec![price.clone(), amount.clone()]));
-                crate::set_value(&mut result, &side, resultSide.clone());
+                append_to_array(&mut get_value(&result, &side), Value::List(vec![price.clone(), amount.clone()]));
             }
         }
         }
@@ -1907,8 +1912,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_378: bool = true;
-            while { if !__for_first_378 { i = add(&i, &Value::Int(1)); } __for_first_378 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_364: bool = true;
+            while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&response, &i), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if !is_equal(&symbol, &Value::Null) {
@@ -2063,8 +2068,8 @@ impl BitmexCore {
         if is_true(&useOpenTimestamp) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_379: bool = true;
-                while { if !__for_first_379 { i = add(&i, &Value::Int(1)); } __for_first_379 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut __for_first_365: bool = true;
+                while { if !__for_first_365 { i = add(&i, &Value::Int(1)); } __for_first_365 = false; is_less_than(&i, &get_array_length(&result)) } {
                 { let __be_tmp = subtract(&self.parse_to_int(get_value(&get_value(&result, &i), &Value::Int(0))), &duration); add_element_to_object(get_value_mut(&mut result, &i), &Value::Int(0), __be_tmp); };
             }
             }
@@ -2280,7 +2285,7 @@ impl BitmexCore {
             let mut defaultSubType: Value = self.safe_string_k(self.options.clone(), "defaultSubType", &[Value::Str("linear".to_string())]);
             isInverse = Value::Bool(is_equal(&defaultSubType, &Value::Str("inverse".to_string())));
         }  else {
-            isInverse = self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]);
+            isInverse = Value::Bool(is_equal(&self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), &Value::Bool(true)));
         }
         if is_true(&isInverse) {
             cost = self.convert_from_raw_quantity(symbol.clone(), qty.clone(), &[]);
@@ -2580,7 +2585,7 @@ impl BitmexCore {
  * @description cancels an open order
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
  * @param {string} id order id
- * @param {string} symbol not used by bitmex cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2628,7 +2633,7 @@ impl BitmexCore {
  * @description cancel multiple orders
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
  * @param {string[]} ids order ids
- * @param {string} symbol not used by bitmex cancelOrders ()
+ * @param {string} symbol not used by cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2666,7 +2671,7 @@ impl BitmexCore {
  * @name bitmex#cancelAllOrders
  * @description cancel all open orders
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2711,6 +2716,9 @@ impl BitmexCore {
 }));
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
+        }
+        if is_equal(&timeout, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" cancelAllOrdersAfter() missing timeout".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3106,8 +3114,8 @@ impl BitmexCore {
         let mut filteredResponse: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_380: bool = true;
-            while { if !__for_first_380 { i = add(&i, &Value::Int(1)); } __for_first_380 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_366: bool = true;
+            while { if !__for_first_366 { i = add(&i, &Value::Int(1)); } __for_first_366 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string_k(item.clone(), "symbol", &[]);
@@ -3189,6 +3197,9 @@ impl BitmexCore {
             m
         });
         let mut market: Value = Value::Null;
+        if is_equal(&symbol, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
+        }
         if is_true(&Value::Bool(in_op(&self.currencies, &symbol))) {
             let mut code: Value = self.currency(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&code, &Value::Str("id".to_string())));
@@ -3439,8 +3450,8 @@ impl BitmexCore {
             let mut precision: Value = self.parse_precision(&[scale.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_381: bool = true;
-                while { if !__for_first_381 { i = add(&i, &Value::Int(1)); } __for_first_381 = false; is_less_than(&i, &networksLength) } {
+                let mut __for_first_367: bool = true;
+                while { if !__for_first_367 { i = add(&i, &Value::Int(1)); } __for_first_367 = false; is_less_than(&i, &networksLength) } {
                 let mut network: Value = get_value(&networks, &i);
                 let mut network: Value = get_value(&networks, &i);
                 let mut networkId: Value = self.safe_string_k(network.clone(), "asset", &[]);
@@ -3448,7 +3459,8 @@ impl BitmexCore {
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), currencyCode.clone()]);
                 let mut withdrawalFeeId: Value = self.safe_string_k(network.clone(), "withdrawalFee", &[]);
                 let mut withdrawalFee: Value = self.parse_number(crate::precise::Precise::stringMul(&withdrawalFeeId, &precision), &[]);
-                add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
+                if !is_equal(&networkCode, &Value::Null) {
+                    add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3464,6 +3476,7 @@ impl BitmexCore {
 }));
     m
 }));
+                }
                 if is_equal(&networksLength, &Value::Int(1)) {
                     add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), withdrawalFee.clone());
                     add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
@@ -3904,8 +3917,8 @@ impl BitmexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_382: bool = true;
-            while { if !__for_first_382 { i = add(&i, &Value::Int(1)); } __for_first_382 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_368: bool = true;
+            while { if !__for_first_368 { i = add(&i, &Value::Int(1)); } __for_first_368 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), &[market.clone()]));
         }
         }
@@ -3949,7 +3962,7 @@ impl BitmexCore {
  * @see https://docs.bitmex.com/api-explorer/order-close-position
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} side the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
- * @param {object} [params] extra parameters specific to the bingx api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -4047,6 +4060,9 @@ impl BitmexCore {
                 m
             });
             expires = self.sum(&[self.seconds(), expires.clone()]);
+            if is_equal(&expires, &Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" sign() missing expires".to_string()))));
+            }
             let mut stringExpires: Value = to_string_val(&expires);
             auth = add(&auth, &stringExpires);
             add_element_to_object(&mut headers, &Value::Str("api-expires".to_string()), stringExpires.clone());

@@ -327,6 +327,11 @@ impl MexcCore {
         self.call_method(Value::Str("spot_private_get_rebate_affiliate_subaffiliates".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `spotPrivateGetRebateAffiliateList` implicit endpoint.
+    pub async fn spot_private_get_rebate_affiliate_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_get_rebate_affiliate_list".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `spotPrivateGetMxDeductEnable` implicit endpoint.
     pub async fn spot_private_get_mx_deduct_enable(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_private_get_mx_deduct_enable".to_string()), optional_args).await
@@ -355,6 +360,11 @@ impl MexcCore {
     /// Auto-generated wrapper for the `spotPrivatePostOrderTest` implicit endpoint.
     pub async fn spot_private_post_order_test(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_private_post_order_test".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivatePostApiKeyInfo` implicit endpoint.
+    pub async fn spot_private_post_api_key_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_post_api_key_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotPrivatePostSubAccountVirtualSubAccount` implicit endpoint.
@@ -445,6 +455,11 @@ impl MexcCore {
     /// Auto-generated wrapper for the `spotPrivateDeleteOpenOrders` implicit endpoint.
     pub async fn spot_private_delete_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_private_delete_open_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivateDeleteOrderAll` implicit endpoint.
+    pub async fn spot_private_delete_order_all(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_delete_order_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotPrivateDeleteSubAccountApiKey` implicit endpoint.

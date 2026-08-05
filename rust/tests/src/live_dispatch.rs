@@ -21,7 +21,7 @@ use ccxt::exchanges::{
     binanceus::BinanceusCore, binanceusdm::BinanceusdmCore,
     bingx::BingxCore, bit2c::Bit2cCore, bitbank::BitbankCore,
     bitbns::BitbnsCore, bitfinex::BitfinexCore, bitflyer::BitflyerCore,
-    bitget::BitgetCore, bithumb::BithumbCore, bitmart::BitmartCore,
+    bitget::BitgetCore, bithumb::BithumbCore,
     bitmex::BitmexCore, bitopro::BitoproCore, bitrue::BitrueCore,
     bitso::BitsoCore, bitstamp::BitstampCore, bitteam::BitteamCore,
     bittrade::BittradeCore, bitvavo::BitvavoCore,
@@ -53,7 +53,7 @@ use ccxt::exchanges::{
     woofipro::WoofiproCore, xt::XtCore, zaif::ZaifCore,
     zebpay::ZebpayCore,
     bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
-    kucoineu::KucoineuCore, mudrex::MudrexCore,
+    mudrex::MudrexCore, nado::NadoCore,
 };
 // Prediction-market venue Cores (Deref through PredictionExchange → Exchange).
 use ccxt::prediction::{

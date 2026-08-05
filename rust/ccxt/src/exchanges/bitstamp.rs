@@ -963,8 +963,8 @@ impl BitstampCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_403: bool = true;
-            while { if !__for_first_403 { i = add(&i, &Value::Int(1)); } __for_first_403 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_389: bool = true;
+            while { if !__for_first_389 { i = add(&i, &Value::Int(1)); } __for_first_389 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut baseIdquoteIdVariable = Value::List(vec![self.safe_string_k(market.clone(), "base_currency", &[]), self.safe_string_k(market.clone(), "counter_currency", &[])]);
@@ -1217,21 +1217,31 @@ impl BitstampCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut description: Value = self.safe_string_k(market.clone(), "description", &[]);
+        if is_equal(&description, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseCurrency() missing description".to_string()))));
+        }
         let mut baseDescriptionquoteDescriptionVariable = split(&description, &Value::Str(" / ".to_string()));
         let mut baseDescription: Value = get_value(&baseDescriptionquoteDescriptionVariable, &Value::Int(0));
         let mut quoteDescription: Value = get_value(&baseDescriptionquoteDescriptionVariable, &Value::Int(1));
         let mut minimumOrder: Value = self.safe_string_k(market.clone(), "minimum_order_value", &[]);
+        if is_equal(&minimumOrder, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseCurrency() missing minimumOrder".to_string()))));
+        }
         let mut parts: Value = split(&minimumOrder, &Value::Str(" ".to_string()));
         let mut cost: Value = get_value(&parts, &Value::Int(0));
-        if !is_true(&(Value::Bool(in_op(&existing, &base)))) {
+        if is_true(&(is_equal(&base, &Value::Null))) || !is_true(&(Value::Bool(in_op(&existing, &base)))) {
             let mut baseDecimals: Value = self.safe_integer_k(market.clone(), "base_decimals", &[]);
-            { let __be_tmp = self.construct_currency_object(baseId.clone(), base.clone(), baseDescription.clone(), baseDecimals.clone(), Value::Null, market.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("_temp_currencies_result".to_string())), &base, __be_tmp); };
+            if !is_equal(&base, &Value::Null) {
+                { let __be_tmp = self.construct_currency_object(baseId.clone(), base.clone(), baseDescription.clone(), baseDecimals.clone(), Value::Null, market.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("_temp_currencies_result".to_string())), &base, __be_tmp); };
+            }
         }
-        if !is_true(&(Value::Bool(in_op(&existing, &quote)))) {
+        if is_true(&(is_equal(&quote, &Value::Null))) || !is_true(&(Value::Bool(in_op(&existing, &quote)))) {
             let mut counterDecimals: Value = self.safe_integer_k(market.clone(), "counter_decimals", &[]);
-            { let __be_tmp = self.construct_currency_object(quoteId.clone(), quote.clone(), quoteDescription.clone(), counterDecimals.clone(), self.parse_number(cost.clone(), &[]), market.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("_temp_currencies_result".to_string())), &quote, __be_tmp); };
+            if !is_equal(&quote, &Value::Null) {
+                { let __be_tmp = self.construct_currency_object(quoteId.clone(), quote.clone(), quoteDescription.clone(), counterDecimals.clone(), self.parse_number(cost.clone(), &[]), market.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("_temp_currencies_result".to_string())), &quote, __be_tmp); };
+            }
         }
-        return get_value(&get_value(&self.options, &Value::Str("_temp_currencies_result".to_string())), &quote);
+        return self.safe_value(get_value(&self.options, &Value::Str("_temp_currencies_result".to_string())), quote.clone(), &[]);
 
     Value::Null
 }
@@ -1244,7 +1254,7 @@ impl BitstampCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1280,6 +1290,9 @@ impl BitstampCore {
         //     }
         //
         let mut microtimestamp: Value = self.safe_integer_k(response.clone(), "microtimestamp", &[]);
+        if is_equal(&microtimestamp, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchOrderBook() missing microtimestamp".to_string()))));
+        }
         let mut timestamp: Value = self.parse_to_int(divide(&microtimestamp, &Value::Int(1000)));
         let mut orderbook: Value = self.parse_order_book(response.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[timestamp.clone()]);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), microtimestamp.clone());
@@ -1417,8 +1430,8 @@ impl BitstampCore {
         let mut ids: Value = object_keys(&transaction);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_404: bool = true;
-            while { if !__for_first_404 { i = add(&i, &Value::Int(1)); } __for_first_404 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_390: bool = true;
+            while { if !__for_first_390 { i = add(&i, &Value::Int(1)); } __for_first_390 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if is_less_than(&get_index_of(&id, &Value::Str("_".to_string())), &Value::Int(0)) {
@@ -1443,11 +1456,11 @@ impl BitstampCore {
         }
         if is_equal(&numCurrencyIds, &Value::Int(2)) {
             let mut marketId: Value = add(&get_value(&currencyIds, &Value::Int(0)), &get_value(&currencyIds, &Value::Int(1)));
-            if is_true(&Value::Bool(in_op(&self.markets_by_id, &marketId))) {
+            if is_true(&(!is_equal(&self.markets_by_id, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))) {
                 return self.safe_market(&[marketId.clone()]);
             }
             marketId = add(&get_value(&currencyIds, &Value::Int(1)), &get_value(&currencyIds, &Value::Int(0)));
-            if is_true(&Value::Bool(in_op(&self.markets_by_id, &marketId))) {
+            if is_true(&(!is_equal(&self.markets_by_id, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))) {
                 return self.safe_market(&[marketId.clone()]);
             }
         }
@@ -1510,8 +1523,8 @@ impl BitstampCore {
             let mut keys: Value = object_keys(&trade);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_405: bool = true;
-                while { if !__for_first_405 { i = add(&i, &Value::Int(1)); } __for_first_405 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_391: bool = true;
+                while { if !__for_first_391 { i = add(&i, &Value::Int(1)); } __for_first_391 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut currentKey: Value = get_value(&keys, &i);
                 let mut currentKey: Value = get_value(&keys, &i);
                 if !is_equal(&currentKey, &Value::Str("order_id".to_string())) && is_greater_than_or_equal(&get_index_of(&currentKey, &Value::Str("_".to_string())), &Value::Int(0)) {
@@ -1741,8 +1754,8 @@ impl BitstampCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_406: bool = true;
-            while { if !__for_first_406 { i = add(&i, &Value::Int(1)); } __for_first_406 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_392: bool = true;
+            while { if !__for_first_392 { i = add(&i, &Value::Int(1)); } __for_first_392 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut currencyBalance: Value = get_value(&response, &i);
             let mut currencyBalance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(currencyBalance.clone(), "currency", &[]);
@@ -1751,7 +1764,9 @@ impl BitstampCore {
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(currencyBalance.clone(), "available", &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(currencyBalance.clone(), "reserved", &[]));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(currencyBalance.clone(), "total", &[]));
-            add_element_to_object(&mut result, &currencyCode, account.clone());
+            if !is_equal(&currencyCode, &Value::Null) {
+                add_element_to_object(&mut result, &currencyCode, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -1822,6 +1837,12 @@ impl BitstampCore {
         //
         let mut tradingFeesByMarketId: Value = self.index_by(response.clone(), Value::Str("currency_pair".to_string()));
         let mut tradingFee: Value = self.safe_dict(tradingFeesByMarketId.clone(), get_value(&market, &Value::Str("id".to_string())), &[]);
+        if is_equal(&tradingFee, &Value::Null) {
+            tradingFee = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+        }
         return self.parse_trading_fee(tradingFee.clone(), &[market.clone()]);
 
     Value::Null
@@ -1856,11 +1877,13 @@ impl BitstampCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_407: bool = true;
-            while { if !__for_first_407 { i = add(&i, &Value::Int(1)); } __for_first_407 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_393: bool = true;
+            while { if !__for_first_393 { i = add(&i, &Value::Int(1)); } __for_first_393 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut result, &symbol, fee.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut result, &symbol, fee.clone());
+            }
         }
         }
         return result;
@@ -1925,8 +1948,8 @@ impl BitstampCore {
         let mut ids: Value = object_keys(&currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_408: bool = true;
-            while { if !__for_first_408 { i = add(&i, &Value::Int(1)); } __for_first_408 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_394: bool = true;
+            while { if !__for_first_394 { i = add(&i, &Value::Int(1)); } __for_first_394 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut fees: Value = self.safe_value(response.clone(), i.clone(), &[Value::Map({
@@ -1937,7 +1960,8 @@ impl BitstampCore {
             if is_true(&(!is_equal(&codes, &Value::Null))) && !is_true(&self.in_array(code.clone(), codes.clone())) {
                 continue;
             }
-            add_element_to_object(&mut result, &code, Value::Map({
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw_fee".to_string(), self.safe_number_k(fees.clone(), "fee", &[]));
         m.insert("deposit".to_string(), Value::Map({
@@ -1947,6 +1971,7 @@ impl BitstampCore {
         m.insert("info".to_string(), self.safe_dict(currencies.clone(), id.clone(), &[]));
     m
 }));
+            }
         }
         }
         return result;
@@ -1995,8 +2020,8 @@ impl BitstampCore {
         let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_409: bool = true;
-            while { if !__for_first_409 { j = add(&j, &Value::Int(1)); } __for_first_409 = false; is_less_than(&j, &get_array_length(&fee)) } {
+            let mut __for_first_395: bool = true;
+            while { if !__for_first_395 { j = add(&j, &Value::Int(1)); } __for_first_395 = false; is_less_than(&j, &get_array_length(&fee)) } {
             let mut networkEntry: Value = get_value(&fee, &j);
             let mut networkEntry: Value = get_value(&fee, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
@@ -2008,7 +2033,8 @@ impl BitstampCore {
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
-            add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
+            if !is_equal(&networkCode, &Value::Null) {
+                add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2024,6 +2050,7 @@ impl BitstampCore {
 }));
     m
 }));
+            }
         }
         }
         return result;
@@ -2098,7 +2125,11 @@ impl BitstampCore {
                 response = self.private_post_sell_pair(&[__ws_arg_10]).await;
             }
         }
-        let mut order: Value = self.parse_order(response.clone(), &[market.clone()]);
+        let mut orderResponse: Value = ternary(is_true(&(is_equal(&response, &Value::Null))), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), response.clone());
+        let mut order: Value = self.parse_order(orderResponse.clone(), &[market.clone()]);
         add_element_to_object(&mut order, &Value::Str("type".to_string()), type_var.clone());
         return order;
 
@@ -2192,7 +2223,7 @@ impl BitstampCore {
  * @description cancel all open orders
  * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
  * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2855,8 +2886,8 @@ impl BitstampCore {
             let mut keys: Value = object_keys(&item);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_410: bool = true;
-                while { if !__for_first_410 { i = add(&i, &Value::Int(1)); } __for_first_410 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_396: bool = true;
+                while { if !__for_first_396 { i = add(&i, &Value::Int(1)); } __for_first_396 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 if is_greater_than_or_equal(&get_index_of(&get_value(&keys, &i), &Value::Str("_".to_string())), &Value::Int(0)) {
                     let mut marketId: Value = replace_str(&get_value(&keys, &i), &Value::Str("_".to_string()), &Value::Str("".to_string()));
                     market = self.safe_market(&[marketId.clone(), market.clone()]);
@@ -3236,19 +3267,23 @@ impl BitstampCore {
         //    { status: 'ok' }
         //
         let mut status: Value = self.safe_string_k(transfer.clone(), "status", &[]);
-        return Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transfer.clone());
-        m.insert("id".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), Value::Null);
-        m.insert("datetime".to_string(), Value::Null);
-        m.insert("currency".to_string(), get_value(&currency, &Value::Str("code".to_string())));
-        m.insert("amount".to_string(), Value::Null);
-        m.insert("fromAccount".to_string(), Value::Null);
-        m.insert("toAccount".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_transfer_status(status.clone()));
-    m
-});
+        if is_equal(&currency, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseTransfer() could not resolve currency".to_string()))));
+        }
+        let mut result: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("info".to_string(), transfer.clone());
+                m.insert("id".to_string(), Value::Null);
+                m.insert("timestamp".to_string(), Value::Null);
+                m.insert("datetime".to_string(), Value::Null);
+                m.insert("currency".to_string(), get_value(&currency, &Value::Str("code".to_string())));
+                m.insert("amount".to_string(), Value::Null);
+                m.insert("fromAccount".to_string(), Value::Null);
+                m.insert("toAccount".to_string(), Value::Null);
+                m.insert("status".to_string(), self.parse_transfer_status(status.clone()));
+            m
+        });
+        return result;
 
     Value::Null
 }
@@ -3358,8 +3393,8 @@ impl BitstampCore {
                 let mut keys: Value = object_keys(&error);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_411: bool = true;
-                    while { if !__for_first_411 { i = add(&i, &Value::Int(1)); } __for_first_411 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                    let mut __for_first_397: bool = true;
+                    while { if !__for_first_397 { i = add(&i, &Value::Int(1)); } __for_first_397 = false; is_less_than(&i, &get_array_length(&keys)) } {
                     let mut key: Value = get_value(&keys, &i);
                     let mut key: Value = get_value(&keys, &i);
                     let mut value: Value = self.safe_value(error.clone(), key.clone(), &[]);
@@ -3381,8 +3416,8 @@ impl BitstampCore {
                 let mut all: Value = self.safe_value_k(reasonInner.clone(), "__all__", &[Value::List(vec![])]);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_412: bool = true;
-                    while { if !__for_first_412 { i = add(&i, &Value::Int(1)); } __for_first_412 = false; is_less_than(&i, &get_array_length(&all)) } {
+                    let mut __for_first_398: bool = true;
+                    while { if !__for_first_398 { i = add(&i, &Value::Int(1)); } __for_first_398 = false; is_less_than(&i, &get_array_length(&all)) } {
                     append_to_array(&mut errors, get_value(&all, &i));
                 }
                 }
@@ -3394,8 +3429,8 @@ impl BitstampCore {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_413: bool = true;
-                while { if !__for_first_413 { i = add(&i, &Value::Int(1)); } __for_first_413 = false; is_less_than(&i, &get_array_length(&errors)) } {
+                let mut __for_first_399: bool = true;
+                while { if !__for_first_399 { i = add(&i, &Value::Int(1)); } __for_first_399 = false; is_less_than(&i, &get_array_length(&errors)) } {
                 let mut value: Value = get_value(&errors, &i);
                 let mut value: Value = get_value(&errors, &i);
                 self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), value.clone(), feedback.clone());

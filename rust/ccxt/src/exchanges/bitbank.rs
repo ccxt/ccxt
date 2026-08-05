@@ -577,7 +577,7 @@ impl BitbankCore {
         let mut quoteId: Value = self.safe_string_k(entry.clone(), "quote_asset", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
@@ -641,7 +641,7 @@ impl BitbankCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), entry.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -721,7 +721,7 @@ impl BitbankCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -898,8 +898,8 @@ impl BitbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_301: bool = true;
-            while { if !__for_first_301 { i = add(&i, &Value::Int(1)); } __for_first_301 = false; is_less_than(&i, &get_array_length(&pairs)) } {
+            let mut __for_first_303: bool = true;
+            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&pairs)) } {
             let mut pair: Value = get_value(&pairs, &i);
             let mut pair: Value = get_value(&pairs, &i);
             let mut marketId: Value = self.safe_string_k(pair.clone(), "name", &[]);
@@ -1017,8 +1017,8 @@ impl BitbankCore {
         let mut assets: Value = self.safe_value_k(data.clone(), "assets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_302: bool = true;
-            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_304: bool = true;
+            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut balance: Value = get_value(&assets, &i);
             let mut balance: Value = get_value(&assets, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -1027,7 +1027,9 @@ impl BitbankCore {
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "free_amount", &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "locked_amount", &[]));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "onhand_amount", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -1546,8 +1548,21 @@ impl BitbankCore {
             }
         }  else {
             self.check_required_credentials(&[]);
+            // bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
+            // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
+            // since bitbank offers no server time endpoint to compensate against
+            let mut authMethod: Value = self.safe_string_k(self.options.clone(), "authMethod", &[Value::Str("timeWindow".to_string())]);
+            let mut isTimeWindow: Value = Value::Bool(is_equal(&authMethod, &Value::Str("timeWindow".to_string())));
+            let mut requestTime: Value = to_string_val(&self.milliseconds());
+            let mut timeWindow: Value = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".to_string())]);
             let mut nonce: Value = to_string_val(&self.nonce());
-            let mut auth: Value = nonce.clone();
+            let mut auth: Value = Value::Null;
+            if is_true(&isTimeWindow) {
+                auth = add(&requestTime, &timeWindow);
+            }  else {
+                auth = nonce.clone();
+            }
             url = add(&url, &add(&add(&self.version, &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone())));
             if is_equal(&method, &Value::Str("POST".to_string())) {
                 body = self.json(query.clone());
@@ -1564,10 +1579,15 @@ impl BitbankCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("ACCESS-NONCE".to_string(), nonce.clone());
                     m.insert("ACCESS-SIGNATURE".to_string(), self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]));
                 m
             });
+            if is_true(&isTimeWindow) {
+                add_element_to_object(&mut headers, &Value::Str("ACCESS-REQUEST-TIME".to_string()), requestTime.clone());
+                add_element_to_object(&mut headers, &Value::Str("ACCESS-TIME-WINDOW".to_string()), timeWindow.clone());
+            }  else {
+                add_element_to_object(&mut headers, &Value::Str("ACCESS-NONCE".to_string()), nonce.clone());
+            }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

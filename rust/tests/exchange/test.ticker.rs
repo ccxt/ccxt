@@ -69,7 +69,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut isFetchTickerCalled: Value = Value::Bool(is_equal(&method, &Value::Str("fetchTicker".to_string())));
     let mut symbolForMarket: Value = ternary(is_true(&(!is_equal(&symbol, &Value::Null))), symbol.clone(), exchange.safe_string(entry.clone(), Value::Str("symbol".to_string()), &[]));
     if !is_equal(&symbolForMarket, &Value::Null) {
-        if is_true(&Value::Bool(crate::tests_support::shared::market_exists(&exchange, &symbolForMarket))) {
+        if is_true(&(!is_equal(&get_value(&exchange, &Value::Str("markets".to_string())), &Value::Null))) && is_true(&(Value::Bool(crate::tests_support::shared::market_exists(&exchange, &symbolForMarket)))) {
             market = exchange.market(symbolForMarket.clone());
         }  else {
             isUnrecognizedSymbol = Value::Bool(true);

@@ -52,6 +52,11 @@ impl ToobitCore {
         self.call_method(Value::Str("common_get_quote_v1_index_klines".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `commonGetQuoteV1IndexPriceComponents` implicit endpoint.
+    pub async fn common_get_quote_v1_index_price_components(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("common_get_quote_v1_index_price_components".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `commonGetQuoteV1MarkPriceKlines` implicit endpoint.
     pub async fn common_get_quote_v1_mark_price_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("common_get_quote_v1_mark_price_klines".to_string()), optional_args).await
@@ -82,9 +87,19 @@ impl ToobitCore {
         self.call_method(Value::Str("common_get_quote_v1_ticker_price".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `commonGetQuoteV1ContractTickerPrice` implicit endpoint.
+    pub async fn common_get_quote_v1_contract_ticker_price(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("common_get_quote_v1_contract_ticker_price".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `commonGetQuoteV1TickerBookTicker` implicit endpoint.
     pub async fn common_get_quote_v1_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("common_get_quote_v1_ticker_book_ticker".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `commonGetQuoteV1ContractTickerBookTicker` implicit endpoint.
+    pub async fn common_get_quote_v1_contract_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("common_get_quote_v1_contract_ticker_book_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `commonGetApiV1FuturesFundingRate` implicit endpoint.
@@ -95,6 +110,11 @@ impl ToobitCore {
     /// Auto-generated wrapper for the `commonGetApiV1FuturesHistoryFundingRate` implicit endpoint.
     pub async fn common_get_api_v1_futures_history_funding_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("common_get_api_v1_futures_history_funding_rate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `commonGetApiV1FuturesRiskLimits` implicit endpoint.
+    pub async fn common_get_api_v1_futures_risk_limits(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("common_get_api_v1_futures_risk_limits".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Account` implicit endpoint.
@@ -162,6 +182,16 @@ impl ToobitCore {
         self.call_method(Value::Str("private_get_api_v1_sub_account".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetApiV1AccountSubAccount` implicit endpoint.
+    pub async fn private_get_api_v1_account_sub_account(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_account_sub_account".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1SubAccountList` implicit endpoint.
+    pub async fn private_get_api_v1_sub_account_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_sub_account_list".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetApiV1FuturesAccountLeverage` implicit endpoint.
     pub async fn private_get_api_v1_futures_account_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_api_v1_futures_account_leverage".to_string()), optional_args).await
@@ -175,6 +205,11 @@ impl ToobitCore {
     /// Auto-generated wrapper for the `privateGetApiV1FuturesPositions` implicit endpoint.
     pub async fn private_get_api_v1_futures_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_api_v1_futures_positions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1FuturesHistoryPositions` implicit endpoint.
+    pub async fn private_get_api_v1_futures_history_positions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_futures_history_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesBalance` implicit endpoint.
@@ -200,6 +235,76 @@ impl ToobitCore {
     /// Auto-generated wrapper for the `privateGetApiV1FuturesTodayPnl` implicit endpoint.
     pub async fn private_get_api_v1_futures_today_pnl(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_api_v1_futures_today_pnl".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AccountDownloadDetail` implicit endpoint.
+    pub async fn private_get_api_v1_account_download_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_account_download_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentInviteUserList` implicit endpoint.
+    pub async fn private_get_api_v1_agent_invite_user_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_invite_user_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentCommissionDataList` implicit endpoint.
+    pub async fn private_get_api_v1_agent_commission_data_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_commission_data_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentCommissionDataInfo` implicit endpoint.
+    pub async fn private_get_api_v1_agent_commission_data_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_commission_data_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentInviteRelationCheck` implicit endpoint.
+    pub async fn private_get_api_v1_agent_invite_relation_check(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_invite_relation_check".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentDepositDetailList` implicit endpoint.
+    pub async fn private_get_api_v1_agent_deposit_detail_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_deposit_detail_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentQuerySubAgentData` implicit endpoint.
+    pub async fn private_get_api_v1_agent_query_sub_agent_data(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_query_sub_agent_data".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentSpotOrdersList` implicit endpoint.
+    pub async fn private_get_api_v1_agent_spot_orders_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_spot_orders_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentFuturesOrdersList` implicit endpoint.
+    pub async fn private_get_api_v1_agent_futures_orders_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_futures_orders_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentFuturesPositionsList` implicit endpoint.
+    pub async fn private_get_api_v1_agent_futures_positions_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_futures_positions_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentInviteCommissionDetail` implicit endpoint.
+    pub async fn private_get_api_v1_agent_invite_commission_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_invite_commission_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentUserExport` implicit endpoint.
+    pub async fn private_get_api_v1_agent_user_export(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_user_export".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentExportList` implicit endpoint.
+    pub async fn private_get_api_v1_agent_export_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_export_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AgentExportUrl` implicit endpoint.
+    pub async fn private_get_api_v1_agent_export_url(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_agent_export_url".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1SpotOrderTest` implicit endpoint.
@@ -257,6 +362,31 @@ impl ToobitCore {
         self.call_method(Value::Str("private_post_api_v1_futures_position_margin".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostApiV1FuturesOrderUpdate` implicit endpoint.
+    pub async fn private_post_api_v1_futures_order_update(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_api_v1_futures_order_update".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostApiV1FuturesAutoAddMargin` implicit endpoint.
+    pub async fn private_post_api_v1_futures_auto_add_margin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_api_v1_futures_auto_add_margin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostApiV1FuturesFlashClose` implicit endpoint.
+    pub async fn private_post_api_v1_futures_flash_close(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_api_v1_futures_flash_close".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostApiV1FuturesReversePosition` implicit endpoint.
+    pub async fn private_post_api_v1_futures_reverse_position(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_api_v1_futures_reverse_position".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostApiV1AccountDownloadApply` implicit endpoint.
+    pub async fn private_post_api_v1_account_download_apply(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_api_v1_account_download_apply".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostApiV1UserDataStream` implicit endpoint.
     pub async fn private_post_api_v1_user_data_stream(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_api_v1_user_data_stream".to_string()), optional_args).await
@@ -297,9 +427,19 @@ impl ToobitCore {
         self.call_method(Value::Str("private_delete_api_v1_futures_cancel_order_by_ids".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateDeleteApiV1UserDataStream` implicit endpoint.
+    pub async fn private_delete_api_v1_user_data_stream(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_api_v1_user_data_stream".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateDeleteApiV1ListenKey` implicit endpoint.
     pub async fn private_delete_api_v1_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_api_v1_listen_key".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutApiV1UserDataStream` implicit endpoint.
+    pub async fn private_put_api_v1_user_data_stream(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_api_v1_user_data_stream".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePutApiV1ListenKey` implicit endpoint.

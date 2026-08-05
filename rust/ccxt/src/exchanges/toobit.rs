@@ -325,6 +325,7 @@ impl ToobitCore {
         m.insert("fetchBorrowRateHistory".to_string(), Value::Bool(false));
         m.insert("fetchBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchBorrowRatesPerSymbol".to_string(), Value::Bool(false));
+        m.insert("fetchClosedOrders".to_string(), Value::Bool(true));
         m.insert("fetchCrossBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchCrossBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchCurrencies".to_string(), Value::Bool(true));
@@ -338,6 +339,7 @@ impl ToobitCore {
         m.insert("fetchIsolatedBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchLastPrices".to_string(), Value::Bool(true));
         m.insert("fetchLedger".to_string(), Value::Bool(true));
+        m.insert("fetchLeverage".to_string(), Value::Bool(true));
         m.insert("fetchMarkets".to_string(), Value::Bool(true));
         m.insert("fetchMarkOHLCV".to_string(), Value::Bool(true));
         m.insert("fetchMyTrades".to_string(), Value::Bool(true));
@@ -348,14 +350,17 @@ impl ToobitCore {
         m.insert("fetchOrder".to_string(), Value::Bool(true));
         m.insert("fetchOrderBook".to_string(), Value::Bool(true));
         m.insert("fetchOrders".to_string(), Value::Bool(true));
+        m.insert("fetchPositions".to_string(), Value::Bool(true));
         m.insert("fetchStatus".to_string(), Value::Bool(true));
         m.insert("fetchTickers".to_string(), Value::Bool(true));
         m.insert("fetchTime".to_string(), Value::Bool(true));
         m.insert("fetchTrades".to_string(), Value::Bool(true));
+        m.insert("fetchTradingFees".to_string(), Value::Bool(true));
         m.insert("fetchVolatilityHistory".to_string(), Value::Bool(false));
         m.insert("fetchWithdrawals".to_string(), Value::Bool(true));
         m.insert("repayCrossMargin".to_string(), Value::Bool(false));
         m.insert("repayIsolatedMargin".to_string(), Value::Bool(false));
+        m.insert("setLeverage".to_string(), Value::Bool(true));
         m.insert("setMarginMode".to_string(), Value::Bool(true));
         m.insert("transfer".to_string(), Value::Bool(true));
         m.insert("withdraw".to_string(), Value::Bool(true));
@@ -371,7 +376,7 @@ impl ToobitCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.toobit.com/".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://toobit-docs.github.io/apidocs/spot/v1/en/".to_string()), Value::Str("https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/".to_string())]));
+        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://api-docs.toobit.com/".to_string())]));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::Str("https://www.toobit.com/en-US/r?i=IFFPy0".to_string()));
@@ -395,15 +400,19 @@ impl ToobitCore {
         m.insert("quote/v1/trades".to_string(), Value::Int(1));
         m.insert("quote/v1/klines".to_string(), Value::Int(1));
         m.insert("quote/v1/index/klines".to_string(), Value::Int(1));
+        m.insert("quote/v1/indexPriceComponents".to_string(), Value::Int(1));
         m.insert("quote/v1/markPrice/klines".to_string(), Value::Int(1));
-        m.insert("quote/v1/markPrice".to_string(), Value::Int(1));
+        m.insert("quote/v1/markPrice".to_string(), Value::Int(10));
         m.insert("quote/v1/index".to_string(), Value::Int(1));
         m.insert("quote/v1/ticker/24hr".to_string(), Value::Int(40));
         m.insert("quote/v1/contract/ticker/24hr".to_string(), Value::Int(40));
         m.insert("quote/v1/ticker/price".to_string(), Value::Int(1));
+        m.insert("quote/v1/contract/ticker/price".to_string(), Value::Int(1));
         m.insert("quote/v1/ticker/bookTicker".to_string(), Value::Int(1));
+        m.insert("quote/v1/contract/ticker/bookTicker".to_string(), Value::Int(1));
         m.insert("api/v1/futures/fundingRate".to_string(), Value::Int(1));
         m.insert("api/v1/futures/historyFundingRate".to_string(), Value::Int(1));
+        m.insert("api/v1/futures/riskLimits".to_string(), Value::Int(1));
     m
 }));
     m
@@ -425,14 +434,31 @@ impl ToobitCore {
         m.insert("api/v1/account/withdrawOrders".to_string(), Value::Int(5));
         m.insert("api/v1/account/deposit/address".to_string(), Value::Int(1));
         m.insert("api/v1/subAccount".to_string(), Value::Int(5));
+        m.insert("api/v1/account/subAccount".to_string(), Value::Int(5));
+        m.insert("api/v1/subAccount/list".to_string(), Value::Int(5));
         m.insert("api/v1/futures/accountLeverage".to_string(), Value::Int(1));
         m.insert("api/v1/futures/order".to_string(), multiply(&Value::Int(1), &Value::Float(1.67)));
         m.insert("api/v1/futures/positions".to_string(), multiply(&Value::Int(5), &Value::Float(1.67)));
+        m.insert("api/v1/futures/historyPositions".to_string(), Value::Int(5));
         m.insert("api/v1/futures/balance".to_string(), Value::Int(5));
         m.insert("api/v1/futures/userTrades".to_string(), multiply(&Value::Int(5), &Value::Float(1.67)));
         m.insert("api/v1/futures/balanceFlow".to_string(), Value::Int(5));
         m.insert("api/v1/futures/commissionRate".to_string(), Value::Int(5));
         m.insert("api/v1/futures/todayPnl".to_string(), Value::Int(5));
+        m.insert("api/v1/account/download/detail".to_string(), Value::Int(10));
+        m.insert("api/v1/agent/inviteUserList".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/commissionDataList".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/commissionDataInfo".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/inviteRelationCheck".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/depositDetailList".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/querySubAgentData".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/spotOrdersList".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/futuresOrdersList".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/futuresPositionsList".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/invite-commission-detail".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/user/export".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/export-list".to_string(), Value::Int(1));
+        m.insert("api/v1/agent/export-url".to_string(), Value::Int(1));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -448,6 +474,11 @@ impl ToobitCore {
         m.insert("api/v1/futures/batchOrders".to_string(), multiply(&Value::Int(2), &Value::Float(1.67)));
         m.insert("api/v1/futures/position/trading-stop".to_string(), multiply(&Value::Int(3), &Value::Float(1.67)));
         m.insert("api/v1/futures/positionMargin".to_string(), Value::Int(1));
+        m.insert("api/v1/futures/order/update".to_string(), multiply(&Value::Int(2), &Value::Float(1.67)));
+        m.insert("api/v1/futures/autoAddMargin".to_string(), Value::Int(1));
+        m.insert("api/v1/futures/flashClose".to_string(), Value::Int(1));
+        m.insert("api/v1/futures/reversePosition".to_string(), Value::Int(5));
+        m.insert("api/v1/account/download/apply".to_string(), Value::Int(1000));
         m.insert("api/v1/userDataStream".to_string(), Value::Int(1));
         m.insert("api/v1/listenKey".to_string(), Value::Int(1));
     m
@@ -457,14 +488,16 @@ impl ToobitCore {
         m.insert("api/v1/spot/order".to_string(), multiply(&Value::Int(1), &Value::Float(1.67)));
         m.insert("api/v1/futures/order".to_string(), multiply(&Value::Int(1), &Value::Float(1.67)));
         m.insert("api/v1/spot/openOrders".to_string(), multiply(&Value::Int(5), &Value::Float(1.67)));
-        m.insert("api/v1/futures/batchOrders".to_string(), multiply(&Value::Int(5), &Value::Float(1.67)));
+        m.insert("api/v1/futures/batchOrders".to_string(), multiply(&Value::Int(3), &Value::Float(1.67)));
         m.insert("api/v1/spot/cancelOrderByIds".to_string(), multiply(&Value::Int(5), &Value::Float(1.67)));
-        m.insert("api/v1/futures/cancelOrderByIds".to_string(), multiply(&Value::Int(5), &Value::Float(1.67)));
+        m.insert("api/v1/futures/cancelOrderByIds".to_string(), multiply(&Value::Int(3), &Value::Float(1.67)));
+        m.insert("api/v1/userDataStream".to_string(), Value::Int(1));
         m.insert("api/v1/listenKey".to_string(), Value::Int(1));
     m
 }));
         m.insert("put".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("api/v1/userDataStream".to_string(), Value::Int(1));
         m.insert("api/v1/listenKey".to_string(), Value::Int(1));
     m
 }));
@@ -500,6 +533,7 @@ impl ToobitCore {
         m.insert("-1002".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("-1003".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
         m.insert("-1004".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1005".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("-1006".to_string(), Value::Str("OperationFailed".to_string()).clone());
         m.insert("-1007".to_string(), Value::Str("OperationFailed".to_string()).clone());
         m.insert("-1014".to_string(), Value::Str("OperationFailed".to_string()).clone());
@@ -508,6 +542,8 @@ impl ToobitCore {
         m.insert("-1020".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1021".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1022".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1023".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-1031".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1100".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-1101".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-1102".to_string(), Value::Str("BadRequest".to_string()).clone());
@@ -515,6 +551,7 @@ impl ToobitCore {
         m.insert("-1104".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-1105".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-1106".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1107".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("-1111".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-1112".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1114".to_string(), Value::Str("BadRequest".to_string()).clone());
@@ -524,11 +561,13 @@ impl ToobitCore {
         m.insert("-1118".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("-1119".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("-1120".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1121".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1121".to_string(), Value::Str("BadSymbol".to_string()).clone());
         m.insert("-1125".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1127".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1128".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1129".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-1130".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1131".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
         m.insert("-1132".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1133".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1134".to_string(), Value::Str("OperationRejected".to_string()).clone());
@@ -540,11 +579,28 @@ impl ToobitCore {
         m.insert("-1140".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1141".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("-1142".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1143".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1143".to_string(), Value::Str("OrderNotFound".to_string()).clone());
         m.insert("-1144".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1145".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1146".to_string(), Value::Str("OperationFailed".to_string()).clone());
         m.insert("-1147".to_string(), Value::Str("OperationFailed".to_string()).clone());
+        m.insert("-1148".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1149".to_string(), Value::Str("OperationFailed".to_string()).clone());
+        m.insert("-1150".to_string(), Value::Str("OperationFailed".to_string()).clone());
+        m.insert("-1151".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1153".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-1156".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1157".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1158".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1161".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1164".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1165".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1166".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1170".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1171".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-1172".to_string(), Value::Str("OperationFailed".to_string()).clone());
+        m.insert("-1181".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-1182".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("-1193".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1194".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1195".to_string(), Value::Str("OperationRejected".to_string()).clone());
@@ -556,14 +612,53 @@ impl ToobitCore {
         m.insert("-1201".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1202".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-1203".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1204".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-1205".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-1206".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1207".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1208".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1209".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1210".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1211".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1212".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1213".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("-1214".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-1215".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-1216".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1217".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1300".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1400".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1401".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-1402".to_string(), Value::Str("OperationFailed".to_string()).clone());
+        m.insert("-1403".to_string(), Value::Str("OperationFailed".to_string()).clone());
+        m.insert("-1404".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-1405".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-1406".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1407".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1408".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-1409".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1410".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-1411".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1412".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-1413".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1414".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1415".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1416".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-1417".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-2010".to_string(), Value::Str("OperationFailed".to_string()).clone());
         m.insert("-2011".to_string(), Value::Str("OperationFailed".to_string()).clone());
-        m.insert("-2013".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-2013".to_string(), Value::Str("OrderNotFound".to_string()).clone());
         m.insert("-2014".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("-2015".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("-2016".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-2017".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-2018".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-3000".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3001".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-3002".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("-3050".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3051".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-3052".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-3101".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-3102".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-3103".to_string(), Value::Str("BadRequest".to_string()).clone());
@@ -583,6 +678,38 @@ impl ToobitCore {
         m.insert("-3129".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("-3130".to_string(), Value::Str("OperationRejected".to_string()).clone());
         m.insert("-3131".to_string(), Value::Str("NotSupported".to_string()).clone());
+        m.insert("-3132".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-3133".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-3136".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-3137".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-3138".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-3139".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-3140".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-3141".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-3142".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-3143".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-3144".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-3145".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-3147".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-3148".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-3149".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-3150".to_string(), Value::Str("NotSupported".to_string()).clone());
+        m.insert("-3151".to_string(), Value::Str("NotSupported".to_string()).clone());
+        m.insert("-3152".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3153".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-32045".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-32090".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-32093".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-120041".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-120047".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-120055".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-120067".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-120072".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-120073".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("-120078".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-120510".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-120511".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-120512".to_string(), Value::Str("BadRequest".to_string()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
@@ -793,7 +920,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#check-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -812,6 +939,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -957,8 +1085,8 @@ impl ToobitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1036: bool = true;
-            while { if !__for_first_1036 { i = add(&i, &Value::Int(1)); } __for_first_1036 = false; is_less_than(&i, &get_array_length(&coins)) } {
+            let mut __for_first_1041: bool = true;
+            while { if !__for_first_1041 { i = add(&i, &Value::Int(1)); } __for_first_1041 = false; is_less_than(&i, &get_array_length(&coins)) } {
             let mut coin: Value = get_value(&coins, &i);
             let mut coin: Value = get_value(&coins, &i);
             let mut parsed: Value = self.parse_currency(coin.clone());
@@ -983,13 +1111,14 @@ impl ToobitCore {
         let mut rawNetworks: Value = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1037: bool = true;
-            while { if !__for_first_1037 { j = add(&j, &Value::Int(1)); } __for_first_1037 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
+            let mut __for_first_1042: bool = true;
+            while { if !__for_first_1042 { j = add(&j, &Value::Int(1)); } __for_first_1042 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "chainType", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            add_element_to_object(&mut networks, &networkCode, Value::Map({
+            if !is_equal(&networkCode, &Value::Null) {
+                add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -1018,6 +1147,7 @@ impl ToobitCore {
         m.insert("info".to_string(), rawNetwork.clone());
     m
 }));
+            }
         }
         }
         return self.safe_currency_structure(Value::Map({
@@ -1059,8 +1189,8 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchMarkets
  * @description retrieves data on all markets for toobit
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1209,8 +1339,8 @@ impl ToobitCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1038: bool = true;
-            while { if !__for_first_1038 { i = add(&i, &Value::Int(1)); } __for_first_1038 = false; is_less_than(&i, &get_array_length(&all)) } {
+            let mut __for_first_1043: bool = true;
+            while { if !__for_first_1043 { i = add(&i, &Value::Int(1)); } __for_first_1043 = false; is_less_than(&i, &get_array_length(&all)) } {
             let mut market: Value = get_value(&all, &i);
             let mut market: Value = get_value(&all, &i);
             let mut parsed: Value = self.parse_market(market.clone());
@@ -1327,12 +1457,12 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#order-book
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1391,8 +1521,8 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchTrades
  * @description get a list of the most recent trades for a particular symbol
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum number of trades to fetch
@@ -1536,8 +1666,10 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#index-price-kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#mark-price-kline-candlestick-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1603,8 +1735,8 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1687,7 +1819,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchLastPrices
  * @description fetches the last price for multiple markets
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1743,7 +1875,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1786,8 +1918,8 @@ impl ToobitCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1039: bool = true;
-            while { if !__for_first_1039 { i = add(&i, &Value::Int(1)); } __for_first_1039 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_1044: bool = true;
+            while { if !__for_first_1044 { i = add(&i, &Value::Int(1)); } __for_first_1044 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut parsedTicker: Value = self.parse_bid_ask_custom(get_value(&tickers, &i));
             let mut ticker: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
             append_to_array(&mut results, ticker.clone());
@@ -1819,10 +1951,10 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchFundingRates
  * @description fetch the funding rate for multiple markets
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+ * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
     pub async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
@@ -1888,7 +2020,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1953,9 +2085,9 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
- * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
@@ -1990,8 +2122,8 @@ impl ToobitCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1040: bool = true;
-            while { if !__for_first_1040 { i = add(&i, &Value::Int(1)); } __for_first_1040 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1045: bool = true;
+            while { if !__for_first_1045 { i = add(&i, &Value::Int(1)); } __for_first_1045 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
@@ -1999,7 +2131,9 @@ impl ToobitCore {
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(balance.clone(), Value::Str("free".to_string()), Value::Str("availableBalance".to_string()), &[]));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string2(balance.clone(), Value::Str("total".to_string()), Value::Str("balance".to_string()), &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "locked", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -2011,8 +2145,8 @@ impl ToobitCore {
  * @method
  * @name toobit#createOrder
  * @description create a trade order
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market', 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2059,6 +2193,9 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if is_equal(&type_var, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a type argument".to_string()))));
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_equal(&side, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a side argument".to_string()))));
@@ -2102,6 +2239,12 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if is_equal(&type_var, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a type argument".to_string()))));
+        }
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a side argument".to_string()))));
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2325,8 +2468,8 @@ impl ToobitCore {
  * @method
  * @name toobit#cancelOrder
  * @description cancels an open order
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2380,8 +2523,8 @@ impl ToobitCore {
  * @method
  * @name toobit#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
  * @param {string} symbol unified symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2430,8 +2573,8 @@ impl ToobitCore {
  * @method
  * @name toobit#cancelOrders
  * @description cancel multiple orders
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2479,8 +2622,8 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2524,8 +2667,8 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2574,7 +2717,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2625,7 +2768,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2668,8 +2811,8 @@ impl ToobitCore {
         let mut ordersList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1041: bool = true;
-            while { if !__for_first_1041 { i = add(&i, &Value::Int(1)); } __for_first_1041 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { i = add(&i, &Value::Int(1)); } __for_first_1046 = false; is_less_than(&i, &get_array_length(&response)) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&response, &i));
@@ -2686,8 +2829,8 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -2740,7 +2883,7 @@ impl ToobitCore {
  * @method
  * @name toobit#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount 'spot', 'swap'
@@ -2801,8 +2944,8 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2903,7 +3046,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -2979,7 +3122,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposit structures to retrieve
@@ -3003,7 +3146,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawal structures to retrieve
@@ -3171,7 +3314,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -3226,12 +3369,13 @@ impl ToobitCore {
  * @method
  * @name toobit#withdraw
  * @description make a withdrawal
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag a memo for the transaction
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
@@ -3273,7 +3417,7 @@ impl ToobitCore {
  * @method
  * @name toobit#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3313,7 +3457,7 @@ impl ToobitCore {
  * @method
  * @name toobit#setLeverage
  * @description set the level of leverage for a market
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-leverage-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3349,7 +3493,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -3411,7 +3555,7 @@ impl ToobitCore {
  * @method
  * @name toobit#fetchPositions
  * @description fetch all open positions
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}

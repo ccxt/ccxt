@@ -678,7 +678,7 @@ impl BitvavoCore {
         m.insert("230".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("231".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("232".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("233".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("233".to_string(), Value::Str("OrderNotFound".to_string()).clone());
         m.insert("234".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("235".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("236".to_string(), Value::Str("BadRequest".to_string()).clone());
@@ -800,8 +800,8 @@ impl BitvavoCore {
         let mut fees: Value = self.fees.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_426: bool = true;
-            while { if !__for_first_426 { i = add(&i, &Value::Int(1)); } __for_first_426 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_412: bool = true;
+            while { if !__for_first_412 { i = add(&i, &Value::Int(1)); } __for_first_412 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market", &[]);
@@ -953,12 +953,13 @@ impl BitvavoCore {
         let mut minWithdraw: Value = self.safe_number_k(rawCurrency.clone(), "withdrawalMinAmount", &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_427: bool = true;
-            while { if !__for_first_427 { j = add(&j, &Value::Int(1)); } __for_first_427 = false; is_less_than(&j, &get_array_length(&networksArray)) } {
+            let mut __for_first_413: bool = true;
+            while { if !__for_first_413 { j = add(&j, &Value::Int(1)); } __for_first_413 = false; is_less_than(&j, &get_array_length(&networksArray)) } {
             let mut networkId: Value = get_value(&networksArray, &j);
             let mut networkId: Value = get_value(&networksArray, &j);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            add_element_to_object(&mut networks, &networkCode, Value::Map({
+            if !is_equal(&networkCode, &Value::Null) {
+                add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -980,6 +981,7 @@ impl BitvavoCore {
 }));
     m
 }));
+            }
         }
         }
         return self.safe_currency_structure(Value::Map({
@@ -1326,8 +1328,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_428: bool = true;
-            while { if !__for_first_428 { i = add(&i, &Value::Int(1)); } __for_first_428 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_414: bool = true;
+            while { if !__for_first_414 { i = add(&i, &Value::Int(1)); } __for_first_414 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1400,7 +1402,7 @@ impl BitvavoCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1535,8 +1537,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_429: bool = true;
-            while { if !__for_first_429 { i = add(&i, &Value::Int(1)); } __for_first_429 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_415: bool = true;
+            while { if !__for_first_415 { i = add(&i, &Value::Int(1)); } __for_first_415 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
@@ -1544,7 +1546,9 @@ impl BitvavoCore {
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "inOrder", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -1579,7 +1583,7 @@ impl BitvavoCore {
  * @name bitvavo#fetchAccounts
  * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
  * @description fetch all the accounts associated with a profile
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
  */
     pub async fn fetch_accounts(&mut self, optional_args: &[Value]) -> Value {
@@ -1634,7 +1638,7 @@ impl BitvavoCore {
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
  * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccountId] the unique identifier for the subaccount
  * @param {string} [params.clientRequestId] client defined unique id
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1692,7 +1696,7 @@ impl BitvavoCore {
  * @param {string} [code] unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccountId] the unique identifier for the subaccount
  * @param {int} [params.until] the latest time in ms to fetch transfers for
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1762,7 +1766,7 @@ impl BitvavoCore {
  * @description fetches a transfer
  * @param {string} id transfer id
  * @param {string} [code] unified currency code of the currency transferred
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn fetch_transfer(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
@@ -1892,6 +1896,12 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if is_equal(&type_var, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a type argument".to_string()))));
+        }
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a side argument".to_string()))));
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1984,7 +1994,7 @@ impl BitvavoCore {
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
  * @param {float} [params.stopPrice] Alias for triggerPrice
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -2074,7 +2084,7 @@ impl BitvavoCore {
  * @param {string} side 'buy' or 'sell'
  * @param {float} [amount] how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
@@ -2158,7 +2168,7 @@ impl BitvavoCore {
  * @name bitvavo#cancelAllOrders
  * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
  * @description cancel all open orders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2582,7 +2592,7 @@ impl BitvavoCore {
  * @param {string} [code] unified currency code
  * @param {int} [since] timestamp in ms of the earliest ledger entry
  * @param {int} [limit] max number of ledger entries to return
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @param {int} [params.page] the page number for the transaction history
  * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
@@ -2800,7 +2810,7 @@ impl BitvavoCore {
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
@@ -2865,7 +2875,7 @@ impl BitvavoCore {
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
@@ -3048,12 +3058,14 @@ impl BitvavoCore {
             networkId = currencyCode.clone();
         }
         let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), currencyCode.clone()]);
-        { let __be_tmp = Value::Map({
+        if !is_equal(&networkCode, &Value::Null) {
+            { let __be_tmp = Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), get_value(&result, &Value::Str("deposit".to_string())));
         m.insert("withdraw".to_string(), get_value(&result, &Value::Str("withdraw".to_string())));
     m
 }); add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, __be_tmp); };
+        }
         return result;
 
     Value::Null

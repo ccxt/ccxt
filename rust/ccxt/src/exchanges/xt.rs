@@ -246,6 +246,8 @@ impl crate::exchange_generated::ExchangeBase for XtCore {
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "index_position_break_list" => self.index_position_break_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "merge_position_break_info" => self.merge_position_break_info(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -563,6 +565,7 @@ impl XtCore {
         m.insert("future/user/v1/balance/funding-rate-list".to_string(), Value::Int(1));
         m.insert("future/user/v1/balance/list".to_string(), Value::Int(1));
         m.insert("future/user/v1/position/adl".to_string(), Value::Int(1));
+        m.insert("future/user/v1/position/break-list".to_string(), Value::Int(1));
         m.insert("future/user/v1/position/list".to_string(), Value::Int(1));
         m.insert("future/user/v1/user/collection/list".to_string(), Value::Int(1));
         m.insert("future/user/v1/user/listen-key".to_string(), Value::Int(1));
@@ -613,6 +616,7 @@ impl XtCore {
         m.insert("future/user/v1/balance/funding-rate-list".to_string(), Value::Int(1));
         m.insert("future/user/v1/balance/list".to_string(), Value::Int(1));
         m.insert("future/user/v1/position/adl".to_string(), Value::Int(1));
+        m.insert("future/user/v1/position/break-list".to_string(), Value::Int(1));
         m.insert("future/user/v1/position/list".to_string(), Value::Int(1));
         m.insert("future/user/v1/user/collection/list".to_string(), Value::Int(1));
         m.insert("future/user/v1/user/listen-key".to_string(), Value::Int(1));
@@ -639,6 +643,7 @@ impl XtCore {
         m.insert("future/user/v1/position/margin".to_string(), Value::Int(1));
         m.insert("future/user/v1/user/collection/add".to_string(), Value::Int(1));
         m.insert("future/user/v1/user/collection/cancel".to_string(), Value::Int(1));
+        m.insert("future/user/v1/position/change-type".to_string(), Value::Int(1));
     m
 }));
     m
@@ -997,7 +1002,7 @@ impl XtCore {
         m.insert("sandbox".to_string(), Value::Bool(false));
         m.insert("createOrder".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("marginMode".to_string(), Value::Bool(false));
+        m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("triggerPrice".to_string(), Value::Bool(false));
         m.insert("triggerDirection".to_string(), Value::Bool(false));
         m.insert("triggerPriceType".to_string(), Value::Null);
@@ -1098,6 +1103,7 @@ impl XtCore {
         m.insert("extends".to_string(), Value::Str("default".to_string()));
         m.insert("createOrder".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1165,7 +1171,7 @@ impl XtCore {
  * @name xt#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the xt server
  * @see https://doc.xt.com/#market1serverInfo
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the xt server
  */
     pub async fn fetch_time(&mut self, optional_args: &[Value]) -> Value {
@@ -1195,7 +1201,7 @@ impl XtCore {
  * @name xt#fetchCurrencies
  * @description fetches all available currencies on an exchange
  * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_currencies(&mut self, optional_args: &[Value]) -> Value {
@@ -1268,8 +1274,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1086: bool = true;
-            while { if !__for_first_1086 { i = add(&i, &Value::Int(1)); } __for_first_1086 = false; is_less_than(&i, &get_array_length(&currenciesData)) } {
+            let mut __for_first_1091: bool = true;
+            while { if !__for_first_1091 { i = add(&i, &Value::Int(1)); } __for_first_1091 = false; is_less_than(&i, &get_array_length(&currenciesData)) } {
             let mut entry: Value = get_value(&currenciesData, &i);
             let mut entry: Value = get_value(&currenciesData, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -1285,13 +1291,14 @@ impl XtCore {
             });
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1085: bool = true;
-                while { if !__for_first_1085 { j = add(&j, &Value::Int(1)); } __for_first_1085 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
+                let mut __for_first_1090: bool = true;
+                while { if !__for_first_1090 { j = add(&j, &Value::Int(1)); } __for_first_1090 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
                 let mut rawNetwork: Value = get_value(&rawNetworks, &j);
                 let mut rawNetwork: Value = get_value(&rawNetworks, &j);
                 let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "chain", &[]);
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-                add_element_to_object(&mut networks, &networkCode, Value::Map({
+                if !is_equal(&networkCode, &Value::Null) {
+                    add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawNetwork.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -1326,6 +1333,7 @@ impl XtCore {
 }));
     m
 }));
+                }
             }
             }
             let mut typeRaw: Value = self.safe_string_k(entry.clone(), "type", &[]);
@@ -1335,7 +1343,8 @@ impl XtCore {
             }  else {
                 type_var = Value::Str("other".to_string());
             }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
         m.insert("id".to_string(), currencyId.clone());
@@ -1372,6 +1381,7 @@ impl XtCore {
 }));
     m
 })));
+            }
         }
         }
         return result;
@@ -1385,7 +1395,7 @@ impl XtCore {
  * @description retrieves data on all markets for xt
  * @see https://doc.xt.com/#market2symbol
  * @see https://doc.xt.com/#futures_quotesgetSymbols
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_markets(&mut self, optional_args: &[Value]) -> Value {
@@ -1551,8 +1561,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1087: bool = true;
-            while { if !__for_first_1087 { i = add(&i, &Value::Int(1)); } __for_first_1087 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_1092: bool = true;
+            while { if !__for_first_1092 { i = add(&i, &Value::Int(1)); } __for_first_1092 = false; is_less_than(&i, &get_array_length(&markets)) } {
             append_to_array(&mut result, self.parse_market(get_value(&markets, &i)));
         }
         }
@@ -1695,8 +1705,8 @@ impl XtCore {
         let mut amountPrecision: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1088: bool = true;
-            while { if !__for_first_1088 { i = add(&i, &Value::Int(1)); } __for_first_1088 = false; is_less_than(&i, &get_array_length(&filters)) } {
+            let mut __for_first_1093: bool = true;
+            while { if !__for_first_1093 { i = add(&i, &Value::Int(1)); } __for_first_1093 = false; is_less_than(&i, &get_array_length(&filters)) } {
             let mut entry: Value = get_value(&filters, &i);
             let mut entry: Value = get_value(&filters, &i);
             let mut filter: Value = self.safe_string_k(entry.clone(), "filter", &[]);
@@ -1788,8 +1798,8 @@ impl XtCore {
         m.insert("contract".to_string(), contract.clone());
         m.insert("linear".to_string(), linear.clone());
         m.insert("inverse".to_string(), inverse.clone());
-        m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFee", &[]));
-        m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFee", &[]));
+        m.insert("taker".to_string(), self.safe_number2(market.clone(), Value::Str("takerFee".to_string()), Value::Str("takerFeeRate".to_string()), &[]));
+        m.insert("maker".to_string(), self.safe_number2(market.clone(), Value::Str("makerFee".to_string()), Value::Str("makerFeeRate".to_string()), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));
@@ -1848,7 +1858,7 @@ impl XtCore {
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1996,8 +2006,8 @@ impl XtCore {
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified market symbol to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
- * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+ * @param {object} params extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -2105,7 +2115,7 @@ impl XtCore {
  * @see https://doc.xt.com/#market10ticker24h
  * @see https://doc.xt.com/#futures_quotesgetAggTicker
  * @param {string} symbol unified market symbol to fetch the ticker for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
     pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -2195,7 +2205,7 @@ impl XtCore {
  * @see https://doc.xt.com/#market10ticker24h
  * @see https://doc.xt.com/#futures_quotesgetAggTickers
  * @param {string} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
@@ -2286,11 +2296,13 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1089: bool = true;
-            while { if !__for_first_1089 { i = add(&i, &Value::Int(1)); } __for_first_1089 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_1094: bool = true;
+            while { if !__for_first_1094 { i = add(&i, &Value::Int(1)); } __for_first_1094 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&tickers, &i), &[market.clone()]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut result, &symbol, ticker.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut result, &symbol, ticker.clone());
+            }
         }
         }
         return self.filter_by_array(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
@@ -2304,7 +2316,7 @@ impl XtCore {
  * @description fetches the bid and ask price and volume for multiple markets
  * @see https://doc.xt.com/#market9tickerBook
  * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
     pub async fn fetch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
@@ -2434,7 +2446,7 @@ impl XtCore {
         m.insert("change".to_string(), self.safe_number_k(ticker.clone(), "cv", &[]));
         m.insert("percentage".to_string(), self.parse_number(percentage.clone(), &[]));
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_number_k(ticker.clone(), "a", &[]));
+        m.insert("baseVolume".to_string(), self.safe_number2(ticker.clone(), Value::Str("a".to_string()), Value::Str("q".to_string()), &[]));
         m.insert("quoteVolume".to_string(), self.safe_number_k(ticker.clone(), "v", &[]));
         m.insert("info".to_string(), ticker.clone());
     m
@@ -2452,7 +2464,7 @@ impl XtCore {
  * @param {string} symbol unified market symbol to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
     pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -2541,7 +2553,7 @@ impl XtCore {
  * @param {string} [symbol] unified market symbol to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
@@ -2848,7 +2860,7 @@ impl XtCore {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://doc.xt.com/#balancebalancesGet
  * @see https://doc.xt.com/#futures_usergetBalances
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
@@ -2965,8 +2977,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1090: bool = true;
-            while { if !__for_first_1090 { i = add(&i, &Value::Int(1)); } __for_first_1090 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1095: bool = true;
+            while { if !__for_first_1095 { i = add(&i, &Value::Int(1)); } __for_first_1095 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("currency".to_string()), Value::Str("coin".to_string()), &[]);
@@ -2982,7 +2994,9 @@ impl XtCore {
             add_element_to_object(&mut account, &Value::Str("free".to_string()), free.clone());
             add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
             add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -3030,7 +3044,7 @@ impl XtCore {
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much you want to trade in units of the base currency
  * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
  * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
  * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
@@ -3231,7 +3245,7 @@ impl XtCore {
  * @see https://doc.xt.com/#futures_entrustgetProfitById
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3431,7 +3445,7 @@ impl XtCore {
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
@@ -3901,7 +3915,7 @@ impl XtCore {
         if !is_equal(&resultDict, &Value::Null) {
             orders = self.safe_list_k(resultDict.clone(), "items", &[Value::List(vec![])]);
         }  else {
-            orders = self.safe_list_k(response.clone(), "result", &[]);
+            orders = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
         }
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -3919,7 +3933,7 @@ impl XtCore {
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of open order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3948,7 +3962,7 @@ impl XtCore {
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3977,7 +3991,7 @@ impl XtCore {
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -4005,7 +4019,7 @@ impl XtCore {
  * @see https://doc.xt.com/#futures_entrustcancelProfit
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -4109,7 +4123,7 @@ impl XtCore {
  * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
  * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -4183,7 +4197,7 @@ impl XtCore {
  * @see https://doc.xt.com/#orderbatchOrderDel
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
@@ -4354,6 +4368,21 @@ impl XtCore {
         let mut filledQuantity: Value = self.safe_number_k(order.clone(), "executedQty", &[]);
         let mut filled: Value = ternary(is_true(&(is_equal(&marketType, &Value::Str("spot".to_string())))), filledQuantity.clone(), crate::precise::Precise::stringMul(&self.number_to_string(filledQuantity.clone()), &self.number_to_string(get_value(&market, &Value::Str("contractSize".to_string())))));
         let mut lastUpdatedTimestamp: Value = self.safe_integer_k(order.clone(), "updatedTime", &[]);
+        let mut side: Value = self.safe_string_lower2(order.clone(), Value::Str("side".to_string()), Value::Str("orderSide".to_string()), &[]);
+        if is_equal(&side, &Value::Null) {
+            // the stop loss and take profit entries carry only the position
+            // side, they close the position, so a long position closes with a
+            // sell and a short position closes with a buy
+            // see https://github.com/ccxt/ccxt/issues/25288
+            let mut positionSide: Value = self.safe_string_k(order.clone(), "positionSide", &[]);
+            if !is_equal(&positionSide, &Value::Null) {
+                if is_equal(&positionSide, &Value::Str("LONG".to_string())) {
+                    side = Value::Str("sell".to_string());
+                }  else {
+                    side = Value::Str("buy".to_string());
+                }
+            }
+        }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -4367,7 +4396,7 @@ impl XtCore {
         m.insert("type".to_string(), self.safe_string_lower2(order.clone(), Value::Str("type".to_string()), Value::Str("orderType".to_string()), &[]));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower2(order.clone(), Value::Str("side".to_string()), Value::Str("orderSide".to_string()), &[]));
+        m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "stopPrice", &[]));
         m.insert("stopLoss".to_string(), self.safe_number_k(order.clone(), "triggerStopPrice", &[]));
@@ -4422,7 +4451,7 @@ impl XtCore {
  * @param {string} [code] unified currency code
  * @param {int} [since] timestamp in ms of the earliest ledger entry
  * @param {int} [limit] max number of ledger entries to return
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
  */
     pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
@@ -4568,7 +4597,7 @@ impl XtCore {
  * @description fetch the deposit address for a currency associated with this account
  * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
  * @param {string} code unified currency code
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.network required network id
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
  */
@@ -4644,7 +4673,7 @@ impl XtCore {
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of transaction structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
     pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
@@ -4719,7 +4748,7 @@ impl XtCore {
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of transaction structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
     pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
@@ -4795,7 +4824,7 @@ impl XtCore {
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} [tag]
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
@@ -4956,7 +4985,7 @@ impl XtCore {
  * @see https://doc.xt.com/#futures_useradjustLeverage
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} response from the exchange
  */
@@ -5010,7 +5039,7 @@ impl XtCore {
  * @see https://doc.xt.com/#futures_useradjustMargin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
@@ -5031,7 +5060,7 @@ impl XtCore {
  * @see https://doc.xt.com/#futures_useradjustMargin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
@@ -5105,7 +5134,7 @@ impl XtCore {
  * @description retrieve information on the maximum leverage for different trade sizes
  * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
  * @param {string} [symbols] a list of unified market symbols
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
     pub async fn fetch_leverage_tiers(&mut self, optional_args: &[Value]) -> Value {
@@ -5182,8 +5211,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1091: bool = true;
-            while { if !__for_first_1091 { i = add(&i, &Value::Int(1)); } __for_first_1091 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1096: bool = true;
+            while { if !__for_first_1096 { i = add(&i, &Value::Int(1)); } __for_first_1096 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5209,7 +5238,7 @@ impl XtCore {
  * @description retrieve information on the maximum leverage for different trade sizes of a single market
  * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
  * @param {string} symbol unified market symbol
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
     pub async fn fetch_market_leverage_tiers(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -5290,8 +5319,8 @@ impl XtCore {
         let mut brackets: Value = self.safe_value_k(info.clone(), "leverageBrackets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1092: bool = true;
-            while { if !__for_first_1092 { i = add(&i, &Value::Int(1)); } __for_first_1092 = false; is_less_than(&i, &get_array_length(&brackets)) } {
+            let mut __for_first_1097: bool = true;
+            while { if !__for_first_1097 { i = add(&i, &Value::Int(1)); } __for_first_1097 = false; is_less_than(&i, &get_array_length(&brackets)) } {
             let mut tier: Value = get_value(&brackets, &i);
             let mut tier: Value = get_value(&brackets, &i);
             let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
@@ -5324,7 +5353,7 @@ impl XtCore {
  * @param {string} [symbol] unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} params.paginate true/false whether to use the pagination helper to aumatically paginate through the results
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
  */
@@ -5399,8 +5428,8 @@ impl XtCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1093: bool = true;
-            while { if !__for_first_1093 { i = add(&i, &Value::Int(1)); } __for_first_1093 = false; is_less_than(&i, &get_array_length(&items)) } {
+            let mut __for_first_1098: bool = true;
+            while { if !__for_first_1098 { i = add(&i, &Value::Int(1)); } __for_first_1098 = false; is_less_than(&i, &get_array_length(&items)) } {
             let mut entry: Value = get_value(&items, &i);
             let mut entry: Value = get_value(&items, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5448,7 +5477,7 @@ impl XtCore {
  * @description fetch the current funding rate
  * @see https://doc.xt.com/#futures_quotesgetFundingRate
  * @param {string} symbol unified market symbol
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -5551,7 +5580,7 @@ impl XtCore {
  * @param {string} symbol unified market symbol
  * @param {int} [since] the starting timestamp in milliseconds
  * @param {int} [limit] the number of entries to return
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
     pub async fn fetch_funding_history(&mut self, optional_args: &[Value]) -> Value {
@@ -5619,8 +5648,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1094: bool = true;
-            while { if !__for_first_1094 { i = add(&i, &Value::Int(1)); } __for_first_1094 = false; is_less_than(&i, &get_array_length(&items)) } {
+            let mut __for_first_1099: bool = true;
+            while { if !__for_first_1099 { i = add(&i, &Value::Int(1)); } __for_first_1099 = false; is_less_than(&i, &get_array_length(&items)) } {
             let mut entry: Value = get_value(&items, &i);
             let mut entry: Value = get_value(&items, &i);
             append_to_array(&mut result, self.parse_funding_history(entry.clone(), &[market.clone()]));
@@ -5665,12 +5694,67 @@ impl XtCore {
 }
 
 /*
+ * @ignore
+ * @method
+ * @param {object[]} breakList the "result" array of a position/break-list response
+ */
+    pub fn index_position_break_list(&self, mut breakList: Value) -> Value {
+        let mut breakBySymbolSide: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1100: bool = true;
+            while { if !__for_first_1100 { i = add(&i, &Value::Int(1)); } __for_first_1100 = false; is_less_than(&i, &get_array_length(&breakList)) } {
+            let mut breakEntry: Value = get_value(&breakList, &i);
+            let mut breakEntry: Value = get_value(&breakList, &i);
+            // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
+            // endpoint, including here and on position/list; there is no one-way/net
+            // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            // both validate positionSide against exactly ['LONG', 'SHORT'])
+            let mut key: Value = add(&add(&self.safe_string_k(breakEntry.clone(), "symbol", &[]), &Value::Str("_".to_string())), &self.safe_string_k(breakEntry.clone(), "positionSide", &[]));
+            add_element_to_object(&mut breakBySymbolSide, &key, breakEntry.clone());
+        }
+        }
+        return breakBySymbolSide;
+
+    Value::Null
+}
+
+/*
+ * @ignore
+ * @method
+ * @param {object} entry a single entry from a position/list response
+ * @param {object} breakBySymbolSide the result of indexPositionBreakList()
+ */
+    pub fn merge_position_break_info(&self, mut entry: Value, mut breakBySymbolSide: Value) -> Value {
+        let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
+        let mut key: Value = add(&add(&marketId, &Value::Str("_".to_string())), &self.safe_string_k(entry.clone(), "positionSide", &[]));
+        let mut breakEntry: Value = self.safe_dict(breakBySymbolSide.clone(), key.clone(), &[]);
+        if is_equal(&breakEntry, &Value::Null) {
+            return entry;
+        }
+        let __ws_arg_79 = self.safe_string_k(breakEntry.clone(), "breakPrice", &[]);
+        let __ws_arg_80 = self.safe_string_k(breakEntry.clone(), "calMarkPrice", &[]);
+        return self.extend(entry.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("breakPrice".to_string(), __ws_arg_79);
+        m.insert("calMarkPrice".to_string(), __ws_arg_80);
+    m
+})]);
+
+    Value::Null
+}
+
+/*
  * @method
  * @name xt#fetchPosition
  * @description fetch data on a single open contract trade position
  * @see https://doc.xt.com/#futures_usergetPosition
+ * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
  * @param {string} symbol unified market symbol of the market the position is held in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -5689,14 +5773,23 @@ impl XtCore {
         });
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchPosition".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = Value::Null;
+        let mut promisesUnresolved: Value = Value::List(vec![]);
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            let __ws_arg_79 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_inverse_get_future_user_v1_position_list(&[__ws_arg_79]).await;
+            let __ws_arg_81 = self.extend(request.clone(), &[params.clone()]);
+            append_to_array(&mut promisesUnresolved, self.private_inverse_get_future_user_v1_position_list(&[__ws_arg_81]).await);
+            let __ws_arg_82 = self.extend(request.clone(), &[params.clone()]);
+            append_to_array(&mut promisesUnresolved, self.private_inverse_get_future_user_v1_position_break_list(&[__ws_arg_82]).await);
         }  else {
-            let __ws_arg_80 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_linear_get_future_user_v1_position_list(&[__ws_arg_80]).await;
+            let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
+            append_to_array(&mut promisesUnresolved, self.private_linear_get_future_user_v1_position_list(&[__ws_arg_83]).await);
+            let __ws_arg_84 = self.extend(request.clone(), &[params.clone()]);
+            append_to_array(&mut promisesUnresolved, self.private_linear_get_future_user_v1_position_break_list(&[__ws_arg_84]).await);
         }
+        let mut responsebreakResponseVariable = promise_all(&promisesUnresolved).await;
+        let mut response: Value = get_value(&responsebreakResponseVariable, &Value::Int(0));
+        let mut breakResponse: Value = get_value(&responsebreakResponseVariable, &Value::Int(1));
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -5717,27 +5810,44 @@ impl XtCore {
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        let mut positions: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        let mut positions: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse.clone(), "result", &[Value::List(vec![])]));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1095: bool = true;
-            while { if !__for_first_1095 { i = add(&i, &Value::Int(1)); } __for_first_1095 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_1101: bool = true;
+            while { if !__for_first_1101 { i = add(&i, &Value::Int(1)); } __for_first_1101 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut entry: Value = get_value(&positions, &i);
             let mut entry: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut marketInner: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("contract".to_string())]);
             let mut positionSize: Value = self.safe_string_k(entry.clone(), "positionSize", &[]);
             if !is_equal(&positionSize, &Value::Str("0".to_string())) {
-                return self.parse_position(entry.clone(), &[marketInner.clone()]);
+                let mut merged: Value = self.merge_position_break_info(entry.clone(), breakBySymbolSide.clone());
+                return self.parse_position(merged.clone(), &[marketInner.clone()]);
             }
         }
         }
-        return Value::Null;
+        panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchPosition() could not find a position for ".to_string())), &symbol)));
 
     Value::Null
 }
@@ -5747,8 +5857,9 @@ impl XtCore {
  * @name xt#fetchPositions
  * @description fetch all open positions
  * @see https://doc.xt.com/#futures_usergetPosition
+ * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
  * @param {string} [symbols] list of unified market symbols, not supported with xt
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
@@ -5762,12 +5873,19 @@ impl XtCore {
         }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchPositions".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = Value::Null;
+        let mut promisesUnresolved: Value = Value::List(vec![]);
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.private_inverse_get_future_user_v1_position_list(&[params.clone()]).await;
+            append_to_array(&mut promisesUnresolved, self.private_inverse_get_future_user_v1_position_list(&[params.clone()]).await);
+            append_to_array(&mut promisesUnresolved, self.private_inverse_get_future_user_v1_position_break_list(&[params.clone()]).await);
         }  else {
-            response = self.private_linear_get_future_user_v1_position_list(&[params.clone()]).await;
+            append_to_array(&mut promisesUnresolved, self.private_linear_get_future_user_v1_position_list(&[params.clone()]).await);
+            append_to_array(&mut promisesUnresolved, self.private_linear_get_future_user_v1_position_break_list(&[params.clone()]).await);
         }
+        let mut responsebreakResponseVariable = promise_all(&promisesUnresolved).await;
+        let mut response: Value = get_value(&responsebreakResponseVariable, &Value::Int(0));
+        let mut breakResponse: Value = get_value(&responsebreakResponseVariable, &Value::Int(1));
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -5788,22 +5906,39 @@ impl XtCore {
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        let mut positions: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        let mut positions: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse.clone(), "result", &[Value::List(vec![])]));
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1096: bool = true;
-            while { if !__for_first_1096 { i = add(&i, &Value::Int(1)); } __for_first_1096 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_1102: bool = true;
+            while { if !__for_first_1102 { i = add(&i, &Value::Int(1)); } __for_first_1102 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut entry: Value = get_value(&positions, &i);
             let mut entry: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut marketInner: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("contract".to_string())]);
-            append_to_array(&mut result, self.parse_position(entry.clone(), &[marketInner.clone()]));
+            let mut merged: Value = self.merge_position_break_info(entry.clone(), breakBySymbolSide.clone());
+            append_to_array(&mut result, self.parse_position(merged.clone(), &[marketInner.clone()]));
         }
         }
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
@@ -5813,6 +5948,8 @@ impl XtCore {
 
     pub fn parse_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        //
+        // position/list
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -5828,7 +5965,17 @@ impl XtCore {
         //         "openOrderMarginFrozen": "0",
         //         "realizedProfit": "-0.00130138",
         //         "autoMargin": false,
-        //         "leverage": 25
+        //         "leverage": 25,
+        //         "markPrice": "27050"
+        //     }
+        //
+        // position/break-list
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "positionSide": "SHORT",
+        //         "breakPrice": "0",
+        //         "calMarkPrice": "27050"
         //     }
         //
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
@@ -5837,6 +5984,7 @@ impl XtCore {
         let mut positionType: Value = self.safe_string_k(position.clone(), "positionType", &[]);
         let mut marginMode: Value = ternary(is_true(&(is_equal(&positionType, &Value::Str("CROSSED".to_string())))), Value::Str("cross".to_string()), Value::Str("isolated".to_string()));
         let mut collateral: Value = self.safe_number_k(position.clone(), "isolatedMargin", &[]);
+        let mut liquidationPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "breakPrice", &[]));
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -5849,7 +5997,7 @@ impl XtCore {
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "positionSize", &[]));
         m.insert("contractSize".to_string(), get_value(&market, &Value::Str("contractSize".to_string())));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entryPrice", &[]));
-        m.insert("markPrice".to_string(), Value::Null);
+        m.insert("markPrice".to_string(), self.safe_number2(position.clone(), Value::Str("markPrice".to_string()), Value::Str("calMarkPrice".to_string()), &[]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "leverage", &[]));
         m.insert("collateral".to_string(), collateral.clone());
@@ -5858,7 +6006,7 @@ impl XtCore {
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), Value::Null);
+        m.insert("liquidationPrice".to_string(), self.parse_number(liquidationPriceString.clone(), &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("percentage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
@@ -5877,7 +6025,7 @@ impl XtCore {
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
  * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
- * @param {object} params extra parameters specific to the whitebit api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
@@ -5902,8 +6050,8 @@ impl XtCore {
                 m.insert("to".to_string(), toAccountId.clone());
             m
         });
-        let __ws_arg_81 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_spot_post_balance_transfer(&[__ws_arg_81]).await;
+        let __ws_arg_85 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_post_balance_transfer(&[__ws_arg_85]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -5965,9 +6113,8 @@ impl XtCore {
             marginMode = Value::Str("ISOLATED".to_string());
         }
         let mut posSide: Value = self.safe_string_upper(params.clone(), Value::Str("positionSide".to_string()), &[]);
-        if is_equal(&posSide, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a positionSide parameter, either \"LONG\" or \"SHORT\"".to_string()))));
-        }
+        self.check_required_argument(Value::Str("setMarginMode".to_string()), posSide.clone(), Value::Str("positionSide".to_string()), &[Value::List(vec![Value::Str("LONG".to_string()), Value::Str("SHORT".to_string())])]);
+        params = self.omit(params.clone(), Value::Str("positionSide".to_string()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("positionType".to_string(), marginMode.clone());
@@ -5975,8 +6122,16 @@ impl XtCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_82 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_linear_post_future_user_v1_position_change_type(&[__ws_arg_82]).await;
+        let mut subType: Value = Value::Null;
+        { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("setMarginMode".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut response: Value = Value::Null;
+        if is_equal(&subType, &Value::Str("inverse".to_string())) {
+            let __ws_arg_86 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_inverse_post_future_user_v1_position_change_type(&[__ws_arg_86]).await;
+        }  else {
+            let __ws_arg_87 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_linear_post_future_user_v1_position_change_type(&[__ws_arg_87]).await;
+        }
         return response;
 
     Value::Null
@@ -6042,25 +6197,25 @@ impl XtCore {
             { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("editOrder".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
                 if is_true(&isStopLoss) || is_true(&isTakeProfit) {
-                    let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_inverse_post_future_trade_v1_entrust_update_profit_stop(&[__ws_arg_83]).await;
+                    let __ws_arg_88 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_inverse_post_future_trade_v1_entrust_update_profit_stop(&[__ws_arg_88]).await;
                 }  else {
-                    let __ws_arg_84 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_inverse_post_future_trade_v1_order_update(&[__ws_arg_84]).await;
+                    let __ws_arg_89 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_inverse_post_future_trade_v1_order_update(&[__ws_arg_89]).await;
                 }
             }  else {
                 if is_true(&isStopLoss) || is_true(&isTakeProfit) {
-                    let __ws_arg_85 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_linear_post_future_trade_v1_entrust_update_profit_stop(&[__ws_arg_85]).await;
+                    let __ws_arg_90 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_linear_post_future_trade_v1_entrust_update_profit_stop(&[__ws_arg_90]).await;
                 }  else {
-                    let __ws_arg_86 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_linear_post_future_trade_v1_order_update(&[__ws_arg_86]).await;
+                    let __ws_arg_91 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_linear_post_future_trade_v1_order_update(&[__ws_arg_91]).await;
                 }
             }
         }  else {
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
-            let __ws_arg_87 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_spot_put_order_order_id(&[__ws_arg_87]).await;
+            let __ws_arg_92 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_put_order_order_id(&[__ws_arg_92]).await;
         }
         let mut result: Value = ternary(is_true(&(get_value(&market, &Value::Str("swap".to_string())))), response.clone(), self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6182,8 +6337,14 @@ impl XtCore {
             body = query.clone();
             if is_true(&(is_equal(&payload, &Value::Str("/v4/order".to_string())))) || is_true(&(is_equal(&payload, &Value::Str("/future/trade/v1/order/create".to_string())))) || is_true(&(is_equal(&payload, &Value::Str("/future/trade/v1/entrust/create-plan".to_string())))) || is_true(&(is_equal(&payload, &Value::Str("/future/trade/v1/entrust/create-profit".to_string())))) || is_true(&(is_equal(&payload, &Value::Str("/future/trade/v1/order/create-batch".to_string())))) {
                 let mut id: Value = Value::Str("CCXT".to_string());
+                if is_equal(&body, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" sign() returned empty body".to_string()))));
+                }
                 if is_greater_than(&get_index_of(&payload, &Value::Str("future".to_string())), &negate(&Value::Int(1))) {
                     add_element_to_object(&mut body, &Value::Str("clientMedia".to_string()), id.clone());
+                    if is_equal(&body, &Value::Null) {
+                        panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" sign() returned empty body".to_string()))));
+                    }
                 }  else {
                     add_element_to_object(&mut body, &Value::Str("media".to_string()), id.clone());
                 }

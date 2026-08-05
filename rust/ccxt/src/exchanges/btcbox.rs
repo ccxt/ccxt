@@ -479,8 +479,8 @@ impl BtcboxCore {
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_441: bool = true;
-            while { if !__for_first_441 { i = add(&i, &Value::Int(1)); } __for_first_441 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_427: bool = true;
+            while { if !__for_first_427 { i = add(&i, &Value::Int(1)); } __for_first_427 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut symbolParts: Value = split(&marketId, &Value::Str("_".to_string()));
@@ -579,7 +579,7 @@ impl BtcboxCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote", &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("uppercaseId".to_string(), Value::Null);
@@ -642,7 +642,7 @@ impl BtcboxCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -656,8 +656,8 @@ impl BtcboxCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_442: bool = true;
-            while { if !__for_first_442 { i = add(&i, &Value::Int(1)); } __for_first_442 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_428: bool = true;
+            while { if !__for_first_428 { i = add(&i, &Value::Int(1)); } __for_first_428 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut currency: Value = self.currency(code.clone());
@@ -707,7 +707,7 @@ impl BtcboxCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -723,7 +723,7 @@ impl BtcboxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut numSymbols: Value = ternary(is_true(&(is_equal(&self.symbols, &Value::Null))), Value::Int(0), get_array_length(&self.symbols));
+        let mut numSymbols: Value = get_array_length(&self.symbols);
         if is_greater_than(&numSymbols, &Value::Int(1)) {
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
         }
@@ -788,7 +788,7 @@ impl BtcboxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut numSymbols: Value = ternary(is_true(&(is_equal(&self.symbols, &Value::Null))), Value::Int(0), get_array_length(&self.symbols));
+        let mut numSymbols: Value = get_array_length(&self.symbols);
         if is_greater_than(&numSymbols, &Value::Int(1)) {
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
         }
@@ -889,7 +889,7 @@ impl BtcboxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut numSymbols: Value = ternary(is_true(&(is_equal(&self.symbols, &Value::Null))), Value::Int(0), get_array_length(&self.symbols));
+        let mut numSymbols: Value = get_array_length(&self.symbols);
         if is_greater_than(&numSymbols, &Value::Int(1)) {
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
         }
@@ -1135,8 +1135,8 @@ impl BtcboxCore {
         if is_equal(&type_var, &Value::Str("open".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_443: bool = true;
-                while { if !__for_first_443 { i = add(&i, &Value::Int(1)); } __for_first_443 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                let mut __for_first_429: bool = true;
+                while { if !__for_first_429 { i = add(&i, &Value::Int(1)); } __for_first_429 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 add_element_to_object(get_value_mut(&mut orders, &i), &Value::Str("status".to_string()), Value::Str("open".to_string()));
             }
             }

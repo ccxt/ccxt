@@ -170,6 +170,8 @@ impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
             match method {
                 "action_hash" => self.action_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "amount_to_precision" => self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "approve_builder_fee" => self.approve_builder_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "build_approve_builder_fee_sig" => self.build_approve_builder_fee_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "build_outcome_parent_symbol" => self.build_outcome_parent_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
                 "build_outcome_symbol" => self.build_outcome_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "calculate_price_precision" => self.calculate_price_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -219,6 +221,7 @@ impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
                 "sign_hash" => self.sign_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_l1_action" => self.sign_l1_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "sign_user_signed_action" => self.sign_user_signed_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
             }
@@ -381,7 +384,10 @@ impl HyperliquidCore {
         m.insert("outcomeQuoteCurrency".to_string(), Value::Str("USDH".to_string()));
         m.insert("defaultSlippage".to_string(), Value::Float(0.05));
         m.insert("zeroAddress".to_string(), Value::Str("0x0000000000000000000000000000000000000000".to_string()));
-        m.insert("builderFee".to_string(), Value::Bool(false));
+        m.insert("builderFee".to_string(), Value::Bool(true));
+        m.insert("builder".to_string(), Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".to_string()));
+        m.insert("feeRate".to_string(), Value::Str("0%".to_string()));
+        m.insert("feeInt".to_string(), Value::Int(0));
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
@@ -494,8 +500,8 @@ impl HyperliquidCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1104: bool = true;
-            while { if !__for_first_1104 { i = add(&i, &Value::Int(1)); } __for_first_1104 = false; is_less_than(&i, &get_array_length(&parts)) } {
+            let mut __for_first_1110: bool = true;
+            while { if !__for_first_1110 { i = add(&i, &Value::Int(1)); } __for_first_1110 = false; is_less_than(&i, &get_array_length(&parts)) } {
             let mut part: Value = get_value(&parts, &i);
             let mut part: Value = get_value(&parts, &i);
             let mut colonIndex: Value = get_index_of(&part, &Value::Str(":".to_string()));
@@ -588,8 +594,8 @@ impl HyperliquidCore {
                     let mut thresholds: Value = Value::List(vec![]);
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_1105: bool = true;
-                        while { if !__for_first_1105 { i = add(&i, &Value::Int(1)); } __for_first_1105 = false; is_less_than(&i, &get_array_length(&thresholdParts)) } {
+                        let mut __for_first_1111: bool = true;
+                        while { if !__for_first_1111 { i = add(&i, &Value::Int(1)); } __for_first_1111 = false; is_less_than(&i, &get_array_length(&thresholdParts)) } {
                         let mut trimmed: Value = trim(&get_value(&thresholdParts, &i));
                         if is_greater_than(&get_array_length(&trimmed), &Value::Int(0)) {
                             append_to_array(&mut thresholds, trimmed.clone());
@@ -716,8 +722,8 @@ impl HyperliquidCore {
         });
         {
                         let mut qi: Value = Value::Int(0);
-            let mut __for_first_1107: bool = true;
-            while { if !__for_first_1107 { qi = add(&qi, &Value::Int(1)); } __for_first_1107 = false; is_less_than(&qi, &get_array_length(&questionsList)) } {
+            let mut __for_first_1113: bool = true;
+            while { if !__for_first_1113 { qi = add(&qi, &Value::Int(1)); } __for_first_1113 = false; is_less_than(&qi, &get_array_length(&questionsList)) } {
             let mut question: Value = self.safe_dict(questionsList.clone(), qi.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -730,8 +736,8 @@ impl HyperliquidCore {
             let mut namedOutcomes: Value = self.safe_list_k(question.clone(), "namedOutcomes", &[Value::List(vec![])]);
             {
                                 let mut ni: Value = Value::Int(0);
-                let mut __for_first_1106: bool = true;
-                while { if !__for_first_1106 { ni = add(&ni, &Value::Int(1)); } __for_first_1106 = false; is_less_than(&ni, &get_array_length(&namedOutcomes)) } {
+                let mut __for_first_1112: bool = true;
+                while { if !__for_first_1112 { ni = add(&ni, &Value::Int(1)); } __for_first_1112 = false; is_less_than(&ni, &get_array_length(&namedOutcomes)) } {
                 let mut namedOutcomeId: Value = self.safe_integer(namedOutcomes.clone(), ni.clone(), &[]);
                 if !is_equal(&namedOutcomeId, &Value::Null) {
                     let mut namedKey: Value = to_string_val(&namedOutcomeId);
@@ -756,8 +762,8 @@ impl HyperliquidCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1109: bool = true;
-            while { if !__for_first_1109 { i = add(&i, &Value::Int(1)); } __for_first_1109 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
+            let mut __for_first_1115: bool = true;
+            while { if !__for_first_1115 { i = add(&i, &Value::Int(1)); } __for_first_1115 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
             let mut outcomeInfo: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -773,8 +779,8 @@ impl HyperliquidCore {
             let mut marketOutcomes: Value = self.safe_list_k(market.clone(), "outcomes", &[Value::List(vec![])]);
             {
                                 let mut oi: Value = Value::Int(0);
-                let mut __for_first_1108: bool = true;
-                while { if !__for_first_1108 { oi = add(&oi, &Value::Int(1)); } __for_first_1108 = false; is_less_than(&oi, &get_array_length(&marketOutcomes)) } {
+                let mut __for_first_1114: bool = true;
+                while { if !__for_first_1114 { oi = add(&oi, &Value::Int(1)); } __for_first_1114 = false; is_less_than(&oi, &get_array_length(&marketOutcomes)) } {
                 let mut outcome: Value = self.safe_dict(marketOutcomes.clone(), oi.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1003,8 +1009,8 @@ impl HyperliquidCore {
         let mut zeroCount: Value = subtract(&pricePrecisionDecimals, &Value::Int(1));
         {
                         let mut zi: Value = Value::Int(0);
-            let mut __for_first_1110: bool = true;
-            while { if !__for_first_1110 { zi = add(&zi, &Value::Int(1)); } __for_first_1110 = false; is_less_than(&zi, &zeroCount) } {
+            let mut __for_first_1116: bool = true;
+            while { if !__for_first_1116 { zi = add(&zi, &Value::Int(1)); } __for_first_1116 = false; is_less_than(&zi, &zeroCount) } {
             zeros = add(&zeros, &Value::Str("0".to_string()));
         }
         }
@@ -1020,7 +1026,7 @@ impl HyperliquidCore {
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
  * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
     pub async fn fetch_ticker(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -1073,7 +1079,7 @@ impl HyperliquidCore {
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-mids-for-all-actively-traded-coins
  * @param {string[]} [outcomes] filter by outcome ids or outcomes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
@@ -1091,8 +1097,8 @@ impl HyperliquidCore {
             self.load_outcomes(&[outcomes.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1111: bool = true;
-                while { if !__for_first_1111 { i = add(&i, &Value::Int(1)); } __for_first_1111 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+                let mut __for_first_1117: bool = true;
+                while { if !__for_first_1117 { i = add(&i, &Value::Int(1)); } __for_first_1117 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
@@ -1125,8 +1131,8 @@ impl HyperliquidCore {
         let mut outcomeHandles: Value = object_keys(&outcomesMap);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1112: bool = true;
-            while { if !__for_first_1112 { i = add(&i, &Value::Int(1)); } __for_first_1112 = false; is_less_than(&i, &get_array_length(&outcomeHandles)) } {
+            let mut __for_first_1118: bool = true;
+            while { if !__for_first_1118 { i = add(&i, &Value::Int(1)); } __for_first_1118 = false; is_less_than(&i, &get_array_length(&outcomeHandles)) } {
             let mut outcomeHandle: Value = get_value(&outcomeHandles, &i);
             let mut outcomeHandle: Value = get_value(&outcomeHandles, &i);
             if !is_equal(&outcomes, &Value::Null) && !is_true(&(Value::Bool(in_op(&requestedOutcomeSymbols, &outcomeHandle)))) {
@@ -1168,7 +1174,7 @@ impl HyperliquidCore {
  * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
  * @param {object} raw l2Book response or { mid, time } object
  * @param {object} [market] the market the ticker belongs to
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
     pub fn parse_prediction_ticker(&self, mut raw: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -1254,7 +1260,7 @@ impl HyperliquidCore {
  * @param {string} outcome unified outcome
  * @param {int} [limit] max depth levels (not used by hyperliquid but accepted)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
     pub async fn fetch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1294,8 +1300,8 @@ impl HyperliquidCore {
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1113: bool = true;
-            while { if !__for_first_1113 { i = add(&i, &Value::Int(1)); } __for_first_1113 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut __for_first_1119: bool = true;
+            while { if !__for_first_1119 { i = add(&i, &Value::Int(1)); } __for_first_1119 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
             let mut entry: Value = get_value(&rawBids, &i);
             let mut entry: Value = get_value(&rawBids, &i);
             append_to_array(&mut bids, Value::List(vec![self.safe_number_k(entry.clone(), "px", &[]), self.safe_number_k(entry.clone(), "sz", &[])]));
@@ -1303,8 +1309,8 @@ impl HyperliquidCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1114: bool = true;
-            while { if !__for_first_1114 { i = add(&i, &Value::Int(1)); } __for_first_1114 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
+            let mut __for_first_1120: bool = true;
+            while { if !__for_first_1120 { i = add(&i, &Value::Int(1)); } __for_first_1120 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
             let mut entry: Value = get_value(&rawAsks, &i);
             let mut entry: Value = get_value(&rawAsks, &i);
             append_to_array(&mut asks, Value::List(vec![self.safe_number_k(entry.clone(), "px", &[]), self.safe_number_k(entry.clone(), "sz", &[])]));
@@ -1357,6 +1363,9 @@ impl HyperliquidCore {
             let mut candleCount: Value = ternary(is_true(&(!is_equal(&limit, &Value::Null))), limit.clone(), Value::Int(100));
             let mut startOffset: Value = multiply(&multiply(&tf, &candleCount), &negate(&Value::Int(1000)));
             startTime = self.sum(&[until.clone(), startOffset.clone()]);
+            if is_equal(&startTime, &Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchOHLCV() missing startTime".to_string()))));
+            }
             if is_less_than(&startTime, &Value::Int(0)) {
                 startTime = Value::Int(0);
             }
@@ -1439,8 +1448,8 @@ impl HyperliquidCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1115: bool = true;
-            while { if !__for_first_1115 { i = add(&i, &Value::Int(1)); } __for_first_1115 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1121: bool = true;
+            while { if !__for_first_1121 { i = add(&i, &Value::Int(1)); } __for_first_1121 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut coin: Value = self.safe_string_k(balance.clone(), "coin", &[]);
@@ -1449,7 +1458,9 @@ impl HyperliquidCore {
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
             add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
-            add_element_to_object(&mut result, &coin, account.clone());
+            if !is_equal(&coin, &Value::Null) {
+                add_element_to_object(&mut result, &coin, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -1465,7 +1476,7 @@ impl HyperliquidCore {
  * @param {string[]} [outcomes] filter by outcome ids or outcomes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
@@ -1483,8 +1494,8 @@ impl HyperliquidCore {
             self.load_outcomes(&[outcomes.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1116: bool = true;
-                while { if !__for_first_1116 { i = add(&i, &Value::Int(1)); } __for_first_1116 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+                let mut __for_first_1122: bool = true;
+                while { if !__for_first_1122 { i = add(&i, &Value::Int(1)); } __for_first_1122 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
@@ -1521,8 +1532,8 @@ impl HyperliquidCore {
         let mut positions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1117: bool = true;
-            while { if !__for_first_1117 { i = add(&i, &Value::Int(1)); } __for_first_1117 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1123: bool = true;
+            while { if !__for_first_1123 { i = add(&i, &Value::Int(1)); } __for_first_1123 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1566,7 +1577,7 @@ impl HyperliquidCore {
  * @description parses a spot balance entry for an outcome token into a unified position object
  * @param {object} position the raw balance entry
  * @param {object} [market] the outcome object the position belongs to
- * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub fn parse_prediction_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -1633,8 +1644,8 @@ impl HyperliquidCore {
         if !is_equal(&normalizedHint, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1118: bool = true;
-                while { if !__for_first_1118 { i = add(&i, &Value::Int(1)); } __for_first_1118 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
+                let mut __for_first_1124: bool = true;
+                while { if !__for_first_1124 { i = add(&i, &Value::Int(1)); } __for_first_1124 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
                 let mut oc: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1649,8 +1660,8 @@ impl HyperliquidCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1119: bool = true;
-            while { if !__for_first_1119 { i = add(&i, &Value::Int(1)); } __for_first_1119 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
+            let mut __for_first_1125: bool = true;
+            while { if !__for_first_1125 { i = add(&i, &Value::Int(1)); } __for_first_1125 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
             let mut oc: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1713,8 +1724,8 @@ impl HyperliquidCore {
         let mut isNumericInput: Value = Value::Bool(is_greater_than(&inputCharsLength, &Value::Int(0)));
         {
                         let mut di: Value = Value::Int(0);
-            let mut __for_first_1120: bool = true;
-            while { if !__for_first_1120 { di = add(&di, &Value::Int(1)); } __for_first_1120 = false; is_less_than(&di, &get_array_length(&inputChars)) } {
+            let mut __for_first_1126: bool = true;
+            while { if !__for_first_1126 { di = add(&di, &Value::Int(1)); } __for_first_1126 = false; is_less_than(&di, &get_array_length(&inputChars)) } {
             if is_less_than(&get_index_of(&digitChars, &get_value(&inputChars, &di)), &Value::Int(0)) {
                 isNumericInput = Value::Bool(false);
                 break;
@@ -1731,8 +1742,8 @@ impl HyperliquidCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1121: bool = true;
-            while { if !__for_first_1121 { i = add(&i, &Value::Int(1)); } __for_first_1121 = false; is_less_than(&i, &get_array_length(&candidates)) } {
+            let mut __for_first_1127: bool = true;
+            while { if !__for_first_1127 { i = add(&i, &Value::Int(1)); } __for_first_1127 = false; is_less_than(&i, &get_array_length(&candidates)) } {
             let mut key: Value = get_value(&candidates, &i);
             let mut key: Value = get_value(&candidates, &i);
             if is_true(&Value::Bool(in_op(&self.exchange.outcomes, &key))) {
@@ -1749,7 +1760,7 @@ impl HyperliquidCore {
             }
         }
         }
-        if is_true(&(Value::Bool(in_op(&self.markets, &outcomeInput)))) || is_true(&(Value::Bool(in_op(&self.markets_by_id, &outcomeInput)))) {
+        if is_true(&(is_true(&(!is_equal(&self.markets, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets, &outcomeInput)))))) || is_true(&(is_true(&(!is_equal(&self.markets_by_id, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets_by_id, &outcomeInput)))))) {
             let mut market: Value = self.safe_market(&[outcomeInput.clone()]);
             let mut sideHintOrDefault: Value = ternary(is_true(&(!is_equal(&sideHint, &Value::Null))), sideHint.clone(), Value::Str("YES".to_string()));
             let mut found: Value = self.find_outcome_in_market(market.clone(), &[sideHintOrDefault.clone()]);
@@ -1779,7 +1790,7 @@ impl HyperliquidCore {
  * @param {string} [params.slippage] slippage for market orders (default 5%)
  * @param {string} [params.clientOrderId] hex cloid
  * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn create_order(&mut self, mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -1826,6 +1837,9 @@ impl HyperliquidCore {
         }  else {
             px = self.price_to_precision(marketSymbol.clone(), price.clone());
         }
+        if is_equal(&px, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() could not determine price".to_string()))));
+        }
         let mut sz: Value = self.amount_to_precision(marketSymbol.clone(), amount.clone());
         let mut orderType: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1859,6 +1873,21 @@ impl HyperliquidCore {
                 m.insert("grouping".to_string(), Value::Str("na".to_string()));
             m
         });
+        if is_true(&self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)])) {
+            let mut wallet: Value = self.safe_string_lower(self.options.clone(), Value::Str("builder".to_string()), &[Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".to_string())]);
+            // feeInt defaults to 0: the builder is attached for statistics purposes only and the
+            // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
+            let mut feeInt: Value = self.safe_integer_k(self.options.clone(), "feeInt", &[Value::Int(0)]);
+            if !is_true(&self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)])) {
+                feeInt = Value::Int(0);
+            }
+            add_element_to_object(&mut orderAction, &Value::Str("builder".to_string()), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("b".to_string(), wallet.clone());
+        m.insert("f".to_string(), feeInt.clone());
+    m
+}));
+        }
         let mut signature: Value = self.sign_l1_action(orderAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1944,7 +1973,7 @@ impl HyperliquidCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] cancel by client order id
  * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -1966,7 +1995,7 @@ impl HyperliquidCore {
  * @param {string[]} ids order ids
  * @param {string} [outcome] unified outcome (required)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -2001,8 +2030,8 @@ impl HyperliquidCore {
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancelByCloid".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1122: bool = true;
-                while { if !__for_first_1122 { i = add(&i, &Value::Int(1)); } __for_first_1122 = false; is_less_than(&i, &get_array_length(&cloids)) } {
+                let mut __for_first_1128: bool = true;
+                while { if !__for_first_1128 { i = add(&i, &Value::Int(1)); } __for_first_1128 = false; is_less_than(&i, &get_array_length(&cloids)) } {
                 append_to_array(&mut cancelReq, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), assetId.clone());
@@ -2015,8 +2044,8 @@ impl HyperliquidCore {
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancel".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1123: bool = true;
-                while { if !__for_first_1123 { i = add(&i, &Value::Int(1)); } __for_first_1123 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_1129: bool = true;
+                while { if !__for_first_1129 { i = add(&i, &Value::Int(1)); } __for_first_1129 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 append_to_array(&mut cancelReq, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("a".to_string(), assetId.clone());
@@ -2057,8 +2086,8 @@ impl HyperliquidCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1124: bool = true;
-            while { if !__for_first_1124 { i = add(&i, &Value::Int(1)); } __for_first_1124 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            let mut __for_first_1130: bool = true;
+            while { if !__for_first_1130 { i = add(&i, &Value::Int(1)); } __for_first_1130 = false; is_less_than(&i, &get_array_length(&statuses)) } {
             let mut status: Value = get_value(&statuses, &i);
             let mut status: Value = get_value(&statuses, &i);
             let mut error: Value = self.safe_string_k(status.clone(), "error", &[]);
@@ -2103,7 +2132,7 @@ impl HyperliquidCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
  * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -2128,8 +2157,8 @@ impl HyperliquidCore {
         let mut ordersWithStatus: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1125: bool = true;
-            while { if !__for_first_1125 { i = add(&i, &Value::Int(1)); } __for_first_1125 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1131: bool = true;
+            while { if !__for_first_1131 { i = add(&i, &Value::Int(1)); } __for_first_1131 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut order: Value = get_value(&response, &i);
             let mut order: Value = get_value(&response, &i);
             append_to_array(&mut ordersWithStatus, self.extend(order.clone(), &[Value::Map({
@@ -2161,7 +2190,7 @@ impl HyperliquidCore {
  * @param {int} [limit] max number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -2188,8 +2217,8 @@ impl HyperliquidCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1126: bool = true;
-            while { if !__for_first_1126 { i = add(&i, &Value::Int(1)); } __for_first_1126 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1132: bool = true;
+            while { if !__for_first_1132 { i = add(&i, &Value::Int(1)); } __for_first_1132 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut raw: Value = get_value(&response, &i);
             let mut raw: Value = get_value(&response, &i);
             let mut entry: Value = self.safe_dict_k(raw.clone(), "order", &[]);
@@ -2233,7 +2262,7 @@ impl HyperliquidCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
  * @param {string} [params.clientOrderId] fetch by client order id instead
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -2281,7 +2310,7 @@ impl HyperliquidCore {
  * @description parses a raw hyperliquid order object into a unified order object
  * @param {object} order the raw order object
  * @param {object} [market] the market the order belongs to
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub fn parse_prediction_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -2417,7 +2446,7 @@ impl HyperliquidCore {
  * @param {int} [since] only return trades at or after this timestamp in ms
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub async fn fetch_trades(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
@@ -2458,7 +2487,7 @@ impl HyperliquidCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
  * @param {int} [params.until] end timestamp in ms
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -2513,7 +2542,7 @@ impl HyperliquidCore {
  * @description parses a single hyperliquid fill into a unified trade object
  * @param {object} trade the raw fill object
  * @param {object} [market] the market the trade belongs to
- * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub fn parse_prediction_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -2612,11 +2641,14 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
+        if is_equal(&queries, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchEvents() missing queries".to_string()))));
+        }
         let mut lowerQueries: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1127: bool = true;
-            while { if !__for_first_1127 { i = add(&i, &Value::Int(1)); } __for_first_1127 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut __for_first_1133: bool = true;
+            while { if !__for_first_1133 { i = add(&i, &Value::Int(1)); } __for_first_1133 = false; is_less_than(&i, &get_array_length(&queries)) } {
             let mut queryString: Value = get_value(&queries, &i);
             let mut queryString: Value = get_value(&queries, &i);
             append_to_array(&mut lowerQueries, to_lower(&queryString));
@@ -2625,8 +2657,8 @@ impl HyperliquidCore {
         let mut lowerQueriesLength: Value = get_array_length(&lowerQueries);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1130: bool = true;
-            while { if !__for_first_1130 { i = add(&i, &Value::Int(1)); } __for_first_1130 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+            let mut __for_first_1136: bool = true;
+            while { if !__for_first_1136 { i = add(&i, &Value::Int(1)); } __for_first_1136 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
             let mut mkt: Value = get_value(&marketValues, &i);
             let mut mkt: Value = get_value(&marketValues, &i);
             if !is_true(&self.safe_bool_k(mkt.clone(), "prediction", &[Value::Bool(false)])) {
@@ -2648,15 +2680,15 @@ impl HyperliquidCore {
                 let mut matches: Value = Value::Bool(false);
                 {
                                         let mut qi: Value = Value::Int(0);
-                    let mut __for_first_1129: bool = true;
-                    while { if !__for_first_1129 { qi = add(&qi, &Value::Int(1)); } __for_first_1129 = false; is_less_than(&qi, &get_array_length(&lowerQueries)) } {
+                    let mut __for_first_1135: bool = true;
+                    while { if !__for_first_1135 { qi = add(&qi, &Value::Int(1)); } __for_first_1135 = false; is_less_than(&qi, &get_array_length(&lowerQueries)) } {
                     let mut words: Value = split(&get_value(&lowerQueries, &qi), &Value::Str(" ".to_string()));
                     let mut wordsLength: Value = get_array_length(&words);
                     let mut allWords: Value = Value::Bool(true);
                     {
                                                 let mut wi: Value = Value::Int(0);
-                        let mut __for_first_1128: bool = true;
-                        while { if !__for_first_1128 { wi = add(&wi, &Value::Int(1)); } __for_first_1128 = false; is_less_than(&wi, &wordsLength) } {
+                        let mut __for_first_1134: bool = true;
+                        while { if !__for_first_1134 { wi = add(&wi, &Value::Int(1)); } __for_first_1134 = false; is_less_than(&wi, &wordsLength) } {
                         let mut word: Value = get_value(&words, &wi);
                         let mut word: Value = get_value(&words, &wi);
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
@@ -2676,24 +2708,30 @@ impl HyperliquidCore {
                     continue;
                 }
             }
+            if is_equal(&parentSymbol, &Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchEvents() missing parentSymbol".to_string()))));
+            }
             if !is_true(&(Value::Bool(in_op(&groupMap, &parentSymbol)))) {
-                add_element_to_object(&mut groupMap, &parentSymbol, Value::List(vec![]));
+                if !is_equal(&parentSymbol, &Value::Null) {
+                    add_element_to_object(&mut groupMap, &parentSymbol, Value::List(vec![]));
+                }
             }
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            let mut parentMarkets: Value = get_value(&groupMap, &parentSymbol);
+            let mut parentMarkets: Value = self.safe_value(groupMap.clone(), parentSymbol.clone(), &[]);
             append_to_array(&mut parentMarkets, mkt.clone());
-            crate::set_value(&mut groupMap, &parentSymbol, parentMarkets.clone());
-            add_element_to_object(&mut groupMap, &parentSymbol, parentMarkets.clone());
+            if !is_equal(&parentSymbol, &Value::Null) {
+                add_element_to_object(&mut groupMap, &parentSymbol, parentMarkets.clone());
+            }
         }
         }
         let mut events: Value = Value::List(vec![]);
         let mut groupKeys: Value = object_keys(&groupMap);
         {
                         let mut gi: Value = Value::Int(0);
-            let mut __for_first_1131: bool = true;
-            while { if !__for_first_1131 { gi = add(&gi, &Value::Int(1)); } __for_first_1131 = false; is_less_than(&gi, &get_array_length(&groupKeys)) } {
+            let mut __for_first_1137: bool = true;
+            while { if !__for_first_1137 { gi = add(&gi, &Value::Int(1)); } __for_first_1137 = false; is_less_than(&gi, &get_array_length(&groupKeys)) } {
             let mut key: Value = get_value(&groupKeys, &gi);
             let mut key: Value = get_value(&groupKeys, &gi);
             let mut groupMarkets: Value = get_value(&groupMap, &key);
@@ -2804,6 +2842,9 @@ impl HyperliquidCore {
 })]), Value::Str("amount".to_string()), &[Value::Float(0.0001)]);
         // Convert precision to decimal places
         let mut decimals: Value = Value::Int(4);
+        if is_equal(&prec, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" amountToPrecision() missing prec".to_string()))));
+        }
         if is_greater_than(&prec, &Value::Int(0)) {
             decimals = self.precision_from_string(self.number_to_string(prec.clone()));
         }
@@ -2819,6 +2860,9 @@ impl HyperliquidCore {
     m
 })]), Value::Str("price".to_string()), &[Value::Float(0.0001)]);
         let mut decimals: Value = Value::Int(4);
+        if is_equal(&prec, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" priceToPrecision() missing prec".to_string()))));
+        }
         if is_greater_than(&prec, &Value::Int(0)) {
             decimals = self.precision_from_string(self.number_to_string(prec.clone()));
         }
@@ -2923,6 +2967,99 @@ impl HyperliquidCore {
     Value::Null
 }
 
+    pub fn sign_user_signed_action(&self, mut messageTypes: Value, mut message: Value) -> Value {
+        let mut zeroAddress: Value = self.safe_string_k(self.options.clone(), "zeroAddress", &[]);
+        let mut chainId: Value = Value::Int(421614);
+        let mut domain: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("chainId".to_string(), chainId.clone());
+                m.insert("name".to_string(), Value::Str("HyperliquidSignTransaction".to_string()));
+                m.insert("verifyingContract".to_string(), zeroAddress.clone());
+                m.insert("version".to_string(), Value::Str("1".to_string()));
+            m
+        });
+        let mut msg: Value = self.eth_encode_structured_data(domain.clone(), messageTypes.clone(), message.clone());
+        let mut signature: Value = self.sign_message(msg.clone(), self.privateKey.clone());
+        return signature;
+
+    Value::Null
+}
+
+    pub fn build_approve_builder_fee_sig(&self, mut message: Value) -> Value {
+        let mut messageTypes: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("HyperliquidTransaction:ApproveBuilderFee".to_string(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("hyperliquidChain".to_string()));
+        m.insert("type".to_string(), Value::Str("string".to_string()));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("maxFeeRate".to_string()));
+        m.insert("type".to_string(), Value::Str("string".to_string()));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("builder".to_string()));
+        m.insert("type".to_string(), Value::Str("address".to_string()));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("nonce".to_string()));
+        m.insert("type".to_string(), Value::Str("uint64".to_string()));
+    m
+})]));
+            m
+        });
+        return self.sign_user_signed_action(messageTypes.clone(), message.clone());
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name hyperliquid#approveBuilderFee
+ * @ignore
+ * @description approves the builder for the given max fee rate, required before orders can carry a builder attribution
+ * @param {string} builder the builder wallet address
+ * @param {string} maxFeeRate the maximum builder fee rate to approve, e.g. '0%'
+ * @returns {object} the raw exchange response
+ */
+    pub async fn approve_builder_fee(&mut self, mut builder: Value, mut maxFeeRate: Value) -> Value {
+        let mut nonce: Value = self.milliseconds();
+        let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
+        let mut payload: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("hyperliquidChain".to_string(), ternary(is_true(&isSandboxMode), Value::Str("Testnet".to_string()), Value::Str("Mainnet".to_string())));
+                m.insert("maxFeeRate".to_string(), maxFeeRate.clone());
+                m.insert("builder".to_string(), builder.clone());
+                m.insert("nonce".to_string(), nonce.clone());
+            m
+        });
+        let mut sig: Value = self.build_approve_builder_fee_sig(payload.clone());
+        let mut action: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("hyperliquidChain".to_string(), get_value(&payload, &Value::Str("hyperliquidChain".to_string())));
+                m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
+                m.insert("maxFeeRate".to_string(), get_value(&payload, &Value::Str("maxFeeRate".to_string())));
+                m.insert("builder".to_string(), get_value(&payload, &Value::Str("builder".to_string())));
+                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("type".to_string(), Value::Str("approveBuilderFee".to_string()));
+            m
+        });
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("action".to_string(), action.clone());
+                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("signature".to_string(), sig.clone());
+                m.insert("vaultAddress".to_string(), Value::Null);
+            m
+        });
+        return self.private_post_exchange(&[request.clone()]).await;
+
+    Value::Null
+}
+
     pub async fn initialize_client(&mut self) -> Value {
         // createOrder/createOrders call this before trading; load markets so the order builder can
         // resolve the outcome's market and precision. loading them also keeps this method genuinely
@@ -2931,6 +3068,20 @@ impl HyperliquidCore {
         let mut buildFee: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)]);
         if !is_true(&buildFee) {
             return Value::Null;
+        }
+        if is_true(&self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)])) {
+            return Value::Null;
+        }
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            let mut builder: Value = self.safe_string_k(self.options.clone(), "builder", &[Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".to_string())]);
+            // the default feeRate is '0%': the builder is approved and attached for statistics
+            // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
+            let mut maxFeeRate: Value = self.safe_string_k(self.options.clone(), "feeRate", &[Value::Str("0%".to_string())]);
+            self.approve_builder_fee(builder.clone(), maxFeeRate.clone()).await;
+            add_element_to_object(&mut self.options, &Value::Str("approvedBuilderFee".to_string()), Value::Bool(true));
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            add_element_to_object(&mut self.options, &Value::Str("builderFee".to_string()), Value::Bool(false)); // disable builder fee if an error occurs
         }
         return Value::Null;
 
@@ -3037,8 +3188,8 @@ impl HyperliquidCore {
         let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1132: bool = true;
-            while { if !__for_first_1132 { i = add(&i, &Value::Int(1)); } __for_first_1132 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            let mut __for_first_1138: bool = true;
+            while { if !__for_first_1138 { i = add(&i, &Value::Int(1)); } __for_first_1138 = false; is_less_than(&i, &get_array_length(&statuses)) } {
             let mut message: Value = self.safe_string_k(get_value(&statuses, &i), "error", &[]);
             if !is_equal(&message, &Value::Null) {
                 let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);

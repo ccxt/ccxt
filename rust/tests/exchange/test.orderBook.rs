@@ -29,11 +29,6 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
         m
     });
     let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("nonce".to_string())]);
-    // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-    orderbook = exchange.deep_extend(Value::Map({
-        let mut m = indexmap::IndexMap::new();
-        m
-    }), &[orderbook.clone()]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone()]);
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);
@@ -43,8 +38,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut bidsLength: Value = get_array_length(&bids);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1323: bool = true;
-        while { if !__for_first_1323 { i = add(&i, &Value::Int(1)); } __for_first_1323 = false; is_less_than(&i, &bidsLength) } {
+        let mut __for_first_1338: bool = true;
+        while { if !__for_first_1338 { i = add(&i, &Value::Int(1)); } __for_first_1338 = false; is_less_than(&i, &bidsLength) } {
         let mut currentBidString: Value = exchange.safe_string(get_value(&bids, &i), Value::Int(0), &[]);
         if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareToNextItem".to_string()))))) {
             let mut nextI: Value = add(&i, &Value::Int(1));
@@ -64,8 +59,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut asksLength: Value = get_array_length(&asks);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1324: bool = true;
-        while { if !__for_first_1324 { i = add(&i, &Value::Int(1)); } __for_first_1324 = false; is_less_than(&i, &asksLength) } {
+        let mut __for_first_1339: bool = true;
+        while { if !__for_first_1339 { i = add(&i, &Value::Int(1)); } __for_first_1339 = false; is_less_than(&i, &asksLength) } {
         let mut currentAskString: Value = exchange.safe_string(get_value(&asks, &i), Value::Int(0), &[]);
         if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareToNextItem".to_string()))))) {
             let mut nextI: Value = add(&i, &Value::Int(1));

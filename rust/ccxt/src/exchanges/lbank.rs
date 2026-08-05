@@ -763,8 +763,8 @@ impl LbankCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_888: bool = true;
-            while { if !__for_first_888 { j = add(&j, &Value::Int(1)); } __for_first_888 = false; is_less_than(&j, &get_array_length(&networksRaw)) } {
+            let mut __for_first_875: bool = true;
+            while { if !__for_first_875 { j = add(&j, &Value::Int(1)); } __for_first_875 = false; is_less_than(&j, &get_array_length(&networksRaw)) } {
             let mut networkEntry: Value = get_value(&networksRaw, &j);
             let mut networkEntry: Value = get_value(&networksRaw, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain", &[]);
@@ -772,7 +772,8 @@ impl LbankCore {
                 networkId = self.safe_string_k(networkEntry.clone(), "assetCode", &[]); // use type as fallback if networkId is not present
             }
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            add_element_to_object(&mut networks, &networkCode, Value::Map({
+            if !is_equal(&networkCode, &Value::Null) {
+                add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -800,6 +801,7 @@ impl LbankCore {
         m.insert("info".to_string(), networkEntry.clone());
     m
 }));
+            }
         }
         }
         return self.safe_currency_structure(Value::Map({
@@ -883,8 +885,8 @@ impl LbankCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_889: bool = true;
-            while { if !__for_first_889 { i = add(&i, &Value::Int(1)); } __for_first_889 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_876: bool = true;
+            while { if !__for_first_876 { i = add(&i, &Value::Int(1)); } __for_first_876 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1008,8 +1010,8 @@ impl LbankCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_890: bool = true;
-            while { if !__for_first_890 { i = add(&i, &Value::Int(1)); } __for_first_890 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_877: bool = true;
+            while { if !__for_first_877 { i = add(&i, &Value::Int(1)); } __for_first_877 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1111,6 +1113,7 @@ impl LbankCore {
         // swap: fetchTickers
         //
         //     {
+        //         "lastTime": 1784884932,
         //         "prePositionFeeRate": "0.000053",
         //         "volume": "2435.459",
         //         "symbol": "BTCUSDT",
@@ -1123,6 +1126,9 @@ impl LbankCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        if is_equal(&timestamp, &Value::Null) {
+            timestamp = self.safe_timestamp(ticker.clone(), Value::Str("lastTime".to_string()), &[]);
+        }
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut tickerData: Value = self.safe_value_k(ticker.clone(), "ticker", &[Value::Map({
@@ -1322,7 +1328,7 @@ impl LbankCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1759,15 +1765,17 @@ impl LbankCore {
             let mut currencies: Value = object_keys(&free);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_891: bool = true;
-                while { if !__for_first_891 { i = add(&i, &Value::Int(1)); } __for_first_891 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+                let mut __for_first_878: bool = true;
+                while { if !__for_first_878 { i = add(&i, &Value::Int(1)); } __for_first_878 = false; is_less_than(&i, &get_array_length(&currencies)) } {
                 let mut currencyId: Value = get_value(&currencies, &i);
                 let mut currencyId: Value = get_value(&currencies, &i);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(used.clone(), currencyId.clone(), &[]));
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(free.clone(), currencyId.clone(), &[]));
-                add_element_to_object(&mut result, &code, account.clone());
+                if !is_equal(&code, &Value::Null) {
+                    add_element_to_object(&mut result, &code, account.clone());
+                }
             }
             }
             return self.safe_balance(result.clone());
@@ -1777,8 +1785,8 @@ impl LbankCore {
         if !is_equal(&balances, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_892: bool = true;
-                while { if !__for_first_892 { i = add(&i, &Value::Int(1)); } __for_first_892 = false; is_less_than(&i, &get_array_length(&balances)) } {
+                let mut __for_first_879: bool = true;
+                while { if !__for_first_879 { i = add(&i, &Value::Int(1)); } __for_first_879 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 let mut item: Value = get_value(&balances, &i);
                 let mut item: Value = get_value(&balances, &i);
                 let mut currencyId: Value = self.safe_string_k(item.clone(), "asset", &[]);
@@ -1786,7 +1794,9 @@ impl LbankCore {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(item.clone(), "free", &[]));
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(item.clone(), "locked", &[]));
-                add_element_to_object(&mut result, &codeInner, account.clone());
+                if !is_equal(&codeInner, &Value::Null) {
+                    add_element_to_object(&mut result, &codeInner, account.clone());
+                }
             }
             }
             return self.safe_balance(result.clone());
@@ -1796,8 +1806,8 @@ impl LbankCore {
         if is_equal(&isArray, &Value::Bool(true)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_893: bool = true;
-                while { if !__for_first_893 { i = add(&i, &Value::Int(1)); } __for_first_893 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_880: bool = true;
+                while { if !__for_first_880 { i = add(&i, &Value::Int(1)); } __for_first_880 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut item: Value = get_value(&data, &i);
                 let mut item: Value = get_value(&data, &i);
                 let mut currencyId: Value = self.safe_string_k(item.clone(), "coin", &[]);
@@ -1805,7 +1815,9 @@ impl LbankCore {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(item.clone(), "usableAmt", &[]));
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(item.clone(), "freezeAmt", &[]));
-                add_element_to_object(&mut result, &codeInner, account.clone());
+                if !is_equal(&codeInner, &Value::Null) {
+                    add_element_to_object(&mut result, &codeInner, account.clone());
+                }
             }
             }
             return self.safe_balance(result.clone());
@@ -1979,7 +1991,45 @@ impl LbankCore {
         }  else {
             response = self.spot_private_post_supplement_user_info(&[]).await;
         }
-        return self.parse_balance(response.clone());
+        //
+        //    {
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
+        //                    ...
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
+        //            }
+        //        ],
+        //        "code": 0
+        //    }
+        //
+        let mut balanceResponse: Value = ternary(is_true(&(is_equal(&response, &Value::Null))), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), response.clone());
+        let mut balanceResult: Value = self.parse_balance(balanceResponse.clone());
+        if is_equal(&balanceResult, &Value::Null) {
+            panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" fetchBalance() returned empty response".to_string()))));
+        }
+        return balanceResult;
 
     Value::Null
 }
@@ -2064,8 +2114,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_894: bool = true;
-            while { if !__for_first_894 { i = add(&i, &Value::Int(1)); } __for_first_894 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_881: bool = true;
+            while { if !__for_first_881 { i = add(&i, &Value::Int(1)); } __for_first_881 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, fee.clone());
@@ -3355,7 +3405,7 @@ impl LbankCore {
  * @name lbank#fetchTransactionFees
  * @deprecated
  * @description please use fetchDepositWithdrawFees instead
- * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
+ * @param {string[]|undefined} codes not used by fetchTransactionFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
@@ -3440,27 +3490,33 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_896: bool = true;
-            while { if !__for_first_896 { i = add(&i, &Value::Int(1)); } __for_first_896 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_883: bool = true;
+            while { if !__for_first_883 { i = add(&i, &Value::Int(1)); } __for_first_883 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut networkList: Value = self.safe_value_k(entry.clone(), "networkList", &[Value::List(vec![])]);
-            add_element_to_object(&mut withdrawFees, &code, Value::Map({
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut withdrawFees, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
+            }
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_895: bool = true;
-                while { if !__for_first_895 { j = add(&j, &Value::Int(1)); } __for_first_895 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+                let mut __for_first_882: bool = true;
+                while { if !__for_first_882 { j = add(&j, &Value::Int(1)); } __for_first_882 = false; is_less_than(&j, &get_array_length(&networkList)) } {
                 let mut networkEntry: Value = get_value(&networkList, &j);
                 let mut networkEntry: Value = get_value(&networkList, &j);
                 let mut fee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
                 if !is_equal(&fee, &Value::Null) {
                     let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone()]);
-                    add_element_to_object(get_value_mut(&mut withdrawFees, &code), &networkCode, fee.clone());
+                    if !is_equal(&networkCode, &Value::Null) {
+                        if is_true(&(!is_equal(&code, &Value::Null))) && is_true(&(!is_equal(&networkCode, &Value::Null))) {
+                            add_element_to_object(get_value_mut(&mut withdrawFees, &code), &networkCode, fee.clone());
+                        }
+                    }
                 }
             }
             }
@@ -3530,8 +3586,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_897: bool = true;
-            while { if !__for_first_897 { i = add(&i, &Value::Int(1)); } __for_first_897 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_884: bool = true;
+            while { if !__for_first_884 { i = add(&i, &Value::Int(1)); } __for_first_884 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut item: Value = get_value(&result, &i);
             let mut item: Value = get_value(&result, &i);
             let mut canWithdraw: Value = self.safe_value_k(item.clone(), "canWithDraw", &[]);
@@ -3543,13 +3599,17 @@ impl LbankCore {
                     network = codeInner.clone();
                 }
                 let mut fee: Value = self.safe_string_k(item.clone(), "fee", &[]);
-                if is_equal(&get_value(&withdrawFees, &codeInner), &Value::Null) {
-                    add_element_to_object(&mut withdrawFees, &codeInner, Value::Map({
+                if is_equal(&self.safe_value(withdrawFees.clone(), codeInner.clone(), &[]), &Value::Null) {
+                    if !is_equal(&codeInner, &Value::Null) {
+                        add_element_to_object(&mut withdrawFees, &codeInner, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
+                    }
                 }
-                add_element_to_object(get_value_mut(&mut withdrawFees, &codeInner), &network, self.parse_number(fee.clone(), &[]));
+                if is_true(&(!is_equal(&codeInner, &Value::Null))) && is_true(&(!is_equal(&network, &Value::Null))) {
+                    add_element_to_object(get_value_mut(&mut withdrawFees, &codeInner), &network, self.parse_number(fee.clone(), &[]));
+                }
             }
         }
         }
@@ -3725,15 +3785,15 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_898: bool = true;
-            while { if !__for_first_898 { i = add(&i, &Value::Int(1)); } __for_first_898 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_885: bool = true;
+            while { if !__for_first_885 { i = add(&i, &Value::Int(1)); } __for_first_885 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut fee: Value = get_value(&response, &i);
             let mut fee: Value = get_value(&response, &i);
             let mut canWithdraw: Value = self.safe_value_k(fee.clone(), "canWithDraw", &[]);
             if is_equal(&canWithdraw, &Value::Bool(true)) {
                 let mut currencyId: Value = self.safe_string_k(fee.clone(), "assetCode", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-                if is_equal(&codes, &Value::Null) || is_true(&self.in_array(code.clone(), codes.clone())) {
+                if is_true(&(!is_equal(&code, &Value::Null))) && is_true(&(is_equal(&codes, &Value::Null) || is_true(&self.in_array(code.clone(), codes.clone())))) {
                     let mut withdrawFee: Value = self.safe_number_k(fee.clone(), "fee", &[]);
                     if !is_equal(&withdrawFee, &Value::Null) {
                         let mut resultValue: Value = self.safe_value(result.clone(), code.clone(), &[]);
@@ -3812,8 +3872,8 @@ impl LbankCore {
         let mut networkList: Value = self.safe_value_k(fee.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_899: bool = true;
-            while { if !__for_first_899 { j = add(&j, &Value::Int(1)); } __for_first_899 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_886: bool = true;
+            while { if !__for_first_886 { j = add(&j, &Value::Int(1)); } __for_first_886 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone()]);
@@ -3828,7 +3888,8 @@ impl LbankCore {
     m
 }));
                 }
-                add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
+                if !is_equal(&networkCode, &Value::Null) {
+                    add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3844,6 +3905,7 @@ impl LbankCore {
 }));
     m
 }));
+                }
             }
         }
         }
@@ -3948,8 +4010,8 @@ impl LbankCore {
         let mut pem: Value = Value::Str("-----BEGIN PRIVATE KEY-----\n".to_string()); // eslint-disable-line
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_900: bool = true;
-            while { if !__for_first_900 { i = add(&i, &Value::Int(1)); } __for_first_900 = false; is_less_than(&i, &numLines) } {
+            let mut __for_first_887: bool = true;
+            while { if !__for_first_887 { i = add(&i, &Value::Int(1)); } __for_first_887 = false; is_less_than(&i, &numLines) } {
             let mut start: Value = multiply(&i, &lineLength);
             let mut end: Value = self.sum(&[start.clone(), lineLength.clone()]);
             pem = add(&pem, &add(&slice(&self.secret, &start, &end), &Value::Str("\n".to_string()))); // eslint-disable-line
@@ -3962,7 +4024,7 @@ impl LbankCore {
 
     pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if is_equal(&response, &Value::Null) {
-            return Value::Null;
+            panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" parseBalance() returned empty response".to_string()))));
         }
         let mut success: Value = self.safe_value_k(response.clone(), "result", &[]);
         if is_equal(&success, &Value::Str("false".to_string())) || !is_true(&success) {

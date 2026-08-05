@@ -1467,7 +1467,14 @@ impl Exchange {
         // and between [A-Z]+ and [A-Z][a-z]. Mirrors the transpiler's
         // toSnakeCase exactly.
         let snake = Self::to_snake_case(&camel);
-        let snake_name = format!("{scope_snake}_{verb}_{snake}");
+        // An empty path (e.g. nado's `archive: { post: { '': 1 } }`, method
+        // name `archivePost`) must NOT append a trailing `_` — the transpiled
+        // call site looks up `archive_post`, not `archive_post_`.
+        let snake_name = if snake.is_empty() {
+            format!("{scope_snake}_{verb}")
+        } else {
+            format!("{scope_snake}_{verb}_{snake}")
+        };
         // CamelCase variant: `<scope_camel><Verb><PathCamel>` — TS often
         // constructs method names dynamically as camelCase (e.g. bit2c's
         // `"privatePostOrderAddOrder"`). `self.call_method(name, ...)`

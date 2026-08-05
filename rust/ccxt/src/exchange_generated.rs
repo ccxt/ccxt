@@ -451,7 +451,7 @@ pub trait ExchangeBase:
         self.ids = Value::Null;
         self.markets = Value::Null;
         self.markets_by_id = Value::Null;
-        self.symbols = Value::Null;
+        self.symbols = Value::List(vec![]);
         self.codes = Value::Null;
         { let __t = self.create_safe_dictionary(&[]); self.currencies = __t; }
         self.currencies_by_id = Value::Null;
@@ -658,6 +658,18 @@ pub trait ExchangeBase:
         return defaultValue;
 
     Value::Null
+}
+
+    fn store_by_key(&self, mut dict: Value, mut key: Value, mut value: Value) {
+        /*
+         * @ignore
+         * @method
+         * @description store value under key if key is defined (no-op on undefined)
+         */
+        let mut k: Value = key.clone();
+        if !is_equal(&k, &Value::Null) {
+            add_element_to_object(&mut dict, &k, value.clone());
+        }
 }
 
     fn handle_deltas(&self, mut orderbook: Value, mut deltas: Value) {
@@ -963,6 +975,9 @@ pub trait ExchangeBase:
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut key = get_arg(optional_args, 2, Value::Str("timestamp".to_string()));
         let mut tail = get_arg(optional_args, 3, Value::Bool(false));
+        if is_equal(&array, &Value::Null) {
+            return Value::List(vec![]);
+        }
         let mut sinceIsDefined: Value = self.value_is_defined(since.clone());
         let mut parsedArray: Value = self.to_array(array.clone());
         let mut result: Value = parsedArray.clone();
@@ -1468,6 +1483,9 @@ pub trait ExchangeBase:
         { let __v = crate::exchange::DerivedExchange::parse_transfer(self, transfer.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        if is_equal(&transfer, &Value::Null) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTransfer() is not supported yet".to_string()))));
+        }
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTransfer() is not supported yet".to_string()))));
 
     Value::Null
@@ -1963,6 +1981,9 @@ pub trait ExchangeBase:
     fn parse_to_int(&self, mut number: Value) -> Value {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
+        // numberToString is typed as nullable under strictNullChecks; cast to string
+        // the cast is erased at transpile-time, so output matches every target language, rather than
+        // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         let mut stringifiedNumber: Value = self.number_to_string(number.clone());
         let mut convertedNumber: Value = crate::runtime::parse_float(&stringifiedNumber);
         return crate::runtime::parse_int(&convertedNumber);
@@ -2637,7 +2658,7 @@ pub trait ExchangeBase:
             }
             return result;
         }
-        return cleanStructure;
+        return self.extend(cleanStructure.clone(), &[]);
 
     Value::Null
 }
@@ -2651,8 +2672,8 @@ pub trait ExchangeBase:
         let mut marketValues: Value = self.sort_by(self.to_array(markets.clone()), Value::Str("spot".to_string()), &[Value::Bool(true), Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_83: bool = true;
-            while { if !__for_first_83 { i = add(&i, &Value::Int(1)); } __for_first_83 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+            let mut __for_first_84: bool = true;
+            while { if !__for_first_84 { i = add(&i, &Value::Int(1)); } __for_first_84 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
             let mut value: Value = get_value(&marketValues, &i);
             let mut value: Value = get_value(&marketValues, &i);
             if is_true(&Value::Bool(in_op(&self.markets_by_id, &get_value(&value, &Value::Str("id".to_string()))))) {
@@ -2662,12 +2683,31 @@ pub trait ExchangeBase:
             }  else {
                 add_element_to_object(&mut self.markets_by_id, &get_value(&value, &Value::Str("id".to_string())), Value::List(vec![value.clone()]));
             }
+            // strip undefined-valued keys from the parsed market before deepExtend,
+            // otherwise an explicit `taker: undefined` (from safeMarketStructure)
+            // would clobber the fee defaults from this.fees['trading'] in the merge
+            let mut valueDefined: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+            let mut valueKeys: Value = object_keys(&value);
+            {
+                                let mut j: Value = Value::Int(0);
+                let mut __for_first_83: bool = true;
+                while { if !__for_first_83 { j = add(&j, &Value::Int(1)); } __for_first_83 = false; is_less_than(&j, &get_array_length(&valueKeys)) } {
+                let mut valueKey: Value = get_value(&valueKeys, &j);
+                let mut valueKey: Value = get_value(&valueKeys, &j);
+                if !is_equal(&get_value(&value, &valueKey), &Value::Null) {
+                    add_element_to_object(&mut valueDefined, &valueKey, get_value(&value, &valueKey));
+                }
+            }
+            }
             let mut market: Value = self.deep_extend(self.safe_market_structure(&[]), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("precision".to_string(), self.precision.clone());
                     m.insert("limits".to_string(), self.limits.clone());
                 m
-            }), get_value(&self.fees, &Value::Str("trading".to_string())), value.clone()]);
+            }), get_value(&self.fees, &Value::Str("trading".to_string())), valueDefined.clone()]);
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
                 add_element_to_object(&mut market, &Value::Str("subType".to_string()), Value::Str("linear".to_string()));
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
@@ -2696,8 +2736,8 @@ pub trait ExchangeBase:
             let mut quoteCurrencies: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_84: bool = true;
-                while { if !__for_first_84 { i = add(&i, &Value::Int(1)); } __for_first_84 = false; is_less_than(&i, &get_array_length(&values)) } {
+                let mut __for_first_85: bool = true;
+                while { if !__for_first_85 { i = add(&i, &Value::Int(1)); } __for_first_85 = false; is_less_than(&i, &get_array_length(&values)) } {
                 let mut market: Value = get_value(&values, &i);
                 let mut market: Value = get_value(&values, &i);
                 let mut defaultCurrencyPrecision: Value = ternary(is_true(&(is_equal(&self.precisionMode, &Value::Int(crate::runtime::DECIMAL_PLACES)))), Value::Int(8), self.parse_number(Value::Str("1e-8".to_string()), &[]));
@@ -2739,16 +2779,16 @@ pub trait ExchangeBase:
             let mut resultingCurrencies: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_86: bool = true;
-                while { if !__for_first_86 { i = add(&i, &Value::Int(1)); } __for_first_86 = false; is_less_than(&i, &get_array_length(&codes)) } {
+                let mut __for_first_87: bool = true;
+                while { if !__for_first_87 { i = add(&i, &Value::Int(1)); } __for_first_87 = false; is_less_than(&i, &get_array_length(&codes)) } {
                 let mut code: Value = get_value(&codes, &i);
                 let mut code: Value = get_value(&codes, &i);
                 let mut groupedCurrenciesCode: Value = self.safe_list(groupedCurrencies.clone(), code.clone(), &[Value::List(vec![])]);
                 let mut highestPrecisionCurrency: Value = self.safe_value(groupedCurrenciesCode.clone(), Value::Int(0), &[]);
                 {
                                         let mut j: Value = Value::Int(1);
-                    let mut __for_first_85: bool = true;
-                    while { if !__for_first_85 { j = add(&j, &Value::Int(1)); } __for_first_85 = false; is_less_than(&j, &get_array_length(&groupedCurrenciesCode)) } {
+                    let mut __for_first_86: bool = true;
+                    while { if !__for_first_86 { j = add(&j, &Value::Int(1)); } __for_first_86 = false; is_less_than(&j, &get_array_length(&groupedCurrenciesCode)) } {
                     let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
                     let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
                     if is_equal(&self.precisionMode, &Value::Int(crate::runtime::TICK_SIZE)) {
@@ -2767,6 +2807,9 @@ pub trait ExchangeBase:
         { let __t = self.index_by_safe(self.currencies.clone(), Value::Str("id".to_string())); self.currencies_by_id = __t; }
         let mut currenciesSortedByCode: Value = self.keysort(self.currencies.clone(), &[]);
         self.codes = object_keys(&currenciesSortedByCode);
+        if is_equal(&self.markets, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" setMarkets() markets not set".to_string()))));
+        }
         return self.markets.clone();
 
     Value::Null
@@ -2795,8 +2838,8 @@ pub trait ExchangeBase:
         let mut sourceExchangeHelpers: Value = self.safe_list(get_value(&sourceExchange, &Value::Str("options".to_string())), Value::Str("marketHelperProps".to_string()), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_87: bool = true;
-            while { if !__for_first_87 { i = add(&i, &Value::Int(1)); } __for_first_87 = false; is_less_than(&i, &get_array_length(&sourceExchangeHelpers)) } {
+            let mut __for_first_88: bool = true;
+            while { if !__for_first_88 { i = add(&i, &Value::Int(1)); } __for_first_88 = false; is_less_than(&i, &get_array_length(&sourceExchangeHelpers)) } {
             let mut helper: Value = get_value(&sourceExchangeHelpers, &i);
             let mut helper: Value = get_value(&sourceExchangeHelpers, &i);
             if !is_equal(&get_value(&get_value(&sourceExchange, &Value::Str("options".to_string())), &helper), &Value::Null) {
@@ -2838,8 +2881,8 @@ pub trait ExchangeBase:
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_88: bool = true;
-            while { if !__for_first_88 { i = add(&i, &Value::Int(1)); } __for_first_88 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_89: bool = true;
+            while { if !__for_first_89 { i = add(&i, &Value::Int(1)); } __for_first_89 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut total: Value = self.safe_string_k(get_value(&balance, &code), "total", &[]);
@@ -2881,6 +2924,12 @@ pub trait ExchangeBase:
         let mut market = get_arg(optional_args, 0, Value::Null);
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
+        if is_equal(&order, &Value::Null) {
+            order = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+        }
         let mut amount: Value = self.omit_zero(self.safe_string_k(order.clone(), "amount", &[]));
         let mut remaining: Value = self.safe_string_k(order.clone(), "remaining", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "filled", &[]);
@@ -2945,8 +2994,8 @@ pub trait ExchangeBase:
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_90: bool = true;
-                    while { if !__for_first_90 { i = add(&i, &Value::Int(1)); } __for_first_90 = false; is_less_than(&i, &get_array_length(&trades)) } {
+                    let mut __for_first_91: bool = true;
+                    while { if !__for_first_91 { i = add(&i, &Value::Int(1)); } __for_first_91 = false; is_less_than(&i, &get_array_length(&trades)) } {
                     let mut trade: Value = get_value(&trades, &i);
                     let mut trade: Value = get_value(&trades, &i);
                     let mut tradeAmount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
@@ -2976,8 +3025,8 @@ pub trait ExchangeBase:
                         if !is_equal(&tradeFees, &Value::Null) {
                             {
                                                                 let mut j: Value = Value::Int(0);
-                                let mut __for_first_89: bool = true;
-                                while { if !__for_first_89 { j = add(&j, &Value::Int(1)); } __for_first_89 = false; is_less_than(&j, &get_array_length(&tradeFees)) } {
+                                let mut __for_first_90: bool = true;
+                                while { if !__for_first_90 { j = add(&j, &Value::Int(1)); } __for_first_90 = false; is_less_than(&j, &get_array_length(&tradeFees)) } {
                                 let mut tradeFee: Value = get_value(&tradeFees, &j);
                                 let mut tradeFee: Value = get_value(&tradeFees, &j);
                                 append_to_array(&mut fees, self.extend(Value::Map({
@@ -3001,12 +3050,18 @@ pub trait ExchangeBase:
             }
         }
         if is_true(&shouldParseFees) {
-            let mut reducedFees: Value = ternary(is_true(&self.reduceFees), self.reduce_fees_by_currency(fees.clone()), fees.clone());
+            let mut reducedFees: Value = fees.clone();
+            if is_true(&self.reduceFees) {
+                reducedFees = self.reduce_fees_by_currency(fees.clone());
+            }
+            if is_equal(&reducedFees, &Value::Null) {
+                reducedFees = Value::List(vec![]);
+            }
             let mut reducedLength: Value = get_array_length(&reducedFees);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_91: bool = true;
-                while { if !__for_first_91 { i = add(&i, &Value::Int(1)); } __for_first_91 = false; is_less_than(&i, &reducedLength) } {
+                let mut __for_first_92: bool = true;
+                while { if !__for_first_92 { i = add(&i, &Value::Int(1)); } __for_first_92 = false; is_less_than(&i, &reducedLength) } {
                 { let __be_tmp = self.safe_number_k(get_value(&reducedFees, &i), "cost", &[]); add_element_to_object(get_value_mut(&mut reducedFees, &i), &Value::Str("cost".to_string()), __be_tmp); };
                 if is_true(&Value::Bool(in_op(&get_value(&reducedFees, &i), &Value::Str("rate".to_string())))) {
                     { let __be_tmp = self.safe_number_k(get_value(&reducedFees, &i), "rate", &[]); add_element_to_object(get_value_mut(&mut reducedFees, &i), &Value::Str("rate".to_string()), __be_tmp); };
@@ -3097,8 +3152,8 @@ pub trait ExchangeBase:
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_93: bool = true;
-            while { if !__for_first_93 { i = add(&i, &Value::Int(1)); } __for_first_93 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_94: bool = true;
+            while { if !__for_first_94 { i = add(&i, &Value::Int(1)); } __for_first_94 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut entry: Value = get_value(&trades, &i);
             let mut entry: Value = get_value(&trades, &i);
             { let __be_tmp = self.safe_number_k(entry.clone(), "amount", &[]); add_element_to_object(&mut entry, &Value::Str("amount".to_string()), __be_tmp); };
@@ -3115,8 +3170,8 @@ pub trait ExchangeBase:
             let mut entryFees: Value = self.safe_list_k(entry.clone(), "fees", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_92: bool = true;
-                while { if !__for_first_92 { j = add(&j, &Value::Int(1)); } __for_first_92 = false; is_less_than(&j, &get_array_length(&entryFees)) } {
+                let mut __for_first_93: bool = true;
+                while { if !__for_first_93 { j = add(&j, &Value::Int(1)); } __for_first_93 = false; is_less_than(&j, &get_array_length(&entryFees)) } {
                 { let __be_tmp = self.safe_number_k(get_value(&entryFees, &j), "cost", &[]); add_element_to_object(get_value_mut(&mut entryFees, &j), &Value::Str("cost".to_string()), __be_tmp); };
             }
             }
@@ -3210,12 +3265,15 @@ pub trait ExchangeBase:
         //         ...
         //     ]
         //
+        if is_equal(&orders, &Value::Null) {
+            return Value::List(vec![]);
+        }
         let mut results: Value = Value::List(vec![]);
         if is_true(&Value::Bool(is_array(&orders))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_94: bool = true;
-                while { if !__for_first_94 { i = add(&i, &Value::Int(1)); } __for_first_94 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                let mut __for_first_95: bool = true;
+                while { if !__for_first_95 { i = add(&i, &Value::Int(1)); } __for_first_95 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_order(self, get_value(&orders, &i), &[market.clone()]); // don't inline this call
                 let mut order: Value = self.extend(parsed.clone(), &[params.clone()]);
                 append_to_array(&mut results, order.clone());
@@ -3225,8 +3283,8 @@ pub trait ExchangeBase:
             let mut ids: Value = object_keys(&orders);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_95: bool = true;
-                while { if !__for_first_95 { i = add(&i, &Value::Int(1)); } __for_first_95 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_96: bool = true;
+                while { if !__for_first_96 { i = add(&i, &Value::Int(1)); } __for_first_96 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 let mut id: Value = get_value(&ids, &i);
                 let mut id: Value = get_value(&ids, &i);
                 let mut idExtended: Value = self.extend(Value::Map({
@@ -3257,7 +3315,12 @@ pub trait ExchangeBase:
         if is_equal(&type_var, &Value::Str("market".to_string())) && is_equal(&takerOrMaker, &Value::Str("maker".to_string())) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.".to_string()))));
         }
-        let mut market: Value = get_value(&self.markets, &symbol);
+        let mut markets: Value = self.markets.clone();
+        if is_equal(&markets, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" markets not loaded".to_string()))));
+        }
+        let mut market: Value = get_value(&markets, &symbol);
+        let mut market: Value = get_value(&markets, &symbol);
         let mut feeSide: Value = self.safe_string_k(market.clone(), "feeSide", &[Value::Str("quote".to_string())]);
         let mut useQuote: Value = Value::Null;
         if is_equal(&feeSide, &Value::Str("get".to_string())) {
@@ -3410,12 +3473,18 @@ pub trait ExchangeBase:
                 fees = Value::List(vec![fee.clone()]);
             }
             // 'fees' were set, so reparse them
-            let mut reducedFees: Value = ternary(is_true(&self.reduceFees), self.reduce_fees_by_currency(fees.clone()), fees.clone());
+            let mut reducedFees: Value = fees.clone();
+            if is_true(&self.reduceFees) {
+                reducedFees = self.reduce_fees_by_currency(fees.clone());
+            }
+            if is_equal(&reducedFees, &Value::Null) {
+                reducedFees = Value::List(vec![]);
+            }
             let mut reducedLength: Value = get_array_length(&reducedFees);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_96: bool = true;
-                while { if !__for_first_96 { i = add(&i, &Value::Int(1)); } __for_first_96 = false; is_less_than(&i, &reducedLength) } {
+                let mut __for_first_97: bool = true;
+                while { if !__for_first_97 { i = add(&i, &Value::Int(1)); } __for_first_97 = false; is_less_than(&i, &reducedLength) } {
                 { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &i)); add_element_to_object(&mut reducedFees, &i, __be_tmp); };
             }
             }
@@ -3458,8 +3527,8 @@ pub trait ExchangeBase:
         let mut length: Value = get_array_length(&arr);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_97: bool = true;
-            while { if !__for_first_97 { i = add(&i, &Value::Int(1)); } __for_first_97 = false; is_less_than(&i, &length) } {
+            let mut __for_first_98: bool = true;
+            while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &length) } {
             let mut current: Value = get_value(&arr, &i);
             let mut current: Value = get_value(&arr, &i);
             if is_less_than_or_equal(&providedValue, &current) {
@@ -3477,8 +3546,8 @@ pub trait ExchangeBase:
         let mut keys: Value = object_keys(&obj);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_98: bool = true;
-            while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_99: bool = true;
+            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut item: Value = get_value(&obj, &key);
@@ -3507,8 +3576,8 @@ pub trait ExchangeBase:
         let mut keys: Value = object_keys(&dict);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_99: bool = true;
-            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_100: bool = true;
+            while { if !__for_first_100 { i = add(&i, &Value::Int(1)); } __for_first_100 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&dict, &key);
@@ -3581,8 +3650,8 @@ pub trait ExchangeBase:
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_100: bool = true;
-            while { if !__for_first_100 { i = add(&i, &Value::Int(1)); } __for_first_100 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_101: bool = true;
+            while { if !__for_first_101 { i = add(&i, &Value::Int(1)); } __for_first_101 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = get_value(&fees, &i);
             let mut fee: Value = get_value(&fees, &i);
             let mut code: Value = self.safe_string_k(fee.clone(), "currency", &[]);
@@ -3620,8 +3689,8 @@ pub trait ExchangeBase:
         let mut feeValues: Value = object_values(&reduced);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_101: bool = true;
-            while { if !__for_first_101 { i = add(&i, &Value::Int(1)); } __for_first_101 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
+            let mut __for_first_102: bool = true;
+            while { if !__for_first_102 { i = add(&i, &Value::Int(1)); } __for_first_102 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
             let mut reducedFeeValues: Value = object_values(&get_value(&feeValues, &i));
             result = self.array_concat(result.clone(), reducedFeeValues.clone());
         }
@@ -3917,8 +3986,8 @@ pub trait ExchangeBase:
         let mut volumes: Value = self.safe_list(ohlcvs.clone(), volume.clone(), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_102: bool = true;
-            while { if !__for_first_102 { i = add(&i, &Value::Int(1)); } __for_first_102 = false; is_less_than(&i, &get_array_length(&timestamps)) } {
+            let mut __for_first_103: bool = true;
+            while { if !__for_first_103 { i = add(&i, &Value::Int(1)); } __for_first_103 = false; is_less_than(&i, &get_array_length(&timestamps)) } {
             append_to_array(&mut result, Value::List(vec![ternary(is_true(&ms), self.safe_integer(timestamps.clone(), i.clone(), &[]), self.safe_timestamp(timestamps.clone(), i.clone(), &[])), self.safe_value(opens.clone(), i.clone(), &[]), self.safe_value(highs.clone(), i.clone(), &[]), self.safe_value(lows.clone(), i.clone(), &[]), self.safe_value(closes.clone(), i.clone(), &[]), self.safe_value(volumes.clone(), i.clone(), &[])]));
         }
         }
@@ -3947,8 +4016,8 @@ pub trait ExchangeBase:
         add_element_to_object(&mut result, &volume, Value::List(vec![]));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_103: bool = true;
-            while { if !__for_first_103 { i = add(&i, &Value::Int(1)); } __for_first_103 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+            let mut __for_first_104: bool = true;
+            while { if !__for_first_104 { i = add(&i, &Value::Int(1)); } __for_first_104 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             let mut ts: Value = ternary(is_true(&ms), get_value(&get_value(&ohlcvs, &i), &Value::Int(0)), self.parse_to_int(divide(&get_value(&get_value(&ohlcvs, &i), &Value::Int(0)), &Value::Int(1000))));
             let mut resultTimestamp: Value = get_value(&result, &timestamp);
             append_to_array(&mut resultTimestamp, ts.clone());
@@ -4007,9 +4076,15 @@ pub trait ExchangeBase:
                 }
             }
             let mut content: Value = response.clone();
+            if is_equal(&content, &Value::Null) {
+                panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" fetchWebEndpoint() returned empty content".to_string()))));
+            }
             if !is_equal(&startRegex, &Value::Null) {
                 let mut splitted_by_start: Value = split(&content, &startRegex);
                 content = get_value(&splitted_by_start, &Value::Int(1)); // we need second part after start
+            }
+            if is_equal(&content, &Value::Null) {
+                panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" fetchWebEndpoint() returned empty content".to_string()))));
             }
             if !is_equal(&endRegex, &Value::Null) {
                 let mut splitted_by_end: Value = split(&content, &endRegex);
@@ -4035,15 +4110,23 @@ pub trait ExchangeBase:
 
     fn market_ids(&self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
+        /*
+         * @param {string[]|undefined} symbols list of unified symbols
+         * @returns {string[]|undefined} list of exchange-specific market ids
+         * Overloads: non-null `string[]` input yields `string[]`; optional input yields `Strings`.
+         */
         if is_equal(&symbols, &Value::Null) {
             return symbols;
         }
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_104: bool = true;
-            while { if !__for_first_104 { i = add(&i, &Value::Int(1)); } __for_first_104 = false; is_less_than(&i, &get_array_length(&symbols)) } {
-            append_to_array(&mut result, self.market_id(get_value(&symbols, &i)));
+            let mut __for_first_105: bool = true;
+            while { if !__for_first_105 { i = add(&i, &Value::Int(1)); } __for_first_105 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut id: Value = self.market_id(get_value(&symbols, &i));
+            if !is_equal(&id, &Value::Null) {
+                append_to_array(&mut result, id.clone());
+            }
         }
         }
         return result;
@@ -4059,9 +4142,12 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_105: bool = true;
-            while { if !__for_first_105 { i = add(&i, &Value::Int(1)); } __for_first_105 = false; is_less_than(&i, &get_array_length(&codes)) } {
-            append_to_array(&mut result, self.currency_id(get_value(&codes, &i)));
+            let mut __for_first_106: bool = true;
+            while { if !__for_first_106 { i = add(&i, &Value::Int(1)); } __for_first_106 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut id: Value = self.currency_id(get_value(&codes, &i));
+            if !is_equal(&id, &Value::Null) {
+                append_to_array(&mut result, id.clone());
+            }
         }
         }
         return result;
@@ -4072,13 +4158,13 @@ pub trait ExchangeBase:
     fn markets_for_symbols(&self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         if is_equal(&symbols, &Value::Null) {
-            return symbols;
+            return Value::Null;
         }
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_106: bool = true;
-            while { if !__for_first_106 { i = add(&i, &Value::Int(1)); } __for_first_106 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_107: bool = true;
+            while { if !__for_first_107 { i = add(&i, &Value::Int(1)); } __for_first_107 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             append_to_array(&mut result, self.market(get_value(&symbols, &i)));
         }
         }
@@ -4087,12 +4173,22 @@ pub trait ExchangeBase:
     Value::Null
 }
 
+// allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
     fn market_symbols(&self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut type_var = get_arg(optional_args, 1, Value::Null);
         let mut allowEmpty = get_arg(optional_args, 2, Value::Bool(true));
         let mut sameTypeOnly = get_arg(optional_args, 3, Value::Bool(false));
         let mut sameSubTypeOnly = get_arg(optional_args, 4, Value::Bool(false));
+        /*
+         * @param {string[]|undefined} symbols list of unified symbols
+         * @param {string|undefined} type filter by market type
+         * @param {boolean} allowEmpty whether empty/undefined symbols is allowed
+         * @param {boolean} sameTypeOnly require all markets to share type
+         * @param {boolean} sameSubTypeOnly require all markets to share linear/inverse subType
+         * @returns {string[]|undefined} validated unified symbols
+         * Overloads: `allowEmpty: false` or non-null `string[]` input yields `string[]`; permissive form yields `Strings`.
+         */
         if is_equal(&symbols, &Value::Null) {
             if !is_true(&allowEmpty) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" empty list of symbols is not supported".to_string()))));
@@ -4111,8 +4207,8 @@ pub trait ExchangeBase:
         let mut isLinearSubType: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_107: bool = true;
-            while { if !__for_first_107 { i = add(&i, &Value::Int(1)); } __for_first_107 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_108: bool = true;
+            while { if !__for_first_108 { i = add(&i, &Value::Int(1)); } __for_first_108 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             if is_true(&sameTypeOnly) && is_true(&(!is_equal(&marketType, &Value::Null))) {
                 if !is_equal(&get_value(&market, &Value::Str("type".to_string())), &marketType) {
@@ -4148,8 +4244,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_108: bool = true;
-            while { if !__for_first_108 { i = add(&i, &Value::Int(1)); } __for_first_108 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_109: bool = true;
+            while { if !__for_first_109 { i = add(&i, &Value::Int(1)); } __for_first_109 = false; is_less_than(&i, &get_array_length(&codes)) } {
             append_to_array(&mut result, self.common_currency_code(get_value(&codes, &i)));
         }
         }
@@ -4166,8 +4262,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_109: bool = true;
-            while { if !__for_first_109 { i = add(&i, &Value::Int(1)); } __for_first_109 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
+            let mut __for_first_110: bool = true;
+            while { if !__for_first_110 { i = add(&i, &Value::Int(1)); } __for_first_110 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             append_to_array(&mut result, self.parse_order_book_bid_ask(get_value(&bidasks, &i), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]));
         }
         }
@@ -4184,8 +4280,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_110: bool = true;
-            while { if !__for_first_110 { i = add(&i, &Value::Int(1)); } __for_first_110 = false; is_less_than(&i, &get_array_length(&objects)) } {
+            let mut __for_first_111: bool = true;
+            while { if !__for_first_111 { i = add(&i, &Value::Int(1)); } __for_first_111 = false; is_less_than(&i, &get_array_length(&objects)) } {
             let mut objectValue: Value = self.safe_string(get_value(&objects, &i), key.clone(), &[]);
             if is_equal(&objectValue, &value) {
                 append_to_array(&mut result, get_value(&objects, &i));
@@ -4290,8 +4386,8 @@ pub trait ExchangeBase:
         let mut keys: Value = object_keys(&replacements);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_111: bool = true;
-            while { if !__for_first_111 { i = add(&i, &Value::Int(1)); } __for_first_111 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_112: bool = true;
+            while { if !__for_first_112 { i = add(&i, &Value::Int(1)); } __for_first_112 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut baseCoin: Value = get_value(&keys, &i);
             let mut baseCoin: Value = get_value(&keys, &i);
             let mut entry: Value = get_value(&replacements, &baseCoin);
@@ -4339,9 +4435,9 @@ pub trait ExchangeBase:
     m
 })]);
         // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        let mut preferredChainalternativeChainVariable = self.prioritized_network_aliases(&[networkCode.clone(), currencyCode.clone(), Value::Bool(false)]);
-        let mut preferredChain: Value = get_value(&preferredChainalternativeChainVariable, &Value::Int(0));
-        let mut alternativeChain: Value = get_value(&preferredChainalternativeChainVariable, &Value::Int(1));
+        let mut chainPair: Value = self.prioritized_network_aliases(&[networkCode.clone(), currencyCode.clone(), Value::Bool(false)]);
+        let mut preferredChain: Value = ternary(is_true(&(is_equal(&chainPair, &Value::Null))), networkCode.clone(), get_value(&chainPair, &Value::Int(0)));
+        let mut alternativeChain: Value = ternary(is_true(&(is_equal(&chainPair, &Value::Null))), networkCode.clone(), get_value(&chainPair, &Value::Int(1)));
         let mut networkId: Value = self.safe_string2(networkIdsByCodes.clone(), preferredChain.clone(), alternativeChain.clone(), &[]);
         if !is_equal(&networkId, &Value::Null) {
             return networkId;
@@ -4355,8 +4451,8 @@ pub trait ExchangeBase:
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_112: bool = true;
-            while { if !__for_first_112 { i = add(&i, &Value::Int(1)); } __for_first_112 = false; is_less_than(&i, &get_array_length(&currenciesToCheck)) } {
+            let mut __for_first_113: bool = true;
+            while { if !__for_first_113 { i = add(&i, &Value::Int(1)); } __for_first_113 = false; is_less_than(&i, &get_array_length(&currenciesToCheck)) } {
             let mut networks: Value = self.safe_dict_k(get_value(&currenciesToCheck, &i), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4391,9 +4487,12 @@ pub trait ExchangeBase:
     m
 })]);
         let mut networkCode: Value = self.safe_string(networkCodesByIds.clone(), networkId.clone(), &[networkId.clone()]);
-        let mut preferredChainalternativeChainVariable = self.prioritized_network_aliases(&[networkCode.clone(), currencyCode.clone(), Value::Bool(true)]);
-        let mut preferredChain: Value = get_value(&preferredChainalternativeChainVariable, &Value::Int(0));
-        let mut alternativeChain: Value = get_value(&preferredChainalternativeChainVariable, &Value::Int(1));
+        let mut chainPair: Value = self.prioritized_network_aliases(&[networkCode.clone(), currencyCode.clone(), Value::Bool(true)]);
+        if is_equal(&chainPair, &Value::Null) {
+            return networkCode;
+        }
+        let mut preferredChain: Value = get_value(&chainPair, &Value::Int(0));
+        let mut alternativeChain: Value = get_value(&chainPair, &Value::Int(1));
         // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
         // it disambiguates them — trust the direct id→code inversion instead of guessing
         if is_equal(&currencyCode, &Value::Null) {
@@ -4478,6 +4577,9 @@ pub trait ExchangeBase:
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 let mut defaultNetworkCode: Value = self.default_network_code(currencyCode.clone());
                 let mut defaultNetworkId: Value = ternary(is_true(&isIndexedByUnifiedNetworkCode), defaultNetworkCode.clone(), self.network_code_to_id(defaultNetworkCode.clone(), &[currencyCode.clone()]));
+                if is_equal(&defaultNetworkId, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" selectNetworkKeyFromNetworks() missing defaultNetworkId".to_string()))));
+                }
                 if is_true(&Value::Bool(in_op(&indexedNetworkEntries, &defaultNetworkId))) {
                     return defaultNetworkId;
                 }
@@ -4507,6 +4609,12 @@ pub trait ExchangeBase:
         let mut priceKey = get_arg(optional_args, 3, Value::Int(0));
         let mut amountKey = get_arg(optional_args, 4, Value::Int(1));
         let mut countOrIdKey = get_arg(optional_args, 5, Value::Int(2));
+        if is_equal(&orderbook, &Value::Null) {
+            orderbook = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+        }
         let mut bids: Value = self.parse_order_book_bids_asks(self.safe_value(orderbook.clone(), bidsKey.clone(), &[Value::List(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
         let mut asks: Value = self.parse_order_book_bids_asks(self.safe_value(orderbook.clone(), asksKey.clone(), &[Value::List(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
         return Value::Map({
@@ -4529,11 +4637,14 @@ pub trait ExchangeBase:
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut tail = get_arg(optional_args, 4, Value::Bool(false));
+        if is_equal(&ohlcvs, &Value::Null) {
+            return Value::List(vec![]);
+        }
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_113: bool = true;
-            while { if !__for_first_113 { i = add(&i, &Value::Int(1)); } __for_first_113 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+            let mut __for_first_114: bool = true;
+            while { if !__for_first_114 { i = add(&i, &Value::Int(1)); } __for_first_114 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             append_to_array(&mut results, <Self as crate::exchange_generated::ExchangeBase>::parse_ohlcv(self, get_value(&ohlcvs, &i), &[market.clone()]));
         }
         }
@@ -4560,15 +4671,15 @@ pub trait ExchangeBase:
         if is_true(&Value::Bool(is_array(&response))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_114: bool = true;
-                while { if !__for_first_114 { i = add(&i, &Value::Int(1)); } __for_first_114 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_115: bool = true;
+                while { if !__for_first_115 { i = add(&i, &Value::Int(1)); } __for_first_115 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut item: Value = get_value(&response, &i);
                 let mut item: Value = get_value(&response, &i);
                 let mut id: Value = ternary(is_true(&(is_equal(&marketIdKey, &Value::Null))), Value::Null, self.safe_string(item.clone(), marketIdKey.clone(), &[]));
                 let mut market: Value = self.safe_market(&[id.clone(), Value::Null, Value::Null, Value::Str("swap".to_string())]);
                 let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
                 let mut contract: Value = self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]);
-                if is_true(&contract) && is_true(&(is_true(&noSymbols) || is_true(&self.in_array(symbol.clone(), symbols.clone())))) {
+                if is_true(&contract) && is_true(&(is_true(&noSymbols) || is_true(&(is_true(&(!is_equal(&symbols, &Value::Null))) && is_true(&self.in_array(symbol.clone(), symbols.clone())))))) {
                     add_element_to_object(&mut tiers, &symbol, <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item.clone(), &[market.clone()]));
                 }
             }
@@ -4577,8 +4688,8 @@ pub trait ExchangeBase:
             let mut keys: Value = object_keys(&response);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_115: bool = true;
-                while { if !__for_first_115 { i = add(&i, &Value::Int(1)); } __for_first_115 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_116: bool = true;
+                while { if !__for_first_116 { i = add(&i, &Value::Int(1)); } __for_first_116 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut marketId: Value = get_value(&keys, &i);
                 let mut marketId: Value = get_value(&keys, &i);
                 let mut item: Value = get_value(&response, &marketId);
@@ -4586,7 +4697,7 @@ pub trait ExchangeBase:
                 let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("swap".to_string())]);
                 let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
                 let mut contract: Value = self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]);
-                if is_true(&contract) && is_true(&(is_true(&noSymbols) || is_true(&self.in_array(symbol.clone(), symbols.clone())))) {
+                if is_true(&contract) && is_true(&(is_true(&noSymbols) || is_true(&(is_true(&(!is_equal(&symbols, &Value::Null))) && is_true(&self.in_array(symbol.clone(), symbols.clone())))))) {
                     add_element_to_object(&mut tiers, &symbol, <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item.clone(), &[market.clone()]));
                 }
             }
@@ -4607,13 +4718,18 @@ pub trait ExchangeBase:
         if is_true(&get_value(&self.has, &Value::Str("fetchTradingLimits".to_string()))) {
             if is_true(&reload) || !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("limitsLoaded".to_string()))))) {
                 let mut response: Value = self.fetch_trading_limits(&[symbols.clone()]).await;
+                let mut symbolsArray: Value = self.require_value(symbols.clone(), &[Value::Str("loadTradingLimits() requires a symbols argument".to_string())]);
+                let mut markets: Value = self.markets.clone();
+                if is_equal(&markets, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" markets not loaded".to_string()))));
+                }
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_116: bool = true;
-                    while { if !__for_first_116 { i = add(&i, &Value::Int(1)); } __for_first_116 = false; is_less_than(&i, &get_array_length(&symbols)) } {
-                    let mut symbol: Value = get_value(&symbols, &i);
-                    let mut symbol: Value = get_value(&symbols, &i);
-                    { let __be_tmp = self.deep_extend(get_value(&self.markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut self.markets, &symbol, __be_tmp); };
+                    let mut __for_first_117: bool = true;
+                    while { if !__for_first_117 { i = add(&i, &Value::Int(1)); } __for_first_117 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
+                    let mut symbol: Value = get_value(&symbolsArray, &i);
+                    let mut symbol: Value = get_value(&symbolsArray, &i);
+                    { let __be_tmp = self.deep_extend(get_value(&markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut markets, &symbol, __be_tmp); };
                 }
                 }
                 { let __be_tmp = self.milliseconds(); add_element_to_object(&mut self.options, &Value::Str("limitsLoaded".to_string()), __be_tmp); };
@@ -4664,8 +4780,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_117: bool = true;
-            while { if !__for_first_117 { i = add(&i, &Value::Int(1)); } __for_first_117 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_118: bool = true;
+            while { if !__for_first_118 { i = add(&i, &Value::Int(1)); } __for_first_118 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_position(self, get_value(&positions, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, position.clone());
         }
@@ -4680,6 +4796,9 @@ pub trait ExchangeBase:
         { let __v = crate::exchange::DerivedExchange::parse_adl_rank(self, info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
+        if is_equal(&info, &Value::Null) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseADLRank() is not supported yet".to_string()))));
+        }
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseADLRank() is not supported yet".to_string()))));
 
     Value::Null
@@ -4696,8 +4815,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_118: bool = true;
-            while { if !__for_first_118 { i = add(&i, &Value::Int(1)); } __for_first_118 = false; is_less_than(&i, &get_array_length(&ranks)) } {
+            let mut __for_first_119: bool = true;
+            while { if !__for_first_119 { i = add(&i, &Value::Int(1)); } __for_first_119 = false; is_less_than(&i, &get_array_length(&ranks)) } {
             let mut rank: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_adl_rank(self, get_value(&ranks, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, rank.clone());
         }
@@ -4716,8 +4835,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_119: bool = true;
-            while { if !__for_first_119 { i = add(&i, &Value::Int(1)); } __for_first_119 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+            let mut __for_first_120: bool = true;
+            while { if !__for_first_120 { i = add(&i, &Value::Int(1)); } __for_first_120 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_account(self, get_value(&accounts, &i)), &[params.clone()]);
             append_to_array(&mut result, account.clone());
         }
@@ -4739,8 +4858,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_120: bool = true;
-            while { if !__for_first_120 { i = add(&i, &Value::Int(1)); } __for_first_120 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_121: bool = true;
+            while { if !__for_first_121 { i = add(&i, &Value::Int(1)); } __for_first_121 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut parsed: Value = Value::Null;
             if is_true(&isWs) {
                 parsed = self.parse_ws_trade(get_value(&trades, &i), &[market.clone()]);
@@ -4796,8 +4915,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_121: bool = true;
-            while { if !__for_first_121 { i = add(&i, &Value::Int(1)); } __for_first_121 = false; is_less_than(&i, &get_array_length(&transactions)) } {
+            let mut __for_first_122: bool = true;
+            while { if !__for_first_122 { i = add(&i, &Value::Int(1)); } __for_first_122 = false; is_less_than(&i, &get_array_length(&transactions)) } {
             let mut transaction: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_transaction(self, get_value(&transactions, &i), &[currency.clone()]), &[params.clone()]);
             append_to_array(&mut result, transaction.clone());
         }
@@ -4821,8 +4940,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_122: bool = true;
-            while { if !__for_first_122 { i = add(&i, &Value::Int(1)); } __for_first_122 = false; is_less_than(&i, &get_array_length(&transfers)) } {
+            let mut __for_first_123: bool = true;
+            while { if !__for_first_123 { i = add(&i, &Value::Int(1)); } __for_first_123 = false; is_less_than(&i, &get_array_length(&transfers)) } {
             let mut transfer: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_transfer(self, get_value(&transfers, &i), &[currency.clone()]), &[params.clone()]);
             append_to_array(&mut result, transfer.clone());
         }
@@ -4846,14 +4965,14 @@ pub trait ExchangeBase:
         let mut arrayData: Value = self.to_array(data.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_124: bool = true;
-            while { if !__for_first_124 { i = add(&i, &Value::Int(1)); } __for_first_124 = false; is_less_than(&i, &get_array_length(&arrayData)) } {
+            let mut __for_first_125: bool = true;
+            while { if !__for_first_125 { i = add(&i, &Value::Int(1)); } __for_first_125 = false; is_less_than(&i, &get_array_length(&arrayData)) } {
             let mut itemOrItems: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_ledger_entry(self, get_value(&arrayData, &i), &[currency.clone()]);
             if is_true(&Value::Bool(is_array(&itemOrItems))) {
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_123: bool = true;
-                    while { if !__for_first_123 { j = add(&j, &Value::Int(1)); } __for_first_123 = false; is_less_than(&j, &get_array_length(&itemOrItems)) } {
+                    let mut __for_first_124: bool = true;
+                    while { if !__for_first_124 { j = add(&j, &Value::Int(1)); } __for_first_124 = false; is_less_than(&j, &get_array_length(&itemOrItems)) } {
                     append_to_array(&mut result, self.extend(get_value(&itemOrItems, &j), &[params.clone()]));
                 }
                 }
@@ -4882,6 +5001,9 @@ pub trait ExchangeBase:
 }
 
     fn currency_id(&self, mut code: Value) -> Value {
+        if is_equal(&code, &Value::Null) {
+            return code;
+        }
         let mut currency: Value = self.safe_dict(self.currencies.clone(), code.clone(), &[]);
         if is_equal(&currency, &Value::Null) {
             currency = self.safe_currency(code.clone(), &[]);
@@ -4905,12 +5027,17 @@ pub trait ExchangeBase:
 }
 
     fn symbol(&self, mut symbol: Value) -> Value {
+        if is_equal(&symbol, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" symbol() requires a symbol argument".to_string()))));
+        }
         let mut market: Value = self.market(symbol.clone());
         return self.safe_string_k(market.clone(), "symbol", &[symbol.clone()]);
 
     Value::Null
 }
 
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
     fn handle_param_string(&self, mut params: Value, mut paramName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_string(params.clone(), paramName.clone(), &[defaultValue.clone()]);
@@ -4922,6 +5049,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
     fn handle_param_string2(&self, mut params: Value, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_string2(params.clone(), paramName1.clone(), paramName2.clone(), &[defaultValue.clone()]);
@@ -5014,8 +5143,8 @@ pub trait ExchangeBase:
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_125: bool = true;
-            while { if !__for_first_125 { i = add(&i, &Value::Int(1)); } __for_first_125 = false; is_less_than(&i, &get_array_length(&newArray)) } {
+            let mut __for_first_126: bool = true;
+            while { if !__for_first_126 { i = add(&i, &Value::Int(1)); } __for_first_126 = false; is_less_than(&i, &get_array_length(&newArray)) } {
             append_to_array(&mut results, get_value(&get_value(&newArray, &i), &key));
         }
         }
@@ -5066,8 +5195,8 @@ pub trait ExchangeBase:
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_126: bool = true;
-            while { if !__for_first_126 { i = add(&i, &Value::Int(1)); } __for_first_126 = false; is_less_than(&i, &get_array_length(&objects)) } {
+            let mut __for_first_127: bool = true;
+            while { if !__for_first_127 { i = add(&i, &Value::Int(1)); } __for_first_127 = false; is_less_than(&i, &get_array_length(&objects)) } {
             if is_true(&self.in_array(get_value(&get_value(&objects, &i), &key), values.clone())) {
                 append_to_array(&mut results, get_value(&objects, &i));
             }
@@ -5098,8 +5227,8 @@ pub trait ExchangeBase:
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_127: bool = true;
-            while { if !__for_first_127 { i = add(&i, &Value::Int(1)); } __for_first_127 = false; is_less_than(&i, &get_array_length(&objects)) } {
+            let mut __for_first_128: bool = true;
+            while { if !__for_first_128 { i = add(&i, &Value::Int(1)); } __for_first_128 = false; is_less_than(&i, &get_array_length(&objects)) } {
             if !is_true(&self.in_array(get_value(&get_value(&objects, &i), &key), values.clone())) {
                 append_to_array(&mut results, get_value(&objects, &i));
             }
@@ -5131,16 +5260,16 @@ pub trait ExchangeBase:
             let mut cost: Value = self.calculate_rate_limiter_cost(api.clone(), method.clone(), path.clone(), params.clone(), &[config.clone()]);
             self.throttle(&[cost.clone()]).await;
         }
-        let mut retries: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailure".to_string()), &[Value::Int(0)]); retries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut retryDelay: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailureDelay".to_string()), &[Value::Int(0)]); retryDelay = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut retries: Value = Value::Int(0);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailure".to_string()), &[retries.clone()]); retries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut retryDelay: Value = Value::Int(0);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailureDelay".to_string()), &[retryDelay.clone()]); retryDelay = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut fetchData: Value = Value::Null;
         let mut fetchDataCacheEnabled: Value = Value::Bool(is_greater_than(&self.fetchHistoryCacheSize, &Value::Int(0)));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_128: bool = true;
-            while { if !__for_first_128 { i = add(&i, &Value::Int(1)); } __for_first_128 = false; is_less_than(&i, &add(&retries, &Value::Int(1))) } {
+            let mut __for_first_129: bool = true;
+            while { if !__for_first_129 { i = add(&i, &Value::Int(1)); } __for_first_129 = false; is_less_than(&i, &add(&retries, &Value::Int(1))) } {
             if is_true(&fetchDataCacheEnabled) {
                 fetchData = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -5157,19 +5286,19 @@ pub trait ExchangeBase:
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.set_last_rest_request_timestamp();
                 let mut request: Value = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()]);
-                if is_true(&fetchDataCacheEnabled) {
+                if is_true(&fetchDataCacheEnabled) && is_true(&(!is_equal(&fetchData, &Value::Null))) {
                     add_element_to_object(&mut fetchData, &Value::Str("request".to_string()), request.clone());
                 }
                 self.set_last_request(request.clone());
                 let mut response: Value = self.fetch(get_value(&request, &Value::Str("url".to_string())), &[get_value(&request, &Value::Str("method".to_string())), get_value(&request, &Value::Str("headers".to_string())), get_value(&request, &Value::Str("body".to_string()))]).await;
-                if is_true(&fetchDataCacheEnabled) {
+                if is_true(&fetchDataCacheEnabled) && is_true(&(!is_equal(&fetchData, &Value::Null))) {
                     add_element_to_object(get_value_mut(&mut fetchData, &Value::Str("response".to_string())), &Value::Str("body".to_string()), response.clone());
                     self.add_fetch_cache(fetchData.clone());
                 }
                 return response.clone();
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-                if is_true(&fetchDataCacheEnabled) {
+                if is_true(&fetchDataCacheEnabled) && is_true(&(!is_equal(&fetchData, &Value::Null))) {
                     add_element_to_object(&mut fetchData, &Value::Str("error".to_string()), e.clone());
                     self.add_fetch_cache(fetchData.clone());
                 }
@@ -5259,14 +5388,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut skipZeroPrices: Value = self.safe_bool_k(options.clone(), "skipZeroPrices", &[Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_129: bool = true;
-            while { if !__for_first_129 { i = add(&i, &Value::Int(1)); } __for_first_129 = false; is_less_than(&i, &oldest) } {
+            let mut __for_first_130: bool = true;
+            while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &oldest) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut ts: Value = get_value(&trade, &Value::Str("timestamp".to_string()));
             let mut price: Value = get_value(&trade, &Value::Str("price".to_string()));
+            if is_true(&(is_equal(&ts, &Value::Null))) || is_true(&(is_equal(&price, &Value::Null))) {
+                continue;
+            }
             if is_less_than(&ts, &since) {
                 continue;
+            }
+            if is_equal(&ts, &Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" buildOHLCVC() missing ts".to_string()))));
             }
             let mut openingTime: Value = multiply(&math_floor(&divide(&ts, &ms)), &ms); // shift to the edge of m/h/d (but not M)
             if is_less_than(&openingTime, &since) {
@@ -5274,6 +5409,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut ohlcv_length: Value = get_array_length(&ohlcvs);
             let mut candle: Value = subtract(&ohlcv_length, &Value::Int(1));
+            if is_equal(&price, &Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" buildOHLCVC() requires a price argument".to_string()))));
+            }
             if is_true(&skipZeroPrices) && !is_true(&(is_greater_than(&price, &Value::Int(0)))) && !is_true(&(is_less_than(&price, &Value::Int(0)))) {
                 continue;
             }
@@ -5283,8 +5421,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 append_to_array(&mut ohlcvs, Value::List(vec![openingTime.clone(), price.clone(), price.clone(), price.clone(), price.clone(), get_value(&trade, &Value::Str("amount".to_string())), Value::Int(1)]));
             }  else {
                 // still processing the same timeframe -> update opening trade
-                { let __be_tmp = crate::runtime::Math::max(&get_value(&get_value(&ohlcvs, &candle), &i_high), &price); add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_high, __be_tmp); };
-                { let __be_tmp = crate::runtime::Math::min(&get_value(&get_value(&ohlcvs, &candle), &i_low), &price); add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_low, __be_tmp); };
+                let mut prevHigh: Value = get_value(&get_value(&ohlcvs, &candle), &i_high);
+                let mut prevLow: Value = get_value(&get_value(&ohlcvs, &candle), &i_low);
+                let mut prevHighValue: Value = ternary(is_true(&(is_equal(&prevHigh, &Value::Null))), price.clone(), prevHigh.clone());
+                let mut prevLowValue: Value = ternary(is_true(&(is_equal(&prevLow, &Value::Null))), price.clone(), prevLow.clone());
+                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_high, crate::runtime::Math::max(&prevHighValue, &price));
+                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_low, crate::runtime::Math::min(&prevLowValue, &price));
                 add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_close, price.clone());
                 { let __be_tmp = self.sum(&[get_value(&get_value(&ohlcvs, &candle), &i_volume), get_value(&trade, &Value::Str("amount".to_string()))]); add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_volume, __be_tmp); };
                 { let __be_tmp = self.sum(&[get_value(&get_value(&ohlcvs, &candle), &i_count), Value::Int(1)]); add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_count, __be_tmp); };
@@ -5410,8 +5552,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_130: bool = true;
-                        while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &get_array_length(&markets)) } {
+                        let mut __for_first_131: bool = true;
+                        while { if !__for_first_131 { i = add(&i, &Value::Int(1)); } __for_first_131 = false; is_less_than(&i, &get_array_length(&markets)) } {
                         let mut currentMarket: Value = get_value(&markets, &i);
                         let mut currentMarket: Value = get_value(&markets, &i);
                         if is_true(&get_value(&currentMarket, &marketType)) {
@@ -5429,12 +5571,25 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("marketId".to_string(), marketId.clone());
     m
 })]);
+                if is_equal(&result, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" safeMarket() failed to build market structure".to_string()))));
+                }
                 if is_equal(&partsLength, &Value::Int(2)) {
-                    add_element_to_object(&mut result, &Value::Str("baseId".to_string()), self.safe_string(parts.clone(), Value::Int(0), &[]));
-                    add_element_to_object(&mut result, &Value::Str("quoteId".to_string()), self.safe_string(parts.clone(), Value::Int(1), &[]));
-                    { let __be_tmp = self.safe_currency_code(get_value(&result, &Value::Str("baseId".to_string())), &[]); add_element_to_object(&mut result, &Value::Str("base".to_string()), __be_tmp); };
-                    { let __be_tmp = self.safe_currency_code(get_value(&result, &Value::Str("quoteId".to_string())), &[]); add_element_to_object(&mut result, &Value::Str("quote".to_string()), __be_tmp); };
-                    { let __be_tmp = add(&add(&get_value(&result, &Value::Str("base".to_string())), &Value::Str("/".to_string())), &get_value(&result, &Value::Str("quote".to_string()))); add_element_to_object(&mut result, &Value::Str("symbol".to_string()), __be_tmp); };
+                    let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
+                    let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
+                    let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
+                    let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+                    add_element_to_object(&mut result, &Value::Str("baseId".to_string()), baseId.clone());
+                    add_element_to_object(&mut result, &Value::Str("quoteId".to_string()), quoteId.clone());
+                    if !is_equal(&base, &Value::Null) {
+                        add_element_to_object(&mut result, &Value::Str("base".to_string()), base.clone());
+                    }
+                    if !is_equal(&quote, &Value::Null) {
+                        add_element_to_object(&mut result, &Value::Str("quote".to_string()), quote.clone());
+                    }
+                    if is_true(&(!is_equal(&base, &Value::Null))) && is_true(&(!is_equal(&quote, &Value::Null))) {
+                        add_element_to_object(&mut result, &Value::Str("symbol".to_string()), add(&add(&base, &Value::Str("/".to_string())), &quote));
+                    }
                 }
                 return result;
             }
@@ -5442,12 +5597,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if !is_equal(&market, &Value::Null) {
             return market;
         }
-        return self.safe_market_structure(&[Value::Map({
+        let mut emptyMarket: Value = self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketId.clone());
         m.insert("marketId".to_string(), marketId.clone());
     m
 })]);
+        if is_equal(&emptyMarket, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" safeMarket() failed to build market structure".to_string()))));
+        }
+        return emptyMarket;
 
     Value::Null
 }
@@ -5473,8 +5632,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&self.requiredCredentials);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_131: bool = true;
-            while { if !__for_first_131 { i = add(&i, &Value::Int(1)); } __for_first_131 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_132: bool = true;
+            while { if !__for_first_132 { i = add(&i, &Value::Int(1)); } __for_first_132 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_true(&get_value(&self.requiredCredentials, &key)) && !is_true(&self.prop(&key)) {
@@ -5712,6 +5871,21 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+    fn require_value(&self, mut value: Value, optional_args: &[Value]) -> Value {
+        let mut message = get_arg(optional_args, 0, Value::Null);
+        if is_equal(&value, &Value::Null) {
+            let mut errorMessage: Value = ternary(is_true(&(!is_equal(&message, &Value::Null))), message.clone(), Value::Str("value is required".to_string()));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&add(&self.id, &Value::Str(" ".to_string())), &errorMessage)));
+        }
+        return value;
+
+    Value::Null
+}
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
     fn handle_option_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
@@ -5741,6 +5915,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
     fn handle_option_and_params2(&self, mut params: Value, mut methodName1: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = Value::Null;
@@ -5831,7 +6007,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut subTypeInParams: Value = self.safe_string2(params.clone(), Value::Str("subType".to_string()), Value::Str("defaultSubType".to_string()), &[]);
         // avoid omitting if it's not present
         if !is_equal(&subTypeInParams, &Value::Null) {
-            subType = subTypeInParams.clone();
+            if is_true(&(is_equal(&subTypeInParams, &Value::Str("linear".to_string())))) || is_true(&(is_equal(&subTypeInParams, &Value::Str("inverse".to_string())))) {
+                subType = subTypeInParams.clone();
+            }
             params = self.omit(params.clone(), Value::List(vec![Value::Str("subType".to_string()), Value::Str("defaultSubType".to_string())]), &[]);
         }  else {
             // at first, check from market object
@@ -5888,8 +6066,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&broad);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_132: bool = true;
-            while { if !__for_first_132 { i = add(&i, &Value::Int(1)); } __for_first_132 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_133: bool = true;
+            while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if !is_equal(&string, &Value::Null) {
@@ -6506,16 +6684,21 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn currency(&self, mut code: Value) -> Value {
+        if is_equal(&code, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" currency() requires a code argument".to_string()))));
+        }
         let mut keys: Value = object_keys(&self.currencies);
         let mut numCurrencies: Value = get_array_length(&keys);
         if is_equal(&numCurrencies, &Value::Int(0)) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" currencies not loaded".to_string()))));
         }
         if is_string(&code) {
-            if is_true(&Value::Bool(in_op(&self.currencies, &code))) {
-                return get_value(&self.currencies, &code);
-            }  else if is_true(&Value::Bool(in_op(&self.currencies_by_id, &code))) {
-                return get_value(&self.currencies_by_id, &code);
+            let mut currencies: Value = self.currencies.clone();
+            let mut currenciesById: Value = self.currencies_by_id.clone();
+            if is_true(&Value::Bool(in_op(&currencies, &code))) {
+                return get_value(&currencies, &code);
+            }  else if is_true(&(!is_equal(&currenciesById, &Value::Null))) && is_true(&(Value::Bool(in_op(&currenciesById, &code)))) {
+                return get_value(&currenciesById, &code);
             }
         }
         panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" does not have currency code ".to_string())), &code)));
@@ -6524,26 +6707,32 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn market(&self, mut symbol: Value) -> Value {
-        if is_equal(&self.markets, &Value::Null) {
+        if is_equal(&symbol, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" market() requires a symbol argument".to_string()))));
+        }
+        let mut markets: Value = self.markets.clone();
+        if is_equal(&markets, &Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" markets not loaded".to_string()))));
         }
-        if is_true(&Value::Bool(in_op(&self.markets, &symbol))) {
-            return get_value(&self.markets, &symbol);
-        }  else if is_true(&Value::Bool(in_op(&self.markets_by_id, &symbol))) {
-            let mut markets: Value = get_value(&self.markets_by_id, &symbol);
+        let mut marketsById: Value = self.markets_by_id.clone();
+        if is_true(&Value::Bool(in_op(&markets, &symbol))) {
+            return get_value(&markets, &symbol);
+        }  else if is_true(&(!is_equal(&marketsById, &Value::Null))) && is_true(&(Value::Bool(in_op(&marketsById, &symbol)))) {
+            let mut marketsList: Value = get_value(&marketsById, &symbol);
+            let mut marketsList: Value = get_value(&marketsById, &symbol);
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("defaultType".to_string()), Value::Str("defaultSubType".to_string()), &[Value::Str("spot".to_string())]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_133: bool = true;
-                while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &get_array_length(&markets)) } {
-                let mut market: Value = get_value(&markets, &i);
-                let mut market: Value = get_value(&markets, &i);
+                let mut __for_first_134: bool = true;
+                while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &get_array_length(&marketsList)) } {
+                let mut market: Value = get_value(&marketsList, &i);
+                let mut market: Value = get_value(&marketsList, &i);
                 if is_true(&get_value(&market, &defaultType)) {
                     return market;
                 }
             }
             }
-            return get_value(&markets, &Value::Int(0));
+            return get_value(&marketsList, &Value::Int(0));
         }  else if is_true(&(Value::Bool(ends_with(&symbol, &Value::Str("-C".to_string()))))) || is_true(&(Value::Bool(ends_with(&symbol, &Value::Str("-P".to_string()))))) || is_true(&(Value::Bool(starts_with(&symbol, &Value::Str("C-".to_string()))))) || is_true(&(Value::Bool(starts_with(&symbol, &Value::Str("P-".to_string()))))) {
             return <Self as crate::exchange_generated::ExchangeBase>::create_expired_option_market(self, symbol.clone());
         }
@@ -6567,8 +6756,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut leverageSuffixes: Value = Value::List(vec![Value::Str("2L".to_string()), Value::Str("2S".to_string()), Value::Str("3L".to_string()), Value::Str("3S".to_string()), Value::Str("4L".to_string()), Value::Str("4S".to_string()), Value::Str("5L".to_string()), Value::Str("5S".to_string()), Value::Str("UP".to_string()), Value::Str("DOWN".to_string()), Value::Str("BULL".to_string()), Value::Str("BEAR".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_134: bool = true;
-            while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &get_array_length(&leverageSuffixes)) } {
+            let mut __for_first_135: bool = true;
+            while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &get_array_length(&leverageSuffixes)) } {
             let mut leverageSuffix: Value = get_value(&leverageSuffixes, &i);
             let mut leverageSuffix: Value = get_value(&leverageSuffixes, &i);
             if is_true(&Value::Bool(ends_with(&currencyCode, &leverageSuffix))) {
@@ -6577,7 +6766,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }  else {
                     // check if base currency is inside dict
                     let mut baseCurrencyCode: Value = replace_str(&currencyCode, &leverageSuffix, &Value::Str("".to_string()));
-                    if is_true(&Value::Bool(in_op(&existingCurrencies, &baseCurrencyCode))) {
+                    if is_true(&(!is_equal(&existingCurrencies, &Value::Null))) && is_true(&(Value::Bool(in_op(&existingCurrencies, &baseCurrencyCode)))) {
                         return Value::Bool(true);
                     }
                 }
@@ -6655,6 +6844,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn currency_to_precision(&self, mut code: Value, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut networkCode = get_arg(optional_args, 0, Value::Null);
+        if is_equal(&code, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" currencyToPrecision() requires a code argument".to_string()))));
+        }
         let mut currency: Value = get_value(&self.currencies, &code);
         let mut precision: Value = self.safe_value_k(currency.clone(), "precision", &[]);
         if !is_equal(&networkCode, &Value::Null) {
@@ -6740,8 +6932,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut parsedPrecision: Value = Value::Str("0.".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_135: bool = true;
-                while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &subtract(&precisionNumber, &Value::Int(1))) } {
+                let mut __for_first_136: bool = true;
+                while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &subtract(&precisionNumber, &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
             }
             }
@@ -6750,8 +6942,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut parsedPrecision: Value = Value::Str("1".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_136: bool = true;
-                while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &subtract(&multiply(&precisionNumber, &negate(&Value::Int(1))), &Value::Int(1))) } {
+                let mut __for_first_137: bool = true;
+                while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &subtract(&multiply(&precisionNumber, &negate(&Value::Int(1))), &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
             }
             }
@@ -6776,12 +6968,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return self.parse_precision(&[precision.clone()]);
         }  else {
             let mut positivePrecisionString: Value = crate::precise::Precise::stringAbs(&precision);
+            if is_equal(&positivePrecisionString, &Value::Null) {
+                return Value::Null;
+            }
             let mut positivePrecision: Value = crate::runtime::parse_int(&positivePrecisionString);
             let mut parsedPrecision: Value = Value::Str("1".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_137: bool = true;
-                while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &subtract(&positivePrecision, &Value::Int(1))) } {
+                let mut __for_first_138: bool = true;
+                while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &subtract(&positivePrecision, &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
             }
             }
@@ -6796,6 +6991,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let mut serverTime: Value = self.fetch_time(&[params.clone()]).await;
         let mut after: Value = self.milliseconds();
+        if is_equal(&serverTime, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" loadTimeDifference() missing serverTime".to_string()))));
+        }
         add_element_to_object(&mut self.options, &Value::Str("timeDifference".to_string()), subtract(&after, &serverTime));
         return get_value(&self.options, &Value::Str("timeDifference".to_string()));
 
@@ -6914,8 +7112,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(is_array(&pricesData))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_138: bool = true;
-                while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &get_array_length(&pricesData)) } {
+                let mut __for_first_139: bool = true;
+                while { if !__for_first_139 { i = add(&i, &Value::Int(1)); } __for_first_139 = false; is_less_than(&i, &get_array_length(&pricesData)) } {
                 let mut priceData: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, get_value(&pricesData, &i), &[]), &[params.clone()]);
                 append_to_array(&mut results, priceData.clone());
             }
@@ -6924,8 +7122,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut marketIds: Value = object_keys(&pricesData);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_139: bool = true;
-                while { if !__for_first_139 { i = add(&i, &Value::Int(1)); } __for_first_139 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_140: bool = true;
+                while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -6972,8 +7170,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(is_array(&tickers))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_140: bool = true;
-                while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+                let mut __for_first_141: bool = true;
+                while { if !__for_first_141 { i = add(&i, &Value::Int(1)); } __for_first_141 = false; is_less_than(&i, &get_array_length(&tickers)) } {
                 let mut parsedTicker: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, get_value(&tickers, &i), &[]);
                 let mut ticker: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
                 append_to_array(&mut results, ticker.clone());
@@ -6983,8 +7181,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut marketIds: Value = object_keys(&tickers);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_141: bool = true;
-                while { if !__for_first_141 { i = add(&i, &Value::Int(1)); } __for_first_141 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_142: bool = true;
+                while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -7010,8 +7208,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_142: bool = true;
-            while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &get_array_length(&addresses)) } {
+            let mut __for_first_143: bool = true;
+            while { if !__for_first_143 { i = add(&i, &Value::Int(1)); } __for_first_143 = false; is_less_than(&i, &get_array_length(&addresses)) } {
             let mut address: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_deposit_address(self, get_value(&addresses, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, address.clone());
         }
@@ -7032,8 +7230,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut interests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_143: bool = true;
-            while { if !__for_first_143 { i = add(&i, &Value::Int(1)); } __for_first_143 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_144: bool = true;
+            while { if !__for_first_144 { i = add(&i, &Value::Int(1)); } __for_first_144 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut row: Value = get_value(&response, &i);
             let mut row: Value = get_value(&response, &i);
             append_to_array(&mut interests, <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, row.clone(), &[market.clone()]));
@@ -7058,8 +7256,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_144: bool = true;
-            while { if !__for_first_144 { i = add(&i, &Value::Int(1)); } __for_first_144 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_145: bool = true;
+            while { if !__for_first_145 { i = add(&i, &Value::Int(1)); } __for_first_145 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             let mut borrowRate: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_rate(self, item.clone(), &[]);
@@ -7079,8 +7277,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_145: bool = true;
-            while { if !__for_first_145 { i = add(&i, &Value::Int(1)); } __for_first_145 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut __for_first_146: bool = true;
+            while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut item: Value = get_value(&info, &i);
             let mut item: Value = get_value(&info, &i);
             let mut borrowRate: Value = self.parse_isolated_borrow_rate(item.clone(), &[]);
@@ -7100,8 +7298,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_146: bool = true;
-            while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_147: bool = true;
+            while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             append_to_array(&mut rates, <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate_history(self, entry.clone(), &[market.clone()]));
@@ -7142,12 +7340,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_147: bool = true;
-            while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_148: bool = true;
+            while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate(self, entry.clone(), &[]);
-            add_element_to_object(&mut fundingRates, &get_value(&parsed, &Value::Str("symbol".to_string())), parsed.clone());
+            if !is_equal(&get_value(&parsed, &Value::Str("symbol".to_string())), &Value::Null) {
+                add_element_to_object(&mut fundingRates, &get_value(&parsed, &Value::Str("symbol".to_string())), parsed.clone());
+            }
         }
         }
         return self.filter_by_array(fundingRates.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
@@ -7169,8 +7369,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_148: bool = true;
-            while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_149: bool = true;
+            while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             append_to_array(&mut rates, self.parse_long_short_ratio(entry.clone(), &[market.clone()]));
@@ -7398,12 +7598,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_149: bool = true;
-            while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_150: bool = true;
+            while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry.clone(), &[]);
-            add_element_to_object(&mut result, &get_value(&parsed, &Value::Str("symbol".to_string())), parsed.clone());
+            if !is_equal(&get_value(&parsed, &Value::Str("symbol".to_string())), &Value::Null) {
+                add_element_to_object(&mut result, &get_value(&parsed, &Value::Str("symbol".to_string())), parsed.clone());
+            }
         }
         }
         return self.filter_by_array(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
@@ -7418,8 +7620,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut interests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_150: bool = true;
-            while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_151: bool = true;
+            while { if !__for_first_151 { i = add(&i, &Value::Int(1)); } __for_first_151 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut interest: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry.clone(), &[market.clone()]);
@@ -7632,7 +7834,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut lowercaseAccount: Value = to_lower(&account);
         if is_true(&Value::Bool(in_op(&accountsByType, &lowercaseAccount))) {
             return get_value(&accountsByType, &lowercaseAccount);
-        }  else if is_true(&(Value::Bool(in_op(&self.markets, &account)))) || is_true(&(Value::Bool(in_op(&self.markets_by_id, &account)))) {
+        }
+        let mut markets: Value = self.markets.clone();
+        let mut marketsById: Value = self.markets_by_id.clone();
+        if is_true(&(is_true(&(!is_equal(&markets, &Value::Null))) && is_true(&(Value::Bool(in_op(&markets, &account)))))) || is_true(&(is_true(&(!is_equal(&marketsById, &Value::Null))) && is_true(&(Value::Bool(in_op(&marketsById, &account)))))) {
             let mut market: Value = self.market(account.clone());
             return get_value(&market, &Value::Str("id".to_string()));
         }  else {
@@ -7701,8 +7906,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_151: bool = true;
-            while { if !__for_first_151 { i = add(&i, &Value::Int(1)); } __for_first_151 = false; is_less_than(&i, &get_array_length(&responseKeys)) } {
+            let mut __for_first_152: bool = true;
+            while { if !__for_first_152 { i = add(&i, &Value::Int(1)); } __for_first_152 = false; is_less_than(&i, &get_array_length(&responseKeys)) } {
             let mut entry: Value = get_value(&responseKeys, &i);
             let mut entry: Value = get_value(&responseKeys, &i);
             let mut dictionary: Value = ternary(is_true(&isArray), entry.clone(), get_value(&response, &entry));
@@ -7778,8 +7983,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut currencyCode: Value = self.safe_string_k(currency.clone(), "code", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_152: bool = true;
-            while { if !__for_first_152 { i = add(&i, &Value::Int(1)); } __for_first_152 = false; is_less_than(&i, &numNetworks) } {
+            let mut __for_first_153: bool = true;
+            while { if !__for_first_153 { i = add(&i, &Value::Int(1)); } __for_first_153 = false; is_less_than(&i, &numNetworks) } {
             let mut network: Value = get_value(&networkKeys, &i);
             let mut network: Value = get_value(&networkKeys, &i);
             if is_equal(&network, &currencyCode) {
@@ -7820,8 +8025,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_153: bool = true;
-            while { if !__for_first_153 { i = add(&i, &Value::Int(1)); } __for_first_153 = false; is_less_than(&i, &get_array_length(&incomes)) } {
+            let mut __for_first_154: bool = true;
+            while { if !__for_first_154 { i = add(&i, &Value::Int(1)); } __for_first_154 = false; is_less_than(&i, &get_array_length(&incomes)) } {
             let mut entry: Value = get_value(&incomes, &i);
             let mut entry: Value = get_value(&incomes, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_income(self, entry.clone(), &[market.clone()]);
@@ -7837,10 +8042,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn get_market_from_symbols(&self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
+        /*
+         * @param {string[]|undefined} symbols list of unified symbols (first element selects the market)
+         * @returns {MarketInterface|undefined} market structure for the first symbol, or undefined if symbols is undefined
+         * Overloads: non-null `string[]` input yields `MarketInterface`; optional input yields `Market`.
+         */
         if is_equal(&symbols, &Value::Null) {
             return Value::Null;
         }
         let mut firstMarket: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
+        if is_equal(&firstMarket, &Value::Null) {
+            return Value::Null;
+        }
         let mut market: Value = self.market(firstMarket.clone());
         return market;
 
@@ -7855,8 +8068,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_154: bool = true;
-            while { if !__for_first_154 { i = add(&i, &Value::Int(1)); } __for_first_154 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+            let mut __for_first_155: bool = true;
+            while { if !__for_first_155 { i = add(&i, &Value::Int(1)); } __for_first_155 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             append_to_array(&mut results, self.parse_ws_ohlcv(get_value(&ohlcvs, &i), &[market.clone()]));
         }
         }
@@ -7959,10 +8172,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let mut maxEntriesPerRequest = get_arg(optional_args, 4, Value::Null);
         let mut removeRepeated = get_arg(optional_args, 5, Value::Bool(true));
-        let mut maxCalls: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("paginationCalls".to_string()), &[Value::Int(10)]); maxCalls = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut maxRetries: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("maxRetries".to_string()), &[Value::Int(3)]); maxRetries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut maxCalls: Value = Value::Int(10);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("paginationCalls".to_string()), &[maxCalls.clone()]); maxCalls = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut maxRetries: Value = Value::Int(3);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("maxRetries".to_string()), &[maxRetries.clone()]); maxRetries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut paginationDirection: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("paginationDirection".to_string()), &[Value::Str("backward".to_string())]); paginationDirection = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut paginationTimestamp: Value = Value::Null;
@@ -8004,6 +8217,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     result = self.array_concat(result.clone(), response.clone());
                     let mut firstElement: Value = self.safe_value(response.clone(), Value::Int(0), &[]);
                     paginationTimestamp = self.safe_integer2(firstElement.clone(), Value::Str("timestamp".to_string()), Value::Int(0), &[]);
+                    if is_equal(&paginationTimestamp, &Value::Null) {
+                        break;
+                    }
                     if is_true(&(!is_equal(&since, &Value::Null))) && is_true(&(is_less_than_or_equal(&paginationTimestamp, &since))) {
                         break;
                     }
@@ -8024,8 +8240,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     errors = Value::Int(0);
                     result = self.array_concat(result.clone(), response.clone());
                     let mut last: Value = self.safe_value(response.clone(), subtract(&responseLength, &Value::Int(1)), &[]);
-                    paginationTimestamp = add(&self.safe_integer_k(last.clone(), "timestamp", &[Value::Int(0)]), &Value::Int(1));
-                    if is_true(&(!is_equal(&until, &Value::Null))) && is_true(&(is_greater_than_or_equal(&paginationTimestamp, &until))) {
+                    let mut lastTimestamp: Value = self.safe_integer_k(last.clone(), "timestamp", &[Value::Int(0)]);
+                    if is_equal(&lastTimestamp, &Value::Null) {
+                        break;
+                    }
+                    let mut nextPaginationTimestamp: Value = add(&lastTimestamp, &Value::Int(1));
+                    paginationTimestamp = nextPaginationTimestamp.clone();
+                    if is_true(&(!is_equal(&until, &Value::Null))) && is_true(&(is_greater_than_or_equal(&nextPaginationTimestamp, &until))) {
                         break;
                     }
                 }
@@ -8051,8 +8272,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut maxRetries: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("maxRetries".to_string()), &[Value::Int(3)]); maxRetries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut maxRetries: Value = Value::Int(3);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("maxRetries".to_string()), &[maxRetries.clone()]); maxRetries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut errors: Value = Value::Int(0);
         while is_less_than_or_equal(&errors, &maxRetries) {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -8087,12 +8308,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let mut maxEntriesPerRequest = get_arg(optional_args, 5, Value::Null);
-        let mut maxCalls: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("paginationCalls".to_string()), &[Value::Int(10)]); maxCalls = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut maxCalls: Value = Value::Int(10);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("paginationCalls".to_string()), &[maxCalls.clone()]); maxCalls = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest.clone(), params.clone()]); maxEntriesPerRequest = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+        // pagination always walks forward internally, so strip it here to avoid leaking an
+        // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
+        params = self.omit(params.clone(), Value::Str("paginationDirection".to_string()), &[]);
         let mut current: Value = self.milliseconds();
         let mut tasks: Value = Value::List(vec![]);
         let mut time: Value = multiply(&self.parse_timeframe(timeframe.clone()), &Value::Int(1000));
+        maxEntriesPerRequest = self.require_value(maxEntriesPerRequest.clone(), &[Value::Str("fetchPaginatedCallDeterministic() maxEntriesPerRequest is required".to_string())]);
         let mut step: Value = multiply(&time, &maxEntriesPerRequest);
         let mut currentSince: Value = subtract(&subtract(&current, &(multiply(&maxCalls, &step))), &Value::Int(1));
         if !is_equal(&since, &Value::Null) {
@@ -8102,6 +8328,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("till".to_string()), &[]); // do not omit it here
         if !is_equal(&until, &Value::Null) {
+            if is_equal(&since, &Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPaginatedCallDeterministic() requires a since argument when until is set".to_string()))));
+            }
             let mut requiredCalls: Value = math_ceil(&divide(&(subtract(&until, &since)), &step));
             if is_greater_than(&requiredCalls, &maxCalls) {
                 panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&add(&self.id, &Value::Str(" the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ".to_string())), &to_string_val(&maxCalls)), &Value::Str(" required calls is ".to_string())), &to_string_val(&requiredCalls))));
@@ -8109,8 +8338,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_155: bool = true;
-            while { if !__for_first_155 { i = add(&i, &Value::Int(1)); } __for_first_155 = false; is_less_than(&i, &maxCalls) } {
+            let mut __for_first_156: bool = true;
+            while { if !__for_first_156 { i = add(&i, &Value::Int(1)); } __for_first_156 = false; is_less_than(&i, &maxCalls) } {
             if is_true(&(!is_equal(&until, &Value::Null))) && is_true(&(is_greater_than_or_equal(&currentSince, &until))) {
                 break;
             }
@@ -8125,8 +8354,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_156: bool = true;
-            while { if !__for_first_156 { i = add(&i, &Value::Int(1)); } __for_first_156 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_157: bool = true;
+            while { if !__for_first_157 { i = add(&i, &Value::Int(1)); } __for_first_157 = false; is_less_than(&i, &get_array_length(&results)) } {
             result = self.array_concat(result.clone(), get_value(&results, &i));
         }
         }
@@ -8149,10 +8378,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut cursorSent = get_arg(optional_args, 5, Value::Null);
         let mut cursorIncrement = get_arg(optional_args, 6, Value::Null);
         let mut maxEntriesPerRequest = get_arg(optional_args, 7, Value::Null);
-        let mut maxCalls: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("paginationCalls".to_string()), &[Value::Int(10)]); maxCalls = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut maxRetries: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("maxRetries".to_string()), &[Value::Int(3)]); maxRetries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut maxCalls: Value = Value::Int(10);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("paginationCalls".to_string()), &[maxCalls.clone()]); maxCalls = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut maxRetries: Value = Value::Int(3);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("maxRetries".to_string()), &[maxRetries.clone()]); maxRetries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest.clone(), params.clone()]); maxEntriesPerRequest = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut cursorValue: Value = Value::Null;
         let mut i: Value = Value::Int(0);
@@ -8174,11 +8403,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }  else if is_equal(&method, &Value::Str("getLeverageTiersPaginated".to_string())) || is_equal(&method, &Value::Str("fetchPositions".to_string())) {
                     response = self.call_method(method.clone(), &[symbol.clone(), params.clone()]).await;
                 }  else if is_equal(&method, &Value::Str("fetchOpenInterestHistory".to_string())) {
+                    if is_equal(&symbol, &Value::Null) {
+                        panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPaginatedCallCursor() requires a symbol argument".to_string()))));
+                    }
+                    if is_equal(&timeframe, &Value::Null) {
+                        panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPaginatedCallCursor() requires a timeframe argument".to_string()))));
+                    }
                     response = self.call_method(method.clone(), &[symbol.clone(), timeframe.clone(), since.clone(), maxEntriesPerRequest.clone(), params.clone()]).await;
                 }  else {
                     response = self.call_method(method.clone(), &[symbol.clone(), since.clone(), maxEntriesPerRequest.clone(), params.clone()]).await;
                 }
                 errors = Value::Int(0);
+                if is_equal(&response, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" fetchPaginatedCallCursor() returned empty response".to_string()))));
+                }
                 let mut responseLength: Value = get_array_length(&response);
                 if is_true(&self.verbose) {
                     let mut cursorString: Value = ternary(is_true(&(is_equal(&cursorValue, &Value::Null))), Value::Str("".to_string()), cursorValue.clone());
@@ -8189,14 +8427,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if is_equal(&responseLength, &Value::Int(0)) {
                     break;
                 }
-                result = self.array_concat(result.clone(), response.clone());
+                if !is_equal(&response, &Value::Null) {
+                    result = self.array_concat(result.clone(), response.clone());
+                }
                 let mut last: Value = self.safe_dict(response.clone(), subtract(&responseLength, &Value::Int(1)), &[]);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = Value::Null; // search for the cursor
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_157: bool = true;
-                    while { if !__for_first_157 { j = add(&j, &Value::Int(1)); } __for_first_157 = false; is_less_than(&j, &responseLength) } {
+                    let mut __for_first_158: bool = true;
+                    while { if !__for_first_158 { j = add(&j, &Value::Int(1)); } __for_first_158 = false; is_less_than(&j, &responseLength) } {
                     let mut index: Value = subtract(&subtract(&responseLength, &j), &Value::Int(1));
                     let mut entry: Value = self.safe_dict(response.clone(), index.clone(), &[]);
                     let mut info: Value = self.safe_dict_k(entry.clone(), "info", &[]);
@@ -8211,6 +8451,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     break;
                 }
                 let mut lastTimestamp: Value = self.safe_integer_k(last.clone(), "timestamp", &[]);
+                if is_equal(&since, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPaginatedCallCursor() requires a since argument".to_string()))));
+                }
                 if !is_equal(&lastTimestamp, &Value::Null) && is_less_than(&lastTimestamp, &since) {
                     break;
                 }
@@ -8234,10 +8477,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let mut pageKey = get_arg(optional_args, 4, Value::Null);
         let mut maxEntriesPerRequest = get_arg(optional_args, 5, Value::Null);
-        let mut maxCalls: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("paginationCalls".to_string()), &[Value::Int(10)]); maxCalls = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut maxRetries: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("maxRetries".to_string()), &[Value::Int(3)]); maxRetries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut maxCalls: Value = Value::Int(10);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("paginationCalls".to_string()), &[maxCalls.clone()]); maxCalls = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut maxRetries: Value = Value::Int(3);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("maxRetries".to_string()), &[maxRetries.clone()]); maxRetries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest.clone(), params.clone()]); maxEntriesPerRequest = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut i: Value = Value::Int(0);
         let mut errors: Value = Value::Int(0);
@@ -8291,8 +8534,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut uniqueResult: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_158: bool = true;
-            while { if !__for_first_158 { i = add(&i, &Value::Int(1)); } __for_first_158 = false; is_less_than(&i, &get_array_length(&input)) } {
+            let mut __for_first_159: bool = true;
+            while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut entry: Value = get_value(&input, &i);
             let mut entry: Value = get_value(&input, &i);
             let mut uniqValue: Value = ternary(is_true(&fallbackToTimestamp), self.safe_string_n(entry.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("timestamp".to_string()), Value::Int(0)]), &[]), self.safe_string_k(entry.clone(), "id", &[]));
@@ -8318,8 +8561,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_159: bool = true;
-            while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&input)) } {
+            let mut __for_first_160: bool = true;
+            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut entry: Value = get_value(&input, &i);
             let mut entry: Value = get_value(&input, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "id", &[]);
@@ -8329,6 +8572,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut timestamp: Value = self.safe_string_k(entry.clone(), "timestamp", &[]);
                 let mut side: Value = self.safe_string_k(entry.clone(), "side", &[]);
                 // unique trade identifier
+                if is_equal(&timestamp, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" removeRepeatedTradesFromArray() missing timestamp".to_string()))));
+                }
                 id = add(&add(&add(&add(&add(&add(&add(&Value::Str("t_".to_string()), &to_string_val(&timestamp)), &Value::Str("_".to_string())), &side), &Value::Str("_".to_string())), &price), &Value::Str("_".to_string())), &amount);
             }
             if !is_equal(&id, &Value::Null) && !is_true(&(Value::Bool(in_op(&uniqueResult, &id)))) {
@@ -8350,8 +8596,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_160: bool = true;
-            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_161: bool = true;
+            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if !is_true(&self.in_array(key.clone(), removeKeys.clone())) {
@@ -8425,8 +8671,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_161: bool = true;
-            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&liquidations)) } {
+            let mut __for_first_162: bool = true;
+            while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&liquidations)) } {
             let mut entry: Value = get_value(&liquidations, &i);
             let mut entry: Value = get_value(&liquidations, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_liquidation(self, entry.clone(), &[market.clone()]);
@@ -8463,8 +8709,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(is_array(&greeks))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_162: bool = true;
-                while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&greeks)) } {
+                let mut __for_first_163: bool = true;
+                while { if !__for_first_163 { i = add(&i, &Value::Int(1)); } __for_first_163 = false; is_less_than(&i, &get_array_length(&greeks)) } {
                 let mut parsedTicker: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, get_value(&greeks, &i), &[]);
                 let mut greek: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
                 append_to_array(&mut results, greek.clone());
@@ -8474,8 +8720,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut marketIds: Value = object_keys(&greeks);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_163: bool = true;
-                while { if !__for_first_163 { i = add(&i, &Value::Int(1)); } __for_first_163 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_164: bool = true;
+                while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -8508,8 +8754,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_164: bool = true;
-            while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_165: bool = true;
+            while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut info: Value = get_value(&response, &i);
             let mut currencyId: Value = ternary(is_true(&(is_equal(&currencyKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), currencyKey.clone(), &[]));
@@ -8537,8 +8783,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_165: bool = true;
-            while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_166: bool = true;
+            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
@@ -8576,8 +8822,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_166: bool = true;
-            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_167: bool = true;
+            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
@@ -8618,8 +8864,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut toCurrency: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_167: bool = true;
-            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&conversions)) } {
+            let mut __for_first_168: bool = true;
+            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&conversions)) } {
             let mut entry: Value = get_value(&conversions, &i);
             let mut entry: Value = get_value(&conversions, &i);
             let mut fromId: Value = ternary(is_true(&(is_equal(&fromCurrencyKey, &Value::Null))), Value::Null, self.safe_string(entry.clone(), fromCurrencyKey.clone(), &[]));
@@ -8638,6 +8884,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut currency: Value = Value::Null;
         if !is_equal(&code, &Value::Null) {
             currency = self.safe_currency(code.clone(), &[]);
+            if is_equal(&currency, &Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseConversions() could not resolve currency".to_string()))));
+            }
             code = get_value(&currency, &Value::Str("code".to_string()));
         }
         if is_equal(&code, &Value::Null) {
@@ -8657,12 +8906,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
         let mut fromCurrency = get_arg(optional_args, 0, Value::Null);
         let mut toCurrency = get_arg(optional_args, 1, Value::Null);
+        if is_equal(&conversion, &Value::Null) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseConversion () is not supported yet".to_string()))));
+        }
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseConversion () is not supported yet".to_string()))));
 
     Value::Null
 }
 
     fn convert_expire_date(&self, mut date: Value) -> Value {
+        if is_equal(&date, &Value::Null) {
+            return Value::Null;
+        }
         // parse YYMMDD to datetime string
         let mut year: Value = slice(&date, &Value::Int(0), &Value::Int(2));
         let mut month: Value = slice(&date, &Value::Int(2), &Value::Int(4));
@@ -8674,6 +8929,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn convert_expire_date_to_market_id_date(&self, mut date: Value) -> Value {
+        if is_equal(&date, &Value::Null) {
+            return Value::Null;
+        }
         // parse 240119 to 19JAN24
         let mut year: Value = slice(&date, &Value::Int(0), &Value::Int(2));
         let mut monthRaw: Value = slice(&date, &Value::Int(2), &Value::Int(4));
@@ -8711,6 +8969,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn convert_market_id_expire_date(&self, mut date: Value) -> Value {
+        if is_equal(&date, &Value::Null) {
+            return Value::Null;
+        }
         // parse 03JAN24 to 240103.
         let mut monthMappping: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -8753,6 +9014,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         { let __v = crate::exchange::DerivedExchange::parse_margin_modification(self, data.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
+        if is_equal(&data, &Value::Null) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarginModification() is not supported yet".to_string()))));
+        }
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarginModification() is not supported yet".to_string()))));
 
     Value::Null
@@ -8763,10 +9027,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
         let mut marketType = get_arg(optional_args, 2, Value::Null);
         let mut marginModifications: Value = Value::List(vec![]);
+        if is_equal(&response, &Value::Null) {
+            return marginModifications;
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_168: bool = true;
-            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_169: bool = true;
+            while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
@@ -8864,14 +9131,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn clean_unsubscription(&self, mut client: Value, mut subHash: Value, mut unsubHash: Value, optional_args: &[Value]) {
         let mut subHashIsPrefix = get_arg(optional_args, 0, Value::Bool(false));
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &unsubHash))) {
+        if is_true(&(!is_equal(&unsubHash, &Value::Null))) && is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &unsubHash)))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &unsubHash);
         }
         if !is_true(&subHashIsPrefix) {
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subHash))) {
+            if is_true(&(!is_equal(&subHash, &Value::Null))) && is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subHash)))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subHash);
             }
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &subHash))) {
+            if is_true(&(!is_equal(&subHash, &Value::Null))) && is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &subHash)))) {
                 let mut error = crate::exchange_errors::unsubscribe_error(add(&add(&self.id, &Value::Str(" ".to_string())), &subHash));
                 client.reject(&[Value::from(error.clone()), subHash.clone()]);
             }
@@ -8879,11 +9146,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut clientSubscriptions: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_169: bool = true;
-                while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&clientSubscriptions)) } {
+                let mut __for_first_170: bool = true;
+                while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&clientSubscriptions)) } {
                 let mut sub: Value = get_value(&clientSubscriptions, &i);
                 let mut sub: Value = get_value(&clientSubscriptions, &i);
-                if is_true(&Value::Bool(starts_with(&sub, &subHash))) {
+                if is_true(&(!is_equal(&sub, &Value::Null))) && is_true(&(!is_equal(&subHash, &Value::Null))) && is_true(&Value::Bool(starts_with(&sub, &subHash))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &sub);
                 }
             }
@@ -8891,11 +9158,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut clientFutures: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_170: bool = true;
-                while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&clientFutures)) } {
+                let mut __for_first_171: bool = true;
+                while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&clientFutures)) } {
                 let mut future: Value = get_value(&clientFutures, &i);
                 let mut future: Value = get_value(&clientFutures, &i);
-                if is_true(&Value::Bool(starts_with(&future, &subHash))) {
+                if is_true(&(!is_equal(&future, &Value::Null))) && is_true(&(!is_equal(&subHash, &Value::Null))) && is_true(&Value::Bool(starts_with(&future, &subHash))) {
                     let mut error = crate::exchange_errors::unsubscribe_error(add(&add(&self.id, &Value::Str(" ".to_string())), &future));
                     client.reject(&[Value::from(error.clone()), future.clone()]);
                 }
@@ -8913,12 +9180,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut symbolsAndTimeframes: Value = self.safe_list_k(subscription.clone(), "symbolsAndTimeframes", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_171: bool = true;
-                while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+                let mut __for_first_172: bool = true;
+                while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
                 let mut symbolAndTimeFrame: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut symbolAndTimeFrame: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut symbol: Value = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(0), &[]);
                 let mut timeframe: Value = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(1), &[]);
+                if is_equal(&symbol, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cleanCache() requires a symbol argument".to_string()))));
+                }
+                if is_equal(&timeframe, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cleanCache() requires a timeframe argument".to_string()))));
+                }
                 if is_true(&(!is_equal(&self.ohlcvs, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
                     if is_true(&Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe))) {
                         remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
@@ -8929,8 +9202,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else if is_greater_than(&symbolsLength, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_172: bool = true;
-                while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_173: bool = true;
+                while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 if is_equal(&topic, &Value::Str("trades".to_string())) {
@@ -8962,8 +9235,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut clients: Value = object_values(&self.clients);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_173: bool = true;
-                    while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&clients)) } {
+                    let mut __for_first_174: bool = true;
+                    while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&clients)) } {
                     let mut client: Value = get_value(&clients, &i);
                     let mut client: Value = get_value(&clients, &i);
                     let mut futures: Value = get_value(&client, &Value::Str("futures".to_string()));
@@ -8976,8 +9249,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut tickerSymbols: Value = object_keys(&self.tickers);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_174: bool = true;
-                    while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&tickerSymbols)) } {
+                    let mut __for_first_175: bool = true;
+                    while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&tickerSymbols)) } {
                     let mut tickerSymbol: Value = get_value(&tickerSymbols, &i);
                     let mut tickerSymbol: Value = get_value(&tickerSymbols, &i);
                     if is_true(&Value::Bool(in_op(&self.tickers, &tickerSymbol))) {
@@ -8989,8 +9262,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut bidsaskSymbols: Value = object_keys(&self.bidsasks);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_175: bool = true;
-                    while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&bidsaskSymbols)) } {
+                    let mut __for_first_176: bool = true;
+                    while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &get_array_length(&bidsaskSymbols)) } {
                     let mut bidsaskSymbol: Value = get_value(&bidsaskSymbols, &i);
                     let mut bidsaskSymbol: Value = get_value(&bidsaskSymbols, &i);
                     if is_true(&Value::Bool(in_op(&self.bidsasks, &bidsaskSymbol))) {
@@ -9982,8 +10255,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut fetchSnapshotMaxRetries: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("maxRetries".to_string()), &[Value::Int(3)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_176: bool = true;
-            while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &fetchSnapshotMaxRetries) } {
+            let mut __for_first_177: bool = true;
+            while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &fetchSnapshotMaxRetries) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut orderBook: Value = self.fetch_order_book(symbol.clone(), &[limit.clone(), params.clone()]).await;
                 return orderBook.clone();
@@ -11456,6 +11729,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "repay_isolated_margin" => self.repay_isolated_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "repay_margin" => self.repay_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
             "request" => self.request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+            "require_value" => self.require_value(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "resolve_path" => self.resolve_path(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "safe_balance" => self.safe_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "safe_bool" => self.safe_bool(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),

@@ -13,7 +13,7 @@ use ccxt::exchanges::{
     binanceus::BinanceusCore, binanceusdm::BinanceusdmCore,
     bingx::BingxCore, bit2c::Bit2cCore, bitbank::BitbankCore,
     bitbns::BitbnsCore, bitfinex::BitfinexCore, bitflyer::BitflyerCore,
-    bitget::BitgetCore, bithumb::BithumbCore, bitmart::BitmartCore,
+    bitget::BitgetCore, bithumb::BithumbCore,
     bitmex::BitmexCore, bitopro::BitoproCore, bitrue::BitrueCore,
     bitso::BitsoCore, bitstamp::BitstampCore, bitteam::BitteamCore,
     bittrade::BittradeCore, bitvavo::BitvavoCore,
@@ -48,7 +48,7 @@ use ccxt::exchanges::{
     woofipro::WoofiproCore, xt::XtCore, zaif::ZaifCore,
     zebpay::ZebpayCore,
     bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
-    kucoineu::KucoineuCore, mudrex::MudrexCore,
+    mudrex::MudrexCore, nado::NadoCore,
 };
 // Prediction-market venue Cores live in a separate module (they Deref through
 // PredictionExchange). `hyperliquid` shares an id with the regular exchange, so
@@ -90,7 +90,6 @@ macro_rules! for_each_core {
         $cb!(bitflyer, BitflyerCore);
         $cb!(bitget, BitgetCore);
         $cb!(bithumb, BithumbCore);
-        $cb!(bitmart, BitmartCore);
         $cb!(bitmex, BitmexCore);
         $cb!(bitopro, BitoproCore);
         $cb!(bitrue, BitrueCore);
@@ -174,8 +173,8 @@ macro_rules! for_each_core {
         $cb!(bybiteu, BybiteuCore);
         $cb!(extended, ExtendedCore);
         $cb!(gateeu, GateeuCore);
-        $cb!(kucoineu, KucoineuCore);
         $cb!(mudrex, MudrexCore);
+        $cb!(nado, NadoCore);
         // Prediction-market venues (Deref through PredictionExchange). `hyperliquid`
         // shares an id with the regular exchange, so it is resolved separately in
         // prediction mode (see live_dispatch.rs) rather than listed here.

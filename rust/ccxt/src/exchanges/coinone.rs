@@ -612,8 +612,8 @@ impl CoinoneCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_550: bool = true;
-            while { if !__for_first_550 { i = add(&i, &Value::Int(1)); } __for_first_550 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_536: bool = true;
+            while { if !__for_first_536 { i = add(&i, &Value::Int(1)); } __for_first_536 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut entry: Value = self.safe_value(tickers.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_k(entry.clone(), "id", &[]);
             let mut baseId: Value = self.safe_string_upper(entry.clone(), Value::Str("target_currency".to_string()), &[]);
@@ -701,8 +701,8 @@ impl CoinoneCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_551: bool = true;
-            while { if !__for_first_551 { i = add(&i, &Value::Int(1)); } __for_first_551 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_537: bool = true;
+            while { if !__for_first_537 { i = add(&i, &Value::Int(1)); } __for_first_537 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut balance: Value = get_value(&balances, &currencyId);
@@ -711,7 +711,9 @@ impl CoinoneCore {
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "avail", &[]));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -749,7 +751,7 @@ impl CoinoneCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1143,13 +1145,12 @@ impl CoinoneCore {
  * @method
  * @name coinone#createOrder
  * @description create a trade order
- * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
- * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+ * @see https://docs.coinone.co.kr/reference/order-v21
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type must be 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
- * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1159,23 +1160,33 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if !is_equal(&type_var, &Value::Str("limit".to_string())) {
+        let mut orderType: Value = to_upper(&type_var); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        let mut orderSide: Value = to_upper(&side); // unified lowercase order sides, same override rule
+        if !is_equal(&orderType, &Value::Str("LIMIT".to_string())) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() allows limit orders only".to_string()))));
+        }
+        if is_equal(&price, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a price argument for the limit orders".to_string()))));
         }
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        // the v1 order/limit_buy and order/limit_sell endpoints were retired by
+        // the exchange and return 404, the v2.1 order endpoint replaces them,
+        // see https://github.com/ccxt/ccxt/issues/23174
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("price".to_string(), price.clone());
-                m.insert("currency".to_string(), get_value(&market, &Value::Str("id".to_string())));
-                m.insert("qty".to_string(), amount.clone());
+                m.insert("quote_currency".to_string(), get_value(&market, &Value::Str("quoteId".to_string())));
+                m.insert("target_currency".to_string(), get_value(&market, &Value::Str("baseId".to_string())));
+                m.insert("type".to_string(), orderType.clone());
+                m.insert("side".to_string(), orderSide.clone());
+                m.insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
+                m.insert("qty".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
             m
         });
-        let mut method: Value = add(&add(&Value::Str("privatePostOrder".to_string()), &self.capitalize(type_var.clone())), &self.capitalize(side.clone()));
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_5]).await;
+        let mut response: Value = self.v2_1_private_post_order_limit(&[__ws_arg_5]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1276,9 +1287,9 @@ impl CoinoneCore {
         //         "feeRate": "-0.0015"
         //     }
         //
-        let mut id: Value = self.safe_string_k(order.clone(), "orderId", &[]);
-        let mut baseId: Value = self.safe_string_k(order.clone(), "baseCurrency", &[]);
-        let mut quoteId: Value = self.safe_string_k(order.clone(), "targetCurrency", &[]);
+        let mut id: Value = self.safe_string2(order.clone(), Value::Str("orderId".to_string()), Value::Str("order_id".to_string()), &[]);
+        let mut baseId: Value = self.safe_string2(order.clone(), Value::Str("baseCurrency".to_string()), Value::Str("target_currency".to_string()), &[]);
+        let mut quoteId: Value = self.safe_string2(order.clone(), Value::Str("targetCurrency".to_string()), Value::Str("quote_currency".to_string()), &[]);
         let mut base: Value = Value::Null;
         let mut quote: Value = Value::Null;
         if !is_equal(&baseId, &Value::Null) {
@@ -1293,14 +1304,20 @@ impl CoinoneCore {
             market = self.safe_market(&[symbol.clone(), market.clone(), Value::Str("/".to_string())]);
         }
         let mut timestamp: Value = self.safe_timestamp2(order.clone(), Value::Str("timestamp".to_string()), Value::Str("updatedAt".to_string()), &[]);
-        let mut side: Value = self.safe_string2(order.clone(), Value::Str("type".to_string()), Value::Str("side".to_string()), &[]);
+        if is_equal(&timestamp, &Value::Null) {
+            timestamp = self.safe_integer2(order.clone(), Value::Str("ordered_at".to_string()), Value::Str("updated_at".to_string()), &[]); // v2.1 sends milliseconds
+        }
+        let mut side: Value = self.safe_string_lower2(order.clone(), Value::Str("type".to_string()), Value::Str("side".to_string()), &[]);
+        if is_true(&(is_equal(&side, &Value::Str("limit".to_string())))) || is_true(&(is_equal(&side, &Value::Str("market".to_string())))) || is_true(&(is_equal(&side, &Value::Str("stop_limit".to_string())))) {
+            side = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]); // in v2.1 rows the type field carries the order type, the side lives in side
+        }
         if is_equal(&side, &Value::Str("ask".to_string())) {
             side = Value::Str("sell".to_string());
         }  else if is_equal(&side, &Value::Str("bid".to_string())) {
             side = Value::Str("buy".to_string());
         }
-        let mut remainingString: Value = self.safe_string_k(order.clone(), "remainQty", &[]);
-        let mut amountString: Value = self.safe_string2(order.clone(), Value::Str("originalQty".to_string()), Value::Str("qty".to_string()), &[]);
+        let mut remainingString: Value = self.safe_string2(order.clone(), Value::Str("remainQty".to_string()), Value::Str("remain_qty".to_string()), &[]);
+        let mut amountString: Value = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("originalQty".to_string()), Value::Str("qty".to_string()), Value::Str("original_qty".to_string())]), &[]);
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
         // https://github.com/ccxt/ccxt/pull/7067
         if is_equal(&status, &Value::Str("live".to_string())) {
@@ -1319,7 +1336,7 @@ impl CoinoneCore {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.clone());
-                    m.insert("rate".to_string(), self.safe_string_k(order.clone(), "feeRate", &[]));
+                    m.insert("rate".to_string(), self.safe_string2(order.clone(), Value::Str("feeRate".to_string()), Value::Str("fee_rate".to_string()), &[]));
                     m.insert("currency".to_string(), feeCurrencyCode.clone());
                 m
             });
@@ -1340,9 +1357,9 @@ impl CoinoneCore {
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_string_k(order.clone(), "averageExecutedPrice", &[]));
+        m.insert("average".to_string(), self.safe_string2(order.clone(), Value::Str("averageExecutedPrice".to_string()), Value::Str("average_executed_price".to_string()), &[]));
         m.insert("amount".to_string(), amountString.clone());
-        m.insert("filled".to_string(), self.safe_string_k(order.clone(), "executedQty", &[]));
+        m.insert("filled".to_string(), self.safe_string2(order.clone(), Value::Str("executedQty".to_string()), Value::Str("executed_qty".to_string()), &[]));
         m.insert("remaining".to_string(), remainingString.clone());
         m.insert("status".to_string(), status.clone());
         m.insert("fee".to_string(), fee.clone());
@@ -1382,11 +1399,12 @@ impl CoinoneCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("quote_currency".to_string(), get_value(&market, &Value::Str("quoteId".to_string())));
+                m.insert("target_currency".to_string(), get_value(&market, &Value::Str("baseId".to_string())));
             m
         });
         let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_order_limit_orders(&[__ws_arg_7]).await;
+        let mut response: Value = self.v2_1_private_post_order_open_orders(&[__ws_arg_7]).await;
         //
         //     {
         //         "result": "success",
@@ -1404,8 +1422,8 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut limitOrders: Value = self.safe_list_k(response.clone(), "limitOrders", &[Value::List(vec![])]);
-        return self.parse_orders(limitOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        let mut openOrders: Value = self.safe_list2(response.clone(), Value::Str("open_orders".to_string()), Value::Str("limitOrders".to_string()), &[Value::List(vec![])]);
+        return self.parse_orders(openOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1554,8 +1572,8 @@ impl CoinoneCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_552: bool = true;
-            while { if !__for_first_552 { i = add(&i, &Value::Int(1)); } __for_first_552 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_538: bool = true;
+            while { if !__for_first_538 { i = add(&i, &Value::Int(1)); } __for_first_538 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&walletAddress, &key);
@@ -1587,7 +1605,9 @@ impl CoinoneCore {
                 add_element_to_object(&mut depositAddress, &Value::Str("tag".to_string()), value.clone());
                 add_element_to_object(&mut depositAddress, &Value::Str("info".to_string()), Value::List(vec![address.clone(), value.clone()]));
             }
-            add_element_to_object(&mut result, &code, depositAddress.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, depositAddress.clone());
+            }
         }
         }
         return result;
@@ -1623,7 +1643,13 @@ impl CoinoneCore {
         }  else {
             self.check_required_credentials(&[]);
             url = add(&url, &request);
-            let mut nonce: Value = to_string_val(&self.nonce());
+            // the v2.1 api requires a uuid nonce, the older apis use a numeric one
+            let mut nonce: Value = Value::Null;
+            if is_equal(&api, &Value::Str("v2_1Private".to_string())) {
+                nonce = self.uuid(&[]);
+            }  else {
+                nonce = to_string_val(&self.nonce());
+            }
             let __ws_arg_10 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_token".to_string(), self.apiKey.clone());

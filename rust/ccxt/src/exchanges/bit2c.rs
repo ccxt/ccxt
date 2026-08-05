@@ -528,8 +528,8 @@ impl Bit2cCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_298: bool = true;
-            while { if !__for_first_298 { i = add(&i, &Value::Int(1)); } __for_first_298 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_300: bool = true;
+            while { if !__for_first_300 { i = add(&i, &Value::Int(1)); } __for_first_300 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
@@ -577,7 +577,7 @@ impl Bit2cCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -719,7 +719,11 @@ impl Bit2cCore {
         if is_string(&response) {
             panic!("{}", crate::exchange_errors::exchange_error(response));
         }
-        return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        let mut responseList: Value = Value::List(vec![]);
+        if !is_equal(&response, &Value::Null) {
+            responseList = response.clone();
+        }
+        return self.parse_trades(responseList.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -768,8 +772,8 @@ impl Bit2cCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_299: bool = true;
-            while { if !__for_first_299 { i = add(&i, &Value::Int(1)); } __for_first_299 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_301: bool = true;
+            while { if !__for_first_301 { i = add(&i, &Value::Int(1)); } __for_first_301 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1105,7 +1109,49 @@ impl Bit2cCore {
         }
         let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_order_order_history(&[__ws_arg_8]).await;
-        return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        //
+        //     [
+        //         {
+        //             "ticks":1574767951,
+        //             "created":"26/11/19 13:32",
+        //             "action":1,
+        //             "price":"1000",
+        //             "pair":"EthNis",
+        //             "reference":"EthNis|10867390|10867377",
+        //             "fee":"0.5",
+        //             "feeAmount":"0.08",
+        //             "feeCoin":"₪",
+        //             "firstAmount":"-0.015",
+        //             "firstAmountBalance":"9",
+        //             "secondAmount":"14.93",
+        //             "secondAmountBalance":"130,233.28",
+        //             "firstCoin":"ETH",
+        //             "secondCoin":"₪"
+        //         },
+        //         {
+        //             "ticks":1574767951,
+        //             "created":"26/11/19 13:32",
+        //             "action":0,
+        //             "price":"1000",
+        //             "pair":"EthNis",
+        //             "reference":"EthNis|10867390|10867377",
+        //             "fee":"0.5",
+        //             "feeAmount":"0.08",
+        //             "feeCoin":"₪",
+        //             "firstAmount":"0.015",
+        //             "firstAmountBalance":"9.015",
+        //             "secondAmount":"-15.08",
+        //             "secondAmountBalance":"130,218.35",
+        //             "firstCoin":"ETH",
+        //             "secondCoin":"₪"
+        //         }
+        //     ]
+        //
+        let mut responseList: Value = Value::List(vec![]);
+        if !is_equal(&response, &Value::Null) {
+            responseList = response.clone();
+        }
+        return self.parse_trades(responseList.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1115,8 +1161,8 @@ impl Bit2cCore {
         let mut strParts: Value = split(&str_val, &Value::Str(",".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_300: bool = true;
-            while { if !__for_first_300 { i = add(&i, &Value::Int(1)); } __for_first_300 = false; is_less_than(&i, &get_array_length(&strParts)) } {
+            let mut __for_first_302: bool = true;
+            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&strParts)) } {
             newString = add(&newString, &get_value(&strParts, &i));
         }
         }

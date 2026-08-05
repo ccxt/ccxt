@@ -499,13 +499,16 @@ impl ZaifCore {
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut id: Value = self.safe_string_k(market.clone(), "currency_pair", &[]);
         let mut name: Value = self.safe_string_k(market.clone(), "name", &[]);
+        if is_equal(&name, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseMarket() missing name".to_string()))));
+        }
         let mut baseIdquoteIdVariable = split(&name, &Value::Str("/".to_string()));
         let mut baseId: Value = get_value(&baseIdquoteIdVariable, &Value::Int(0));
         let mut quoteId: Value = get_value(&baseIdquoteIdVariable, &Value::Int(1));
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -567,7 +570,7 @@ impl ZaifCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -592,8 +595,8 @@ impl ZaifCore {
         let mut currencyIds: Value = object_keys(&funds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1097: bool = true;
-            while { if !__for_first_1097 { i = add(&i, &Value::Int(1)); } __for_first_1097 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_1103: bool = true;
+            while { if !__for_first_1103 { i = add(&i, &Value::Int(1)); } __for_first_1103 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -606,7 +609,9 @@ impl ZaifCore {
                     add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(deposit.clone(), currencyId.clone(), &[]));
                 }
             }
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -644,7 +649,7 @@ impl ZaifCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -892,7 +897,7 @@ impl ZaifCore {
  * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
  * @description cancels an open order
  * @param {string} id order id
- * @param {string} symbol not used by zaif cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -923,7 +928,10 @@ impl ZaifCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_order(data.clone(), &[]);
 
     Value::Null
@@ -1121,7 +1129,10 @@ impl ZaifCore {
         //         }
         //     }
         //
-        let mut returnData: Value = self.safe_dict_k(result.clone(), "return", &[]);
+        let mut returnData: Value = self.safe_dict_k(result.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_transaction(returnData.clone(), &[currency.clone()]);
 
     Value::Null

@@ -182,6 +182,7 @@ impl crate::exchange_generated::ExchangeBase for MyriadCore {
                 "edit_order" => self.edit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
                 "ensure_erc20_allowance" => self.ensure_erc20_allowance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null)).await,
                 "eth_rpc" => self.eth_rpc(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "fetch_amm_orders" => self.fetch_amm_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_balance" => self.fetch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_canceled_orders" => self.fetch_canceled_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_closed_orders" => self.fetch_closed_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
@@ -198,6 +199,9 @@ impl crate::exchange_generated::ExchangeBase for MyriadCore {
                 "fetch_raw_market_by_id" => self.fetch_raw_market_by_id(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_raw_markets_by_search" => self.fetch_raw_markets_by_search(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_raw_markets_list" => self.fetch_raw_markets_list(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_raw_question_by_id" => self.fetch_raw_question_by_id(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_raw_questions_by_search" => self.fetch_raw_questions_by_search(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_raw_questions_list" => self.fetch_raw_questions_list(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_ticker" => self.fetch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_tickers" => self.fetch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_trade_quote" => self.fetch_trade_quote(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
@@ -205,10 +209,12 @@ impl crate::exchange_generated::ExchangeBase for MyriadCore {
                 "fetch_trading_fee" => self.fetch_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "from_wei" => self.from_wei(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "from_wei_with_decimals" => self.from_wei_with_decimals(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "get_order_response_from_params" => self.get_order_response_from_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "hex_to_decimal_string" => self.hex_to_decimal_string(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "market_outcome_to_symbol" => self.market_outcome_to_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "order_to_trade" => self.order_to_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_amm_event_to_order" => self.parse_amm_event_to_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market_to_event" => self.parse_market_to_event(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_myriad_market" => self.parse_myriad_market(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -328,7 +334,7 @@ impl MyriadCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/59aba5fc-94a6-46cf-a93b-dbc5ee3d8502".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/a393c885-99e8-4943-897d-ebc0555c3773".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("myriad".to_string(), Value::Str("https://api-v2.myriadprotocol.com".to_string()));
@@ -459,6 +465,7 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("defaultFetchMarketsLimit".to_string(), Value::Int(50));
         m.insert("defaultFetchEventsLimit".to_string(), Value::Int(50));
+        m.insert("allowUnscopedFetchEvents".to_string(), Value::Bool(true));
         m.insert("defaultMarketStatus".to_string(), Value::Str("open".to_string()));
         m.insert("defaultTradingModel".to_string(), Value::Str("all".to_string()));
         m.insert("defaultNetworkId".to_string(), Value::Str("56".to_string()));
@@ -539,8 +546,8 @@ impl MyriadCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1215: bool = true;
-            while { if !__for_first_1215 { i = add(&i, &Value::Int(1)); } __for_first_1215 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_1221: bool = true;
+            while { if !__for_first_1221 { i = add(&i, &Value::Int(1)); } __for_first_1221 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut m: Value = self.parse_myriad_market(raw.clone(), &[]);
@@ -585,8 +592,8 @@ impl MyriadCore {
         let mut rawMarkets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1217: bool = true;
-            while { if !__for_first_1217 { i = add(&i, &Value::Int(1)); } __for_first_1217 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut __for_first_1223: bool = true;
+            while { if !__for_first_1223 { i = add(&i, &Value::Int(1)); } __for_first_1223 = false; is_less_than(&i, &get_array_length(&queries)) } {
             let mut q: Value = get_value(&queries, &i);
             let mut q: Value = get_value(&queries, &i);
             let __ws_arg_0 = self.extend(Value::Map({
@@ -601,8 +608,8 @@ impl MyriadCore {
             let mut found: Value = ternary(is_true(&(!is_equal(&foundList, &Value::Null))), foundList.clone(), Value::List(vec![]));
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1216: bool = true;
-                while { if !__for_first_1216 { j = add(&j, &Value::Int(1)); } __for_first_1216 = false; is_less_than(&j, &get_array_length(&found)) } {
+                let mut __for_first_1222: bool = true;
+                while { if !__for_first_1222 { j = add(&j, &Value::Int(1)); } __for_first_1222 = false; is_less_than(&j, &get_array_length(&found)) } {
                 let mut raw: Value = get_value(&found, &j);
                 let mut raw: Value = get_value(&found, &j);
                 let mut networkId: Value = self.safe_string_k(raw.clone(), "networkId", &[]);
@@ -667,8 +674,8 @@ impl MyriadCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1218: bool = true;
-                while { if !__for_first_1218 { i = add(&i, &Value::Int(1)); } __for_first_1218 = false; is_less_than(&i, &rawMarketsLength) } {
+                let mut __for_first_1224: bool = true;
+                while { if !__for_first_1224 { i = add(&i, &Value::Int(1)); } __for_first_1224 = false; is_less_than(&i, &rawMarketsLength) } {
                 if is_less_than(&collected, &maxMarkets) {
                     append_to_array(&mut allRawMarkets, get_value(&rawMarkets, &i));
                     collected = self.sum(&[collected.clone(), Value::Int(1)]);
@@ -688,9 +695,9 @@ impl MyriadCore {
 /*
  * @method
  * @name myriad#fetchEvent
- * @description fetches a single prediction-market event by its market id
+ * @description fetches a single prediction-market event by its market id, or orderbook slug
  * @see https://docs.myriad.markets/builders/myriad-api-reference
- * @param {string} id the market id
+ * @param {string} id the market id, or orderbook slug
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
@@ -699,6 +706,12 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if is_less_than(&get_index_of(&id, &Value::Str(":".to_string())), &Value::Int(0)) {
+            let mut rawQuestion: Value = self.fetch_raw_question_by_id(id.clone(), &[params.clone()]).await;
+            let mut orderBookEvent: Value = self.parse_event(rawQuestion.clone());
+            self.index_event_outcomes(orderBookEvent.clone());
+            return orderBookEvent;
+        }
         let mut response: Value = self.fetch_raw_market_by_id(id.clone(), &[params.clone()]).await;
         let mut market: Value = self.parse_myriad_market(response.clone(), &[]);
         let mut event: Value = self.parse_market_to_event(response.clone(), market.clone());
@@ -742,6 +755,197 @@ impl MyriadCore {
 }
 
 /*
+ * @ignore
+ * @method
+ * @name myriad#fetchRawQuestionById
+ * @description fetches a single raw myriad question object by question id; falls back to keyword search by id/slug/title when direct lookup is unavailable
+ * @param {string} id the question id or slug
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the raw question object
+ */
+    pub async fn fetch_raw_question_by_id(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), id.clone());
+            m
+        });
+        let mut result: Value = Value::Null;
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            result = self.myriad_public_get_questions_id(&[__ws_arg_3]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            if is_true(&(is_instance(&e, &Value::Str("RateLimitExceeded".to_string())))) || is_true(&(is_instance(&e, &Value::Str("AuthenticationError".to_string())))) {
+                panic!("{}", e);
+            }
+            let mut keywordRequest: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("keyword".to_string(), id.clone());
+                    m.insert("limit".to_string(), Value::Int(50));
+                m
+            });
+            let __ws_arg_4 = self.extend(keywordRequest.clone(), &[params.clone()]);
+            let mut response: Value = self.myriad_public_get_questions(&[__ws_arg_4]).await;
+            let mut questions: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            let mut questionsLength: Value = get_array_length(&questions);
+            let mut idLower: Value = to_lower(&id);
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_1225: bool = true;
+                while { if !__for_first_1225 { i = add(&i, &Value::Int(1)); } __for_first_1225 = false; is_less_than(&i, &questionsLength) } {
+                let mut q: Value = self.safe_dict(questions.clone(), i.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+                let mut qId: Value = self.safe_string_k(q.clone(), "id", &[Value::Str("".to_string())]);
+                let mut qSlug: Value = self.safe_string_k(q.clone(), "slug", &[Value::Str("".to_string())]);
+                let mut qTitle: Value = self.safe_string_k(q.clone(), "title", &[Value::Str("".to_string())]);
+                let mut qHandle: Value = self.shorten_slug(qSlug.clone());
+                if is_true(&(is_equal(&to_lower(&qId), &idLower))) || is_true(&(is_equal(&to_lower(&qSlug), &idLower))) || is_true(&(is_equal(&to_lower(&qTitle), &idLower))) || is_true(&(is_true(&(!is_equal(&qHandle, &Value::Null))) && is_true(&(is_equal(&to_lower(&qHandle), &idLower))))) {
+                    return q;
+                }
+            }
+            }
+            panic!("{}", e);
+        }
+        return result;
+
+    Value::Null
+}
+
+/*
+ * @ignore
+ * @method
+ * @name myriad#fetchRawQuestionsBySearch
+ * @description fetches raw myriad question objects matching the given search terms via the questions keyword filter
+ * @param {string[]} queries search terms
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of raw myriad question objects
+ */
+    pub async fn fetch_raw_questions_by_search(&mut self, mut queries: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("defaultFetchEventsLimit".to_string()), &[Value::Int(50)])]);
+        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("limit".to_string())]), &[]);
+        let mut seen: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut rawQuestions: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1227: bool = true;
+            while { if !__for_first_1227 { i = add(&i, &Value::Int(1)); } __for_first_1227 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut q: Value = get_value(&queries, &i);
+            let mut q: Value = get_value(&queries, &i);
+            let __ws_arg_5 = self.extend(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("keyword".to_string(), q.clone());
+                    m.insert("limit".to_string(), limit.clone());
+                m
+            }), &[rest.clone()]);
+            let mut response: Value = self.myriad_public_get_questions(&[__ws_arg_5]).await;
+            let mut foundList: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
+            let mut found: Value = ternary(is_true(&(!is_equal(&foundList, &Value::Null))), foundList.clone(), Value::List(vec![]));
+            {
+                                let mut j: Value = Value::Int(0);
+                let mut __for_first_1226: bool = true;
+                while { if !__for_first_1226 { j = add(&j, &Value::Int(1)); } __for_first_1226 = false; is_less_than(&j, &get_array_length(&found)) } {
+                let mut raw: Value = get_value(&found, &j);
+                let mut raw: Value = get_value(&found, &j);
+                let mut questionId: Value = self.safe_string_k(raw.clone(), "id", &[]);
+                if is_true(&(!is_equal(&questionId, &Value::Null))) && !is_true(&(Value::Bool(in_op(&seen, &questionId)))) {
+                    add_element_to_object(&mut seen, &questionId, Value::Bool(true));
+                    append_to_array(&mut rawQuestions, raw.clone());
+                }
+            }
+            }
+        }
+        }
+        return rawQuestions;
+
+    Value::Null
+}
+
+/*
+ * @ignore
+ * @method
+ * @name myriad#fetchRawQuestionsList
+ * @description fetches raw myriad question objects from the paginated questions listing
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.state] optional question state filter when supported by the backend
+ * @returns {object[]} an array of raw myriad question objects
+ */
+    pub async fn fetch_raw_questions_list(&mut self, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut limit: Value = self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(50)]);
+        let mut maxQuestions: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchEventsLimit".to_string()), &[Value::Int(1000)])]);
+        let mut state: Value = self.safe_string2(params.clone(), Value::Str("state".to_string()), Value::Str("status".to_string()), &[self.safe_string_k(self.options.clone(), "defaultMarketStatus", &[Value::Str("open".to_string())])]);
+        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("state".to_string()), Value::Str("status".to_string()), Value::Str("limit".to_string()), Value::Str("tradingModel".to_string()), Value::Str("trading_model".to_string())]), &[]);
+        let mut allRawQuestions: Value = Value::List(vec![]);
+        let mut seen: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut collected: Value = Value::Int(0);
+        let mut page: Value = Value::Int(1);
+        while is_true(&Value::Bool(true)) {
+            let mut request: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("limit".to_string(), limit.clone());
+                    m.insert("page".to_string(), page.clone());
+                m
+            });
+            if !is_equal(&state, &Value::Null) {
+                add_element_to_object(&mut request, &Value::Str("state".to_string()), state.clone());
+            }
+            let __ws_arg_6 = self.extend(request.clone(), &[rest.clone()]);
+            let mut response: Value = self.myriad_public_get_questions(&[__ws_arg_6]).await;
+            let mut rawQuestionsList: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
+            let mut rawQuestions: Value = ternary(is_true(&(!is_equal(&rawQuestionsList, &Value::Null))), rawQuestionsList.clone(), Value::List(vec![]));
+            let mut rawQuestionsLength: Value = get_array_length(&rawQuestions);
+            if is_equal(&rawQuestionsLength, &Value::Int(0)) {
+                break;
+            }
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_1228: bool = true;
+                while { if !__for_first_1228 { i = add(&i, &Value::Int(1)); } __for_first_1228 = false; is_less_than(&i, &rawQuestionsLength) } {
+                let mut rawQuestion: Value = get_value(&rawQuestions, &i);
+                let mut rawQuestion: Value = get_value(&rawQuestions, &i);
+                let mut questionId: Value = self.safe_string_k(rawQuestion.clone(), "id", &[]);
+                if is_true(&(!is_equal(&questionId, &Value::Null))) && is_true(&(Value::Bool(in_op(&seen, &questionId)))) {
+                    continue;
+                }
+                if !is_equal(&questionId, &Value::Null) {
+                    add_element_to_object(&mut seen, &questionId, Value::Bool(true));
+                }
+                if is_less_than(&collected, &maxQuestions) {
+                    append_to_array(&mut allRawQuestions, rawQuestion.clone());
+                    collected = self.sum(&[collected.clone(), Value::Int(1)]);
+                }
+            }
+            }
+            page = self.sum(&[page.clone(), Value::Int(1)]);
+            if is_true(&(is_less_than(&rawQuestionsLength, &limit))) || is_true(&(is_greater_than_or_equal(&collected, &maxQuestions))) {
+                break;
+            }
+        }
+        return allRawQuestions;
+
+    Value::Null
+}
+
+/*
  * @method
  * @name myriad#fetchPositions
  * @description fetch the open outcome-token positions held by a wallet (myriad settles trades on-chain, so only read-only portfolio data is exposed by the API)
@@ -749,7 +953,7 @@ impl MyriadCore {
  * @param {string[]} [outcomes] unified outcomes to filter by
  * @param {object} [params] extra exchange-specific parameters
  * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
@@ -764,18 +968,61 @@ impl MyriadCore {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPositions() requires a walletAddress or an address parameter".to_string()))));
         }
         let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("address".to_string()), Value::Str("user".to_string())]), &[]);
-        let __ws_arg_3 = self.extend(Value::Map({
+        let __ws_arg_7 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), address.clone());
             m
         }), &[rest.clone()]);
-        let mut response: Value = self.myriad_public_get_users_address_portfolio(&[__ws_arg_3]).await;
+        let mut response: Value = self.myriad_public_get_users_address_portfolio(&[__ws_arg_7]).await;
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "marketId": 170145,
+        //                 "marketTitle": "Will Base TGE in 2026?",
+        //                 "marketSlug": "will-base-tge-in-2026",
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        //                 "outcomeId": 0,
+        //                 "outcomeTitle": "Yes",
+        //                 "networkId": 56,
+        //                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+        //                 "tokenId": null,
+        //                 "shares": 8.23666644,
+        //                 "price": 0.1214083400468503,
+        //                 "value": 0.9823048396344001,
+        //                 "profit": -0.017695160365599896,
+        //                 "roi": -0.017695160365599896,
+        //                 "totalProfit": -0.017695160365599927,
+        //                 "totalRoi": -0.017695160365599927,
+        //                 "positionFees": 0.02,
+        //                 "totalFees": 0.02,
+        //                 "winningsToClaim": false,
+        //                 "winningsClaimed": false,
+        //                 "voidedWinningsToClaim": false,
+        //                 "voidedWinningsClaimed": false,
+        //                 "status": "ongoing",
+        //                 "claimed": false,
+        //                 "executionMode": 0,
+        //                 "expiresAt": "2026-12-31 23:59:00",
+        //                 "eventId": null
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 20,
+        //             "total": 1,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
+        //         }
+        //     }
+        //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1219: bool = true;
-            while { if !__for_first_1219 { i = add(&i, &Value::Int(1)); } __for_first_1219 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1229: bool = true;
+            while { if !__for_first_1229 { i = add(&i, &Value::Int(1)); } __for_first_1229 = false; is_less_than(&i, &get_array_length(&data)) } {
             append_to_array(&mut result, self.parse_prediction_position(get_value(&data, &i), &[]));
         }
         }
@@ -791,7 +1038,7 @@ impl MyriadCore {
  * @description parses a raw myriad portfolio entry into a unified position structure
  * @param {object} position the raw portfolio entry
  * @param {object} [market] not used by myriad
- * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub fn parse_prediction_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -806,10 +1053,10 @@ impl MyriadCore {
         let mut shares: Value = self.safe_number_k(position.clone(), "shares", &[]);
         let mut value: Value = self.safe_number_k(position.clone(), "value", &[]);
         let mut profit: Value = self.safe_number_k(position.clone(), "profit", &[]);
-        let mut roi: Value = self.safe_number_k(position.clone(), "roi", &[]);
+        let mut roi: Value = self.safe_string_k(position.clone(), "roi", &[]);
         let mut percentage: Value = Value::Null;
         if !is_equal(&roi, &Value::Null) {
-            percentage = multiply(&roi, &Value::Int(100));
+            percentage = crate::precise::Precise::stringMul(&roi, &Value::Str("100".to_string()));
         }
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -824,7 +1071,7 @@ impl MyriadCore {
         m.insert("notional".to_string(), value.clone());
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "price", &[]));
         m.insert("unrealizedPnl".to_string(), profit.clone());
-        m.insert("percentage".to_string(), percentage.clone());
+        m.insert("percentage".to_string(), self.parse_number(percentage.clone(), &[]));
         m.insert("marginMode".to_string(), Value::Str("cash".to_string()));
         m.insert("hedged".to_string(), Value::Bool(false));
     m
@@ -875,9 +1122,14 @@ impl MyriadCore {
             add_element_to_object(&mut request, &Value::Str("shares".to_string()), amount.clone());
         }
         let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("slippage".to_string())]), &[]);
-        let __ws_arg_4 = self.extend(request.clone(), &[rest.clone()]);
-        let mut response: Value = self.myriad_public_post_markets_quote(&[__ws_arg_4]).await;
-        return self.parse_trade_quote(response.clone(), &[outcomeObj.clone()]);
+        let __ws_arg_8 = self.extend(request.clone(), &[rest.clone()]);
+        let mut response: Value = self.myriad_public_post_markets_quote(&[__ws_arg_8]).await;
+        let __ws_arg_9 = self.extend(response.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("action".to_string(), sideStr.clone());
+    m
+})]);
+        return self.parse_trade_quote(__ws_arg_9, &[outcomeObj.clone()]);
 
     Value::Null
 }
@@ -924,8 +1176,14 @@ impl MyriadCore {
         let mut signature: Value = ecdsa(hashHex.clone(), self.remove0x_prefix(privateKey.clone()), Value::Str("secp256k1".to_string()), Value::Null);
         let mut rHex: Value = self.safe_string_k(signature.clone(), "r", &[]);
         let mut sHex: Value = self.safe_string_k(signature.clone(), "s", &[]);
+        if is_equal(&rHex, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" signEvmTransaction() missing rHex".to_string()))));
+        }
         if !is_equal(&(mod_val(&get_array_length(&rHex), &Value::Int(2))), &Value::Int(0)) {
             rHex = add(&Value::Str("0".to_string()), &rHex);
+        }
+        if is_equal(&sHex, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" signEvmTransaction() missing sHex".to_string()))));
         }
         if !is_equal(&(mod_val(&get_array_length(&sHex), &Value::Int(2))), &Value::Int(0)) {
             sHex = add(&Value::Str("0".to_string()), &sHex);
@@ -934,8 +1192,8 @@ impl MyriadCore {
         let mut signedFields: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1220: bool = true;
-            while { if !__for_first_1220 { i = add(&i, &Value::Int(1)); } __for_first_1220 = false; is_less_than(&i, &get_array_length(&fields)) } {
+            let mut __for_first_1230: bool = true;
+            while { if !__for_first_1230 { i = add(&i, &Value::Int(1)); } __for_first_1230 = false; is_less_than(&i, &get_array_length(&fields)) } {
             append_to_array(&mut signedFields, get_value(&fields, &i));
         }
         }
@@ -961,8 +1219,8 @@ impl MyriadCore {
                 m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
             m
         });
-        let __ws_arg_5 = self.json(payload.clone());
-        let mut response: Value = self.fetch(rpcUrl.clone(), &[Value::Str("POST".to_string()), headers.clone(), __ws_arg_5]).await;
+        let __ws_arg_10 = self.json(payload.clone());
+        let mut response: Value = self.fetch(rpcUrl.clone(), &[Value::Str("POST".to_string()), headers.clone(), __ws_arg_10]).await;
         let mut rpcError: Value = self.safe_value_k(response.clone(), "error", &[]);
         if !is_equal(&rpcError, &Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&add(&self.id, &Value::Str(" rpc ".to_string())), &method), &Value::Str(" error: ".to_string())), &self.json(rpcError.clone()))));
@@ -989,8 +1247,8 @@ impl MyriadCore {
         // approve(spender, maxUint256)
         let mut maxUint: Value = Value::Str("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".to_string());
         let mut approveData: Value = add(&add(&Value::Str("0x095ea7b3".to_string()), &self.pad_hex_address(spender.clone())), &maxUint);
-        let __ws_arg_6 = self.parse_to_int(networkId.clone());
-        let mut approveHash: Value = self.send_evm_transaction(rpcUrl.clone(), __ws_arg_6, owner.clone(), token.clone(), Value::Str("0x0".to_string()), approveData.clone(), Value::Str("0x186a0".to_string())).await;
+        let __ws_arg_11 = self.parse_to_int(networkId.clone());
+        let mut approveHash: Value = self.send_evm_transaction(rpcUrl.clone(), __ws_arg_11, owner.clone(), token.clone(), Value::Str("0x0".to_string()), approveData.clone(), Value::Str("0x186a0".to_string())).await;
         self.wait_for_transaction_receipt(rpcUrl.clone(), approveHash.clone(), &[]).await;
         return Value::Null;
 
@@ -1011,7 +1269,7 @@ impl MyriadCore {
  * @param {string} [params.tradingModel] 'ob' to force the order book, 'amm' to force the on-chain AMM; defaults to the market's model
  * @param {string} [params.timeInForce] order-book time in force: 'GTC', 'GTD', 'FOK', 'FAK' or 'PO'
  * @param {string} [params.expiration] unix-seconds expiration for a GTD order
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn create_order(&mut self, mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -1046,7 +1304,7 @@ impl MyriadCore {
  * @method
  * @name myriad#createOrderbookOrder
  * @description signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn create_orderbook_order(&mut self, mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -1067,9 +1325,29 @@ impl MyriadCore {
             m
         });
         let mut response: Value = self.myriad_public_post_orders(&[request.clone()]).await;
+        //
+        //     {
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "status": "open",
+        //         "timeInForce": "GTC"
+        //     }
+        //
+        let mut orderForResponse: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("trader".to_string(), self.safe_string_k(order.clone(), "trader", &[]));
+                m.insert("marketId".to_string(), self.safe_string_k(order.clone(), "marketId", &[]));
+                m.insert("outcomeId".to_string(), self.safe_number_k(order.clone(), "outcomeId", &[]));
+                m.insert("side".to_string(), self.safe_number_k(order.clone(), "side", &[]));
+                m.insert("amount".to_string(), self.safe_string_k(order.clone(), "amount", &[]));
+                m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
+                m.insert("minFillAmount".to_string(), self.safe_string_k(order.clone(), "minFillAmount", &[]));
+                m.insert("nonce".to_string(), self.safe_string_k(order.clone(), "nonce", &[]));
+                m.insert("expiration".to_string(), self.safe_string_k(order.clone(), "expiration", &[]));
+            m
+        });
         let mut wrapper: Value = self.extend(response.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order".to_string(), order.clone());
+                m.insert("order".to_string(), orderForResponse.clone());
                 m.insert("networkId".to_string(), networkId.clone());
                 m.insert("timeInForce".to_string(), timeInForce.clone());
             m
@@ -1167,8 +1445,8 @@ impl MyriadCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("trader".to_string(), trader.clone());
                 m.insert("marketId".to_string(), marketId.clone());
-                m.insert("outcomeId".to_string(), outcomeId.clone());
-                m.insert("side".to_string(), sideInt.clone());
+                m.insert("outcomeId".to_string(), self.parse_to_numeric(outcomeId.clone()));
+                m.insert("side".to_string(), self.parse_to_numeric(sideInt.clone()));
                 m.insert("amount".to_string(), amountWei.clone());
                 m.insert("price".to_string(), priceWei.clone());
                 m.insert("minFillAmount".to_string(), minFillAmount.clone());
@@ -1197,7 +1475,7 @@ impl MyriadCore {
  * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528
  * @param {object[]} orders a list of order requests, each with outcome, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -1208,17 +1486,20 @@ impl MyriadCore {
         let mut orderOutcomes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1221: bool = true;
-            while { if !__for_first_1221 { i = add(&i, &Value::Int(1)); } __for_first_1221 = false; is_less_than(&i, &ordersLength) } {
-            append_to_array(&mut orderOutcomes, self.safe_string_k(get_value(&orders, &i), "outcome", &[]));
+            let mut __for_first_1231: bool = true;
+            while { if !__for_first_1231 { i = add(&i, &Value::Int(1)); } __for_first_1231 = false; is_less_than(&i, &ordersLength) } {
+            let mut __oc: Value = self.safe_string_k(get_value(&orders, &i), "outcome", &[]);
+            if !is_equal(&__oc, &Value::Null) {
+                append_to_array(&mut orderOutcomes, __oc.clone());
+            }
         }
         }
         self.load_outcomes(&[orderOutcomes.clone()]).await;
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1222: bool = true;
-            while { if !__for_first_1222 { i = add(&i, &Value::Int(1)); } __for_first_1222 = false; is_less_than(&i, &ordersLength) } {
+            let mut __for_first_1232: bool = true;
+            while { if !__for_first_1232 { i = add(&i, &Value::Int(1)); } __for_first_1232 = false; is_less_than(&i, &ordersLength) } {
             let mut o: Value = get_value(&orders, &i);
             let mut o: Value = get_value(&orders, &i);
             let mut outcome: Value = self.safe_string_k(o.clone(), "outcome", &[]);
@@ -1230,8 +1511,8 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let __ws_arg_7 = self.extend(orderParams.clone(), &[params.clone()]);
-            let mut placed: Value = self.create_orderbook_order(outcome.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), __ws_arg_7]).await;
+            let __ws_arg_12 = self.extend(orderParams.clone(), &[params.clone()]);
+            let mut placed: Value = self.create_orderbook_order(outcome.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), __ws_arg_12]).await;
             append_to_array(&mut result, placed.clone());
         }
         }
@@ -1253,7 +1534,10 @@ impl MyriadCore {
  * @param {float} amount number of outcome shares for the new order
  * @param {float} [price] price per share as a fraction in [0, 1]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @param {object} [params.orderResponse] a pre-fetched fetchOrder-style response for the order being replaced; avoids the internal lookup when already available, call fetchOrder to retrieve this data
+ * @param {object} [params.rawOrder] the raw order payload to cancel as an alternative to params.orderResponse, call fetchOrder to retrieve this data
+ * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn edit_order(&mut self, mut id: Value, mut outcome: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
@@ -1263,7 +1547,7 @@ impl MyriadCore {
     m
 }));
         self.load_outcome(outcome.clone(), &[]).await;
-        self.cancel_order(id.clone(), &[outcome.clone()]).await;
+        self.cancel_order(id.clone(), &[outcome.clone(), params.clone()]).await;
         return self.create_orderbook_order(outcome.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
@@ -1274,7 +1558,17 @@ impl MyriadCore {
  * @method
  * @name myriad#createAmmOrder
  * @description buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @param {string} outcome unified outcome or outcome id
+ * @param {string} [type] not used by the AMM path
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount for buys this is collateral value to spend (when costDenominated=true); for sells this is shares to sell
+ * @param {float} [price] not used by the AMM path
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {object} [params.quote] a pre-fetched fetchTradeQuote result to reuse instead of requesting a new quote, call fetchTradeQuote to retrieve this data
+ * @param {string} [params.transactionHash] a pre-broadcast transaction hash; when provided the method skips transaction submission and only parses the order result, capture this value from sendEvmTransaction
+ * @param {boolean} [params.skipAllowance] optional override to skip the ERC20 allowance check/approval before a buy; implied true when params.transactionHash is provided
+ * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn create_amm_order(&mut self, mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -1314,19 +1608,34 @@ impl MyriadCore {
         let mut tokenAddress: Value = self.safe_string2(params.clone(), Value::Str("token".to_string()), Value::Str("tokenAddress".to_string()), &[self.safe_string_k(info.clone(), "tokenAddress", &[])]);
         let mut gasLimit: Value = self.safe_string_k(params.clone(), "gasLimit", &[Value::Str("0xaae60".to_string())]);
         let mut sideStr: Value = sideLower.clone();
-        let mut quoteParams: Value = self.omit(params.clone(), Value::List(vec![Value::Str("rpcUrl".to_string()), Value::Str("rpc".to_string()), Value::Str("token".to_string()), Value::Str("tokenAddress".to_string()), Value::Str("gasLimit".to_string()), Value::Str("costDenominated".to_string())]), &[]);
-        let mut quote: Value = self.fetch_trade_quote(outcome.clone(), sideStr.clone(), amount.clone(), &[quoteParams.clone()]).await;
+        let mut quoteParams: Value = self.omit(params.clone(), Value::List(vec![Value::Str("rpcUrl".to_string()), Value::Str("rpc".to_string()), Value::Str("token".to_string()), Value::Str("tokenAddress".to_string()), Value::Str("gasLimit".to_string()), Value::Str("costDenominated".to_string()), Value::Str("quote".to_string()), Value::Str("transactionHash".to_string()), Value::Str("txHash".to_string()), Value::Str("skipAllowance".to_string()), Value::Str("skipWaitForReceipt".to_string())]), &[]);
+        let mut quote: Value = self.safe_dict_k(params.clone(), "quote", &[]);
+        if is_equal(&quote, &Value::Null) {
+            quote = self.fetch_trade_quote(outcome.clone(), sideStr.clone(), amount.clone(), &[quoteParams.clone()]).await;
+        }
         let mut calldata: Value = self.safe_string(self.safe_dict_k(quote.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("calldata".to_string()), &[]);
+        if is_equal(&calldata, &Value::Null) {
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createAmmOrder is missing calldata from fetchTradeQuote".to_string()))));
+        }
         let mut fromAddress: Value = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
-        // a buy spends the collateral token, so the prediction-market contract must be approved first
-        if is_true(&(is_equal(&sideStr, &Value::Str("buy".to_string())))) && is_true(&(!is_equal(&tokenAddress, &Value::Null))) {
+        let mut txHashParam: Value = self.safe_string2(params.clone(), Value::Str("transactionHash".to_string()), Value::Str("txHash".to_string()), &[]);
+        let mut hasPreBroadcastTxHash: Value = Value::Bool(!is_equal(&txHashParam, &Value::Null));
+        let mut skipAllowance: Value = self.safe_bool_k(params.clone(), "skipAllowance", &[hasPreBroadcastTxHash.clone()]);
+        if is_true(&(is_equal(&sideStr, &Value::Str("buy".to_string())))) && is_true(&(!is_equal(&tokenAddress, &Value::Null))) && !is_true(&skipAllowance) {
             self.ensure_erc20_allowance(rpcUrl.clone(), networkId.clone(), tokenAddress.clone(), fromAddress.clone(), predictionMarket.clone()).await;
         }
-        let __ws_arg_8 = self.parse_to_int(networkId.clone());
-        let mut txHash: Value = self.send_evm_transaction(rpcUrl.clone(), __ws_arg_8, fromAddress.clone(), predictionMarket.clone(), Value::Str("0x0".to_string()), calldata.clone(), gasLimit.clone()).await;
+        let mut skipWaitForReceipt: Value = self.safe_bool_k(params.clone(), "skipWaitForReceipt", &[hasPreBroadcastTxHash.clone()]);
+        let mut txHash: Value = txHashParam.clone();
+        if is_equal(&txHash, &Value::Null) {
+            let __ws_arg_13 = self.parse_to_int(networkId.clone());
+            txHash = self.send_evm_transaction(rpcUrl.clone(), __ws_arg_13, fromAddress.clone(), predictionMarket.clone(), Value::Str("0x0".to_string()), calldata.clone(), gasLimit.clone()).await;
+        }
+        if !is_true(&skipWaitForReceipt) {
+            self.wait_for_transaction_receipt(rpcUrl.clone(), txHash.clone(), &[]).await;
+        }
         return self.parse_trade_tx(txHash.clone(), quote.clone(), outcomeObj.clone(), sideStr.clone());
 
     Value::Null
@@ -1336,10 +1645,11 @@ impl MyriadCore {
  * @method
  * @name myriad#createMarketBuyOrderWithCost
  * @description buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+ * @see createAmmOrder supports params.quote from fetchTradeQuote(outcome, 'buy', amount)
  * @param {string} outcome unified outcome handle
- * @param {float} cost the collateral (USDC) amount to spend
- * @param {object} [params] extra exchange-specific parameters
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @param {number} cost collateral amount to spend
+ * @param {object} [params] extra parameters passed through to createAmmOrder
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn create_market_buy_order_with_cost(&mut self, mut outcome: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -1507,9 +1817,15 @@ impl MyriadCore {
  * @returns {object} the typed-data message
  */
     pub fn clob_order_message(&self, mut rawOrder: Value) -> Value {
+        let mut signer: Value = self.safe_string2(rawOrder.clone(), Value::Str("trader".to_string()), Value::Str("user".to_string()), &[]);
+        if !is_equal(&self.privateKey, &Value::Null) {
+            signer = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
+        }  else {
+            signer = self.wallet_address_or_undefined();
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("trader".to_string(), self.safe_string_k(rawOrder.clone(), "trader", &[]));
+        m.insert("trader".to_string(), signer.clone());
         m.insert("marketId".to_string(), self.safe_string_k(rawOrder.clone(), "marketId", &[]));
         m.insert("outcomeId".to_string(), self.safe_integer_k(rawOrder.clone(), "outcomeId", &[Value::Int(0)]));
         m.insert("side".to_string(), self.safe_integer_k(rawOrder.clone(), "side", &[Value::Int(0)]));
@@ -1527,6 +1843,62 @@ impl MyriadCore {
 /*
  * @ignore
  * @method
+ * @name myriad#getOrderResponseFromParams
+ * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
+ * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
+ */
+    pub fn get_order_response_from_params(&self, mut id: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut orderResponse: Value = self.safe_dict_k(params.clone(), "orderResponse", &[]);
+        if !is_equal(&orderResponse, &Value::Null) {
+            return orderResponse;
+        }
+        let mut rawOrder: Value = self.safe_dict_k(params.clone(), "rawOrder", &[]);
+        if !is_equal(&rawOrder, &Value::Null) {
+            return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("orderHash".to_string(), id.clone());
+        m.insert("order".to_string(), rawOrder.clone());
+        m.insert("networkId".to_string(), self.safe_string2(params.clone(), Value::Str("networkId".to_string()), Value::Str("network_id".to_string()), &[]));
+    m
+});
+        }
+        let mut orderResponsesById: Value = self.safe_dict_k(params.clone(), "orderResponses", &[]);
+        if !is_equal(&orderResponsesById, &Value::Null) {
+            let mut keyedResponse: Value = self.safe_dict(orderResponsesById.clone(), id.clone(), &[]);
+            if !is_equal(&keyedResponse, &Value::Null) {
+                return keyedResponse;
+            }
+        }
+        let mut orderResponses: Value = self.safe_list_k(params.clone(), "orderResponses", &[]);
+        if !is_equal(&orderResponses, &Value::Null) {
+            let mut responsesLength: Value = get_array_length(&orderResponses);
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_1233: bool = true;
+                while { if !__for_first_1233 { i = add(&i, &Value::Int(1)); } __for_first_1233 = false; is_less_than(&i, &responsesLength) } {
+                let mut current: Value = self.safe_dict(orderResponses.clone(), i.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+                let mut currentId: Value = self.safe_string_n(current.clone(), Value::List(vec![Value::Str("orderHash".to_string()), Value::Str("hash".to_string()), Value::Str("id".to_string())]), &[]);
+                if is_true(&(!is_equal(&currentId, &Value::Null))) && is_true(&(is_equal(&currentId, &id))) {
+                    return current;
+                }
+            }
+            }
+        }
+        return Value::Null;
+
+    Value::Null
+}
+
+/*
+ * @ignore
+ * @method
  * @name myriad#toOrderbookWei
  * @description scales a decimal value by 1e18 and truncates to an integer wei string
  * @returns {string} the integer wei string
@@ -1536,7 +1908,13 @@ impl MyriadCore {
         let mut scaled: Value = crate::precise::Precise::stringMul(&valueStr, &Value::Str("1000000000000000000".to_string()));
         // use > -1 (not >= 0): when '.' is absent PHP's mb_strpos returns false, and false >= 0
         // coerces to true (wrongly truncating to empty), whereas false > -1 correctly coerces to false
+        if is_equal(&scaled, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" toOrderbookWei() missing scaled".to_string()))));
+        }
         let mut dotIndex: Value = get_index_of(&scaled, &Value::Str(".".to_string()));
+        if is_equal(&scaled, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" toOrderbookWei() missing scaled".to_string()))));
+        }
         if is_greater_than(&dotIndex, &negate(&Value::Int(1))) {
             return slice(&scaled, &Value::Int(0), &dotIndex);
         }
@@ -1630,6 +2008,196 @@ impl MyriadCore {
 }
 
 /*
+ * @ignore
+ * @method
+ * @name myriad#parseAmmEventToOrder
+ * @description parses a user event row from the AMM activity feed into a closed prediction order structure
+ * @param {object} trade the raw user event row
+ * @param {object} [market] the outcome object the trade belongs to
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+ */
+    pub fn parse_amm_event_to_order(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+        let mut market = get_arg(optional_args, 0, Value::Null);
+        let mut networkId: Value = self.safe_string_k(trade.clone(), "networkId", &[]);
+        let mut marketId: Value = self.safe_string_k(trade.clone(), "marketId", &[]);
+        let mut rawOutcomeId: Value = self.safe_string_k(trade.clone(), "outcomeId", &[]);
+        let mut composite: Value = Value::Null;
+        if is_true(&(!is_equal(&networkId, &Value::Null))) && is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(!is_equal(&rawOutcomeId, &Value::Null))) {
+            composite = add(&add(&add(&add(&networkId, &Value::Str(":".to_string())), &marketId), &Value::Str("/".to_string())), &rawOutcomeId);
+        }
+        let mut outcomeObj: Value = self.safe_outcome(composite.clone(), &[market.clone()]);
+        let mut marketSlug: Value = self.safe_string_k(trade.clone(), "marketSlug", &[marketId.clone()]);
+        let mut outcomeTitle: Value = self.safe_string_k(trade.clone(), "outcomeTitle", &[rawOutcomeId.clone()]);
+        let mut outcome: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
+        if is_equal(&outcome, &Value::Null) {
+            outcome = self.slug_to_outcome_symbol(marketSlug.clone(), marketSlug.clone(), outcomeTitle.clone());
+        }
+        let mut marketSymbol: Value = self.safe_string_k(outcomeObj.clone(), "market", &[]);
+        if is_equal(&marketSymbol, &Value::Null) {
+            marketSymbol = self.slug_to_market_symbol(marketSlug.clone(), marketSlug.clone());
+        }
+        let mut label: Value = self.safe_string_k(outcomeObj.clone(), "label", &[]);
+        if is_equal(&label, &Value::Null) {
+            label = outcomeTitle.clone();
+        }
+        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("timestamp".to_string()), &[]);
+        let mut amountStr: Value = self.safe_string_k(trade.clone(), "shares", &[]);
+        let mut costStr: Value = self.safe_string_k(trade.clone(), "value", &[]);
+        let mut priceStr: Value = Value::Null;
+        if is_true(&(!is_equal(&amountStr, &Value::Null))) && is_true(&(!is_equal(&costStr, &Value::Null))) && !is_true(&crate::precise::Precise::stringEq(&amountStr, &Value::Str("0".to_string()))) {
+            priceStr = crate::precise::Precise::stringDiv(&costStr, &amountStr);
+        }
+        return self.safe_prediction_order(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("txId".to_string()), Value::Str("id".to_string()), &[]));
+        m.insert("clientOrderId".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
+        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("lastTradeTimestamp".to_string(), timestamp.clone());
+        m.insert("lastUpdateTimestamp".to_string(), Value::Null);
+        m.insert("status".to_string(), Value::Str("closed".to_string()));
+        m.insert("outcome".to_string(), outcome.clone());
+        m.insert("outcomeId".to_string(), composite.clone());
+        m.insert("label".to_string(), label.clone());
+        m.insert("market".to_string(), marketSymbol.clone());
+        m.insert("type".to_string(), Value::Str("market".to_string()));
+        m.insert("timeInForce".to_string(), Value::Str("IOC".to_string()));
+        m.insert("postOnly".to_string(), Value::Bool(false));
+        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("action".to_string()), &[]));
+        m.insert("price".to_string(), self.parse_number(priceStr.clone(), &[]));
+        m.insert("triggerPrice".to_string(), Value::Null);
+        m.insert("amount".to_string(), self.parse_number(amountStr.clone(), &[]));
+        m.insert("filled".to_string(), self.parse_number(amountStr.clone(), &[]));
+        m.insert("remaining".to_string(), Value::Int(0));
+        m.insert("cost".to_string(), self.parse_number(costStr.clone(), &[]));
+        m.insert("average".to_string(), self.parse_number(priceStr.clone(), &[]));
+        m.insert("fee".to_string(), Value::Null);
+        m.insert("reduceOnly".to_string(), Value::Null);
+        m.insert("trades".to_string(), Value::List(vec![]));
+        m.insert("event".to_string(), Value::Null);
+    m
+}), &[market.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @ignore
+ * @method
+ * @name myriad#fetchAmmOrders
+ * @description fetches executed AMM trades for a wallet from the user events feed and exposes them as closed prediction orders
+ * @param {string} [outcome] unified outcome to filter by
+ * @param {int} [since] timestamp in ms of the earliest order
+ * @param {int} [limit] the maximum number of orders to return
+ * @param {object} [params] extra exchange-specific parameters
+ * @returns {object[]} a list of closed [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+ */
+    pub async fn fetch_amm_orders(&mut self, optional_args: &[Value]) -> Value {
+        let mut outcome = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut requestedStatus: Value = self.safe_string_lower(params.clone(), Value::Str("status".to_string()), &[]);
+        if is_true(&(is_equal(&requestedStatus, &Value::Str("open".to_string())))) || is_true(&(is_equal(&requestedStatus, &Value::Str("cancelled".to_string())))) || is_true(&(is_equal(&requestedStatus, &Value::Str("canceled".to_string())))) || is_true(&(is_equal(&requestedStatus, &Value::Str("expired".to_string())))) {
+            return Value::List(vec![]);
+        }
+        let mut trader: Value = self.safe_string2(params.clone(), Value::Str("trader".to_string()), Value::Str("address".to_string()), &[]);
+        if is_equal(&trader, &Value::Null) {
+            trader = self.wallet_address_or_undefined();
+        }
+        if is_equal(&trader, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrders() for AMM history requires a trader address or wallet/privateKey".to_string()))));
+        }
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("address".to_string(), trader.clone());
+            m
+        });
+        let mut outcomeObj: Value = Value::Null;
+        let mut outcomeSymbol: Value = Value::Null;
+        let mut rowOutcomeId: Value = Value::Null;
+        if !is_equal(&outcome, &Value::Null) {
+            outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
+            outcomeSymbol = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]);
+            let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            add_element_to_object(&mut request, &Value::Str("market_id".to_string()), self.safe_string_k(info.clone(), "marketId", &[]));
+            add_element_to_object(&mut request, &Value::Str("network_id".to_string()), self.safe_string_k(info.clone(), "networkId", &[]));
+            rowOutcomeId = self.safe_string_k(info.clone(), "outcomeId", &[]);
+        }
+        if !is_equal(&since, &Value::Null) {
+            add_element_to_object(&mut request, &Value::Str("since".to_string()), self.parse_to_int(divide(&since, &Value::Int(1000))));
+        }
+        if !is_equal(&limit, &Value::Null) {
+            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+        }
+        params = self.omit(params.clone(), Value::List(vec![Value::Str("trader".to_string()), Value::Str("address".to_string()), Value::Str("status".to_string())]), &[]);
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.myriad_public_get_users_address_events(&[__ws_arg_14]).await;
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "user": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //                 "action": "sell",
+        //                 "marketTitle": "Will Base TGE in 2026?",
+        //                 "marketSlug": "will-base-tge-in-2026",
+        //                 "marketId": 170145,
+        //                 "networkId": 56,
+        //                 "outcomeTitle": "Yes",
+        //                 "outcomeId": 0,
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        //                 "shares": 8.22739948,
+        //                 "value": 0.9789,
+        //                 "timestamp": 1784708801,
+        //                 "blockNumber": 111442601,
+        //                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+        //                 "txId": "0x93842cbb56b852436f53f7bd5d03580a550c0ac08d49fa80cafaed316d7590d7"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 20,
+        //             "total": 2,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
+        //         }
+        //     }
+        //
+        let mut rows: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut result: Value = Value::List(vec![]);
+        let mut rowsLength: Value = get_array_length(&rows);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1234: bool = true;
+            while { if !__for_first_1234 { i = add(&i, &Value::Int(1)); } __for_first_1234 = false; is_less_than(&i, &rowsLength) } {
+            let mut row: Value = get_value(&rows, &i);
+            let mut row: Value = get_value(&rows, &i);
+            let mut action: Value = self.safe_string_lower(row.clone(), Value::Str("action".to_string()), &[]);
+            if is_true(&(!is_equal(&action, &Value::Str("buy".to_string())))) && is_true(&(!is_equal(&action, &Value::Str("sell".to_string())))) {
+                continue;
+            }
+            let mut currentOutcomeId: Value = self.safe_string_k(row.clone(), "outcomeId", &[]);
+            if is_true(&(!is_equal(&rowOutcomeId, &Value::Null))) && is_true(&(!is_equal(&currentOutcomeId, &rowOutcomeId))) {
+                continue;
+            }
+            append_to_array(&mut result, self.parse_amm_event_to_order(row.clone(), &[outcomeObj.clone()]));
+        }
+        }
+        let mut sorted: Value = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(sorted.clone(), &[outcomeSymbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
+}
+
+/*
  * @method
  * @name myriad#cancelOrder
  * @description cancels an open order book order by its hash (re-signs the original order to prove ownership; gasless)
@@ -1637,7 +2205,10 @@ impl MyriadCore {
  * @param {string} id the order hash returned by createOrder
  * @param {string} [outcome] unified outcome the order belongs to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @param {object} [params.orderResponse] a pre-fetched fetchOrder-style response for the target order; avoids the internal order lookup when already available, call fetchOrder to retrieve this data
+ * @param {object} [params.rawOrder] the raw order payload to sign as an alternative to params.orderResponse, call fetchOrder to retrieve this data
+ * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -1648,17 +2219,43 @@ impl MyriadCore {
         if is_equal(&self.privateKey, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a privateKey to sign the cancellation".to_string()))));
         }
-        let __ws_arg_9 = self.extend(Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("hash".to_string(), id.clone());
-            m
-        }), &[params.clone()]);
-        let mut fetched: Value = self.myriad_public_get_orders_hash(&[__ws_arg_9]).await;
+        let mut fetched: Value = self.get_order_response_from_params(id.clone(), &[params.clone()]);
+        let mut networkIdParam: Value = self.safe_string2(params.clone(), Value::Str("networkId".to_string()), Value::Str("network_id".to_string()), &[]);
+        params = self.omit(params.clone(), Value::List(vec![Value::Str("orderResponse".to_string()), Value::Str("orderResponses".to_string()), Value::Str("rawOrder".to_string()), Value::Str("networkId".to_string()), Value::Str("network_id".to_string())]), &[]);
+        if is_equal(&fetched, &Value::Null) {
+            let __ws_arg_15 = self.extend(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("hash".to_string(), id.clone());
+                m
+            }), &[params.clone()]);
+            fetched = self.myriad_public_get_orders_hash(&[__ws_arg_15]).await;
+        }
+        let mut fetchedInfo: Value = self.safe_dict_k(fetched.clone(), "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut rawOrder: Value = self.safe_dict_k(fetched.clone(), "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut networkId: Value = self.safe_string2(fetched.clone(), Value::Str("networkId".to_string()), Value::Str("network_id".to_string()), &[self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".to_string())])]);
+        let mut rawOrderKeys: Value = object_keys(&rawOrder);
+        let mut rawOrderKeysLength: Value = get_array_length(&rawOrderKeys);
+        if is_equal(&rawOrderKeysLength, &Value::Int(0)) {
+            rawOrder = self.safe_dict_k(fetchedInfo.clone(), "order", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        }
+        let mut networkId: Value = self.safe_string_n(fetched.clone(), Value::List(vec![Value::Str("networkId".to_string()), Value::Str("network_id".to_string())]), &[]);
+        if is_equal(&networkId, &Value::Null) {
+            networkId = self.safe_string_n(fetchedInfo.clone(), Value::List(vec![Value::Str("networkId".to_string()), Value::Str("network_id".to_string())]), &[]);
+        }
+        if is_equal(&networkId, &Value::Null) {
+            networkId = networkIdParam.clone();
+        }
+        if is_equal(&networkId, &Value::Null) {
+            networkId = self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".to_string())]);
+        }
         let mut message: Value = self.clob_order_message(rawOrder.clone());
         let mut signature: Value = self.sign_clob_order(message.clone(), networkId.clone());
         let mut request: Value = Value::Map({
@@ -1669,7 +2266,14 @@ impl MyriadCore {
                 m.insert("network_id".to_string(), self.parse_to_int(networkId.clone()));
             m
         });
-        let mut response: Value = self.myriad_public_delete_orders_hash(&[request.clone()]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.myriad_public_delete_orders_hash(&[__ws_arg_16]).await;
+        //
+        //     {
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "status": "cancelled"
+        //     }
+        //
         let mut status: Value = self.safe_string_k(response.clone(), "status", &[Value::Str("canceled".to_string())]);
         let mut wrapper: Value = self.extend(fetched.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1748,7 +2352,9 @@ impl MyriadCore {
  * @param {string[]} ids the order hashes to cancel
  * @param {string} [outcome] not used by myriad cancelOrders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @param {object} [params.orderResponses] pre-fetched fetchOrder-style responses keyed by order hash, or an array of such responses; avoids the internal per-order lookups when already available, call fetchOrder for each id to retrieve this data
+ * @param {string} [params.networkId] the order-book network id fallback for any supplied raw order data
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -1759,26 +2365,53 @@ impl MyriadCore {
         if is_equal(&self.privateKey, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a privateKey to sign the cancellations".to_string()))));
         }
+        let mut paramsForLookup: Value = params.clone();
+        let mut networkIdParam: Value = self.safe_string2(params.clone(), Value::Str("networkId".to_string()), Value::Str("network_id".to_string()), &[]);
+        params = self.omit(params.clone(), Value::List(vec![Value::Str("orderResponse".to_string()), Value::Str("orderResponses".to_string()), Value::Str("rawOrder".to_string()), Value::Str("networkId".to_string()), Value::Str("network_id".to_string())]), &[]);
         let mut idsLength: Value = get_array_length(&ids);
         let mut signedOrders: Value = Value::List(vec![]);
         let mut wrappers: Value = Value::List(vec![]);
         let mut networkId: Value = self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1223: bool = true;
-            while { if !__for_first_1223 { i = add(&i, &Value::Int(1)); } __for_first_1223 = false; is_less_than(&i, &idsLength) } {
+            let mut __for_first_1235: bool = true;
+            while { if !__for_first_1235 { i = add(&i, &Value::Int(1)); } __for_first_1235 = false; is_less_than(&i, &idsLength) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
-            let mut fetched: Value = self.myriad_public_get_orders_hash(&[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("hash".to_string(), id.clone());
-                m
-            })]).await;
+            let mut fetched: Value = self.get_order_response_from_params(id.clone(), &[paramsForLookup.clone()]);
+            if is_equal(&fetched, &Value::Null) {
+                fetched = self.myriad_public_get_orders_hash(&[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("hash".to_string(), id.clone());
+                    m
+                })]).await;
+            }
+            let mut fetchedInfo: Value = self.safe_dict_k(fetched.clone(), "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut rawOrder: Value = self.safe_dict_k(fetched.clone(), "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            networkId = self.safe_string2(fetched.clone(), Value::Str("networkId".to_string()), Value::Str("network_id".to_string()), &[networkId.clone()]);
+            let mut rawOrderKeys: Value = object_keys(&rawOrder);
+            let mut rawOrderKeysLength: Value = get_array_length(&rawOrderKeys);
+            if is_equal(&rawOrderKeysLength, &Value::Int(0)) {
+                rawOrder = self.safe_dict_k(fetchedInfo.clone(), "order", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            }
+            let mut fetchedNetworkId: Value = self.safe_string_n(fetched.clone(), Value::List(vec![Value::Str("networkId".to_string()), Value::Str("network_id".to_string())]), &[]);
+            if is_equal(&fetchedNetworkId, &Value::Null) {
+                fetchedNetworkId = self.safe_string_n(fetchedInfo.clone(), Value::List(vec![Value::Str("networkId".to_string()), Value::Str("network_id".to_string())]), &[]);
+            }
+            if is_equal(&fetchedNetworkId, &Value::Null) {
+                fetchedNetworkId = networkIdParam.clone();
+            }
+            if !is_equal(&fetchedNetworkId, &Value::Null) {
+                networkId = fetchedNetworkId.clone();
+            }
             let mut message: Value = self.clob_order_message(rawOrder.clone());
             let mut signature: Value = self.sign_clob_order(message.clone(), networkId.clone());
             append_to_array(&mut signedOrders, Value::Map({
@@ -1801,8 +2434,8 @@ impl MyriadCore {
                 m.insert("network_id".to_string(), self.parse_to_int(networkId.clone()));
             m
         });
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
-        self.myriad_public_post_orders_cancel_batch(&[__ws_arg_10]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        self.myriad_public_post_orders_cancel_batch(&[__ws_arg_17]).await;
         return self.parse_prediction_orders(wrappers.clone(), &[]);
 
     Value::Null
@@ -1816,7 +2449,7 @@ impl MyriadCore {
  * @param {string} id the order hash
  * @param {string} [outcome] unified outcome the order belongs to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -1824,12 +2457,38 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __ws_arg_11 = self.extend(Value::Map({
+        let __ws_arg_18 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hash".to_string(), id.clone());
             m
         }), &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_orders_hash(&[__ws_arg_11]).await;
+        let mut response: Value = self.myriad_public_get_orders_hash(&[__ws_arg_18]).await;
+        //
+        //     {
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "clientOrderId": null,
+        //         "order": {
+        //             "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //             "marketId": 827,
+        //             "outcomeId": 0,
+        //             "side": 0,
+        //             "amount": "1000000000000000000",
+        //             "price": "10000000000000000",
+        //             "minFillAmount": "0",
+        //             "nonce": "1784793980668",
+        //             "expiration": "0"
+        //         },
+        //         "status": "cancelled",
+        //         "signatureType": 0,
+        //         "filledAmount": "0",
+        //         "timeInForce": "GTC",
+        //         "createdAt": "2026-07-23T08:06:21.279Z",
+        //         "filledAt": null,
+        //         "networkId": 56,
+        //         "updatedAt": "2026-07-23T08:22:23.987Z",
+        //         "cancelledAt": "2026-07-23T08:22:23.987Z"
+        //     }
+        //
         let mut market: Value = Value::Null;
         if !is_equal(&outcome, &Value::Null) {
             market = self.load_outcome(outcome.clone(), &[]).await;
@@ -1842,7 +2501,7 @@ impl MyriadCore {
 /*
  * @method
  * @name myriad#fetchOrders
- * @description fetches order book orders for the wallet (or any trader passed via params.trader)
+ * @description fetches order book orders for the wallet (or any trader passed via params.trader), or amm closed orders
  * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
  * @param {string} [outcome] unified outcome to filter by
  * @param {int} [since] timestamp in ms of the earliest order
@@ -1850,7 +2509,7 @@ impl MyriadCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.trader] wallet address to query (defaults to the configured wallet)
  * @param {string} [params.status] 'open', 'filled', 'cancelled' or 'expired'
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -1872,13 +2531,61 @@ impl MyriadCore {
                 add_element_to_object(&mut request, &Value::Str("trader".to_string()), self.walletAddress.clone());
             }
         }
+        let mut requestedTradingModel: Value = self.safe_string_lower2(params.clone(), Value::Str("tradingModel".to_string()), Value::Str("trading_model".to_string()), &[]);
+        params = self.omit(params.clone(), Value::List(vec![Value::Str("tradingModel".to_string()), Value::Str("trading_model".to_string())]), &[]);
+        let mut outcomeObj: Value = Value::Null;
         let mut outcomeSymbol: Value = Value::Null;
         if !is_equal(&outcome, &Value::Null) {
-            let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
+            outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
             outcomeSymbol = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]);
+            if is_equal(&requestedTradingModel, &Value::Null) {
+                let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+                requestedTradingModel = self.safe_string_lower(info.clone(), Value::Str("tradingModel".to_string()), &[]);
+            }
         }
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_orders(&[__ws_arg_12]).await;
+        if is_equal(&requestedTradingModel, &Value::Str("amm".to_string())) {
+            return self.fetch_amm_orders(&[outcome.clone(), since.clone(), limit.clone(), params.clone()]).await;
+        }
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.myriad_public_get_orders(&[__ws_arg_19]).await;
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "orderHash": "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
+        //                 "clientOrderId": null,
+        //                 "order": {
+        //                     "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //                     "marketId": 827,
+        //                     "outcomeId": 0,
+        //                     "side": 0,
+        //                     "amount": "1000000000000000000",
+        //                     "price": "10000000000000000",
+        //                     "minFillAmount": "0",
+        //                     "nonce": "1784713298605",
+        //                     "expiration": "0"
+        //                 },
+        //                 "status": "open",
+        //                 "signatureType": 0,
+        //                 "filledAmount": "0",
+        //                 "timeInForce": "GTC",
+        //                 "createdAt": "2026-07-22T09:41:39.035Z",
+        //                 "filledAt": null
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 5000,
+        //             "total": 1,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
+        //         }
+        //     }
+        //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
         // valid market), so parse every order — each self-resolves its outcome from the network/market/
@@ -1898,7 +2605,7 @@ impl MyriadCore {
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -1913,8 +2620,8 @@ impl MyriadCore {
                 m.insert("status".to_string(), Value::Str("open".to_string()));
             m
         });
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
-        return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_13]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_20]).await;
 
     Value::Null
 }
@@ -1928,7 +2635,7 @@ impl MyriadCore {
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -1943,8 +2650,8 @@ impl MyriadCore {
                 m.insert("status".to_string(), Value::Str("filled".to_string()));
             m
         });
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
-        return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_14]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_21]).await;
 
     Value::Null
 }
@@ -1958,7 +2665,7 @@ impl MyriadCore {
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -1973,8 +2680,8 @@ impl MyriadCore {
                 m.insert("status".to_string(), Value::Str("cancelled".to_string()));
             m
         });
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
-        return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_15]).await;
+        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_22]).await;
 
     Value::Null
 }
@@ -1990,7 +2697,7 @@ impl MyriadCore {
  * @param {int} [since] timestamp in ms of the earliest trade
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -2005,14 +2712,14 @@ impl MyriadCore {
                 m.insert("status".to_string(), Value::Str("filled".to_string()));
             m
         });
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
-        let mut orders: Value = self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_16]).await;
+        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        let mut orders: Value = self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_23]).await;
         let mut trades: Value = Value::List(vec![]);
         let mut ordersLength: Value = get_array_length(&orders);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1224: bool = true;
-            while { if !__for_first_1224 { i = add(&i, &Value::Int(1)); } __for_first_1224 = false; is_less_than(&i, &ordersLength) } {
+            let mut __for_first_1236: bool = true;
+            while { if !__for_first_1236 { i = add(&i, &Value::Int(1)); } __for_first_1236 = false; is_less_than(&i, &ordersLength) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             append_to_array(&mut trades, self.order_to_trade(order.clone()));
@@ -2066,6 +2773,9 @@ impl MyriadCore {
  * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network_id] the network id (defaults to options.defaultNetworkId, '56')
+ * @param {string} [params.network] alias for params.network_id
+ * @param {string} [params.currency] output balance currency code override, e.g. 'USDC' or 'USDT'
+ * @param {int} [params.decimals] for USDC and USDT it's 6, default is 18 for USD1
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
@@ -2073,7 +2783,7 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut networkId: Value = self.safe_string_k(params.clone(), "network_id", &[self.safe_string(self.options.clone(), Value::Str("defaultNetworkId".to_string()), &[Value::Str("56".to_string())])]);
+        let mut networkId: Value = self.safe_string2(params.clone(), Value::Str("network_id".to_string()), Value::Str("network".to_string()), &[self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".to_string())])]);
         let mut chains: Value = self.safe_dict_k(self.options.clone(), "chains", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2087,8 +2797,8 @@ impl MyriadCore {
         if is_equal(&token, &Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchBalance() has no collateral token configured for network ".to_string())), &networkId)));
         }
-        let mut currency: Value = self.safe_string_k(chainConfig.clone(), "collateralCurrency", &[Value::Str("USD1".to_string())]);
-        let mut decimals: Value = self.safe_integer_k(chainConfig.clone(), "collateralDecimals", &[Value::Int(18)]);
+        let mut currency: Value = self.safe_string_k(params.clone(), "currency", &[self.safe_string(chainConfig.clone(), Value::Str("collateralCurrency".to_string()), &[Value::Str("USD1".to_string())])]);
+        let mut decimals: Value = self.safe_integer_k(params.clone(), "decimals", &[self.safe_integer(chainConfig.clone(), Value::Str("collateralDecimals".to_string()), &[Value::Int(18)])]);
         let mut owner: Value = self.wallet_address_from_keys();
         // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
         let mut callData: Value = add(&Value::Str("0x70a08231".to_string()), &self.pad_hex_address(owner.clone()));
@@ -2132,11 +2842,13 @@ impl MyriadCore {
         let mut result: Value = Value::Str("0".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1225: bool = true;
-            while { if !__for_first_1225 { i = add(&i, &Value::Int(1)); } __for_first_1225 = false; is_less_than(&i, &n) } {
+            let mut __for_first_1237: bool = true;
+            while { if !__for_first_1237 { i = add(&i, &Value::Int(1)); } __for_first_1237 = false; is_less_than(&i, &n) } {
             let mut v: Value = get_index_of(&digits, &get_value(&chars, &i));
             if is_greater_than(&v, &negate(&Value::Int(1))) {
-                result = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&result, &Value::Str("16".to_string())), &self.number_to_string(v.clone()));
+                let mut mul: Value = crate::precise::Precise::stringMul(&result, &Value::Str("16".to_string()));
+                let mut digit: Value = self.number_to_string(v.clone());
+                result = crate::precise::Precise::stringAdd(&mul, &digit);
             }
         }
         }
@@ -2151,10 +2863,13 @@ impl MyriadCore {
             return Value::Null;
         }
         let mut scale: Value = Value::Str("1".to_string());
+        if is_equal(&decimals, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fromWeiWithDecimals() missing decimals".to_string()))));
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1226: bool = true;
-            while { if !__for_first_1226 { i = add(&i, &Value::Int(1)); } __for_first_1226 = false; is_less_than(&i, &decimals) } {
+            let mut __for_first_1238: bool = true;
+            while { if !__for_first_1238 { i = add(&i, &Value::Int(1)); } __for_first_1238 = false; is_less_than(&i, &decimals) } {
             scale = add(&scale, &Value::Str("0".to_string()));
         }
         }
@@ -2168,7 +2883,7 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), txHash.clone());
         m.insert("clientOrderId".to_string(), Value::Null);
-        let __ws_arg_17 = self.safe_dict_k(quote.clone(), "info", &[Value::Map({
+        let __ws_arg_24 = self.safe_dict_k(quote.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2176,7 +2891,7 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("transactionHash".to_string(), txHash.clone());
     m
-}), &[__ws_arg_17]));
+}), &[__ws_arg_24]));
         m.insert("outcome".to_string(), self.safe_string_k(market.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(market.clone(), "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(market.clone(), "label", &[]));
@@ -2291,8 +3006,8 @@ impl MyriadCore {
         let mut outcomes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1227: bool = true;
-            while { if !__for_first_1227 { i = add(&i, &Value::Int(1)); } __for_first_1227 = false; is_less_than(&i, &get_array_length(&rawOutcomes)) } {
+            let mut __for_first_1239: bool = true;
+            while { if !__for_first_1239 { i = add(&i, &Value::Int(1)); } __for_first_1239 = false; is_less_than(&i, &get_array_length(&rawOutcomes)) } {
             let mut outcome: Value = self.safe_dict(rawOutcomes.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2450,7 +3165,7 @@ impl MyriadCore {
  * @see https://docs.myriad.markets/builders/myriad-api-reference
  * @param {string} outcome unified outcome like TRUMP_WIN:YES or an outcome id like 2741:756/0
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
     pub async fn fetch_ticker(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -2466,8 +3181,8 @@ impl MyriadCore {
                 m.insert("network_id".to_string(), networkId.clone());
             m
         });
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_18]).await;
+        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_25]).await;
         return self.parse_prediction_ticker(response.clone(), &[outcomeObj.clone()]);
 
     Value::Null
@@ -2498,8 +3213,8 @@ impl MyriadCore {
                 m.insert("network_id".to_string(), self.safe_string_k(info.clone(), "networkId", &[]));
             m
         });
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_19]).await;
+        let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_26]).await;
         //
         //     {
         //         "fees": {
@@ -2542,7 +3257,7 @@ impl MyriadCore {
  * @description parses a raw myriad market object into a unified ticker for the specified outcome
  * @param {object} raw the raw myriad market object
  * @param {object} [market] the outcome object the ticker belongs to
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
     pub fn parse_prediction_ticker(&self, mut raw: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -2625,8 +3340,8 @@ impl MyriadCore {
         let mut change: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1228: bool = true;
-            while { if !__for_first_1228 { i = add(&i, &Value::Int(1)); } __for_first_1228 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1240: bool = true;
+            while { if !__for_first_1240 { i = add(&i, &Value::Int(1)); } __for_first_1240 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut o: Value = get_value(&outcomes, &i);
             let mut o: Value = get_value(&outcomes, &i);
             if is_equal(&self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".to_string()), &[])]), &outcomeId) {
@@ -2643,6 +3358,9 @@ impl MyriadCore {
         let mut percentage: Value = Value::Null;
         if is_true(&(!is_equal(&price, &Value::Null))) && is_true(&(!is_equal(&change, &Value::Null))) {
             previousClose = subtract(&price, &change);
+            if is_equal(&previousClose, &Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" method() missing previousClose".to_string()))));
+            }
             if !is_equal(&previousClose, &Value::Int(0)) {
                 percentage = multiply(&divide(&change, &previousClose), &Value::Int(100));
             }
@@ -2686,7 +3404,7 @@ impl MyriadCore {
  * @param {string} outcome unified outcome like TRUMP_WIN:YES or an outcome id
  * @param {int} [limit] not used by myriad fetchOrderBook
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
     pub async fn fetch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -2707,8 +3425,8 @@ impl MyriadCore {
                     m.insert("outcome".to_string(), outcomeId.clone());
                 m
             });
-            let __ws_arg_20 = self.extend(obRequest.clone(), &[params.clone()]);
-            let mut obResponse: Value = self.myriad_public_get_markets_id_orderbook(&[__ws_arg_20]).await;
+            let __ws_arg_27 = self.extend(obRequest.clone(), &[params.clone()]);
+            let mut obResponse: Value = self.myriad_public_get_markets_id_orderbook(&[__ws_arg_27]).await;
             return self.safe_prediction_order_book(self.parse_wei_order_book(obResponse.clone(), self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()])), &[outcomeObj.clone()]);
         }
         let mut request: Value = Value::Map({
@@ -2717,8 +3435,8 @@ impl MyriadCore {
                 m.insert("network_id".to_string(), networkId.clone());
             m
         });
-        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_21]).await;
+        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_28]).await;
         //
         //     {
         //         "id": "756",
@@ -2796,8 +3514,8 @@ impl MyriadCore {
         let mut price: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1229: bool = true;
-            while { if !__for_first_1229 { i = add(&i, &Value::Int(1)); } __for_first_1229 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1241: bool = true;
+            while { if !__for_first_1241 { i = add(&i, &Value::Int(1)); } __for_first_1241 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut o: Value = get_value(&outcomes, &i);
             let mut o: Value = get_value(&outcomes, &i);
             if is_equal(&self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".to_string()), &[])]), &outcomeId) {
@@ -2850,7 +3568,7 @@ impl MyriadCore {
  * @description parses an order book whose price and amount levels are 1e18-scaled integer strings
  * @param {object} response the raw orderbook response with bids and asks arrays
  * @param {string} outcome the unified outcome of the order book
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
     pub fn parse_wei_order_book(&self, mut response: Value, mut outcome: Value) -> Value {
         let mut rawBids: Value = self.safe_list_k(response.clone(), "bids", &[Value::List(vec![])]);
@@ -2858,8 +3576,8 @@ impl MyriadCore {
         let mut bids: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1230: bool = true;
-            while { if !__for_first_1230 { i = add(&i, &Value::Int(1)); } __for_first_1230 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut __for_first_1242: bool = true;
+            while { if !__for_first_1242 { i = add(&i, &Value::Int(1)); } __for_first_1242 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
             let mut row: Value = get_value(&rawBids, &i);
             let mut row: Value = get_value(&rawBids, &i);
             let mut rowPrice: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(0), &[]), &Value::Str("1000000000000000000".to_string()));
@@ -2870,8 +3588,8 @@ impl MyriadCore {
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1231: bool = true;
-            while { if !__for_first_1231 { i = add(&i, &Value::Int(1)); } __for_first_1231 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
+            let mut __for_first_1243: bool = true;
+            while { if !__for_first_1243 { i = add(&i, &Value::Int(1)); } __for_first_1243 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
             let mut row: Value = get_value(&rawAsks, &i);
             let mut row: Value = get_value(&rawAsks, &i);
             let mut rowPrice: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(0), &[]), &Value::Str("1000000000000000000".to_string()));
@@ -2924,13 +3642,13 @@ impl MyriadCore {
         let mut outcomeId: Value = self.safe_string_k(outcomeInfo.clone(), "outcomeId", &[self.safe_string(outcomeInfo.clone(), Value::Str("id".to_string()), &[])]);
         let mut outcomeTitle: Value = self.safe_string_k(outcomeInfo.clone(), "outcomeLabel", &[self.safe_string(outcomeInfo.clone(), Value::Str("label".to_string()), &[self.safe_string(outcomeInfo.clone(), Value::Str("title".to_string()), &[])])]);
         let mut bucketKey: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[Value::Str("30d".to_string())]);
-        let __ws_arg_22 = self.extend(Value::Map({
+        let __ws_arg_29 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), marketId.clone());
                 m.insert("network_id".to_string(), networkId.clone());
             m
         }), &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_22]).await;
+        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_29]).await;
         //
         //     {
         //         "id": "164",
@@ -2972,8 +3690,8 @@ impl MyriadCore {
         let mut selectedOutcome: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1232: bool = true;
-            while { if !__for_first_1232 { i = add(&i, &Value::Int(1)); } __for_first_1232 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1244: bool = true;
+            while { if !__for_first_1244 { i = add(&i, &Value::Int(1)); } __for_first_1244 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut oc: Value = get_value(&outcomes, &i);
             let mut oc: Value = get_value(&outcomes, &i);
             let mut currentId: Value = self.safe_string_k(oc.clone(), "id", &[self.safe_string(oc.clone(), Value::Str("outcomeId".to_string()), &[])]);
@@ -2993,8 +3711,8 @@ impl MyriadCore {
         if !is_equal(&chartsList, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1233: bool = true;
-                while { if !__for_first_1233 { i = add(&i, &Value::Int(1)); } __for_first_1233 = false; is_less_than(&i, &get_array_length(&chartsList)) } {
+                let mut __for_first_1245: bool = true;
+                while { if !__for_first_1245 { i = add(&i, &Value::Int(1)); } __for_first_1245 = false; is_less_than(&i, &get_array_length(&chartsList)) } {
                 let mut chartObj: Value = get_value(&chartsList, &i);
                 let mut chartObj: Value = get_value(&chartsList, &i);
                 if is_equal(&self.safe_string_k(chartObj.clone(), "timeframe", &[]), &bucketKey) {
@@ -3027,8 +3745,8 @@ impl MyriadCore {
         let mut usablePoints: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1234: bool = true;
-            while { if !__for_first_1234 { i = add(&i, &Value::Int(1)); } __for_first_1234 = false; is_less_than(&i, &get_array_length(&points)) } {
+            let mut __for_first_1246: bool = true;
+            while { if !__for_first_1246 { i = add(&i, &Value::Int(1)); } __for_first_1246 = false; is_less_than(&i, &get_array_length(&points)) } {
             let mut point: Value = get_value(&points, &i);
             let mut point: Value = get_value(&points, &i);
             let mut pointOpen: Value = self.safe_number_k(point.clone(), "open", &[]);
@@ -3083,7 +3801,7 @@ impl MyriadCore {
  * @see https://docs.myriad.markets/builders/myriad-api-reference
  * @param {string[]} outcomes unified outcomes — required: myriad has no endpoint returning all tickers at once, so an unscoped call is not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+ * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
@@ -3107,8 +3825,8 @@ impl MyriadCore {
         let mut marketKeys: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1235: bool = true;
-            while { if !__for_first_1235 { i = add(&i, &Value::Int(1)); } __for_first_1235 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1247: bool = true;
+            while { if !__for_first_1247 { i = add(&i, &Value::Int(1)); } __for_first_1247 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3131,8 +3849,8 @@ impl MyriadCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1236: bool = true;
-            while { if !__for_first_1236 { i = add(&i, &Value::Int(1)); } __for_first_1236 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
+            let mut __for_first_1248: bool = true;
+            while { if !__for_first_1248 { i = add(&i, &Value::Int(1)); } __for_first_1248 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
             let mut key: Value = get_value(&marketKeys, &i);
             let mut key: Value = get_value(&marketKeys, &i);
             let mut grouped: Value = get_value(&outcomesByMarket, &key);
@@ -3142,20 +3860,20 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let __ws_arg_23 = self.extend(Value::Map({
+            let __ws_arg_30 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(info.clone(), "marketId", &[]));
                     m.insert("network_id".to_string(), self.safe_string_k(info.clone(), "networkId", &[]));
                 m
             }), &[params.clone()]);
-            append_to_array(&mut promises, self.myriad_public_get_markets_id(&[__ws_arg_23]).await);
+            append_to_array(&mut promises, self.myriad_public_get_markets_id(&[__ws_arg_30]).await);
         }
         }
         let mut responses: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1238: bool = true;
-            while { if !__for_first_1238 { i = add(&i, &Value::Int(1)); } __for_first_1238 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
+            let mut __for_first_1250: bool = true;
+            while { if !__for_first_1250 { i = add(&i, &Value::Int(1)); } __for_first_1250 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
             let mut key: Value = get_value(&marketKeys, &i);
             let mut key: Value = get_value(&marketKeys, &i);
             let mut response: Value = get_value(&responses, &i);
@@ -3164,8 +3882,8 @@ impl MyriadCore {
             let mut grouped: Value = get_value(&outcomesByMarket, &key);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1237: bool = true;
-                while { if !__for_first_1237 { j = add(&j, &Value::Int(1)); } __for_first_1237 = false; is_less_than(&j, &get_array_length(&grouped)) } {
+                let mut __for_first_1249: bool = true;
+                while { if !__for_first_1249 { j = add(&j, &Value::Int(1)); } __for_first_1249 = false; is_less_than(&j, &get_array_length(&grouped)) } {
                 let mut outcomeObj: Value = get_value(&grouped, &j);
                 let mut outcomeObj: Value = get_value(&grouped, &j);
                 let mut ticker: Value = self.parse_prediction_ticker(response.clone(), &[outcomeObj.clone()]);
@@ -3191,7 +3909,7 @@ impl MyriadCore {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub async fn fetch_trades(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
@@ -3217,8 +3935,8 @@ impl MyriadCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_markets_id_events(&[__ws_arg_24]).await;
+        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.myriad_public_get_markets_id_events(&[__ws_arg_31]).await;
         //
         //     {
         //         "data": [
@@ -3246,8 +3964,8 @@ impl MyriadCore {
         let mut trades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1239: bool = true;
-            while { if !__for_first_1239 { i = add(&i, &Value::Int(1)); } __for_first_1239 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1251: bool = true;
+            while { if !__for_first_1251 { i = add(&i, &Value::Int(1)); } __for_first_1251 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             let mut action: Value = self.safe_string_k(row.clone(), "action", &[]);
@@ -3273,7 +3991,7 @@ impl MyriadCore {
  * @description parses a raw market action feed row into a unified trade object
  * @param {object} trade the raw action feed row
  * @param {object} [market] the outcome object the trade belongs to
- * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub fn parse_prediction_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -3311,13 +4029,13 @@ impl MyriadCore {
 /*
  * @method
  * @name myriad#fetchEvents
- * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId — required) and caches their markets and outcomes on the instance
+ * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId) and caches their markets and outcomes on the instance
  * @see https://docs.myriad.markets/builders/myriad-api-reference
  * @param {object} [params] extra exchange-specific parameters
  * @param {string} [params.query] a single search term; an eventId does a direct lookup and tags map to server-side keyword searches
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
  * @param {string[]} [params.tags] tag slugs to scope by (searched as keywords, e.g. ['bitcoin', 'world-cup'])
- * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId)
+ * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId) like '56:170145' or questions path like '793bfc47-ddcd-47d2-aad5-52c7002fc823'
  * @param {int} [params.limit] maximum number of markets per query, defaults to 50
  * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
  * @returns {object[]} an array of event structures
@@ -3327,49 +4045,125 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.require_event_query(&[params.clone()]);
+        let mut allowUnscopedFetchEvents: Value = self.safe_bool_k(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]);
+        if !is_true(&allowUnscopedFetchEvents) {
+            self.require_event_query(&[params.clone()]);
+        }
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
         let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string()), Value::Str("sort".to_string()), Value::Str("searchIn".to_string()), Value::Str("eventId".to_string()), Value::Str("slug".to_string()), Value::Str("status".to_string()), Value::Str("tags".to_string())]), &[]);
+        if is_equal(&queries, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchEvents() missing queries".to_string()))));
+        }
         let mut queriesLength: Value = get_array_length(&queries);
         let mut eventId: Value = self.safe_string_k(params.clone(), "eventId", &[]);
         // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
         // an eventId does a direct lookup, and tags map to server-side keyword searches (the
         // markets listing ignores tag filter params, but tag slugs match through keyword=)
         let mut rawMarkets: Value = Value::List(vec![]);
+        let mut rawQuestions: Value = Value::List(vec![]);
         if is_greater_than(&queriesLength, &Value::Int(0)) {
-            rawMarkets = self.fetch_raw_markets_by_search(queries.clone(), &[rest.clone()]).await;
+            // some markets are only discoverable through the questions search endpoint
+            let mut responses: Value = promise_all(&Value::List(vec![self.fetch_raw_markets_by_search(queries.clone(), &[rest.clone()]).await, self.fetch_raw_questions_by_search(queries.clone(), &[rest.clone()]).await])).await;
+            rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::List(vec![])]);
+            rawQuestions = self.safe_list(responses.clone(), Value::Int(1), &[Value::List(vec![])]);
         }  else if !is_equal(&eventId, &Value::Null) {
-            let mut rawMarket: Value = self.fetch_raw_market_by_id(eventId.clone(), &[rest.clone()]).await;
-            rawMarkets = Value::List(vec![rawMarket.clone()]);
+            if is_greater_than(&get_index_of(&eventId, &Value::Str(":".to_string())), &negate(&Value::Int(1))) {
+                let mut rawMarket: Value = self.fetch_raw_market_by_id(eventId.clone(), &[rest.clone()]).await;
+                rawMarkets = Value::List(vec![rawMarket.clone()]);
+            }  else {
+                let mut rawQuestion: Value = self.fetch_raw_question_by_id(eventId.clone(), &[rest.clone()]).await;
+                rawQuestions = Value::List(vec![rawQuestion.clone()]);
+            }
         }  else {
             let mut requestedTags: Value = self.safe_list_k(params.clone(), "tags", &[Value::List(vec![])]);
-            let mut tagQueries: Value = Value::List(vec![]);
             let mut requestedTagsLength: Value = get_array_length(&requestedTags);
-            {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_1240: bool = true;
-                while { if !__for_first_1240 { i = add(&i, &Value::Int(1)); } __for_first_1240 = false; is_less_than(&i, &requestedTagsLength) } {
-                // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                let mut tagSlug: Value = get_value(&requestedTags, &i);
-                let mut tagSlug: Value = get_value(&requestedTags, &i);
-                append_to_array(&mut tagQueries, replace_all_str(&tagSlug, &Value::Str("-".to_string()), &Value::Str(" ".to_string())));
+            if is_equal(&requestedTagsLength, &Value::Int(0)) {
+                // unscoped mode: fetch bounded open lists from both sources and merge
+                let mut listResponses: Value = promise_all(&Value::List(vec![self.fetch_raw_markets_list(&[rest.clone()]).await, self.fetch_raw_questions_list(&[rest.clone()]).await])).await;
+                rawMarkets = self.safe_list(listResponses.clone(), Value::Int(0), &[Value::List(vec![])]);
+                rawQuestions = self.safe_list(listResponses.clone(), Value::Int(1), &[Value::List(vec![])]);
+            }  else {
+                let mut tagQueries: Value = Value::List(vec![]);
+                {
+                                        let mut i: Value = Value::Int(0);
+                    let mut __for_first_1252: bool = true;
+                    while { if !__for_first_1252 { i = add(&i, &Value::Int(1)); } __for_first_1252 = false; is_less_than(&i, &requestedTagsLength) } {
+                    // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
+                    let mut tagSlug: Value = get_value(&requestedTags, &i);
+                    let mut tagSlug: Value = get_value(&requestedTags, &i);
+                    append_to_array(&mut tagQueries, replace_all_str(&tagSlug, &Value::Str("-".to_string()), &Value::Str(" ".to_string())));
+                }
+                }
+                // run both searches in parallel; some events are only discoverable from questions,
+                // while market search is still the primary source for market-level data
+                let mut responses: Value = promise_all(&Value::List(vec![self.fetch_raw_markets_by_search(tagQueries.clone(), &[rest.clone()]).await, self.fetch_raw_questions_by_search(tagQueries.clone(), &[rest.clone()]).await])).await;
+                rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::List(vec![])]);
+                rawQuestions = self.safe_list(responses.clone(), Value::Int(1), &[Value::List(vec![])]);
             }
-            }
-            rawMarkets = self.fetch_raw_markets_by_search(tagQueries.clone(), &[rest.clone()]).await;
         }
         if !is_true(&self.markets) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
+        let mut seenMarketHandles: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut result: Value = Value::List(vec![]);
+        let mut rawQuestionsLength: Value = get_array_length(&rawQuestions);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1254: bool = true;
+            while { if !__for_first_1254 { i = add(&i, &Value::Int(1)); } __for_first_1254 = false; is_less_than(&i, &rawQuestionsLength) } {
+            let mut rawQuestion: Value = get_value(&rawQuestions, &i);
+            let mut rawQuestion: Value = get_value(&rawQuestions, &i);
+            let mut ev: Value = self.parse_event(rawQuestion.clone());
+            let mut evMarkets: Value = self.safe_list_k(ev.clone(), "markets", &[Value::List(vec![])]);
+            let mut evMarketsLength: Value = get_array_length(&evMarkets);
+            let mut filteredMarkets: Value = Value::List(vec![]);
+            {
+                                let mut j: Value = Value::Int(0);
+                let mut __for_first_1253: bool = true;
+                while { if !__for_first_1253 { j = add(&j, &Value::Int(1)); } __for_first_1253 = false; is_less_than(&j, &evMarketsLength) } {
+                let mut m: Value = self.safe_dict(evMarkets.clone(), j.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+                let mut marketHandle: Value = self.safe_string_k(m.clone(), "market", &[]);
+                if !is_equal(&marketHandle, &Value::Null) {
+                    if is_true(&Value::Bool(in_op(&seenMarketHandles, &marketHandle))) {
+                        continue;
+                    }
+                    add_element_to_object(&mut seenMarketHandles, &marketHandle, Value::Bool(true));
+                    add_element_to_object(&mut self.markets, &marketHandle, m.clone());
+                }
+                append_to_array(&mut filteredMarkets, m.clone());
+            }
+            }
+            // skip question events that contribute no new markets after de-duplicating by market handle
+            if is_true(&(is_greater_than(&evMarketsLength, &Value::Int(0)))) && is_true(&(is_equal(&get_array_length(&filteredMarkets), &Value::Int(0)))) {
+                continue;
+            }
+            add_element_to_object(&mut ev, &Value::Str("markets".to_string()), filteredMarkets.clone());
+            append_to_array(&mut result, ev.clone());
+        }
+        }
         let mut rawMarketsLength: Value = get_array_length(&rawMarkets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1241: bool = true;
-            while { if !__for_first_1241 { i = add(&i, &Value::Int(1)); } __for_first_1241 = false; is_less_than(&i, &rawMarketsLength) } {
+            let mut __for_first_1255: bool = true;
+            while { if !__for_first_1255 { i = add(&i, &Value::Int(1)); } __for_first_1255 = false; is_less_than(&i, &rawMarketsLength) } {
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut m: Value = self.parse_myriad_market(raw.clone(), &[]);
-            add_element_to_object(&mut self.markets, &get_value(&m, &Value::Str("market".to_string())), m.clone());
+            let mut marketHandle: Value = self.safe_string_k(m.clone(), "market", &[]);
+            if is_true(&(!is_equal(&marketHandle, &Value::Null))) && is_true(&(Value::Bool(in_op(&seenMarketHandles, &marketHandle)))) {
+                add_element_to_object(&mut self.markets, &marketHandle, m.clone());
+                continue;
+            }
+            if !is_equal(&marketHandle, &Value::Null) {
+                add_element_to_object(&mut seenMarketHandles, &marketHandle, Value::Bool(true));
+                add_element_to_object(&mut self.markets, &marketHandle, m.clone());
+            }
             let mut ev: Value = self.parse_market_to_event(raw.clone(), m.clone());
             append_to_array(&mut result, ev.clone());
         }
@@ -3399,53 +4193,53 @@ impl MyriadCore {
         let mut marketsList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1242: bool = true;
-            while { if !__for_first_1242 { i = add(&i, &Value::Int(1)); } __for_first_1242 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_1256: bool = true;
+            while { if !__for_first_1256 { i = add(&i, &Value::Int(1)); } __for_first_1256 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut rawMarket: Value = get_value(&rawMarkets, &i);
             let mut rawMarket: Value = get_value(&rawMarkets, &i);
             append_to_array(&mut marketsList, self.parse_myriad_market(rawMarket.clone(), &[questionSlug.clone()]));
         }
         }
         let mut endDate: Value = self.safe_string_k(rawEvent.clone(), "expiresAt", &[self.safe_string(rawEvent.clone(), Value::Str("endDate".to_string()), &[])]);
-        let __ws_arg_25 = self.safe_string_k(rawEvent.clone(), "id", &[]);
-        let __ws_arg_26 = self.shorten_slug(questionSlug.clone());
-        let __ws_arg_27 = self.safe_string_k(rawEvent.clone(), "title", &[]);
-        let __ws_arg_28 = self.safe_string_k(rawEvent.clone(), "description", &[]);
-        let __ws_arg_29 = self.safe_number2(rawEvent.clone(), Value::Str("volumeNotional24h".to_string()), Value::Str("volume24h".to_string()), &[]);
-        let __ws_arg_30 = self.safe_number_k(rawEvent.clone(), "liquidity", &[]);
-        let __ws_arg_31 = self.safe_string_k(rawEvent.clone(), "url", &[]);
-        let __ws_arg_32 = self.safe_string_k(rawEvent.clone(), "imageUrl", &[self.safe_string(rawEvent.clone(), Value::Str("image".to_string()), &[])]);
-        let __ws_arg_33 = self.safe_bool_k(rawEvent.clone(), "active", &[]);
-        let __ws_arg_34 = self.safe_bool_k(rawEvent.clone(), "resolved", &[Value::Bool(false)]);
-        let __ws_arg_35 = self.safe_string_k(rawEvent.clone(), "category", &[]);
-        let __ws_arg_36 = self.safe_list_k(rawEvent.clone(), "tags", &[]);
-        let __ws_arg_37 = self.parse8601(self.safe_string_k(rawEvent.clone(), "createdAt", &[]));
-        let __ws_arg_38 = self.safe_string_k(rawEvent.clone(), "createdAt", &[]);
-        let __ws_arg_39 = self.parse8601(endDate.clone());
-        let __ws_arg_40 = self.parse8601(self.safe_string_k(rawEvent.clone(), "updatedAt", &[]));
-        let __ws_arg_41 = self.safe_string_k(rawEvent.clone(), "resolutionSource", &[]);
+        let __ws_arg_32 = self.safe_string_k(rawEvent.clone(), "id", &[]);
+        let __ws_arg_33 = self.shorten_slug(questionSlug.clone());
+        let __ws_arg_34 = self.safe_string_k(rawEvent.clone(), "title", &[]);
+        let __ws_arg_35 = self.safe_string_k(rawEvent.clone(), "description", &[]);
+        let __ws_arg_36 = self.safe_number2(rawEvent.clone(), Value::Str("volumeNotional24h".to_string()), Value::Str("volume24h".to_string()), &[]);
+        let __ws_arg_37 = self.safe_number_k(rawEvent.clone(), "liquidity", &[]);
+        let __ws_arg_38 = self.safe_string_k(rawEvent.clone(), "url", &[]);
+        let __ws_arg_39 = self.safe_string_k(rawEvent.clone(), "imageUrl", &[self.safe_string(rawEvent.clone(), Value::Str("image".to_string()), &[])]);
+        let __ws_arg_40 = self.safe_bool_k(rawEvent.clone(), "active", &[]);
+        let __ws_arg_41 = self.safe_bool_k(rawEvent.clone(), "resolved", &[Value::Bool(false)]);
+        let __ws_arg_42 = self.safe_string_k(rawEvent.clone(), "category", &[]);
+        let __ws_arg_43 = self.safe_list_k(rawEvent.clone(), "tags", &[]);
+        let __ws_arg_44 = self.parse8601(self.safe_string_k(rawEvent.clone(), "createdAt", &[]));
+        let __ws_arg_45 = self.safe_string_k(rawEvent.clone(), "createdAt", &[]);
+        let __ws_arg_46 = self.parse8601(endDate.clone());
+        let __ws_arg_47 = self.parse8601(self.safe_string_k(rawEvent.clone(), "updatedAt", &[]));
+        let __ws_arg_48 = self.safe_string_k(rawEvent.clone(), "resolutionSource", &[]);
         return self.extend(rawEvent.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), __ws_arg_25);
+        m.insert("id".to_string(), __ws_arg_32);
         m.insert("slug".to_string(), questionSlug.clone());
-        m.insert("event".to_string(), ternary(is_true(&questionSlug), __ws_arg_26, Value::Null));
-        m.insert("title".to_string(), __ws_arg_27);
-        m.insert("description".to_string(), __ws_arg_28);
+        m.insert("event".to_string(), ternary(is_true(&questionSlug), __ws_arg_33, Value::Null));
+        m.insert("title".to_string(), __ws_arg_34);
+        m.insert("description".to_string(), __ws_arg_35);
         m.insert("markets".to_string(), marketsList.clone());
-        m.insert("volume".to_string(), __ws_arg_29);
-        m.insert("liquidity".to_string(), __ws_arg_30);
-        m.insert("url".to_string(), __ws_arg_31);
-        m.insert("image".to_string(), __ws_arg_32);
-        m.insert("active".to_string(), __ws_arg_33);
-        m.insert("resolved".to_string(), __ws_arg_34);
-        m.insert("category".to_string(), __ws_arg_35);
-        m.insert("tags".to_string(), __ws_arg_36);
-        m.insert("created".to_string(), __ws_arg_37);
-        m.insert("createdDatetime".to_string(), __ws_arg_38);
-        m.insert("end".to_string(), ternary(is_true(&endDate), __ws_arg_39, Value::Null));
+        m.insert("volume".to_string(), __ws_arg_36);
+        m.insert("liquidity".to_string(), __ws_arg_37);
+        m.insert("url".to_string(), __ws_arg_38);
+        m.insert("image".to_string(), __ws_arg_39);
+        m.insert("active".to_string(), __ws_arg_40);
+        m.insert("resolved".to_string(), __ws_arg_41);
+        m.insert("category".to_string(), __ws_arg_42);
+        m.insert("tags".to_string(), __ws_arg_43);
+        m.insert("created".to_string(), __ws_arg_44);
+        m.insert("createdDatetime".to_string(), __ws_arg_45);
+        m.insert("end".to_string(), ternary(is_true(&endDate), __ws_arg_46, Value::Null));
         m.insert("endDatetime".to_string(), endDate.clone());
-        m.insert("lastUpdatedAt".to_string(), __ws_arg_40);
-        m.insert("resolutionSource".to_string(), __ws_arg_41);
+        m.insert("lastUpdatedAt".to_string(), __ws_arg_47);
+        m.insert("resolutionSource".to_string(), __ws_arg_48);
         m.insert("info".to_string(), rawEvent.clone());
     m
 })]);
@@ -3461,7 +4255,9 @@ impl MyriadCore {
         let mut options: Value = get_value(&self.options, &Value::Str("requestId".to_string()));
         let mut previousValue: Value = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue.clone(), Value::Int(1)]);
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".to_string())), &url, newValue.clone());
+        if !is_equal(&url, &Value::Null) {
+            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".to_string())), &url, newValue.clone());
+        }
         return newValue;
 
     Value::Null
@@ -3559,8 +4355,8 @@ impl MyriadCore {
             let mut linesLength: Value = get_array_length(&lines);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1243: bool = true;
-                while { if !__for_first_1243 { i = add(&i, &Value::Int(1)); } __for_first_1243 = false; is_less_than(&i, &linesLength) } {
+                let mut __for_first_1257: bool = true;
+                while { if !__for_first_1257 { i = add(&i, &Value::Int(1)); } __for_first_1257 = false; is_less_than(&i, &linesLength) } {
                 let mut line: Value = get_value(&lines, &i);
                 let mut line: Value = get_value(&lines, &i);
                 if is_greater_than(&get_array_length(&line), &Value::Int(0)) {
@@ -3627,7 +4423,7 @@ impl MyriadCore {
  * @param {string} outcome unified outcome
  * @param {int} [limit] the maximum number of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
     pub async fn watch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -3669,7 +4465,7 @@ impl MyriadCore {
         let mut future: Value = self.watch(url.clone(), messageHash.clone(), &[subscribeMsg.clone(), channel.clone()]).await;
         if is_true(&isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
-            client.resolve(&[get_value(&self.orderbooks, &sym), messageHash.clone()]);
+            client.resolve(&[self.safe_value(self.orderbooks.clone(), sym.clone(), &[]), messageHash.clone()]);
         }
         let mut orderbook: Value = get_value(&future, &Value::Str("await".to_string()));
         return orderbook.limit();
@@ -3703,8 +4499,8 @@ impl MyriadCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1244: bool = true;
-            while { if !__for_first_1244 { i = add(&i, &Value::Int(1)); } __for_first_1244 = false; is_less_than(&i, &changesLength) } {
+            let mut __for_first_1258: bool = true;
+            while { if !__for_first_1258 { i = add(&i, &Value::Int(1)); } __for_first_1258 = false; is_less_than(&i, &changesLength) } {
             let mut change: Value = get_value(&changes, &i);
             let mut change: Value = get_value(&changes, &i);
             let mut outcomeId: Value = self.safe_string_k(change.clone(), "outcome", &[]);
@@ -3730,8 +4526,8 @@ impl MyriadCore {
         let mut updatedLength: Value = get_array_length(&updatedSymbols);
         {
                         let mut k: Value = Value::Int(0);
-            let mut __for_first_1245: bool = true;
-            while { if !__for_first_1245 { k = add(&k, &Value::Int(1)); } __for_first_1245 = false; is_less_than(&k, &updatedLength) } {
+            let mut __for_first_1259: bool = true;
+            while { if !__for_first_1259 { k = add(&k, &Value::Int(1)); } __for_first_1259 = false; is_less_than(&k, &updatedLength) } {
             let mut sym: Value = get_value(&updatedSymbols, &k);
             let mut sym: Value = get_value(&updatedSymbols, &k);
             client.resolve(&[get_value(&self.orderbooks, &sym), add(&Value::Str("orderbook::".to_string()), &sym)]);
@@ -3748,7 +4544,7 @@ impl MyriadCore {
  * @param {int} [since] timestamp in ms of the earliest trade
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub async fn watch_trades(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
@@ -3783,7 +4579,7 @@ impl MyriadCore {
  * @param {int} [since] timestamp in ms of the earliest trade
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub async fn watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -3894,8 +4690,8 @@ impl MyriadCore {
             let mut makersLength: Value = get_array_length(&makers);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1246: bool = true;
-                while { if !__for_first_1246 { i = add(&i, &Value::Int(1)); } __for_first_1246 = false; is_less_than(&i, &makersLength) } {
+                let mut __for_first_1260: bool = true;
+                while { if !__for_first_1260 { i = add(&i, &Value::Int(1)); } __for_first_1260 = false; is_less_than(&i, &makersLength) } {
                 let mut maker: Value = get_value(&makers, &i);
                 let mut maker: Value = get_value(&makers, &i);
                 let mut makerTrader: Value = self.safe_string_lower(maker.clone(), Value::Str("trader".to_string()), &[]);
@@ -3945,8 +4741,8 @@ impl MyriadCore {
                 let mut myStored: Value = self.myTrades.clone();
                 {
                                         let mut k: Value = Value::Int(0);
-                    let mut __for_first_1247: bool = true;
-                    while { if !__for_first_1247 { k = add(&k, &Value::Int(1)); } __for_first_1247 = false; is_less_than(&k, &myLegsLength) } {
+                    let mut __for_first_1261: bool = true;
+                    while { if !__for_first_1261 { k = add(&k, &Value::Int(1)); } __for_first_1261 = false; is_less_than(&k, &myLegsLength) } {
                     myStored.append(get_value(&myLegs, &k));
                 }
                 }
@@ -3962,7 +4758,7 @@ impl MyriadCore {
  * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
  * @param {string} outcome unified outcome
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
     pub async fn watch_ticker(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -3991,7 +4787,7 @@ impl MyriadCore {
  * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
  * @param {string[]} outcomes unified outcomes to watch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+ * @returns {object} a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
     pub async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
@@ -4014,8 +4810,8 @@ impl MyriadCore {
         let mut resolvedSymbols: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1248: bool = true;
-            while { if !__for_first_1248 { i = add(&i, &Value::Int(1)); } __for_first_1248 = false; is_less_than(&i, &symbolsLength) } {
+            let mut __for_first_1262: bool = true;
+            while { if !__for_first_1262 { i = add(&i, &Value::Int(1)); } __for_first_1262 = false; is_less_than(&i, &symbolsLength) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4075,8 +4871,8 @@ impl MyriadCore {
         let mut ohlcvcLength: Value = get_array_length(&ohlcvc);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1249: bool = true;
-            while { if !__for_first_1249 { i = add(&i, &Value::Int(1)); } __for_first_1249 = false; is_less_than(&i, &ohlcvcLength) } {
+            let mut __for_first_1263: bool = true;
+            while { if !__for_first_1263 { i = add(&i, &Value::Int(1)); } __for_first_1263 = false; is_less_than(&i, &ohlcvcLength) } {
             let mut candle: Value = get_value(&ohlcvc, &i);
             let mut candle: Value = get_value(&ohlcvc, &i);
             append_to_array(&mut result, Value::List(vec![get_value(&candle, &Value::Int(0)), get_value(&candle, &Value::Int(1)), get_value(&candle, &Value::Int(2)), get_value(&candle, &Value::Int(3)), get_value(&candle, &Value::Int(4)), get_value(&candle, &Value::Int(5))]));
@@ -4098,8 +4894,8 @@ impl MyriadCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1250: bool = true;
-            while { if !__for_first_1250 { i = add(&i, &Value::Int(1)); } __for_first_1250 = false; is_less_than(&i, &outcomesLength) } {
+            let mut __for_first_1264: bool = true;
+            while { if !__for_first_1264 { i = add(&i, &Value::Int(1)); } __for_first_1264 = false; is_less_than(&i, &outcomesLength) } {
             let mut oc: Value = get_value(&outcomes, &i);
             let mut oc: Value = get_value(&outcomes, &i);
             let mut outcomeId: Value = self.safe_string_k(oc.clone(), "outcome", &[]);
@@ -4153,7 +4949,7 @@ impl MyriadCore {
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -4241,7 +5037,7 @@ impl MyriadCore {
  * @param {int} [since] timestamp in ms of the earliest position update
  * @param {int} [limit] the maximum number of position updates to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn watch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
@@ -4300,8 +5096,8 @@ impl MyriadCore {
         let mut positionsLength: Value = get_array_length(&positions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1251: bool = true;
-            while { if !__for_first_1251 { i = add(&i, &Value::Int(1)); } __for_first_1251 = false; is_less_than(&i, &positionsLength) } {
+            let mut __for_first_1265: bool = true;
+            while { if !__for_first_1265 { i = add(&i, &Value::Int(1)); } __for_first_1265 = false; is_less_than(&i, &positionsLength) } {
             let mut p: Value = get_value(&positions, &i);
             let mut p: Value = get_value(&positions, &i);
             let mut id: Value = self.safe_string_k(p.clone(), "id", &[]);
@@ -4344,7 +5140,9 @@ impl MyriadCore {
 })]);
             let mut prior: Value = self.safe_string(balances.clone(), posId.clone(), &[Value::Str("0".to_string())]);
             let mut updated: Value = crate::precise::Precise::stringAdd(&prior, &deltaShares);
-            add_element_to_object(&mut balances, &posId, updated.clone());
+            if !is_equal(&posId, &Value::Null) {
+                add_element_to_object(&mut balances, &posId, updated.clone());
+            }
             add_element_to_object(&mut self.options.clone(), &Value::Str("positionBalances".to_string()), balances.clone());
             contracts = self.parse_number(updated.clone(), &[]);
         }

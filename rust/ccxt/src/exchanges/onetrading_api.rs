@@ -72,6 +72,11 @@ impl OnetradingCore {
         self.call_method(Value::Str("private_get_account_orders_order_id".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetAccountOrdersClientClientId` implicit endpoint.
+    pub async fn private_get_account_orders_client_client_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_account_orders_client_client_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetAccountOrdersOrderIdTrades` implicit endpoint.
     pub async fn private_get_account_orders_order_id_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_account_orders_order_id_trades".to_string()), optional_args).await
@@ -82,9 +87,9 @@ impl OnetradingCore {
         self.call_method(Value::Str("private_get_account_trades".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privateGetAccountTradesTradeId` implicit endpoint.
-    pub async fn private_get_account_trades_trade_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_trades_trade_id".to_string()), optional_args).await
+    /// Auto-generated wrapper for the `privateGetAccountTradeTradeId` implicit endpoint.
+    pub async fn private_get_account_trade_trade_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_account_trade_trade_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountOrders` implicit endpoint.

@@ -913,7 +913,7 @@ impl NdaxCore {
         let mut sessionStatus: Value = self.safe_string_k(market.clone(), "SessionStatus", &[]);
         let mut isDisable: Value = self.safe_value_k(market.clone(), "IsDisable", &[]);
         let mut sessionRunning: Value = Value::Bool(is_equal(&sessionStatus, &Value::Str("Running".to_string())));
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
@@ -975,7 +975,7 @@ impl NdaxCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -1000,8 +1000,8 @@ impl NdaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_945: bool = true;
-            while { if !__for_first_945 { i = add(&i, &Value::Int(1)); } __for_first_945 = false; is_less_than(&i, &get_array_length(&orderbook)) } {
+            let mut __for_first_950: bool = true;
+            while { if !__for_first_950 { i = add(&i, &Value::Int(1)); } __for_first_950 = false; is_less_than(&i, &get_array_length(&orderbook)) } {
             let mut level: Value = get_value(&orderbook, &i);
             let mut level: Value = get_value(&orderbook, &i);
             if is_equal(&timestamp, &Value::Null) {
@@ -1023,9 +1023,7 @@ impl NdaxCore {
             let mut bidask: Value = self.parse_order_book_bid_ask(level.clone(), &[priceKey.clone(), amountKey.clone()]);
             let mut levelSide: Value = self.safe_integer(level.clone(), Value::Int(9), &[]);
             let mut side: Value = ternary(is_true(&levelSide), asksKey.clone(), bidsKey.clone());
-            let mut resultSide: Value = get_value(&result, &side);
-            append_to_array(&mut resultSide, bidask.clone());
-            crate::set_value(&mut result, &side, resultSide.clone());
+            append_to_array(&mut get_value(&result, &side), bidask.clone());
         }
         }
         { let __be_tmp = self.sort_by(get_value(&result, &Value::Str("bids".to_string())), Value::Int(0), &[Value::Bool(true)]); add_element_to_object(&mut result, &Value::Str("bids".to_string()), __be_tmp); };
@@ -1046,7 +1044,7 @@ impl NdaxCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1546,8 +1544,8 @@ impl NdaxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_946: bool = true;
-            while { if !__for_first_946 { i = add(&i, &Value::Int(1)); } __for_first_946 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_951: bool = true;
+            while { if !__for_first_951 { i = add(&i, &Value::Int(1)); } __for_first_951 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut accountId: Value = self.safe_string(response.clone(), i.clone(), &[]);
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1574,17 +1572,19 @@ impl NdaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_947: bool = true;
-            while { if !__for_first_947 { i = add(&i, &Value::Int(1)); } __for_first_947 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_952: bool = true;
+            while { if !__for_first_952 { i = add(&i, &Value::Int(1)); } __for_first_952 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "ProductId", &[]);
-            if is_true(&(!is_equal(&currencyId, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.currencies_by_id, &currencyId)))) {
+            if is_true(&(!is_equal(&currencyId, &Value::Null))) && is_true(&(!is_equal(&self.currencies_by_id, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.currencies_by_id, &currencyId)))) {
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "Amount", &[]));
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "Hold", &[]));
-                add_element_to_object(&mut result, &code, account.clone());
+                if !is_equal(&code, &Value::Null) {
+                    add_element_to_object(&mut result, &code, account.clone());
+                }
             }
         }
         }
@@ -1954,7 +1954,11 @@ impl NdaxCore {
         });
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if !is_equal(&price, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("LimitPrice".to_string()), crate::runtime::parse_float(&self.price_to_precision(symbol.clone(), price.clone())));
+            let mut limitPriceString: Value = self.price_to_precision(symbol.clone(), price.clone());
+            if is_equal(&limitPriceString, &Value::Null) {
+                limitPriceString = Value::Str("0".to_string());
+            }
+            add_element_to_object(&mut request, &Value::Str("LimitPrice".to_string()), crate::runtime::parse_float(&limitPriceString));
         }
         if !is_equal(&clientOrderId, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("ClientOrderId".to_string()), clientOrderId.clone());
@@ -2016,7 +2020,11 @@ impl NdaxCore {
         });
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if !is_equal(&price, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("LimitPrice".to_string()), crate::runtime::parse_float(&self.price_to_precision(symbol.clone(), price.clone())));
+            let mut limitPriceString: Value = self.price_to_precision(symbol.clone(), price.clone());
+            if is_equal(&limitPriceString, &Value::Null) {
+                limitPriceString = Value::Str("0".to_string());
+            }
+            add_element_to_object(&mut request, &Value::Str("LimitPrice".to_string()), crate::runtime::parse_float(&limitPriceString));
         }
         if !is_equal(&clientOrderId, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("ClientOrderId".to_string()), clientOrderId.clone());
@@ -2084,7 +2092,7 @@ impl NdaxCore {
  * @name ndax#cancelAllOrders
  * @description cancel all open orders
  * @see https://apidoc.ndax.io/#cancelallorders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

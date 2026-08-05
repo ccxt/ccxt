@@ -230,6 +230,7 @@ impl crate::exchange_generated::ExchangeBase for DeriveCore {
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_trades" => self.parse_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_units" => self.parse_units(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -268,11 +269,11 @@ impl DeriveCore {
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
-        m.insert("spot".to_string(), Value::Bool(false));
+        m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(false));
+        m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(false));
-        m.insert("option".to_string(), Value::Bool(false));
+        m.insert("option".to_string(), Value::Bool(true));
         m.insert("addMargin".to_string(), Value::Bool(false));
         m.insert("borrowCrossMargin".to_string(), Value::Bool(false));
         m.insert("borrowIsolatedMargin".to_string(), Value::Bool(false));
@@ -1245,15 +1246,47 @@ impl DeriveCore {
     Value::Null
 }
 
+    pub fn parse_trades(&self, mut trades: Value, optional_args: &[Value]) -> Value {
+        let mut market = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut result: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_595: bool = true;
+            while { if !__for_first_595 { i = add(&i, &Value::Int(1)); } __for_first_595 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut rawTrade: Value = get_value(&trades, &i);
+            let mut rawTrade: Value = get_value(&trades, &i);
+            let mut isFetchTrades: Value = Value::Bool(!is_true(&(Value::Bool(in_op(&rawTrade, &Value::Str("order_id".to_string()))))));
+            let mut liquidityRole: Value = self.safe_string_k(rawTrade.clone(), "liquidity_role", &[]);
+            if is_true(&isFetchTrades) && is_true(&(is_equal(&liquidityRole, &Value::Str("maker".to_string())))) {
+                continue;
+            }
+            let mut parsed: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
+            let mut trade: Value = self.extend(parsed.clone(), &[params.clone()]);
+            append_to_array(&mut result, trade.clone());
+        }
+        }
+        result = self.sort_by2(result.clone(), Value::Str("timestamp".to_string()), Value::Str("id".to_string()), &[]);
+        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        return self.filter_by_symbol_since_limit(result.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
+}
+
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
+        // fetchTrades & fetchMyTrades
+        //
         // {
         //     "subaccount_id": 130837,
-        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         //     "instrument_name": "BTC-PERP",
         //     "direction": "sell",
-        //     "label": "test1234",
         //     "quote_id": null,
         //     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
         //     "timestamp": 1738065303708,
@@ -1264,11 +1297,17 @@ impl DeriveCore {
         //     "liquidity_role": "taker",
         //     "realized_pnl": "0",
         //     "realized_pnl_excl_fees": "0",
-        //     "is_transfer": false,
         //     "tx_status": "settled",
         //     "trade_fee": "1.127415534092999815",
         //     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     "label": "test1234",                                      // only fetchMyTrades
+        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer": false,                                     // only fetchMyTrades
+        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id": null,                                           // only fetchTrades
+        //     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate": "0",                                   // only fetchTrades
+        //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
         let mut marketId: Value = self.safe_string_k(trade.clone(), "instrument_name", &[]);
@@ -1360,8 +1399,8 @@ impl DeriveCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_609: bool = true;
-            while { if !__for_first_609 { i = add(&i, &Value::Int(1)); } __for_first_609 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_596: bool = true;
+            while { if !__for_first_596 { i = add(&i, &Value::Int(1)); } __for_first_596 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
@@ -1541,6 +1580,7 @@ impl DeriveCore {
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[]);
         let mut orderType: Value = to_lower(&type_var);
         let mut orderSide: Value = to_lower(&side);
+        let mut orderSideIsBuy: Value = Value::Bool(is_equal(&orderSide, &Value::Str("buy".to_string()))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.milliseconds();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         let mut signatureExpiry: Value = self.safe_integer_k(params.clone(), "signature_expiry_sec", &[add(&self.seconds(), &Value::Int(7776000))]);
@@ -1555,7 +1595,6 @@ impl DeriveCore {
         }
         let mut maxFeeString: Value = self.number_to_string(maxFee.clone());
         let mut amountString: Value = self.number_to_string(amount.clone());
-        let mut orderSideIsBuy: Value = Value::Bool(is_equal(&orderSide, &Value::Str("buy".to_string())));
         let mut tradeModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::List(vec![Value::Str("address".to_string()), Value::Str("uint".to_string()), Value::Str("int".to_string()), Value::Str("int".to_string()), Value::Str("uint".to_string()), Value::Str("uint".to_string()), Value::Str("bool".to_string())]), Value::List(vec![get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("base_asset_address".to_string())), self.parse_to_numeric(get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("base_asset_sub_id".to_string()))), self.convert_to_big_int(self.parse_units(priceString.clone(), &[])), self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol.clone(), amountString.clone()), &[])), self.convert_to_big_int(self.parse_units(maxFeeString.clone(), &[])), subaccountId.clone(), orderSideIsBuy.clone()])), Value::Str("keccak".to_string()), &[Value::Str("binary".to_string())]);
         let mut deriveWalletAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_derive_wallet_address(Value::Str("createOrder".to_string()), params.clone()); deriveWalletAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1729,6 +1768,7 @@ impl DeriveCore {
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[]);
         let mut orderType: Value = to_lower(&type_var);
         let mut orderSide: Value = to_lower(&side);
+        let mut orderSideIsBuy: Value = Value::Bool(is_equal(&orderSide, &Value::Str("buy".to_string()))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.milliseconds();
         let mut signatureExpiry: Value = self.safe_number_k(params.clone(), "signature_expiry_sec", &[add(&self.seconds(), &Value::Int(7776000))]);
         // TODO: subaccount id / trade module address
@@ -1738,7 +1778,6 @@ impl DeriveCore {
         let mut priceString: Value = self.number_to_string(price.clone());
         let mut maxFeeString: Value = self.safe_string_k(params.clone(), "max_fee", &[Value::Str("0".to_string())]);
         let mut amountString: Value = self.number_to_string(amount.clone());
-        let mut orderSideIsBuy: Value = Value::Bool(is_equal(&orderSide, &Value::Str("buy".to_string())));
         let mut tradeModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::List(vec![Value::Str("address".to_string()), Value::Str("uint".to_string()), Value::Str("int".to_string()), Value::Str("int".to_string()), Value::Str("uint".to_string()), Value::Str("uint".to_string()), Value::Str("bool".to_string())]), Value::List(vec![get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("base_asset_address".to_string())), self.parse_to_numeric(get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("base_asset_sub_id".to_string()))), self.convert_to_big_int(self.parse_units(priceString.clone(), &[])), self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol.clone(), amountString.clone()), &[])), self.convert_to_big_int(self.parse_units(maxFeeString.clone(), &[])), subaccountId.clone(), orderSideIsBuy.clone()])), Value::Str("keccak".to_string()), &[Value::Str("binary".to_string())]);
         let mut deriveWalletAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_derive_wallet_address(Value::Str("editOrder".to_string()), params.clone()); deriveWalletAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1983,7 +2022,7 @@ impl DeriveCore {
  * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
  * @see https://docs.derive.xyz/reference/post_private-cancel-all
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2602,7 +2641,7 @@ impl DeriveCore {
  * @name derive#fetchPositions
  * @description fetch all open positions
  * @see https://docs.derive.xyz/reference/post_private-get-positions
- * @param {string[]} [symbols] not used by kraken fetchPositions ()
+ * @param {string[]} [symbols] not used by fetchPositions ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -2971,15 +3010,15 @@ impl DeriveCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_611: bool = true;
-            while { if !__for_first_611 { i = add(&i, &Value::Int(1)); } __for_first_611 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_598: bool = true;
+            while { if !__for_first_598 { i = add(&i, &Value::Int(1)); } __for_first_598 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut subaccount: Value = get_value(&response, &i);
             let mut subaccount: Value = get_value(&response, &i);
             let mut collaterals: Value = self.safe_list_k(subaccount.clone(), "collaterals", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_610: bool = true;
-                while { if !__for_first_610 { j = add(&j, &Value::Int(1)); } __for_first_610 = false; is_less_than(&j, &get_array_length(&collaterals)) } {
+                let mut __for_first_597: bool = true;
+                while { if !__for_first_597 { j = add(&j, &Value::Int(1)); } __for_first_597 = false; is_less_than(&j, &get_array_length(&collaterals)) } {
                 let mut balance: Value = get_value(&collaterals, &j);
                 let mut balance: Value = get_value(&collaterals, &j);
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "currency", &[]), &[]);
@@ -2991,7 +3030,9 @@ impl DeriveCore {
                     let mut amount: Value = self.safe_string_k(balance.clone(), "amount", &[]);
                     { let __be_tmp = crate::precise::Precise::stringAdd(&get_value(&account, &Value::Str("total".to_string())), &amount); add_element_to_object(&mut account, &Value::Str("total".to_string()), __be_tmp); };
                 }
-                add_element_to_object(&mut result, &code, account.clone());
+                if !is_equal(&code, &Value::Null) {
+                    add_element_to_object(&mut result, &code, account.clone());
+                }
             }
             }
         }

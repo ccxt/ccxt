@@ -316,7 +316,7 @@ impl OkxusCore {
         m.insert("CORS".to_string(), Value::Null);
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Null);
-        m.insert("swap".to_string(), Value::Bool(true));
+        m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
     m
@@ -327,6 +327,15 @@ impl OkxusCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
+    m
+}));
+    m
+}));
+        m.insert("options".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("fetchMarkets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string())]));
     m
 }));
     m

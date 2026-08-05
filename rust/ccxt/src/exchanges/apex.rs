@@ -871,22 +871,23 @@ impl ApexCore {
         let mut chains: Value = get_value(&self.options, &Value::Str("_temp_currencies_chains".to_string()));
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_211: bool = true;
-            while { if !__for_first_211 { j = add(&j, &Value::Int(1)); } __for_first_211 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_213: bool = true;
+            while { if !__for_first_213 { j = add(&j, &Value::Int(1)); } __for_first_213 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::List(vec![])]);
             {
                                 let mut f: Value = Value::Int(0);
-                let mut __for_first_210: bool = true;
-                while { if !__for_first_210 { f = add(&f, &Value::Int(1)); } __for_first_210 = false; is_less_than(&f, &get_array_length(&tokens)) } {
+                let mut __for_first_212: bool = true;
+                while { if !__for_first_212 { f = add(&f, &Value::Int(1)); } __for_first_212 = false; is_less_than(&f, &get_array_length(&tokens)) } {
                 let mut token: Value = get_value(&tokens, &f);
                 let mut token: Value = get_value(&tokens, &f);
                 let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
                 if is_equal(&tokenName, &currencyId) {
                     let mut networkId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
                     let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-                    add_element_to_object(&mut networks, &networkCode, Value::Map({
+                    if !is_equal(&networkCode, &Value::Null) {
+                        add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -914,6 +915,7 @@ impl ApexCore {
 }));
     m
 }));
+                    }
                 }
             }
             }
@@ -1155,7 +1157,7 @@ impl ApexCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id2".to_string())));
+                m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
@@ -1223,7 +1225,7 @@ impl ApexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id2".to_string())));
+                m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
         if is_equal(&limit, &Value::Null) {
@@ -1240,7 +1242,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut OHLCVs: Value = self.safe_list(data.clone(), get_value(&market, &Value::Str("id2".to_string())), &[Value::List(vec![])]);
+        let mut OHLCVs: Value = self.safe_list(data.clone(), self.safe_string_k(market.clone(), "id2", &[]), &[Value::List(vec![])]);
         return self.parse_ohlc_vs(OHLCVs.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1261,7 +1263,7 @@ impl ApexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1275,7 +1277,7 @@ impl ApexCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id2".to_string())));
+                m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
         if is_equal(&limit, &Value::Null) {
@@ -1348,7 +1350,7 @@ impl ApexCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id2".to_string())));
+                m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
         if is_equal(&limit, &Value::Null) {
@@ -1447,7 +1449,7 @@ impl ApexCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id2".to_string())));
+                m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
@@ -1571,8 +1573,8 @@ impl ApexCore {
         let mut resultList: Value = self.safe_list_k(data.clone(), "historyFunds", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_212: bool = true;
-            while { if !__for_first_212 { i = add(&i, &Value::Int(1)); } __for_first_212 = false; is_less_than(&i, &get_array_length(&resultList)) } {
+            let mut __for_first_214: bool = true;
+            while { if !__for_first_214 { i = add(&i, &Value::Int(1)); } __for_first_214 = false; is_less_than(&i, &get_array_length(&resultList)) } {
             let mut entry: Value = get_value(&resultList, &i);
             let mut entry: Value = get_value(&resultList, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingTimestamp", &[]);
@@ -1757,18 +1759,21 @@ impl ApexCore {
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
         if is_equal(&market, &Value::Null) && !is_equal(&marketId, &Value::Null) {
-            if is_true(&Value::Bool(in_op(&self.markets, &marketId))) {
-                market = get_value(&self.markets, &marketId);
-            }  else if is_true(&Value::Bool(in_op(&self.markets_by_id, &marketId))) {
-                market = get_value(&self.markets_by_id, &marketId);
+            let mut marketsMap: Value = self.markets.clone();
+            let mut marketsById: Value = self.markets_by_id.clone();
+            if is_true(&(!is_equal(&marketsMap, &Value::Null))) && is_true(&(Value::Bool(in_op(&marketsMap, &marketId)))) {
+                market = get_value(&marketsMap, &marketId);
+            }  else if is_true(&(!is_equal(&marketsById, &Value::Null))) && is_true(&(Value::Bool(in_op(&marketsById, &marketId)))) {
+                market = get_value(&marketsById, &marketId);
             }  else {
                 let mut newMarketId: Value = self.add_hyphen_before_usdt(marketId.clone());
-                if is_true(&Value::Bool(in_op(&self.markets_by_id, &newMarketId))) {
-                    let mut markets: Value = get_value(&self.markets_by_id, &newMarketId);
+                if is_true(&(!is_equal(&marketsById, &Value::Null))) && is_true(&(Value::Bool(in_op(&marketsById, &newMarketId)))) {
+                    let mut markets: Value = get_value(&marketsById, &newMarketId);
+                    let mut markets: Value = get_value(&marketsById, &newMarketId);
                     let mut numMarkets: Value = get_array_length(&markets);
                     if is_greater_than(&numMarkets, &Value::Int(0)) {
-                        if is_equal(&get_value(&get_value(&get_value(&self.markets_by_id, &newMarketId), &Value::Int(0)), &Value::Str("id2".to_string())), &marketId) {
-                            market = get_value(&get_value(&self.markets_by_id, &newMarketId), &Value::Int(0));
+                        if is_equal(&get_value(&get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0)), &Value::Str("id2".to_string())), &marketId) {
+                            market = get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0));
                         }
                     }
                 }
@@ -1850,6 +1855,9 @@ impl ApexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut orderType: Value = to_upper(&type_var);
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a side argument".to_string()))));
+        }
         let mut orderSide: Value = to_upper(&side);
         let mut orderSize: Value = self.amount_to_precision(symbol.clone(), amount.clone());
         let mut orderPrice: Value = Value::Str("0".to_string());
@@ -2020,8 +2028,8 @@ impl ApexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_213: bool = true;
-            while { if !__for_first_213 { i = add(&i, &Value::Int(1)); } __for_first_213 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_215: bool = true;
+            while { if !__for_first_215 { i = add(&i, &Value::Int(1)); } __for_first_215 = false; is_less_than(&i, &get_array_length(&assets)) } {
             if is_equal(&self.safe_string_k(get_value(&assets, &i), "token", &[Value::Str("".to_string())]), &code) {
                 currency = get_value(&assets, &i);
             }
@@ -2029,7 +2037,8 @@ impl ApexCore {
         }
         let mut tokenId: Value = self.safe_string_k(currency.clone(), "tokenId", &[Value::Str("".to_string())]);
         let mut decimalsNum: Value = self.safe_number_k(currency.clone(), "decimals", &[Value::Int(0)]);
-        let mut mathPowResult: Value = (crate::runtime::Math::pow(&Value::Int(10), &decimalsNum));
+        let mut decimalsNumber: Value = ternary(is_true(&(is_equal(&decimalsNum, &Value::Null))), Value::Int(0), decimalsNum.clone());
+        let mut mathPowResult: Value = (crate::runtime::Math::pow(&Value::Int(10), &decimalsNumber));
         let mut amountNumber: Value = self.parse_to_int(multiply(&amount, &mathPowResult));
         let mut timestampSeconds: Value = self.parse_to_int(divide(&self.milliseconds(), &Value::Int(1000)));
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
@@ -2173,7 +2182,7 @@ impl ApexCore {
  * @name apex#cancelAllOrders
  * @description cancel all open orders in a market
  * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
- * @param {string} symbol unified market symbol of the market to cancel orders in
+ * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

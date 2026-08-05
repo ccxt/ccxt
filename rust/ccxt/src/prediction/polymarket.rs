@@ -230,6 +230,7 @@ impl crate::exchange_generated::ExchangeBase for PolymarketCore {
                 "sign_hash" => self.sign_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe_user_channel" => self.subscribe_user_channel(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "tag_to_slug" => self.tag_to_slug(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "token_id_to_symbol" => self.token_id_to_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "watch_my_trades" => self.watch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
@@ -329,7 +330,7 @@ impl PolymarketCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/6bb2471e-cd45-4452-89b7-ab9275cd9567".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/89e1a2c4-a682-44e7-ad50-9fb15b534437".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("gamma".to_string(), Value::Str("https://gamma-api.polymarket.com".to_string()));
@@ -617,6 +618,9 @@ impl PolymarketCore {
         m.insert("ctfExchangeVersion".to_string(), Value::Str("2".to_string()));
         m.insert("exchangeAddress".to_string(), Value::Str("0xE111180000d2663C0091e4f400237545B87B996B".to_string()));
         m.insert("negRiskExchangeAddress".to_string(), Value::Str("0xe2222d279d744050d28e00520010520000310F59".to_string()));
+        m.insert("builder".to_string(), Value::Str("0xea409de8b037bb6ac664b6d12d6831b03cb04a37".to_string()));
+        m.insert("builderFee".to_string(), Value::Bool(true));
+        m.insert("feeRate".to_string(), Value::Int(0));
     m
 }));
     m
@@ -634,6 +638,7 @@ impl PolymarketCore {
  * @param {object} [params] extra exchange-specific parameters
  * @param {string} [params.query] a single search term used to filter the fetched events
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
+ * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
  * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
  * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
  * @returns {object[]} an array of objects representing market data
@@ -659,15 +664,15 @@ impl PolymarketCore {
         });
         {
                         let mut rei: Value = Value::Int(0);
-            let mut __for_first_1253: bool = true;
-            while { if !__for_first_1253 { rei = add(&rei, &Value::Int(1)); } __for_first_1253 = false; is_less_than(&rei, &get_array_length(&rawEvents)) } {
+            let mut __for_first_1267: bool = true;
+            while { if !__for_first_1267 { rei = add(&rei, &Value::Int(1)); } __for_first_1267 = false; is_less_than(&rei, &get_array_length(&rawEvents)) } {
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut ccxtMarkets: Value = self.parse_event_to_markets(rawEvent.clone());
             {
                                 let mut mi: Value = Value::Int(0);
-                let mut __for_first_1252: bool = true;
-                while { if !__for_first_1252 { mi = add(&mi, &Value::Int(1)); } __for_first_1252 = false; is_less_than(&mi, &get_array_length(&ccxtMarkets)) } {
+                let mut __for_first_1266: bool = true;
+                while { if !__for_first_1266 { mi = add(&mi, &Value::Int(1)); } __for_first_1266 = false; is_less_than(&mi, &get_array_length(&ccxtMarkets)) } {
                 append_to_array(&mut flatMarkets, get_value(&ccxtMarkets, &mi));
             }
             }
@@ -730,8 +735,8 @@ impl PolymarketCore {
         let mut rawEvents: Value = Value::List(vec![]);
         {
                         let mut qi: Value = Value::Int(0);
-            let mut __for_first_1260: bool = true;
-            while { if !__for_first_1260 { qi = add(&qi, &Value::Int(1)); } __for_first_1260 = false; is_less_than(&qi, &get_array_length(&queries)) } {
+            let mut __for_first_1274: bool = true;
+            while { if !__for_first_1274 { qi = add(&qi, &Value::Int(1)); } __for_first_1274 = false; is_less_than(&qi, &get_array_length(&queries)) } {
             let mut q: Value = get_value(&queries, &qi);
             let mut q: Value = get_value(&queries, &qi);
             let mut baseRequest: Value = Value::Map({
@@ -778,16 +783,16 @@ impl PolymarketCore {
             let mut remainingPages: Value = Value::List(vec![]);
             {
                                 let mut p: Value = Value::Int(2);
-                let mut __for_first_1254: bool = true;
-                while { if !__for_first_1254 { p = add(&p, &Value::Int(1)); } __for_first_1254 = false; is_less_than_or_equal(&p, &totalPages) } {
+                let mut __for_first_1268: bool = true;
+                while { if !__for_first_1268 { p = add(&p, &Value::Int(1)); } __for_first_1268 = false; is_less_than_or_equal(&p, &totalPages) } {
                 append_to_array(&mut remainingPages, p.clone());
             }
             }
             let mut restPromises: Value = Value::List(vec![]);
             {
                                 let mut pi: Value = Value::Int(0);
-                let mut __for_first_1255: bool = true;
-                while { if !__for_first_1255 { pi = add(&pi, &Value::Int(1)); } __for_first_1255 = false; is_less_than(&pi, &get_array_length(&remainingPages)) } {
+                let mut __for_first_1269: bool = true;
+                while { if !__for_first_1269 { pi = add(&pi, &Value::Int(1)); } __for_first_1269 = false; is_less_than(&pi, &get_array_length(&remainingPages)) } {
                 let mut pageRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("page".to_string(), get_value(&remainingPages, &pi));
@@ -802,20 +807,20 @@ impl PolymarketCore {
             let mut allEvents: Value = Value::List(vec![]);
             {
                                 let mut fi: Value = Value::Int(0);
-                let mut __for_first_1256: bool = true;
-                while { if !__for_first_1256 { fi = add(&fi, &Value::Int(1)); } __for_first_1256 = false; is_less_than(&fi, &get_array_length(&firstEvents)) } {
+                let mut __for_first_1270: bool = true;
+                while { if !__for_first_1270 { fi = add(&fi, &Value::Int(1)); } __for_first_1270 = false; is_less_than(&fi, &get_array_length(&firstEvents)) } {
                 append_to_array(&mut allEvents, get_value(&firstEvents, &fi));
             }
             }
             {
                                 let mut ri: Value = Value::Int(0);
-                let mut __for_first_1258: bool = true;
-                while { if !__for_first_1258 { ri = add(&ri, &Value::Int(1)); } __for_first_1258 = false; is_less_than(&ri, &get_array_length(&restResponses)) } {
+                let mut __for_first_1272: bool = true;
+                while { if !__for_first_1272 { ri = add(&ri, &Value::Int(1)); } __for_first_1272 = false; is_less_than(&ri, &get_array_length(&restResponses)) } {
                 let mut pageEvents: Value = self.safe_list_k(get_value(&restResponses, &ri), "events", &[Value::List(vec![])]);
                 {
                                         let mut ei: Value = Value::Int(0);
-                    let mut __for_first_1257: bool = true;
-                    while { if !__for_first_1257 { ei = add(&ei, &Value::Int(1)); } __for_first_1257 = false; is_less_than(&ei, &get_array_length(&pageEvents)) } {
+                    let mut __for_first_1271: bool = true;
+                    while { if !__for_first_1271 { ei = add(&ei, &Value::Int(1)); } __for_first_1271 = false; is_less_than(&ei, &get_array_length(&pageEvents)) } {
                     append_to_array(&mut allEvents, get_value(&pageEvents, &ei));
                 }
                 }
@@ -823,8 +828,8 @@ impl PolymarketCore {
             }
             {
                                 let mut ei: Value = Value::Int(0);
-                let mut __for_first_1259: bool = true;
-                while { if !__for_first_1259 { ei = add(&ei, &Value::Int(1)); } __for_first_1259 = false; is_less_than(&ei, &get_array_length(&allEvents)) } {
+                let mut __for_first_1273: bool = true;
+                while { if !__for_first_1273 { ei = add(&ei, &Value::Int(1)); } __for_first_1273 = false; is_less_than(&ei, &get_array_length(&allEvents)) } {
                 let mut rawEvent: Value = get_value(&allEvents, &ei);
                 let mut rawEvent: Value = get_value(&allEvents, &ei);
                 let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
@@ -837,6 +842,45 @@ impl PolymarketCore {
         }
         }
         return rawEvents;
+
+    Value::Null
+}
+
+/*
+ * @ignore
+ * @method
+ * @name polymarket#tagToSlug
+ * @description converts a human-readable tag label into gamma's slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a tag already in slug form passes through unchanged
+ * @param {string} tag the tag label or slug
+ * @returns {string} the gamma tag slug
+ */
+    pub fn tag_to_slug(&self, mut tag: Value) -> Value {
+        let mut lower: Value = to_lower(&tag);
+        let mut allowed: Value = Value::Str("abcdefghijklmnopqrstuvwxyz0123456789".to_string());
+        let mut chars: Value = self.string_to_chars_array(lower.clone());
+        let mut slug: Value = Value::Str("".to_string());
+        let mut pendingSep: Value = Value::Bool(false);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1275: bool = true;
+            while { if !__for_first_1275 { i = add(&i, &Value::Int(1)); } __for_first_1275 = false; is_less_than(&i, &get_array_length(&chars)) } {
+            let mut ch: Value = get_value(&chars, &i);
+            let mut ch: Value = get_value(&chars, &i);
+            if is_greater_than_or_equal(&get_index_of(&allowed, &ch), &Value::Int(0)) {
+                if is_true(&pendingSep) && is_true(&(!is_equal(&slug, &Value::Str("".to_string())))) {
+                    slug = add(&slug, &Value::Str("-".to_string()));
+                }
+                slug = add(&slug, &ch);
+                pendingSep = Value::Bool(false);
+            }  else {
+                pendingSep = Value::Bool(true);
+            }
+        }
+        }
+        if is_equal(&slug, &Value::Str("".to_string())) {
+            return lower;
+        }
+        return slug;
 
     Value::Null
 }
@@ -895,8 +939,8 @@ impl PolymarketCore {
             let mut unioned: Value = Value::List(vec![]);
             {
                                 let mut ti: Value = Value::Int(0);
-                let mut __for_first_1262: bool = true;
-                while { if !__for_first_1262 { ti = add(&ti, &Value::Int(1)); } __for_first_1262 = false; is_less_than(&ti, &requestedTagsLength) } {
+                let mut __for_first_1277: bool = true;
+                while { if !__for_first_1277 { ti = add(&ti, &Value::Int(1)); } __for_first_1277 = false; is_less_than(&ti, &requestedTagsLength) } {
                 let mut singleTagParams: Value = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -905,8 +949,8 @@ impl PolymarketCore {
                 let mut tagEvents: Value = Box::pin(self.fetch_raw_events_list(&[singleTagParams.clone()])).await;
                 {
                                         let mut ei: Value = Value::Int(0);
-                    let mut __for_first_1261: bool = true;
-                    while { if !__for_first_1261 { ei = add(&ei, &Value::Int(1)); } __for_first_1261 = false; is_less_than(&ei, &get_array_length(&tagEvents)) } {
+                    let mut __for_first_1276: bool = true;
+                    while { if !__for_first_1276 { ei = add(&ei, &Value::Int(1)); } __for_first_1276 = false; is_less_than(&ei, &get_array_length(&tagEvents)) } {
                     let mut rawEvent: Value = get_value(&tagEvents, &ei);
                     let mut rawEvent: Value = get_value(&tagEvents, &ei);
                     let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
@@ -921,7 +965,9 @@ impl PolymarketCore {
             return unioned;
         }
         if is_greater_than(&requestedTagsLength, &Value::Int(0)) {
-            add_element_to_object(&mut baseRequest, &Value::Str("tag_slug".to_string()), self.safe_string(requestedTags.clone(), Value::Int(0), &[]));
+            // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+            // so human-readable labels ("Fed Rates") must be slugified first
+            add_element_to_object(&mut baseRequest, &Value::Str("tag_slug".to_string()), self.tag_to_slug(self.safe_string(requestedTags.clone(), Value::Int(0), &[])));
         }
         if is_equal(&status, &Value::Str("active".to_string())) {
             add_element_to_object(&mut baseRequest, &Value::Str("active".to_string()), Value::Bool(true));
@@ -944,8 +990,8 @@ impl PolymarketCore {
         let mut allRawEvents: Value = Value::List(vec![]);
         {
                         let mut fi: Value = Value::Int(0);
-            let mut __for_first_1263: bool = true;
-            while { if !__for_first_1263 { fi = add(&fi, &Value::Int(1)); } __for_first_1263 = false; is_less_than(&fi, &firstPageLength) } {
+            let mut __for_first_1278: bool = true;
+            while { if !__for_first_1278 { fi = add(&fi, &Value::Int(1)); } __for_first_1278 = false; is_less_than(&fi, &firstPageLength) } {
             append_to_array(&mut allRawEvents, get_value(&firstPage, &fi));
         }
         }
@@ -953,16 +999,16 @@ impl PolymarketCore {
             let mut offsets: Value = Value::List(vec![]);
             {
                                 let mut p: Value = Value::Int(1);
-                let mut __for_first_1264: bool = true;
-                while { if !__for_first_1264 { p = add(&p, &Value::Int(1)); } __for_first_1264 = false; is_less_than(&p, &maxPages) } {
+                let mut __for_first_1279: bool = true;
+                while { if !__for_first_1279 { p = add(&p, &Value::Int(1)); } __for_first_1279 = false; is_less_than(&p, &maxPages) } {
                 append_to_array(&mut offsets, multiply(&p, &pageSize));
             }
             }
             let mut restPromises: Value = Value::List(vec![]);
             {
                                 let mut oi: Value = Value::Int(0);
-                let mut __for_first_1265: bool = true;
-                while { if !__for_first_1265 { oi = add(&oi, &Value::Int(1)); } __for_first_1265 = false; is_less_than(&oi, &get_array_length(&offsets)) } {
+                let mut __for_first_1280: bool = true;
+                while { if !__for_first_1280 { oi = add(&oi, &Value::Int(1)); } __for_first_1280 = false; is_less_than(&oi, &get_array_length(&offsets)) } {
                 let mut pageRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("offset".to_string(), get_value(&offsets, &oi));
@@ -975,14 +1021,14 @@ impl PolymarketCore {
             let mut restPages: Value = promise_all(&restPromises).await;
             {
                                 let mut ri: Value = Value::Int(0);
-                let mut __for_first_1267: bool = true;
-                while { if !__for_first_1267 { ri = add(&ri, &Value::Int(1)); } __for_first_1267 = false; is_less_than(&ri, &get_array_length(&restPages)) } {
+                let mut __for_first_1282: bool = true;
+                while { if !__for_first_1282 { ri = add(&ri, &Value::Int(1)); } __for_first_1282 = false; is_less_than(&ri, &get_array_length(&restPages)) } {
                 let mut page: Value = ternary(is_true(&(!is_equal(&get_value(&restPages, &ri), &Value::Null))), get_value(&restPages, &ri), Value::List(vec![]));
                 let mut pageLength: Value = get_array_length(&page);
                 {
                                         let mut pi: Value = Value::Int(0);
-                    let mut __for_first_1266: bool = true;
-                    while { if !__for_first_1266 { pi = add(&pi, &Value::Int(1)); } __for_first_1266 = false; is_less_than(&pi, &pageLength) } {
+                    let mut __for_first_1281: bool = true;
+                    while { if !__for_first_1281 { pi = add(&pi, &Value::Int(1)); } __for_first_1281 = false; is_less_than(&pi, &pageLength) } {
                     append_to_array(&mut allRawEvents, get_value(&page, &pi));
                 }
                 }
@@ -1004,8 +1050,8 @@ impl PolymarketCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut mi: Value = Value::Int(0);
-            let mut __for_first_1269: bool = true;
-            while { if !__for_first_1269 { mi = add(&mi, &Value::Int(1)); } __for_first_1269 = false; is_less_than(&mi, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_1284: bool = true;
+            while { if !__for_first_1284 { mi = add(&mi, &Value::Int(1)); } __for_first_1284 = false; is_less_than(&mi, &get_array_length(&rawMarkets)) } {
             let mut market: Value = get_value(&rawMarkets, &mi);
             let mut market: Value = get_value(&rawMarkets, &mi);
             let mut conditionId: Value = self.safe_string_k(market.clone(), "conditionId", &[]);
@@ -1062,8 +1108,8 @@ impl PolymarketCore {
             let mut outcomes: Value = Value::List(vec![]);
             {
                                 let mut oi: Value = Value::Int(0);
-                let mut __for_first_1268: bool = true;
-                while { if !__for_first_1268 { oi = add(&oi, &Value::Int(1)); } __for_first_1268 = false; is_less_than(&oi, &get_array_length(&outcomeLabels)) } {
+                let mut __for_first_1283: bool = true;
+                while { if !__for_first_1283 { oi = add(&oi, &Value::Int(1)); } __for_first_1283 = false; is_less_than(&oi, &get_array_length(&outcomeLabels)) } {
                 let mut outcomeLabel: Value = get_value(&outcomeLabels, &oi);
                 let mut outcomeLabel: Value = get_value(&outcomeLabels, &oi);
                 let mut clobTokenId: Value = get_value(&clobTokenIds, &oi);
@@ -1239,10 +1285,13 @@ impl PolymarketCore {
                 let mut ccxtMarketsLength: Value = get_array_length(&ccxtMarkets);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_1270: bool = true;
-                    while { if !__for_first_1270 { i = add(&i, &Value::Int(1)); } __for_first_1270 = false; is_less_than(&i, &ccxtMarketsLength) } {
+                    let mut __for_first_1285: bool = true;
+                    while { if !__for_first_1285 { i = add(&i, &Value::Int(1)); } __for_first_1285 = false; is_less_than(&i, &ccxtMarketsLength) } {
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
+                    if is_equal(&mkt, &Value::Null) {
+                        panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchOutcome() could not resolve mkt".to_string()))));
+                    }
                     add_element_to_object(&mut self.markets, &get_value(&mkt, &Value::Str("market".to_string())), mkt.clone());
                 }
                 }
@@ -1271,8 +1320,8 @@ impl PolymarketCore {
         let mut tokenIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1271: bool = true;
-            while { if !__for_first_1271 { i = add(&i, &Value::Int(1)); } __for_first_1271 = false; is_less_than(&i, &get_array_length(&outcomeSymbols)) } {
+            let mut __for_first_1286: bool = true;
+            while { if !__for_first_1286 { i = add(&i, &Value::Int(1)); } __for_first_1286 = false; is_less_than(&i, &get_array_length(&outcomeSymbols)) } {
             let mut outcomeSymbol: Value = get_value(&outcomeSymbols, &i);
             let mut outcomeSymbol: Value = get_value(&outcomeSymbols, &i);
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
@@ -1300,8 +1349,8 @@ impl PolymarketCore {
                 let mut chunk: Value = Value::List(vec![]);
                 {
                                         let mut i: Value = startIndex.clone();
-                    let mut __for_first_1272: bool = true;
-                    while { if !__for_first_1272 { i = add(&i, &Value::Int(1)); } __for_first_1272 = false; is_less_than(&i, &endIndex) } {
+                    let mut __for_first_1287: bool = true;
+                    while { if !__for_first_1287 { i = add(&i, &Value::Int(1)); } __for_first_1287 = false; is_less_than(&i, &endIndex) } {
                     append_to_array(&mut chunk, get_value(&tokenIds, &i));
                 }
                 }
@@ -1321,10 +1370,13 @@ impl PolymarketCore {
                 }));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_1273: bool = true;
-                    while { if !__for_first_1273 { i = add(&i, &Value::Int(1)); } __for_first_1273 = false; is_less_than(&i, &get_array_length(&ccxtMarkets)) } {
+                    let mut __for_first_1288: bool = true;
+                    while { if !__for_first_1288 { i = add(&i, &Value::Int(1)); } __for_first_1288 = false; is_less_than(&i, &get_array_length(&ccxtMarkets)) } {
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
+                    if is_equal(&mkt, &Value::Null) {
+                        panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchOutcomes() could not resolve mkt".to_string()))));
+                    }
                     add_element_to_object(&mut self.markets, &get_value(&mkt, &Value::Str("market".to_string())), mkt.clone());
                 }
                 }
@@ -1334,8 +1386,8 @@ impl PolymarketCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1274: bool = true;
-            while { if !__for_first_1274 { i = add(&i, &Value::Int(1)); } __for_first_1274 = false; is_less_than(&i, &get_array_length(&outcomeSymbols)) } {
+            let mut __for_first_1289: bool = true;
+            while { if !__for_first_1289 { i = add(&i, &Value::Int(1)); } __for_first_1289 = false; is_less_than(&i, &get_array_length(&outcomeSymbols)) } {
             if !is_true(&self.has_outcome(get_value(&outcomeSymbols, &i))) {
                 self.fetch_outcome(get_value(&outcomeSymbols, &i)).await;
             }
@@ -1355,7 +1407,7 @@ impl PolymarketCore {
  * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
  * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
     pub async fn fetch_ticker(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -1402,7 +1454,7 @@ impl PolymarketCore {
  * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
  * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+ * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
@@ -1418,8 +1470,8 @@ impl PolymarketCore {
         let mut targets: Value = Value::List(vec![]);
         {
                         let mut oi: Value = Value::Int(0);
-            let mut __for_first_1275: bool = true;
-            while { if !__for_first_1275 { oi = add(&oi, &Value::Int(1)); } __for_first_1275 = false; is_less_than(&oi, &get_array_length(&outcomes)) } {
+            let mut __for_first_1290: bool = true;
+            while { if !__for_first_1290 { oi = add(&oi, &Value::Int(1)); } __for_first_1290 = false; is_less_than(&oi, &get_array_length(&outcomes)) } {
             append_to_array(&mut targets, get_value(&outcomes, &oi));
         }
         }
@@ -1430,8 +1482,8 @@ impl PolymarketCore {
         let mut tokenIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1276: bool = true;
-            while { if !__for_first_1276 { i = add(&i, &Value::Int(1)); } __for_first_1276 = false; is_less_than(&i, &get_array_length(&targets)) } {
+            let mut __for_first_1291: bool = true;
+            while { if !__for_first_1291 { i = add(&i, &Value::Int(1)); } __for_first_1291 = false; is_less_than(&i, &get_array_length(&targets)) } {
             let mut outcomeObj: Value = self.outcome(get_value(&targets, &i));
             let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
             if is_true(&(!is_equal(&tokenId, &Value::Null))) && !is_true(&(Value::Bool(in_op(&outcomesByTokenId, &tokenId)))) {
@@ -1455,8 +1507,8 @@ impl PolymarketCore {
             let mut bookParams: Value = Value::List(vec![]);
             {
                                 let mut i: Value = startIndex.clone();
-                let mut __for_first_1277: bool = true;
-                while { if !__for_first_1277 { i = add(&i, &Value::Int(1)); } __for_first_1277 = false; is_less_than(&i, &endIndex) } {
+                let mut __for_first_1292: bool = true;
+                while { if !__for_first_1292 { i = add(&i, &Value::Int(1)); } __for_first_1292 = false; is_less_than(&i, &endIndex) } {
                 append_to_array(&mut bookParams, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("token_id".to_string(), get_value(&tokenIds, &i));
@@ -1476,8 +1528,8 @@ impl PolymarketCore {
             let mut lastTradesLength: Value = get_array_length(&lastTrades);
             {
                                 let mut li: Value = Value::Int(0);
-                let mut __for_first_1278: bool = true;
-                while { if !__for_first_1278 { li = add(&li, &Value::Int(1)); } __for_first_1278 = false; is_less_than(&li, &lastTradesLength) } {
+                let mut __for_first_1293: bool = true;
+                while { if !__for_first_1293 { li = add(&li, &Value::Int(1)); } __for_first_1293 = false; is_less_than(&li, &lastTradesLength) } {
                 let mut lastTradeEntry: Value = get_value(&lastTrades, &li);
                 let mut lastTradeEntry: Value = get_value(&lastTrades, &li);
                 let mut lastTradeTokenId: Value = self.safe_string_k(lastTradeEntry.clone(), "token_id", &[]);
@@ -1489,8 +1541,8 @@ impl PolymarketCore {
             let mut booksLength: Value = get_array_length(&books);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1279: bool = true;
-                while { if !__for_first_1279 { i = add(&i, &Value::Int(1)); } __for_first_1279 = false; is_less_than(&i, &booksLength) } {
+                let mut __for_first_1294: bool = true;
+                while { if !__for_first_1294 { i = add(&i, &Value::Int(1)); } __for_first_1294 = false; is_less_than(&i, &booksLength) } {
                 let mut book: Value = get_value(&books, &i);
                 let mut book: Value = get_value(&books, &i);
                 let mut tokenId: Value = self.safe_string_k(book.clone(), "asset_id", &[]);
@@ -1533,7 +1585,7 @@ impl PolymarketCore {
  * @description parses a combined midpoint + order book response into a unified ticker object
  * @param {object} ticker a dict with midpoint and book entries
  * @param {object} [market] the outcome object the ticker belongs to
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
     pub fn parse_prediction_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -1643,7 +1695,7 @@ impl PolymarketCore {
  * @param {string} outcome unified outcome or outcome token id
  * @param {int} [limit] not used by polymarket fetchOrderBook
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
     pub async fn fetch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1767,8 +1819,8 @@ impl PolymarketCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1280: bool = true;
-            while { if !__for_first_1280 { i = add(&i, &Value::Int(1)); } __for_first_1280 = false; is_less_than(&i, &get_array_length(&history)) } {
+            let mut __for_first_1295: bool = true;
+            while { if !__for_first_1295 { i = add(&i, &Value::Int(1)); } __for_first_1295 = false; is_less_than(&i, &get_array_length(&history)) } {
             let mut item: Value = get_value(&history, &i);
             let mut item: Value = get_value(&history, &i);
             let mut t: Value = self.safe_integer_k(item.clone(), "t", &[]);
@@ -1805,8 +1857,8 @@ impl PolymarketCore {
         let mut unsortedCandles: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1281: bool = true;
-            while { if !__for_first_1281 { i = add(&i, &Value::Int(1)); } __for_first_1281 = false; is_less_than(&i, &get_array_length(&bucketKeys)) } {
+            let mut __for_first_1296: bool = true;
+            while { if !__for_first_1296 { i = add(&i, &Value::Int(1)); } __for_first_1296 = false; is_less_than(&i, &get_array_length(&bucketKeys)) } {
             append_to_array(&mut unsortedCandles, get_value(&buckets, &get_value(&bucketKeys, &i)));
         }
         }
@@ -2007,7 +2059,7 @@ impl PolymarketCore {
  * @param {int} [since] not used by polymarket fetchTrades
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub async fn fetch_trades(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
@@ -2043,8 +2095,8 @@ impl PolymarketCore {
         let mut filteredTrades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1282: bool = true;
-            while { if !__for_first_1282 { i = add(&i, &Value::Int(1)); } __for_first_1282 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_1297: bool = true;
+            while { if !__for_first_1297 { i = add(&i, &Value::Int(1)); } __for_first_1297 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut tradeAsset: Value = self.safe_string_k(trade.clone(), "asset", &[]);
@@ -2067,7 +2119,7 @@ impl PolymarketCore {
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -2105,7 +2157,7 @@ impl PolymarketCore {
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -2121,8 +2173,8 @@ impl PolymarketCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1284: bool = true;
-            while { if !__for_first_1284 { i = add(&i, &Value::Int(1)); } __for_first_1284 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_1299: bool = true;
+            while { if !__for_first_1299 { i = add(&i, &Value::Int(1)); } __for_first_1299 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut info: Value = self.safe_dict_k(trade.clone(), "info", &[Value::Map({
@@ -2133,8 +2185,8 @@ impl PolymarketCore {
             let mut makerOrders: Value = self.safe_list_k(info.clone(), "maker_orders", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1283: bool = true;
-                while { if !__for_first_1283 { j = add(&j, &Value::Int(1)); } __for_first_1283 = false; is_less_than(&j, &get_array_length(&makerOrders)) } {
+                let mut __for_first_1298: bool = true;
+                while { if !__for_first_1298 { j = add(&j, &Value::Int(1)); } __for_first_1298 = false; is_less_than(&j, &get_array_length(&makerOrders)) } {
                 if is_equal(&self.safe_string_k(get_value(&makerOrders, &j), "order_id", &[]), &id) {
                     belongs = Value::Bool(true);
                 }
@@ -2157,7 +2209,7 @@ impl PolymarketCore {
  * @description parses a raw data API trade object into a unified trade object
  * @param {object} trade the raw trade object
  * @param {object} [market] the outcome object the trade belongs to
- * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub fn parse_prediction_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -2281,7 +2333,7 @@ impl PolymarketCore {
  * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
  * @param {string[]} [outcomes] unified outcomes to filter by
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
@@ -2317,10 +2369,13 @@ impl PolymarketCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
+        if is_equal(&outcomes, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchPositions() missing outcomes".to_string()))));
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1285: bool = true;
-            while { if !__for_first_1285 { i = add(&i, &Value::Int(1)); } __for_first_1285 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1300: bool = true;
+            while { if !__for_first_1300 { i = add(&i, &Value::Int(1)); } __for_first_1300 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             add_element_to_object(&mut wantedIds, &get_value(&outcomeObj, &Value::Str("outcomeId".to_string())), Value::Bool(true));
         }
@@ -2328,8 +2383,8 @@ impl PolymarketCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1286: bool = true;
-            while { if !__for_first_1286 { i = add(&i, &Value::Int(1)); } __for_first_1286 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+            let mut __for_first_1301: bool = true;
+            while { if !__for_first_1301 { i = add(&i, &Value::Int(1)); } __for_first_1301 = false; is_less_than(&i, &get_array_length(&parsed)) } {
             let mut position: Value = get_value(&parsed, &i);
             let mut position: Value = get_value(&parsed, &i);
             let mut info: Value = self.safe_dict_k(position.clone(), "info", &[Value::Map({
@@ -2354,7 +2409,7 @@ impl PolymarketCore {
  * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
  * @param {string} outcome unified outcome or outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn fetch_position(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -2374,7 +2429,7 @@ impl PolymarketCore {
  * @description parses a raw data API position object into a unified position object
  * @param {object} position the raw position object
  * @param {object} [market] the outcome object the position belongs to
- * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub fn parse_prediction_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -2433,7 +2488,7 @@ impl PolymarketCore {
  * @param {int} [since] not used by polymarket fetchOpenOrders
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -2469,7 +2524,7 @@ impl PolymarketCore {
  * @param {string} id the order id
  * @param {string} [outcome] unified outcome or outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -2499,7 +2554,7 @@ impl PolymarketCore {
  * @description parses a raw CLOB order object into a unified order object
  * @param {object} order the raw order object
  * @param {object} [market] the outcome object the order belongs to
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub fn parse_prediction_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -2607,7 +2662,8 @@ impl PolymarketCore {
  * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
  * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
  * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn create_order(&mut self, mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -2636,7 +2692,7 @@ impl PolymarketCore {
  * @see https://docs.polymarket.com/api-reference/trade/post-orders
  * @param {object[]} orders a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -2649,11 +2705,14 @@ impl PolymarketCore {
         let mut orderOutcomes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1287: bool = true;
-            while { if !__for_first_1287 { i = add(&i, &Value::Int(1)); } __for_first_1287 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_1302: bool = true;
+            while { if !__for_first_1302 { i = add(&i, &Value::Int(1)); } __for_first_1302 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut o: Value = get_value(&orders, &i);
             let mut o: Value = get_value(&orders, &i);
-            append_to_array(&mut orderOutcomes, self.safe_string_k(o.clone(), "outcome", &[]));
+            let mut __oc: Value = self.safe_string_k(o.clone(), "outcome", &[]);
+            if !is_equal(&__oc, &Value::Null) {
+                append_to_array(&mut orderOutcomes, __oc.clone());
+            }
         }
         }
         self.load_outcomes(&[orderOutcomes.clone()]).await;
@@ -2663,8 +2722,8 @@ impl PolymarketCore {
         let mut batchSalt: Value = self.milliseconds();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1288: bool = true;
-            while { if !__for_first_1288 { i = add(&i, &Value::Int(1)); } __for_first_1288 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_1303: bool = true;
+            while { if !__for_first_1303 { i = add(&i, &Value::Int(1)); } __for_first_1303 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut o: Value = get_value(&orders, &i);
             let mut o: Value = get_value(&orders, &i);
             let mut orderParams: Value = self.safe_dict_k(o.clone(), "params", &[Value::Map({
@@ -2681,9 +2740,18 @@ impl PolymarketCore {
                 })]);
             }
             let mut built: Value = self.build_clob_order_body(self.safe_string_k(o.clone(), "outcome", &[]), self.safe_string_k(o.clone(), "type", &[]), self.safe_string_k(o.clone(), "side", &[]), self.safe_number_k(o.clone(), "amount", &[]), &[self.safe_number_k(o.clone(), "price", &[]), orderParams.clone()]);
-            append_to_array(&mut bodies, self.safe_dict_k(built.clone(), "body", &[]));
-            append_to_array(&mut outcomes, self.safe_dict_k(built.clone(), "outcome", &[]));
-            append_to_array(&mut requests, self.safe_dict_k(built.clone(), "request", &[]));
+            append_to_array(&mut bodies, self.safe_dict_k(built.clone(), "body", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]));
+            append_to_array(&mut outcomes, self.safe_dict_k(built.clone(), "outcome", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]));
+            append_to_array(&mut requests, self.safe_dict_k(built.clone(), "request", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]));
         }
         }
         let mut response: Value = self.clob_private_post_orders(&[bodies.clone()]).await;
@@ -2691,8 +2759,8 @@ impl PolymarketCore {
         if is_true(&Value::Bool(is_array(&response))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1289: bool = true;
-                while { if !__for_first_1289 { i = add(&i, &Value::Int(1)); } __for_first_1289 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_1304: bool = true;
+                while { if !__for_first_1304 { i = add(&i, &Value::Int(1)); } __for_first_1304 = false; is_less_than(&i, &get_array_length(&response)) } {
                 // request echo first so the response's real orderID/status win on overlap
                 let mut enriched: Value = self.extend(get_value(&requests, &i), &[get_value(&response, &i)]);
                 let mut parsedItem: Value = self.parse_prediction_order(enriched.clone(), &[get_value(&outcomes, &i)]);
@@ -2780,12 +2848,36 @@ impl PolymarketCore {
         let mut expiration: Value = self.safe_string_k(params.clone(), "expiration", &[Value::Str("0".to_string())]);
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("signatureType".to_string()), Value::Str("signature_type".to_string()), Value::Str("funder".to_string()), Value::Str("maker".to_string()), Value::Str("orderType".to_string()), Value::Str("timeInForce".to_string()), Value::Str("postOnly".to_string()), Value::Str("tickSize".to_string()), Value::Str("negRisk".to_string()), Value::Str("salt".to_string()), Value::Str("timestamp".to_string()), Value::Str("expiration".to_string()), Value::Str("cost".to_string())]), &[]);
+        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("signatureType".to_string()), Value::Str("signature_type".to_string()), Value::Str("funder".to_string()), Value::Str("maker".to_string()), Value::Str("orderType".to_string()), Value::Str("timeInForce".to_string()), Value::Str("postOnly".to_string()), Value::Str("tickSize".to_string()), Value::Str("negRisk".to_string()), Value::Str("salt".to_string()), Value::Str("timestamp".to_string()), Value::Str("expiration".to_string()), Value::Str("cost".to_string()), Value::Str("builder".to_string()), Value::Str("builderCode".to_string())]), &[]);
         let mut amounts: Value = self.polymarket_order_raw_amounts(sideStr.clone(), amount.clone(), price.clone(), tickSize.clone(), &[cost.clone()]);
         let mut makerAmount: Value = self.safe_string_k(amounts.clone(), "makerAmount", &[]);
         let mut takerAmount: Value = self.safe_string_k(amounts.clone(), "takerAmount", &[]);
         let mut sideInt: Value = ternary(is_true(&(is_equal(&sideStr, &Value::Str("BUY".to_string())))), Value::Int(0), Value::Int(1));
         let mut bytes32Zero: Value = Value::Str("0x0000000000000000000000000000000000000000000000000000000000000000".to_string());
+        // builder attribution: the order's bytes32 builder field packs the builder fee (bps,
+        // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
+        // false the fee bytes stay zeroed, so orders are attributed for statistics only and
+        // the user is not charged; a full 32-byte builder code is passed through unchanged
+        let mut builderRaw: Value = self.safe_string_lower2(params.clone(), Value::Str("builder".to_string()), Value::Str("builderCode".to_string()), &[self.safe_string_lower(self.options.clone(), Value::Str("builder".to_string()), &[])]);
+        let mut builderBytes32: Value = bytes32Zero.clone();
+        if !is_equal(&builderRaw, &Value::Null) {
+            let mut builderHex: Value = self.remove0x_prefix(builderRaw.clone());
+            if is_less_than_or_equal(&get_array_length(&builderHex), &Value::Int(40)) {
+                let mut builderFeeEnabled: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]);
+                let mut feeRate: Value = Value::Int(0);
+                if is_true(&builderFeeEnabled) {
+                    feeRate = self.safe_integer_k(self.options.clone(), "feeRate", &[Value::Int(0)]);
+                }
+                let mut feeHex: Value = self.int_to_base16(feeRate.clone(), &[]);
+                feeHex = pad_start(&feeHex, &Value::Int(24), &Value::Str("0".to_string()));
+                let mut addressHex: Value = builderHex.clone();
+                addressHex = pad_start(&addressHex, &Value::Int(40), &Value::Str("0".to_string()));
+                builderHex = add(&feeHex, &addressHex);
+            }  else {
+                builderHex = pad_start(&builderHex, &Value::Int(64), &Value::Str("0".to_string()));
+            }
+            builderBytes32 = add(&Value::Str("0x".to_string()), &builderHex);
+        }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
@@ -2803,7 +2895,7 @@ impl PolymarketCore {
                 m.insert("signatureType".to_string(), signatureType.clone());
                 m.insert("timestamp".to_string(), timestamp.clone());
                 m.insert("metadata".to_string(), bytes32Zero.clone());
-                m.insert("builder".to_string(), bytes32Zero.clone());
+                m.insert("builder".to_string(), builderBytes32.clone());
             m
         });
         let mut exchangeV2: Value = self.safe_string_k(self.options.clone(), "exchangeAddress", &[Value::Str("0xE111180000d2663C0091e4f400237545B87B996B".to_string())]);
@@ -2830,7 +2922,7 @@ impl PolymarketCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("expiration".to_string(), expiration.clone());
         m.insert("metadata".to_string(), bytes32Zero.clone());
-        m.insert("builder".to_string(), bytes32Zero.clone());
+        m.insert("builder".to_string(), builderBytes32.clone());
         m.insert("signature".to_string(), signature.clone());
     m
 }));
@@ -2873,7 +2965,7 @@ impl PolymarketCore {
  * @param {string} outcome unified outcome or outcome token id
  * @param {float} cost the amount of USDC to spend
  * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn create_market_buy_order_with_cost(&mut self, mut outcome: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -3133,7 +3225,7 @@ impl PolymarketCore {
  * @param {string} id the order id
  * @param {string} [outcome] unified outcome or outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -3177,7 +3269,7 @@ impl PolymarketCore {
  * @param {string[]} ids the order ids to cancel
  * @param {string} [outcome] not used by polymarket cancelOrders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -3192,8 +3284,8 @@ impl PolymarketCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1290: bool = true;
-            while { if !__for_first_1290 { i = add(&i, &Value::Int(1)); } __for_first_1290 = false; is_less_than(&i, &get_array_length(&canceled)) } {
+            let mut __for_first_1305: bool = true;
+            while { if !__for_first_1305 { i = add(&i, &Value::Int(1)); } __for_first_1305 = false; is_less_than(&i, &get_array_length(&canceled)) } {
             append_to_array(&mut orders, self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(canceled.clone(), i.clone(), &[]));
@@ -3216,7 +3308,7 @@ impl PolymarketCore {
  * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
  * @param {string} [outcome] unified outcome or outcome token id; when given only that outcome's orders are cancelled
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -3244,8 +3336,8 @@ impl PolymarketCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1291: bool = true;
-            while { if !__for_first_1291 { i = add(&i, &Value::Int(1)); } __for_first_1291 = false; is_less_than(&i, &get_array_length(&canceled)) } {
+            let mut __for_first_1306: bool = true;
+            while { if !__for_first_1306 { i = add(&i, &Value::Int(1)); } __for_first_1306 = false; is_less_than(&i, &get_array_length(&canceled)) } {
             append_to_array(&mut orders, self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(canceled.clone(), i.clone(), &[]));
@@ -3269,6 +3361,7 @@ impl PolymarketCore {
  * @param {object} [params] extra exchange-specific parameters
  * @param {string} [params.query] a single keyword search term
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
+ * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
  * @param {int} [params.limit] max number of events to return
  * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
  * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
@@ -3289,6 +3382,9 @@ impl PolymarketCore {
         let mut requestedSlug: Value = self.safe_string_k(params.clone(), "slug", &[]);
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
         let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string()), Value::Str("eventId".to_string()), Value::Str("slug".to_string())]), &[]);
+        if is_equal(&queries, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchEvents() missing queries".to_string()))));
+        }
         let mut queriesLength: Value = get_array_length(&queries);
         let mut rawEvents: Value = Value::List(vec![]);
         if is_true(&(!is_equal(&requestedEventId, &Value::Null))) || is_true(&(!is_equal(&requestedSlug, &Value::Null))) {
@@ -3322,8 +3418,8 @@ impl PolymarketCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut rei: Value = Value::Int(0);
-            let mut __for_first_1293: bool = true;
-            while { if !__for_first_1293 { rei = add(&rei, &Value::Int(1)); } __for_first_1293 = false; is_less_than(&rei, &get_array_length(&rawEvents)) } {
+            let mut __for_first_1308: bool = true;
+            while { if !__for_first_1308 { rei = add(&rei, &Value::Int(1)); } __for_first_1308 = false; is_less_than(&rei, &get_array_length(&rawEvents)) } {
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut eventForParsing: Value = rawEvent.clone();
@@ -3354,10 +3450,13 @@ impl PolymarketCore {
             }
             {
                                 let mut mi: Value = Value::Int(0);
-                let mut __for_first_1292: bool = true;
-                while { if !__for_first_1292 { mi = add(&mi, &Value::Int(1)); } __for_first_1292 = false; is_less_than(&mi, &get_array_length(&ccxtMarkets)) } {
+                let mut __for_first_1307: bool = true;
+                while { if !__for_first_1307 { mi = add(&mi, &Value::Int(1)); } __for_first_1307 = false; is_less_than(&mi, &get_array_length(&ccxtMarkets)) } {
                 let mut m: Value = get_value(&ccxtMarkets, &mi);
                 let mut m: Value = get_value(&ccxtMarkets, &mi);
+                if is_equal(&m, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchEvents() missing m".to_string()))));
+                }
                 add_element_to_object(&mut self.markets, &get_value(&m, &Value::Str("market".to_string())), m.clone());
             }
             }
@@ -3419,6 +3518,12 @@ impl PolymarketCore {
             response = self.gamma_public_get_events_id(&[__ws_arg_17]).await;
         }
         let mut eventForParsing: Value = self.safe_dict_k(response.clone(), "event", &[response.clone()]);
+        if is_equal(&eventForParsing, &Value::Null) {
+            eventForParsing = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+        }
         let mut event: Value = self.parse_event(eventForParsing.clone());
         self.index_event_outcomes(event.clone());
         return event;
@@ -3500,15 +3605,17 @@ impl PolymarketCore {
             active = Value::Bool(is_true(&rawActive) && !is_true(&closed));
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+        // prefer the human-readable label ("Fed Rates") over the slug — matching is
+        // normalized (normalizeTagKey), so the display form is free to be the friendly one
         let mut rawTags: Value = self.safe_list_k(rawEvent.clone(), "tags", &[Value::List(vec![])]);
         let mut rawTagsLength: Value = get_array_length(&rawTags);
         let mut parsedTags: Value = Value::List(vec![]);
         {
                         let mut ti: Value = Value::Int(0);
-            let mut __for_first_1294: bool = true;
-            while { if !__for_first_1294 { ti = add(&ti, &Value::Int(1)); } __for_first_1294 = false; is_less_than(&ti, &rawTagsLength) } {
-            let mut tagLabel: Value = self.safe_string2(get_value(&rawTags, &ti), Value::Str("slug".to_string()), Value::Str("label".to_string()), &[]);
+            let mut __for_first_1309: bool = true;
+            while { if !__for_first_1309 { ti = add(&ti, &Value::Int(1)); } __for_first_1309 = false; is_less_than(&ti, &rawTagsLength) } {
+            let mut tagLabel: Value = self.safe_string2(get_value(&rawTags, &ti), Value::Str("label".to_string()), Value::Str("slug".to_string()), &[]);
             if !is_equal(&tagLabel, &Value::Null) {
                 append_to_array(&mut parsedTags, tagLabel.clone());
             }
@@ -3564,8 +3671,8 @@ impl PolymarketCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1295: bool = true;
-            while { if !__for_first_1295 { i = add(&i, &Value::Int(1)); } __for_first_1295 = false; is_less_than(&i, &get_array_length(&rawEvents)) } {
+            let mut __for_first_1310: bool = true;
+            while { if !__for_first_1310 { i = add(&i, &Value::Int(1)); } __for_first_1310 = false; is_less_than(&i, &get_array_length(&rawEvents)) } {
             let mut rawEvent: Value = get_value(&rawEvents, &i);
             let mut rawEvent: Value = get_value(&rawEvents, &i);
             append_to_array(&mut result, self.parse_event(rawEvent.clone()));
@@ -3645,8 +3752,8 @@ impl PolymarketCore {
             let mut queryKeys: Value = object_keys(&query);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1296: bool = true;
-                while { if !__for_first_1296 { i = add(&i, &Value::Int(1)); } __for_first_1296 = false; is_less_than(&i, &get_array_length(&queryKeys)) } {
+                let mut __for_first_1311: bool = true;
+                while { if !__for_first_1311 { i = add(&i, &Value::Int(1)); } __for_first_1311 = false; is_less_than(&i, &get_array_length(&queryKeys)) } {
                 if is_true(&Value::Bool(is_array(&get_value(&query, &get_value(&queryKeys, &i))))) {
                     hasArrayParam = Value::Bool(true);
                 }
@@ -3769,8 +3876,8 @@ impl PolymarketCore {
         let mut result: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1297: bool = true;
-            while { if !__for_first_1297 { i = add(&i, &Value::Int(1)); } __for_first_1297 = false; is_less_than(&i, &get_array_length(&addrChars)) } {
+            let mut __for_first_1312: bool = true;
+            while { if !__for_first_1312 { i = add(&i, &Value::Int(1)); } __for_first_1312 = false; is_less_than(&i, &get_array_length(&addrChars)) } {
             let mut ch: Value = get_value(&addrChars, &i);
             let mut ch: Value = get_value(&addrChars, &i);
             if is_greater_than_or_equal(&get_index_of(&upperNibbles, &get_value(&hashChars, &i)), &Value::Int(0)) {
@@ -3918,6 +4025,9 @@ impl PolymarketCore {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             creds = self.create_api_key(&[params.clone()]).await;
         }
+        if is_equal(&creds, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrDeriveApiKey() returned no credentials".to_string()))));
+        }
         return creds;
 
     Value::Null
@@ -3990,8 +4100,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut events: Value = ternary(is_true(&Value::Bool(is_array(&message))), message.clone(), Value::List(vec![message.clone()]));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1298: bool = true;
-            while { if !__for_first_1298 { i = add(&i, &Value::Int(1)); } __for_first_1298 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_1313: bool = true;
+            while { if !__for_first_1313 { i = add(&i, &Value::Int(1)); } __for_first_1313 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             if !is_true(&event) || !is_object(&event) {
@@ -4033,8 +4143,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut bids: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1299: bool = true;
-            while { if !__for_first_1299 { i = add(&i, &Value::Int(1)); } __for_first_1299 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut __for_first_1314: bool = true;
+            while { if !__for_first_1314 { i = add(&i, &Value::Int(1)); } __for_first_1314 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
             let mut b: Value = get_value(&rawBids, &i);
             let mut b: Value = get_value(&rawBids, &i);
             append_to_array(&mut bids, Value::List(vec![self.safe_number_k(b.clone(), "price", &[]), self.safe_number_k(b.clone(), "size", &[])]));
@@ -4043,8 +4153,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1300: bool = true;
-            while { if !__for_first_1300 { j = add(&j, &Value::Int(1)); } __for_first_1300 = false; is_less_than(&j, &get_array_length(&rawAsks)) } {
+            let mut __for_first_1315: bool = true;
+            while { if !__for_first_1315 { j = add(&j, &Value::Int(1)); } __for_first_1315 = false; is_less_than(&j, &get_array_length(&rawAsks)) } {
             let mut a: Value = get_value(&rawAsks, &j);
             let mut a: Value = get_value(&rawAsks, &j);
             append_to_array(&mut asks, Value::List(vec![self.safe_number_k(a.clone(), "price", &[]), self.safe_number_k(a.clone(), "size", &[])]));
@@ -4075,8 +4185,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1301: bool = true;
-            while { if !__for_first_1301 { i = add(&i, &Value::Int(1)); } __for_first_1301 = false; is_less_than(&i, &get_array_length(&changes)) } {
+            let mut __for_first_1316: bool = true;
+            while { if !__for_first_1316 { i = add(&i, &Value::Int(1)); } __for_first_1316 = false; is_less_than(&i, &get_array_length(&changes)) } {
             let mut change: Value = get_value(&changes, &i);
             let mut change: Value = get_value(&changes, &i);
             let mut tokenId: Value = self.safe_string_k(change.clone(), "asset_id", &[]);
@@ -4100,8 +4210,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut updatedSymbols: Value = object_keys(&updated);
         {
                         let mut k: Value = Value::Int(0);
-            let mut __for_first_1302: bool = true;
-            while { if !__for_first_1302 { k = add(&k, &Value::Int(1)); } __for_first_1302 = false; is_less_than(&k, &get_array_length(&updatedSymbols)) } {
+            let mut __for_first_1317: bool = true;
+            while { if !__for_first_1317 { k = add(&k, &Value::Int(1)); } __for_first_1317 = false; is_less_than(&k, &get_array_length(&updatedSymbols)) } {
             let mut outcome: Value = get_value(&updatedSymbols, &k);
             let mut outcome: Value = get_value(&updatedSymbols, &k);
             let mut orderbook: Value = get_value(&self.orderbooks, &outcome);
@@ -4164,7 +4274,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
  * @param {int} [limit] optional depth limit applied after resolving
  * @param {object} [params] extra params (currently unused)
- * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+ * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -4198,7 +4308,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {int} [since] optional unix timestamp (ms) lower bound
  * @param {int} [limit] optional max number of trades to return
  * @param {object} [params] extra params (unused)
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
  */
     pub async fn watch_trades(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
@@ -4231,7 +4341,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
  * @param {string} outcome unified outcome
  * @param {object} [params] extra params (unused)
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
  */
     pub async fn watch_ticker(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -4249,12 +4359,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), Value::Str("market".to_string()));
             m
         });
+        if is_equal(&outcome, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" watchTicker() missing outcome".to_string()))));
+        }
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &outcome)))) {
             let mut seededBook: Value = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            add_element_to_object(&mut self.orderbooks, &outcome, seededBook.clone());
+            if !is_equal(&outcome, &Value::Null) {
+                add_element_to_object(&mut self.orderbooks, &outcome, seededBook.clone());
+            }
         }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut orderbook: Value = self.watch(url.clone(), messageHash.clone(), &[subscribeMsg.clone(), subscribeHash.clone()]).await;
@@ -4330,7 +4445,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {int} [since] the earliest time in ms to return orders for
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
@@ -4365,7 +4480,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {int} [since] the earliest time in ms to return trades for
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
     pub async fn watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut outcome = get_arg(optional_args, 0, Value::Null);

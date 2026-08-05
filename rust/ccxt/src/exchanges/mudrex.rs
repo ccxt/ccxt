@@ -457,23 +457,26 @@ impl MudrexCore {
         }
         let mut url: Value = add(&add(&base, &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        headers = ternary(is_true(&(!is_equal(&headers, &Value::Null))), self.extend(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}), &[headers.clone()]), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
+        let mut requestHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        if !is_equal(&headers, &Value::Null) {
+            requestHeaders = self.extend(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            }), &[headers.clone()]);
+        }
         let mut brokerId: Value = self.safe_string_k(self.options.clone(), "broker", &[]);
         if !is_equal(&brokerId, &Value::Null) {
-            add_element_to_object(&mut headers, &Value::Str("Partner-Id".to_string()), brokerId.clone());
+            add_element_to_object(&mut requestHeaders, &Value::Str("Partner-Id".to_string()), brokerId.clone());
         }
         let mut methodUpper: Value = to_upper(&method);
         if is_equal(&api, &Value::Str("private".to_string())) {
             self.check_required_credentials(&[]);
-            add_element_to_object(&mut headers, &Value::Str("X-Authentication".to_string()), self.secret.clone());
+            add_element_to_object(&mut requestHeaders, &Value::Str("X-Authentication".to_string()), self.secret.clone());
             if is_equal(&methodUpper, &Value::Str("POST".to_string())) || is_equal(&methodUpper, &Value::Str("PATCH".to_string())) || is_equal(&methodUpper, &Value::Str("DELETE".to_string())) {
-                add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
+                add_element_to_object(&mut requestHeaders, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
                 // is_symbol is a query-string flag even on write requests
                 let mut isSymbol: Value = self.safe_string_k(query.clone(), "is_symbol", &[]);
                 if !is_equal(&isSymbol, &Value::Null) {
@@ -490,7 +493,7 @@ impl MudrexCore {
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), methodUpper.clone());
         m.insert("body".to_string(), Value::Null);
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("headers".to_string(), requestHeaders.clone());
     m
 });
                 }
@@ -500,7 +503,7 @@ impl MudrexCore {
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), methodUpper.clone());
         m.insert("body".to_string(), bodyStr.clone());
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("headers".to_string(), requestHeaders.clone());
     m
 });
             }
@@ -513,7 +516,7 @@ impl MudrexCore {
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), methodUpper.clone());
         m.insert("body".to_string(), Value::Null);
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("headers".to_string(), requestHeaders.clone());
     m
 });
 
@@ -612,6 +615,9 @@ impl MudrexCore {
             startTime = self.parse_to_int(divide(&since, &Value::Int(1000)));
         }  else {
             startTime = subtract(&now, &multiply(&duration, &requestLimit));
+        }
+        if is_equal(&startTime, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchOHLCV() missing startTime".to_string()))));
         }
         let mut endTime: Value = add(&startTime, &multiply(&duration, &requestLimit));
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
@@ -752,8 +758,8 @@ impl MudrexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_938: bool = true;
-            while { if !__for_first_938 { i = add(&i, &Value::Int(1)); } __for_first_938 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_925: bool = true;
+            while { if !__for_first_925 { i = add(&i, &Value::Int(1)); } __for_first_925 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut t: Value = get_value(&rows, &i);
             let mut t: Value = get_value(&rows, &i);
             let mut sym: Value = self.safe_string_k(t.clone(), "symbol", &[]);
@@ -852,8 +858,8 @@ impl MudrexCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_939: bool = true;
-                while { if !__for_first_939 { i = add(&i, &Value::Int(1)); } __for_first_939 = false; is_less_than(&i, &get_array_length(&items)) } {
+                let mut __for_first_926: bool = true;
+                while { if !__for_first_926 { i = add(&i, &Value::Int(1)); } __for_first_926 = false; is_less_than(&i, &get_array_length(&items)) } {
                 append_to_array(&mut aggregated, get_value(&items, &i));
             }
             }
@@ -866,8 +872,8 @@ impl MudrexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_940: bool = true;
-            while { if !__for_first_940 { i = add(&i, &Value::Int(1)); } __for_first_940 = false; is_less_than(&i, &get_array_length(&aggregated)) } {
+            let mut __for_first_927: bool = true;
+            while { if !__for_first_927 { i = add(&i, &Value::Int(1)); } __for_first_927 = false; is_less_than(&i, &get_array_length(&aggregated)) } {
             append_to_array(&mut result, self.parse_market(get_value(&aggregated, &i)));
         }
         }
@@ -890,7 +896,7 @@ impl MudrexCore {
         }
         let mut priceStep: Value = self.safe_string_k(asset.clone(), "price_step", &[Value::Str("0.01".to_string())]);
         let mut qtyStep: Value = self.safe_string_k(asset.clone(), "quantity_step", &[Value::Str("0.001".to_string())]);
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), ms.clone());
         m.insert("lowercaseId".to_string(), Value::Null);
@@ -949,7 +955,7 @@ impl MudrexCore {
         m.insert("info".to_string(), asset.clone());
         m.insert("created".to_string(), Value::Null);
     m
-});
+})]);
 
     Value::Null
 }
@@ -997,6 +1003,9 @@ impl MudrexCore {
         let mut currency: Value = requested.clone();
         if is_equal(&currency, &Value::Null) {
             currency = Value::Str("USDT".to_string());
+        }
+        if is_equal(&response, &Value::Null) {
+            panic!("{}", crate::exchange_errors::null_response(add(&self.id, &Value::Str(" fetchBalance() returned empty response".to_string()))));
         }
         add_element_to_object(&mut response, &Value::Str("currency".to_string()), currency.clone());
         return self.parse_balance(response.clone());
@@ -1463,8 +1472,8 @@ impl MudrexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_941: bool = true;
-            while { if !__for_first_941 { i = add(&i, &Value::Int(1)); } __for_first_941 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_928: bool = true;
+            while { if !__for_first_928 { i = add(&i, &Value::Int(1)); } __for_first_928 = false; is_less_than(&i, &get_array_length(&rows)) } {
             append_to_array(&mut orders, self.parse_order(get_value(&rows, &i), &[market.clone()]));
         }
         }
@@ -1578,8 +1587,8 @@ impl MudrexCore {
         let mut outPos: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_942: bool = true;
-            while { if !__for_first_942 { i = add(&i, &Value::Int(1)); } __for_first_942 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_929: bool = true;
+            while { if !__for_first_929 { i = add(&i, &Value::Int(1)); } __for_first_929 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut p: Value = get_value(&rows, &i);
             let mut p: Value = get_value(&rows, &i);
             let mut symRaw: Value = self.safe_string_k(p.clone(), "symbol", &[]);
@@ -1740,8 +1749,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_943: bool = true;
-                while { if !__for_first_943 { i = add(&i, &Value::Int(1)); } __for_first_943 = false; is_less_than(&i, &get_array_length(&positions)) } {
+                let mut __for_first_930: bool = true;
+                while { if !__for_first_930 { i = add(&i, &Value::Int(1)); } __for_first_930 = false; is_less_than(&i, &get_array_length(&positions)) } {
                 let mut p: Value = get_value(&positions, &i);
                 let mut p: Value = get_value(&positions, &i);
                 if !is_equal(&side, &Value::Null) && !is_equal(&get_value(&p, &Value::Str("side".to_string())), &side) {
@@ -1805,8 +1814,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_944: bool = true;
-                while { if !__for_first_944 { i = add(&i, &Value::Int(1)); } __for_first_944 = false; is_less_than(&i, &get_array_length(&positions)) } {
+                let mut __for_first_931: bool = true;
+                while { if !__for_first_931 { i = add(&i, &Value::Int(1)); } __for_first_931 = false; is_less_than(&i, &get_array_length(&positions)) } {
                 let mut p: Value = get_value(&positions, &i);
                 let mut p: Value = get_value(&positions, &i);
                 if is_equal(&get_value(&p, &Value::Str("symbol".to_string())), &symbol) {

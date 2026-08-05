@@ -32,9 +32,19 @@ impl ParadexCore {
         self.call_method(Value::Str("public_get_markets".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetMarketsHistory` implicit endpoint.
+    pub async fn public_get_markets_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_markets_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetMarketsKlines` implicit endpoint.
     pub async fn public_get_markets_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_markets_klines".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetMarketsSettlementPrice` implicit endpoint.
+    pub async fn public_get_markets_settlement_price(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_markets_settlement_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetMarketsSummary` implicit endpoint.

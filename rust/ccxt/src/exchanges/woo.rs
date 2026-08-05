@@ -893,6 +893,151 @@ impl WooCore {
         m.insert("-1103".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("-1104".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("-1105".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317136".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317137".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317138".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317139".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317140".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317141".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317142".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317143".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317144".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317145".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317146".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317147".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317148".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("317149".to_string(), Value::Str("OrderNotFound".to_string()).clone());
+        m.insert("317150".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317151".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317152".to_string(), Value::Str("OrderNotFound".to_string()).clone());
+        m.insert("317153".to_string(), Value::Str("OrderNotFound".to_string()).clone());
+        m.insert("317154".to_string(), Value::Str("OperationFailed".to_string()).clone());
+        m.insert("317155".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("317156".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("317157".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317158".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317159".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("317160".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317161".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317162".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("317163".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317164".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317165".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317166".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317167".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317168".to_string(), Value::Str("OperationFailed".to_string()).clone());
+        m.insert("317169".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317170".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317171".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("317172".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("317173".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("317174".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317176".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317177".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317178".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("317179".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("317184".to_string(), Value::Str("OrderNotFound".to_string()).clone());
+        m.insert("317206".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("317207".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302001".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("302002".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("302003".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("302004".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("302005".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("302101".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("302102".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302103".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302104".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302109".to_string(), Value::Str("OperationFailed".to_string()).clone());
+        m.insert("302110".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("302111".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302112".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302113".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302114".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302115".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302117".to_string(), Value::Str("DuplicateOrderId".to_string()).clone());
+        m.insert("302118".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302119".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302120".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302121".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302122".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302123".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("302125".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302126".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302127".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302128".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302129".to_string(), Value::Str("OrderNotFound".to_string()).clone());
+        m.insert("302130".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302131".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302132".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302133".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302134".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("302135".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("302136".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("302137".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302138".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302140".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302141".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302142".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302143".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("302144".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302145".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302147".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302148".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302149".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302150".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302151".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302152".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302154".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302155".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302156".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302157".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302159".to_string(), Value::Str("RequestTimeout".to_string()).clone());
+        m.insert("302160".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302162".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302163".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302164".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302165".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("302166".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302167".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302168".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302169".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302170".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302171".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302172".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302177".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302178".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302185".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302186".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302188".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302189".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302190".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302191".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302192".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302193".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302194".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302195".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302196".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302197".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302198".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302199".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302301".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302303".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302305".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302306".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("302307".to_string(), Value::Str("AccountSuspended".to_string()).clone());
+        m.insert("302308".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302309".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302310".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("302311".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("302312".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("302313".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("302314".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("302999".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("311001".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("311002".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("311004".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("311999".to_string(), Value::Str("OperationFailed".to_string()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
@@ -1078,7 +1223,7 @@ impl WooCore {
             inverse = Value::Bool(false);
         }
         let mut active: Value = Value::Bool(is_equal(&self.safe_string_k(market.clone(), "status", &[]), &Value::Str("TRADING".to_string())));
-        return Value::Map({
+        return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1140,7 +1285,7 @@ impl WooCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market.clone());
     m
-});
+})]);
 
     Value::Null
 }
@@ -1433,8 +1578,8 @@ impl WooCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1070: bool = true;
-            while { if !__for_first_1070 { i = add(&i, &Value::Int(1)); } __for_first_1070 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_1075: bool = true;
+            while { if !__for_first_1075 { i = add(&i, &Value::Int(1)); } __for_first_1075 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -1516,7 +1661,7 @@ impl WooCore {
         //     "success": true
         // }
         //
-        // only make one request for currrencies...
+        // only make one request for currencies...
         let mut tokenNetworkResponsePromise: Value = self.v1_public_get_token_network(&[params.clone()]).await;
         //
         // {
@@ -1556,8 +1701,8 @@ impl WooCore {
         let mut currencyIds: Value = object_keys(&tokensById);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1071: bool = true;
-            while { if !__for_first_1071 { i = add(&i, &Value::Int(1)); } __for_first_1071 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_1076: bool = true;
+            while { if !__for_first_1076 { i = add(&i, &Value::Int(1)); } __for_first_1076 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut id: Value = get_value(&currencyIds, &i);
             let mut id: Value = get_value(&currencyIds, &i);
             let mut customCurrency: Value = Value::Map({
@@ -1569,7 +1714,9 @@ impl WooCore {
             });
             let mut parsed: Value = self.parse_currency(customCurrency.clone());
             let mut code: Value = self.safe_string_k(parsed.clone(), "code", &[]);
-            add_element_to_object(&mut result, &code, parsed.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, parsed.clone());
+            }
         }
         }
         return result;
@@ -1589,8 +1736,8 @@ impl WooCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1072: bool = true;
-            while { if !__for_first_1072 { j = add(&j, &Value::Int(1)); } __for_first_1072 = false; is_less_than(&j, &get_array_length(&keys)) } {
+            let mut __for_first_1077: bool = true;
+            while { if !__for_first_1077 { j = add(&j, &Value::Int(1)); } __for_first_1077 = false; is_less_than(&j, &get_array_length(&keys)) } {
             let mut networkId: Value = get_value(&keys, &j);
             let mut networkId: Value = get_value(&keys, &j);
             let mut tokenEntry: Value = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
@@ -1603,7 +1750,8 @@ impl WooCore {
 })]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut specialNetworkId: Value = self.safe_string_k(tokenEntry.clone(), "token", &[]);
-            add_element_to_object(&mut resultingNetworks, &networkCode, Value::Map({
+            if !is_equal(&networkCode, &Value::Null) {
+                add_element_to_object(&mut resultingNetworks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("currencyNetworkId".to_string(), specialNetworkId.clone());
@@ -1637,6 +1785,7 @@ impl WooCore {
 }));
     m
 }));
+            }
         }
         }
         return self.safe_currency_structure(Value::Map({
@@ -1678,7 +1827,7 @@ impl WooCore {
  * @method
  * @name woo#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://docs.woox.io/#send-order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1705,7 +1854,7 @@ impl WooCore {
  * @method
  * @name woo#createMarketSellOrderWithCost
  * @description create a market sell order by providing the symbol and cost
- * @see https://docs.woox.io/#send-order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1732,7 +1881,7 @@ impl WooCore {
  * @method
  * @name woo#createTrailingAmountOrder
  * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
- * @see https://docs.woox.io/#send-algo-order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1768,7 +1917,7 @@ impl WooCore {
  * @method
  * @name woo#createTrailingPercentOrder
  * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
- * @see https://docs.woox.io/#send-algo-order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2197,7 +2346,7 @@ impl WooCore {
  * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
  * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2688,7 +2837,7 @@ impl WooCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -3068,7 +3217,7 @@ impl WooCore {
  * @method
  * @name woo#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.woox.io/#get-current-holding-get-balance-new
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -3119,15 +3268,17 @@ impl WooCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1073: bool = true;
-            while { if !__for_first_1073 { i = add(&i, &Value::Int(1)); } __for_first_1073 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1078: bool = true;
+            while { if !__for_first_1078 { i = add(&i, &Value::Int(1)); } __for_first_1078 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "holding", &[]));
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "availableBalance", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         return self.safe_balance(result.clone());
@@ -3187,7 +3338,7 @@ impl WooCore {
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         networkCode = self.network_id_to_code(&[networkCode.clone(), get_value(&currency, &Value::Str("code".to_string()))]);
-        let mut networkEntry: Value = self.safe_dict(get_value(&currency, &Value::Str("networks".to_string())), networkCode.clone(), &[]);
+        let mut networkEntry: Value = ternary(is_true(&(is_equal(&networkCode, &Value::Null))), Value::Null, self.safe_dict(get_value(&currency, &Value::Str("networks".to_string())), networkCode.clone(), &[]));
         if is_equal(&networkEntry, &Value::Null) {
             let mut supportedNetworks: Value = object_keys(&get_value(&currency, &Value::Str("networks".to_string())));
             panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str("  can not determine a network code, please provide unified \"network\" param, one from the following: ".to_string())), &self.json(supportedNetworks.clone()))));
@@ -3584,7 +3735,7 @@ impl WooCore {
  * @method
  * @name woo#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://docs.woox.io/#get-transfer-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
@@ -3820,7 +3971,7 @@ impl WooCore {
  * @method
  * @name woo#withdraw
  * @description make a withdrawal
- * @see https://docs.woox.io/#token-withdraw-v3
+ * @see https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -4460,8 +4611,8 @@ impl WooCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1074: bool = true;
-            while { if !__for_first_1074 { i = add(&i, &Value::Int(1)); } __for_first_1074 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1079: bool = true;
+            while { if !__for_first_1079 { i = add(&i, &Value::Int(1)); } __for_first_1079 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut entry: Value = get_value(&rows, &i);
             let mut entry: Value = get_value(&rows, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -4578,8 +4729,8 @@ impl WooCore {
         let mut details: Value = self.safe_list_k(leverage.clone(), "details", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1075: bool = true;
-            while { if !__for_first_1075 { i = add(&i, &Value::Int(1)); } __for_first_1075 = false; is_less_than(&i, &get_array_length(&details)) } {
+            let mut __for_first_1080: bool = true;
+            while { if !__for_first_1080 { i = add(&i, &Value::Int(1)); } __for_first_1080 = false; is_less_than(&i, &get_array_length(&details)) } {
             let mut position: Value = self.safe_dict(details.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5291,13 +5442,14 @@ impl WooCore {
         let mut data: Value = self.safe_list_k(response.clone(), "rows", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1076: bool = true;
-            while { if !__for_first_1076 { i = add(&i, &Value::Int(1)); } __for_first_1076 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1081: bool = true;
+            while { if !__for_first_1081 { i = add(&i, &Value::Int(1)); } __for_first_1081 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "token", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            add_element_to_object(&mut result, &code, Value::Map({
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
         m.insert("id".to_string(), id.clone());
@@ -5335,6 +5487,7 @@ impl WooCore {
         m.insert("created".to_string(), self.safe_timestamp(entry.clone(), Value::Str("createdTime".to_string()), &[]));
     m
 }));
+            }
         }
         }
         return result;
@@ -5346,7 +5499,7 @@ impl WooCore {
  * @method
  * @name woo#fetchPositionsADLRank
  * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
- * @see https://docs.woox.io/#get-all-position-info-new
+ * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
  * @param {string[]} [symbols] a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
@@ -5453,8 +5606,8 @@ impl WooCore {
         let mut networkKeys: Value = object_keys(&networks);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1077: bool = true;
-            while { if !__for_first_1077 { i = add(&i, &Value::Int(1)); } __for_first_1077 = false; is_less_than(&i, &get_array_length(&networkKeys)) } {
+            let mut __for_first_1082: bool = true;
+            while { if !__for_first_1082 { i = add(&i, &Value::Int(1)); } __for_first_1082 = false; is_less_than(&i, &get_array_length(&networkKeys)) } {
             let mut network: Value = get_value(&networkKeys, &i);
             let mut network: Value = get_value(&networkKeys, &i);
             if is_equal(&network, &Value::Str("ETH".to_string())) {

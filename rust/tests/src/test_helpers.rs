@@ -452,6 +452,7 @@ pub trait ExchangeOps {
     fn safe_number(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
     fn safe_integer(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
     fn safe_string_n(&self, d: Value, keys: Value, optional_args: &[Value]) -> Value;
+    fn omit(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value;
     fn omit_zero(&self, s: Value) -> Value;
     fn array_concat(&self, a: Value, b: Value) -> Value;
     /// Reflects `exchange.setProperty(exchange, key, value)` from TS —
@@ -518,6 +519,7 @@ impl ExchangeOps for Value {
     fn safe_number(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_number(d, key, o)) }
     fn safe_integer(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
     fn safe_string_n(&self, d: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string_n(d, keys, o)) }
+    fn omit(&self, obj: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.omit(obj, keys, o)) }
     fn omit_zero(&self, s: Value)                -> Value { with_base(|e| e.omit_zero(s)) }
     fn array_concat(&self, a: Value, b: Value)   -> Value { with_base(|e| e.array_concat(a, b)) }
     fn parse_timeframe(&self, tf: Value)         -> Value { with_base(|e| e.parse_timeframe(tf)) }

@@ -41,7 +41,26 @@ pub fn string_sub(a: &str, b: &str) -> Option<String> {
 }
 
 pub fn string_mul(a: &str, b: &str) -> Option<String> {
-    Some(fmt(parse(a)? * parse(b)?))
+    // Fast path: rust_decimal. Its `*` PANICS on overflow ("Multiplication
+    // overflowed"), so use `checked_mul` and fall back to the arbitrary-
+    // precision BigInt path (like `string_div_prec`) when the 96-bit mantissa
+    // can't hold the product — e.g. nado's parse_position multiplying large
+    // contract sizes by price. CCXT's `Precise` is arbitrary-precision, so the
+    // result must not depend on rust_decimal's range.
+    if let (Some(x), Some(y)) = (parse(a), parse(b)) {
+        if let Some(p) = x.checked_mul(y) {
+            return Some(fmt(p));
+        }
+    }
+    string_mul_big(a, b)
+}
+
+/// Arbitrary-precision `a * b`: product integer is `a_int * b_int`, with the
+/// decimal counts summed. Used when the i128/decimal fast path overflows.
+fn string_mul_big(a: &str, b: &str) -> Option<String> {
+    let (a_int, a_dec) = precise_parse_big(a)?;
+    let (b_int, b_dec) = precise_parse_big(b)?;
+    Some(bigint_to_precise_string(&(a_int * b_int), a_dec + b_dec))
 }
 
 pub fn string_div(a: &str, b: &str) -> Option<String> {
