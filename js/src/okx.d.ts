@@ -942,7 +942,7 @@ export default class okx extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: string;
@@ -960,7 +960,7 @@ export default class okx extends Exchange {
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
-    fetchUnderlyingAssets(params?: {}): Promise<any>;
+    fetchUnderlyingAssets(params?: {}): Promise<string[]>;
     /**
      * @method
      * @name okx#fetchGreeks

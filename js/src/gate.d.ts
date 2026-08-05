@@ -41,9 +41,9 @@ export default class gate extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params?: any): Promise<any[]>;
-    fetchSwapMarkets(params?: any): Promise<any[]>;
-    fetchFutureMarkets(params?: {}): Promise<any[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
+    fetchFutureMarkets(params?: {}): Promise<Market[]>;
     parseContractMarket(market: any, settleId: any): {
         id: Str;
         symbol: string;
@@ -95,7 +95,7 @@ export default class gate extends Exchange {
         created: Int;
         info: any;
     };
-    fetchOptionMarkets(params?: any): Promise<any[]>;
+    fetchOptionMarkets(params?: any): Promise<Market[]>;
     fetchOptionUnderlyings(): Promise<Str[]>;
     prepareRequest(market?: Market, type?: Str, params?: Dict): Dict[];
     spotOrderPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): any[];
@@ -577,7 +577,7 @@ export default class gate extends Exchange {
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     prepareOrdersByStatusRequest(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): object[];
-    fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name gate#cancelOrder
@@ -887,7 +887,7 @@ export default class gate extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     /**
      * @method
      * @name gate#fetchMySettlementHistory
@@ -950,7 +950,7 @@ export default class gate extends Exchange {
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
-    fetchUnderlyingAssets(params?: {}): Promise<Str[]>;
+    fetchUnderlyingAssets(params?: {}): Promise<string[]>;
     /**
      * @method
      * @name gate#fetchLiquidations

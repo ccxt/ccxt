@@ -55,7 +55,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSpotMarkets(params?: any): Promise<any[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
     /**
      * @ignore
      * @method
@@ -65,7 +65,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSwapMarkets(params?: any): Promise<any[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     /**
      * @method
      * @name mexc#fetchOrderBook

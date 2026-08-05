@@ -28,7 +28,7 @@ export default class digifinex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsV2(params?: {}): Promise<any[]>;
+    fetchMarketsV2(params?: {}): Promise<Market[]>;
     fetchMarketsV1(params?: {}): Promise<any[]>;
     parseBalance(response: any): Balances;
     /**

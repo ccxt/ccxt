@@ -35,8 +35,8 @@ export default class lbank extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params?: any): Promise<any[]>;
-    fetchSwapMarkets(params?: any): Promise<any[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method

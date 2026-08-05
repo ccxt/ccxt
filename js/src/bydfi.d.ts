@@ -456,7 +456,7 @@ export default class bydfi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchTransactionsHelper(type: any, code: any, since: any, limit: any, params: any): Promise<any[]>;
+    fetchTransactionsHelper(type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {

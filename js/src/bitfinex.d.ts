@@ -208,7 +208,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name bitfinex#fetchClosedOrder
@@ -220,7 +220,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    fetchClosedOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name bitfinex#fetchOpenOrders
