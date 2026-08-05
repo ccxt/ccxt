@@ -1764,6 +1764,11 @@ class alpaca extends Exchange {
         })();
     }
 
+    public function set_sandbox_mode(bool $enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
+    }
+
     public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): PromiseInterface {
         return Async\async(function () use ($type, $code, $since, $limit, $params) {
             if ($this->markets === null) {
@@ -1772,6 +1777,39 @@ class alpaca extends Exchange {
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
+            }
+            $sandboxMode = $this->isSandboxModeEnabled || $this->safe_bool($this->options, 'sandboxMode', false);
+            if ($sandboxMode) {
+                // paper-trading hosts do not serve the crypto wallets api at all, so route
+                // through the account $activities ledger instead, $filtered to transfer-like
+                // entries, see https://github.com/ccxt/ccxt/issues/24847
+                $request = array(
+                    'activity_types' => 'CSD,CSW,TRANS',
+                );
+                $activities = Async\await($this->traderPrivateGetV2AccountActivities($this->extend($request, $params)));
+                //
+                //     array(
+                //         {
+                //             "id" => "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+                //             "activity_type" => "CSD",
+                //             "date" => "2025-01-10",
+                //             "net_amount" => "1000",
+                //             "status" => "executed"
+                //         }
+                //     )
+                //
+                $filtered = array();
+                for ($i = 0; $i < count($activities); $i++) {
+                    $entry = $activities[$i];
+                    $activityType = $this->safe_string($entry, 'activity_type');
+                    $amount = $this->safe_string($entry, 'net_amount');
+                    $isIncoming = ($activityType === 'CSD') || (($activityType === 'TRANS') && !Precise::string_lt($amount, '0'));
+                    $entryDirection = $isIncoming ? 'INCOMING' : 'OUTGOING';
+                    if (($type === 'BOTH') || ($entryDirection === $type)) {
+                        $filtered[] = $entry;
+                    }
+                }
+                return $this->parse_transactions($filtered, $currency, $since, $limit, $params);
             }
             $response = Async\await($this->traderPrivateGetV2WalletsTransfers($params));
             //
@@ -1858,6 +1896,18 @@ class alpaca extends Exchange {
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
+        // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        //
+        //     {
+        //         "id" => "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+        //         "activity_type" => "CSD",
+        //         "date" => "2025-01-10",
+        //         "net_amount" => "1000",
+        //         "status" => "executed"
+        //     }
+        //
+        // crypto wallets api entry
+        //
         //     {
         //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
         //         "tx_hash" => null,
@@ -1874,45 +1924,97 @@ class alpaca extends Exchange {
         //         "fees" => "0.1"
         //     }
         //
-        $datetime = $this->safe_string($transaction, 'created_at');
-        $currencyId = $this->safe_string($transaction, 'asset');
-        $code = $this->safe_currency_code($currencyId, $currency);
-        $fees = $this->safe_string($transaction, 'fees');
-        $networkFee = $this->safe_string($transaction, 'network_fee');
-        $totalFee = Precise::string_add($fees, $networkFee);
-        $fee = array(
-            'cost' => $this->parse_number($totalFee),
-            'currency' => $code,
-        );
+        $activityType = $this->safe_string($transaction, 'activity_type');
+        $txid = null;
+        $timestamp = null;
+        $datetime = null;
+        $network = null;
+        $address = null;
+        $addressTo = null;
+        $addressFrom = null;
+        $type = null;
+        $amount = null;
+        $code = null;
+        $status = null;
+        $comment = null;
+        $internal = null;
+        $fee = null;
+        if ($activityType !== null) {
+            $netAmount = $this->safe_string($transaction, 'net_amount');
+            $isIncoming = ($activityType === 'CSD') || (($activityType === 'TRANS') && !Precise::string_lt($netAmount, '0'));
+            $timestamp = $this->parse8601($this->safe_string($transaction, 'date') . 'T00:00:00Z');
+            $datetime = $this->iso8601($timestamp);
+            $type = $isIncoming ? 'deposit' : 'withdrawal';
+            $amount = $this->parse_number(Precise::string_abs($netAmount));
+            // cash ledger rows carry no per-entry asset field and are USD, while crypto
+            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            // $currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            $activityCurrencyId = $this->safe_string_2($transaction, 'symbol', 'asset');
+            if ($activityCurrencyId !== null) {
+                $code = $this->safe_currency_code($activityCurrencyId);
+            } elseif (($activityType === 'CSD') || ($activityType === 'CSW')) {
+                $code = 'USD';
+            } else {
+                $code = $this->safe_currency_code(null, $currency);
+            }
+            $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+            $comment = $activityType;
+            $internal = ($activityType !== 'TRANS');
+        } else {
+            $txid = $this->safe_string($transaction, 'tx_hash');
+            $datetime = $this->safe_string($transaction, 'created_at');
+            $timestamp = $this->parse8601($datetime);
+            $network = $this->safe_string($transaction, 'chain');
+            $address = $this->safe_string($transaction, 'to_address');
+            $addressTo = $this->safe_string($transaction, 'to_address');
+            $addressFrom = $this->safe_string($transaction, 'from_address');
+            $type = $this->parse_transaction_type($this->safe_string($transaction, 'direction'));
+            $amount = $this->safe_number($transaction, 'amount');
+            $currencyId = $this->safe_string($transaction, 'asset');
+            $code = $this->safe_currency_code($currencyId, $currency);
+            $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+            $fees = $this->safe_string($transaction, 'fees');
+            $networkFee = $this->safe_string($transaction, 'network_fee');
+            $totalFee = Precise::string_add($fees, $networkFee);
+            $fee = array(
+                'cost' => $this->parse_number($totalFee),
+                'currency' => $code,
+            );
+        }
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
-            'txid' => $this->safe_string($transaction, 'tx_hash'),
-            'timestamp' => $this->parse8601($datetime),
+            'txid' => $txid,
+            'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'network' => $this->safe_string($transaction, 'chain'),
-            'address' => $this->safe_string($transaction, 'to_address'),
-            'addressTo' => $this->safe_string($transaction, 'to_address'),
-            'addressFrom' => $this->safe_string($transaction, 'from_address'),
+            'network' => $network,
+            'address' => $address,
+            'addressTo' => $addressTo,
+            'addressFrom' => $addressFrom,
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
-            'type' => $this->parse_transaction_type($this->safe_string($transaction, 'direction')),
-            'amount' => $this->safe_number($transaction, 'amount'),
+            'type' => $type,
+            'amount' => $amount,
             'currency' => $code,
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'status' => $status,
             'updated' => null,
+            'comment' => $comment,
+            'internal' => $internal,
             'fee' => $fee,
-            'comment' => null,
-            'internal' => null,
         );
     }
 
     public function parse_transaction_status(?string $status) {
         $statuses = array(
+            // crypto wallets api
             'PROCESSING' => 'pending',
             'FAILED' => 'failed',
             'COMPLETE' => 'ok',
+            // account activities ledger, see https://github.com/ccxt/ccxt/issues/24847
+            'executed' => 'ok',
+            'canceled' => 'canceled',
+            'pending' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }
