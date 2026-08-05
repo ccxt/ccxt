@@ -2715,7 +2715,7 @@ public class WoofiproCore extends WoofiproApi
             Object code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "holding"));
-            Helpers.addElementToObject(account, "frozen", this.safeString(balance, "frozen"));
+            Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Helpers.addElementToObject(result, code, account);
