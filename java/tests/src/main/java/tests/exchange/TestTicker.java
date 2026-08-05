@@ -130,7 +130,12 @@ public class TestTicker extends BaseTest {
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             // Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))))
+            // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+            // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+            // far above baseVolume * high), so the spot-derived invariant does not hold there,
+            // see https://github.com/ccxt/ccxt/pull/29563
+            Object isInverse = exchange.safeBool(market, "inverse", false);
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && !Helpers.isTrue(isInverse)))
             {
                 Object baseLow = Precise.stringMul(baseVolume, low);
                 Object baseHigh = Precise.stringMul(baseVolume, high);

@@ -399,6 +399,7 @@ public class BybitCore extends BybitApi
                         put( "v5/affiliate/aff-user-list", 5 );
                         put( "v5/affiliate/affiliate-sub-list", 5 );
                         put( "v5/spot-lever-token/order-record", 1 );
+                        put( "v5/spot-margin-trade/flexible-available-inventory", 5 );
                         put( "v5/spot-margin-trade/interest-rate-history", 5 );
                         put( "v5/spot-margin-trade/state", 5 );
                         put( "v5/spot-margin-trade/max-borrowable", 5 );
