@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -66,7 +66,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchConvertQuote': True,
                 'fetchConvertTrade': False,
                 'fetchConvertTradeHistory': True,
-                'fetchCrossBorrowRate': True,
+                'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
@@ -3881,42 +3881,6 @@ class whitebit(Exchange, ImplicitAPI):
             'stopLossPrice': self.safe_number(tpsl, 'stopLoss'),
             'takeProfitPrice': self.safe_number(tpsl, 'takeProfit'),
         })
-
-    def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
-        """
-        fetch the rate of interest to borrow a currency for margin trading
-
-        https://docs.whitebit.com/private/http-main-v4/#get-plans
-
-        :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
-        """
-        if self.markets is None:
-            self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'ticker': currency['id'],
-        }
-        response = self.v4PrivatePostMainAccountSmartPlans(self.extend(request, params))
-        #
-        #
-        data = self.safe_list(response, 0, [])
-        return self.parse_borrow_rate(data, currency)
-
-    def parse_borrow_rate(self, info: Any, currency: Currency = None):
-        #
-        #
-        currencyId = self.safe_string(info, 'ticker')
-        percent = self.safe_string(info, 'percent')
-        return {
-            'currency': self.safe_currency_code(currencyId, currency),
-            'rate': self.parse_number(Precise.string_div(percent, '100')),
-            'period': self.safe_integer(info, 'duration'),
-            'timestamp': None,
-            'datetime': None,
-            'info': info,
-        }
 
     def is_fiat(self, currency: str) -> bool:
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])

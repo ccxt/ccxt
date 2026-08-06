@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFee, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -70,6 +70,8 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
@@ -1070,6 +1072,40 @@ class indodax(Exchange, ImplicitAPI):
             'rate': self.safe_number(data, 'withdraw_fee'),
             'currency': self.safe_currency_code(currencyId, currency),
         }
+
+    async def fetch_deposit_withdraw_fee(self, code: str, params={}) -> DepositWithdrawFee:
+        """
+        fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privatePostWithdrawFee(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": {
+        #             "server_time": 1607923272,
+        #             "withdraw_fee": 0.005,
+        #             "currency": "eth"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'return', {})
+        result = self.deposit_withdraw_fee(response)
+        result['withdraw']['fee'] = self.safe_number(data, 'withdraw_fee')
+        result['withdraw']['percentage'] = False
+        result['deposit']['fee'] = 0
+        result['deposit']['percentage'] = False
+        return self.assign_default_deposit_withdraw_fees(result, currency)
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
