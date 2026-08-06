@@ -194,6 +194,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/market/v1/public/q/symbol-index-price': 1,
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
+                            'future/market/v1/public/q/ticker/books': 1,
                             'future/market/v1/public/q/tickers': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/detail': 3.33,
@@ -218,6 +219,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/market/v1/public/q/symbol-index-price': 1,
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
+                            'future/market/v1/public/q/ticker/books': 1,
                             'future/market/v1/public/q/tickers': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/detail': 3.33,
@@ -1771,13 +1773,14 @@ class xt(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    def fetch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
         https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+        https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
 
-        :param str [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
@@ -1788,11 +1791,22 @@ class xt(Exchange, ImplicitAPI):
         market = None
         if symbols is not None:
             market = self.market(symbols[0])
+        type = None
         subType = None
+        type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
-        if subType is not None:
-            raise NotSupported(self.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported')
-        response = self.publicSpotGetTickerBook(self.extend(request, params))
+        isInverse = (subType == 'inverse')
+        isLinear = (subType == 'linear') or (type == 'swap') or (type == 'future')
+        isContract = isInverse or isLinear
+        response = None
+        if isInverse:
+            response = self.publicInverseGetFutureMarketV1PublicQTickerBooks(self.extend(request, params))
+        elif isLinear:
+            response = self.publicLinearGetFutureMarketV1PublicQTickerBooks(self.extend(request, params))
+        else:
+            response = self.publicSpotGetTickerBook(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "rc": 0,
@@ -1810,8 +1824,38 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickers = self.safe_value(response, 'result', [])
-        return self.parse_tickers(tickers, symbols)
+        # swap and future
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": [
+        #             {
+        #                 "s": "btc_usdt",
+        #                 "t": 1785928174370,
+        #                 "ap": "64085.5",
+        #                 "aq": "101843",
+        #                 "bp": "64085.3",
+        #                 "bq": "121042"
+        #             },
+        #         ]
+        #     }
+        #
+        tickers = self.safe_list(response, 'result', [])
+        result = {}
+        for i in range(0, len(tickers)):
+            rawTicker = tickers[i]
+            # the spot and contract payloads share the same field names, so
+            # the market type cannot be inferred from the entry itself
+            marketId = self.safe_string(rawTicker, 's')
+            marketType = 'contract' if isContract else 'spot'
+            marketInner = self.safe_market(marketId, market, '_', marketType)
+            ticker = self.parse_ticker(rawTicker, marketInner)
+            symbol = ticker['symbol']
+            if symbol is not None:
+                result[symbol] = ticker
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker: Any, market: Market = None):
         #
