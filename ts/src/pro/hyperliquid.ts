@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import hyperliquidRest from '../hyperliquid.js';
-import { NotSupported, ExchangeError } from '../base/errors.js';
+import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, type NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
@@ -354,7 +354,10 @@ export default class hyperliquid extends hyperliquidRest {
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
-                'type': market['spot'] ? 'activeSpotAssetCtx' : 'activeAssetCtx',
+                // 'activeSpotAssetCtx' is only a response channel; the subscription type is
+                // always 'activeAssetCtx', the server routes spot coins to the spot channel,
+                // see https://github.com/ccxt/ccxt/issues/27475
+                'type': 'activeAssetCtx',
                 'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
             },
         };
@@ -382,7 +385,7 @@ export default class hyperliquid extends hyperliquidRest {
         const request: Dict = {
             'method': 'unsubscribe',
             'subscription': {
-                'type': market['spot'] ? 'activeSpotAssetCtx' : 'activeAssetCtx',
+                'type': 'activeAssetCtx',
                 'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
             },
         };
@@ -494,8 +497,10 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const userAddressLower = (userAddress !== undefined) ? userAddress.toLowerCase () : '';
-        const subscribeHash = 'subscribe:userFills::' + userAddressLower;
+        if (userAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a user address');
+        }
+        const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase ();
         const trades = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -1366,8 +1371,10 @@ export default class hyperliquid extends hyperliquidRest {
         // duplicates on the error channel ("Already subscribed"), which rejects every pending
         // future on the connection. address lowercased because the server is case-insensitive.
         // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
-        const userAddressLower = (userAddress !== undefined) ? userAddress.toLowerCase () : '';
-        const subscribeHash = 'subscribe:orderUpdates::' + userAddressLower;
+        if (userAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a user address');
+        }
+        const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase ();
         const orders = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -1609,9 +1616,11 @@ export default class hyperliquid extends hyperliquidRest {
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         const user = this.safeStringLower (subscription, 'user');
-        const subscribeHash = 'subscribe:orderUpdates::' + user;
-        if (subscribeHash in client.subscriptions) {
-            delete client.subscriptions[subscribeHash];
+        if (user !== undefined) {
+            const subscribeHash = 'subscribe:orderUpdates::' + user;
+            if (subscribeHash in client.subscriptions) {
+                delete client.subscriptions[subscribeHash];
+            }
         }
         const topicStructure = {
             'topic': 'orders',
@@ -1626,9 +1635,11 @@ export default class hyperliquid extends hyperliquidRest {
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         const user = this.safeStringLower (subscription, 'user');
-        const subscribeHash = 'subscribe:userFills::' + user;
-        if (subscribeHash in client.subscriptions) {
-            delete client.subscriptions[subscribeHash];
+        if (user !== undefined) {
+            const subscribeHash = 'subscribe:userFills::' + user;
+            if (subscribeHash in client.subscriptions) {
+                delete client.subscriptions[subscribeHash];
+            }
         }
         const topicStructure = {
             'topic': 'myTrades',
