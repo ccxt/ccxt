@@ -149,7 +149,7 @@ class woofipro extends Exchange {
                 ),
                 'www' => 'https://dex.woo.org',
                 'doc' => array(
-                    'https://orderly.network/docs/build-on-omnichain/building-on-evm',
+                    'https://orderly.network/docs/build-on-omnichain/building-on-omnichain',
                 ),
                 'fees' => array(
                     'https://dex.woo.org/en/orderly',
@@ -446,7 +446,7 @@ class woofipro extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-$status
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-$status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
@@ -484,7 +484,7 @@ class woofipro extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -599,7 +599,7 @@ class woofipro extends Exchange {
         /**
          * retrieves $data on all markets for woofipro
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
@@ -649,8 +649,8 @@ class woofipro extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -841,7 +841,7 @@ class woofipro extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-$market-trades
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -937,7 +937,7 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate interval
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -950,7 +950,7 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-$market
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -987,7 +987,7 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
          *
          * @param {string[]} $symbols unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1024,7 +1024,7 @@ class woofipro extends Exchange {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-$market
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
@@ -1128,7 +1128,7 @@ class woofipro extends Exchange {
         /**
          * fetch the history of funding payments paid and received on this account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
          *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
@@ -1195,7 +1195,7 @@ class woofipro extends Exchange {
         /**
          * fetch the trading fees for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
@@ -1254,7 +1254,7 @@ class woofipro extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -1309,7 +1309,7 @@ class woofipro extends Exchange {
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
          *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1620,8 +1620,8 @@ class woofipro extends Exchange {
         /**
          * create a trade $order
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-$order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-$order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-$order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-$order
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1692,7 +1692,7 @@ class woofipro extends Exchange {
         /**
          * *contract only* create a list of trade $orders
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1750,8 +1750,8 @@ class woofipro extends Exchange {
         /**
          * edit a trade order
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1834,10 +1834,10 @@ class woofipro extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
          *
          * cancels an open order
          * @param {string} $id order $id
@@ -1918,8 +1918,8 @@ class woofipro extends Exchange {
         /**
          * cancel multiple orders
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
          *
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified market $symbol
@@ -1958,8 +1958,8 @@ class woofipro extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
          *
          * cancel all open orders in a $market
          * @param {string} [$symbol] unified $market $symbol
@@ -2008,10 +2008,10 @@ class woofipro extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
          *
          * fetches information on an order made by the user
          * @param {string} $id the order $id
@@ -2086,8 +2086,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-$orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-$orders
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -2178,8 +2178,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2203,8 +2203,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2228,7 +2228,7 @@ class woofipro extends Exchange {
         /**
          * fetch all the $trades made from a single order
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-$trades-of-specific-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-$trades-of-specific-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
@@ -2277,7 +2277,7 @@ class woofipro extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-$trades
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$trades
          *
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -2365,7 +2365,7 @@ class woofipro extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -2484,7 +2484,7 @@ class woofipro extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
@@ -2548,7 +2548,7 @@ class woofipro extends Exchange {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -2566,7 +2566,7 @@ class woofipro extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2584,7 +2584,7 @@ class woofipro extends Exchange {
         /**
          * fetch history of deposits and withdrawals
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
@@ -2649,7 +2649,7 @@ class woofipro extends Exchange {
         /**
          * make a withdrawal
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-$request
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-$request
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -2743,7 +2743,7 @@ class woofipro extends Exchange {
         /**
          * fetch the set leverage for a $market
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2789,7 +2789,7 @@ class woofipro extends Exchange {
         /**
          * set the level of $leverage for a market
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-$leverage-setting
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-$leverage-setting
          *
          * @param {int} [$leverage] the rate of $leverage
          * @param {string} [$symbol] unified market $symbol
@@ -2882,7 +2882,7 @@ class woofipro extends Exchange {
     public function fetch_position(string $symbol, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
          *
          * fetch $data on an open position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
@@ -2931,7 +2931,7 @@ class woofipro extends Exchange {
         /**
          * fetch all open $positions
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-$positions-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-$positions-info
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
