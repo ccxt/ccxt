@@ -164,6 +164,7 @@ public partial class xt : Exchange
                             { "future/market/v1/public/q/symbol-index-price", 1 },
                             { "future/market/v1/public/q/symbol-mark-price", 1 },
                             { "future/market/v1/public/q/ticker", 1 },
+                            { "future/market/v1/public/q/ticker/books", 1 },
                             { "future/market/v1/public/q/tickers", 1 },
                             { "future/market/v1/public/symbol/coins", 3.33 },
                             { "future/market/v1/public/symbol/detail", 3.33 },
@@ -188,6 +189,7 @@ public partial class xt : Exchange
                             { "future/market/v1/public/q/symbol-index-price", 1 },
                             { "future/market/v1/public/q/symbol-mark-price", 1 },
                             { "future/market/v1/public/q/ticker", 1 },
+                            { "future/market/v1/public/q/ticker/books", 1 },
                             { "future/market/v1/public/q/tickers", 1 },
                             { "future/market/v1/public/symbol/coins", 3.33 },
                             { "future/market/v1/public/symbol/detail", 3.33 },
@@ -1819,7 +1821,8 @@ public partial class xt : Exchange
      * @name xt#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
-     * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
@@ -1837,15 +1840,30 @@ public partial class xt : Exchange
         {
             market = this.market(getValue(symbols, 0));
         }
+        object type = null;
         object subType = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(!isEqual(subType, null)))
+        object isInverse = (isEqual(subType, "inverse"));
+        object isLinear = isTrue(isTrue((isEqual(subType, "linear"))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+        object isContract = isTrue(isInverse) || isTrue(isLinear);
+        object response = null;
+        if (isTrue(isInverse))
         {
-            throw new NotSupported ((string)add(this.id, " fetchBidsAsks() is not available for swap and future markets, only spot markets are supported")) ;
+            response = await ((Task<object>)callDynamically(this, "publicInverseGetFutureMarketV1PublicQTickerBooks", new object[] { this.extend(request, parameters) }));
+        } else if (isTrue(isLinear))
+        {
+            response = await ((Task<object>)callDynamically(this, "publicLinearGetFutureMarketV1PublicQTickerBooks", new object[] { this.extend(request, parameters) }));
+        } else
+        {
+            response = await this.publicSpotGetTickerBook(this.extend(request, parameters));
         }
-        object response = await this.publicSpotGetTickerBook(this.extend(request, parameters));
+        //
+        // spot
         //
         //     {
         //         "rc": 0,
@@ -1863,8 +1881,42 @@ public partial class xt : Exchange
         //         ]
         //     }
         //
-        object tickers = this.safeValue(response, "result", new List<object>() {});
-        return this.parseTickers(tickers, symbols);
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "s": "btc_usdt",
+        //                 "t": 1785928174370,
+        //                 "ap": "64085.5",
+        //                 "aq": "101843",
+        //                 "bp": "64085.3",
+        //                 "bq": "121042"
+        //             },
+        //         ]
+        //     }
+        //
+        object tickers = this.safeList(response, "result", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        {
+            object rawTicker = getValue(tickers, i);
+            // the spot and contract payloads share the same field names, so
+            // the market type cannot be inferred from the entry itself
+            object marketId = this.safeString(rawTicker, "s");
+            object marketType = ((bool) isTrue(isContract)) ? "contract" : "spot";
+            object marketInner = this.safeMarket(marketId, market, "_", marketType);
+            object ticker = this.parseTicker(rawTicker, marketInner);
+            object symbol = getValue(ticker, "symbol");
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            }
+        }
+        return this.filterByArray(result, "symbol", symbols);
     }
 
     public override object parseTicker(object ticker, object market = null)
