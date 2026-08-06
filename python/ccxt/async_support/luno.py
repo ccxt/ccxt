@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, DepositWithdrawFee
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -72,6 +72,8 @@ class luno(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
@@ -1532,6 +1534,37 @@ class luno(Exchange, ImplicitAPI):
             'address': self.safe_string(depositAddress, 'address'),
             'tag': self.safe_string(depositAddress, 'name'),
         }
+
+    async def fetch_deposit_withdraw_fee(self, code: str, params={}) -> DepositWithdrawFee:
+        """
+        fetch the fee for sending(withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+
+        https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['address']: the destination address luno should quote the send fee for(required by the exchange)
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
+        """
+        address = self.safe_string(params, 'address')
+        if address is None:
+            raise ArgumentsRequired(self.id + ' fetchDepositWithdrawFee() requires an "address" parameter - luno quotes the send fee per destination address')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateGetSendFee(self.extend(request, params))
+        #
+        #     {
+        #         "currency": "XBT",
+        #         "fee": "0.00015"
+        #     }
+        #
+        result = self.deposit_withdraw_fee(response)
+        result['withdraw']['fee'] = self.safe_number(response, 'fee')
+        result['withdraw']['percentage'] = False
+        return self.assign_default_deposit_withdraw_fees(result, currency)
 
     def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
