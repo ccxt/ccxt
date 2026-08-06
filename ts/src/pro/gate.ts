@@ -1538,6 +1538,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
      * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
+     * @param {boolean} [params.trigger] set to true to watch trigger orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1642,10 +1643,13 @@ export default class gate extends gateRest {
         const isTrigger = (channel.indexOf ('autoorders') >= 0) || (channel.indexOf ('priceorders') >= 0);
         const hashPrefix = isTrigger ? 'triggerOrders' : 'orders';
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        if (this.orders === undefined) {
+        if (isTrigger && (this.triggerOrders === undefined)) {
+            this.triggerOrders = new ArrayCacheBySymbolById (limit);
+        }
+        if (!isTrigger && (this.orders === undefined)) {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const stored = this.orders;
+        const stored = isTrigger ? this.triggerOrders : this.orders;
         const marketIds: Dict = {};
         const parsedOrders = this.parseOrders (orders);
         for (let i = 0; i < parsedOrders.length; i++) {
@@ -1672,9 +1676,9 @@ export default class gate extends gateRest {
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
             const messageHash = hashPrefix + ':' + keys[i];
-            client.resolve (this.orders, messageHash);
+            client.resolve (stored, messageHash);
         }
-        client.resolve (this.orders, hashPrefix);
+        client.resolve (stored, hashPrefix);
     }
 
     /**
