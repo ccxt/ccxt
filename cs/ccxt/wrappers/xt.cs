@@ -149,13 +149,8 @@ public partial class xt
     /// </summary>
     /// <remarks>
     /// See <see href="https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>symbols</term>
-    /// <description>
-    /// string : unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-    /// </description>
-    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}.</returns>

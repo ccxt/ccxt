@@ -151,6 +151,11 @@ public partial class xt : Exchange
         return await this.callAsync ("publicLinearGetFutureMarketV1PublicQTicker",parameters);
     }
 
+    public async Task<object> publicLinearGetFutureMarketV1PublicQTickerBooks (object parameters = null)
+    {
+        return await this.callAsync ("publicLinearGetFutureMarketV1PublicQTickerBooks",parameters);
+    }
+
     public async Task<object> publicLinearGetFutureMarketV1PublicQTickers (object parameters = null)
     {
         return await this.callAsync ("publicLinearGetFutureMarketV1PublicQTickers",parameters);
@@ -249,6 +254,11 @@ public partial class xt : Exchange
     public async Task<object> publicInverseGetFutureMarketV1PublicQTicker (object parameters = null)
     {
         return await this.callAsync ("publicInverseGetFutureMarketV1PublicQTicker",parameters);
+    }
+
+    public async Task<object> publicInverseGetFutureMarketV1PublicQTickerBooks (object parameters = null)
+    {
+        return await this.callAsync ("publicInverseGetFutureMarketV1PublicQTickerBooks",parameters);
     }
 
     public async Task<object> publicInverseGetFutureMarketV1PublicQTickers (object parameters = null)
