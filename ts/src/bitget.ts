@@ -1621,7 +1621,7 @@ export default class bitget extends Exchange {
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
                     'ARBITRUM': 'ArbitrumOne',
-                    'ARBBITRUM_NOVA': 'ArbitrumNova',
+                    'ARBITRUM_NOVA': 'ArbitrumNova',
                     'AVAXC': 'C-Chain',
                     'AVAXX': 'X-Chain',
                     'AR': 'Arweave',
