@@ -1592,6 +1592,7 @@ export default class bitget extends Exchange {
                     'method': 'publicMixGetV2MixMarketCurrentFundRate', // or publicMixGetV2MixMarketFundingTime
                 },
                 'accountsByType': {
+                    'funding': 'spot',
                     'spot': 'spot',
                     'cross': 'crossed_margin',
                     'isolated': 'isolated_margin',
@@ -1599,6 +1600,8 @@ export default class bitget extends Exchange {
                     'usdc_swap': 'usdc_futures',
                     'future': 'coin_futures',
                     'p2p': 'p2p',
+                    'uta': 'uta',
+                    'unified': 'uta',
                 },
                 'accountsById': {
                     'spot': 'spot',
@@ -1608,6 +1611,7 @@ export default class bitget extends Exchange {
                     'usdc_futures': 'usdc_swap',
                     'coin_futures': 'future',
                     'p2p': 'p2p',
+                    'uta': 'uta',
                 },
                 'sandboxMode': false,
                 'networks': {
@@ -4469,6 +4473,7 @@ export default class bitget extends Exchange {
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
      * @see https://www.bitget.com/api-doc/uta/account/Get-Account
+     * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -4487,9 +4492,15 @@ export default class bitget extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         if (uta) {
-            response = await this.privateUtaGetV3AccountAssets (this.extend (request, params));
-            const results = this.safeDict (response, 'data', {});
-            const assets = this.safeList (results, 'assets', []);
+            let assets = undefined;
+            if (marketType === 'funding') {
+                response = await this.privateUtaGetV3AccountFundingAssets (this.extend (request, params));
+                assets = this.safeList (response, 'data', []);
+            } else {
+                response = await this.privateUtaGetV3AccountAssets (this.extend (request, params));
+                const results = this.safeDict (response, 'data', {});
+                assets = this.safeList (results, 'assets', []);
+            }
             return this.parseUtaBalance (assets);
         } else if ((marketType === 'swap') || (marketType === 'future')) {
             let productType: Str = undefined;
@@ -4624,12 +4635,30 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750396239013,
+        //         "data": [
+        //             {
+        //                 "coin": "BGB",
+        //                 "available": "0.01",
+        //                 "frozen": "0",
+        //                 "balance": "0.01"
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseBalance (data);
     }
 
     parseUtaBalance (balance: any): Balances {
         const result: Dict = { 'info': balance };
+        //
+        // uta
         //
         //     {
         //         "coin": "USDT",
@@ -4641,13 +4670,22 @@ export default class bitget extends Exchange {
         //         "locked": "0"
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "coin": "BGB",
+        //         "available": "0.01",
+        //         "frozen": "0",
+        //         "balance": "0.01"
+        //     }
+        //
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
             const account = this.account ();
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             account['debt'] = this.safeString (entry, 'debt');
-            account['used'] = this.safeString (entry, 'locked');
+            account['used'] = this.safeString2 (entry, 'locked', 'frozen');
             account['free'] = this.safeString (entry, 'available');
             account['total'] = this.safeString (entry, 'balance');
             if (code !== undefined) {
@@ -9568,6 +9606,7 @@ export default class bitget extends Exchange {
      * @name bitget#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+     * @see https://www.bitget.com/api-doc/uta/account/transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -9581,6 +9620,8 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        let uta = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'transfer', false);
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromType = this.safeString (accountsByType, fromAccount);
@@ -9598,7 +9639,12 @@ export default class bitget extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateSpotPostV2SpotWalletTransfer (this.extend (request, params));
+        let response = undefined;
+        if (uta) {
+            response = await this.privateUtaPostV3AccountTransfer (this.extend (request, params));
+        } else {
+            response = await this.privateSpotPostV2SpotWalletTransfer (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "00000",
