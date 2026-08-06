@@ -1569,10 +1569,8 @@ export default class woo extends Exchange {
      * @method
      * @name woo#editOrder
      * @description edit a trade order
-     * @see https://docs.woox.io/#edit-order
-     * @see https://docs.woox.io/#edit-order-by-client_order_id
-     * @see https://docs.woox.io/#edit-algo-order
-     * @see https://docs.woox.io/#edit-algo-order-by-client_order_id
+     * @see https://developer.woox.io/api-reference/endpoint/trading/edit_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1580,6 +1578,7 @@ export default class woo extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id of the order to edit, used instead of the id argument
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
@@ -1630,34 +1629,37 @@ export default class woo extends Exchange {
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         const isConditional = isTrailing || (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
         let response = undefined;
-        if (isByClientOrder) {
-            request['client_order_id'] = clientOrderIdExchangeSpecific;
-            if (isConditional) {
-                response = await this.v3PrivatePutAlgoOrderClientClientOrderId (this.extend (request, params));
+        if (isConditional) {
+            if (isByClientOrder) {
+                request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
             } else {
-                response = await this.v3PrivatePutOrderClientClientOrderId (this.extend (request, params));
+                request['algoOrderId'] = id;
             }
+            response = await this.v3PrivatePutTradeAlgoOrder (this.extend (request, params));
         } else {
-            request['oid'] = id;
-            if (isConditional) {
-                response = await this.v3PrivatePutAlgoOrderOid (this.extend (request, params));
+            if (isByClientOrder) {
+                request['clientOrderId'] = clientOrderIdExchangeSpecific;
             } else {
-                response = await this.v3PrivatePutOrderOid (this.extend (request, params));
+                request['orderId'] = id;
             }
+            response = await this.v3PrivatePutTradeOrder (this.extend (request, params));
         }
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //             "status": "string",
-        //             "success": true
-        //         },
-        //         "message": "string",
         //         "success": true,
-        //         "timestamp": 0
+        //         "data": {
+        //             "status": "EDIT_SENT"
+        //         },
+        //         "timestamp": 1786038156772
         //     }
         //
         const data = this.safeDict (response, 'data', {});
+        data['timestamp'] = this.safeString (response, 'timestamp');
+        if (isByClientOrder) {
+            data['clientOrderId'] = clientOrderIdExchangeSpecific;
+        } else {
+            data['orderId'] = id;
+        }
         return this.parseOrder (data, market);
     }
 
@@ -2264,6 +2266,7 @@ export default class woo extends Exchange {
             const statuses: Dict = {
                 'NEW': 'open',
                 'FILLED': 'closed',
+                'EDIT_SENT': 'open',
                 'CANCEL_SENT': 'canceled',
                 'CANCEL_ALL_SENT': 'canceled',
                 'CANCELLED': 'canceled',
