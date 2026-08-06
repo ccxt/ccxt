@@ -677,8 +677,8 @@ export default class Exchange {
     /**
      * @method
      * @name Exchange#getCcxtVersion
-     * @description returns the version of the ccxt library, e.g. "4.5.54"
-     * @returns {string} the semver version of the ccxt library
+     * @description returns the version of the ccxt library, e.g. "4.5.54", or "unknown" when the version constant is not initialized (e.g. when an exchange module is imported directly, bypassing the ccxt entry point)
+     * @returns {string} the semver version of the ccxt library, or "unknown" when unavailable
      */
     getCcxtVersion (): string {
         const staticVersion = (Exchange as any).ccxtVersion;
