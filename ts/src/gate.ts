@@ -756,6 +756,7 @@ export default class gate extends Exchange {
                     'AVAXC': 'AVAX_C',
                     'NEAR': 'NEAR',
                     'ARBITRUM': 'ARBEVM',
+                    'ARBITRUM_NOVA': 'ARBNOVA',
                     'BASE': 'BASEEVM',
                     'SUI': 'SUI',
                     'CRONOS': 'CRO',
