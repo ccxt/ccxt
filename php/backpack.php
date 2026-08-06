@@ -399,7 +399,7 @@ class backpack extends Exchange {
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'networks' => array(
                     'APT' => 'Aptos',
-                    'ARB' => 'Arbitrum',
+                    'ARBITRUM' => 'Arbitrum',
                     'AVAX' => 'Avalanche',
                     'BASE' => 'Base',
                     'BERA' => 'Berachain',
@@ -424,7 +424,7 @@ class backpack extends Exchange {
                 ),
                 'networksById' => array(
                     'aptos' => 'APT',
-                    'arbitrum' => 'ARB',
+                    'arbitrum' => 'ARBITRUM',
                     'avalanche' => 'AVAX',
                     'base' => 'BASE',
                     'berachain' => 'BERA',

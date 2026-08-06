@@ -1117,7 +1117,7 @@ class kucoin extends Exchange {
                     'EOS' => 'eos',
                     'BEP20' => 'bsc',
                     'BEP2' => 'bnb',
-                    'ARBONE' => 'arbitrum',
+                    'ARBITRUM' => 'arbitrum',
                     'AVAXX' => 'avax',
                     'AVAXC' => 'avaxc',
                     'TLOS' => 'tlos', // tlosevm is different

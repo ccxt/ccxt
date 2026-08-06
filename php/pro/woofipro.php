@@ -1083,7 +1083,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, ?array $symbols = null) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot) {
             $messageHash = 'fetchPositionsSnapshot';
