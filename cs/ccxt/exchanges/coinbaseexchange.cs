@@ -277,7 +277,7 @@ public partial class coinbaseexchange : Exchange
                     { "BTC", "bitcoin" },
                     { "ETH", "ethereum" },
                     { "SOL", "solana" },
-                    { "ARBONE", "arbitrum" },
+                    { "ARBITRUM", "arbitrum" },
                     { "AVAXC", "avacchain" },
                     { "MATIC", "polygon" },
                     { "BASE", "base" },

@@ -396,7 +396,7 @@ public partial class backpack : Exchange
                 { "adjustForTimeDifference", false },
                 { "networks", new Dictionary<string, object>() {
                     { "APT", "Aptos" },
-                    { "ARB", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                     { "AVAX", "Avalanche" },
                     { "BASE", "Base" },
                     { "BERA", "Berachain" },
@@ -421,7 +421,7 @@ public partial class backpack : Exchange
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "aptos", "APT" },
-                    { "arbitrum", "ARB" },
+                    { "arbitrum", "ARBITRUM" },
                     { "avalanche", "AVAX" },
                     { "base", "BASE" },
                     { "berachain", "BERA" },
