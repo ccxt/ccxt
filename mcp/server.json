@@ -1,0 +1,23 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ccxt/ccxt-mcp",
+  "title": "CCXT",
+  "description": "Official CCXT MCP server — unified access to 100+ cryptocurrency exchanges and prediction markets: market data, balances, orders and opt-in trading, with keys kept local.",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/ccxt/ccxt",
+    "source": "github",
+    "subfolder": "mcp"
+  },
+  "websiteUrl": "https://ccxt.com",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "ccxt-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

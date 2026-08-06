@@ -2,6 +2,8 @@
 
 CCXT provides language-specific skills for Claude Code and OpenCode AI assistants. These skills help developers quickly learn and use CCXT in their projects with comprehensive guides, code examples, and a complete API reference.
 
+> Looking to let an AI agent **call exchanges directly** (fetch market data, check balances, place orders) rather than help you write code? See the [MCP Server](MCP.md) — the official CCXT Model Context Protocol server for Claude Desktop, Claude Code, Cursor, VS Code, and other MCP hosts.
+
 ## What are CCXT Skills?
 
 Skills are interactive documentation modules that AI coding assistants (like Claude Code and OpenCode) can load to provide context-aware help when working with CCXT. When you ask questions about CCXT, the AI assistant uses these skills to give accurate, detailed answers with working code examples.
