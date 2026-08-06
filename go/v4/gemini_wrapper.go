@@ -1169,7 +1169,7 @@ func (this *Gemini) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Gemini) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Gemini) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Gemini) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Gemini) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1214,7 +1214,7 @@ func (this *Gemini) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Gemini) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Gemini) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Gemini) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Gemini) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

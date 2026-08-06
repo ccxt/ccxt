@@ -1809,7 +1809,7 @@ func (this *Aster) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Aster) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Aster) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Aster) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Aster) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1854,7 +1854,7 @@ func (this *Aster) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Aster) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Aster) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Aster) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Aster) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

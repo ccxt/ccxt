@@ -2561,7 +2561,6 @@ fetch the rate of interest to borrow a currency for margin trading
 * [digifinex](/exchanges/digifinex.md#fetchcrossborrowrate)
 * [kucoin](/exchanges/kucoin.md#fetchcrossborrowrate)
 * [okx](/exchanges/okx.md#fetchcrossborrowrate)
-* [whitebit](/exchanges/whitebit.md#fetchcrossborrowrate)
 
 ---
 
@@ -2901,7 +2900,9 @@ fetch the fee for deposits and withdrawals
 
 ##### Supported exchanges
 * [coinex](/exchanges/coinex.md#fetchdepositwithdrawfee)
+* [indodax](/exchanges/indodax.md#fetchdepositwithdrawfee)
 * [kucoin](/exchanges/kucoin.md#fetchdepositwithdrawfee)
+* [luno](/exchanges/luno.md#fetchdepositwithdrawfee)
 
 ---
 
@@ -4481,6 +4482,7 @@ retrieves the open interest of a contract trading pair
 * [paradex](/exchanges/paradex.md#fetchopeninterest)
 * [phemex](/exchanges/phemex.md#fetchopeninterest)
 * [weex](/exchanges/weex.md#fetchopeninterest)
+* [xt](/exchanges/xt.md#fetchopeninterest)
 
 ---
 
@@ -7786,6 +7788,7 @@ unWatches a price ticker
 * [cryptocom](/exchanges/cryptocom.md#unwatchticker)
 * [deepcoin](/exchanges/deepcoin.md#unwatchticker)
 * [htx](/exchanges/htx.md#unwatchticker)
+* [hyperliquid](/exchanges/hyperliquid.md#unwatchticker)
 * [kucoin](/exchanges/kucoin.md#unwatchticker)
 * [lighter](/exchanges/lighter.md#unwatchticker)
 * [mexc](/exchanges/mexc.md#unwatchticker)

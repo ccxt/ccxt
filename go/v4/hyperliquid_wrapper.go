@@ -1962,7 +1962,7 @@ func (this *Hyperliquid) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Hyperliquid) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Hyperliquid) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Hyperliquid) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Hyperliquid) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2007,7 +2007,7 @@ func (this *Hyperliquid) FetchTradesWs(symbol string, options ...FetchTradesWsOp
 func (this *Hyperliquid) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Hyperliquid) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Hyperliquid) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Hyperliquid) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

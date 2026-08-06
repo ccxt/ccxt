@@ -1114,8 +1114,8 @@ public partial class bybit : Exchange
                     { "ADA", "ADA" },
                     { "ALGO", "ALGO" },
                     { "APT", "APTOS" },
-                    { "ARBONE", "ARBI" },
-                    { "ARBNOVA", "ARBINOVA" },
+                    { "ARBITRUM", "ARBI" },
+                    { "ARBITRUM_NOVA", "ARBINOVA" },
                     { "AVAXC", "CAVAX" },
                     { "AVAXX", "XAVAX" },
                     { "COSMOS", "ATOM" },
@@ -4153,18 +4153,23 @@ public partial class bybit : Exchange
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeInteger2(order, "createdTime", "createdAt");
-        object marketUnit = this.safeString(order, "marketUnit", "baseCoin");
+        object marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
+        // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
+        // see https://github.com/ccxt/ccxt/issues/27725
         object id = this.safeString(order, "orderId");
         object type = this.safeStringLower(order, "orderType");
         object price = this.safeString(order, "price");
+        object side = this.safeStringLower(order, "side");
         object amount = null;
         object cost = null;
-        if (isTrue(isEqual(marketUnit, "baseCoin")))
+        object qtyIsQuote = isTrue(isTrue(getValue(market, "spot")) && isTrue((isEqual(type, "market")))) && isTrue((isTrue((isEqual(marketUnit, "quoteCoin"))) || isTrue((isTrue((isEqual(marketUnit, null))) && isTrue((isEqual(side, "buy")))))));
+        if (isTrue(qtyIsQuote))
         {
-            amount = this.safeString(order, "qty");
+            // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = this.safeString(order, "cumExecValue");
         } else
         {
+            amount = this.safeString(order, "qty");
             cost = this.safeString(order, "cumExecValue");
         }
         object filled = this.safeString(order, "cumExecQty");
@@ -4172,7 +4177,6 @@ public partial class bybit : Exchange
         object lastTradeTimestamp = this.safeInteger2(order, "updatedTime", "updatedAt");
         object rawStatus = this.safeString(order, "orderStatus");
         object status = this.parseOrderStatus(rawStatus);
-        object side = this.safeStringLower(order, "side");
         object fee = null;
         object cumFeeDetail = this.safeDict(order, "cumFeeDetail", new Dictionary<string, object>() {});
         object feeCoins = new List<object>(((IDictionary<string,object>)cumFeeDetail).Keys);
@@ -5658,7 +5662,10 @@ public partial class bybit : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object innerList = this.safeList(result, "list", new List<object>() {});
-        if (isTrue(isEqual(getArrayLength(innerList), 0)))
+        // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
+        // see https://github.com/ccxt/ccxt/pull/29602
+        object innerListLength = getArrayLength(innerList);
+        if (isTrue(isEqual(innerListLength, 0)))
         {
             object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;

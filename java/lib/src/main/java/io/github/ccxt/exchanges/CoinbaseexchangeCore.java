@@ -289,7 +289,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                     put( "BTC", "bitcoin" );
                     put( "ETH", "ethereum" );
                     put( "SOL", "solana" );
-                    put( "ARBONE", "arbitrum" );
+                    put( "ARBITRUM", "arbitrum" );
                     put( "AVAXC", "avacchain" );
                     put( "MATIC", "polygon" );
                     put( "BASE", "base" );

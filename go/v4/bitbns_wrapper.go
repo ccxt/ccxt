@@ -928,7 +928,7 @@ func (this *Bitbns) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bitbns) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bitbns) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bitbns) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bitbns) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -973,7 +973,7 @@ func (this *Bitbns) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Bitbns) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bitbns) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bitbns) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bitbns) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

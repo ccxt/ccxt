@@ -502,7 +502,7 @@ func (this *Gateeu) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Gateeu) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Gateeu) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Gateeu) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Gateeu) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -547,7 +547,7 @@ func (this *Gateeu) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Gateeu) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Gateeu) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Gateeu) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Gateeu) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

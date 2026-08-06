@@ -2816,7 +2816,7 @@ func (this *WoofiproCore) ParseBalance(response any) any {
 		var code any = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
-		AddElementToObject(account, "frozen", this.SafeString(balance, "frozen"))
+		AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
 		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(result, code, account)
 		}

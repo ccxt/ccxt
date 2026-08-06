@@ -1168,7 +1168,7 @@ func (this *Zebpay) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Zebpay) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Zebpay) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Zebpay) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Zebpay) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1213,7 +1213,7 @@ func (this *Zebpay) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Zebpay) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Zebpay) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Zebpay) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Zebpay) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

@@ -168,7 +168,7 @@ public class GrvtCore extends GrvtApi
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "accountId", null );
                 put( "networks", new java.util.HashMap<String, Object>() {{
-                    put( "ARBONE", "42161" );
+                    put( "ARBITRUM", "42161" );
                     put( "AVAXC", "43114" );
                     put( "BASE", "8453" );
                     put( "BSC", "56" );

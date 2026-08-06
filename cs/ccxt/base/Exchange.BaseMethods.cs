@@ -1848,6 +1848,11 @@ public partial class BaseExchange
                     { "default", "primary" },
                 } },
             } },
+            { "backwardSupportedNetworkCodes", new Dictionary<string, object>() {
+                { "ARB", "ARBITRUM" },
+                { "ARBONE", "ARBITRUM" },
+                { "ARBNOVA", "ARBITRUM_NOVA" },
+            } },
         };
     }
 
@@ -3763,6 +3768,12 @@ public partial class BaseExchange
             {
                 return this.safeString(getValue(networks, networkCode), "id");
             }
+        }
+        // before returning the original input, try to match if it's backward-maintained networkCode
+        object oldCodes = this.safeDict(this.options, "backwardSupportedNetworkCodes", new Dictionary<string, object>() {});
+        if (isTrue(inOp(oldCodes, networkCode)))
+        {
+            return this.networkCodeToId(getValue(oldCodes, networkCode), currencyCode);
         }
         return networkCode;
     }

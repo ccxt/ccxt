@@ -570,7 +570,7 @@ class aster extends Exchange {
                 'networks' => array(
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
-                    'ARBONE' => 'Arbitrum',
+                    'ARBITRUM' => 'Arbitrum',
                 ),
                 'networksToChainId' => array(
                     'ETH' => 1,

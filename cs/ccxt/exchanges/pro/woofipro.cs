@@ -1138,7 +1138,7 @@ public partial class woofipro : ccxt.woofipro
         return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
     {
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (isTrue(fetchPositionsSnapshot))

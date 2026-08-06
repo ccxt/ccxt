@@ -1345,7 +1345,7 @@ func (this *Backpack) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Backpack) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Backpack) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Backpack) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Backpack) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1390,7 +1390,7 @@ func (this *Backpack) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Backpack) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Backpack) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Backpack) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Backpack) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

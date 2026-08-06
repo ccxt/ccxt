@@ -757,7 +757,8 @@ public class GateCore extends GateApi
                     put( "ADA", "ADA" );
                     put( "AVAXC", "AVAX_C" );
                     put( "NEAR", "NEAR" );
-                    put( "ARBONE", "ARBEVM" );
+                    put( "ARBITRUM", "ARBEVM" );
+                    put( "ARBITRUM_NOVA", "ARBNOVA" );
                     put( "BASE", "BASEEVM" );
                     put( "SUI", "SUI" );
                     put( "CRONOS", "CRO" );

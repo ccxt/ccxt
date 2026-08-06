@@ -2751,6 +2751,9 @@ public partial class bitget : ccxt.bitget
                 }
             }
         }
+        // REST parseBalance sets info, keep the ws structure at parity,
+        // see https://github.com/ccxt/ccxt/issues/21973
+        ((IDictionary<string,object>)this.balance)["info"] = message;
         this.balance = this.safeBalance(this.balance);
         object messageHash = add("balance:", instType);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});

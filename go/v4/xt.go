@@ -79,7 +79,7 @@ func (this *XtCore) Describe() any {
 			"fetchMarkOHLCV":                 false,
 			"fetchMyTrades":                  true,
 			"fetchOHLCV":                     true,
-			"fetchOpenInterest":              false,
+			"fetchOpenInterest":              true,
 			"fetchOpenInterestHistory":       false,
 			"fetchOpenOrders":                true,
 			"fetchOption":                    false,
@@ -5439,6 +5439,91 @@ func (this *XtCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 
 /**
  * @method
+ * @name xt#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *XtCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes46498 := (<-this.LoadMarkets())
+		PanicOnError(retRes46498)
+		var market any = this.Market(symbol)
+		if !IsTrue(GetValue(market, "swap")) {
+			panic(NotSupported(Add(this.Id, " fetchOpenInterest() supports swap contracts only")))
+		}
+		var request any = map[string]any{
+			"symbol": GetValue(market, "id"),
+		}
+		var subType any = nil
+		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOpenInterest", market, params)
+		subType = GetValue(subTypeparamsVariable, 0)
+		params = GetValue(subTypeparamsVariable, 1)
+		var response any = nil
+		if IsTrue(IsEqual(subType, "inverse")) {
+
+			response = (<-this.PublicInverseGetFutureMarketV1PublicContractOpenInterest(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PublicLinearGetFutureMarketV1PublicContractOpenInterest(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+		//
+		//     {
+		//         "returnCode": 0,
+		//         "msgInfo": "success",
+		//         "error": null,
+		//         "result": {
+		//             "symbol": "btc_usdt",
+		//             "openInterest": "21005.8646",
+		//             "openInterestUsd": "1120726916.46709",
+		//             "time": 1785925443734
+		//         }
+		//     }
+		//
+		var result any = this.SafeDict(response, "result", map[string]any{})
+
+		ch <- this.ParseOpenInterest(result, market)
+		return nil
+
+	}()
+	return ch
+}
+func (this *XtCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "symbol": "btc_usdt",
+	//         "openInterest": "21005.8646",
+	//         "openInterestUsd": "1120726916.46709",
+	//         "time": 1785925443734
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(interest, "symbol")
+	market = this.SafeMarket(marketId, market, nil, "contract")
+	var timestamp any = this.SafeInteger(interest, "time")
+	return this.SafeOpenInterest(map[string]any{
+		"symbol":             GetValue(market, "symbol"),
+		"openInterestAmount": this.SafeNumber(interest, "openInterest"),
+		"openInterestValue":  this.SafeNumber(interest, "openInterestUsd"),
+		"timestamp":          timestamp,
+		"datetime":           this.Iso8601(timestamp),
+		"info":               interest,
+	}, market)
+}
+
+/**
+ * @method
  * @name xt#fetchFundingHistory
  * @description fetch the funding history
  * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
@@ -5463,8 +5548,8 @@ func (this *XtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes465212 := (<-this.LoadMarkets())
-			PanicOnError(retRes465212)
+			retRes471712 := (<-this.LoadMarkets())
+			PanicOnError(retRes471712)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -5615,8 +5700,8 @@ func (this *XtCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes478412 := (<-this.LoadMarkets())
-			PanicOnError(retRes478412)
+			retRes484912 := (<-this.LoadMarkets())
+			PanicOnError(retRes484912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -5720,8 +5805,8 @@ func (this *XtCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes487012 := (<-this.LoadMarkets())
-			PanicOnError(retRes487012)
+			retRes493512 := (<-this.LoadMarkets())
+			PanicOnError(retRes493512)
 		}
 		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", nil, params)
@@ -5885,8 +5970,8 @@ func (this *XtCore) Transfer(code any, amount any, fromAccount any, toAccount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes501712 := (<-this.LoadMarkets())
-			PanicOnError(retRes501712)
+			retRes508212 := (<-this.LoadMarkets())
+			PanicOnError(retRes508212)
 		}
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeValue(this.Options, "accountsById")
@@ -5964,8 +6049,8 @@ func (this *XtCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes507812 := (<-this.LoadMarkets())
-			PanicOnError(retRes507812)
+			retRes514312 := (<-this.LoadMarkets())
+			PanicOnError(retRes514312)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
@@ -6055,8 +6140,8 @@ func (this *XtCore) EditOrder(id any, symbol any, typeVar any, side any, optiona
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes514612 := (<-this.LoadMarkets())
-			PanicOnError(retRes514612)
+			retRes521112 := (<-this.LoadMarkets())
+			PanicOnError(retRes521112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}

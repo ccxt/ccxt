@@ -3,7 +3,7 @@ import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { type FutureInterface } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, Status, PositionModeInfo } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, Status, PositionModeInfo, MarginLoan } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 /**
@@ -635,7 +635,7 @@ export declare class BaseExchange {
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     watchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     unWatchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
-    watchFundingRatesForSymbols(symbols: string[], params?: {}): Promise<{}>;
+    watchFundingRatesForSymbols(symbols: string[], params?: {}): Promise<FundingRates>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
@@ -692,6 +692,11 @@ export declare class BaseExchange {
                 default: string;
             };
         };
+        backwardSupportedNetworkCodes: {
+            ARB: string;
+            ARBONE: string;
+            ARBNOVA: string;
+        };
     };
     safeLedgerEntry(entry: object, currency?: Currency): {
         id: Str;
@@ -742,12 +747,12 @@ export declare class BaseExchange {
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: Dict, market?: Market): Ticker;
     fetchBorrowRate(code: string, amount: number, params?: {}): Promise<{}>;
-    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{}>;
-    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{}>;
-    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{}>;
-    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{}>;
-    borrowMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<{}>;
-    repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<{}>;
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    borrowMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<MarginLoan>;
+    repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<MarginLoan>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchSpotOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchContractOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -917,8 +922,8 @@ export declare class BaseExchange {
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<{}>;
-    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<{}>;
+    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseLastPrice(price: any, market?: Market): LastPrice;
@@ -1034,7 +1039,7 @@ export declare class BaseExchange {
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<{}>;
+    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
@@ -1168,7 +1173,7 @@ export default class Exchange extends BaseExchange {
      */
     cancelOrdersWithClientOrderIds(clientOrderIds: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelUnifiedOrder(order: Order, params?: {}): Promise<{}>;
+    cancelUnifiedOrder(order: Order, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

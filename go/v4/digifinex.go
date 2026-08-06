@@ -316,7 +316,7 @@ func (this *DigifinexCore) Describe() any {
 				"OTC":    "3",
 			},
 			"networks": map[string]any{
-				"ARBONE":       "Arbitrum",
+				"ARBITRUM":     "Arbitrum",
 				"AVALANCEC":    "AVAX-CCHAIN",
 				"AVALANCEX":    "AVAX-XCHAIN",
 				"BEP20":        "BEP20",

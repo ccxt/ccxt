@@ -371,7 +371,7 @@ class woo(Exchange, ImplicitAPI):
                     'TRC20': 'TRON',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksById': {
                     'TRX': 'TRC20',

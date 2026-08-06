@@ -1435,7 +1435,7 @@ func (this *BinanceCore) Describe() any {
 				"DOGE":         "DOGE",
 				"SOL":          "SOL",
 				"SONIC":        "SONIC",
-				"ARBONE":       "ARBITRUM",
+				"ARBITRUM":     "ARBITRUM",
 				"AVAXC":        "AVAXC",
 				"MATIC":        "MATIC",
 				"BASE":         "BASE",

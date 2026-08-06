@@ -867,7 +867,7 @@ func (this *Coincheck) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Coincheck) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coincheck) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Coincheck) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coincheck) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -912,7 +912,7 @@ func (this *Coincheck) FetchTradesWs(symbol string, options ...FetchTradesWsOpti
 func (this *Coincheck) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coincheck) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Coincheck) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Coincheck) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

@@ -2233,7 +2233,7 @@ class woofipro(Exchange, ImplicitAPI):
             code = self.safe_currency_code(self.safe_string(balance, 'token'))
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
-            account['frozen'] = self.safe_string(balance, 'frozen')
+            account['used'] = self.safe_string(balance, 'frozen')
             if code is not None:
                 result[code] = account
         return self.safe_balance(result)

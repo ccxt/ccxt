@@ -57,6 +57,8 @@ class indodax extends Exchange {
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
@@ -213,7 +215,7 @@ class indodax extends Exchange {
                     'TRC20' => 'trc20',
                     'MATIC' => 'polygon',
                     // 'BEP2' => 'bep2',
-                    // 'ARB' => 'arb',
+                    // 'ARBITRUM' => 'arb',
                     // 'ERC20' => 'erc20',
                     // 'KIP7' => 'kip7',
                     // 'MAINNET' => 'mainnet',  // TODO => does mainnet just mean the default?
@@ -1116,6 +1118,41 @@ class indodax extends Exchange {
             'rate' => $this->safe_number($data, 'withdraw_fee'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
         );
+    }
+
+    public function fetch_deposit_withdraw_fee(string $code, $params = array()): array {
+        /**
+         * fetch the withdrawal fee for a $currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+         *
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+         *
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privatePostWithdrawFee($this->extend($request, $params));
+        //
+        //     {
+        //         "success" => 1,
+        //         "return" => {
+        //             "server_time" => 1607923272,
+        //             "withdraw_fee" => 0.005,
+        //             "currency" => "eth"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'return', array());
+        $result = $this->deposit_withdraw_fee($response);
+        $result['withdraw']['fee'] = $this->safe_number($data, 'withdraw_fee');
+        $result['withdraw']['percentage'] = false;
+        $result['deposit']['fee'] = 0;
+        $result['deposit']['percentage'] = false;
+        return $this->assign_default_deposit_withdraw_fees($result, $currency);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {

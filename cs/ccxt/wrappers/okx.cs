@@ -834,7 +834,7 @@ public partial class okx
     /// <item>
     /// <term>params.ordType</term>
     /// <description>
-    /// string : "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+    /// string : market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
     /// </description>
     /// </item>
     /// <item>

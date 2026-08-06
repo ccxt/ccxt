@@ -1239,7 +1239,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
 
     }
 
-    public void setPositionsCache(Client client, Object type, Object... optionalArgs)
+    public void setPositionsCache(Client client, Object... optionalArgs)
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);

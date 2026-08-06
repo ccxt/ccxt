@@ -548,7 +548,7 @@ class mexc extends mexc$1["default"] {
                     // 'ALGO': 'Algorand(ALGO)',
                     // 'ALPH': 'Alephium(ALPH)',
                     // 'ARB': 'Arbitrum One(ARB)',
-                    // 'ARBONE': 'ArbitrumOne(ARB)',
+                    // 'ARBITRUM': 'ArbitrumOne(ARB)',
                     'ASTR': 'ASTAR', // ASTAREVM is different
                     // 'ATOM': 'Cosmos(ATOM)',
                     // 'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',

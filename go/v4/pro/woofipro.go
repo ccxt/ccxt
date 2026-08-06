@@ -1274,7 +1274,7 @@ func (this *WoofiproCore) WatchPositions(optionalArgs ...any) <-chan any {
 	}()
 	return ch
 }
-func (this *WoofiproCore) SetPositionsCache(client any, typeVar any, optionalArgs ...any) {
+func (this *WoofiproCore) SetPositionsCache(client any, optionalArgs ...any) {
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)

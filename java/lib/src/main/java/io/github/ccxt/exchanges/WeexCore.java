@@ -435,7 +435,7 @@ public class WeexCore extends WeexApi
                     put( "ETH", "ERC20" );
                     put( "POLYGON", "POLYGON(MATIC)" );
                     put( "MATIC", "POLYGON(MATIC)" );
-                    put( "ARBONE", "ARBITRUM(ARB)" );
+                    put( "ARBITRUM", "ARBITRUM(ARB)" );
                     put( "SOL", "SOLANA(SOL)" );
                     put( "OP", "OPTIMISM(OP)" );
                     put( "OPTIMISM", "OPTIMISM(OP)" );
@@ -445,7 +445,7 @@ public class WeexCore extends WeexApi
                     put( "BEP20(BSC)", "BEP20" );
                     put( "ERC20", "ERC20" );
                     put( "POLYGON(MATIC)", "MATIC" );
-                    put( "ARBITRUM(ARB)", "ARBONE" );
+                    put( "ARBITRUM(ARB)", "ARBITRUM" );
                     put( "SOLANA(SOL)", "SOL" );
                     put( "OPTIMISM(OP)", "OP" );
                     put( "AVALANCHE_C(AVAX_C)", "AVAXC" );

@@ -1656,6 +1656,18 @@ public class Cex extends CexCore {
     }
 
     @SuppressWarnings("unchecked")
+    public Order cancelUnifiedOrder(Order order, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.cancelUnifiedOrder(order, params));
+        return new Order(res);
+    }
+    public Order cancelUnifiedOrder(Order order) { return cancelUnifiedOrder(order, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Order> cancelUnifiedOrderAsync(Order order, Map<String, Object> params) {
+        return super.cancelUnifiedOrder(order, params).thenApply(Order::new);
+    }
+    public CompletableFuture<Order> cancelUnifiedOrderAsync(Order order) { return cancelUnifiedOrderAsync(order, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
     public List<Order> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOrders(symbol, since, limit, params));
         return toTypedList(res, Order::new);

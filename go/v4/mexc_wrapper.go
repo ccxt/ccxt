@@ -2202,7 +2202,7 @@ func (this *Mexc) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Mexc) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Mexc) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Mexc) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Mexc) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2247,7 +2247,7 @@ func (this *Mexc) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Mexc) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Mexc) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Mexc) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Mexc) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

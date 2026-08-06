@@ -776,7 +776,7 @@ fetch all unfilled currently open orders
 | limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | True if fetching trigger or conditional orders |
-| params.ordType | <code>string</code> | No | "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap" |
+| params.ordType | <code>string</code> | No | market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap |
 | params.algoId | <code>string</code> | No | Algo ID "'433845797218942976'" |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.trailing | <code>boolean</code> | No | set to true if you want to fetch trailing orders |

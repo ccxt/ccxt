@@ -565,7 +565,7 @@ public partial class aster : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
-                    { "ARBONE", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                 } },
                 { "networksToChainId", new Dictionary<string, object>() {
                     { "ETH", 1 },

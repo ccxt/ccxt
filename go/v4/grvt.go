@@ -163,7 +163,7 @@ func (this *GrvtCore) Describe() any {
 		"options": map[string]any{
 			"accountId": nil,
 			"networks": map[string]any{
-				"ARBONE":    "42161",
+				"ARBITRUM":  "42161",
 				"AVAXC":     "43114",
 				"BASE":      "8453",
 				"BSC":       "56",

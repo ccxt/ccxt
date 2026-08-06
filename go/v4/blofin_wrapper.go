@@ -1579,7 +1579,7 @@ func (this *Blofin) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Blofin) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Blofin) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Blofin) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Blofin) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1624,7 +1624,7 @@ func (this *Blofin) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Blofin) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Blofin) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Blofin) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Blofin) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

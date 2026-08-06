@@ -1025,7 +1025,7 @@ class woofipro extends woofipro$1["default"] {
         }
         return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
     }
-    setPositionsCache(client, type, symbols = undefined) {
+    setPositionsCache(client, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = 'fetchPositionsSnapshot';

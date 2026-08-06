@@ -988,7 +988,7 @@ public class KucoinCore extends KucoinApi
                     put( "EOS", "eos" );
                     put( "BEP20", "bsc" );
                     put( "BEP2", "bnb" );
-                    put( "ARBONE", "arbitrum" );
+                    put( "ARBITRUM", "arbitrum" );
                     put( "AVAXX", "avax" );
                     put( "AVAXC", "avaxc" );
                     put( "TLOS", "tlos" );

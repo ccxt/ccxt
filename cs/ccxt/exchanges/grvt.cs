@@ -156,7 +156,7 @@ public partial class grvt : Exchange
             { "options", new Dictionary<string, object>() {
                 { "accountId", null },
                 { "networks", new Dictionary<string, object>() {
-                    { "ARBONE", "42161" },
+                    { "ARBITRUM", "42161" },
                     { "AVAXC", "43114" },
                     { "BASE", "8453" },
                     { "BSC", "56" },

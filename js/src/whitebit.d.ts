@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, DepositWithdrawFees, Status } from './base/types.js';
+import type { Account, Balances, BorrowInterest, Conversion, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, DepositWithdrawFees, Status } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -621,24 +621,6 @@ export default class whitebit extends Exchange {
      */
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     parsePosition(position: Dict, market?: Market): Position;
-    /**
-     * @method
-     * @name whitebit#fetchCrossBorrowRate
-     * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
-     */
-    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
-    parseBorrowRate(info: any, currency?: Currency): {
-        currency: Str;
-        rate: number;
-        period: Int;
-        timestamp: undefined;
-        datetime: undefined;
-        info: any;
-    };
     isFiat(currency: string): boolean;
     /**
      * @method
