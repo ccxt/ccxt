@@ -159,6 +159,11 @@ public class XtApi extends Exchange
         return this.callAsync ("publicLinearGetFutureMarketV1PublicQTicker", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicLinearGetFutureMarketV1PublicQTickerBooks (Object... optionalArgs)
+    {
+        return this.callAsync ("publicLinearGetFutureMarketV1PublicQTickerBooks", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicLinearGetFutureMarketV1PublicQTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicLinearGetFutureMarketV1PublicQTickers", optionalArgs);
@@ -257,6 +262,11 @@ public class XtApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  publicInverseGetFutureMarketV1PublicQTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicInverseGetFutureMarketV1PublicQTicker", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicInverseGetFutureMarketV1PublicQTickerBooks (Object... optionalArgs)
+    {
+        return this.callAsync ("publicInverseGetFutureMarketV1PublicQTickerBooks", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicInverseGetFutureMarketV1PublicQTickers (Object... optionalArgs)

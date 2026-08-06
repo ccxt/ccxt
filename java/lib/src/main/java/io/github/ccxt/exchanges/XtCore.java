@@ -176,6 +176,7 @@ public class XtCore extends XtApi
                             put( "future/market/v1/public/q/symbol-index-price", 1 );
                             put( "future/market/v1/public/q/symbol-mark-price", 1 );
                             put( "future/market/v1/public/q/ticker", 1 );
+                            put( "future/market/v1/public/q/ticker/books", 1 );
                             put( "future/market/v1/public/q/tickers", 1 );
                             put( "future/market/v1/public/symbol/coins", 3.33 );
                             put( "future/market/v1/public/symbol/detail", 3.33 );
@@ -200,6 +201,7 @@ public class XtCore extends XtApi
                             put( "future/market/v1/public/q/symbol-index-price", 1 );
                             put( "future/market/v1/public/q/symbol-mark-price", 1 );
                             put( "future/market/v1/public/q/ticker", 1 );
+                            put( "future/market/v1/public/q/ticker/books", 1 );
                             put( "future/market/v1/public/q/tickers", 1 );
                             put( "future/market/v1/public/symbol/coins", 3.33 );
                             put( "future/market/v1/public/symbol/detail", 3.33 );
@@ -1904,7 +1906,8 @@ public class XtCore extends XtApi
      * @name xt#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
-     * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
@@ -1926,15 +1929,30 @@ public class XtCore extends XtApi
             {
                 market = this.market(Helpers.GetValue(symbols, 0));
             }
+            Object type = null;
             Object subType = null;
+            var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+            type = ((java.util.List<Object>) typeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(subType, null)))
+            Object isInverse = (Helpers.isEqual(subType, "inverse"));
+            Object isLinear = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "linear"))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
+            Object isContract = Helpers.isTrue(isInverse) || Helpers.isTrue(isLinear);
+            Object response = null;
+            if (Helpers.isTrue(isInverse))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchBidsAsks() is not available for swap and future markets, only spot markets are supported")) ;
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "publicInverseGetFutureMarketV1PublicQTickerBooks", new Object[] { this.extend(request, parameters) })).join();
+            } else if (Helpers.isTrue(isLinear))
+            {
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "publicLinearGetFutureMarketV1PublicQTickerBooks", new Object[] { this.extend(request, parameters) })).join();
+            } else
+            {
+                response = (this.publicSpotGetTickerBook(this.extend(request, parameters))).join();
             }
-            Object response = (this.publicSpotGetTickerBook(this.extend(request, parameters))).join();
+            //
+            // spot
             //
             //     {
             //         "rc": 0,
@@ -1952,8 +1970,42 @@ public class XtCore extends XtApi
             //         ]
             //     }
             //
-            Object tickers = this.safeValue(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseTickers(tickers, symbols);
+            // swap and future
+            //
+            //     {
+            //         "returnCode": 0,
+            //         "msgInfo": "success",
+            //         "error": null,
+            //         "result": [
+            //             {
+            //                 "s": "btc_usdt",
+            //                 "t": 1785928174370,
+            //                 "ap": "64085.5",
+            //                 "aq": "101843",
+            //                 "bp": "64085.3",
+            //                 "bq": "121042"
+            //             },
+            //         ]
+            //     }
+            //
+            Object tickers = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = new java.util.HashMap<String, Object>() {{}};
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
+            {
+                Object rawTicker = Helpers.GetValue(tickers, i);
+                // the spot and contract payloads share the same field names, so
+                // the market type cannot be inferred from the entry itself
+                Object marketId = this.safeString(rawTicker, "s");
+                Object marketType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
+                Object marketInner = this.safeMarket(marketId, market, "_", marketType);
+                Object ticker = this.parseTicker(rawTicker, marketInner);
+                Object symbol = Helpers.GetValue(ticker, "symbol");
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(result, symbol, ticker);
+                }
+            }
+            return this.filterByArray(result, "symbol", symbols);
         });
 
     }
