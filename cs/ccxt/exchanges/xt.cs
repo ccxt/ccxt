@@ -72,7 +72,7 @@ public partial class xt : Exchange
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
-                { "fetchOpenInterest", false },
+                { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
@@ -4997,6 +4997,79 @@ public partial class xt : Exchange
             { "previousFundingDatetime", null },
             { "interval", interval },
         };
+    }
+
+    /**
+     * @method
+     * @name xt#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenInterest", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.publicInverseGetFutureMarketV1PublicContractOpenInterest(this.extend(request, parameters));
+        } else
+        {
+            response = await this.publicLinearGetFutureMarketV1PublicContractOpenInterest(this.extend(request, parameters));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "symbol": "btc_usdt",
+        //             "openInterest": "21005.8646",
+        //             "openInterestUsd": "1120726916.46709",
+        //             "time": 1785925443734
+        //         }
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseOpenInterest(result, market);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "openInterest": "21005.8646",
+        //         "openInterestUsd": "1120726916.46709",
+        //         "time": 1785925443734
+        //     }
+        //
+        object marketId = this.safeString(interest, "symbol");
+        market = this.safeMarket(marketId, market, null, "contract");
+        object timestamp = this.safeInteger(interest, "time");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "openInterestAmount", this.safeNumber(interest, "openInterest") },
+            { "openInterestValue", this.safeNumber(interest, "openInterestUsd") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "info", interest },
+        }, market);
     }
 
     /**
