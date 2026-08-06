@@ -60,6 +60,10 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
 
     @Override
     public synchronized boolean containsKey(Object key) {
+        if ("cache".equals(key)) {
+            return true; // keyed access for snapshot-buffering handlers; stays out of entrySet()/toMap(),
+            // see https://github.com/ccxt/ccxt/pull/29620
+        }
         if (BASE_KEYS.contains(key)) {
             return true;
         }
@@ -80,6 +84,14 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
             case "timestamp": this.timestamp = value; break;
             case "datetime": this.datetime = value; break;
             case "nonce": this.nonce = value; break;
+            case "cache": {
+                // the field is final: replace contents, not the reference
+                this.cache.clear();
+                if (value instanceof java.util.List) {
+                    this.cache.addAll((java.util.List<?>) value);
+                }
+                break;
+            }
             case "outcome": this.outcome = value; break;
             case "outcomeId": this.outcomeId = value; break;
             case "market": this.market = value; break;
