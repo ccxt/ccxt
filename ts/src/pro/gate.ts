@@ -1567,7 +1567,10 @@ export default class gate extends gateRest {
         }
         // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
         // see https://github.com/ccxt/ccxt/issues/27202
-        const suffix = isTrigger ? ((typeId === 'spot') ? '.priceorders' : '.autoorders') : '.orders';
+        let suffix = '.orders';
+        if (isTrigger) {
+            suffix = (typeId === 'spot') ? '.priceorders' : '.autoorders';
+        }
         const channel = typeId + suffix;
         let messageHash = isTrigger ? 'triggerOrders' : 'orders';
         let payload = [ '!' + 'all' ];
