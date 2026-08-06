@@ -1081,7 +1081,7 @@ export default class htx extends Exchange {
                     // 'ATOM': 'ATOM1',
                     // 'CRO': 'CRO',
                     // 'OP': [ 'OPTIMISM', 'OPTIMISMETH' ]
-                    // 'ARBITRUM': ['ARB', 'ARBITRUMETH']
+                    // 'ARB': ['ARB', 'ARBITRUMETH']
                     // 'CHZ': [ 'CHZ', 'CZH' ],
                     // todo: AVAXCCHAIN CCHAIN AVAX
                     // 'ALGO': ['ALGO', 'ALGOUSDT']
