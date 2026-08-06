@@ -349,10 +349,10 @@
             "cost": {}
         }
     },
-    "ARB": {
+    "ARBITRUM": {
         "id": "ARB",
         "name": "ARB",
-        "code": "ARB",
+        "code": "ARBITRUM",
         "info": {
             "asset_id": "257673123338387459",
             "asset_uuid": "c2102278-2bbe-49e1-a115-5e83bffbcead",

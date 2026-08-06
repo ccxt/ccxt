@@ -929,7 +929,7 @@
                 "fee": 0,
                 "precision": 0.000001
             },
-            "ARB": {
+            "ARBITRUM": {
                 "info": {
                     "chain": "arc20usdt",
                     "displayName": "ARBITRUM",
@@ -958,7 +958,7 @@
                     "addrDepositTag": false
                 },
                 "id": "arc20usdt",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "limits": {
                     "deposit": {
                         "min": 1,
@@ -3005,7 +3005,7 @@
         "fee": 0.0099,
         "fees": {},
         "networks": {
-            "ARB": {
+            "ARBITRUM": {
                 "info": {
                     "chain": "arbiusdc",
                     "displayName": "ARBITRUM",
@@ -3034,7 +3034,7 @@
                     "addrDepositTag": false
                 },
                 "id": "arbiusdc",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "limits": {
                     "deposit": {
                         "min": 0.5,

@@ -1591,7 +1591,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ARB"
+                        "network": "ARBITRUM"
                     }
                 ],
                 "httpResponse": {
