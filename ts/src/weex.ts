@@ -1527,7 +1527,7 @@ export default class weex extends Exchange {
         //         }
         //     ]
         //
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -3120,7 +3120,7 @@ export default class weex extends Exchange {
             //
             response = await this.contractPrivateGetCapiV3UserTrades (this.extend (request, params));
         }
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }

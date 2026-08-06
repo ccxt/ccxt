@@ -1204,7 +1204,7 @@ export default class tokocrypto extends Exchange {
         //         }
         //     ]
         //
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }

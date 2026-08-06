@@ -9317,7 +9317,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         const rawPositions = this.safeList (result, 'list');
-        let rawPositionsList: any[] = [];
+        let rawPositionsList: Dict[] = [];
         if (rawPositions !== undefined) {
             rawPositionsList = rawPositions;
         }

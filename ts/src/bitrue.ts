@@ -1469,7 +1469,7 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         let response: any = undefined;
-        let data: any[] = [];
+        let data: Dict[] = [];
         if (market['swap']) {
             const timeframesFuture = this.safeDict (timeframes, 'future', {});
             const request: Dict = {
@@ -1662,7 +1662,7 @@ export default class bitrue extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         let response: any = undefined;
-        let data: any[] = [];
+        let data: Dict[] = [];
         const request: Dict = {};
         let type: Str = undefined;
         if (symbols !== undefined) {
@@ -1850,7 +1850,7 @@ export default class bitrue extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let response: any[] = [];
+        let response: Dict[] = [];
         if (market['spot']) {
             const request: Dict = {
                 'symbol': market['id'],
@@ -2348,7 +2348,7 @@ export default class bitrue extends Exchange {
         }
         const market = this.market (symbol);
         let response: any = undefined;
-        let data: any[] = [];
+        let data: Dict[] = [];
         const request: Dict = {};
         if (market['swap']) {
             request['contractName'] = market['id'];
@@ -2503,7 +2503,7 @@ export default class bitrue extends Exchange {
         }
         const market = this.market (symbol);
         let response: NullableDict = undefined;
-        let data: any[] = [];
+        let data: Dict[] = [];
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -2550,7 +2550,7 @@ export default class bitrue extends Exchange {
         }
         const market = this.market (symbol);
         let response: any = undefined;
-        let data: any[] = [];
+        let data: Dict[] = [];
         const request: Dict = {};
         if (since !== undefined) {
             request['startTime'] = since;

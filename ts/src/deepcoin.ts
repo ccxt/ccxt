@@ -1913,7 +1913,7 @@ export default class deepcoin extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const length = data.length;
         if (length === 0) {
-            return undefined as unknown as Order;
+            throw new OrderNotFound (this.id + ' fetchOpenOrder() could not find order id ' + id);
         }
         const entry = this.safeDict (data, 0, {}) as Dict;
         return this.parseOrder (entry, market);

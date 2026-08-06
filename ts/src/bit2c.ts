@@ -483,7 +483,7 @@ export default class bit2c extends Exchange {
         if (typeof response === 'string') {
             throw new ExchangeError (response);
         }
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -843,7 +843,7 @@ export default class bit2c extends Exchange {
         //         }
         //     ]
         //
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }

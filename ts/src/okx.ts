@@ -8497,7 +8497,7 @@ export default class okx extends Exchange {
                 return this.parseGreeks (entry, market);
             }
         }
-        return undefined as any;
+        throw new NullResponse (this.id + ' fetchGreeks() could not find greeks for ' + symbol);
     }
 
     /**

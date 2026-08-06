@@ -663,7 +663,7 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        let dataList: any[] = [];
+        let dataList: Dict[] = [];
         if (data !== undefined) {
             dataList = data;
         }
@@ -1058,7 +1058,7 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        let dataList: any[] = [];
+        let dataList: Dict[] = [];
         if (data !== undefined) {
             dataList = data;
         }

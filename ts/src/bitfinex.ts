@@ -1531,7 +1531,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const trades = this.sortBy (response, 1);
-        const tradesList: any[] = [];
+        const tradesList: Dict[] = [];
         for (let i = 0; i < trades.length; i++) {
             tradesList.push ({ 'result': trades[i] }); // convert to array of dicts to match parseOrder signature
         }
@@ -1961,7 +1961,7 @@ export default class bitfinex extends Exchange {
         //         "Submitting 2 order operations."
         //     ]
         //
-        const results: any[] = [];
+        const results: Dict[] = [];
         const data = this.safeList (response, 4, []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -1989,7 +1989,7 @@ export default class bitfinex extends Exchange {
         };
         const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
         const orders = this.safeList (response, 4, []);
-        const ordersList: any[] = [];
+        const ordersList: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             ordersList.push ({ 'result': orders[i] });
         }
@@ -2115,7 +2115,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const orders = this.safeList (response, 4, []);
-        const ordersList: any[] = [];
+        const ordersList: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             ordersList.push ({ 'result': orders[i] });
         }
@@ -2232,7 +2232,7 @@ export default class bitfinex extends Exchange {
         //          ],
         //      ]
         //
-        const ordersList: any[] = [];
+        const ordersList: Dict[] = [];
         for (let i = 0; i < (response as List).length; i++) {
             ordersList.push ({ 'result': response[i] });
         }
@@ -2318,7 +2318,7 @@ export default class bitfinex extends Exchange {
         //          ]
         //      ]
         //
-        const ordersList: any[] = [];
+        const ordersList: Dict[] = [];
         for (let i = 0; i < (response as List).length; i++) {
             ordersList.push ({ 'result': response[i] });
         }
@@ -2352,7 +2352,7 @@ export default class bitfinex extends Exchange {
         };
         // valid for trades up to 10 days old
         const response = await this.privatePostAuthROrderSymbolIdTrades (this.extend (request, params));
-        const tradesList: any[] = [];
+        const tradesList: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             tradesList.push ({ 'result': response[i] }); // convert to array of dicts to match parseOrder signature
         }
@@ -2393,7 +2393,7 @@ export default class bitfinex extends Exchange {
         } else {
             response = await this.privatePostAuthRTradesHist (this.extend (request, params));
         }
-        const tradesList: any[] = [];
+        const tradesList: Dict[] = [];
         for (let i = 0; i < (response as List).length; i++) {
             tradesList.push ({ 'result': response[i] }); // convert to array of dicts to match parseOrder signature
         }
@@ -2957,7 +2957,7 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const positionsList: any[] = [];
+        const positionsList: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             positionsList.push ({ 'result': response[i] });
         }
@@ -3222,7 +3222,7 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const ledgerObjects: any[] = [];
+        const ledgerObjects: Dict[] = [];
         for (let i = 0; i < (response as List).length; i++) {
             const item = response[i];
             ledgerObjects.push ({ 'result': item });

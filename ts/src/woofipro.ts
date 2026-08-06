@@ -2618,7 +2618,7 @@ export default class woofipro extends Exchange {
         //         "success":true
         //     }
         //
-        let rowsList: any[] = [];
+        let rowsList: Dict[] = [];
         if (rows !== undefined) {
             rowsList = rows;
         }

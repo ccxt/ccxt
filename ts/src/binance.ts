@@ -5410,7 +5410,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -8536,7 +8536,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -8806,7 +8806,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'deposit';
         }
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -8948,7 +8948,7 @@ export default class binance extends Exchange {
         if (typeof response === 'string') {
             response = this.parseJson (response);
         }
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -10177,7 +10177,7 @@ export default class binance extends Exchange {
             }
             return result;
         }
-        return undefined as any;
+        throw new NotSupported (this.id + ' fetchTradingFees() is not supported for ' + type + ' markets');
     }
 
     /**
@@ -13793,7 +13793,7 @@ export default class binance extends Exchange {
         //     ]
         //
         const liquidations = this.safeList (response, 'rows', response);
-        let liquidationsList: any[] = [];
+        let liquidationsList: Dict[] = [];
         if (liquidations !== undefined) {
             liquidationsList = liquidations;
         }
@@ -15055,7 +15055,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }

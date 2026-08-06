@@ -1377,7 +1377,7 @@ export default class lbank extends Exchange {
             }
             return this.safeBalance (result);
         }
-        return undefined as any;
+        return this.safeBalance (result);
     }
 
     override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {

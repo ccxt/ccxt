@@ -1161,7 +1161,7 @@ export default class nado extends Exchange {
         //         ]
         //     }
         //
-        const closedOrders: any[] = [];
+        const closedOrders: Dict[] = [];
         const orders = this.safeList (response, 'orders', []);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1968,7 +1968,7 @@ export default class nado extends Exchange {
         //     }
         //
         const tickers = Object.keys (response);
-        const rates: any[] = [];
+        const rates: Dict[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
             rates.push (response[ticker]);
@@ -2059,7 +2059,7 @@ export default class nado extends Exchange {
         //     }
         //
         const tickers = Object.keys (response);
-        const interests: any[] = [];
+        const interests: Dict[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
             interests.push (response[ticker]);

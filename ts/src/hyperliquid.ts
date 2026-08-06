@@ -4623,7 +4623,7 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        let deposits = [];
+        let deposits: Dict[] = [];
         if (vaultAddress !== undefined) {
             for (let i = 0; i < records.length; i++) {
                 const record = records[i];
@@ -4689,7 +4689,7 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        let withdrawals = [];
+        let withdrawals: Dict[] = [];
         if (vaultAddress !== undefined) {
             for (let i = 0; i < records.length; i++) {
                 const record = records[i];
@@ -4922,7 +4922,7 @@ export default class hyperliquid extends Exchange {
     }
 
     extractTypeFromDelta (data = []) {
-        const records: any[] = [];
+        const records: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const record = data[i];
             record['type'] = record['delta']['type'];

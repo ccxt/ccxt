@@ -1215,7 +1215,7 @@ export default class backpack extends Exchange {
         } else {
             response = await this.publicGetApiV1Trades (this.extend (request, params));
         }
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -1261,7 +1261,7 @@ export default class backpack extends Exchange {
             request['fillType'] = 'User'; // default
         }
         const response = await this.privateGetWapiV1HistoryFills (this.extend (request, params));
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }

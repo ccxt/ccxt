@@ -622,7 +622,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const trades = this.safeList (response, 'trades', []);
-        let tradesList: any[] = [];
+        let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
         }
@@ -1458,7 +1458,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const trades = this.safeList (response, 'trades');
-        let tradesList: any[] = [];
+        let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
         }

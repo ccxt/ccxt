@@ -2663,7 +2663,7 @@ export default class mexc extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests: any[] = [];
+        const ordersRequests: Dict[] = [];
         let symbol: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -4495,7 +4495,7 @@ export default class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const resultList = this.safeValue (data, 'resultList', []);
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger (entry, 'settleTime');
@@ -4668,7 +4668,7 @@ export default class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const result = this.safeValue (data, 'resultList', []);
-        const rates: any[] = [];
+        const rates: FundingRateHistory[] = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -4797,7 +4797,7 @@ export default class mexc extends Exchange {
         const riskIncrMmr = this.safeString (info, 'riskIncrMmr');
         const riskIncrImr = this.safeString (info, 'riskIncrImr');
         let floor = '0';
-        const tiers: any[] = [];
+        const tiers: LeverageTier[] = [];
         const quoteId = this.safeString (info, 'quoteCoin');
         if (riskIncrVol === '0') {
             return [
@@ -5539,7 +5539,7 @@ export default class mexc extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"');
         }
-        let resultList: any[] = [];
+        let resultList: Dict[] = [];
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;

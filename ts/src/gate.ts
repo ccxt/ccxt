@@ -6526,7 +6526,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -8148,7 +8148,7 @@ export default class gate extends Exchange {
                 return this.parseGreeks (entry, market);
             }
         }
-        return undefined as unknown as Greeks;
+        throw new NullResponse (this.id + ' fetchGreeks() could not find greeks for ' + symbol);
     }
 
     override parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
@@ -8659,7 +8659,7 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = response;
         }

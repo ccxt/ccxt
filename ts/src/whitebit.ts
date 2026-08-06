@@ -3328,7 +3328,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeList (response, 'records', []);
-        let recordsList: any[] = [];
+        let recordsList: Dict[] = [];
         if (records !== undefined) {
             recordsList = records;
         }
@@ -3720,7 +3720,7 @@ export default class whitebit extends Exchange {
         //    }
         //
         const records = this.safeList (response, 'records');
-        let recordsList: any[] = [];
+        let recordsList: Dict[] = [];
         if (records !== undefined) {
             recordsList = records;
         }
