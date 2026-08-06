@@ -1,6 +1,6 @@
 
 import lbankRest from '../lbank.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -119,6 +119,11 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        if (market['contract']) {
+            // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+            // see https://github.com/ccxt/ccxt/issues/26864
+            throw new NotSupported (this.id + ' watchOHLCV() does not support ' + market['type'] + ' markets yet');
+        }
         const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe, timeframe);
@@ -283,6 +288,11 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        if (market['contract']) {
+            // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+            // see https://github.com/ccxt/ccxt/issues/26864
+            throw new NotSupported (this.id + ' watchTicker() does not support ' + market['type'] + ' markets yet');
+        }
         const url = this.urls['api']['ws'];
         const messageHash = 'ticker:' + market['symbol'];
         const message: Dict = {
@@ -425,6 +435,11 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        if (market['contract']) {
+            // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+            // see https://github.com/ccxt/ccxt/issues/26864
+            throw new NotSupported (this.id + ' watchTrades() does not support ' + market['type'] + ' markets yet');
+        }
         const url = this.urls['api']['ws'];
         const messageHash = 'trades:' + market['symbol'];
         const message: Dict = {
@@ -807,6 +822,11 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        if (market['contract']) {
+            // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+            // see https://github.com/ccxt/ccxt/issues/26864
+            throw new NotSupported (this.id + ' watchOrderBook() does not support ' + market['type'] + ' markets yet');
+        }
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + market['symbol'];
         params = this.omit (params, 'aggregation');
