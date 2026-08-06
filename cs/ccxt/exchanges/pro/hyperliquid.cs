@@ -539,7 +539,12 @@ public partial class hyperliquid : ccxt.hyperliquid
             } },
         };
         object message = this.extend(request, parameters);
-        object trades = await this.watch(url, messageHash, message, messageHash);
+        if (isTrue(isEqual(userAddress, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchMyTrades() requires a user address")) ;
+        }
+        object subscribeHash = add("subscribe:userFills::", ((string)userAddress).ToLower());
+        object trades = await this.watch(url, messageHash, message, subscribeHash);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
@@ -1498,7 +1503,18 @@ public partial class hyperliquid : ccxt.hyperliquid
             } },
         };
         object message = this.extend(request, parameters);
-        object orders = await this.watch(url, messageHash, message, messageHash);
+        // dedup by (channel, user), not by messageHash: the server subscription is per-user,
+        // so a second user must send its own subscribe (https://github.com/ccxt/ccxt/issues/28369),
+        // and a second symbol-scoped call for the same user must NOT resend - hyperliquid answers
+        // duplicates on the error channel ("Already subscribed"), which rejects every pending
+        // future on the connection. address lowercased because the server is case-insensitive.
+        // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
+        if (isTrue(isEqual(userAddress, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchOrders() requires a user address")) ;
+        }
+        object subscribeHash = add("subscribe:orderUpdates::", ((string)userAddress).ToLower());
+        object orders = await this.watch(url, messageHash, message, subscribeHash);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
@@ -1633,6 +1649,13 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (isTrue(isEqual(channel, "error")))
         {
             object ret_msg = this.safeString(message, "data", "");
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(ret_msg, "Already subscribed"), 0)))
+            {
+                // a duplicate subscribe is harmless - the server-side subscription is intact
+                // and data keeps flowing; rejecting all pending futures here would poison the
+                // whole connection, see https://github.com/ccxt/ccxt/issues/28369
+                return true;
+            }
             var error = new ExchangeError(add(add(this.id, " "), ret_msg));
             ((WebSocketClient)client).reject(error);
             return true;
@@ -1759,6 +1782,17 @@ public partial class hyperliquid : ccxt.hyperliquid
         object subHash = "order";
         object unSubHash = add("unsubscribe:", subHash);
         this.cleanUnsubscription(client as WebSocketClient, subHash, unSubHash, true);
+        // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
+        // clear it for the user echoed in the ack so a later watch re-subscribes
+        object user = this.safeStringLower(subscription, "user");
+        if (isTrue(!isEqual(user, null)))
+        {
+            object subscribeHash = add("subscribe:orderUpdates::", user);
+            if (isTrue(inOp(((WebSocketClient)client).subscriptions, subscribeHash)))
+            {
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscribeHash);
+            }
+        }
         object topicStructure = new Dictionary<string, object>() {
             { "topic", "orders" },
         };
@@ -1770,6 +1804,17 @@ public partial class hyperliquid : ccxt.hyperliquid
         object subHash = "myTrades";
         object unSubHash = add("unsubscribe:", subHash);
         this.cleanUnsubscription(client as WebSocketClient, subHash, unSubHash, true);
+        // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
+        // clear it for the user echoed in the ack so a later watch re-subscribes
+        object user = this.safeStringLower(subscription, "user");
+        if (isTrue(!isEqual(user, null)))
+        {
+            object subscribeHash = add("subscribe:userFills::", user);
+            if (isTrue(inOp(((WebSocketClient)client).subscriptions, subscribeHash)))
+            {
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscribeHash);
+            }
+        }
         object topicStructure = new Dictionary<string, object>() {
             { "topic", "myTrades" },
         };
