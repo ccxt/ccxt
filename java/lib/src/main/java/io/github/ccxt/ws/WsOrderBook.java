@@ -49,6 +49,8 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
             case "timestamp": return this.timestamp;
             case "datetime": return this.datetime;
             case "nonce": return this.nonce;
+            case "cache": return this.cache; // snapshot-buffering exchanges (gate, binance) access it as a map key,
+            // absent here it NPEs the shared ws frame handler, see https://github.com/ccxt/ccxt/pull/29612
             case "outcome": return this.outcome;
             case "outcomeId": return this.outcomeId;
             case "market": return this.market;
