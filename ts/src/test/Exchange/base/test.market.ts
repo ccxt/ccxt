@@ -2,12 +2,13 @@ import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import { Exchange, Market } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
+import type { Dict } from '../../../base/types.js';
 
 function testMarket (exchange: Exchange, skippedProperties: object, method: string, market: Market) {
     if (market === undefined) {
         return;
     }
-    const format = {
+    let format: Dict = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
         'base': 'BTC', // unified uppercase string, base currency, 3 or more letters
@@ -106,6 +107,11 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         emptyAllowedFor.push ('base');
         emptyAllowedFor.push ('quote');
     }
+    if (exchange.safeString (market, 'type') === 'prediction') {
+        // prediction market rows carry the unified 'market' handle, the
+        // deprecated 'symbol' key is intentionally absent from their structures
+        format = exchange.omit (format, [ 'symbol' ]);
+    }
     testSharedMethods.assertStructure (exchange, skippedProperties, method, market, format, emptyAllowedFor);
     // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
     if (market['type'] !== 'prediction') {
@@ -131,7 +137,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     const checkedTypes = [ 'spot', 'swap', 'future', 'option' ];
     for (let i = 0; i < checkedTypes.length; i++) {
         const type = checkedTypes[i];
-        if (market[type]) {
+        if ((market as Dict)[type]) {
             assert (type === market['type'], 'market.type (' + market['type'] + ') not equal to "' + type + '"' + logText);
         }
     }
@@ -141,7 +147,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         const checkedSubTypes = [ 'linear', 'inverse' ];
         for (let i = 0; i < checkedSubTypes.length; i++) {
             const subType = checkedSubTypes[i];
-            if (market[subType]) {
+            if ((market as Dict)[subType]) {
                 assert (subType === market['subType'], 'market.subType (' + market['subType'] + ') not equal to "' + subType + '"' + logText);
             }
         }
@@ -255,7 +261,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     assert (limitsKeysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
     for (let i = 0; i < limitsKeys.length; i++) {
         const key = limitsKeys[i];
-        const limitEntry = market['limits'][key];
+        const limitEntry = (market['limits'] as Dict)[key];
         if (isInactiveMarket) {
             // for inactive markets, there might be `0` for min & max values, so we skip
             continue;

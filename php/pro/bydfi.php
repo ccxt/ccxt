@@ -100,7 +100,7 @@ class bydfi extends \ccxt\async\bydfi {
         return $reqid;
     }
 
-    public function watch_public($messageHashes, $channels, $params = array(), $subscription = array()) {
+    public function watch_public(mixed $messageHashes, mixed $channels, $params = array(), $subscription = array()) {
         return Async\async(function () use ($messageHashes, $channels, $params, $subscription) {
             $url = $this->urls['api']['ws'];
             $id = $this->request_id();
@@ -124,7 +124,7 @@ class bydfi extends \ccxt\async\bydfi {
         })();
     }
 
-    public function watch_private($messageHashes, $params = array()) {
+    public function watch_private(mixed $messageHashes, $params = array()) {
         return Async\async(function () use ($messageHashes, $params) {
             $this->check_required_credentials();
             $url = $this->urls['api']['ws'];
@@ -292,7 +292,7 @@ class bydfi extends \ccxt\async\bydfi {
         return $messageHashes;
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "s" => "KAS-USDT",
@@ -421,7 +421,7 @@ class bydfi extends \ccxt\async\bydfi {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "s" => "ETH-USDC",
@@ -442,10 +442,10 @@ class bydfi extends \ccxt\async\bydfi {
         $interval = $this->safe_string($message, 'i');
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframe = $this->find_timeframe($interval, $timeframes);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
@@ -494,7 +494,7 @@ class bydfi extends \ccxt\async\bydfi {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return (default and max is 100)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -562,7 +562,7 @@ class bydfi extends \ccxt\async\bydfi {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "a" => array( array( 150000, 15 ), ... ),
@@ -575,7 +575,7 @@ class bydfi extends \ccxt\async\bydfi {
         $marketId = $this->safe_string($message, 's');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($message, 'E');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -643,7 +643,7 @@ class bydfi extends \ccxt\async\bydfi {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //     {
         //         "T" => 1766588450558,
@@ -791,7 +791,7 @@ class bydfi extends \ccxt\async\bydfi {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //     {
         //         "a" => {
@@ -853,7 +853,7 @@ class bydfi extends \ccxt\async\bydfi {
         $client->resolve(array( $parsedPosition ), $symbolMessageHash);
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null) {
         //
         //     {
         //         "S" => "1",
@@ -948,14 +948,14 @@ class bydfi extends \ccxt\async\bydfi {
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         if ($fetchBalanceSnapshot) {
             $messageHash = 'fetchBalanceSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash);
             }
         }
     }
 
-    public function load_balance_snapshot($client, $messageHash) {
+    public function load_balance_snapshot(Client $client, mixed $messageHash) {
         return Async\async(function () use ($client, $messageHash) {
             $params = array(
                 'type' => 'swap',
@@ -969,7 +969,7 @@ class bydfi extends \ccxt\async\bydfi {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "a" => {
@@ -1011,7 +1011,7 @@ class bydfi extends \ccxt\async\bydfi {
         //     }
         //
         $messageHash = 'balance';
-        if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $data = $this->safe_dict($message, 'a', array());
             $balances = $this->safe_list($data, 'B', array());
             $timestamp = $this->safe_integer($message, 'T');
@@ -1027,7 +1027,9 @@ class bydfi extends \ccxt\async\bydfi {
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balance, 'wb');
                 $account['used'] = $this->safe_string($balance, 'tfm');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
             $parsedBalance = $this->safe_balance($result);
             $this->balance = $this->extend($this->balance, $parsedBalance);
@@ -1035,7 +1037,7 @@ class bydfi extends \ccxt\async\bydfi {
         }
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "result" => true,
@@ -1063,7 +1065,7 @@ class bydfi extends \ccxt\async\bydfi {
         $this->clean_cache($subscription);
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //     {
         //         "id" => 1,
@@ -1074,7 +1076,7 @@ class bydfi extends \ccxt\async\bydfi {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         //
         //     {
         //         "msg" => "Service error",
@@ -1090,7 +1092,7 @@ class bydfi extends \ccxt\async\bydfi {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $code = $this->safe_string($message, 'code');
         if ($code !== null && ($code !== '0')) {
             $this->handle_error_message($client, $message);

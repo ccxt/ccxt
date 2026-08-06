@@ -66,7 +66,7 @@ func (this *Hibachi) FetchBalance(params ...any) (Balances, error) {
  * @param {string} symbol unified market symbol
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
- * @param {object} [params] extra parameters specific to the hibachi api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of recent [trade structures]
  */
 func (this *Hibachi) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
@@ -105,7 +105,7 @@ func (this *Hibachi) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
  * @description fetches a price ticker and the related information for the past 24h
  * @param {string} symbol unified symbol of the market
- * @param {object} [params] extra parameters specific to the hibachi api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hibachi) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -386,7 +386,7 @@ func (this *Hibachi) CancelOrders(ids []string, options ...CancelOrdersOptions) 
  * @name hibachi#cancelAllOrders
  * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -458,7 +458,7 @@ func (this *Hibachi) Withdraw(code string, amount float64, address string, optio
  * @param {string} symbol unified symbol of the market
  * @param {int} [limit] currently unused
  * @param {object} [params] extra parameters to be passed -- see documentation link above
- * @returns {object} A dictionary containg [orderbook information]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Hibachi) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -1309,10 +1309,10 @@ func (this *Hibachi) FetchDepositAddresses(options ...FetchDepositAddressesOptio
 func (this *Hibachi) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
-func (this *Hibachi) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Hibachi) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Hibachi) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Hibachi) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Hibachi) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1426,7 +1426,7 @@ func (this *Hibachi) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Hibachi) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Hibachi) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Hibachi) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Hibachi) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1441,7 +1441,7 @@ func (this *Hibachi) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Hibachi) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Hibachi) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Hibachi) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Hibachi) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -1558,7 +1558,7 @@ func (this *Hibachi) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Hibachi) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Hibachi) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Hibachi) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Hibachi) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1603,7 +1603,7 @@ func (this *Hibachi) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Hibachi) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Hibachi) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Hibachi) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Hibachi) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

@@ -89,13 +89,17 @@ function ensureWhitelistedFile(filePath: string) {
  * @param encoding File encoding (default: 'utf8')
  * @returns File contents as string, or undefined in browser
  */
-export function readFile (path: string, encoding: BufferEncoding = 'utf8'): string | undefined | Buffer  {
+export function readFile (path: string, encoding: BufferEncoding | null = 'utf8'): string | undefined | Buffer  {
+    // encoding null → Node returns Buffer (binary); default 'utf8' returns string
     if (!isNode || fsSyncModule === null) {
         // Sync module not initialized yet
         return undefined;
     }
     ensureWhitelistedFile (path);
     try {
+        if (encoding === null) {
+            return fsSyncModule.readFileSync (path);
+        }
         return fsSyncModule.readFileSync (path, encoding);
     } catch (e) {
         return undefined;

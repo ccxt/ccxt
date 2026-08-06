@@ -396,7 +396,7 @@ public partial class backpack : Exchange
                 { "adjustForTimeDifference", false },
                 { "networks", new Dictionary<string, object>() {
                     { "APT", "Aptos" },
-                    { "ARB", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                     { "AVAX", "Avalanche" },
                     { "BASE", "Base" },
                     { "BERA", "Berachain" },
@@ -421,7 +421,7 @@ public partial class backpack : Exchange
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "aptos", "APT" },
-                    { "arbitrum", "ARB" },
+                    { "arbitrum", "ARBITRUM" },
                     { "avalanche", "AVAX" },
                     { "base", "BASE" },
                     { "berachain", "BERA" },
@@ -537,26 +537,29 @@ public partial class backpack : Exchange
             object networkId = this.safeString(network, "blockchain");
             object networkIdLowerCase = this.safeStringLower(network, "blockchain");
             object networkCode = this.networkIdToCode(networkIdLowerCase, code);
-            ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(network, "minimumWithdrawal") },
-                        { "max", this.parseNumber(this.omitZero(this.safeString(network, "maximumWithdrawal"))) },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(network, "minimumWithdrawal") },
+                            { "max", this.parseNumber(this.omitZero(this.safeString(network, "maximumWithdrawal"))) },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(network, "minimumDeposit") },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(network, "minimumDeposit") },
-                        { "max", null },
-                    } },
-                } },
-                { "active", null },
-                { "deposit", this.safeBool(network, "depositEnabled") },
-                { "withdraw", this.safeBool(network, "withdrawEnabled") },
-                { "fee", this.safeNumber(network, "withdrawalFee") },
-                { "precision", null },
-                { "info", network },
-            };
+                    { "active", null },
+                    { "deposit", this.safeBool(network, "depositEnabled") },
+                    { "withdraw", this.safeBool(network, "withdrawEnabled") },
+                    { "fee", this.safeNumber(network, "withdrawalFee") },
+                    { "precision", null },
+                    { "info", network },
+                };
+            }
         }
         object active = null;
         object deposit = null;
@@ -796,7 +799,7 @@ public partial class backpack : Exchange
             { "SPOT", "spot" },
             { "PERP", "swap" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -914,8 +917,8 @@ public partial class backpack : Exchange
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -944,6 +947,10 @@ public partial class backpack : Exchange
         //     }
         //
         object microseconds = this.safeInteger(response, "timestamp");
+        if (isTrue(isEqual(microseconds, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchOrderBook() missing microseconds")) ;
+        }
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object orderbook = this.parseOrderBook(response, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
@@ -959,7 +966,7 @@ public partial class backpack : Exchange
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in seconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 100)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1243,7 +1250,12 @@ public partial class backpack : Exchange
         {
             response = await this.publicGetApiV1Trades(this.extend(request, parameters));
         }
-        return this.parseTrades(response, market, since, limit);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -1293,7 +1305,12 @@ public partial class backpack : Exchange
             ((IDictionary<string,object>)request)["fillType"] = "User"; // default
         }
         object response = await this.privateGetWapiV1HistoryFills(this.extend(request, parameters));
-        return this.parseTrades(response, market, since, limit);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1397,6 +1414,10 @@ public partial class backpack : Exchange
         //     }
         //
         object status = this.safeString(response, "status");
+        if (isTrue(isEqual(status, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchStatus() missing status")) ;
+        }
         return new Dictionary<string, object>() {
             { "status", ((string)status).ToLower() },
             { "updated", null },
@@ -1467,7 +1488,10 @@ public partial class backpack : Exchange
             object used = Precise.stringAdd(locked, staked);
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = used;
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1872,6 +1896,14 @@ public partial class backpack : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2012,7 +2044,7 @@ public partial class backpack : Exchange
      * @description fetch an open order by it's id
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
      * @param {string} id order id
-     * @param {string} symbol not used by hollaex fetchOpenOrder ()
+     * @param {string} symbol not used by fetchOpenOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2099,10 +2131,10 @@ public partial class backpack : Exchange
      * @name backpack#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of  orde structures to retrieve (default 100, max 1000)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

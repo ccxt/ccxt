@@ -350,7 +350,7 @@ public partial class bitteam : Exchange
      * @name bitteam#fetchMarkets
      * @description retrieves data on all markets for bitteam
      * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
@@ -525,7 +525,7 @@ public partial class bitteam : Exchange
      * @name bitteam#fetchCurrencies
      * @description fetches all available currencies on an exchange
      * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     public async override Task<object> fetchCurrencies(object parameters = null)
@@ -624,7 +624,7 @@ public partial class bitteam : Exchange
         //
         object responseResult = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object currencies = this.safeValue(responseResult, "currencies", new List<object>() {});
-        // usding another endpoint to fetch statuses of deposits and withdrawals
+        // using another endpoint to fetch statuses of deposits and withdrawals
         object statusesResponse = await this.publicGetTradeApiCmcAssets();
         //
         //     {
@@ -666,7 +666,7 @@ public partial class bitteam : Exchange
         object maxWithdraw = this.safeString(txLimits, "maxWithdraw");
         object minDeposit = this.safeString(txLimits, "minDeposit");
         object fee = null;
-        object withdrawCommissionFixed = ((object)this.safeValue(txLimits, "withdrawCommissionFixed", new Dictionary<string, object>() {}));
+        object withdrawCommissionFixed = this.safeValue(txLimits, "withdrawCommissionFixed", new Dictionary<string, object>() {});
         object feesByNetworkId = new Dictionary<string, object>() {};
         object blockChain = this.safeString(currency, "blockChain");
         // if only one blockChain
@@ -690,30 +690,33 @@ public partial class bitteam : Exchange
             object networkId = getValue(networkIds, j);
             object networkCode = this.networkIdToCode(networkId, code);
             object networkFee = this.safeNumber(feesByNetworkId, networkId);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "active", active },
-                { "fee", networkFee },
-                { "precision", networkPrecision },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "deposit", deposit },
+                    { "withdraw", withdraw },
+                    { "active", active },
+                    { "fee", networkFee },
+                    { "precision", networkPrecision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.parseNumber(minWithdraw) },
+                            { "max", this.parseNumber(maxWithdraw) },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.parseNumber(minDeposit) },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdraw) },
-                        { "max", this.parseNumber(maxWithdraw) },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minDeposit) },
-                        { "max", null },
-                    } },
-                } },
-                { "info", currency },
-            };
+                    { "info", currency },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -753,7 +756,7 @@ public partial class bitteam : Exchange
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -825,8 +828,8 @@ public partial class bitteam : Exchange
      * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -880,7 +883,7 @@ public partial class bitteam : Exchange
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve (default 10)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -999,8 +1002,8 @@ public partial class bitteam : Exchange
      * @description fetches information on an order
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
      * @param {int|string} id order id
-     * @param {string} symbol not used by bitteam fetchOrder ()
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {string} symbol not used by fetchOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -1068,7 +1071,7 @@ public partial class bitteam : Exchange
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve (default 10)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1092,7 +1095,7 @@ public partial class bitteam : Exchange
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of closed order structures to retrieve (default 10)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1116,7 +1119,7 @@ public partial class bitteam : Exchange
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of canceled order structures to retrieve (default 10)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1142,7 +1145,7 @@ public partial class bitteam : Exchange
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1203,8 +1206,8 @@ public partial class bitteam : Exchange
      * @description cancels an open order
      * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
      * @param {string} id order id
-     * @param {string} symbol not used by bitteam cancelOrder ()
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {string} symbol not used by cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -1235,8 +1238,8 @@ public partial class bitteam : Exchange
      * @name bitteam#cancelAllOrders
      * @description cancel open orders of market
      * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1458,7 +1461,7 @@ public partial class bitteam : Exchange
      * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
      * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -1520,7 +1523,7 @@ public partial class bitteam : Exchange
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
@@ -1862,7 +1865,7 @@ public partial class bitteam : Exchange
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
@@ -1909,7 +1912,7 @@ public partial class bitteam : Exchange
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve (default 10)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2187,7 +2190,7 @@ public partial class bitteam : Exchange
      * @name betteam#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
-     * @param {object} [params] extra parameters specific to the betteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -2261,11 +2264,14 @@ public partial class bitteam : Exchange
             object used = this.safeString(currencyBalance, "used");
             object total = this.safeString(currencyBalance, "total");
             object currencyCode = this.safeCurrencyCode(((string)rawCurrencyId).ToLower());
-            ((IDictionary<string,object>)balance)[(string)currencyCode] = new Dictionary<string, object>() {
-                { "free", free },
-                { "used", used },
-                { "total", total },
-            };
+            if (isTrue(!isEqual(currencyCode, null)))
+            {
+                ((IDictionary<string,object>)balance)[(string)currencyCode] = new Dictionary<string, object>() {
+                    { "free", free },
+                    { "used", used },
+                    { "total", total },
+                };
+            }
         }
         return this.safeBalance(balance);
     }
@@ -2278,7 +2284,7 @@ public partial class bitteam : Exchange
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal
      * @param {int} [limit] max number of deposit/withdrawals to return (default 10)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
@@ -2492,7 +2498,7 @@ public partial class bitteam : Exchange
             { "deposit", "deposit" },
             { "withdraw", "withdrawal" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object parseTransactionStatus(object status)

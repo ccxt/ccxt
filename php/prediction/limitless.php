@@ -7,6 +7,7 @@ namespace ccxt\prediction;
 
 use Exception; // a common import
 use ccxt\abstract\prediction\limitless as Exchange;
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidAddress;
@@ -219,7 +220,7 @@ class limitless extends Exchange {
                     for ($j = 0; $j < count($found); $j++) {
                         $raw = $found[$j];
                         $slug = $this->safe_string($raw, 'slug');
-                        if ($slug && !(is_array($seen) && array_key_exists($slug, $seen))) {
+                        if ($slug && !(is_array($seen) && array_key_exists($slug ?? '', $seen))) {
                             $seen[$slug] = true;
                             $allRaw[] = $raw;
                         }
@@ -291,7 +292,7 @@ class limitless extends Exchange {
                 $m = $this->parse_market($raw);
                 $markets[] = $m;
                 if ($eventKey) {
-                    if (!(is_array($eventGroups) && array_key_exists($eventKey, $eventGroups))) {
+                    if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
                         $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                     }
                     $eventGroup = $eventGroups[$eventKey];
@@ -411,7 +412,7 @@ class limitless extends Exchange {
         $active = !$isExpired && ($marketStatus === 'FUNDED');
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         $expiryTimestamp = $this->safe_integer($raw, 'expirationTimestamp');
-        // limitless reports lifetime volume (is_array(`volumeFormatted`) && array_key_exists(human-readable, `volumeFormatted`)), not a 24h figure
+        // limitless reports lifetime volume (is_array(`volumeFormatted`) && array_key_exists(human-readable ?? '', `volumeFormatted`)), not a 24h figure
         $volume24h = $this->safe_number($raw, 'volumeFormatted');
         // resolution => $winningOutcomeIndex is null until the market resolves, then the winning outcome index
         $winningOutcomeIndex = $this->safe_integer($raw, 'winningOutcomeIndex');
@@ -477,7 +478,7 @@ class limitless extends Exchange {
             );
         }
         $outcomesLength = count($outcomes);
-        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned, the loop))
+        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned ?? '', the loop))
         $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $slug,
@@ -1025,7 +1026,7 @@ class limitless extends Exchange {
         // $ticker is either a plain $raw $market object, or a composite dict array( 'market' => rawMarket, 'book' => rawOrderbook )
         $raw = $ticker;
         $book = null;
-        if (is_array($ticker) && array_key_exists('market', $ticker)) {
+        if (is_array($ticker) && array_key_exists('market' ?? '', $ticker)) {
             $raw = $this->safe_dict($ticker, 'market', array());
             $book = $this->safe_dict($ticker, 'book');
         }
@@ -1145,14 +1146,21 @@ class limitless extends Exchange {
             for ($i = 0; $i < count($outcomes); $i++) {
                 $outcomeObj = $this->outcome($outcomes[$i]);
                 $slug = $this->safe_string($outcomeObj['info'], 'slug');
-                if (!(is_array($outcomesBySlug) && array_key_exists($slug, $outcomesBySlug))) {
-                    $outcomesBySlug[$slug] = array();
+                if ($slug === null) {
+                    throw new ExchangeError($this->id . ' fetchTickers() missing slug');
+                }
+                if (!(is_array($outcomesBySlug) && array_key_exists($slug ?? '', $outcomesBySlug))) {
+                    if ($slug !== null) {
+                        $outcomesBySlug[$slug] = array();
+                    }
                     $slugs[] = $slug;
                 }
                 // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-                $grouped = $outcomesBySlug[$slug];
+                $grouped = $this->safe_value($outcomesBySlug, $slug);
                 $grouped[] = $outcomeObj;
-                $outcomesBySlug[$slug] = $grouped;
+                if ($slug !== null) {
+                    $outcomesBySlug[$slug] = $grouped;
+                }
             }
             $promises = array();
             for ($i = 0; $i < count($slugs); $i++) {
@@ -1393,6 +1401,9 @@ class limitless extends Exchange {
                     for ($i = 0; $i < count($rawHistory); $i++) {
                         $series = $this->safe_dict($rawHistory, $i, array());
                         $title = $this->safe_string_upper($series, 'title', '');
+                        if ($title === null) {
+                            throw new ExchangeError($this->id . ' fetchOHLCV() missing title');
+                        }
                         if (($outcomeLabel !== null) && (mb_strpos($title, $outcomeLabel) !== false)) {
                             $selectedSeries = $series;
                             break;
@@ -1431,15 +1442,21 @@ class limitless extends Exchange {
                 $point = $sorted[$i];
                 $pTs = $this->safe_integer($point, 'timestamp');
                 $pPrice = $this->safe_number($point, 'price');
+                if ($pTs === null) {
+                    throw new ExchangeError($this->id . ' method() missing pTs');
+                }
                 $bucket = $this->parse_to_int($pTs / $ms) * $ms;
                 $key = (string) $bucket;
-                if (!(is_array($candles) && array_key_exists($key, $candles))) {
+                if (!(is_array($candles) && array_key_exists($key ?? '', $candles))) {
                     $candles[$key] = array( $bucket, $pPrice, $pPrice, $pPrice, $pPrice, 0 );
                     $bucketOrder[] = $key;
                 } else {
                     $candle = $candles[$key];
-                    $candle[2] = max($candle[2], $pPrice);
-                    $candle[3] = min($candle[3], $pPrice);
+                    $pPriceOrZero = ($pPrice === null) ? 0 : $pPrice;
+                    $candle[2] = max($candle[2], $pPriceOrZero);
+                    $candleLow = ($candle[3] === null) ? $pPrice : $candle[3];
+                    $pPriceOrCandleLow = ($pPrice === null) ? $candle[3] : $pPrice;
+                    $candle[3] = min($candleLow, $pPriceOrCandleLow);
                     $candle[4] = $pPrice;
                     $candles[$key] = $candle; // php arrays are value types - write the mutation back
                 }
@@ -1553,7 +1570,7 @@ class limitless extends Exchange {
         })();
     }
 
-    public function fetch_orders_by_ids($ids, ?string $outcome = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_ids(mixed $ids, ?string $outcome = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($ids, $outcome, $params) {
             /**
              * fetch orders by the list of order $id
@@ -1877,7 +1894,7 @@ class limitless extends Exchange {
                 $feeCost = $this->safe_string($totals, 'contractsFee');
             }
             $fee = array(
-                'cost' => $this->apply_scale($feeCost),
+                'cost' => $this->parse_number($this->apply_scale($feeCost)),
                 'currency' => $feeCurrency,
             );
         }
@@ -2054,6 +2071,9 @@ class limitless extends Exchange {
                 'buy' => 0,
                 'sell' => 1,
             );
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            }
             $sideValue = $this->safe_integer($sides, strtolower($side));
             $rank = $this->safe_dict($accountInfo, 'rank');
             // $signatureType => 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
@@ -2148,7 +2168,7 @@ class limitless extends Exchange {
         })();
     }
 
-    public function sign_order_request(array $signRequest, $marketSymbol) {
+    public function sign_order_request(array $signRequest, mixed $marketSymbol) {
         $this->check_required_credentials();
         if ($this->privateKey === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders');
@@ -2183,11 +2203,11 @@ class limitless extends Exchange {
         return $this->sign_message($msg, $this->privateKey);
     }
 
-    public function hash_message($message) {
+    public function hash_message(mixed $message) {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -2198,7 +2218,7 @@ class limitless extends Exchange {
         return strtolower($result);
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -2609,13 +2629,22 @@ class limitless extends Exchange {
         $amount = $this->safe_string($trade, 'outcomeTokenAmount');
         $cost = $this->safe_string($trade, 'collateralAmount');
         $rawSide = $this->safe_string_lower($trade, 'strategy');
+        if ($rawSide === null) {
+            throw new ExchangeError($this->id . ' parsePredictionTrade() missing rawSide');
+        }
         $sellIndex = mb_strpos($rawSide, 'sell');
         $side = ($sellIndex >= 0) ? 'sell' : 'buy';
         $type = null;
         $takerOrMaker = null;
+        if ($rawSide === null) {
+            throw new ExchangeError($this->id . ' parsePredictionTrade() missing rawSide');
+        }
         if (mb_strpos($rawSide, 'limit') !== false) {
             $type = 'limit';
             $takerOrMaker = 'maker';
+        if ($rawSide === null) {
+            throw new ExchangeError($this->id . ' method() missing rawSide');
+        }
         } elseif (mb_strpos($rawSide, 'market') !== false) {
             $type = 'market';
             $takerOrMaker = 'taker';
@@ -2777,7 +2806,7 @@ class limitless extends Exchange {
         })();
     }
 
-    public function get_position_from_clob_entry(string $label, ?array $entry = null) {
+    public function get_position_from_clob_entry(?string $label, ?array $entry = null) {
         if ($entry === null) {
             return null;
         }
@@ -2787,7 +2816,7 @@ class limitless extends Exchange {
             return null;
         }
         $positions = $this->safe_dict($entry, 'positions');
-        $position = $this->safe_dict($positions, $label);
+        $position = $this->safe_dict($positions, $label, array());
         $rawMarket = $this->safe_dict($entry, 'market');
         $slug = $this->safe_string($rawMarket, 'slug');
         $outcomeObj = $this->get_outcome_by_slug_and_label($slug, $label);
@@ -2858,7 +2887,7 @@ class limitless extends Exchange {
         );
     }
 
-    public function fetch_events(array $params = array()): PromiseInterface {
+    public function fetch_events($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance
@@ -2875,6 +2904,9 @@ class limitless extends Exchange {
              */
             $this->require_event_query($params);
             $queries = $this->parse_search_queries($params);
+            if ($queries === null) {
+                throw new ExchangeError($this->id . ' fetchEvents() missing queries');
+            }
             $queriesLength = count($queries);
             $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ));
             $eventId = $this->safe_string_2($params, 'eventId', 'slug');
@@ -2887,6 +2919,9 @@ class limitless extends Exchange {
                 $limit = min($requestedLimit, 50);
                 $seen = array();
                 for ($i = 0; $i < count($queries); $i++) {
+                    if ($queries === null) {
+                        throw new ExchangeError($this->id . ' fetchEvents() missing queries');
+                    }
                     $q = $queries[$i];
                     $response = Async\await($this->limitlessPublicGetMarketsSearch($this->extend(array(
                         'query' => $q,
@@ -2896,7 +2931,7 @@ class limitless extends Exchange {
                     for ($j = 0; $j < count($found); $j++) {
                         $raw = $found[$j];
                         $rawSlug = $this->safe_string($raw, 'slug');
-                        if ($rawSlug && !(is_array($seen) && array_key_exists($rawSlug, $seen))) {
+                        if ($rawSlug && !(is_array($seen) && array_key_exists($rawSlug ?? '', $seen))) {
                             $seen[$rawSlug] = true;
                             $rawMarkets[] = $raw;
                         }
@@ -2931,9 +2966,12 @@ class limitless extends Exchange {
                 $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
                 $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
                 $m = $this->parse_market($raw);
+                if ($m === null) {
+                    throw new ExchangeError($this->id . ' fetchEvents() missing m');
+                }
                 $this->markets[$m['market']] = $m;
                 if ($eventKey) {
-                    if (!(is_array($eventGroups) && array_key_exists($eventKey, $eventGroups))) {
+                    if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
                         $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                     }
                     $eventGroup = $eventGroups[$eventKey];
@@ -3037,6 +3075,9 @@ class limitless extends Exchange {
                 $categoryId = $this->safe_string($category, 'id');
                 $matched = false;
                 for ($wi = 0; $wi < count($wanted); $wi++) {
+                    if ($name === null) {
+                        throw new ExchangeError($this->id . ' fetchRawMarketsByTags() missing name');
+                    }
                     if (mb_strpos($name, $wanted[$wi]) !== false) {
                         $matched = true;
                         break;
@@ -3058,7 +3099,7 @@ class limitless extends Exchange {
                 for ($mi = 0; $mi < $categoryMarketsLength; $mi++) {
                     $raw = $categoryMarkets[$mi];
                     $slug = $this->safe_string($raw, 'slug');
-                    if (($slug !== null) && !(is_array($seen) && array_key_exists($slug, $seen))) {
+                    if (($slug !== null) && !(is_array($seen) && array_key_exists($slug ?? '', $seen))) {
                         $seen[$slug] = true;
                         $allRaw[] = $raw;
                     }
@@ -3119,7 +3160,7 @@ class limitless extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         /**
          * @ignore
          * maps limitless error responses to ccxt exceptions

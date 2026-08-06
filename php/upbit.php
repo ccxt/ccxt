@@ -386,7 +386,7 @@ class upbit extends Exchange {
         return $this->fetch_market_by_id($market['id'], $params);
     }
 
-    public function fetch_market_by_id(string $id, $params = array()) {
+    public function fetch_market_by_id(?string $id, $params = array()) {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         $request = array(
@@ -515,6 +515,9 @@ class upbit extends Exchange {
 
     public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'market');
+        if ($id === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing id');
+        }
         list($quoteId, $baseId) = explode('-', $id);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
@@ -571,7 +574,7 @@ class upbit extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -584,7 +587,9 @@ class upbit extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'balance');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -707,7 +712,7 @@ class upbit extends Exchange {
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         $orderbooks = $this->fetch_order_books(array( $symbol ), $limit, $params);
         return $this->safe_value($orderbooks, $symbol);
@@ -825,7 +830,10 @@ class upbit extends Exchange {
         return $this->parse_tickers($concated, $symbols);
     }
 
-    public function ids_query_strings(array $ids, float $maxQueryLength) {
+    public function ids_query_strings(?array $ids, float $maxQueryLength) {
+        if ($ids === null) {
+            return array();
+        }
         $idsString = '';
         $queries = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -1070,12 +1078,15 @@ class upbit extends Exchange {
             $element['percentage'] = true;
             $element['tierBased'] = false;
             $element['info'] = $fetchMarketResponse[$i];
-            $response[$this->safe_string($fetchMarketResponse[$i], 'symbol')] = $element;
+            $feeSymbol = $this->safe_string($fetchMarketResponse[$i], 'symbol');
+            if ($feeSymbol !== null) {
+                $response[$feeSymbol] = $element;
+            }
         }
         return $response;
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-ETH",
@@ -1173,7 +1184,7 @@ class upbit extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function calc_order_price(string $symbol, float $amount, ?float $price = null, $params = array()): string {
+    public function calc_order_price(string $symbol, ?float $amount, ?float $price = null, $params = array()): ?string {
         $quoteAmount = null;
         $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice');
         $cost = $this->safe_string($params, 'cost');
@@ -1192,6 +1203,9 @@ class upbit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' When $createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote $amount to spend.');
             }
             $quoteAmount = $this->cost_to_precision($symbol, $amount);
+        }
+        if ($quoteAmount === null) {
+            throw new ArgumentsRequired($this->id . ' calcOrderPrice() could not determine quote amount');
         }
         return $quoteAmount;
     }
@@ -1333,7 +1347,7 @@ class upbit extends Exchange {
          *
          * cancels an open order
          * @param {string} $id order $id
-         * @param {string} $symbol not used by upbit cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -2200,7 +2214,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_addresses($response, $codes);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        $currency => 'XRP',
@@ -2364,7 +2378,7 @@ class upbit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         ));
@@ -2403,7 +2417,7 @@ class upbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

@@ -535,10 +535,10 @@
                     }
                 }
             },
-            "ARB": {
+            "ARBITRUM": {
                 "id": "Arbitrum",
                 "currencyNetworkId": "ARB_USDT",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,
@@ -1215,10 +1215,10 @@
                     }
                 }
             },
-            "ARB": {
+            "ARBITRUM": {
                 "id": "Arbitrum",
                 "currencyNetworkId": "ETH-AETH",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,

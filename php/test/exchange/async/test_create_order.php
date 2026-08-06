@@ -269,6 +269,9 @@ function tco_get_minimum_amount_for_limit_price($exchange, $market, $price, $pre
 function tco_try_cancel_order($exchange, $symbol, $order, $skipped_properties) {
     return Async\async(function () use ($exchange, $symbol, $order, $skipped_properties) {
         $order_fetched = \React\Async\await(fetch_order($exchange, $symbol, $order['id'], $skipped_properties));
+        if ($order_fetched === null) {
+            return true;
+        }
         $needs_cancel = $exchange->in_array($order_fetched['status'], ['open', 'pending', null]);
         // if it was not reported as closed/filled, then try to cancel it
         if ($needs_cancel) {

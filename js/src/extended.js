@@ -872,7 +872,7 @@ export default class extended extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1487,7 +1487,9 @@ export default class extended extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(balance, 'availableToWithdraw');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2182,7 +2184,7 @@ export default class extended extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(this.safeDict(data, 0), market);
+        return this.parseLeverage(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -2553,6 +2555,12 @@ export default class extended extends Exchange {
         return settlement;
     }
     async createExtendedOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();

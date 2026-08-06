@@ -290,8 +290,9 @@ class bithumb extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, 'spot');
     }
 
-    public function amount_to_precision($symbol, $amount) {
-        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
+    public function amount_to_precision(?string $symbol, mixed $amount) {
+        $market = $this->market($symbol);
+        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
@@ -424,7 +425,7 @@ class bithumb extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_dict($response, 'data');
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
@@ -472,7 +473,7 @@ class bithumb extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -672,7 +673,7 @@ class bithumb extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1576823400000, // 기준 시간
@@ -1149,7 +1150,7 @@ class bithumb extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            $side_in_params = (is_array($params) && array_key_exists('side', $params));
+            $side_in_params = (is_array($params) && array_key_exists('side' ?? '', $params));
             if (!$side_in_params) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
             }
@@ -1175,7 +1176,7 @@ class bithumb extends Exchange {
         })();
     }
 
-    public function cancel_unified_order(array $order, $params = array()) {
+    public function cancel_unified_order(array $order, $params = array()): PromiseInterface {
         return Async\async(function () use ($order, $params) {
             $request = array(
                 'side' => $order['side'],
@@ -1256,7 +1257,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fix_comma_number($numberStr) {
+    public function fix_comma_number(mixed $numberStr) {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if ($numberStr === null) {
             return null;
@@ -1272,7 +1273,7 @@ class bithumb extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$api]) . $endpoint;
         $query = $this->omit($params, $this->extract_params($path));
@@ -1285,6 +1286,9 @@ class bithumb extends Exchange {
             $body = $this->urlencode($this->extend(array(
                 'endpoint' => $endpoint,
             ), $query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            $bodyParts = explode('%20', $body);
+            $body = implode('+', $bodyParts);
             $nonce = (string) $this->nonce();
             $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
@@ -1300,11 +1304,11 @@ class bithumb extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status', $response)) {
+        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
             //     array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
             //

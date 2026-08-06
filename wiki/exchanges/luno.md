@@ -25,6 +25,7 @@
 * [fetchLedger](#fetchledger)
 * [createDepositAddress](#createdepositaddress)
 * [fetchDepositAddress](#fetchdepositaddress)
+* [fetchDepositWithdrawFee](#fetchdepositwithdrawfee)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
 
@@ -114,7 +115,7 @@ luno.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -306,7 +307,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the luno api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -479,6 +480,28 @@ luno.fetchDepositAddress (code, params?)
 ```
 
 
+<a name="fetchDepositWithdrawFee" id="fetchdepositwithdrawfee"></a>
+
+### fetchDepositWithdrawFee{docsify-ignore}
+fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+
+**Kind**: instance method of [<code>luno</code>](#luno)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://www.luno.com/en/developers/api#tag/Send/operation/SendFee  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.address | <code>string</code> | Yes | the destination address luno should quote the send fee for (required by the exchange) |
+
+
+```javascript
+luno.fetchDepositWithdrawFee (code, params?)
+```
+
+
 <a name="watchTrades" id="watchtrades"></a>
 
 ### watchTrades{docsify-ignore}
@@ -508,7 +531,7 @@ luno.watchTrades (symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Streaming-API  
 

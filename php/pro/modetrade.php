@@ -75,7 +75,7 @@ class modetrade extends \ccxt\async\modetrade {
         ));
     }
 
-    public function request_id($url) {
+    public function request_id(mixed $url) {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
@@ -83,7 +83,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $newValue;
     }
 
-    public function watch_public($messageHash, $message) {
+    public function watch_public(mixed $messageHash, mixed $message) {
         return Async\async(function () use ($messageHash, $message) {
             // the default $id
             $id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
@@ -110,7 +110,7 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -128,7 +128,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "PERP_BTC_USDC@$orderbook",
@@ -155,7 +155,7 @@ class modetrade extends \ccxt\async\modetrade {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $topic = $this->safe_string($message, 'topic');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -192,7 +192,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDC",
@@ -229,7 +229,7 @@ class modetrade extends \ccxt\async\modetrade {
         ), $market);
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "PERP_BTC_USDC@$ticker",
@@ -286,7 +286,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function handle_tickers(Client $client, $message) {
+    public function handle_tickers(Client $client, mixed $message) {
         //
         //     {
         //         "topic":"tickers",
@@ -347,7 +347,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
         //       "topic" => "bbos",
@@ -378,7 +378,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -432,7 +432,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -470,7 +470,7 @@ class modetrade extends \ccxt\async\modetrade {
             $this->safe_number($data, 'volume'),
         );
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -513,7 +513,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         // {
         //     "topic":"PERP_ADA_USDC@$trade",
@@ -533,7 +533,7 @@ class modetrade extends \ccxt\async\modetrade {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $trade = $this->parse_ws_trade($this->extend($data, array( 'timestamp' => $timestamp )), $market);
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
@@ -544,7 +544,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($trades, $topic);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -619,7 +619,7 @@ class modetrade extends \ccxt\async\modetrade {
         ), $market);
     }
 
-    public function handle_auth(Client $client, $message) {
+    public function handle_auth(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "auth",
@@ -637,7 +637,7 @@ class modetrade extends \ccxt\async\modetrade {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
             // allows further authentication attempts
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions['authenticated']);
             }
         }
@@ -676,7 +676,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function watch_private($messageHash, $message, $params = array()) {
+    public function watch_private(mixed $messageHash, mixed $message, $params = array()) {
         return Async\async(function () use ($messageHash, $message, $params) {
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
@@ -689,7 +689,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function watch_private_multiple($messageHashes, $message, $params = array()) {
+    public function watch_private_multiple(mixed $messageHashes, mixed $message, $params = array()) {
         return Async\async(function () use ($messageHashes, $message, $params) {
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
@@ -782,7 +782,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDT",
@@ -903,7 +903,7 @@ class modetrade extends \ccxt\async\modetrade {
         ));
     }
 
-    public function handle_order_update(Client $client, $message) {
+    public function handle_order_update(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "executionreport",
@@ -956,7 +956,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_order(Client $client, $message, $topic) {
+    public function handle_order(Client $client, mixed $message, mixed $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -988,7 +988,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         // {
         //     $symbol => 'PERP_XRP_USDC',
@@ -1081,11 +1081,11 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot) {
             $messageHash = 'fetchPositionsSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
             }
@@ -1094,7 +1094,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash) {
         return Async\async(function () use ($client, $messageHash) {
             $positions = Async\await($this->fetch_positions());
             $this->positions = new ArrayCacheBySymbolBySide();
@@ -1107,7 +1107,7 @@ class modetrade extends \ccxt\async\modetrade {
                 }
             }
             // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve($cache);
                 $client->resolve($cache, 'positions');
@@ -1115,7 +1115,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //    {
         //        "topic":"position",
@@ -1168,7 +1168,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null) {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1265,7 +1265,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(mixed $client, mixed $message) {
         //
         //     {
         //         "topic":"balance",
@@ -1304,23 +1304,28 @@ class modetrade extends \ccxt\async\modetrade {
             $key = $keys[$i];
             $value = $balances[$key];
             $code = $this->safe_currency_code($key);
-            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+            $account = $this->account();
+            if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
+                $account = $this->balance[$code];
+            }
             $total = $this->safe_string($value, 'holding');
             $used = $this->safe_string($value, 'frozen');
             $account['total'] = $total;
             $account['used'] = $used;
             $account['free'] = Precise::string_sub($total, $used);
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
         }
         $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, 'balance');
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
         //
-        if (!(is_array($message) && array_key_exists('success', $message))) {
+        if (!(is_array($message) && array_key_exists('success' ?? '', $message))) {
             return false;
         }
         $success = $this->safe_bool($message, 'success');
@@ -1338,7 +1343,7 @@ class modetrade extends \ccxt\async\modetrade {
             if ($error instanceof AuthenticationError) {
                 $messageHash = 'authenticated';
                 $client->reject($error, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
@@ -1348,7 +1353,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -1410,17 +1415,17 @@ class modetrade extends \ccxt\async\modetrade {
         return array( 'event' => 'ping' );
     }
 
-    public function pong(Client $client, $message) {
+    public function pong(Client $client, mixed $message) {
         return Async\async(function () use ($client, $message) {
             Async\await($client->send(array( 'event' => 'pong' )));
         })();
     }
 
-    public function handle_ping(Client $client, $message) {
+    public function handle_ping(Client $client, mixed $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         // array( event => "pong", ts => 1614667590000 )
         //
@@ -1428,7 +1433,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $message;
     }
 
-    public function handle_subscribe(Client $client, $message) {
+    public function handle_subscribe(Client $client, mixed $message) {
         //
         //     {
         //         "id" => "666888",

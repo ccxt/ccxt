@@ -1039,6 +1039,11 @@ public class BybitApi extends Exchange
         return this.callAsync ("privateGetV5SpotLeverTokenOrderRecord", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5SpotMarginTradeFlexibleAvailableInventory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5SpotMarginTradeFlexibleAvailableInventory", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5SpotMarginTradeInterestRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeInterestRateHistory", optionalArgs);

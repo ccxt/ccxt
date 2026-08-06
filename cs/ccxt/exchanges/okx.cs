@@ -1088,7 +1088,7 @@ public partial class okx : Exchange
                     { "APT", "Aptos" },
                     { "SONIC", "Sonic" },
                     { "SCROLL", "Scroll" },
-                    { "ARBONE", "Arbitrum One" },
+                    { "ARBITRUM", "Arbitrum One" },
                     { "AVAXC", "Avalanche C-Chain" },
                     { "AVAXX", "Avalanche X-Chain" },
                     { "BASE", "Base" },
@@ -1408,7 +1408,7 @@ public partial class okx : Exchange
     public virtual object convertToInstrumentType(object type)
     {
         object exchangeTypes = this.safeDict(this.options, "exchangeType", new Dictionary<string, object>() {});
-        return this.safeString(exchangeTypes, type, type);
+        return this.safeString(exchangeTypes, ((string)type), type);
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -1492,7 +1492,7 @@ public partial class okx : Exchange
             // on the missing expiry.
             isOption = isTrue((isGreaterThan(partsLength, 3))) && isTrue((isTrue(((string)marketId).EndsWith(((string)"-C"))) || isTrue(((string)marketId).EndsWith(((string)"-P")))));
         }
-        if (isTrue(isTrue(isTrue(isOption) && isTrue((!isEqual(marketId, null)))) && !isTrue((inOp(this.markets_by_id, marketId)))))
+        if (isTrue(isTrue(isTrue(isOption) && isTrue((!isEqual(marketId, null)))) && isTrue((isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -1873,7 +1873,7 @@ public partial class okx : Exchange
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber(market, "minSz") },
-                    { "max", null },
+                    { "max", this.safeNumber(market, "maxLmtSz") },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", null },
@@ -2070,22 +2070,25 @@ public partial class okx : Exchange
             object parts = this.arraySlice(idParts, 1);
             object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
             object networkCode = this.networkIdToCode(chainPart, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", null },
-                { "deposit", this.safeBool(chain, "canDep") },
-                { "withdraw", this.safeBool(chain, "canWd") },
-                { "fee", this.safeNumber(chain, "fee") },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))) },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(chain, "minWd") },
-                        { "max", this.safeNumber(chain, "maxWd") },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", this.safeBool(chain, "canDep") },
+                    { "withdraw", this.safeBool(chain, "canWd") },
+                    { "fee", this.safeNumber(chain, "fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "minWd") },
+                            { "max", this.safeNumber(chain, "maxWd") },
+                        } },
                     } },
-                } },
-                { "info", chain },
-            };
+                    { "info", chain },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", chains },
@@ -2118,7 +2121,7 @@ public partial class okx : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2931,7 +2934,10 @@ public partial class okx : Exchange
             {
                 ((IDictionary<string,object>)account)["free"] = availEq;
             }
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
         ((IDictionary<string,object>)result)["datetime"] = this.iso8601(timestamp);
@@ -2954,7 +2960,10 @@ public partial class okx : Exchange
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "bal");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "availBal");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozenBal");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -3233,6 +3242,14 @@ public partial class okx : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
         object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
@@ -3271,7 +3288,7 @@ public partial class okx : Exchange
         object trigger = isTrue((!isEqual(triggerPrice, null))) || isTrue((isEqual(type, "trigger")));
         object isReduceOnly = isTrue(this.safeValue(parameters, "reduceOnly", false)) || isTrue((!isEqual(closeFraction, null)));
         object defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
-        object marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not ommited so as to be extended into the request
+        object marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not omitted so as to be extended into the request
         object margin = false;
         if (isTrue(isTrue((!isEqual(marginMode, null))) && isTrue((!isEqual(marginMode, "cash")))))
         {
@@ -4741,7 +4758,7 @@ public partial class okx : Exchange
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] True if fetching trigger or conditional orders
-     * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+     * @param {string} [params.ordType] market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -5543,7 +5560,7 @@ public partial class okx : Exchange
             { "10", "trade" },
             { "11", "trade" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -5786,9 +5803,10 @@ public partial class okx : Exchange
         }
         object rawNetwork = this.safeString(parameters, "network"); // some networks are like "Dora Vota Mainnet"
         parameters = this.omit(parameters, "network");
-        code = this.safeCurrencyCode(code);
+        code = ((string)this.safeCurrencyCode(code));
         object network = this.networkIdToCode(rawNetwork, code);
-        object response = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object responseRaw = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object response = ((object)responseRaw);
         if (isTrue(!isEqual(network, null)))
         {
             object result = this.safeDict(response, network);
@@ -5799,7 +5817,7 @@ public partial class okx : Exchange
             return result;
         }
         object codeNetwork = this.networkIdToCode(code, code);
-        if (isTrue(inOp(response, codeNetwork)))
+        if (isTrue(isTrue((!isEqual(codeNetwork, null))) && isTrue((inOp(response, codeNetwork)))))
         {
             return getValue(response, codeNetwork);
         }
@@ -5856,7 +5874,8 @@ public partial class okx : Exchange
         {
             object currencies = await this.fetchCurrencies();
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-            object targetNetwork = this.safeDict(getValue(currency, "networks"), this.networkIdToCode(network, getValue(currency, "code")), new Dictionary<string, object>() {});
+            object networkCodeResolved = this.networkIdToCode(network, getValue(currency, "code"));
+            object targetNetwork = ((bool) isTrue((isEqual(networkCodeResolved, null)))) ? new Dictionary<string, object>() {} : this.safeDict(getValue(currency, "networks"), networkCodeResolved, new Dictionary<string, object>() {});
             fee = this.safeString(targetNetwork, "fee");
             if (isTrue(isEqual(fee, null)))
             {
@@ -6468,7 +6487,7 @@ public partial class okx : Exchange
         object position = this.safeDict(data, 0);
         if (isTrue(isEqual(position, null)))
         {
-            return null;
+            throw new NullResponse ((string)add(add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
         }
         return this.parsePosition(position, market);
     }
@@ -6734,7 +6753,8 @@ public partial class okx : Exchange
         {
             if (isTrue(getValue(market, "linear")))
             {
-                initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+                object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+                initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
             } else
             {
                 initialMarginString = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
@@ -7241,9 +7261,12 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "swap")))
+        object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
+        object ruleType = this.safeString(marketInfo, "ruleType");
+        object isExtendedPerpetual = (isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+        if (isTrue(!isTrue(getValue(market, "swap")) && !isTrue(isExtendedPerpetual)))
         {
-            throw new ExchangeError ((string)add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
+            throw new ExchangeError ((string)add(this.id, " fetchFundingRate() is only valid for swap markets or XPERP futures")) ;
         }
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -7286,7 +7309,21 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, "swap", true);
+        symbols = this.marketSymbols(symbols, null, true);
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object market = this.market(getValue(symbols, i));
+                object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
+                object ruleType = this.safeString(marketInfo, "ruleType");
+                object isExtendedPerpetual = (isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+                if (isTrue(!isTrue(getValue(market, "swap")) && !isTrue(isExtendedPerpetual)))
+                {
+                    throw new BadRequest ((string)add(add(add(this.id, " fetchFundingRates() symbols must be swap markets or XPERP futures, "), getValue(symbols, i)), " is not")) ;
+                }
+            }
+        }
         object request = new Dictionary<string, object>() {
             { "instId", "ANY" },
         };
@@ -7750,7 +7787,7 @@ public partial class okx : Exchange
         {
             object item = getValue(response, i);
             object code = this.safeCurrencyCode(this.safeString(item, "ccy"));
-            if (isTrue(isTrue(isEqual(codes, null)) || isTrue(this.inArray(code, codes))))
+            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((isTrue(isEqual(codes, null)) || isTrue(this.inArray(code, codes))))))
             {
                 if (!isTrue((inOp(borrowRateHistories, code))))
                 {
@@ -8501,7 +8538,7 @@ public partial class okx : Exchange
         // handle unified currency code or symbol
         object currencyId = null;
         object market = null;
-        if (isTrue(isTrue((inOp(this.markets, symbol))) || isTrue((inOp(this.markets_by_id, symbol)))))
+        if (isTrue(isTrue((isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, symbol))))) || isTrue((isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, symbol)))))))
         {
             market = this.market(symbol);
             currencyId = getValue(market, "baseId");
@@ -8727,7 +8764,7 @@ public partial class okx : Exchange
             object feeInfo = getValue(response, i);
             object currencyId = this.safeString(feeInfo, "ccy");
             object code = this.safeCurrencyCode(currencyId);
-            if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
+            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))))
             {
                 object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (isTrue(isEqual(depositWithdrawFee, null)))
@@ -8755,10 +8792,13 @@ public partial class okx : Exchange
                     { "percentage", null },
                 };
                 object networkCode = this.networkIdToCode(networkId, code);
-                ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "withdraw", withdrawResult },
-                    { "deposit", depositResult },
-                };
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        { "withdraw", withdrawResult },
+                        { "deposit", depositResult },
+                    };
+                }
             }
         }
         object depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
@@ -9002,7 +9042,7 @@ public partial class okx : Exchange
                 return this.parseGreeks(entry, market);
             }
         }
-        return null;
+        return ((object)null);
     }
 
     /**
@@ -9153,7 +9193,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -9719,34 +9759,37 @@ public partial class okx : Exchange
             object entry = getValue(data, i);
             object id = this.safeString(entry, "ccy");
             object code = this.safeCurrencyCode(id);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "info", entry },
-                { "id", id },
-                { "code", code },
-                { "networks", null },
-                { "type", null },
-                { "name", null },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(entry, "min") },
-                        { "max", this.safeNumber(entry, "max") },
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "info", entry },
+                    { "id", id },
+                    { "code", code },
+                    { "networks", null },
+                    { "type", null },
+                    { "name", null },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(entry, "min") },
+                            { "max", this.safeNumber(entry, "max") },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "created", null },
-            };
+                    { "created", null },
+                };
+            }
         }
         return result;
     }
@@ -9806,7 +9849,7 @@ public partial class okx : Exchange
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] the earliest time in ms to fetch margin adjustment history for
      * @param {int} [limit] the maximum number of entries to retrieve
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
@@ -9921,7 +9964,7 @@ public partial class okx : Exchange
      * @param {string} [symbols] unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
      * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] "cross" or "isolated"
      *
      * EXCHANGE SPECIFIC PARAMETERS

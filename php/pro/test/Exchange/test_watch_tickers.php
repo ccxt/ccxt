@@ -64,7 +64,12 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
                     try {
                         test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
                     } catch(\Throwable $ex) {
-                        \React\Async\await(validate_ticker_exception_for_percentage($ex, $exchange, $ticker));
+                        $ohlcv = null;
+                        $ticker_symbol = $ticker['symbol'];
+                        if (($ticker_symbol !== null) && ticker_exception_needs_ohlcv($ex, $exchange, $ticker)) {
+                            $ohlcv = \React\Async\await($exchange->fetch_ohlcv($ticker_symbol, '1d', null, 5));
+                        }
+                        validate_ticker_exception_for_percentage($ex, $exchange, $ticker, $ohlcv);
                     }
                 }
                 $now = $exchange->milliseconds();

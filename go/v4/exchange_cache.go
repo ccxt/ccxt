@@ -158,8 +158,11 @@ func (c *ArrayCache) Append(item any) {
 		c.AppendInternal(item)
 	} else {
 		// move to the end of the array to reflect recent update
+		// match on both the key field (e.g. symbol) and id - different symbols can
+		// share an order id (binance uses per-symbol id sequences), and matching on
+		// id alone would move the wrong row, see ccxt/ccxt#26092
 		for i, v := range c.Data {
-			if GetValue(v, "id") == GetValue(item, "id") {
+			if (GetValue(v, "id") == GetValue(item, "id")) && (GetValue(v, keyField) == GetValue(item, keyField)) {
 				// remove from current position
 				c.Data = append(c.Data[:i], c.Data[i+1:]...)
 				// append to the end

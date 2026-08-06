@@ -330,9 +330,25 @@ public partial class alpaca : Exchange
         //     }
         //
         object timestamp = this.safeString(response, "timestamp");
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
+        }
         object localTime = slice(timestamp, 0, 23);
-        object jetlagStrStart = subtract(getArrayLength(timestamp), 6);
-        object jetlagStrEnd = subtract(getArrayLength(timestamp), 3);
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
+        }
+        object jetlagStrStart = subtract(((string)timestamp).Length, 6);
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
+        }
+        object jetlagStrEnd = subtract(((string)timestamp).Length, 3);
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
+        }
         object jetlag = slice(timestamp, jetlagStrStart, jetlagStrEnd);
         object iso = subtract(this.parseToInt(this.parse8601(localTime)), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
         return iso;
@@ -343,7 +359,7 @@ public partial class alpaca : Exchange
      * @name alpaca#fetchMarkets
      * @description retrieves data on all markets for alpaca
      * @see https://docs.alpaca.markets/reference/get-v2-assets
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
@@ -402,6 +418,10 @@ public partial class alpaca : Exchange
         //     }
         //
         object marketId = this.safeString(asset, "symbol");
+        if (isTrue(isEqual(marketId, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
+        }
         object parts = ((string)marketId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object assetClass = this.safeString(asset, "class");
         object baseId = this.safeString(parts, 0);
@@ -420,7 +440,7 @@ public partial class alpaca : Exchange
         object minAmount = this.safeNumber(asset, "min_order_size");
         object amount = this.safeNumber(asset, "min_trade_increment");
         object price = this.safeNumber(asset, "price_increment");
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
             { "base", bs },
@@ -468,7 +488,7 @@ public partial class alpaca : Exchange
             } },
             { "created", null },
             { "info", asset },
-        };
+        });
     }
 
     /**
@@ -554,7 +574,12 @@ public partial class alpaca : Exchange
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
         }
-        return this.parseTrades(symbolTrades, market, since, limit);
+        object symbolTradesList = new List<object>() {};
+        if (isTrue(!isEqual(symbolTrades, null)))
+        {
+            symbolTradesList = symbolTrades;
+        }
+        return this.parseTrades(symbolTradesList, market, since, limit);
     }
 
     /**
@@ -566,7 +591,7 @@ public partial class alpaca : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -636,7 +661,7 @@ public partial class alpaca : Exchange
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the alpha api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1112,7 +1137,7 @@ public partial class alpaca : Exchange
      * @name alpaca#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.alpaca.markets/reference/deleteallorders
-     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {string} [symbol] alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1700,6 +1725,12 @@ public partial class alpaca : Exchange
         return this.parseTransaction(response, currency);
     }
 
+    public override void setSandboxMode(object enable)
+    {
+        base.setSandboxMode(enable);
+        ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
+    }
+
     public async virtual Task<object> fetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
     {
         if (isTrue(isEqual(this.markets, null)))
@@ -1710,6 +1741,42 @@ public partial class alpaca : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
+        }
+        object sandboxMode = isTrue(this.isSandboxModeEnabled) || isTrue(this.safeBool(this.options, "sandboxMode", false));
+        if (isTrue(sandboxMode))
+        {
+            // paper-trading hosts do not serve the crypto wallets api at all, so route
+            // through the account activities ledger instead, filtered to transfer-like
+            // entries, see https://github.com/ccxt/ccxt/issues/24847
+            object request = new Dictionary<string, object>() {
+                { "activity_types", "CSD,CSW,TRANS" },
+            };
+            object activities = await this.traderPrivateGetV2AccountActivities(this.extend(request, parameters));
+            //
+            //     [
+            //         {
+            //             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+            //             "activity_type": "CSD",
+            //             "date": "2025-01-10",
+            //             "net_amount": "1000",
+            //             "status": "executed"
+            //         }
+            //     ]
+            //
+            object filtered = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(activities)); postFixIncrement(ref i))
+            {
+                object entry = getValue(activities, i);
+                object activityType = this.safeString(entry, "activity_type");
+                object amount = this.safeString(entry, "net_amount");
+                object isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(amount, "0"))));
+                object entryDirection = ((bool) isTrue(isIncoming)) ? "INCOMING" : "OUTGOING";
+                if (isTrue(isTrue((isEqual(type, "BOTH"))) || isTrue((isEqual(entryDirection, type)))))
+                {
+                    ((IList<object>)filtered).Add(entry);
+                }
+            }
+            return this.parseTransactions(filtered, currency, since, limit, parameters);
         }
         object response = await this.traderPrivateGetV2WalletsTransfers(parameters);
         //
@@ -1799,6 +1866,18 @@ public partial class alpaca : Exchange
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
+        // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        //
+        //     {
+        //         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+        //         "activity_type": "CSD",
+        //         "date": "2025-01-10",
+        //         "net_amount": "1000",
+        //         "status": "executed"
+        //     }
+        //
+        // crypto wallets api entry
+        //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
         //         "tx_hash": null,
@@ -1815,37 +1894,89 @@ public partial class alpaca : Exchange
         //         "fees": "0.1"
         //     }
         //
-        object datetime = this.safeString(transaction, "created_at");
-        object currencyId = this.safeString(transaction, "asset");
-        object code = this.safeCurrencyCode(currencyId, currency);
-        object fees = this.safeString(transaction, "fees");
-        object networkFee = this.safeString(transaction, "network_fee");
-        object totalFee = Precise.stringAdd(fees, networkFee);
-        object fee = new Dictionary<string, object>() {
-            { "cost", this.parseNumber(totalFee) },
-            { "currency", code },
-        };
+        object activityType = this.safeString(transaction, "activity_type");
+        object txid = null;
+        object timestamp = null;
+        object datetime = null;
+        object network = null;
+        object address = null;
+        object addressTo = null;
+        object addressFrom = null;
+        object type = null;
+        object amount = null;
+        object code = null;
+        object status = null;
+        object comment = null;
+        object intern = null;
+        object fee = null;
+        if (isTrue(!isEqual(activityType, null)))
+        {
+            object netAmount = this.safeString(transaction, "net_amount");
+            object isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(netAmount, "0"))));
+            timestamp = this.parse8601(add(this.safeString(transaction, "date"), "T00:00:00Z"));
+            datetime = this.iso8601(timestamp);
+            type = ((bool) isTrue(isIncoming)) ? "deposit" : "withdrawal";
+            amount = this.parseNumber(Precise.stringAbs(netAmount));
+            // cash ledger rows carry no per-entry asset field and are USD, while crypto
+            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            object activityCurrencyId = this.safeString2(transaction, "symbol", "asset");
+            if (isTrue(!isEqual(activityCurrencyId, null)))
+            {
+                code = this.safeCurrencyCode(activityCurrencyId);
+            } else if (isTrue(isTrue((isEqual(activityType, "CSD"))) || isTrue((isEqual(activityType, "CSW")))))
+            {
+                code = "USD";
+            } else
+            {
+                code = this.safeCurrencyCode(null, currency);
+            }
+            status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+            comment = activityType;
+            intern = (!isEqual(activityType, "TRANS"));
+        } else
+        {
+            txid = this.safeString(transaction, "tx_hash");
+            datetime = this.safeString(transaction, "created_at");
+            timestamp = this.parse8601(datetime);
+            network = this.safeString(transaction, "chain");
+            address = this.safeString(transaction, "to_address");
+            addressTo = this.safeString(transaction, "to_address");
+            addressFrom = this.safeString(transaction, "from_address");
+            type = this.parseTransactionType(this.safeString(transaction, "direction"));
+            amount = this.safeNumber(transaction, "amount");
+            object currencyId = this.safeString(transaction, "asset");
+            code = this.safeCurrencyCode(currencyId, currency);
+            status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+            object fees = this.safeString(transaction, "fees");
+            object networkFee = this.safeString(transaction, "network_fee");
+            object totalFee = Precise.stringAdd(fees, networkFee);
+            fee = new Dictionary<string, object>() {
+                { "cost", this.parseNumber(totalFee) },
+                { "currency", code },
+            };
+        }
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString(transaction, "id") },
-            { "txid", this.safeString(transaction, "tx_hash") },
-            { "timestamp", this.parse8601(datetime) },
+            { "txid", txid },
+            { "timestamp", timestamp },
             { "datetime", datetime },
-            { "network", this.safeString(transaction, "chain") },
-            { "address", this.safeString(transaction, "to_address") },
-            { "addressTo", this.safeString(transaction, "to_address") },
-            { "addressFrom", this.safeString(transaction, "from_address") },
+            { "network", network },
+            { "address", address },
+            { "addressTo", addressTo },
+            { "addressFrom", addressFrom },
             { "tag", null },
             { "tagTo", null },
             { "tagFrom", null },
-            { "type", this.parseTransactionType(this.safeString(transaction, "direction")) },
-            { "amount", this.safeNumber(transaction, "amount") },
+            { "type", type },
+            { "amount", amount },
             { "currency", code },
-            { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
+            { "status", status },
             { "updated", null },
+            { "comment", comment },
+            { "internal", intern },
             { "fee", fee },
-            { "comment", null },
-            { "internal", null },
         };
     }
 
@@ -1855,6 +1986,9 @@ public partial class alpaca : Exchange
             { "PROCESSING", "pending" },
             { "FAILED", "failed" },
             { "COMPLETE", "ok" },
+            { "executed", "ok" },
+            { "canceled", "canceled" },
+            { "pending", "pending" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1865,7 +1999,7 @@ public partial class alpaca : Exchange
             { "INCOMING", "deposit" },
             { "OUTGOING", "withdrawal" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -1945,7 +2079,10 @@ public partial class alpaca : Exchange
         object code = this.safeCurrencyCode(currencyId);
         ((IDictionary<string,object>)account)["free"] = this.safeString(response, "cash");
         ((IDictionary<string,object>)account)["total"] = this.safeString(response, "equity");
-        ((IDictionary<string,object>)result)[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)result)[(string)code] = account;
+        }
         return this.safeBalance(result);
     }
 

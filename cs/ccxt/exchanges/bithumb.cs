@@ -248,7 +248,8 @@ public partial class bithumb : Exchange
 
     public override object amountToPrecision(object symbol, object amount)
     {
-        return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"), DECIMAL_PLACES);
+        object market = this.market(symbol);
+        return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
     /**
@@ -403,7 +404,7 @@ public partial class bithumb : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -848,7 +849,7 @@ public partial class bithumb : Exchange
             ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask";
         } else
         {
-            method = add("privatePostTradeMarket", this.capitalize(((string)side)));
+            method = add("privatePostTradeMarket", this.capitalize(side));
         }
         object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         object id = this.safeString(response, "order_id");
@@ -1271,6 +1272,9 @@ public partial class bithumb : Exchange
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "endpoint", endpoint },
             }, query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            object bodyParts = ((string)body).Split(new [] {((string)"%20")}, StringSplitOptions.None).ToList<object>();
+            body = String.Join("+", ((IList<object>)bodyParts).ToArray());
             object nonce = ((object)this.nonce()).ToString();
             object auth = add(add(add(add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
             object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);

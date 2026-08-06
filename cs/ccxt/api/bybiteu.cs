@@ -1031,6 +1031,11 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privateGetV5SpotLeverTokenOrderRecord",parameters);
     }
 
+    public async Task<object> privateGetV5SpotMarginTradeFlexibleAvailableInventory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeFlexibleAvailableInventory",parameters);
+    }
+
     public async Task<object> privateGetV5SpotMarginTradeInterestRateHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetV5SpotMarginTradeInterestRateHistory",parameters);

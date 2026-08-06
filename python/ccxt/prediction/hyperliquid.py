@@ -699,7 +699,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'info': raw,
         }, market)
 
-    async def fetch_order_book(self, outcome: str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
         """
         fetches the L2 order book for an outcome market
 
@@ -769,6 +769,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             candleCount = limit if (limit is not None) else 100
             startOffset = tf * candleCount * -1000
             startTime = self.sum(until, startOffset)
+            if startTime is None:
+                raise ExchangeError(self.id + ' fetchOHLCV() missing startTime')
             if startTime < 0:
                 startTime = 0
         request = {
@@ -800,7 +802,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         """
  @ignore
         parses a single hyperliquid candle object into a CCXT OHLCV tuple
@@ -869,7 +871,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             account = self.account()
             account['total'] = total
             account['used'] = used
-            result[coin] = account
+            if coin is not None:
+                result[coin] = account
         return self.safe_balance(result)
 
     async def fetch_positions(self, outcomes: Strings = None, params={}) -> List[PredictionPosition]:
@@ -1052,7 +1055,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 return self.safe_dict(self.outcomes, key, {})
             if key in self.outcomes_by_id:
                 return self.safe_dict(self.outcomes_by_id, key, {})
-        if (outcomeInput in self.markets) or (outcomeInput in self.markets_by_id):
+        if ((self.markets is not None) and (outcomeInput in self.markets)) or ((self.markets_by_id is not None) and (outcomeInput in self.markets_by_id)):
             market = self.safe_market(outcomeInput)
             sideHintOrDefault = sideHint if (sideHint is not None) else 'YES'
             found = self.find_outcome_in_market(market, sideHintOrDefault)
@@ -1105,13 +1108,15 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if isMarket:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses self reference price together with the configured slippage to derive the execution price.')
             raise ArgumentsRequired(self.id + ' createOrder() requires a limit price for outcome markets in between 0 and 1.')
-        px: str
+        px = None
         if isMarket:
             priceStr = self.number_to_string(price)
             px = Precise.string_mul(priceStr, Precise.string_add('1', slippage)) if isBuy else Precise.string_mul(priceStr, Precise.string_sub('1', slippage))
             px = self.price_to_precision(marketSymbol, px)
         else:
             px = self.price_to_precision(marketSymbol, price)
+        if px is None:
+            raise ArgumentsRequired(self.id + ' createOrder() could not determine price')
         sz = self.amount_to_precision(marketSymbol, amount)
         orderType = {
             'limit': {'tif': tif},
@@ -1652,6 +1657,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         marketValues = self.to_array(marketsDict)
         # Group markets by parentSymbol
         groupMap = {}
+        if queries is None:
+            raise ExchangeError(self.id + ' fetchEvents() missing queries')
         lowerQueries = []
         for i in range(0, len(queries)):
             queryString = queries[i]
@@ -1687,14 +1694,18 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                         break
                 if not matches:
                     continue
+            if parentSymbol is None:
+                raise ExchangeError(self.id + ' fetchEvents() missing parentSymbol')
             if not (parentSymbol in groupMap):
-                groupMap[parentSymbol] = []
+                if parentSymbol is not None:
+                    groupMap[parentSymbol] = []
             # push through a local and write the slice back — the go transpiler's
             # AppendToArray reassigns only a local copy of a map-stored array, so a
             # direct push on groupMap[parentSymbol] loses the element in go
-            parentMarkets = groupMap[parentSymbol]
+            parentMarkets = self.safe_value(groupMap, parentSymbol)
             parentMarkets.append(mkt)
-            groupMap[parentSymbol] = parentMarkets
+            if parentSymbol is not None:
+                groupMap[parentSymbol] = parentMarkets
         events = []
         groupKeys = list(groupMap.keys())
         for gi in range(0, len(groupKeys)):
@@ -1767,19 +1778,23 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'info': raw,
         })
 
-    def amount_to_precision(self, outcome: str, amount: Any) -> str:
+    def amount_to_precision(self, outcome: Str, amount: Any) -> str:
         market = self.market(outcome)
         prec = self.safe_number(self.safe_dict(market, 'precision', {}), 'amount', 0.0001)
         # Convert precision to decimal places
         decimals = 4
+        if prec is None:
+            raise ExchangeError(self.id + ' amountToPrecision() missing prec')
         if prec > 0:
             decimals = self.precision_from_string(self.number_to_string(prec))
         return self.decimal_to_precision(amount, 1, decimals, 2, self.paddingMode)
 
-    def price_to_precision(self, outcome: str, price: Any) -> str:
+    def price_to_precision(self, outcome: Str, price: Any) -> str:
         market = self.market(outcome)
         prec = self.safe_number(self.safe_dict(market, 'precision', {}), 'price', 0.0001)
         decimals = 4
+        if prec is None:
+            raise ExchangeError(self.id + ' priceToPrecision() missing prec')
         if prec > 0:
             decimals = self.precision_from_string(self.number_to_string(prec))
         return self.decimal_to_precision(price, 1, decimals, 2, self.paddingMode)
@@ -1980,7 +1995,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 raise ExchangeError(feedback)
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         if ('byType' in config) and ('type' in params):
             type = params['type']
             byType = config['byType']

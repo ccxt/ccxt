@@ -271,29 +271,30 @@ class testMainClass {
             } elseif (!(is_array($this->test_files) && array_key_exists($method_name, $this->test_files))) {
                 $skip_message = '[INFO] UNIMPLEMENTED_TEST';
             }
+            $name = $exchange->id;
+            // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+            // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+            // report which method(s) were still running when the per-exchange timeout fired
             // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
             if ($is_load_markets) {
+                dump($this->add_padding('[INFO] TESTING', 25), $name, $method_name);
                 \React\Async\await($exchange->load_markets(true));
+                dump($this->add_padding('[INFO] TESTING DONE', 25), $name, $method_name);
             }
-            $name = $exchange->id;
             if ($skip_message) {
                 if ($this->info) {
                     dump($this->add_padding($skip_message, 25), $name, $method_name);
                 }
                 return true;
             }
-            if ($this->info) {
-                $args_stringified = '(' . $exchange->json($args) . ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-                dump($this->add_padding('[INFO] TESTING', 25), $name, $method_name, $args_stringified);
-            }
+            $args_stringified = '(' . $exchange->json($args) . ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+            dump($this->add_padding('[INFO] TESTING', 25), $name, $method_name, $args_stringified);
             if (is_sync()) {
                 call_method_sync($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args);
             } else {
                 \React\Async\await(call_method($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args));
             }
-            if ($this->info) {
-                dump($this->add_padding('[INFO] TESTING DONE', 25), $name, $method_name);
-            }
+            dump($this->add_padding('[INFO] TESTING DONE', 25), $name, $method_name);
             // add to the list of successed tests
             if ($is_public) {
                 $this->checked_public_tests[$method_name] = true;
@@ -369,6 +370,9 @@ class testMainClass {
                     \React\Async\await($this->test_method($method_name, $exchange, $args, $is_public));
                     return true;
                 } catch(\Throwable $ex) {
+                    // close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                    // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                    dump($this->add_padding('[INFO] TESTING FAILED', 25), $exchange->id, $method_name);
                     $e = get_root_exception($ex);
                     $is_load_markets = ($method_name === 'loadMarkets');
                     $is_auth_error = ($e instanceof AuthenticationError);
@@ -767,12 +771,17 @@ class testMainClass {
             if (!$this->ws_tests) {
                 try {
                     // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
-                    // every prediction venue — assert it so the contract can't silently regress
-                    $unscoped_error = '';
-                    try {
-                        \React\Async\await(call_exchange_method_dynamically($exchange, 'fetchEvents', [array()]));
-                    } catch(\Throwable $e) {
-                        $unscoped_error = exception_message($e);
+                    // every prediction venue — assert it so the contract can't silently regress.
+                    // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                    $exchange_options = get_exchange_prop($exchange, 'options', array());
+                    $allow_unscoped_fetch_events = $exchange->safe_bool($exchange_options, 'allowUnscopedFetchEvents', false);
+                    if (!$allow_unscoped_fetch_events) {
+                        $unscoped_error = '';
+                        try {
+                            \React\Async\await(call_exchange_method_dynamically($exchange, 'fetchEvents', [array()]));
+                        } catch(\Throwable $e) {
+                            $unscoped_error = exception_message($e);
+                        }
                     }
                     // preferredEventQuery supplies a query known to match the venue's markets
                     $event_query = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredEventQuery');
@@ -1695,7 +1704,9 @@ class testMainClass {
             $options['secret'] = '';
         }
         $exchange = init_exchange($exchange_name, $options);
-        $exchange->currencies = $currencies;
+        if ($currencies !== null) {
+            $exchange->currencies = $currencies;
+        }
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if ($prediction_events !== null) {
@@ -2002,7 +2013,7 @@ class testMainClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex()];
             \React\Async\await(\React\Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -2153,7 +2164,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['Referer'] === $id, 'bybit - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2180,7 +2191,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             $id = 'ccxt';
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot orders.');
@@ -2189,14 +2200,14 @@ class testMainClass {
                     'uta' => true,
                 )));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot uta orders.');
             $id = 'ccxtfutures';
             try {
                 \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap orders.');
             try {
@@ -2204,7 +2215,7 @@ class testMainClass {
                     'uta' => true,
                 )));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap uta orders.');
             if (!is_sync()) {
@@ -2227,14 +2238,14 @@ class testMainClass {
                 $exchange->options['uta'] = false;
                 \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers.');
             try {
                 $exchange->options['uta'] = true;
                 \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers for uta orders.');
             if (!is_sync()) {
@@ -2253,7 +2264,7 @@ class testMainClass {
             try {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'bitget - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2273,7 +2284,7 @@ class testMainClass {
             try {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['source'] === $id, 'mexc - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2353,26 +2364,6 @@ class testMainClass {
         }) ();
     }
 
-    public function test_bitmart() {
-        return Async\async(function () {
-            $exchange = $this->init_offline_exchange('bitmart');
-            $req_headers = array();
-            $id = 'CCXTxBitmart000';
-            assert($exchange->options['brokerId'] === $id, 'bitmart - id: ' . $id . ' not in options');
-            \React\Async\await($exchange->load_markets());
-            try {
-                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
-            } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
-            }
-            assert($req_headers['X-BM-BROKER-ID'] === $id, 'bitmart - id: ' . $id . ' not in headers');
-            if (!is_sync()) {
-                \React\Async\await(close($exchange));
-            }
-            return true;
-        }) ();
-    }
-
     public function test_coinex() {
         return Async\async(function () {
             $exchange = $this->init_offline_exchange('coinex');
@@ -2404,7 +2395,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['X-SOURCE-KEY'] === $id, 'bingx - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2457,7 +2448,7 @@ class testMainClass {
     // async testHyperliquid () {
     //     const exchange = this.initOfflineExchange ('hyperliquid');
     //     const id = '1';
-    //     let request = undefined;
+    //     let request: NullableDict = undefined;
     //     try {
     //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
     //     } catch (e) {
@@ -2602,7 +2593,7 @@ class testMainClass {
             try {
                 \React\Async\await($exchange->create_order('BTC/USD:USDC', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['PARADEX-PARTNER'] === $id, 'paradex - id: ' . $id . ' not in headers');
             if (!is_sync()) {
@@ -2621,7 +2612,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['INPUT-SOURCE'] === $id, 'hashkey - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2713,7 +2704,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('ETH/USDC', 'limit', 'buy', 1, 5000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['X-Broker-Id'] === $id, 'backpack - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
@@ -2732,7 +2723,7 @@ class testMainClass {
                 \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
+                $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
             }
             assert($req_headers['X-BB-API-PLATFORM'] === $id, 'toobit - id: ' . $id . ' not in headers.');
             if (!is_sync()) {

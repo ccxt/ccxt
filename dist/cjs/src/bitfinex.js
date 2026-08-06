@@ -565,11 +565,13 @@ class bitfinex extends bitfinex$1["default"] {
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
         symbol = this.safeSymbol(symbol);
-        return this.decimalToPrecision(amount, number.TRUNCATE, this.markets[symbol]['precision']['amount'], number.DECIMAL_PLACES);
+        const market = this.market(symbol);
+        return this.decimalToPrecision(amount, number.TRUNCATE, market['precision']['amount'], number.DECIMAL_PLACES);
     }
     priceToPrecision(symbol, price) {
         symbol = this.safeSymbol(symbol);
-        price = this.decimalToPrecision(price, number.ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+        const market = this.market(symbol);
+        price = this.decimalToPrecision(price, number.ROUND, market['precision']['price'], this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -889,29 +891,40 @@ class bitfinex extends bitfinex$1["default"] {
         const fee = this.safeNumber(fees, 1);
         const undl = this.safeList(indexed['undl'], id, []);
         const defaultCurrencyPrecision = this.safeString(this.options, 'defaultCurrencyPrecision', '8'); // kept here for backward-compatibility
-        const precision = this.handleOption('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision);
+        // numberToString instead of an `as string` cast: the describe() default for this option is the
+        // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
+        // InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
+        const precision = this.numberToString(this.handleOption('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision));
         const networks = {};
         const networkIds = this.safeList(indexedNetworks, id, []);
         for (let j = 0; j < networkIds.length; j++) {
-            const networkId = networkIds[j];
+            // safeString instead of raw access: the venue config payload can carry numeric
+            // network ids, and the raw value flows into toLowerCase and a dictionary key,
+            // which hard-casts to string in the C# build and throws InvalidCastException
+            const networkId = this.safeString(networkIds, j);
+            if (networkId === undefined) {
+                continue;
+            }
             const network = this.networkIdToCode(networkId, code);
             const dwStatuses = this.safeList(indexed['statuses'], networkId, []);
-            networks[network] = {
-                'info': networkId,
-                'id': networkId.toLowerCase(),
-                'network': networkId,
-                'active': undefined,
-                'deposit': this.safeInteger(dwStatuses, 1) === 1,
-                'withdraw': this.safeInteger(dwStatuses, 2) === 1,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': networkId,
+                    'id': networkId.toLowerCase(),
+                    'network': networkId,
+                    'active': undefined,
+                    'deposit': this.safeInteger(dwStatuses, 1) === 1,
+                    'withdraw': this.safeInteger(dwStatuses, 2) === 1,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -980,7 +993,9 @@ class bitfinex extends bitfinex$1["default"] {
                 const code = this.safeCurrencyCode(currencyId);
                 account['total'] = this.safeString(balance, 2);
                 account['free'] = this.safeString(balance, 4);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1142,7 +1157,7 @@ class bitfinex extends bitfinex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1545,11 +1560,11 @@ class bitfinex extends bitfinex$1["default"] {
         let request = {
             'symbol': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
-            'sort': 1,
             'limit': limit,
         };
         if (since !== undefined) {
             request['start'] = since;
+            request['sort'] = 1;
         }
         [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, params));
@@ -1691,6 +1706,12 @@ class bitfinex extends bitfinex$1["default"] {
         }, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1939,7 +1960,7 @@ class bitfinex extends bitfinex$1["default"] {
      * @name bitfinex#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2309,7 +2330,7 @@ class bitfinex extends bitfinex$1["default"] {
             'id': orderId,
             'symbol': market['id'],
         };
-        // valid for trades upto 10 days old
+        // valid for trades up to 10 days old
         const response = await this.privatePostAuthROrderSymbolIdTrades(this.extend(request, params));
         const tradesList = [];
         for (let i = 0; i < response.length; i++) {

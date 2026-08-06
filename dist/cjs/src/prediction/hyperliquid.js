@@ -836,6 +836,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             const candleCount = (limit !== undefined) ? limit : 100;
             const startOffset = tf * candleCount * -1000;
             startTime = this.sum(until, startOffset);
+            if (startTime === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchOHLCV() missing startTime');
+            }
             if (startTime < 0) {
                 startTime = 0;
             }
@@ -940,7 +943,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             const account = this.account();
             account['total'] = total;
             account['used'] = used;
-            result[coin] = account;
+            if (coin !== undefined) {
+                result[coin] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1157,7 +1162,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 return this.safeDict(this.outcomes_by_id, key, {});
             }
         }
-        if ((outcomeInput in this.markets) || (outcomeInput in this.markets_by_id)) {
+        if (((this.markets !== undefined) && (outcomeInput in this.markets)) || ((this.markets_by_id !== undefined) && (outcomeInput in this.markets_by_id))) {
             const market = this.safeMarket(outcomeInput);
             const sideHintOrDefault = (sideHint !== undefined) ? sideHint : 'YES';
             const found = this.findOutcomeInMarket(market, sideHintOrDefault);
@@ -1215,7 +1220,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             }
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a limit price for outcome markets in between 0 and 1.');
         }
-        let px;
+        let px = undefined;
         if (isMarket) {
             const priceStr = this.numberToString(price);
             px = isBuy ? Precise["default"].stringMul(priceStr, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(priceStr, Precise["default"].stringSub('1', slippage));
@@ -1223,6 +1228,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         else {
             px = this.priceToPrecision(marketSymbol, price);
+        }
+        if (px === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() could not determine price');
         }
         const sz = this.amountToPrecision(marketSymbol, amount);
         const orderType = {
@@ -1811,6 +1819,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const marketValues = this.toArray(marketsDict);
         // Group markets by parentSymbol
         const groupMap = {};
+        if (queries === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchEvents() missing queries');
+        }
         const lowerQueries = [];
         for (let i = 0; i < queries.length; i++) {
             const queryString = queries[i];
@@ -1854,15 +1865,22 @@ class hyperliquid extends hyperliquid$1["default"] {
                     continue;
                 }
             }
+            if (parentSymbol === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchEvents() missing parentSymbol');
+            }
             if (!(parentSymbol in groupMap)) {
-                groupMap[parentSymbol] = [];
+                if (parentSymbol !== undefined) {
+                    groupMap[parentSymbol] = [];
+                }
             }
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            const parentMarkets = groupMap[parentSymbol];
+            const parentMarkets = this.safeValue(groupMap, parentSymbol);
             parentMarkets.push(mkt);
-            groupMap[parentSymbol] = parentMarkets;
+            if (parentSymbol !== undefined) {
+                groupMap[parentSymbol] = parentMarkets;
+            }
         }
         const events = [];
         const groupKeys = Object.keys(groupMap);
@@ -1949,6 +1967,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const prec = this.safeNumber(this.safeDict(market, 'precision', {}), 'amount', 0.0001);
         // Convert precision to decimal places
         let decimals = 4;
+        if (prec === undefined) {
+            throw new errors.ExchangeError(this.id + ' amountToPrecision() missing prec');
+        }
         if (prec > 0) {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -1958,6 +1979,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(outcome);
         const prec = this.safeNumber(this.safeDict(market, 'precision', {}), 'price', 0.0001);
         let decimals = 4;
+        if (prec === undefined) {
+            throw new errors.ExchangeError(this.id + ' priceToPrecision() missing prec');
+        }
         if (prec > 0) {
             decimals = this.precisionFromString(this.numberToString(prec));
         }

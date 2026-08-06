@@ -732,10 +732,18 @@ class myriad extends myriad$1["default"] {
         const signature = crypto.ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1_js.secp256k1, undefined);
         let rHex = this.safeString(signature, 'r');
         let sHex = this.safeString(signature, 's');
-        if ((rHex.length % 2) !== 0) {
+        if (rHex === undefined) {
+            throw new errors.ExchangeError(this.id + ' signEvmTransaction() missing rHex');
+        }
+        const rHexLength = rHex.length;
+        if ((rHexLength % 2) !== 0) {
             rHex = '0' + rHex;
         }
-        if ((sHex.length % 2) !== 0) {
+        if (sHex === undefined) {
+            throw new errors.ExchangeError(this.id + ' signEvmTransaction() missing sHex');
+        }
+        const sHexLength = sHex.length;
+        if ((sHexLength % 2) !== 0) {
             sHex = '0' + sHex;
         }
         const yParity = this.safeInteger(signature, 'v');
@@ -959,7 +967,10 @@ class myriad extends myriad$1["default"] {
         const ordersLength = orders.length;
         const orderOutcomes = [];
         for (let i = 0; i < ordersLength; i++) {
-            orderOutcomes.push(this.safeString(orders[i], 'outcome'));
+            const __oc = this.safeString(orders[i], 'outcome');
+            if (__oc !== undefined) {
+                orderOutcomes.push(__oc);
+            }
         }
         await this.loadOutcomes(orderOutcomes);
         const result = [];
@@ -1233,7 +1244,13 @@ class myriad extends myriad$1["default"] {
         const scaled = Precise["default"].stringMul(valueStr, '1000000000000000000');
         // use > -1 (not >= 0): when '.' is absent PHP's mb_strpos returns false, and false >= 0
         // coerces to true (wrongly truncating to empty), whereas false > -1 correctly coerces to false
+        if (scaled === undefined) {
+            throw new errors.ExchangeError(this.id + ' toOrderbookWei() missing scaled');
+        }
         const dotIndex = scaled.indexOf('.');
+        if (scaled === undefined) {
+            throw new errors.ExchangeError(this.id + ' toOrderbookWei() missing scaled');
+        }
         if (dotIndex > -1) {
             return scaled.slice(0, dotIndex);
         }
@@ -1929,7 +1946,9 @@ class myriad extends myriad$1["default"] {
         for (let i = 0; i < n; i++) {
             const v = digits.indexOf(chars[i]);
             if (v > -1) {
-                result = Precise["default"].stringAdd(Precise["default"].stringMul(result, '16'), this.numberToString(v));
+                const mul = Precise["default"].stringMul(result, '16');
+                const digit = this.numberToString(v);
+                result = Precise["default"].stringAdd(mul, digit);
             }
         }
         return result;
@@ -1940,6 +1959,9 @@ class myriad extends myriad$1["default"] {
             return undefined;
         }
         let scale = '1';
+        if (decimals === undefined) {
+            throw new errors.ExchangeError(this.id + ' fromWeiWithDecimals() missing decimals');
+        }
         for (let i = 0; i < decimals; i++) {
             scale = scale + '0';
         }
@@ -2384,6 +2406,9 @@ class myriad extends myriad$1["default"] {
         let percentage = undefined;
         if ((price !== undefined) && (change !== undefined)) {
             previousClose = price - change;
+            if (previousClose === undefined) {
+                throw new errors.ExchangeError(this.id + ' method() missing previousClose');
+            }
             if (previousClose !== 0) {
                 percentage = change / previousClose * 100;
             }
@@ -2930,6 +2955,9 @@ class myriad extends myriad$1["default"] {
         }
         const queries = this.parseSearchQueries(params);
         const rest = this.omit(params, ['query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags']);
+        if (queries === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchEvents() missing queries');
+        }
         const queriesLength = queries.length;
         const eventId = this.safeString(params, 'eventId');
         // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
@@ -3010,7 +3038,8 @@ class myriad extends myriad$1["default"] {
                 filteredMarkets.push(m);
             }
             // skip question events that contribute no new markets after de-duplicating by market handle
-            if ((evMarketsLength > 0) && (filteredMarkets.length === 0)) {
+            const filteredMarketsLength = filteredMarkets.length;
+            if ((evMarketsLength > 0) && (filteredMarketsLength === 0)) {
                 continue;
             }
             ev['markets'] = filteredMarkets;
@@ -3089,7 +3118,9 @@ class myriad extends myriad$1["default"] {
         const options = this.options['requestId'];
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        if (url !== undefined) {
+            this.options['requestId'][url] = newValue;
+        }
         return newValue;
     }
     fromWei(wei) {
@@ -3232,7 +3263,7 @@ class myriad extends myriad$1["default"] {
         const future = this.watch(url, messageHash, subscribeMsg, channel);
         if (isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
-            client.resolve(this.orderbooks[sym], messageHash);
+            client.resolve(this.safeValue(this.orderbooks, sym), messageHash);
         }
         const orderbook = await future;
         return orderbook.limit();
@@ -3715,7 +3746,9 @@ class myriad extends myriad$1["default"] {
             const balances = this.safeDict(this.options, 'positionBalances', {});
             const prior = this.safeString(balances, posId, '0');
             const updated = Precise["default"].stringAdd(prior, deltaShares);
-            balances[posId] = updated;
+            if (posId !== undefined) {
+                balances[posId] = updated;
+            }
             this.options['positionBalances'] = balances;
             contracts = this.parseNumber(updated);
         }

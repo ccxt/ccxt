@@ -357,7 +357,7 @@ class woo extends woo$1["default"] {
                     'TRC20': 'TRON',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -637,7 +637,7 @@ class woo extends woo$1["default"] {
                     'symbol must not be blank': errors.BadRequest, // when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported': errors.BadRequest, // when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled': errors.BadRequest, // actual response whensending 'cancelOrder' for already canceled id [-1006]
-                    'Insufficient WOO. Please enable margin trading for leverage trading': errors.BadRequest, // when selling insufficent token [-1012]
+                    'Insufficient WOO. Please enable margin trading for leverage trading': errors.BadRequest, // when selling insufficient token [-1012]
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -792,7 +792,7 @@ class woo extends woo$1["default"] {
             inverse = false;
         }
         const active = this.safeString(market, 'status') === 'TRADING';
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -840,7 +840,7 @@ class woo extends woo$1["default"] {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -1142,7 +1142,7 @@ class woo extends woo$1["default"] {
         //     "success": true
         // }
         //
-        // only make one request for currrencies...
+        // only make one request for currencies...
         const tokenNetworkResponsePromise = this.v1PublicGetTokenNetwork(params);
         //
         // {
@@ -1187,7 +1187,9 @@ class woo extends woo$1["default"] {
             };
             const parsed = this.parseCurrency(customCurrency);
             const code = this.safeString(parsed, 'code');
-            result[code] = parsed;
+            if (code !== undefined) {
+                result[code] = parsed;
+            }
         }
         return result;
     }
@@ -1204,27 +1206,29 @@ class woo extends woo$1["default"] {
             const networkEntry = this.safeDict(chainsByNetworkId, networkId, {});
             const networkCode = this.networkIdToCode(networkId, code);
             const specialNetworkId = this.safeString(tokenEntry, 'token');
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',
-                'withdraw': this.safeString(networkEntry, 'allow_withdraw') === '1',
-                'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'minimum_withdrawal'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'currencyNetworkId': specialNetworkId, // exchange uses special currency-ids (coin + network junction)
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',
+                    'withdraw': this.safeString(networkEntry, 'allow_withdraw') === '1',
+                    'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'minimum_withdrawal'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': { 'network': networkEntry, 'token': tokenEntry },
-            };
+                    'info': { 'network': networkEntry, 'token': tokenEntry },
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -1729,7 +1733,7 @@ class woo extends woo$1["default"] {
      * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
      * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2279,7 +2283,7 @@ class woo extends woo$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2659,7 +2663,9 @@ class woo extends woo$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'holding');
             account['free'] = this.safeString(balance, 'availableBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2702,7 +2708,7 @@ class woo extends woo$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         networkCode = this.networkIdToCode(networkCode, currency['code']);
-        const networkEntry = this.safeDict(currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict(currency['networks'], networkCode);
         if (networkEntry === undefined) {
             const supportedNetworks = Object.keys(currency['networks']);
             throw new errors.BadRequest(this.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + this.json(supportedNetworks));
@@ -4422,34 +4428,36 @@ class woo extends woo$1["default"] {
             const entry = data[i];
             const id = this.safeString(entry, 'token');
             const code = this.safeCurrencyCode(id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.safeNumber(entry, 'tick'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': this.safeNumber(entry, 'tick'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeTimestamp(entry, 'createdTime'),
-            };
+                    'created': this.safeTimestamp(entry, 'createdTime'),
+                };
+            }
         }
         return result;
     }

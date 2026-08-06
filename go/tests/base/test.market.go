@@ -104,6 +104,11 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		AppendToArray(&emptyAllowedFor, "base")
 		AppendToArray(&emptyAllowedFor, "quote")
 	}
+	if IsTrue(IsEqual(exchange.SafeString(market, "type"), "prediction")) {
+		// prediction market rows carry the unified 'market' handle, the
+		// deprecated 'symbol' key is intentionally absent from their structures
+		format = exchange.Omit(format, []any{"symbol"})
+	}
 	AssertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor)
 	// prediction market rows are keyed by `market`; `symbol` internally by setMarkets
 	if IsTrue(!IsEqual(GetValue(market, "type"), "prediction")) {

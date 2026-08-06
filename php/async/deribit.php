@@ -525,6 +525,9 @@ class deribit extends Exchange {
             $settle = $base;
         }
         $splitBase = $base;
+        if ($base === null) {
+            throw new ExchangeError($this->id . ' createExpiredOptionMarket() missing base');
+        }
         if (mb_strpos($base, '_') > -1) {
             $splitSymbol = explode('_', $base);
             $splitBase = $this->safe_string($splitSymbol, 0);
@@ -583,7 +586,7 @@ class deribit extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+        if ($isOption && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -687,14 +690,14 @@ class deribit extends Exchange {
         ));
     }
 
-    public function code_from_options($methodName, $params = array()) {
+    public function code_from_options(mixed $methodName, $params = array()) {
         $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
         $options = $this->safe_value($this->options, $methodName, array());
         $code = $this->safe_value($options, 'code', $defaultCode);
         return $this->safe_value($params, 'code', $code);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -783,7 +786,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //      {
         //          "username" => "someusername_1",
@@ -949,8 +952,17 @@ class deribit extends Exchange {
                     $settle = $this->safe_currency_code($settleId);
                     $settlementPeriod = $this->safe_value($market, 'settlement_period');
                     $swap = ($settlementPeriod === 'perpetual');
+                    if ($kind === null) {
+                        throw new ExchangeError($this->id . ' method() missing kind');
+                    }
                     $future = !$swap && (mb_strpos($kind, 'future') !== false);
+                    if ($kind === null) {
+                        throw new ExchangeError($this->id . ' method() missing kind');
+                    }
                     $option = (mb_strpos($kind, 'option') !== false);
+                    if ($kind === null) {
+                        throw new ExchangeError($this->id . ' method() missing kind');
+                    }
                     $isComboMarket = mb_strpos($kind, 'combo') !== false;
                     $expiry = $this->safe_integer($market, 'expiration_timestamp');
                     $strike = null;
@@ -986,7 +998,9 @@ class deribit extends Exchange {
                     if ($parsedMarketValue) {
                         continue;
                     }
-                    $parsedMarkets[$symbol] = true;
+                    if ($symbol !== null) {
+                        $parsedMarkets[$symbol] = true;
+                    }
                     $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
                     $tickSize = $this->safe_number($market, 'tick_size');
                     $result[] = array(
@@ -1046,13 +1060,13 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_balance($balance): array {
+    public function parse_balance(mixed $balance): array {
         $result = array(
             'info' => $balance,
         );
         $summaries = array();
-        if (is_array($balance) && array_key_exists('summaries', $balance)) {
-            $summaries = $this->safe_list($balance, 'summaries');
+        if (is_array($balance) && array_key_exists('summaries' ?? '', $balance)) {
+            $summaries = $this->safe_list($balance, 'summaries', array());
         } else {
             $summaries = array( $balance );
         }
@@ -1064,7 +1078,9 @@ class deribit extends Exchange {
             $account['free'] = $this->safe_string($data, 'available_funds');
             $account['used'] = $this->safe_string($data, 'maintenance_margin');
             $account['total'] = $this->safe_string($data, 'equity');
-            $result[$currencyCode] = $account;
+            if ($currencyCode !== null) {
+                $result[$currencyCode] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1454,7 +1470,9 @@ class deribit extends Exchange {
             for ($i = 0; $i < count($result); $i++) {
                 $ticker = $this->parse_ticker($result[$i]);
                 $symbol = $ticker['symbol'];
-                $tickers[$symbol] = $ticker;
+                if ($symbol !== null) {
+                    $tickers[$symbol] = $ticker;
+                }
             }
             return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         })();
@@ -1662,7 +1680,7 @@ class deribit extends Exchange {
                 $request['end_timestamp'] = $until;
             }
             $response = null;
-            if (($since === null) && !(is_array($request) && array_key_exists('end_timestamp', $request))) {
+            if (($since === null) && !(is_array($request) && array_key_exists('end_timestamp' ?? '', $request))) {
                 $response = Async\await($this->publicGetGetLastTradesByInstrument($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->publicGetGetLastTradesByInstrumentAndTime($this->extend($request, $params)));
@@ -1706,7 +1724,7 @@ class deribit extends Exchange {
              * @see https://docs.deribit.com/#private-get_account_summary
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market $symbols
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1796,8 +1814,9 @@ class deribit extends Exchange {
                 }
             }
             $parsedFees = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
+            $symbols = $this->symbols;
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $fee = array(
                     'info' => $market,
@@ -1830,7 +1849,7 @@ class deribit extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1911,7 +1930,7 @@ class deribit extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order_type($orderType) {
+    public function parse_order_type(mixed $orderType) {
         $orderTypes = array(
             'stop_limit' => 'limit',
             'take_limit' => 'limit',
@@ -2309,7 +2328,7 @@ class deribit extends Exchange {
              * @see https://docs.deribit.com/#private-cancel
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by deribit cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
@@ -2333,7 +2352,7 @@ class deribit extends Exchange {
              * @see https://docs.deribit.com/#private-cancel_all
              * @see https://docs.deribit.com/#private-cancel_all_by_instrument
              *
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -2989,7 +3008,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_volatility_history($volatility) {
+    public function parse_volatility_history(mixed $volatility) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -3220,7 +3239,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
         //      "withdrawal_priorities" => array(),
@@ -3247,7 +3266,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -3373,8 +3392,11 @@ class deribit extends Exchange {
             } else {
                 $request['end_timestamp'] = $time;
             }
-            if (is_array($params) && array_key_exists('isDeribitPaginationCall', $params)) {
+            if (is_array($params) && array_key_exists('isDeribitPaginationCall' ?? '', $params)) {
                 $params = $this->omit($params, 'isDeribitPaginationCall');
+                if ($limit === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $limit argument');
+                }
                 $maxUntil = $this->sum($since, $limit * $duration);
                 $request['end_timestamp'] = min($request['end_timestamp'], $maxUntil);
             }
@@ -3405,7 +3427,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //   {
         //       "jsonrpc":"2.0",
@@ -3518,7 +3540,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function add_pagination_cursor_to_result($cursor, $data) {
+    public function add_pagination_cursor_to_result(mixed $cursor, mixed $data) {
         if ($cursor !== null) {
             $dataLength = count($data);
             if ($dataLength > 0) {
@@ -3597,7 +3619,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
         //         "type" => "bankruptcy",
@@ -3985,7 +4007,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "high" => 93099.5,
@@ -4034,7 +4056,7 @@ class deribit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . 'api/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {
@@ -4060,7 +4082,7 @@ class deribit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default $error handler
         }

@@ -343,7 +343,7 @@ public partial class woo : Exchange
                     { "TRC20", "TRON" },
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
-                    { "ARB", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "TRX", "TRC20" },
@@ -789,7 +789,7 @@ public partial class woo : Exchange
             inverse = false;
         }
         object active = isEqual(this.safeString(market, "status"), "TRADING");
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
             { "base", bs },
@@ -837,7 +837,7 @@ public partial class woo : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -1168,7 +1168,7 @@ public partial class woo : Exchange
         //     "success": true
         // }
         //
-        // only make one request for currrencies...
+        // only make one request for currencies...
         object tokenNetworkResponsePromise = this.v1PublicGetTokenNetwork(parameters);
         //
         // {
@@ -1216,7 +1216,10 @@ public partial class woo : Exchange
             };
             object parsed = this.parseCurrency(customCurrency);
             object code = this.safeString(parsed, "code");
-            ((IDictionary<string,object>)result)[(string)code] = parsed;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = parsed;
+            }
         }
         return result;
     }
@@ -1236,30 +1239,33 @@ public partial class woo : Exchange
             object networkEntry = this.safeDict(chainsByNetworkId, networkId, new Dictionary<string, object>() {});
             object networkCode = this.networkIdToCode(networkId, code);
             object specialNetworkId = this.safeString(tokenEntry, "token");
-            ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "currencyNetworkId", specialNetworkId },
-                { "network", networkCode },
-                { "active", null },
-                { "deposit", isEqual(this.safeString(networkEntry, "allow_deposit"), "1") },
-                { "withdraw", isEqual(this.safeString(networkEntry, "allow_withdraw"), "1") },
-                { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, "decimals"))) },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkEntry, "minimum_withdrawal") },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "currencyNetworkId", specialNetworkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", isEqual(this.safeString(networkEntry, "allow_deposit"), "1") },
+                    { "withdraw", isEqual(this.safeString(networkEntry, "allow_withdraw"), "1") },
+                    { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, "decimals"))) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEntry, "minimum_withdrawal") },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                    { "info", new Dictionary<string, object>() {
+                        { "network", networkEntry },
+                        { "token", tokenEntry },
                     } },
-                } },
-                { "info", new Dictionary<string, object>() {
-                    { "network", networkEntry },
-                    { "token", tokenEntry },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -1798,7 +1804,7 @@ public partial class woo : Exchange
      * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
      * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2164,7 +2170,7 @@ public partial class woo : Exchange
             timestamp = this.safeInteger(order, "timestamp");
         }
         object orderId = this.safeString2(order, "orderId", "algoOrderId");
-        object clientOrderId = this.omitZero(((string)this.safeString2(order, "clientOrderId", "clientAlgoOrderId"))); // Somehow, this always returns 0 for limit order
+        object clientOrderId = this.omitZero(this.safeString2(order, "clientOrderId", "clientAlgoOrderId")); // Somehow, this always returns 0 for limit order
         object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
@@ -2175,7 +2181,7 @@ public partial class woo : Exchange
         object status = this.safeValue2(order, "status", "algoStatus");
         object side = this.safeStringLower(order, "side");
         object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
-        object average = this.omitZero(((string)this.safeString(order, "averageExecutedPrice")));
+        object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
         object fee = this.safeNumber(order, "totalFee");
         object feeCurrency = this.safeString(order, "feeAsset");
@@ -2252,7 +2258,7 @@ public partial class woo : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2669,7 +2675,10 @@ public partial class woo : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "availableBalance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2698,7 +2707,7 @@ public partial class woo : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "token", getValue(currency, "id") },
-            { "network", this.networkCodeToId(((string)networkCode), getValue(currency, "code")) },
+            { "network", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
         object response = await this.v3PrivateGetAssetWalletDeposit(this.extend(request, parameters));
         //
@@ -2722,7 +2731,7 @@ public partial class woo : Exchange
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         networkCode = this.networkIdToCode(networkCode, getValue(currency, "code"));
-        object networkEntry = this.safeDict(getValue(currency, "networks"), networkCode);
+        object networkEntry = ((bool) isTrue((isEqual(networkCode, null)))) ? null : this.safeDict(getValue(currency, "networks"), networkCode);
         if (isTrue(isEqual(networkEntry, null)))
         {
             object supportedNetworks = new List<object>(((IDictionary<string,object>)getValue(currency, "networks")).Keys);
@@ -2898,7 +2907,7 @@ public partial class woo : Exchange
             { "BALANCE", "transaction" },
             { "COLLATERAL", "transfer" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object getCurrencyFromChaincode(object networkizedCode, object currency)
@@ -3641,7 +3650,7 @@ public partial class woo : Exchange
         //     }
         //
         object symbol = this.safeString(fundingRate, "symbol");
-        market = this.market(((string)symbol));
+        market = this.market(symbol);
         object nextFundingTimestamp = this.safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
         object estFundingRateTimestamp = this.safeInteger(fundingRate, "estFundingRateTimestamp");
         object lastFundingRateTimestamp = this.safeInteger(fundingRate, "lastFundingRateTimestamp");
@@ -4094,7 +4103,7 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -4586,34 +4595,37 @@ public partial class woo : Exchange
             object entry = getValue(data, i);
             object id = this.safeString(entry, "token");
             object code = this.safeCurrencyCode(id);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "info", entry },
-                { "id", id },
-                { "code", code },
-                { "networks", null },
-                { "type", null },
-                { "name", null },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", this.safeNumber(entry, "tick") },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "info", entry },
+                    { "id", id },
+                    { "code", code },
+                    { "networks", null },
+                    { "type", null },
+                    { "name", null },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "precision", this.safeNumber(entry, "tick") },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "created", this.safeTimestamp(entry, "createdTime") },
-            };
+                    { "created", this.safeTimestamp(entry, "createdTime") },
+                };
+            }
         }
         return result;
     }

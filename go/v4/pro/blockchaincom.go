@@ -140,7 +140,9 @@ func (this *BlockchaincomCore) HandleBalance(client any, message any) {
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "free", this.SafeString(entry, "available"))
 		ccxt.AddElementToObject(account, "total", this.SafeString(entry, "balance"))
-		ccxt.AddElementToObject(result, code, account)
+		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+			ccxt.AddElementToObject(result, code, account)
+		}
 	}
 	var messageHash any = "balance"
 	this.Balance = this.SafeBalance(result)
@@ -174,8 +176,8 @@ func (this *BlockchaincomCore) WatchOHLCV(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes13912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes13912)
+			retRes14112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes14112)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -231,7 +233,7 @@ func (this *BlockchaincomCore) HandleOHLCV(client any, message any) {
 		var symbol any = this.SafeSymbol(marketId, nil, "-")
 		var messageHash any = ccxt.Add("ohlcv:", symbol)
 		var request any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		var timeframeId any = this.SafeNumber(request, "granularity")
+		var timeframeId any = this.SafeString(request, "granularity")
 		var timeframe any = this.FindTimeframe(timeframeId)
 		var ohlcv any = this.SafeValue(message, "price", []any{})
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
@@ -266,8 +268,8 @@ func (this *BlockchaincomCore) WatchTicker(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes21712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes21712)
+			retRes21912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes21912)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -280,9 +282,9 @@ func (this *BlockchaincomCore) WatchTicker(symbol any, optionalArgs ...any) <-ch
 		}
 		request = this.DeepExtend(request, params)
 
-		retRes22915 := (<-this.Watch(url, messageHash, request, messageHash))
-		ccxt.PanicOnError(retRes22915)
-		ch <- retRes22915
+		retRes23115 := (<-this.Watch(url, messageHash, request, messageHash))
+		ccxt.PanicOnError(retRes23115)
+		ch <- retRes23115
 		return nil
 
 	}()
@@ -399,8 +401,8 @@ func (this *BlockchaincomCore) WatchTrades(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes32912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes32912)
+			retRes33112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes33112)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -524,12 +526,12 @@ func (this *BlockchaincomCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes43312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes43312)
+			retRes43512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes43512)
 		}
 
-		retRes4358 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes4358)
+		retRes4378 := (<-this.Authenticate())
+		ccxt.PanicOnError(retRes4378)
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 			var market any = this.Market(symbol)
 			symbol = ccxt.GetValue(market, "symbol")
@@ -633,7 +635,8 @@ func (this *BlockchaincomCore) HandleOrders(client any, message any) {
 	var cachedOrders any = this.Orders
 	if ccxt.IsTrue(ccxt.IsEqual(cachedOrders, nil)) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
-		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
+		cachedOrders = ccxt.NewArrayCacheBySymbolById(limit)
+		this.Orders = cachedOrders
 	}
 	if ccxt.IsTrue(ccxt.IsEqual(event, "subscribed")) {
 		return
@@ -748,7 +751,7 @@ func (this *BlockchaincomCore) ParseWsOrderStatus(status any) any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BlockchaincomCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -761,8 +764,8 @@ func (this *BlockchaincomCore) WatchOrderBook(symbol any, optionalArgs ...any) <
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes65012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes65012)
+			retRes65312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes65312)
 		}
 		var market any = this.Market(symbol)
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -919,9 +922,9 @@ func (this *BlockchaincomCore) Authenticate(optionalArgs ...any) <-chan any {
 			return nil
 		}
 
-		retRes79715 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes79715)
-		ch <- retRes79715
+		retRes80015 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes80015)
+		ch <- retRes80015
 		return nil
 
 	}()

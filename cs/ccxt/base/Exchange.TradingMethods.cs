@@ -789,7 +789,7 @@ public partial class Exchange
     public async virtual Task<object> fetchUnifiedOrder(object order, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters);
+        return await this.fetchOrder(((string)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters);
     }
 
     public async virtual Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1108,7 +1108,7 @@ public partial class Exchange
     public async virtual Task<object> cancelUnifiedOrder(object order, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters);
+        return this.cancelOrder(((string)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters);
     }
 
     public async virtual Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

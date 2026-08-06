@@ -163,7 +163,7 @@ func (this *GrvtCore) Describe() any {
 		"options": map[string]any{
 			"accountId": nil,
 			"networks": map[string]any{
-				"ARBONE":    "42161",
+				"ARBITRUM":  "42161",
 				"AVAXC":     "43114",
 				"BASE":      "8453",
 				"BSC":       "56",
@@ -782,7 +782,7 @@ func (this *GrvtCore) InitializeClient(optionalArgs ...any) <-chan any {
  * @name grvt#fetchMarkets
  * @description retrieves data on all markets
  * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *GrvtCore) FetchMarkets(optionalArgs ...any) <-chan any {
@@ -1113,9 +1113,12 @@ func (this *GrvtCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId any = this.SafeString(ticker, "instrument")
+	var timestamp any = this.SafeIntegerProduct(ticker, "event_time", 0.000001)
 	return this.SafeTicker(map[string]any{
 		"info":          ticker,
 		"symbol":        this.SafeSymbol(marketId, market),
+		"timestamp":     timestamp,
+		"datetime":      this.Iso8601(timestamp),
 		"open":          this.SafeString(ticker, "open_price"),
 		"high":          this.SafeString(ticker, "high_price"),
 		"low":           this.SafeString(ticker, "low_price"),
@@ -1145,7 +1148,7 @@ func (this *GrvtCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
- * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *GrvtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1158,8 +1161,8 @@ func (this *GrvtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes95112 := (<-this.LoadMarkets())
-			PanicOnError(retRes95112)
+			retRes95412 := (<-this.LoadMarkets())
+			PanicOnError(retRes95412)
 		}
 		var request any = map[string]any{
 			"instrument": this.MarketId(symbol),
@@ -1225,8 +1228,8 @@ func (this *GrvtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes99912 := (<-this.LoadMarkets())
-			PanicOnError(retRes99912)
+			retRes100212 := (<-this.LoadMarkets())
+			PanicOnError(retRes100212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1387,8 +1390,8 @@ func (this *GrvtCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		var maxLimit any = 1000
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes113712 := (<-this.LoadMarkets())
-			PanicOnError(retRes113712)
+			retRes114012 := (<-this.LoadMarkets())
+			PanicOnError(retRes114012)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
@@ -1396,9 +1399,9 @@ func (this *GrvtCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes114219 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-			PanicOnError(retRes114219)
-			ch <- retRes114219
+			retRes114519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+			PanicOnError(retRes114519)
+			ch <- retRes114519
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1503,8 +1506,8 @@ func (this *GrvtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes123112 := (<-this.LoadMarkets())
-			PanicOnError(retRes123112)
+			retRes123412 := (<-this.LoadMarkets())
+			PanicOnError(retRes123412)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1512,9 +1515,9 @@ func (this *GrvtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes123619 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes123619)
-			ch <- retRes123619
+			retRes123919 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes123919)
+			ch <- retRes123919
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1607,8 +1610,8 @@ func (this *GrvtCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes13108 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes13108)
+		retRes13138 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes13138)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
@@ -1693,7 +1696,9 @@ func (this *GrvtCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		AddElementToObject(account, "free", availableBalance) // todo: revise after API team clarification
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1724,8 +1729,8 @@ func (this *GrvtCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes14078 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes14078)
+		retRes14128 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes14128)
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -1806,8 +1811,8 @@ func (this *GrvtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes14628 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes14628)
+		retRes14678 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes14678)
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(IsEqual(code, nil)) {
@@ -2069,8 +2074,8 @@ func (this *GrvtCore) FetchTransfers(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
 		}
 
-		retRes16818 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes16818)
+		retRes16868 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes16868)
 		var request any = map[string]any{}
 		var currency any = this.Currency(code)
 		var maxLimit any = 1000
@@ -2080,9 +2085,9 @@ func (this *GrvtCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes168819 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", nil, since, limit, params, maxLimit))
-			PanicOnError(retRes168819)
-			ch <- retRes168819
+			retRes169319 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", nil, since, limit, params, maxLimit))
+			PanicOnError(retRes169319)
+			ch <- retRes169319
 			return nil
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2177,8 +2182,8 @@ func (this *GrvtCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes17658 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes17658)
+		retRes17708 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes17708)
 		var currency any = this.Currency(code)
 		var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId")
 		if IsTrue(IsTrue(this.InArray(fromAccount, []any{"trading", "funding"})) && IsTrue(this.InArray(toAccount, []any{"trading", "funding"}))) {
@@ -2398,8 +2403,8 @@ func (this *GrvtCore) Withdraw(code any, amount any, address any, optionalArgs .
 		_ = params
 		this.CheckAddress(address)
 
-		retRes19368 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes19368)
+		retRes19418 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes19418)
 		var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId")
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2467,8 +2472,8 @@ func (this *GrvtCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes19868 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes19868)
+		retRes19918 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes19918)
 		var market any = this.Market(symbol)
 		var orderLeg any = map[string]any{
 			"instrument": GetValue(market, "id"),
@@ -2748,17 +2753,17 @@ func (this *GrvtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes22468 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes22468)
+		retRes22518 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes22518)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes225019 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes225019)
-			ch <- retRes225019
+			retRes225519 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes225519)
+			ch <- retRes225519
 			return nil
 		}
 		var request any = map[string]any{
@@ -2768,11 +2773,11 @@ func (this *GrvtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "base", []any{})
-			retRes225912 := GetValue(request, "base")
-			AppendToArray(&retRes225912, GetValue(market, "baseId"))
+			retRes226412 := GetValue(request, "base")
+			AppendToArray(&retRes226412, GetValue(market, "baseId"))
 			AddElementToObject(request, "quote", []any{})
-			retRes226112 := GetValue(request, "quote")
-			AppendToArray(&retRes226112, GetValue(market, "quoteId"))
+			retRes226612 := GetValue(request, "quote")
+			AppendToArray(&retRes226612, GetValue(market, "quoteId"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -2845,8 +2850,8 @@ func (this *GrvtCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23168 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes23168)
+		retRes23218 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes23218)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
@@ -2860,10 +2865,10 @@ func (this *GrvtCore) FetchPositions(optionalArgs ...any) <-chan any {
 				if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
 					panic(BadRequest(Add(this.Id, " fetchPositions() supports contract markets only")))
 				}
-				retRes233016 := GetValue(request, "base")
-				AppendToArray(&retRes233016, GetValue(market, "baseId"))
-				retRes233116 := GetValue(request, "quote")
-				AppendToArray(&retRes233116, GetValue(market, "quoteId"))
+				retRes233516 := GetValue(request, "base")
+				AppendToArray(&retRes233516, GetValue(market, "baseId"))
+				retRes233616 := GetValue(request, "quote")
+				AppendToArray(&retRes233616, GetValue(market, "quoteId"))
 			}
 		}
 
@@ -2981,8 +2986,8 @@ func (this *GrvtCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes24328 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24328)
+		retRes24378 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes24378)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
@@ -3032,8 +3037,8 @@ func (this *GrvtCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes24668 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24668)
+		retRes24718 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes24718)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
@@ -3106,8 +3111,8 @@ func (this *GrvtCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes25228 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes25228)
+		retRes25278 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes25278)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
@@ -3182,17 +3187,17 @@ func (this *GrvtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25768 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes25768)
+		retRes25818 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes25818)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes258019 := (<-this.FetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, params, 1000))
-			PanicOnError(retRes258019)
-			ch <- retRes258019
+			retRes258519 := (<-this.FetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, params, 1000))
+			PanicOnError(retRes258519)
+			ch <- retRes258519
 			return nil
 		}
 		var request any = map[string]any{
@@ -3202,11 +3207,11 @@ func (this *GrvtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "base", []any{})
-			retRes258912 := GetValue(request, "base")
-			AppendToArray(&retRes258912, GetValue(market, "baseId"))
+			retRes259412 := GetValue(request, "base")
+			AppendToArray(&retRes259412, GetValue(market, "baseId"))
 			AddElementToObject(request, "quote", []any{})
-			retRes259112 := GetValue(request, "quote")
-			AppendToArray(&retRes259112, GetValue(market, "quoteId"))
+			retRes259612 := GetValue(request, "quote")
+			AppendToArray(&retRes259612, GetValue(market, "quoteId"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -3297,8 +3302,8 @@ func (this *GrvtCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes26598 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes26598)
+		retRes26648 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes26648)
 		var subAccountId any = this.GetSubAccountId(params)
 		var request any = map[string]any{
 			"sub_account_id": subAccountId,
@@ -3307,11 +3312,11 @@ func (this *GrvtCore) FetchOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "base", []any{})
-			retRes266812 := GetValue(request, "base")
-			AppendToArray(&retRes266812, GetValue(market, "baseId"))
+			retRes267312 := GetValue(request, "base")
+			AppendToArray(&retRes267312, GetValue(market, "baseId"))
 			AddElementToObject(request, "quote", []any{})
-			retRes267012 := GetValue(request, "quote")
-			AppendToArray(&retRes267012, GetValue(market, "quoteId"))
+			retRes267512 := GetValue(request, "quote")
+			AppendToArray(&retRes267512, GetValue(market, "quoteId"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -3421,8 +3426,8 @@ func (this *GrvtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes27588 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes27588)
+		retRes27638 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes27638)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
@@ -3519,8 +3524,8 @@ func (this *GrvtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes28398 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes28398)
+		retRes28448 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes28448)
 		var subAccountId any = this.GetSubAccountId(params)
 		var request any = map[string]any{
 			"sub_account_id": subAccountId,
@@ -3769,7 +3774,7 @@ func (this *GrvtCore) ParseOrderStatus(status any) any {
  * @name grvt#cancelAllOrders
  * @description cancel all open orders in a market
  * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
- * @param {string} symbol cancel alls open orders
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -3783,19 +3788,19 @@ func (this *GrvtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30898 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes30898)
+		retRes30948 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes30948)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			var market any = this.Market(symbol)
 			AddElementToObject(request, "base", []any{})
-			retRes309612 := GetValue(request, "base")
-			AppendToArray(&retRes309612, GetValue(market, "baseId"))
+			retRes310112 := GetValue(request, "base")
+			AppendToArray(&retRes310112, GetValue(market, "baseId"))
 			AddElementToObject(request, "quote", []any{})
-			retRes309812 := GetValue(request, "quote")
-			AppendToArray(&retRes309812, GetValue(market, "quoteId"))
+			retRes310312 := GetValue(request, "quote")
+			AppendToArray(&retRes310312, GetValue(market, "quoteId"))
 		}
 
 		response := (<-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params)))
@@ -3837,8 +3842,8 @@ func (this *GrvtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes31248 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes31248)
+		retRes31298 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes31298)
 		var subAccoubntId any = this.GetSubAccountId(params)
 		var request any = map[string]any{
 			"sub_account_id": subAccoubntId,
@@ -3891,6 +3896,9 @@ func (this *GrvtCore) CreateSignedRequest(request any, structureType any, option
 	if IsTrue(IsEqual(structureType, "EIP712_TRANSFER_TYPE")) {
 		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
 		var amountInt any = Multiply(GetValue(request, "num_tokens"), amountMultiplier)
+		if IsTrue(IsEqual(currencyObj, nil)) {
+			panic(ExchangeError(Add(this.Id, " createSignedRequest() missing currencyObj")))
+		}
 		messageData = map[string]any{
 			"fromAccount":    GetValue(request, "from_account_id"),
 			"fromSubAccount": GetValue(request, "from_sub_account_id"),
@@ -3903,6 +3911,9 @@ func (this *GrvtCore) CreateSignedRequest(request any, structureType any, option
 		}
 	} else if IsTrue(IsEqual(structureType, "EIP712_WITHDRAWAL_TYPE")) {
 		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
+		if IsTrue(IsEqual(currencyObj, nil)) {
+			panic(ExchangeError(Add(this.Id, " createSignedRequest() missing currencyObj")))
+		}
 		messageData = map[string]any{
 			"fromAccount":   GetValue(request, "from_account_id"),
 			"toEthAddress":  GetValue(request, "to_eth_address"),
@@ -3999,7 +4010,20 @@ func (this *GrvtCore) Sign(path any, optionalArgs ...any) any {
 			url = Add(url, Add("?", queryString))
 		}
 	} else if IsTrue(IsEqual(method, "POST")) {
-		body = this.Json(params)
+		// the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+		// the private branch below sets its own headers, this covers the public market-data endpoints
+		headers = map[string]any{
+			"Content-Type": "application/json",
+		}
+		// an empty params dict must serialize as an empty json object, not an empty json array,
+		// php json_encode would produce [] here which the venue rejects with the same 1003 error
+		var paramsKeys any = ObjectKeys(params)
+		var paramsKeysLength any = GetArrayLength(paramsKeys)
+		if IsTrue(IsEqual(paramsKeysLength, 0)) {
+			body = "{}"
+		} else {
+			body = this.Json(params)
+		}
 	}
 	var isPrivate any = StartsWith(api, "private")
 	if IsTrue(isPrivate) {

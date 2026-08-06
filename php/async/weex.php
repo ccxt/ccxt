@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
+use ccxt\NullResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -483,7 +484,7 @@ class weex extends Exchange {
             ),
             'options' => array(
                 'partner' => 'b-WEEX111125',
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'accountsByType' => array(
                     'spot' => 'spot',
@@ -501,7 +502,7 @@ class weex extends Exchange {
                     'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
-                    'ARBONE' => 'ARBITRUM(ARB)',
+                    'ARBITRUM' => 'ARBITRUM(ARB)',
                     'SOL' => 'SOLANA(SOL)',
                     'OP' => 'OPTIMISM(OP)',
                     'OPTIMISM' => 'OPTIMISM(OP)',
@@ -511,7 +512,7 @@ class weex extends Exchange {
                     'BEP20(BSC)' => 'BEP20',
                     'ERC20' => 'ERC20',
                     'POLYGON(MATIC)' => 'MATIC',
-                    'ARBITRUM(ARB)' => 'ARBONE',
+                    'ARBITRUM(ARB)' => 'ARBITRUM',
                     'SOLANA(SOL)' => 'SOL',
                     'OPTIMISM(OP)' => 'OP',
                     'AVALANCHE_C(AVAX_C)' => 'AVAXC',
@@ -691,7 +692,7 @@ class weex extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -702,7 +703,7 @@ class weex extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
              */
             $response = Async\await($this->publicGetApiV3Ping($params));
-            // reutns an empty $response if the exchange is alive, otherwise will trigger an error
+            // returns an empty $response if the exchange is alive, otherwise will trigger an error
             return array(
                 'status' => 'ok',
                 'updated' => null,
@@ -877,27 +878,29 @@ class weex extends Exchange {
             $chain = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chain, 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'info' => $chain,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => null,
-                'deposit' => $this->safe_bool($chain, 'depositEnable'),
-                'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
-                'fee' => $this->safe_number($chain, 'withdrawFee'),
-                'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
-                'isDefault' => $this->safe_bool($chain, 'isDefault', false),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($chain, 'withdrawMin'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($chain, 'depositEnable'),
+                    'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
+                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
+                    'isDefault' => $this->safe_bool($chain, 'isDefault', false),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'withdrawMin'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($chain, 'depositDust'),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($chain, 'depositDust'),
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         $networkKeys = is_array($networks) ? array_keys($networks) : array();
         $networksLength = count($networkKeys);
@@ -1038,7 +1041,7 @@ class weex extends Exchange {
                 $isInverse = true;
             }
         } else {
-            $active = $this->safe_bool($market, 'enableTrade');
+            $active = $this->safe_bool($market, 'enableTrade', false) === true;
         }
         $amountPrecision = $this->safe_number($market, 'stepSize');
         $pricePrecision = $this->safe_number($market, 'tickSize');
@@ -1049,6 +1052,9 @@ class weex extends Exchange {
             $pricePrecision = $this->parse_number($pricePrecisionString);
         }
         $fees = $this->safe_dict($this->fees, $isSpot ? 'spot' : 'contract', array());
+        if ($id === null) {
+            throw new ExchangeError($this->id . ' method() missing id');
+        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'lowercaseId' => strtolower($id),
@@ -1305,7 +1311,7 @@ class weex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default 15, max 200)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1467,6 +1473,9 @@ class weex extends Exchange {
                         $endTime = $now;
                         $startTime = $now - $timeDelta;
                     } elseif ($since === null) {
+                        if ($until === null) {
+                            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since or $until argument');
+                        }
                         $startTime = $until - $timeDelta;
                     } else {
                         $endTime = $since . $timeDelta;
@@ -1491,7 +1500,7 @@ class weex extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1545,7 +1554,11 @@ class weex extends Exchange {
             //         }
             //     )
             //
-            return $this->parse_trades($response, $market, $since, $limit);
+            $responseList = array();
+            if ($response !== null) {
+                $responseList = $response;
+            }
+            return $this->parse_trades($responseList, $market, $since, $limit);
         })();
     }
 
@@ -1676,7 +1689,7 @@ class weex extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1742,7 +1755,7 @@ class weex extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
         $timestamp = $this->safe_integer($contract, 'time');
@@ -1811,7 +1824,7 @@ class weex extends Exchange {
         })();
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1893,7 +1906,7 @@ class weex extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -1906,7 +1919,9 @@ class weex extends Exchange {
             $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'free');
             $account['used'] = $this->safe_string_2($entry, 'frozen', 'locked');
             $account['total'] = $this->safe_string($entry, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1983,7 +1998,7 @@ class weex extends Exchange {
         );
     }
 
-    public function parse_transfer_status(?string $status): string {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'Successful' => 'ok',
         );
@@ -2052,12 +2067,24 @@ class weex extends Exchange {
             //         "transactTime" => 1775608924724
             //     }
             //
+            if ($response === null) {
+                throw new NullResponse($this->id . ' parseOrder() returned empty response');
+            }
             return $this->parse_order($response, $market);
         })();
     }
 
-    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createSpotOrderRequest() requires a $side argument');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -2119,12 +2146,24 @@ class weex extends Exchange {
             } else {
                 $response = Async\await($this->contractPrivatePostCapiV3Order($request));
             }
+            if ($response === null) {
+                throw new NullResponse($this->id . ' createOrder() returned empty response');
+            }
             return $this->parse_order($response, $market);
         })();
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createContractOrderRequest() requires a $side argument');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -2298,6 +2337,9 @@ class weex extends Exchange {
             } else {
                 $response = Async\await($this->contractPrivateDeleteCapiV3Order($this->extend($request, $params)));
             }
+            if ($response === null) {
+                throw new NullResponse($this->id . ' parseOrder() returned empty response');
+            }
             $order = $this->parse_order($response, $market);
             $order['status'] = 'canceled';
             return $order;
@@ -2407,7 +2449,7 @@ class weex extends Exchange {
         })();
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -2468,6 +2510,9 @@ class weex extends Exchange {
                 $response = Async\await($this->privateGetApiV3Order($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->contractPrivateGetCapiV3Order($this->extend($request, $params)));
+            }
+            if ($response === null) {
+                throw new NullResponse($this->id . ' parseOrder() returned empty response');
             }
             return $this->parse_order($response, $market);
         })();
@@ -3140,7 +3185,11 @@ class weex extends Exchange {
                 //
                 $response = Async\await($this->contractPrivateGetCapiV3UserTrades($this->extend($request, $params)));
             }
-            return $this->parse_trades($response, $market, $since, $limit);
+            $responseList = array();
+            if ($response !== null) {
+                $responseList = $response;
+            }
+            return $this->parse_trades($responseList, $market, $since, $limit);
         })();
     }
 
@@ -3182,6 +3231,9 @@ class weex extends Exchange {
                 $currency = $this->currency($code);
             }
             if ($accountType === 'contract') {
+                if ($currency === null) {
+                    throw new ExchangeError($this->id . ' fetchLedger() could not resolve currency');
+                }
                 if ($code !== null) {
                     $request['currency'] = $currency['id'];
                 }
@@ -3270,6 +3322,9 @@ class weex extends Exchange {
         $before = Precise::string_sub($after, $amountRaw);
         $amount = $this->parse_number(Precise::string_abs($amountRaw));
         $direction = 'in';
+        if ($amountRaw === null) {
+            throw new ExchangeError($this->id . ' parseLedgerEntry() missing amountRaw');
+        }
         if (mb_strpos($amountRaw, '-') !== false) {
             $direction = 'out';
         }
@@ -3661,7 +3716,7 @@ class weex extends Exchange {
         })();
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $marginType = $this->safe_string($marginMode, 'marginType');
         return array(
@@ -3833,7 +3888,7 @@ class weex extends Exchange {
         })();
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetchs the position mode, hedged or one way
@@ -3896,7 +3951,7 @@ class weex extends Exchange {
         })();
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -3980,7 +4035,7 @@ class weex extends Exchange {
         })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);
@@ -4016,7 +4071,7 @@ class weex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         //     {
         //         "code" => -1140,

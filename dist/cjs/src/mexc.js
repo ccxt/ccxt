@@ -548,7 +548,7 @@ class mexc extends mexc$1["default"] {
                     // 'ALGO': 'Algorand(ALGO)',
                     // 'ALPH': 'Alephium(ALPH)',
                     // 'ARB': 'Arbitrum One(ARB)',
-                    // 'ARBONE': 'ArbitrumOne(ARB)',
+                    // 'ARBITRUM': 'ArbitrumOne(ARB)',
                     'ASTR': 'ASTAR', // ASTAREVM is different
                     // 'ATOM': 'Cosmos(ATOM)',
                     // 'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
@@ -615,7 +615,7 @@ class mexc extends mexc$1["default"] {
                     // 'ZEN': 'ZEN',
                     // 'ZIL': 'Zilliqa(ZIL)',
                     // 'ZTG': 'ZTG',
-                    // todo: uncomment below after concensus
+                    // todo: uncomment below after consensus
                     // 'ALAYA': 'ATP',
                     // 'ANDUSCHAIN': 'DEB',
                     // 'ASSETMANTLE': 'MNTL',
@@ -1189,23 +1189,25 @@ class mexc extends mexc$1["default"] {
             const chain = chains[j];
             const networkId = this.safeString2(chain, 'netWork', 'network');
             const network = this.networkIdToCode(networkId, code);
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': undefined,
-                'deposit': this.safeBool(chain, 'depositEnable', false),
-                'withdraw': this.safeBool(chain, 'withdrawEnable', false),
-                'fee': this.safeNumber(chain, 'withdrawFee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeString(chain, 'withdrawMin'),
-                        'max': this.safeString(chain, 'withdrawMax'),
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'depositEnable', false),
+                    'withdraw': this.safeBool(chain, 'withdrawEnable', false),
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeString(chain, 'withdrawMin'),
+                            'max': this.safeString(chain, 'withdrawMax'),
+                        },
                     },
-                },
-                'contract': this.safeString(chain, 'contract'),
-            };
+                    'contract': this.safeString(chain, 'contract'),
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': rawCurrency,
@@ -1505,7 +1507,7 @@ class mexc extends mexc$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2560,10 +2562,14 @@ class mexc extends mexc$1["default"] {
         else if (type === 'market') {
             type = 6;
         }
+        let volString = this.amountToPrecision(symbol, amount);
+        if (volString === undefined) {
+            volString = '0';
+        }
         const request = {
             'symbol': market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
-            'vol': parseFloat(this.amountToPrecision(symbol, amount)),
+            'vol': parseFloat(volString),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             //
@@ -2587,7 +2593,11 @@ class mexc extends mexc$1["default"] {
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
         if ((type !== 5) && (type !== 6) && (type !== 'market')) {
-            request['price'] = parseFloat(this.priceToPrecision(symbol, price));
+            let priceString = this.priceToPrecision(symbol, price);
+            if (priceString === undefined) {
+                priceString = '0';
+            }
+            request['price'] = parseFloat(priceString);
         }
         if (openType === 1) {
             const leverage = this.safeInteger(params, 'leverage');
@@ -3414,7 +3424,7 @@ class mexc extends mexc$1["default"] {
      * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders // spot all symbols
      * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
      * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3980,8 +3990,12 @@ class mexc extends mexc$1["default"] {
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'asset'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'asset'));
                 const subResult = {};
-                subResult[baseCode] = this.parseBalanceHelper(base);
-                subResult[quoteCode] = this.parseBalanceHelper(quote);
+                if (baseCode !== undefined) {
+                    subResult[baseCode] = this.parseBalanceHelper(base);
+                }
+                if (quoteCode !== undefined) {
+                    subResult[quoteCode] = this.parseBalanceHelper(quote);
+                }
                 result[symbol] = this.safeBalance(subResult);
             }
             return result;
@@ -3994,7 +4008,9 @@ class mexc extends mexc$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString(entry, 'availableBalance');
                 account['used'] = this.safeString(entry, 'frozenBalance');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             return this.safeBalance(result);
         }
@@ -4006,7 +4022,9 @@ class mexc extends mexc$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString(entry, 'free');
                 account['used'] = this.safeString(entry, 'locked');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             return this.safeBalance(result);
         }
@@ -4868,8 +4886,8 @@ class mexc extends mexc$1["default"] {
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             const networkUnified = this.networkIdToCode(networkCode, code);
             const networks = this.safeDict(currency, 'networks', {});
-            if (networkUnified in networks) {
-                const network = this.safeDict(networks, networkUnified, {});
+            if ((networkUnified !== undefined) && (networkUnified in networks)) {
+                const network = (networkUnified === undefined) ? {} : this.safeDict(networks, networkUnified, {});
                 const networkInfo = this.safeValue(network, 'info', {});
                 networkId = this.safeString(networkInfo, 'network');
             }
@@ -4922,8 +4940,8 @@ class mexc extends mexc$1["default"] {
         let networkId = undefined;
         const networkUnified = this.networkIdToCode(networkCode, code);
         const networks = this.safeDict(currency, 'networks', {});
-        if (networkUnified in networks) {
-            const network = this.safeDict(networks, networkUnified, {});
+        if ((networkUnified !== undefined) && (networkUnified in networks)) {
+            const network = (networkUnified === undefined) ? {} : this.safeDict(networks, networkUnified, {});
             const networkInfo = this.safeValue(network, 'info', {});
             networkId = this.safeString(networkInfo, 'network');
         }
@@ -4958,7 +4976,8 @@ class mexc extends mexc$1["default"] {
         const addressStructures = await this.fetchDepositAddressesByNetwork(code, params);
         let result;
         if (network !== undefined) {
-            result = this.safeDict(addressStructures, this.networkIdToCode(network, code));
+            const netCode = this.networkIdToCode(network, code);
+            result = (netCode === undefined) ? undefined : this.safeDict(addressStructures, netCode);
         }
         else {
             const options = this.safeDict(this.options, 'defaultNetworks');
@@ -5439,7 +5458,7 @@ class mexc extends mexc$1["default"] {
      * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
      * @param {string} id transfer id
      * @param {string} [code] not used by mexc fetchTransfer
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfer(id, code = undefined, params = {}) {
@@ -5471,7 +5490,7 @@ class mexc extends mexc$1["default"] {
         else if (marketType === 'swap') {
             throw new errors.BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
         }
-        return undefined;
+        throw new errors.BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
     }
     /**
      * @method
@@ -5813,7 +5832,7 @@ class mexc extends mexc$1["default"] {
      * @description set hedged to true or false for a market
      * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by mexc setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -6032,16 +6051,18 @@ class mexc extends mexc$1["default"] {
             const networkEntry = networkList[j];
             const networkId = this.safeString(networkEntry, 'network');
             const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': this.safeNumber(networkEntry, 'withdrawFee'),
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': this.safeNumber(networkEntry, 'withdrawFee'),
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
@@ -6146,7 +6167,7 @@ class mexc extends mexc$1["default"] {
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] not used by mexc fetchPositionsHistory
      * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.type] position type，1: long, 2: short

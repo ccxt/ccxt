@@ -113,6 +113,12 @@ public partial class testMainClass : BaseTest
             ((IList<object>)emptyAllowedFor).Add("base");
             ((IList<object>)emptyAllowedFor).Add("quote");
         }
+        if (isTrue(isEqual(exchange.safeString(market, "type"), "prediction")))
+        {
+            // prediction market rows carry the unified 'market' handle, the
+            // deprecated 'symbol' key is intentionally absent from their structures
+            format = exchange.omit(format, new List<object>() {"symbol"});
+        }
         testSharedMethods.assertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
         // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
         if (isTrue(!isEqual(getValue(market, "type"), "prediction")))

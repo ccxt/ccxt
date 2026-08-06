@@ -219,7 +219,7 @@ class phemex extends phemex$1["default"] {
                         'api-data/g-futures/trades': 5, // ?symbol=<symbol>
                         'api-data/futures/trading-fees': 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees': 5, // ?symbol=<symbol>
-                        'api-data/futures/v2/tradeAccountDetail': 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/futures/v2/tradeAccountDetail': 5, // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'api-data/g-futures/closedPosition': 5,
                         'g-orders/activeList': 1, // ?symbol=<symbol>
                         'orders/activeList': 1, // ?symbol=<symbol>
@@ -1031,7 +1031,7 @@ class phemex extends phemex$1["default"] {
         //                     "symbol":"BTCUSDT",
         //                     "steps":"2000K",
         //                     "riskLimits":[
-        //                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},,
+        //                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},
         //                         {"limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"},
         //                         {"limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"},
         //                     ]
@@ -1229,7 +1229,7 @@ class phemex extends phemex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1303,7 +1303,7 @@ class phemex extends phemex$1["default"] {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
-        return this.toEn(price, market['priceScale']);
+        return this.toEn(price, this.safeValue(market, 'priceScale'));
     }
     fromEn(en, scale) {
         if (en === undefined || scale === undefined) {
@@ -1408,7 +1408,8 @@ class phemex extends phemex$1["default"] {
                 }
                 else {
                     // when 'to' is defined since is mandatory
-                    since = (until / 100) - (maxLimit * candleDuration);
+                    since = Math.round(until / 1000) - (maxLimit * candleDuration);
+                    request['from'] = since;
                 }
                 if (until !== undefined) {
                     request['to'] = Math.round(until / 1000);
@@ -3824,7 +3825,7 @@ class phemex extends phemex$1["default"] {
         const networkId = this.safeString(transaction, 'chainName');
         const timestamp = this.safeIntegerN(transaction, ['createdAt', 'submitedAt', 'submittedAt']);
         let type = this.safeStringLower(transaction, 'type');
-        let feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, 'feeEv'), currency['valueScale']));
+        let feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, 'feeEv'), this.safeValue(currency, 'valueScale')));
         if (feeCost === undefined) {
             feeCost = this.safeNumber(transaction, 'feeRv');
         }
@@ -3837,7 +3838,7 @@ class phemex extends phemex$1["default"] {
             };
         }
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
-        let amount = this.parseNumber(this.fromEn(this.safeString(transaction, 'amountEv'), currency['valueScale']));
+        let amount = this.parseNumber(this.fromEn(this.safeString(transaction, 'amountEv'), this.safeValue(currency, 'valueScale')));
         if (amount === undefined) {
             amount = this.safeNumber(transaction, 'amountRv');
         }
@@ -4018,7 +4019,7 @@ class phemex extends phemex$1["default"] {
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -4570,7 +4571,7 @@ class phemex extends phemex$1["default"] {
      * @description set hedged to true or false for a market
      * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -4727,7 +4728,7 @@ class phemex extends phemex$1["default"] {
                 'currency': market['settle'],
                 'minNotional': minNotionalResponse,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': this.safeString(tier, 'maintenanceMargin'),
+                'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMargin'),
                 'maxLeverage': undefined,
                 'info': tier,
             });
@@ -5131,7 +5132,7 @@ class phemex extends phemex$1["default"] {
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
-     * @param {object} [params] extra parameters specific to the phemex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */

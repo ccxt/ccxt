@@ -432,33 +432,33 @@ func (this *ToobitCore) Describe() any {
 				"swap": "FUTURES",
 			},
 			"networks": map[string]any{
-				"BTC":    "BTC",
-				"ERC20":  "ETH",
-				"ETH":    "ETH",
-				"BEP20":  "BSC",
-				"TRC20":  "TRX",
-				"SOL":    "SOL",
-				"MATIC":  "MATIC",
-				"ARBONE": "ARBITRUM",
-				"BASE":   "BASE",
-				"TON":    "TON",
-				"AVAXC":  "AVAXC",
-				"DOGE":   "DOGE",
-				"XRP":    "XRP",
-				"DOT":    "DOT",
-				"ADA":    "ADA",
-				"LTC":    "LTC",
-				"APT":    "APT",
-				"ATOM":   "ATOM",
-				"ALGO":   "ALGO",
-				"NEAR":   "NEAR",
-				"XLM":    "XLM",
-				"SUI":    "SUI",
-				"ETC":    "ETC",
-				"EOS":    "EOS",
-				"WAVES":  "WAVES",
-				"ICP":    "ICP",
-				"ONE":    "ONE",
+				"BTC":      "BTC",
+				"ERC20":    "ETH",
+				"ETH":      "ETH",
+				"BEP20":    "BSC",
+				"TRC20":    "TRX",
+				"SOL":      "SOL",
+				"MATIC":    "MATIC",
+				"ARBITRUM": "ARBITRUM",
+				"BASE":     "BASE",
+				"TON":      "TON",
+				"AVAXC":    "AVAXC",
+				"DOGE":     "DOGE",
+				"XRP":      "XRP",
+				"DOT":      "DOT",
+				"ADA":      "ADA",
+				"LTC":      "LTC",
+				"APT":      "APT",
+				"ATOM":     "ATOM",
+				"ALGO":     "ALGO",
+				"NEAR":     "NEAR",
+				"XLM":      "XLM",
+				"SUI":      "SUI",
+				"ETC":      "ETC",
+				"EOS":      "EOS",
+				"WAVES":    "WAVES",
+				"ICP":      "ICP",
+				"ONE":      "ONE",
 			},
 			"networksById": map[string]any{
 				"ETH":   "ERC20",
@@ -776,27 +776,29 @@ func (this *ToobitCore) ParseCurrency(rawCurrency any) any {
 		var rawNetwork any = GetValue(rawNetworks, j)
 		var networkId any = this.SafeString(rawNetwork, "chainType")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"id":        networkId,
-			"network":   networkCode,
-			"margin":    nil,
-			"deposit":   this.SafeBool(rawNetwork, "allowDeposit"),
-			"withdraw":  this.SafeBool(rawNetwork, "allowWithdraw"),
-			"active":    nil,
-			"fee":       this.SafeNumber(rawNetwork, "withdrawFee"),
-			"precision": nil,
-			"limits": map[string]any{
-				"deposit": map[string]any{
-					"min": this.SafeNumber(rawNetwork, "minDepositQuantity"),
-					"max": nil,
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"id":        networkId,
+				"network":   networkCode,
+				"margin":    nil,
+				"deposit":   this.SafeBool(rawNetwork, "allowDeposit"),
+				"withdraw":  this.SafeBool(rawNetwork, "allowWithdraw"),
+				"active":    nil,
+				"fee":       this.SafeNumber(rawNetwork, "withdrawFee"),
+				"precision": nil,
+				"limits": map[string]any{
+					"deposit": map[string]any{
+						"min": this.SafeNumber(rawNetwork, "minDepositQuantity"),
+						"max": nil,
+					},
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(rawNetwork, "minWithdrawQuantity"),
+						"max": this.SafeNumber(rawNetwork, "maxWithdrawQuantity"),
+					},
 				},
-				"withdraw": map[string]any{
-					"min": this.SafeNumber(rawNetwork, "minWithdrawQuantity"),
-					"max": this.SafeNumber(rawNetwork, "maxWithdrawQuantity"),
-				},
-			},
-			"info": rawNetwork,
-		})
+				"info": rawNetwork,
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -1076,7 +1078,7 @@ func (this *ToobitCore) ParseMarket(market any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ToobitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1089,8 +1091,8 @@ func (this *ToobitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes103912 := (<-this.LoadMarkets())
-			PanicOnError(retRes103912)
+			retRes104112 := (<-this.LoadMarkets())
+			PanicOnError(retRes104112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1163,8 +1165,8 @@ func (this *ToobitCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes109412 := (<-this.LoadMarkets())
-			PanicOnError(retRes109412)
+			retRes109612 := (<-this.LoadMarkets())
+			PanicOnError(retRes109612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1325,8 +1327,8 @@ func (this *ToobitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes123412 := (<-this.LoadMarkets())
-			PanicOnError(retRes123412)
+			retRes123612 := (<-this.LoadMarkets())
+			PanicOnError(retRes123612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1396,8 +1398,8 @@ func (this *ToobitCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes134912 := (<-this.LoadMarkets())
-			PanicOnError(retRes134912)
+			retRes135112 := (<-this.LoadMarkets())
+			PanicOnError(retRes135112)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var typeVar any = nil
@@ -1501,8 +1503,8 @@ func (this *ToobitCore) FetchLastPrices(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes143212 := (<-this.LoadMarkets())
-			PanicOnError(retRes143212)
+			retRes143412 := (<-this.LoadMarkets())
+			PanicOnError(retRes143412)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -1567,8 +1569,8 @@ func (this *ToobitCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148012 := (<-this.LoadMarkets())
-			PanicOnError(retRes148012)
+			retRes148212 := (<-this.LoadMarkets())
+			PanicOnError(retRes148212)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -1633,7 +1635,7 @@ func (this *ToobitCore) ParseBidAskCustom(ticker any) any {
  * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+ * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *ToobitCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1646,8 +1648,8 @@ func (this *ToobitCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes154012 := (<-this.LoadMarkets())
-			PanicOnError(retRes154012)
+			retRes154212 := (<-this.LoadMarkets())
+			PanicOnError(retRes154212)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -1733,8 +1735,8 @@ func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes160512 := (<-this.LoadMarkets())
-			PanicOnError(retRes160512)
+			retRes160712 := (<-this.LoadMarkets())
+			PanicOnError(retRes160712)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1742,9 +1744,9 @@ func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes161019 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes161019)
-			ch <- retRes161019
+			retRes161219 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes161219)
+			ch <- retRes161219
 			return nil
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
@@ -1808,8 +1810,8 @@ func (this *ToobitCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes165812 := (<-this.LoadMarkets())
-			PanicOnError(retRes165812)
+			retRes166012 := (<-this.LoadMarkets())
+			PanicOnError(retRes166012)
 		}
 		var response any = nil
 		var marketType any = nil
@@ -1846,7 +1848,9 @@ func (this *ToobitCore) ParseBalance(response any) any {
 		AddElementToObject(account, "free", this.SafeString2(balance, "free", "availableBalance"))
 		AddElementToObject(account, "total", this.SafeString2(balance, "total", "balance"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1876,8 +1880,8 @@ func (this *ToobitCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes173312 := (<-this.LoadMarkets())
-			PanicOnError(retRes173312)
+			retRes173712 := (<-this.LoadMarkets())
+			PanicOnError(retRes173712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -1932,6 +1936,9 @@ func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
@@ -1973,6 +1980,12 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{
 		"symbol":   GetValue(market, "id"),
@@ -2256,8 +2269,8 @@ func (this *ToobitCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes205812 := (<-this.LoadMarkets())
-			PanicOnError(retRes205812)
+			retRes207112 := (<-this.LoadMarkets())
+			PanicOnError(retRes207112)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2314,8 +2327,8 @@ func (this *ToobitCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes210312 := (<-this.LoadMarkets())
-			PanicOnError(retRes210312)
+			retRes211612 := (<-this.LoadMarkets())
+			PanicOnError(retRes211612)
 		}
 		var idsString any = Join(ids, ",")
 		var request any = map[string]any{
@@ -2376,8 +2389,8 @@ func (this *ToobitCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes216312 := (<-this.LoadMarkets())
-			PanicOnError(retRes216312)
+			retRes217612 := (<-this.LoadMarkets())
+			PanicOnError(retRes217612)
 		}
 		var request any = map[string]any{
 			"orderId": id,
@@ -2456,8 +2469,8 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes222012 := (<-this.LoadMarkets())
-			PanicOnError(retRes222012)
+			retRes223312 := (<-this.LoadMarkets())
+			PanicOnError(retRes223312)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2516,8 +2529,8 @@ func (this *ToobitCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes228212 := (<-this.LoadMarkets())
-			PanicOnError(retRes228212)
+			retRes229512 := (<-this.LoadMarkets())
+			PanicOnError(retRes229512)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2581,8 +2594,8 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes234912 := (<-this.LoadMarkets())
-			PanicOnError(retRes234912)
+			retRes236212 := (<-this.LoadMarkets())
+			PanicOnError(retRes236212)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2653,8 +2666,8 @@ func (this *ToobitCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes242012 := (<-this.LoadMarkets())
-			PanicOnError(retRes242012)
+			retRes243312 := (<-this.LoadMarkets())
+			PanicOnError(retRes243312)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -2711,8 +2724,8 @@ func (this *ToobitCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes250212 := (<-this.LoadMarkets())
-			PanicOnError(retRes250212)
+			retRes251512 := (<-this.LoadMarkets())
+			PanicOnError(retRes251512)
 		}
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
@@ -2790,8 +2803,8 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes255912 := (<-this.LoadMarkets())
-			PanicOnError(retRes255912)
+			retRes257212 := (<-this.LoadMarkets())
+			PanicOnError(retRes257212)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -2903,8 +2916,8 @@ func (this *ToobitCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes265112 := (<-this.LoadMarkets())
-			PanicOnError(retRes265112)
+			retRes266412 := (<-this.LoadMarkets())
+			PanicOnError(retRes266412)
 		}
 		var response any = nil
 		var marketType any = nil
@@ -2990,9 +3003,9 @@ func (this *ToobitCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes271215 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
-		PanicOnError(retRes271215)
-		ch <- retRes271215
+		retRes272515 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
+		PanicOnError(retRes272515)
+		ch <- retRes272515
 		return nil
 
 	}()
@@ -3024,9 +3037,9 @@ func (this *ToobitCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes272715 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
-		PanicOnError(retRes272715)
-		ch <- retRes272715
+		retRes274015 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
+		PanicOnError(retRes274015)
+		ch <- retRes274015
 		return nil
 
 	}()
@@ -3041,8 +3054,8 @@ func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes273212 := (<-this.LoadMarkets())
-			PanicOnError(retRes273212)
+			retRes274512 := (<-this.LoadMarkets())
+			PanicOnError(retRes274512)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -3191,8 +3204,8 @@ func (this *ToobitCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes291112 := (<-this.LoadMarkets())
-			PanicOnError(retRes291112)
+			retRes292412 := (<-this.LoadMarkets())
+			PanicOnError(retRes292412)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3272,8 +3285,8 @@ func (this *ToobitCore) Withdraw(code any, amount any, address any, optionalArgs
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes297012 := (<-this.LoadMarkets())
-			PanicOnError(retRes297012)
+			retRes298312 := (<-this.LoadMarkets())
+			PanicOnError(retRes298312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3330,8 +3343,8 @@ func (this *ToobitCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes301112 := (<-this.LoadMarkets())
-			PanicOnError(retRes301112)
+			retRes302412 := (<-this.LoadMarkets())
+			PanicOnError(retRes302412)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
@@ -3380,8 +3393,8 @@ func (this *ToobitCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes304412 := (<-this.LoadMarkets())
-			PanicOnError(retRes304412)
+			retRes305712 := (<-this.LoadMarkets())
+			PanicOnError(retRes305712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3420,8 +3433,8 @@ func (this *ToobitCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes306912 := (<-this.LoadMarkets())
-			PanicOnError(retRes306912)
+			retRes308212 := (<-this.LoadMarkets())
+			PanicOnError(retRes308212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3483,8 +3496,8 @@ func (this *ToobitCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes311412 := (<-this.LoadMarkets())
-			PanicOnError(retRes311412)
+			retRes312712 := (<-this.LoadMarkets())
+			PanicOnError(retRes312712)
 		}
 		var request any = map[string]any{}
 		var market any = nil

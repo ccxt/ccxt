@@ -355,6 +355,10 @@ func (this *XtCore) PrivateLinearGetFutureUserV1PositionAdl(args ...any) <-chan 
 	return this.callEndpointAsync("privateLinearGetFutureUserV1PositionAdl", args...)
 }
 
+func (this *XtCore) PrivateLinearGetFutureUserV1PositionBreakList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateLinearGetFutureUserV1PositionBreakList", args...)
+}
+
 func (this *XtCore) PrivateLinearGetFutureUserV1PositionList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1PositionList", args...)
 }
@@ -507,6 +511,10 @@ func (this *XtCore) PrivateInverseGetFutureUserV1PositionAdl(args ...any) <-chan
 	return this.callEndpointAsync("privateInverseGetFutureUserV1PositionAdl", args...)
 }
 
+func (this *XtCore) PrivateInverseGetFutureUserV1PositionBreakList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInverseGetFutureUserV1PositionBreakList", args...)
+}
+
 func (this *XtCore) PrivateInverseGetFutureUserV1PositionList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1PositionList", args...)
 }
@@ -593,6 +601,10 @@ func (this *XtCore) PrivateInversePostFutureUserV1UserCollectionAdd(args ...any)
 
 func (this *XtCore) PrivateInversePostFutureUserV1UserCollectionCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privateInversePostFutureUserV1UserCollectionCancel", args...)
+}
+
+func (this *XtCore) PrivateInversePostFutureUserV1PositionChangeType(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInversePostFutureUserV1PositionChangeType", args...)
 }
 
 func (this *XtCore) PrivateUserGetUserAccount(args ...any) <-chan any {

@@ -13,6 +13,10 @@ var number = require('./base/functions/number.js');
 /**
  * @class coinbaseexchange
  * @augments Exchange
+ * @description This is the institutional Coinbase Exchange API class (exchange.coinbase.com), the venue formerly
+ * served by Coinbase Pro's backend. Credentials for it are issued through Coinbase's Exchange API program and are
+ * separate from regular coinbase.com keys - retail Coinbase.com / Advanced Trade accounts should use the coinbase
+ * class instead. For Coinbase International derivatives see coinbaseinternational.
  */
 class coinbaseexchange extends coinbaseexchange$1["default"] {
     describe() {
@@ -379,7 +383,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                     // TRON unsupported
                     'SOL': 'solana',
                     // BSC unsupported
-                    'ARBONE': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
                     'BASE': 'base',
@@ -531,24 +535,26 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             const network = supportedNetworks[j];
             const networkId = this.safeString(network, 'id');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'name': this.safeString(network, 'name'),
-                'network': networkCode,
-                'active': this.safeString(network, 'status') === 'online',
-                'withdraw': undefined,
-                'deposit': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(network, 'min_withdrawal_amount'),
-                        'max': this.safeNumber(network, 'max_withdrawal_amount'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'name': this.safeString(network, 'name'),
+                    'network': networkCode,
+                    'active': this.safeString(network, 'status') === 'online',
+                    'withdraw': undefined,
+                    'deposit': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(network, 'min_withdrawal_amount'),
+                            'max': this.safeNumber(network, 'max_withdrawal_amount'),
+                        },
                     },
-                },
-                'contract': this.safeString(network, 'contract_address'),
-                'info': network,
-            };
+                    'contract': this.safeString(network, 'contract_address'),
+                    'info': network,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -759,7 +765,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'hold');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -786,7 +794,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1642,7 +1650,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @name coinbaseexchange#cancelAllOrders
      * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
