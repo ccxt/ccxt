@@ -441,6 +441,23 @@
                     }
                 ],
                 "output": "{\"algoOrderId\":\"1111777\",\"quantity\":\"0.0001\",\"triggerPrice\":\"60000\"}"
+            },
+            {
+                "description": "Swap edit algo order quantity only, forced via params.trigger",
+                "method": "editOrder",
+                "url": "https://api.woox.io/v3/trade/algoOrder",
+                "input": [
+                    "1111776",
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0002,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"algoOrderId\":\"1111776\",\"quantity\":\"0.0002\"}"
             }
         ],
         "fetchDepositAddress": [
