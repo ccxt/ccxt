@@ -1406,26 +1406,6 @@ public partial class whitebit
         return new Position(res);
     }
     /// <summary>
-    /// fetch the rate of interest to borrow a currency for margin trading
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.whitebit.com/private/http-main-v4/#get-plans"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}.</returns>
-    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCrossBorrowRate(code, parameters);
-        return new CrossBorrowRate(res);
-    }
-    /// <summary>
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
