@@ -3737,7 +3737,10 @@
         "method": "fetchOrder",
         "input": [
           "2132879318752520961",
-          "XRP/USDT"
+          "XRP/USDT",
+          {
+            "acknowledged": true
+          }
         ],
         "httpResponse": {
           "retCode": "0",
