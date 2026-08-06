@@ -1166,7 +1166,12 @@ export default class woofipro extends Exchange {
         const timestamp = this.safeInteger (response, 'timestamp');
         const result = [];
         for (let i = 0; i < rows.length; i++) {
-            const ticker = this.extend ({ 'timestamp': timestamp }, rows[i]);
+            const row = rows[i];
+            const marketId = this.safeString (row, 'symbol', '');
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const ticker = this.extend ({ 'timestamp': timestamp }, row);
             result.push (this.parseTicker (ticker));
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
