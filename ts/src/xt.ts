@@ -1887,14 +1887,11 @@ export default class xt extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = tickers[i];
-            let marketInner = market;
-            if (marketInner === undefined) {
-                // the spot and contract payloads share the same field names, so
-                // the market type cannot be inferred from the entry itself
-                const marketId = this.safeString (rawTicker, 's');
-                const marketType = isContract ? 'contract' : 'spot';
-                marketInner = this.safeMarket (marketId, undefined, '_', marketType);
-            }
+            // the spot and contract payloads share the same field names, so
+            // the market type cannot be inferred from the entry itself
+            const marketId = this.safeString (rawTicker, 's');
+            const marketType = isContract ? 'contract' : 'spot';
+            const marketInner = this.safeMarket (marketId, market, '_', marketType);
             const ticker = this.parseTicker (rawTicker, marketInner);
             const symbol = ticker['symbol'];
             if (symbol !== undefined) {
