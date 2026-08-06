@@ -3445,7 +3445,7 @@ export default class binance extends Exchange {
                     promisesRaw.push (this.sapiGetMarginAllPairs (params));
                     promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
                 }
-                if (!isDemoEnv) {
+                if (!isDemoEnv && (this.apiKey !== undefined)) {
                     promisesRaw.push (this.sapiGetEquityMarketExchangeInfo (params));
                 }
             } else if (marketType === 'linear') {
@@ -4686,7 +4686,8 @@ export default class binance extends Exchange {
         } else if (market['inverse']) {
             response = await this.dapiPublicGetTicker24hr (this.extend (request, params));
         } else {
-            if (market['stock']) {
+            const stock = this.safeBool (market, 'stock', false);
+            if (stock) {
                 response = await this.sapiGetEquityMarketQuote (this.extend (request, params));
             } else {
                 const rolling = this.safeBool (params, 'rolling', false);
@@ -6949,7 +6950,7 @@ export default class binance extends Exchange {
         const isConditional = (triggerPrice !== undefined) || isTrailingPercentOrder || isStopLoss || isTakeProfit;
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
         const test = this.safeBool (params, 'test', false);
-        const stock = market['stock'];
+        const stock = this.safeBool (market, 'stock', false);
         params = this.omit (params, [ 'sor', 'SOR', 'test' ]);
         // if (isPortfolioMargin) {
         //     params['portfolioMargin'] = isPortfolioMargin;
@@ -7037,7 +7038,7 @@ export default class binance extends Exchange {
         }
         const market = this.market (symbol);
         const marketType = this.safeString (params, 'type', market['type']);
-        const stock = market['stock'];
+        const stock = this.safeBool (market, 'stock', false);
         const clientOrderId = this.safeStringN (params, [ 'clientAlgoId', 'newClientOrderId', 'clientOrderId' ]);
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
@@ -7494,7 +7495,7 @@ export default class binance extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = market['stock'];
+            stock = this.safeBool (market, 'stock', false);
             if (!stock) {
                 request['symbol'] = market['id'];
             }
@@ -7610,7 +7611,7 @@ export default class binance extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = market['stock'];
+            stock = this.safeBool (market, 'stock', false);
             request['symbol'] = market['id'];
         } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -7949,7 +7950,7 @@ export default class binance extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = market['stock'];
+            stock = this.safeBool (market, 'stock', false);
             if (!stock) {
                 request['symbol'] = market['id'];
             }
@@ -8268,7 +8269,7 @@ export default class binance extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = market['stock'];
+            stock = this.safeBool (market, 'stock', false);
         } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -8311,7 +8312,7 @@ export default class binance extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchCanceledOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = market['stock'];
+            stock = this.safeBool (market, 'stock', false);
         } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
         }
@@ -8354,7 +8355,7 @@ export default class binance extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = market['stock'];
+            stock = this.safeBool (market, 'stock', false);
         } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
         }
@@ -8404,7 +8405,7 @@ export default class binance extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = market['stock'];
+            stock = this.safeBool (market, 'stock', false);
             if (!stock) {
                 request['symbol'] = market['id'];
             }
@@ -8532,7 +8533,7 @@ export default class binance extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = market['stock'];
+            stock = this.safeBool (market, 'stock', false);
             if (!stock) {
                 request['symbol'] = market['id'];
             }
@@ -8854,7 +8855,7 @@ export default class binance extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = market['stock'];
+            stock = this.safeBool (market, 'stock', false);
             request['symbol'] = market['id'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);

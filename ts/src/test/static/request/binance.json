@@ -1418,7 +1418,12 @@
                 "method": "fetchMyTrades",
                 "url": "https://api.binance.com/sapi/v1/equity/trade/history?timestamp=1785977357791&symbol=AAPL&endTime=1785977357790&startTime=1785372557790&recvWindow=10000&signature=2da5834144b04b30d315bf2219d5f5666aa90ba05655ca0ab3a959f6f48f676b",
                 "input": [
-                    "AAPL/USDC"
+                    "AAPL/USDC",
+                    1785372557790,
+                    null,
+                    {
+                        "endTime": 1785977357790
+                    }
                 ]
             }
         ],
@@ -1566,7 +1571,12 @@
                 "method": "fetchOrders",
                 "url": "https://api.binance.com/sapi/v1/equity/order/history?timestamp=1785925976373&symbol=AAPL&endTime=1785925976372&startTime=1785321176372&recvWindow=10000&signature=8cfe001e2184b35eac4f7ad9972a73caa718dccf45617dba3a041efe007c5aad",
                 "input": [
-                    "AAPL/USDC"
+                    "AAPL/USDC",
+                    1785321176372,
+                    null,
+                    {
+                        "endTime": 1785925976372
+                    }
                 ]
             }
         ],
@@ -1936,7 +1946,12 @@
                 "method": "fetchCanceledOrders",
                 "url": "https://api.binance.com/sapi/v1/equity/order/history?timestamp=1785926663068&symbol=AAPL&endTime=1785926663067&startTime=1785321863067&orderStatus=CANCELED&recvWindow=10000&signature=4c9fac804b79bd51dcb6f72dd559df85679d3a9c83ed70f58eaa7507698791e9",
                 "input": [
-                    "AAPL/USDC"
+                    "AAPL/USDC",
+                    1785321863067,
+                    null,
+                    {
+                        "endTime": 1785926663067
+                    }
                 ]
             }
         ],
@@ -3709,7 +3724,12 @@
                 "method": "fetchCanceledAndClosedOrders",
                 "url": "https://api.binance.com/sapi/v1/equity/order/history?timestamp=1785926721018&symbol=AAPL&endTime=1785926721017&startTime=1785321921017&orderStatus=FILLED%2CCANCELED&recvWindow=10000&signature=06f9139be153d95dc65e483a48ff43af08ea59ee5ff0b41ea6d1b73e36bedf69",
                 "input": [
-                    "AAPL/USDC"
+                    "AAPL/USDC",
+                    1785321921017,
+                    null,
+                    {
+                        "endTime": 1785926721017
+                    }
                 ]
             }
         ],

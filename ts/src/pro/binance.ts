@@ -1634,7 +1634,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market (symbol);
         symbol = market['symbol'];
-        let stock = market['stock'];
+        let stock = this.safeBool (market, 'stock', false);
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOHLCV', 'stock');
         if (stock) {
             if ((timeframe !== '5m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
@@ -2956,7 +2956,8 @@ export default class binance extends binanceRest {
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            const subscriptionKeys = Object.keys (client.subscriptions);
+            const clientSubscriptions = this.safeDict (client, 'subscriptions', {});
+            const subscriptionKeys = Object.keys (clientSubscriptions);
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
