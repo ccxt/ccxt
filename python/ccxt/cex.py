@@ -294,7 +294,7 @@ class cex(Exchange, ImplicitAPI):
                     'AVALANCHEC': 'avalanche',
                     'ETHPOW': 'ethereumpow',
                     'NEAR': 'near',
-                    'ARB': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'DOT': 'polkadot',
                     'OPT': 'optimism',
                     'INJ': 'injective',
