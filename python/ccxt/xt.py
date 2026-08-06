@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, Transaction, TransferEntry
+from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, OpenInterest, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -99,7 +99,7 @@ class xt(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOpenInterest': False,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
@@ -4411,6 +4411,67 @@ class xt(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
             'interval': interval,
         }
+
+    def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+        """
+        retrieves the open interest of a contract trading pair
+
+        https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' fetchOpenInterest() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchOpenInterest', market, params)
+        response = None
+        if subType == 'inverse':
+            response = self.publicInverseGetFutureMarketV1PublicContractOpenInterest(self.extend(request, params))
+        else:
+            response = self.publicLinearGetFutureMarketV1PublicContractOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": {
+        #             "symbol": "btc_usdt",
+        #             "openInterest": "21005.8646",
+        #             "openInterestUsd": "1120726916.46709",
+        #             "time": 1785925443734
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_open_interest(result, market)
+
+    def parse_open_interest(self, interest: Any, market: Market = None) -> OpenInterest:
+        #
+        #     {
+        #         "symbol": "btc_usdt",
+        #         "openInterest": "21005.8646",
+        #         "openInterestUsd": "1120726916.46709",
+        #         "time": 1785925443734
+        #     }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        market = self.safe_market(marketId, market, None, 'contract')
+        timestamp = self.safe_integer(interest, 'time')
+        return self.safe_open_interest({
+            'symbol': market['symbol'],
+            'openInterestAmount': self.safe_number(interest, 'openInterest'),
+            'openInterestValue': self.safe_number(interest, 'openInterestUsd'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, market)
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
