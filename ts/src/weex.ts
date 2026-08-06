@@ -1830,13 +1830,17 @@ export default class weex extends Exchange {
      * @see https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
      * @description query for balance and get the amount of funds available for trading or funds locked in positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
+     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params = {}): Promise<Balances> {
+        const requestedType = this.safeString (params, 'type');
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        if (sandboxMode && (requestedType === undefined)) {
+            type = 'swap'; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
+        }
         let response = undefined;
         if (type === 'spot') {
             if (sandboxMode) {
