@@ -32,6 +32,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchPositions': true,
                 'unWatchPositions': true,
                 'unWatchOrderBook': true,
+                'unWatchTicker': true,
                 'unWatchTickers': true,
                 'unWatchTrades': true,
                 'unWatchOHLCV': true,
@@ -1556,6 +1557,19 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
+    handleTickerUnsubscription (client: Client, subscription: Dict) {
+        //
+        const coin = this.safeString (subscription, 'coin');
+        const marketId = this.coinToMarketId (coin);
+        const symbol = this.safeSymbol (marketId);
+        const subMessageHash = 'ticker:' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
+        if (symbol in this.tickers) {
+            delete this.tickers[symbol];
+        }
+    }
+
     handleOHLCVUnsubscription (client: Client, subscription: Dict) {
         const coin = this.safeString (subscription, 'coin');
         const marketId = this.coinToMarketId (coin);
@@ -1659,6 +1673,10 @@ export default class hyperliquid extends hyperliquidRest {
                 this.handlePositionsUnsubscription (client, subscription);
             } else if (type === 'spotState') {
                 this.handleSpotBalanceUnsubscription (client, subscription);
+            } else if ((type === 'activeAssetCtx') || (type === 'activeSpotAssetCtx')) {
+                this.handleTickerUnsubscription (client, subscription);
+            } else if (type === 'allMids') {
+                this.handleTickersUnsubscription (client, subscription);
             }
         }
     }
