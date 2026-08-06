@@ -34,11 +34,14 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     // rationale for why transpiled checks are strict); C#'s OrderBook satisfies IDictionary,
     // Java must too or shared structure tests fail with "entry is not a dict",
     // see https://github.com/ccxt/ccxt/issues/29595 and https://github.com/ccxt/ccxt/pull/29594
-    private static final List<String> KEYS = List.of(
-        "asks", "bids", "symbol", "timestamp", "datetime", "nonce", "outcome", "outcomeId", "market");
+    private static final List<String> BASE_KEYS = List.of(
+        "asks", "bids", "timestamp", "datetime", "nonce");
 
     @Override
     public synchronized Object get(Object key) {
+        if (!(key instanceof String)) {
+            return null; // Map contract: unknown key types are absent, not a CCE
+        }
         switch ((String) key) {
             case "asks": return this.asks; // live side, delta handlers depend on it
             case "bids": return this.bids;
@@ -54,8 +57,15 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     }
 
     @Override
-    public boolean containsKey(Object key) {
-        return KEYS.contains(key);
+    public synchronized boolean containsKey(Object key) {
+        if (BASE_KEYS.contains(key)) {
+            return true;
+        }
+        // mirror toMap()/C#: prediction identity keys only when set, symbol otherwise
+        if (this.outcome != null) {
+            return "outcome".equals(key) || "outcomeId".equals(key) || "market".equals(key);
+        }
+        return "symbol".equals(key);
     }
 
     @Override
@@ -79,8 +89,15 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     @Override
     public synchronized java.util.Set<Map.Entry<String, Object>> entrySet() {
         final java.util.LinkedHashSet<Map.Entry<String, Object>> entries = new java.util.LinkedHashSet<>();
-        for (final String key : KEYS) {
+        for (final String key : BASE_KEYS) {
             entries.add(new java.util.AbstractMap.SimpleEntry<>(key, this.get(key)));
+        }
+        if (this.outcome != null) {
+            entries.add(new java.util.AbstractMap.SimpleEntry<>("outcome", this.outcome));
+            entries.add(new java.util.AbstractMap.SimpleEntry<>("outcomeId", this.outcomeId));
+            entries.add(new java.util.AbstractMap.SimpleEntry<>("market", this.market));
+        } else {
+            entries.add(new java.util.AbstractMap.SimpleEntry<>("symbol", this.symbol));
         }
         return entries;
     }
