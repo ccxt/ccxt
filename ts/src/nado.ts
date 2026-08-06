@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
-import type { Balances, Bool, Currencies, Currency, Dict, Fee, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -355,7 +355,7 @@ export default class nado extends Exchange {
         const request = await this.createOrderRequest (symbol, type, side, amount, price, params);
         const placeOrder = this.safeDict (request, 'place_order', {});
         const isTriggerOrder = ('trigger' in placeOrder);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (isTriggerOrder) {
             response = await this.triggerPrivatePostExecute (request);
         } else {
@@ -667,7 +667,7 @@ export default class nado extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request = await this.cancelAllOrdersRequest (symbol, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (trigger) {
             response = await this.triggerPrivatePostExecute (request);
             //
@@ -786,7 +786,7 @@ export default class nado extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request = await this.cancelOrdersRequest (ids, symbol, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (trigger) {
             response = await this.triggerPrivatePostExecute (request);
             //

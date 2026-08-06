@@ -1487,7 +1487,7 @@ export default class onetrading extends Exchange {
         } else {
             request['order_id'] = id;
         }
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (method === 'privateDeleteAccountOrdersOrderId') {
             response = await this.privateDeleteAccountOrdersOrderId (this.extend (request, params));
         } else {

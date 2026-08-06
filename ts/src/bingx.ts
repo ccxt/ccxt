@@ -3345,7 +3345,7 @@ export default class bingx extends Exchange {
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let response: any = undefined;
+        let response: Dict | string;
         if (market['swap']) {
             if (test) {
                 response = await this.swapV2PrivatePostTradeOrderTest (request);
@@ -3428,7 +3428,8 @@ export default class bingx extends Exchange {
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
             response = this.fixStringifiedJsonMembers (response);
-            response = this.parseJson (response);
+            const parsedResponse: Dict = this.parseJson (response);
+            response = parsedResponse;
         }
         const data = this.safeDict (response, 'data', {});
         let result: Dict = {};
@@ -3489,7 +3490,7 @@ export default class bingx extends Exchange {
         const symbolsLength = symbols.length;
         const market = this.market (symbols[0]);
         const request: Dict = {};
-        let response: any = undefined;
+        let response: Dict | string;
         if (market['swap']) {
             if (symbolsLength > 5) {
                 throw new InvalidOrder (this.id + ' createOrders() can not create more than 5 orders at once for swap markets');
@@ -3554,7 +3555,8 @@ export default class bingx extends Exchange {
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
             response = this.fixStringifiedJsonMembers (response);
-            response = this.parseJson (response);
+            const parsedResponse: Dict = this.parseJson (response);
+            response = parsedResponse;
         }
         const data = this.safeDict (response, 'data', {});
         const result = this.safeList (data, 'orders', []) as List;
@@ -4485,7 +4487,7 @@ export default class bingx extends Exchange {
         }
         const isTwapOrder = this.safeBool (params, 'twap', false);
         params = this.omit (params, 'twap');
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         let market: Market = undefined;
         if (isTwapOrder) {
             const twapRequest: Dict = {
@@ -6800,7 +6802,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         let commission: Dict = {};
         if (market['spot']) {
             response = await this.spotV1PrivateGetUserCommissionRate (this.extend (request, params));

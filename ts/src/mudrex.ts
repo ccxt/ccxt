@@ -4,7 +4,7 @@
 import Exchange from './abstract/mudrex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Int, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee } from './base/types.js';
+import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -576,7 +576,7 @@ export default class mudrex extends Exchange {
         const requested = this.safeStringN (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         params = this.omit (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         const request: Dict = {};
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (type === 'spot') {
             if (requested !== undefined) {
                 request['currency'] = requested;

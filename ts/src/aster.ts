@@ -1649,7 +1649,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3Ticker24hr (params);
         } else if (marketType === 'spot') {
@@ -1705,7 +1705,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
-        let response: any = undefined;
+        let response: NullableList = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3TickerPrice (params);
         } else if (marketType === 'spot') {
@@ -1777,7 +1777,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3TickerBookTicker (params);
         } else if (marketType === 'spot') {
@@ -2031,7 +2031,7 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn ();
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         let data: NullableList = undefined;
         if (marketType === 'swap') {
             data = await this.fapiPrivateGetV3Balance (params);
@@ -2559,7 +2559,7 @@ export default class aster extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (this.isLinear (marketType, subType)) {
             response = await this.fapiPrivateGetV3OpenOrders (this.extend (request, params));
         } else if (marketType === 'spot') {
