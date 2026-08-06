@@ -1655,6 +1655,7 @@ func (this *BitgetCore) Describe() any {
 				"AZERO":         "AZERO",
 				"TRC10":         "TRC10",
 				"JUNO":          "JUNO",
+				"CANTO":         "CANTO-EVM",
 				"ZKSYNC":        "zkSyncEra",
 				"STARKNET":      "Starknet",
 				"VIC":           "VICTION",
