@@ -1051,7 +1051,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = 'fetchPositionsSnapshot';
