@@ -1190,7 +1190,7 @@
                     }
                 }
             },
-            "ARBNOVA": {
+            "ARBITRUM_NOVA": {
                 "info": {
                     "name": "ARBNOVA",
                     "addr": "",
@@ -1199,7 +1199,7 @@
                     "deposit_disabled": false
                 },
                 "id": "ARBNOVA",
-                "network": "ARBNOVA",
+                "network": "ARBITRUM_NOVA",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,

@@ -1102,7 +1102,7 @@
                                     }
                                 }
                             },
-                            "ARBNOVA": {
+                            "ARBITRUM_NOVA": {
                                 "info": {
                                     "chainType": "Arbitrum Nova",
                                     "confirmation": "100",
@@ -1118,7 +1118,7 @@
                                     "safeConfirmNumber": "120"
                                 },
                                 "id": "ARBINOVA",
-                                "network": "ARBNOVA",
+                                "network": "ARBITRUM_NOVA",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
