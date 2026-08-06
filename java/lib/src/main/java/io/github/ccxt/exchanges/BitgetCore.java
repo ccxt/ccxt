@@ -1660,6 +1660,7 @@ public class BitgetCore extends BitgetApi
                     put( "AZERO", "AZERO" );
                     put( "TRC10", "TRC10" );
                     put( "JUNO", "JUNO" );
+                    put( "CANTO", "CANTO-EVM" );
                     put( "ZKSYNC", "zkSyncEra" );
                     put( "STARKNET", "Starknet" );
                     put( "VIC", "VICTION" );

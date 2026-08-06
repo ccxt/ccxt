@@ -1185,6 +1185,7 @@ public class BybitCore extends BybitApi
                     put( "BSC", "BEP20" );
                     put( "OP", "OP" );
                     put( "MATIC", "MATIC" );
+                    put( "SPL", "SOL" );
                 }} );
                 put( "defaultNetwork", "ERC20" );
                 put( "defaultNetworks", new java.util.HashMap<String, Object>() {{

@@ -776,7 +776,7 @@ public class GateCore extends GateApi
                     put( "MNT", "MNT" );
                     put( "CELO", "CELO" );
                     put( "HBAR", "HBAR" );
-                    put( "ZKSERA", "ZKSERA" );
+                    put( "ZKSYNC", "ZKSERA" );
                     put( "KLAY", "KLAY" );
                     put( "EOS", "EOS" );
                     put( "ACA", "ACA" );
