@@ -128,7 +128,7 @@ export default class woofipro extends woofiproRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
+    setPositionsCache(client: Client, symbols?: Strings): void;
     loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
