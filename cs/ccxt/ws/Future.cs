@@ -10,8 +10,6 @@ public partial class BaseExchange
     {
         public TaskCompletionSource<object> tcs = null;
 
-        private static readonly Object obj = new Object();
-
         public Task<object> task = null;
         public Future()
         {
@@ -19,21 +17,13 @@ public partial class BaseExchange
             this.task = this.tcs.Task;
         }
 
+        // resolve/reject are called concurrently from the receive loop, the ping loop
+        // and the error/close cleanup paths, so both must be atomic and idempotent -
+        // completing an already completed future is a no-op, never a throw, see
+        // https://github.com/ccxt/ccxt/issues/29412
         public void resolve(object data = null)
         {
-            lock (obj)
-            {
-                if (!this.tcs.Task.IsCompleted)
-                {
-                    if (this.tcs.Task.Status == TaskStatus.RanToCompletion)
-                    {
-                        return;
-                    }
-                    this.tcs.SetResult(data);
-                }
-                // this.tcs = new TaskCompletionSource<object>(); // reset
-                // this.task = this.tcs.Task;
-            }
+            this.tcs.TrySetResult(data);
         }
 
         public void reject(object data)
@@ -56,7 +46,7 @@ public partial class BaseExchange
             {
                 exception = new Exception($"Future rejected: {data?.ToString() ?? "null"} (Type: {data?.GetType().Name ?? "null"})\n");
             }
-            this.tcs.SetException(exception);
+            this.tcs.TrySetException(exception);
             // this.tcs = new TaskCompletionSource<object>(); // reset
             // this.task = this.tcs.Task;
         }

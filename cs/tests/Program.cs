@@ -142,6 +142,7 @@ public class Tests
             {
                 WsCacheTests();
                 WsOrderBookTests();
+                await WsFutureTests();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -181,6 +182,12 @@ public class Tests
     {
         baseTestInstance.testWsOrderBook();
         Helper.Green(" [C#] OrderBook tests passed");
+    }
+
+    static async Task WsFutureTests()
+    {
+        await baseTestInstance.testWsFuture();
+        Helper.Green(" [C#] Future tests passed");
     }
 
     static void RaceConditionTests()
