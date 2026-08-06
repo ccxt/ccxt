@@ -61,7 +61,7 @@ class whitebit extends Exchange {
                 'fetchConvertQuote' => true,
                 'fetchConvertTrade' => false,
                 'fetchConvertTradeHistory' => true,
-                'fetchCrossBorrowRate' => true,
+                'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
@@ -4227,47 +4227,6 @@ class whitebit extends Exchange {
             'stopLossPrice' => $this->safe_number($tpsl, 'stopLoss'),
             'takeProfitPrice' => $this->safe_number($tpsl, 'takeProfit'),
         ));
-    }
-
-    public function fetch_cross_borrow_rate(string $code, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * fetch the rate of interest to borrow a $currency for margin trading
-             *
-             * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-             *
-             * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $request = array(
-                'ticker' => $currency['id'],
-            );
-            $response = Async\await($this->v4PrivatePostMainAccountSmartPlans($this->extend($request, $params)));
-            //
-            //
-            $data = $this->safe_list($response, 0, array());
-            return $this->parse_borrow_rate($data, $currency);
-        })();
-    }
-
-    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
-        //
-        //
-        $currencyId = $this->safe_string($info, 'ticker');
-        $percent = $this->safe_string($info, 'percent');
-        return array(
-            'currency' => $this->safe_currency_code($currencyId, $currency),
-            'rate' => $this->parse_number(Precise::string_div($percent, '100')),
-            'period' => $this->safe_integer($info, 'duration'),
-            'timestamp' => null,
-            'datetime' => null,
-            'info' => $info,
-        );
     }
 
     public function is_fiat(string $currency): bool {
