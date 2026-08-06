@@ -331,7 +331,7 @@ export default class binance extends binanceRest {
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if ((now - lastAuthenticatedTime) > delay) {
             const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
-            const response = await this['sapiPostEquityListenKey'] (requestParams);
+            const response = await this.sapiPostEquityListenKey (requestParams);
             const listenKey = this.safeString (response, 'listenKey');
             this.options['stock'] = this.extend (options, {
                 'listenKey': listenKey,
@@ -345,7 +345,7 @@ export default class binance extends binanceRest {
         try {
             const options = this.safeDict (this.options, 'stock', {});
             const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
-            const response = await this['sapiPostEquityListenKey'] (requestParams);
+            const response = await this.sapiPostEquityListenKey (requestParams);
             const listenKey = this.safeString (response, 'listenKey');
             const now = this.milliseconds ();
             this.options['stock'] = this.extend (options, {
@@ -364,7 +364,8 @@ export default class binance extends binanceRest {
         const listenKeyRefreshRate = this.safeInteger (this.options, 'stockListenKeyRefreshRate', 1200000);
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            const subscriptionKeys = Object.keys ((client as any).subscriptions);
+            const clientSubscriptions = this.safeDict (client, 'subscriptions', {});
+            const subscriptionKeys = Object.keys (clientSubscriptions);
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === 'stock') {
