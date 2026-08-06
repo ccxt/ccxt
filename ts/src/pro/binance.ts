@@ -234,8 +234,43 @@ export default class binance extends binanceRest {
                 throw new BadRequest (this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
             this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
+            // record this hash's contribution so an unsubscription can refund exactly what was
+            // added and a later resubscription re-increments consistently,
+            // see https://github.com/ccxt/ccxt/pull/24025 and the discussion therein
+            if (subscriptionHash !== undefined) {
+                if (this.safeValue (this.options, 'numSubscriptionsByHash') === undefined) {
+                    this.options['numSubscriptionsByHash'] = this.createSafeDictionary ();
+                }
+                this.options['numSubscriptionsByHash'][subscriptionHash] = numSubscriptions;
+            }
         }
         return stream;
+    }
+
+    cleanStreamAccounting (subscription: Dict) {
+        // refund the stream-subscription slots consumed by the original subscribe and retire
+        // the hash->stream mapping, so long-running sub/unsub cycles neither exhaust the
+        // per-stream limit (leak) nor drift the counter negative (double-refund / re-sub drift),
+        // see https://github.com/ccxt/ccxt/pull/24025
+        const streamHash = this.safeString (subscription, 'streamHash');
+        if (streamHash === undefined) {
+            return;
+        }
+        const streamBySubscriptionsHash = this.safeDict (this.options, 'streamBySubscriptionsHash');
+        const stream = this.safeString (streamBySubscriptionsHash, streamHash);
+        if (stream === undefined) {
+            return;
+        }
+        const contributions = this.safeDict (this.options, 'numSubscriptionsByHash');
+        const contribution = this.safeInteger (contributions, streamHash, 0);
+        const currentCount = this.safeInteger (this.options['numSubscriptionsByStream'], stream, 0);
+        let refunded = currentCount - contribution;
+        if (refunded < 0) {
+            refunded = 0;
+        }
+        this.options['numSubscriptionsByStream'][stream] = refunded;
+        this.options['streamBySubscriptionsHash'] = this.omit (streamBySubscriptionsHash, streamHash);
+        this.options['numSubscriptionsByHash'] = this.omit (contributions, streamHash);
     }
 
     getWsUrl (type: any, category: any) {
@@ -806,8 +841,7 @@ export default class binance extends binanceRest {
             const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
         }
-        const messageHashesLength = subMessageHashes.length;
-        const url = this.getWsUrl (type, this.getFutureWsCategory ('depth')) + '/' + this.stream (type, streamHash, messageHashesLength);
+        const url = this.getWsUrl (type, this.getFutureWsCategory ('depth')) + '/' + this.stream (type, streamHash, 0);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
@@ -820,6 +854,7 @@ export default class binance extends binanceRest {
             'symbols': symbols,
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
+            'streamHash': streamHash,
             'topic': 'orderbook',
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
@@ -1158,6 +1193,7 @@ export default class binance extends binanceRest {
             this.cleanUnsubscription (client, subHash, unsubHash);
         }
         this.cleanCache (subscription);
+        this.cleanStreamAccounting (subscription);
     }
 
     /**
@@ -1272,8 +1308,7 @@ export default class binance extends binanceRest {
             subParams.push (rawHash);
         }
         const query = this.omit (params, 'type');
-        const subParamsLength = subParams.length;
-        const url = this.getWsUrl (type, this.getFutureWsCategory (name)) + '/' + this.stream (type, streamHash, subParamsLength);
+        const url = this.getWsUrl (type, this.getFutureWsCategory (name)) + '/' + this.stream (type, streamHash, 0);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
@@ -1286,6 +1321,7 @@ export default class binance extends binanceRest {
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
             'symbols': symbols,
+            'streamHash': streamHash,
             'topic': 'trades',
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscription);
@@ -1663,7 +1699,7 @@ export default class binance extends binanceRest {
             subMessageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
             messageHashes.push ('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
-        const url = this.getWsUrl (type, this.getFutureWsCategory (klineType)) + '/' + this.stream (type, 'multipleOHLCV');
+        const url = this.getWsUrl (type, this.getFutureWsCategory (klineType)) + '/' + this.stream (type, 'multipleOHLCV', 0);
         const requestId = this.requestId (url);
         const request = {
             'method': 'UNSUBSCRIBE',
@@ -1677,6 +1713,10 @@ export default class binance extends binanceRest {
             'symbolsAndTimeframes': symbolsAndTimeframes,
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
+            // intentionally no 'streamHash' here: ohlcv shares the single 'multipleOHLCV' bucket
+            // charged one slot in total, and refunding it on a partial unsubscription would tear
+            // down the accounting for ohlcv subscriptions still live on the wire - the one slot
+            // is bounded and left in place, see https://github.com/ccxt/ccxt/pull/29563
             'topic': 'ohlcv',
         };
         params = this.omit (params, 'callerMethodName');
@@ -2175,7 +2215,8 @@ export default class binance extends binanceRest {
         if (symbols !== undefined) {
             streamHash = channelName + '::' + symbols.join (',');
         }
-        const url = this.getWsUrl (rawMarketType, this.getFutureWsCategory (channelName)) + '/' + this.stream (rawMarketType, streamHash);
+        const tickerNumSubscriptions = isUnsubscribe ? 0 : 1;
+        const url = this.getWsUrl (rawMarketType, this.getFutureWsCategory (channelName)) + '/' + this.stream (rawMarketType, streamHash, tickerNumSubscriptions);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE',
@@ -2193,6 +2234,7 @@ export default class binance extends binanceRest {
                 'subMessageHashes': messageHashes,
                 'messageHashes': unsubscribeMessageHashes,
                 'symbols': symbols,
+                'streamHash': streamHash,
                 'topic': 'ticker',
             };
             hashes = unsubscribeMessageHashes;
