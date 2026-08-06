@@ -1562,8 +1562,8 @@ export default class gate extends gateRest {
             'swap': 'futures',
             'option': 'options',
         });
-        const isTrigger = this.safeBool2 (query, 'trigger', 'stop', false);
-        query = this.omit (query, [ 'trigger', 'stop' ]);
+        let isTrigger: Bool = false;
+        [ isTrigger, query ] = this.handleParamBool2 (query, 'trigger', 'stop', false);
         if (isTrigger && (typeId === 'options')) {
             throw new NotSupported (this.id + ' watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202');
         }
