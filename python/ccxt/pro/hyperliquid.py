@@ -9,6 +9,7 @@ from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderB
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
 
@@ -470,7 +471,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             },
         }
         message = self.extend(request, params)
-        trades = await self.watch(url, messageHash, message, messageHash)
+        if userAddress is None:
+            raise ArgumentsRequired(self.id + ' watchMyTrades() requires a user address')
+        subscribeHash = 'subscribe:userFills::' + userAddress.lower()
+        trades = await self.watch(url, messageHash, message, subscribeHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
@@ -1261,7 +1265,16 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             },
         }
         message = self.extend(request, params)
-        orders = await self.watch(url, messageHash, message, messageHash)
+        # dedup by(channel, user), not by messageHash: the server subscription is per-user,
+        # so a second user must send its own subscribe(https://github.com/ccxt/ccxt/issues/28369),
+        # and a second symbol-scoped call for the same user must NOT resend - hyperliquid answers
+        # duplicates on the error channel("Already subscribed"), which rejects every pending
+        # future on the connection. address lowercased because the server is case-insensitive.
+        # note: orderUpdates payloads carry no user, so resolution/data stays shared across users
+        if userAddress is None:
+            raise ArgumentsRequired(self.id + ' watchOrders() requires a user address')
+        subscribeHash = 'subscribe:orderUpdates::' + userAddress.lower()
+        orders = await self.watch(url, messageHash, message, subscribeHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -1374,6 +1387,11 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         channel = self.safe_string(message, 'channel', '')
         if channel == 'error':
             ret_msg = self.safe_string(message, 'data', '')
+            if ret_msg.find('Already subscribed') >= 0:
+                # a duplicate subscribe is harmless - the server-side subscription is intact
+                # and data keeps flowing; rejecting all pending futures here would poison the
+                # whole connection, see https://github.com/ccxt/ccxt/issues/28369
+                return True
             error = ExchangeError(self.id + ' ' + ret_msg)
             client.reject(error)
             return True
@@ -1466,6 +1484,13 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         subHash = 'order'
         unSubHash = 'unsubscribe:' + subHash
         self.clean_unsubscription(client, subHash, unSubHash, True)
+        # the prefix sweep above can't see the per-user dedup key(prefix-disjoint by design)
+        # clear it for the user echoed in the ack so a later watch re-subscribes
+        user = self.safe_string_lower(subscription, 'user')
+        if user is not None:
+            subscribeHash = 'subscribe:orderUpdates::' + user
+            if subscribeHash in client.subscriptions:
+                del client.subscriptions[subscribeHash]
         topicStructure = {
             'topic': 'orders',
         }
@@ -1475,6 +1500,13 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         subHash = 'myTrades'
         unSubHash = 'unsubscribe:' + subHash
         self.clean_unsubscription(client, subHash, unSubHash, True)
+        # the prefix sweep above can't see the per-user dedup key(prefix-disjoint by design)
+        # clear it for the user echoed in the ack so a later watch re-subscribes
+        user = self.safe_string_lower(subscription, 'user')
+        if user is not None:
+            subscribeHash = 'subscribe:userFills::' + user
+            if subscribeHash in client.subscriptions:
+                del client.subscriptions[subscribeHash]
         topicStructure = {
             'topic': 'myTrades',
         }
