@@ -305,6 +305,20 @@
                 ]
             }
         ],
+        "fetchPositionsHistory": [
+            {
+                "description": "linear swap positions history with symbol, since and limit",
+                "method": "fetchPositionsHistory",
+                "url": "https://fapi.xt.com/future/trade/v1/position/list-history?limit=5&startTime=1785700000000&symbol=xrp_usdt",
+                "input": [
+                    [
+                        "XRP/USDT:USDT"
+                    ],
+                    1785700000000,
+                    5
+                ]
+            }
+        ],
         "fetchOpenInterest": [
             {
                 "description": "linear swap open interest",
