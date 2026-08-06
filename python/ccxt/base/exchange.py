@@ -1780,6 +1780,10 @@ class Exchange(object):
                 return error
         return result
 
+    def get_ccxt_version(self):
+        """returns the version of the ccxt library, e.g. "4.5.54" """
+        return __version__
+
     def precision_from_string(self, str):
         # support string formats like '1e-4'
         if 'e' in str or 'E' in str:

@@ -674,6 +674,17 @@ export default class Exchange {
         return encodeURIComponent (...args);
     }
 
+    /**
+     * @method
+     * @name Exchange#getCcxtVersion
+     * @description returns the version of the ccxt library, e.g. "4.5.54"
+     * @returns {string} the semver version of the ccxt library
+     */
+    getCcxtVersion (): string {
+        const staticVersion = (Exchange as any).ccxtVersion;
+        return (staticVersion === undefined) ? 'unknown' : staticVersion;
+    }
+
     checkRequiredVersion (requiredVersion, error = true) {
         let result = true;
         const [ major1, minor1, patch1 ] = requiredVersion.split ('.');

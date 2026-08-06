@@ -2014,6 +2014,8 @@ export default class foxbit extends Exchange {
         }
         headers = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': this.getCcxtVersion (),
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials ();

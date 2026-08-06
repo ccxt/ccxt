@@ -1681,7 +1681,8 @@ class testMainClass {
             this.testModeTrade (),
             this.testBackpack (),
             this.testToobit (),
-            this.testWeex ()
+            this.testWeex (),
+            this.testFoxbit ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2369,6 +2370,25 @@ class testMainClass {
         }
         clientOrderId = request['newClientOrderId'];
         assert (clientOrderId.startsWith (id), 'weex - newClientOrderId: ' + clientOrderId + ' for swap order does not start with id: ' + id);
+    }
+
+    async testFoxbit () {
+        const exchange = this.initOfflineExchange ('foxbit');
+        let reqHeaders = undefined;
+        const id = 'ccxt';
+        try {
+            await exchange.createOrder ('BTC/BRL', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['X-FB-CLIENT'] === id, 'foxbit - id: ' + id + ' not in headers.');
+        const version = exchange.getCcxtVersion ();
+        assert (reqHeaders['X-FB-CLIENT-VERSION'] === version, 'foxbit - version: ' + version + ' not in headers.');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
     }
 }
 

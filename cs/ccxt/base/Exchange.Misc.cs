@@ -49,4 +49,10 @@ public partial class Exchange
     //     return null; // stub to implement
     // }
 
+    // returns the version of the ccxt library, e.g. "4.5.54"
+    public virtual object getCcxtVersion()
+    {
+        return ccxtVersion;
+    }
+
 }
