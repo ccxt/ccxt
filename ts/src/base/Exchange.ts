@@ -1707,6 +1707,44 @@ export class BaseExchange {
         return this.clients[url];
     }
 
+    calculateWsBackoffDelay (url: string): Int {
+        // exponential reconnect backoff with rng-free jitter, verified behaviorally,
+        // replaces the long-standing hardcoded 0, see https://github.com/ccxt/ccxt/issues/23525
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const backoff = this.safeDict (wsOptions, 'backoff', {});
+        const base = this.safeInteger (backoff, 'base', 1000);
+        const factor = this.safeInteger (backoff, 'factor', 2);
+        const maxDelay = this.safeInteger (backoff, 'max', 60000);
+        const stableAfter = this.safeInteger (backoff, 'stableAfter', 30000);
+        let state = this.safeDict (wsOptions, 'backoffState');
+        if (state === undefined) {
+            state = {};
+            wsOptions['backoffState'] = state;
+            this.options['ws'] = wsOptions;
+        }
+        const now = this.milliseconds ();
+        const urlState = this.safeDict (state, url, {});
+        const lastAttempt = this.safeInteger (urlState, 'lastAttempt', 0);
+        let attempts = this.safeInteger (urlState, 'attempts', 0);
+        if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter)) {
+            attempts = 0; // the previous connection was healthy long enough, start fresh
+        }
+        urlState['attempts'] = attempts + 1;
+        urlState['lastAttempt'] = now;
+        state[url] = urlState;
+        if (attempts === 0) {
+            return 0; // first dial or recovered, connect immediately
+        }
+        let delay = base;
+        const capped = Math.min (attempts, 20); // overflow guard
+        for (let i = 1; i < capped; i++) {
+            delay = delay * factor;
+        }
+        const jitterMillis = now % 1000; // rng-free jitter, transpile-safe
+        const jittered = this.parseToInt (delay * (0.8 + (jitterMillis / 2500))); // 0.8x .. 1.2x
+        return Math.min (jittered, maxDelay); // the ceiling holds regardless of jitter
+    }
+
     watchMultiple (url: Str, messageHashes: string[], message: any = undefined, subscribeHashes: Strings = undefined, subscription: any = undefined) {
         //
         // Without comments the code of this method is short and easy:
@@ -1729,8 +1767,7 @@ export class BaseExchange {
             throw new ArgumentsRequired (this.id + ' watchMultiple() requires a url argument');
         }
         const client = this.client (url) as WsClient;
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0;
+        const backoffDelay = this.calculateWsBackoffDelay (url);
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1828,8 +1865,7 @@ export class BaseExchange {
             throw new ArgumentsRequired (this.id + ' watch() requires a messageHash argument');
         }
         const client = this.client (url) as WsClient;
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0;
+        const backoffDelay = this.calculateWsBackoffDelay (url);
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
