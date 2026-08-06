@@ -48,6 +48,7 @@ export default class sxbet extends Exchange {
                 'fetchSettlements': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
                 'prediction': true,
             },
             'urls': {
@@ -366,8 +367,10 @@ export default class sxbet extends Exchange {
             'tierBased': false,
             'feeSide': 'get',
             'precision': {
-                'amount': undefined,
-                'price': undefined,
+                // USDC stakes have 6 decimals; prices sit on the odds ladder (oddsLadderStepSize
+                // 125 in 1e-5 units on both networks — see /metadata), i.e. a 0.00125 step
+                'amount': 0.000001,
+                'price': 0.00125,
             },
             'limits': {
                 'leverage': { 'min': 1, 'max': 1 },
@@ -457,7 +460,7 @@ export default class sxbet extends Exchange {
         const orderLength = order.length;
         for (let i = 0; i < orderLength; i++) {
             const fixtureId = order[i];
-            const event = this.parseSxbetEvent (fixtureId, grouped[fixtureId]);
+            const event = this.parseEvent (fixtureId, grouped[fixtureId]);
             const evMarkets = this.safeList (event, 'markets', []);
             const evMarketsLength = evMarkets.length;
             for (let j = 0; j < evMarketsLength; j++) {
@@ -488,7 +491,7 @@ export default class sxbet extends Exchange {
         if (rawMarketsLength === 0) {
             throw new BadSymbol (this.id + ' fetchEvent() could not find an active fixture ' + id);
         }
-        const event: any = this.parseSxbetEvent (id, rawMarkets);
+        const event: any = this.parseEvent (id, rawMarkets);
         this.indexEventOutcomes (event);
         return event;
     }
@@ -534,13 +537,13 @@ export default class sxbet extends Exchange {
     /**
      * @ignore
      * @method
-     * @name sxbet#parseSxbetEvent
+     * @name sxbet#parseEvent
      * @description groups a fixture's raw markets (all sharing one sportXeventId) into one unified event structure
      * @param {string} fixtureId the sx.bet sportXeventId
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    parseSxbetEvent (fixtureId: string, rawMarkets: any[]): any {
+    parseEvent (fixtureId: string, rawMarkets: any[]): any {
         const marketsList: Market[] = [];
         let anyActive = false;
         let earliestGameTime: Str = undefined;
@@ -552,7 +555,7 @@ export default class sxbet extends Exchange {
             const raw = rawMarkets[i];
             const parsed = this.parseSxbetMarket (raw);
             if (parsed === undefined) {
-                throw new ExchangeError (this.id + ' parseSxbetEvent() could not resolve parsed market');
+                throw new ExchangeError (this.id + ' parseEvent() could not resolve parsed market');
             }
             marketsList.push (parsed);
             if (parsed['active']) {
@@ -832,7 +835,7 @@ export default class sxbet extends Exchange {
      * @param {float} [price] implied probability (0-1) of the requested outcome; required for 'limit', optional for 'market' (defaults to the current best fillable price)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.apiExpiry] unix seconds the maker order expires at (limit only), defaults to options.defaultOrderExpirySeconds from now
-     * @param {int} [params.oddsSlippage] percent tolerance (0-100) on the fill price (market only), defaults to options.defaultOddsSlippage
+     * @param {int} [params.oddsSlippage] percent tolerance (0-100) on the fill price (market only), defaults to 5
      * @param {string} [params.salt] overrides the random salt/fillSalt differentiating this order
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
@@ -993,8 +996,8 @@ export default class sxbet extends Exchange {
         const requestedProbabilityStr = this.numberToString (requestedProbability);
         const takerProbability = (isBuy) ? requestedProbabilityStr : Precise.stringSub ('1', requestedProbabilityStr);
         const desiredOdds = this.decimalToPrecision (Precise.stringMul (takerProbability, '100000000000000000000'), ROUND, 0, DECIMAL_PLACES);
-        const defaultSlippage = this.safeInteger (this.options, 'defaultOddsSlippage', 5);
-        const oddsSlippage = this.safeInteger (params, 'oddsSlippage', defaultSlippage);
+        let oddsSlippage = undefined;
+        [ oddsSlippage, params ] = this.handleOptionAndParams (params, 'createOrder', 'oddsSlippage', 5);
         const sxMetadata = await this.loadSxMetadata ();
         const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
         const chainId = this.safeInteger (sxMetadata, 'chainId');
@@ -1069,7 +1072,7 @@ export default class sxbet extends Exchange {
             'taker': taker,
             'takerSig': takerSig,
         };
-        const rest = this.omit (params, [ 'oddsSlippage', 'salt' ]);
+        const rest = this.omit (params, [ 'salt' ]);
         const response = await this.sxbetPrivatePostOrdersFillV2 (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
         const fillHash = this.safeString (data, 'fillHash');
@@ -1580,6 +1583,41 @@ export default class sxbet extends Exchange {
 
     /**
      * @method
+     * @name sxbet#fetchTrades
+     * @description fetches the public trade tape of one outcome's market — every bettor's matched fills, successful ones only by default (pass params.tradeStatus to change). the venue requires the trades listing to be scoped, so the outcome argument is mandatory
+     * @see https://docs.sx.bet/api-reference/get-trades
+     * @param {string} outcome unified outcome or outcomeId
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch (server-side startDate)
+     * @param {int} [limit] the maximum number of trades to return (server-side pageSize)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. settled, tradeStatus, paginationKey)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    override async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        if (outcome === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires an outcome argument - the venue requires the trades listing to be scoped');
+        }
+        // warm the metadata cache so tokenAmountDivider can tell USDC from WSX amounts
+        await this.loadSxMetadata ();
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const request: Dict = {
+            'marketHashes': this.safeString (outcomeObj['info'], 'marketHash'),
+            'tradeStatus': 'SUCCESS',
+        };
+        if (since !== undefined) {
+            request['startDate'] = this.parseToInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.sxbetPublicGetTrades (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const rawTrades = this.safeList (data, 'trades', []);
+        return this.parsePredictionTrades (rawTrades, outcomeObj, since, limit);
+    }
+
+    /**
+     * @method
      * @name sxbet#fetchMyTrades
      * @description fetches the wallet's trades (matched fills, both taker and maker legs) via GET /trades scoped by bettor — needs only walletAddress (the endpoint is public). settled trades embed the resolution (settled/settleValue/outcome) in the raw info
      * @see https://docs.sx.bet/api-reference/get-trades
@@ -1939,7 +1977,7 @@ export default class sxbet extends Exchange {
         const result = this.safeDict (response, 'data', {});
         const bestOddsList = this.safeList (result, 'bestOdds', []);
         const raw = this.safeDict (bestOddsList, 0, {});
-        return this.parseSxbetTicker (raw, outcomeObj as any);
+        return this.parsePredictionTicker (raw, outcomeObj as any);
     }
 
     /**
@@ -2003,7 +2041,7 @@ export default class sxbet extends Exchange {
                 const grouped = outcomesByMarketHash[marketHash] as any[];
                 const groupedLength = grouped.length;
                 for (let j = 0; j < groupedLength; j++) {
-                    const ticker = this.parseSxbetTicker (raw, grouped[j]);
+                    const ticker = this.parsePredictionTicker (raw, grouped[j]);
                     const symbolKey = this.safeString (ticker, 'outcome');
                     if (symbolKey !== undefined) {
                         result[symbolKey] = ticker;
@@ -2018,13 +2056,13 @@ export default class sxbet extends Exchange {
     /**
      * @ignore
      * @method
-     * @name sxbet#parseSxbetTicker
+     * @name sxbet#parsePredictionTicker
      * @description parses one /orders/odds/best entry into a unified ticker for one side of the market
      * @param {object} raw one bestOdds entry ({ marketHash, baseToken, outcomeOne: { percentageOdds, updatedAt }, outcomeTwo: {...} })
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    parseSxbetTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+    override parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
         //
         //     {
         //         "marketHash": "0x48ce0ef287c59fb3bb3ca6deb80de0d5791eb761ea8e16d6f03c8e93ef28d1de",
