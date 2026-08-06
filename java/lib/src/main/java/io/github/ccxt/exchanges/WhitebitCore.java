@@ -57,7 +57,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "fetchConvertQuote", true );
                 put( "fetchConvertTrade", false );
                 put( "fetchConvertTradeHistory", true );
-                put( "fetchCrossBorrowRate", true );
+                put( "fetchCrossBorrowRate", false );
                 put( "fetchCrossBorrowRates", false );
                 put( "fetchCurrencies", true );
                 put( "fetchDeposit", true );
@@ -4732,55 +4732,6 @@ public class WhitebitCore extends WhitebitApi
             put( "stopLossPrice", WhitebitCore.this.safeNumber(tpsl, "stopLoss") );
             put( "takeProfitPrice", WhitebitCore.this.safeNumber(tpsl, "takeProfit") );
         }});
-    }
-
-    /**
-     * @method
-     * @name whitebit#fetchCrossBorrowRate
-     * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
-     */
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(Object code, Object... optionalArgs)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
-            {
-                (this.loadMarkets()).join();
-            }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "ticker", Helpers.GetValue(currency, "id") );
-            }};
-            Object response = (this.v4PrivatePostMainAccountSmartPlans(this.extend(request, parameters))).join();
-            //
-            //
-            Object data = this.safeList(response, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseBorrowRate(data, currency);
-        });
-
-    }
-
-    public Object parseBorrowRate(Object info, Object... optionalArgs)
-    {
-        //
-        //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(info, "ticker");
-        Object percent = this.safeString(info, "percent");
-        return new java.util.HashMap<String, Object>() {{
-            put( "currency", WhitebitCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "rate", WhitebitCore.this.parseNumber(Precise.stringDiv(percent, "100")) );
-            put( "period", WhitebitCore.this.safeInteger(info, "duration") );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "info", info );
-        }};
     }
 
     public Object isFiat(Object currency)
