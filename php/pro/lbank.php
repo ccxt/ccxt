@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -69,6 +70,14 @@ class lbank extends \ccxt\async\lbank {
         return $newValue;
     }
 
+    public function check_contract_market(array $market, string $methodName) {
+        // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        // see https://github.com/ccxt/ccxt/issues/26864
+        if (($market !== null) && $market['contract']) {
+            throw new NotSupported($this->id . ' ' . $methodName . '() does not support ' . $market['type'] . ' markets yet');
+        }
+    }
+
     public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
@@ -87,6 +96,7 @@ class lbank extends \ccxt\async\lbank {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            $this->check_contract_market($market, 'fetchOHLCVWs');
             $url = $this->urls['api']['ws'];
             $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
             $timeframes = $this->safe_value($watchOHLCVOptions, 'timeframes', array());
@@ -128,6 +138,7 @@ class lbank extends \ccxt\async\lbank {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            $this->check_contract_market($market, 'watchOHLCV');
             $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
             $timeframes = $this->safe_value($watchOHLCVOptions, 'timeframes', array());
             $timeframeId = $this->safe_string($timeframes, $timeframe, $timeframe);
@@ -268,6 +279,7 @@ class lbank extends \ccxt\async\lbank {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            $this->check_contract_market($market, 'fetchTickerWs');
             $url = $this->urls['api']['ws'];
             $messageHash = 'fetchTicker:' . $market['symbol'];
             $message = array(
@@ -296,6 +308,7 @@ class lbank extends \ccxt\async\lbank {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            $this->check_contract_market($market, 'watchTicker');
             $url = $this->urls['api']['ws'];
             $messageHash = 'ticker:' . $market['symbol'];
             $message = array(
@@ -408,6 +421,7 @@ class lbank extends \ccxt\async\lbank {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            $this->check_contract_market($market, 'fetchTradesWs');
             $url = $this->urls['api']['ws'];
             $messageHash = 'fetchTrades:' . $market['symbol'];
             if ($limit === null) {
@@ -442,6 +456,7 @@ class lbank extends \ccxt\async\lbank {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            $this->check_contract_market($market, 'watchTrades');
             $url = $this->urls['api']['ws'];
             $messageHash = 'trades:' . $market['symbol'];
             $message = array(
@@ -799,6 +814,7 @@ class lbank extends \ccxt\async\lbank {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            $this->check_contract_market($market, 'fetchOrderBookWs');
             $url = $this->urls['api']['ws'];
             $messageHash = 'fetchOrderbook:' . $market['symbol'];
             if ($limit === null) {
@@ -832,6 +848,7 @@ class lbank extends \ccxt\async\lbank {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            $this->check_contract_market($market, 'watchOrderBook');
             $url = $this->urls['api']['ws'];
             $messageHash = 'orderbook:' . $market['symbol'];
             $params = $this->omit($params, 'aggregation');
