@@ -1230,6 +1230,34 @@ func (this *Xt) FetchFundingRate(symbol string, options ...FetchFundingRateOptio
 
 /**
  * @method
+ * @name xt#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Xt) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+	opts := FetchOpenInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterest(symbol, params)
+	if IsError(res) {
+		return OpenInterest{}, CreateReturnError(res)
+	}
+	return NewOpenInterest(res), nil
+}
+
+/**
+ * @method
  * @name xt#fetchFundingHistory
  * @description fetch the funding history
  * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
@@ -1657,9 +1685,6 @@ func (this *Xt) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, err
 }
 func (this *Xt) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Xt) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
 }
 func (this *Xt) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
