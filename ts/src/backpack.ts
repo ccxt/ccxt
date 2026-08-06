@@ -406,7 +406,7 @@ export default class backpack extends Exchange {
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'APT': 'Aptos',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVAX': 'Avalanche',
                     'BASE': 'Base',
                     'BERA': 'Berachain',
@@ -431,7 +431,7 @@ export default class backpack extends Exchange {
                 },
                 'networksById': {
                     'aptos': 'APT',
-                    'arbitrum': 'ARB',
+                    'arbitrum': 'ARBITRUM',
                     'avalanche': 'AVAX',
                     'base': 'BASE',
                     'berachain': 'BERA',
