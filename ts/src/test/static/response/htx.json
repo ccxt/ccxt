@@ -829,7 +829,7 @@
                                 "fee": 0,
                                 "precision": 0.000001
                             },
-                            "ARBITRUM": {
+                            "ARB": {
                                 "info": {
                                     "chain": "arc20usdt",
                                     "displayName": "ARBITRUM",
@@ -858,7 +858,7 @@
                                     "addrDepositTag": false
                                 },
                                 "id": "arc20usdt",
-                                "network": "ARBITRUM",
+                                "network": "ARB",
                                 "limits": {
                                     "deposit": {
                                         "min": 1,
