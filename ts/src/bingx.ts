@@ -3142,7 +3142,7 @@ export default class bingx extends Exchange {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
             if (triggerPrice !== undefined) {
-                if (isMarketOrder && this.safeString (request, 'quoteOrderQty') === undefined) {
+                if (isMarketOrder && (side === 'buy') && this.safeString (request, 'quoteOrderQty') === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders');
                 }
                 request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
