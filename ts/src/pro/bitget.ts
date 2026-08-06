@@ -2473,6 +2473,9 @@ export default class bitget extends bitgetRest {
                 }
             }
         }
+        // REST parseBalance sets info, keep the ws structure at parity,
+        // see https://github.com/ccxt/ccxt/issues/21973
+        this.balance['info'] = message;
         this.balance = this.safeBalance (this.balance);
         const messageHash = 'balance:' + instType;
         client.resolve (this.balance, messageHash);
