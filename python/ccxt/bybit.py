@@ -3844,23 +3844,27 @@ class bybit(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'createdTime', 'createdAt')
-        marketUnit = self.safe_string(order, 'marketUnit', 'baseCoin')
+        marketUnit = self.safe_string(order, 'marketUnit')  # '' is filtered by safeString, do not force a default:
+        # bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
+        # see https://github.com/ccxt/ccxt/issues/27725
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'orderType')
         price = self.safe_string(order, 'price')
+        side = self.safe_string_lower(order, 'side')
         amount = None
         cost = None
-        if marketUnit == 'baseCoin':
-            amount = self.safe_string(order, 'qty')
+        qtyIsQuote = market['spot'] and (type == 'market') and ((marketUnit == 'quoteCoin') or ((marketUnit is None) and (side == 'buy')))
+        if qtyIsQuote:
+            # qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = self.safe_string(order, 'cumExecValue')
         else:
+            amount = self.safe_string(order, 'qty')
             cost = self.safe_string(order, 'cumExecValue')
         filled = self.safe_string(order, 'cumExecQty')
         remaining = self.safe_string(order, 'leavesQty')
         lastTradeTimestamp = self.safe_integer_2(order, 'updatedTime', 'updatedAt')
         rawStatus = self.safe_string(order, 'orderStatus')
         status = self.parse_order_status(rawStatus)
-        side = self.safe_string_lower(order, 'side')
         fee = None
         cumFeeDetail = self.safe_dict(order, 'cumFeeDetail', {})
         feeCoins = list(cumFeeDetail.keys())
@@ -5032,7 +5036,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         result = self.safe_dict(response, 'result', {})
         innerList = self.safe_list(result, 'list', [])
-        if len(innerList) == 0:
+        # the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
+        # see https://github.com/ccxt/ccxt/pull/29602
+        innerListLength = len(innerList)
+        if innerListLength == 0:
             extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         order = self.safe_dict(innerList, 0, {})
