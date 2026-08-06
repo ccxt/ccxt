@@ -1095,7 +1095,7 @@ func (this *OkxCore) Describe() any {
 				"APT":          "Aptos",
 				"SONIC":        "Sonic",
 				"SCROLL":       "Scroll",
-				"ARBONE":       "Arbitrum One",
+				"ARBITRUM":     "Arbitrum One",
 				"AVAXC":        "Avalanche C-Chain",
 				"AVAXX":        "Avalanche X-Chain",
 				"BASE":         "Base",

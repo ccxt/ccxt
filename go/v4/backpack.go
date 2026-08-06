@@ -403,7 +403,7 @@ func (this *BackpackCore) Describe() any {
 			"adjustForTimeDifference":       false,
 			"networks": map[string]any{
 				"APT":         "Aptos",
-				"ARB":         "Arbitrum",
+				"ARBITRUM":    "Arbitrum",
 				"AVAX":        "Avalanche",
 				"BASE":        "Base",
 				"BERA":        "Berachain",
@@ -428,7 +428,7 @@ func (this *BackpackCore) Describe() any {
 			},
 			"networksById": map[string]any{
 				"aptos":       "APT",
-				"arbitrum":    "ARB",
+				"arbitrum":    "ARBITRUM",
 				"avalanche":   "AVAX",
 				"base":        "BASE",
 				"berachain":   "BERA",
