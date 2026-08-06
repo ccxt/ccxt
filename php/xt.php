@@ -79,7 +79,7 @@ class xt extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
-                'fetchOpenInterest' => false,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
@@ -4628,6 +4628,71 @@ class xt extends Exchange {
             'previousFundingDatetime' => null,
             'interval' => $interval,
         );
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array()): array {
+        /**
+         * retrieves the open interest of a contract trading pair
+         *
+         * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new NotSupported($this->id . ' fetchOpenInterest() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenInterest', $market, $params);
+        $response = null;
+        if ($subType === 'inverse') {
+            $response = $this->publicInverseGetFutureMarketV1PublicContractOpenInterest($this->extend($request, $params));
+        } else {
+            $response = $this->publicLinearGetFutureMarketV1PublicContractOpenInterest($this->extend($request, $params));
+        }
+        //
+        //     {
+        //         "returnCode" => 0,
+        //         "msgInfo" => "success",
+        //         "error" => null,
+        //         "result" => {
+        //             "symbol" => "btc_usdt",
+        //             "openInterest" => "21005.8646",
+        //             "openInterestUsd" => "1120726916.46709",
+        //             "time" => 1785925443734
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_open_interest($result, $market);
+    }
+
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "btc_usdt",
+        //         "openInterest" => "21005.8646",
+        //         "openInterestUsd" => "1120726916.46709",
+        //         "time" => 1785925443734
+        //     }
+        //
+        $marketId = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $timestamp = $this->safe_integer($interest, 'time');
+        return $this->safe_open_interest(array(
+            'symbol' => $market['symbol'],
+            'openInterestAmount' => $this->safe_number($interest, 'openInterest'),
+            'openInterestValue' => $this->safe_number($interest, 'openInterestUsd'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        ), $market);
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
