@@ -35,9 +35,8 @@ type Future struct {
 	resolved      bool
 	resolvedValue any
 	resolvedError any
-	mu            sync.Mutex
+	mu            sync.Mutex // guards resolved, resolvedValue, resolvedError, and subscribers
 	once          sync.Once
-	subscribersMu sync.Mutex
 }
 
 // Create new Future
@@ -61,39 +60,26 @@ func (f *Future) Resolve(args ...any) {
 		f.resolved = true
 		f.resolvedValue = value
 		f.resolvedError = nil
-		f.mu.Unlock()
-
+		// Notify result channel (non-blocking; mu is still held so this
+		// must not block — the channel is buffered size 1).
 		func() {
-			defer func() {
-				if r := recover(); r != nil {
-					// Channel is closed, but that's okay since we're using sync.Once
-					// and the future is already marked as resolved
-				}
-			}()
+			defer func() { recover() }() //nolint:errcheck
 			select {
 			case f.result <- value:
 			default:
 			}
 		}()
-
-		f.subscribersMu.Lock()
-		// Notify all subscribers
+		// Notify and clear all subscribers atomically while holding mu.
+		// Sends are non-blocking (buffered channels, select+default), so
+		// holding the lock here cannot cause a deadlock.
 		for _, sub := range f.subscribers {
-			func(sub chan any) {
-				defer func() {
-					if r := recover(); r != nil {
-						// Channel is closed, but that's okay since we're using sync.Once
-						// and the future is already marked as resolved
-					}
-				}()
-				select {
-				case sub <- value:
-				default:
-				}
-			}(sub)
+			select {
+			case sub <- value:
+			default:
+			}
 		}
-		f.subscribers = nil // Clear subscribers after notifying them
-		f.subscribersMu.Unlock()
+		f.subscribers = nil
+		f.mu.Unlock()
 	})
 }
 
@@ -104,39 +90,24 @@ func (f *Future) Reject(reason any) {
 		f.resolved = true
 		f.resolvedValue = nil
 		f.resolvedError = reason
-		f.mu.Unlock()
-
+		// Notify error channel (non-blocking; mu is still held so this
+		// must not block — the channel is buffered size 1).
 		func() {
-			defer func() {
-				if r := recover(); r != nil {
-					// Channel is closed, but that's okay since we're using sync.Once
-					// and the future is already marked as resolved
-				}
-			}()
+			defer func() { recover() }() //nolint:errcheck
 			select {
 			case f.err <- reason:
 			default:
 			}
 		}()
-
-		// Notify all subscribers
-		f.subscribersMu.Lock()
+		// Notify and clear all subscribers atomically while holding mu.
 		for _, sub := range f.subscribers {
-			func(sub chan any) {
-				defer func() {
-					if r := recover(); r != nil {
-						// Channel is closed, but that's okay since we're using sync.Once
-						// and the future is already marked as resolved
-					}
-				}()
-				select {
-				case sub <- reason:
-				default:
-				}
-			}(sub)
+			select {
+			case sub <- reason:
+			default:
+			}
 		}
-		f.subscribers = nil // Clear subscribers after notifying them
-		f.subscribersMu.Unlock()
+		f.subscribers = nil
+		f.mu.Unlock()
 	})
 }
 
@@ -214,7 +185,7 @@ func (f *Future) Await() <-chan any {
 	ch := make(chan any, 1)
 	f.mu.Lock()
 	if f.resolved {
-		// Already resolved, return cached value immediately
+		// Already resolved — return cached value without subscribing.
 		if f.resolvedError != nil {
 			ch <- f.resolvedError
 		} else {
@@ -223,38 +194,14 @@ func (f *Future) Await() <-chan any {
 		f.mu.Unlock()
 		return ch
 	}
-	f.mu.Unlock()
-	f.subscribersMu.Lock()
+	// Not yet resolved: subscribe while still holding mu so that a
+	// concurrent Resolve/Reject cannot drain the subscriber list in the
+	// window between the resolved-check above and the append below.
 	if f.subscribers == nil {
 		f.subscribers = make([]chan any, 0)
 	}
 	f.subscribers = append(f.subscribers, ch)
-	f.subscribersMu.Unlock()
-	// go func() {
-	// 	defer close(ch)
-	// 	// f.mu.Lock()
-	// 	if f.resolved {
-	// 		// Already resolved, return cached value immediately
-	// 		if f.resolvedError != nil {
-	// 			ch <- f.resolvedError
-	// 		} else {
-	// 			ch <- f.resolvedValue
-	// 		}
-	// 		// f.mu.Unlock()
-	// 		return
-	// 	}
-
-	// 	// f.mu.Unlock()
-
-	// 	// Not resolved yet, wait for it
-	// 	select {
-	// 	case res := <-f.result:
-	// 		ch <- res
-	// 	case err := <-f.err:
-	// 		ch <- err
-	// 	}
-	// }()
-
+	f.mu.Unlock()
 	return ch
 }
 
@@ -296,14 +243,14 @@ func FutureRace(futures []*Future) *Future {
 			}
 			return result
 		}
-		f.mu.Unlock()
-
-		f.subscribersMu.Lock()
+		// Subscribe while still holding mu so that a concurrent Resolve
+		// cannot drain the subscriber list between the resolved-check
+		// above and the append below (fixes the check-then-subscribe race).
 		if f.subscribers == nil {
 			f.subscribers = make([]chan interface{}, 0)
 		}
 		f.subscribers = append(f.subscribers, sharedCh)
-		f.subscribersMu.Unlock()
+		f.mu.Unlock()
 	}
 
 	// Single goroutine forwards the first resolved/rejected value.
