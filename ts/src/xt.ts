@@ -180,6 +180,7 @@ export default class xt extends Exchange {
                             'future/market/v1/public/q/symbol-index-price': 1,
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
+                            'future/market/v1/public/q/ticker/books': 1,
                             'future/market/v1/public/q/tickers': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/detail': 3.33,
@@ -204,6 +205,7 @@ export default class xt extends Exchange {
                             'future/market/v1/public/q/symbol-index-price': 1,
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
+                            'future/market/v1/public/q/ticker/books': 1,
                             'future/market/v1/public/q/tickers': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/detail': 3.33,
@@ -1814,11 +1816,12 @@ export default class xt extends Exchange {
      * @name xt#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
-     * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    override async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+    override async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1828,12 +1831,21 @@ export default class xt extends Exchange {
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
         }
+        let type: Str = undefined;
         let subType: SubType = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
-        if (subType !== undefined) {
-            throw new NotSupported (this.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
+        const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.publicInverseGetFutureMarketV1PublicQTickerBooks (this.extend (request, params));
+        } else if (isContract) {
+            response = await this.publicLinearGetFutureMarketV1PublicQTickerBooks (this.extend (request, params));
+        } else {
+            response = await this.publicSpotGetTickerBook (this.extend (request, params));
         }
-        const response = await this.publicSpotGetTickerBook (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "rc": 0,
@@ -1851,8 +1863,43 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue (response, 'result', []);
-        return this.parseTickers (tickers, symbols);
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "s": "btc_usdt",
+        //                 "t": 1785928174370,
+        //                 "ap": "64085.5",
+        //                 "aq": "101843",
+        //                 "bp": "64085.3",
+        //                 "bq": "121042"
+        //             },
+        //         ]
+        //     }
+        //
+        const tickers = this.safeList (response, 'result', []);
+        const result: Dict = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const rawTicker = tickers[i];
+            let marketInner = market;
+            if (marketInner === undefined) {
+                // the spot and contract payloads share the same field names, so
+                // the market type cannot be inferred from the entry itself
+                const marketId = this.safeString (rawTicker, 's');
+                const marketType = isContract ? 'contract' : 'spot';
+                marketInner = this.safeMarket (marketId, undefined, '_', marketType);
+            }
+            const ticker = this.parseTicker (rawTicker, marketInner);
+            const symbol = ticker['symbol'];
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     override parseTicker (ticker: any, market: Market = undefined) {
