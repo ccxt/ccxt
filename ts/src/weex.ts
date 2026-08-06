@@ -3998,7 +3998,7 @@ export default class weex extends Exchange {
      * @method
      * @ignore
      * @name weex#toSandboxMarketId
-     * @description get the market id to send in a request, converting to the demo-trading market id (e.g. BTCSUSDT) when sandbox mode is enabled
+     * @description get the market id to send in a request, converting to the demo-trading market id (e.g. BTCSUSDT) when sandbox mode is enabled, only valid for USDT-margined linear markets which is all the demo environment provides
      * @param {object} market a unified market structure
      * @returns {string} the market id for the request
      */
@@ -4006,7 +4006,8 @@ export default class weex extends Exchange {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const baseId = this.safeString (market, 'baseId');
         if (sandboxMode && (baseId !== undefined)) {
-            return baseId + 'SUSDT'; // demo trading markets are quoted in the demo asset SUSDT, e.g. BTCSUSDT
+            // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
+            return baseId + 'SUSDT';
         }
         return this.safeString (market, 'id');
     }
