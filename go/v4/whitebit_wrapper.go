@@ -1731,34 +1731,6 @@ func (this *Whitebit) FetchPosition(symbol string, options ...FetchPositionOptio
 
 /**
  * @method
- * @name whitebit#fetchCrossBorrowRate
- * @description fetch the rate of interest to borrow a currency for margin trading
- * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
- * @param {string} code unified currency code
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
- */
-func (this *Whitebit) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-
-	opts := FetchCrossBorrowRateOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Core.FetchCrossBorrowRate(code, params)
-	if IsError(res) {
-		return CrossBorrowRate{}, CreateReturnError(res)
-	}
-	return NewCrossBorrowRate(res), nil
-}
-
-/**
- * @method
  * @name whitebit#fetchFundingRateHistory
  * @description fetches historical funding rate prices
  * @see https://docs.whitebit.com/api-reference/market-data/funding-history
@@ -1909,6 +1881,9 @@ func (this *Whitebit) FetchConvertCurrencies(params ...any) (Currencies, error) 
 }
 func (this *Whitebit) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.FetchConvertTrade(id, options...)
+}
+func (this *Whitebit) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
+	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
 func (this *Whitebit) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)

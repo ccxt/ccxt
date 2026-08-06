@@ -52,7 +52,7 @@ func (this *WhitebitCore) Describe() any {
 			"fetchConvertQuote":              true,
 			"fetchConvertTrade":              false,
 			"fetchConvertTradeHistory":       true,
-			"fetchCrossBorrowRate":           true,
+			"fetchCrossBorrowRate":           false,
 			"fetchCrossBorrowRates":          false,
 			"fetchCurrencies":                true,
 			"fetchDeposit":                   true,
@@ -4950,61 +4950,6 @@ func (this *WhitebitCore) ParsePosition(position any, optionalArgs ...any) any {
 		"takeProfitPrice":             this.SafeNumber(tpsl, "takeProfit"),
 	})
 }
-
-/**
- * @method
- * @name whitebit#fetchCrossBorrowRate
- * @description fetch the rate of interest to borrow a currency for margin trading
- * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
- * @param {string} code unified currency code
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
- */
-func (this *WhitebitCore) FetchCrossBorrowRate(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes414612 := (<-this.LoadMarkets())
-			PanicOnError(retRes414612)
-		}
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"ticker": GetValue(currency, "id"),
-		}
-
-		response := (<-this.V4PrivatePostMainAccountSmartPlans(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//
-		var data any = this.SafeList(response, 0, []any{})
-
-		ch <- this.ParseBorrowRate(data, currency)
-		return nil
-
-	}()
-	return ch
-}
-func (this *WhitebitCore) ParseBorrowRate(info any, optionalArgs ...any) any {
-	//
-	//
-	currency := GetArg(optionalArgs, 0, nil)
-	_ = currency
-	var currencyId any = this.SafeString(info, "ticker")
-	var percent any = this.SafeString(info, "percent")
-	return map[string]any{
-		"currency":  this.SafeCurrencyCode(currencyId, currency),
-		"rate":      this.ParseNumber(Precise.StringDiv(percent, "100")),
-		"period":    this.SafeInteger(info, "duration"),
-		"timestamp": nil,
-		"datetime":  nil,
-		"info":      info,
-	}
-}
 func (this *WhitebitCore) IsFiat(currency any) any {
 	var fiatCurrencies any = this.SafeValue(this.Options, "fiatCurrencies", []any{})
 	return this.InArray(currency, fiatCurrencies)
@@ -5045,15 +4990,15 @@ func (this *WhitebitCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes419919 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, maxLimit))
-			PanicOnError(retRes419919)
-			ch <- retRes419919
+			retRes416019 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, maxLimit))
+			PanicOnError(retRes416019)
+			ch <- retRes416019
 			return nil
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes420212 := (<-this.LoadMarkets())
-			PanicOnError(retRes420212)
+			retRes416312 := (<-this.LoadMarkets())
+			PanicOnError(retRes416312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
