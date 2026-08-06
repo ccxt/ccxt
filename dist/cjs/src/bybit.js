@@ -1251,6 +1251,7 @@ class bybit extends bybit$1["default"] {
                     'BSC': 'BEP20',
                     'OP': 'OP',
                     'MATIC': 'MATIC',
+                    'SPL': 'SOL', // see https://github.com/ccxt/ccxt/issues/23989
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
