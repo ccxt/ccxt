@@ -3839,7 +3839,7 @@ export default class mexc extends Exchange {
         }
         const response = await this.fetchAccountHelper (marketType, query);
         const data = this.safeValue (response, 'balances', []);
-        const result: any[] = [];
+        const result: Account[] = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
             const currencyId = this.safeString2 (account, 'asset', 'currency');

@@ -2372,7 +2372,7 @@ export default class gate extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork (code, params);
-        const chainsIndexedById: Dict = chainsIndexedByIdRaw as any;
+        const chainsIndexedById: Dict = chainsIndexedByIdRaw;
         const selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, chainsIndexedById);
         return chainsIndexedById[selectedNetworkIdOrCode as string];
     }
@@ -8197,7 +8197,7 @@ export default class gate extends Exchange {
             'lastPrice': this.parseNumber (this.safeNumber (greeks, 'last_price')),
             'underlyingPrice': this.parseNumber (market['info']['underlying_price']),
             'info': greeks,
-        } as unknown as Greeks;
+        };
     }
 
     /**
@@ -8584,7 +8584,7 @@ export default class gate extends Exchange {
             'percentage': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
-        } as unknown as Option;
+        };
     }
 
     /**

@@ -3764,7 +3764,7 @@ export default class htx extends Exchange {
         //     }
         //
         const finalResponse = response;
-        let result: Dict = { 'info': finalResponse } as any;
+        let result: Dict = { 'info': finalResponse };
         const data = this.safeValue (response, 'data');
         if (isMultiAssetMode || (linear && (swap || future))) {
             const details = this.safeList (data, 'details', []);
@@ -7820,7 +7820,7 @@ export default class htx extends Exchange {
             const access = this.safeString (api, 1);
             const levelOneNestedPath = this.safeString (api, 2);
             const levelTwoNestedPath = this.safeString (api, 3);
-            let hostname = undefined;
+            let hostname: Str = undefined;
             let hostnames = this.safeValue (this.urls['hostnames'], type);
             if (typeof hostnames !== 'string') {
                 hostnames = this.safeValue (hostnames, levelOneNestedPath);

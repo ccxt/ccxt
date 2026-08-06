@@ -5477,7 +5477,7 @@ export default class phemex extends Exchange {
             'toAmount': this.parseNumber (toAmount),
             'price': this.safeNumber (quoteArgs, 'price'),
             'fee': undefined,
-        } as unknown as Conversion;
+        };
     }
 
     /**

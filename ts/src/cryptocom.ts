@@ -1507,7 +1507,7 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests: any[] = [];
+        const ordersRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -1820,7 +1820,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const orderRequests: any[] = [];
+        const orderRequests: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const order: Dict = {
@@ -1851,7 +1851,7 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const orderRequests: any[] = [];
+        const orderRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const id = this.safeString (order, 'id');
@@ -3077,7 +3077,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     ]
         //
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }
@@ -3227,7 +3227,7 @@ export default class cryptocom extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'data', []);
         const marketId = this.safeString (result, 'instrument_name');
-        const rates: any[] = [];
+        const rates: FundingRateHistory[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 't');

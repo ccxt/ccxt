@@ -331,7 +331,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     async handlePortfolioAndParams (methodName: string, params = {}): Promise<[Str, Dict]> {
-        let portfolio = undefined;
+        let portfolio: Str = undefined;
         [ portfolio, params ] = this.handleOptionAndParams (params, methodName, 'portfolio');
         if ((portfolio !== undefined) && (portfolio !== '')) {
             return [ portfolio, params ];

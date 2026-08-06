@@ -298,7 +298,7 @@ export default class mercado extends Exchange {
         //         "LINK"
         //     ]
         //
-        const result: any[] = [];
+        const result: Market[] = [];
         const amountLimits = this.safeValue (this.options, 'limits', {});
         for (let i = 0; i < response.length; i++) {
             const coin = response[i];

@@ -12644,7 +12644,7 @@ export default class binance extends Exchange {
         const success = this.safeBool (response, 'success', true);
         if (!success) {
             const messageNew = this.safeString (response, 'msg');
-            let parsedMessage = undefined;
+            let parsedMessage: NullableDict = undefined;
             if (messageNew !== undefined) {
                 try {
                     parsedMessage = JSON.parse (messageNew);

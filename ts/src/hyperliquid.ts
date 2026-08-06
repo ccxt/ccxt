@@ -534,7 +534,7 @@ export default class hyperliquid extends Exchange {
     override async fetchMarkets (params = {}): Promise<Market[]> {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const types = this.safeList (options, 'types', []);
-        const rawPromises: any[] = [];
+        const rawPromises: Promise<any>[] = [];
         for (let i = 0; i < types.length; i++) {
             const marketType = types[i];
             if (marketType === 'swap') {
@@ -616,7 +616,7 @@ export default class hyperliquid extends Exchange {
                 fetchDexesList.push (dexName);
             }
         }
-        const rawPromises: any[] = [];
+        const rawPromises: Promise<any>[] = [];
         for (let i = 0; i < fetchDexesList.length; i++) {
             const request: Dict = {
                 'type': 'metaAndAssetCtxs',
@@ -3496,8 +3496,8 @@ export default class hyperliquid extends Exchange {
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         const orderTypeRaw = this.safeStringLower (entry, 'orderType', '') as string;
-        let stopLossPrice = undefined;
-        let takeProfitPrice = undefined;
+        let stopLossPrice: Num = undefined;
+        let takeProfitPrice: Num = undefined;
         if (triggerPx !== undefined) {
             if (orderTypeRaw.indexOf ('stop') >= 0) {
                 stopLossPrice = triggerPx;

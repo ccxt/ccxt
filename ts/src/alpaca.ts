@@ -4,7 +4,7 @@ import Exchange from './abstract/alpaca.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances, Bool } from './base/types.js';
+import type{ Dict, Fee, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 /**
@@ -1886,7 +1886,7 @@ export default class alpaca extends Exchange {
         let status: Str = undefined;
         let comment: Str = undefined;
         let internal: Bool = undefined;
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (activityType !== undefined) {
             const netAmount = this.safeString (transaction, 'net_amount');
             const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (netAmount, '0'));

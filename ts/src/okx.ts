@@ -5489,7 +5489,7 @@ export default class okx extends Exchange {
         code = this.safeCurrencyCode (code) as string;
         const network = this.networkIdToCode (rawNetwork, code);
         const responseRaw = await this.fetchDepositAddressesByNetwork (code, params);
-        const response: Dict = responseRaw as any;
+        const response: Dict = responseRaw;
         if (network !== undefined) {
             const result = this.safeDict (response, network);
             if (result === undefined) {
@@ -7283,7 +7283,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []) as List;
-        const rates: List = [];
+        const rates: CrossBorrowRate[] = [];
         for (let i = 0; i < data.length; i++) {
             rates.push (this.parseBorrowRate (data[i]));
         }
@@ -8627,7 +8627,7 @@ export default class okx extends Exchange {
             'lastPrice': undefined,
             'underlyingPrice': undefined,
             'info': greeks,
-        } as unknown as Greeks;
+        };
     }
 
     /**
@@ -8840,7 +8840,7 @@ export default class okx extends Exchange {
             'percentage': undefined,
             'baseVolume': this.safeNumber (chain, 'volCcy24h'),
             'quoteVolume': undefined,
-        } as unknown as Option;
+        };
     }
 
     /**

@@ -302,7 +302,7 @@ export default class bithumb extends Exchange {
         const result: Market[] = [];
         const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
-        const promises: any[] = [];
+        const promises: Promise<any>[] = [];
         for (let i = 0; i < quotes.length; i++) {
             const request = {
                 'quoteId': quotes[i],
@@ -567,7 +567,7 @@ export default class bithumb extends Exchange {
         const result: Dict = {};
         const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
-        const promises: any[] = [];
+        const promises: Promise<any>[] = [];
         for (let i = 0; i < quotes.length; i++) {
             const request: Dict = {
                 'quoteId': quotes[i],

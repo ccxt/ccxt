@@ -2051,7 +2051,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const numericIds: any[] = [];
+        const numericIds: number[] = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = this.parseToNumeric (ids[i]);
             numericIds.push (this.parseToNumeric (ids[i]));

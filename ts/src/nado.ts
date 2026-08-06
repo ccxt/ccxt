@@ -1441,7 +1441,7 @@ export default class nado extends Exchange {
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const submissionIdx = this.safeString (event, 'submission_idx');
-            let tx: any = {};
+            let tx: Dict = {};
             for (let j = 0; j < txs.length; j++) {
                 const rawTx = txs[j];
                 const txSubmissionIdx = this.safeString (rawTx, 'submission_idx');
@@ -1520,7 +1520,7 @@ export default class nado extends Exchange {
                 continue; // the endpoint returns an entry for every listed product - only nonzero balances are open positions
             }
             const productId = this.safeString (position, 'product_id');
-            let product: any = {};
+            let product: Dict = {};
             for (let j = 0; j < products.length; j++) {
                 const rawProduct = products[j];
                 const rawProductId = this.safeString (rawProduct, 'product_id');

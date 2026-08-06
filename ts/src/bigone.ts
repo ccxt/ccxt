@@ -1271,7 +1271,7 @@ export default class bigone extends Exchange {
         } else {
             result['fee'] = undefined;
         }
-        return this.safeTrade (result as any, market);
+        return this.safeTrade (result, market);
     }
 
     /**

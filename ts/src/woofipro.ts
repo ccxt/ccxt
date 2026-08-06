@@ -1591,7 +1591,7 @@ export default class woofipro extends Exchange {
             request['algo_type'] = 'STOP';
         } else if (hasStopLoss || hasTakeProfit) {
             request['algo_type'] = 'TP_SL';
-            const childOrders = [];
+            const childOrders: Dict[] = [];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (hasStopLoss) {
                 const stopLossPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'price', stopLoss);

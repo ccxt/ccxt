@@ -3381,7 +3381,7 @@ export default class digifinex extends Exchange {
                 result[code] = borrowRate;
             }
         }
-        return result as any;
+        return result;
     }
 
     /**
@@ -3418,7 +3418,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseFundingRate (data, market) as any;
+        return this.parseFundingRate (data, market);
     }
 
     /**
@@ -3976,7 +3976,7 @@ export default class digifinex extends Exchange {
             if (currency === undefined) {
                 throw new ExchangeError (this.id + ' fetchTransfers() could not resolve currency');
             }
-            request['currency'] = (currency as any)['id'];
+            request['currency'] = this.safeString (currency, 'id');
         }
         if (since !== undefined) {
             request['start_timestamp'] = since;
