@@ -4307,18 +4307,23 @@ public class BybitCore extends BybitApi
         market = this.safeMarket(marketId, market, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger2(order, "createdTime", "createdAt");
-        Object marketUnit = this.safeString(order, "marketUnit", "baseCoin");
+        Object marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
+        // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
+        // see https://github.com/ccxt/ccxt/issues/27725
         Object id = this.safeString(order, "orderId");
         Object type = this.safeStringLower(order, "orderType");
         Object price = this.safeString(order, "price");
+        Object side = this.safeStringLower(order, "side");
         Object amount = null;
         Object cost = null;
-        if (Helpers.isTrue(Helpers.isEqual(marketUnit, "baseCoin")))
+        Object qtyIsQuote = Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue((Helpers.isEqual(type, "market")))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(marketUnit, "quoteCoin"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(marketUnit, null))) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))));
+        if (Helpers.isTrue(qtyIsQuote))
         {
-            amount = this.safeString(order, "qty");
+            // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = this.safeString(order, "cumExecValue");
         } else
         {
+            amount = this.safeString(order, "qty");
             cost = this.safeString(order, "cumExecValue");
         }
         Object filled = this.safeString(order, "cumExecQty");
@@ -4326,7 +4331,6 @@ public class BybitCore extends BybitApi
         Object lastTradeTimestamp = this.safeInteger2(order, "updatedTime", "updatedAt");
         Object rawStatus = this.safeString(order, "orderStatus");
         Object status = this.parseOrderStatus(rawStatus);
-        Object side = this.safeStringLower(order, "side");
         Object fee = null;
         Object cumFeeDetail = this.safeDict(order, "cumFeeDetail", new java.util.HashMap<String, Object>() {{}});
         Object feeCoins = Helpers.objectKeys(cumFeeDetail);
@@ -4383,6 +4387,7 @@ public class BybitCore extends BybitApi
             }
         }
         final Object finalClientOrderId = clientOrderId;
+        final Object finalType = type;
         final Object finalSide = side;
         final Object finalTriggerPrice = triggerPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
@@ -4399,7 +4404,7 @@ public class BybitCore extends BybitApi
             put( "lastTradeTimestamp", lastTradeTimestamp );
             put( "lastUpdateTimestamp", lastTradeTimestamp );
             put( "symbol", symbol );
-            put( "type", type );
+            put( "type", finalType );
             put( "timeInForce", timeInForce );
             put( "postOnly", null );
             put( "reduceOnly", BybitCore.this.safeBool(order, "reduceOnly") );
@@ -5904,7 +5909,10 @@ public class BybitCore extends BybitApi
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object innerList = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(innerList), 0)))
+            // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
+            // see https://github.com/ccxt/ccxt/pull/29602
+            Object innerListLength = Helpers.getArrayLength(innerList);
+            if (Helpers.isTrue(Helpers.isEqual(innerListLength, 0)))
             {
                 Object extra = ((Helpers.isTrue(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;

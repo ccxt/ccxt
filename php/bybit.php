@@ -3978,16 +3978,21 @@ class bybit extends Exchange {
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($order, 'createdTime', 'createdAt');
-        $marketUnit = $this->safe_string($order, 'marketUnit', 'baseCoin');
+        $marketUnit = $this->safe_string($order, 'marketUnit'); // '' is filtered by safeString, do not force a default:
+        // bybit's spot Market Buy qty is quote-denominated unless $marketUnit is explicitly 'baseCoin',
+        // see https://github.com/ccxt/ccxt/issues/27725
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'orderType');
         $price = $this->safe_string($order, 'price');
+        $side = $this->safe_string_lower($order, 'side');
         $amount = null;
         $cost = null;
-        if ($marketUnit === 'baseCoin') {
-            $amount = $this->safe_string($order, 'qty');
+        $qtyIsQuote = $market['spot'] && ($type === 'market') && (($marketUnit === 'quoteCoin') || (($marketUnit === null) && ($side === 'buy')));
+        if ($qtyIsQuote) {
+            // qty is denominated in the quote currency, safeOrder derives $amount from $filled . $remaining
             $cost = $this->safe_string($order, 'cumExecValue');
         } else {
+            $amount = $this->safe_string($order, 'qty');
             $cost = $this->safe_string($order, 'cumExecValue');
         }
         $filled = $this->safe_string($order, 'cumExecQty');
@@ -3995,7 +4000,6 @@ class bybit extends Exchange {
         $lastTradeTimestamp = $this->safe_integer_2($order, 'updatedTime', 'updatedAt');
         $rawStatus = $this->safe_string($order, 'orderStatus');
         $status = $this->parse_order_status($rawStatus);
-        $side = $this->safe_string_lower($order, 'side');
         $fee = null;
         $cumFeeDetail = $this->safe_dict($order, 'cumFeeDetail', array());
         $feeCoins = is_array($cumFeeDetail) ? array_keys($cumFeeDetail) : array();
@@ -5299,7 +5303,10 @@ class bybit extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $innerList = $this->safe_list($result, 'list', array());
-        if (strlen($innerList) === 0) {
+        // the xLength idiom transpiles to count(is_array(php, inline .length here mis-transpiled to strlen() && array_key_exists() ?? '', php, inline .length here mis-transpiled to strlen()),
+        // see https://github.com/ccxt/ccxt/pull/29602
+        $innerListLength = count($innerList);
+        if ($innerListLength === 0) {
             $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional $order, you might try setting $params["trigger"] = true';
             throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
         }

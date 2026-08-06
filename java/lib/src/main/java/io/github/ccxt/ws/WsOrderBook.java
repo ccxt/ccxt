@@ -88,18 +88,12 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
 
     @Override
     public synchronized java.util.Set<Map.Entry<String, Object>> entrySet() {
-        final java.util.LinkedHashSet<Map.Entry<String, Object>> entries = new java.util.LinkedHashSet<>();
-        for (final String key : BASE_KEYS) {
-            entries.add(new java.util.AbstractMap.SimpleEntry<>(key, this.get(key)));
-        }
-        if (this.outcome != null) {
-            entries.add(new java.util.AbstractMap.SimpleEntry<>("outcome", this.outcome));
-            entries.add(new java.util.AbstractMap.SimpleEntry<>("outcomeId", this.outcomeId));
-            entries.add(new java.util.AbstractMap.SimpleEntry<>("market", this.market));
-        } else {
-            entries.add(new java.util.AbstractMap.SimpleEntry<>("symbol", this.symbol));
-        }
-        return entries;
+        // snapshot view: hash-based consumers (LinkedHashSet/HashMap/AbstractMap.hashCode)
+        // call hashCode() on entry values, and hashing the *live* OrderBookSide races the
+        // WsClient delta thread (ConcurrentModificationException). toMap() already returns
+        // synchronized snapshot copies with the exact same key semantics,
+        // see https://github.com/ccxt/ccxt/pull/29596
+        return this.toMap().entrySet();
     }
 
     public WsOrderBook(Object snapshot, Object depth) {
