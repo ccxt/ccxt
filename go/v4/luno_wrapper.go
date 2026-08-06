@@ -758,6 +758,35 @@ func (this *Luno) FetchDepositAddress(code string, options ...FetchDepositAddres
 	return NewDepositAddress(res), nil
 }
 
+/**
+ * @method
+ * @name luno#fetchDepositWithdrawFee
+ * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+ * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *Luno) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
+
+	opts := FetchDepositWithdrawFeeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchDepositWithdrawFee(code, params)
+	if IsError(res) {
+		return DepositWithdrawFee{}, CreateReturnError(res)
+	}
+	return NewDepositWithdrawFee(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Luno) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
@@ -909,9 +938,6 @@ func (this *Luno) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction,
 }
 func (this *Luno) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Luno) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Luno) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
