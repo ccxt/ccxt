@@ -1643,11 +1643,9 @@ export default class gate extends gateRest {
         const isTrigger = (channel.indexOf ('autoorders') >= 0) || (channel.indexOf ('priceorders') >= 0);
         const hashPrefix = isTrigger ? 'triggerOrders' : 'orders';
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        if (isTrigger && (this.triggerOrders === undefined)) {
-            this.triggerOrders = new ArrayCacheBySymbolById (limit);
-        }
-        if (!isTrigger && (this.orders === undefined)) {
+        if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
+            this.triggerOrders = new ArrayCacheBySymbolById (limit);
         }
         const stored = isTrigger ? this.triggerOrders : this.orders;
         const marketIds: Dict = {};
