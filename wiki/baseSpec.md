@@ -2561,7 +2561,6 @@ fetch the rate of interest to borrow a currency for margin trading
 * [digifinex](/exchanges/digifinex.md#fetchcrossborrowrate)
 * [kucoin](/exchanges/kucoin.md#fetchcrossborrowrate)
 * [okx](/exchanges/okx.md#fetchcrossborrowrate)
-* [whitebit](/exchanges/whitebit.md#fetchcrossborrowrate)
 
 ---
 
@@ -2901,7 +2900,9 @@ fetch the fee for deposits and withdrawals
 
 ##### Supported exchanges
 * [coinex](/exchanges/coinex.md#fetchdepositwithdrawfee)
+* [indodax](/exchanges/indodax.md#fetchdepositwithdrawfee)
 * [kucoin](/exchanges/kucoin.md#fetchdepositwithdrawfee)
+* [luno](/exchanges/luno.md#fetchdepositwithdrawfee)
 
 ---
 

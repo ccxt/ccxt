@@ -54,7 +54,6 @@
 * [fetchPositionHistory](#fetchpositionhistory)
 * [fetchPositions](#fetchpositions)
 * [fetchPosition](#fetchposition)
-* [fetchCrossBorrowRate](#fetchcrossborrowrate)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
@@ -1201,27 +1200,6 @@ fetch data on a single open contract trade position
 
 ```javascript
 whitebit.fetchPosition (symbol, params?)
-```
-
-
-<a name="fetchCrossBorrowRate" id="fetchcrossborrowrate"></a>
-
-### fetchCrossBorrowRate{docsify-ignore}
-fetch the rate of interest to borrow a currency for margin trading
-
-**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
-
-**See**: https://docs.whitebit.com/private/http-main-v4/#get-plans  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-whitebit.fetchCrossBorrowRate (code, params?)
 ```
 
 
