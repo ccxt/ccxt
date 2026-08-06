@@ -39,6 +39,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'watchPositions' => true,
                 'unWatchPositions' => true,
                 'unWatchOrderBook' => true,
+                'unWatchTicker' => true,
                 'unWatchTickers' => true,
                 'unWatchTrades' => true,
                 'unWatchOHLCV' => true,
@@ -360,15 +361,58 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            // try to infer dex from $market
-            $dexName = $this->safe_string($this->safe_dict($market, 'info', array()), 'dex');
-            if ($dexName) {
-                $params = $this->extend($params, array( 'dex' => $dexName ));
+            // the single-$symbol path subscribes to the per-coin context channel, which hyperliquid
+            // pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
+            // instead of the aggregate allMids broadcast that only carries mids and arrives at the
+            // server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
+            $messageHash = 'ticker:' . $symbol;
+            $url = $this->urls['api']['ws']['public'];
+            $request = array(
+                'method' => 'subscribe',
+                'subscription' => array(
+                    // 'activeSpotAssetCtx' is only a response channel; the subscription type is
+                    // always 'activeAssetCtx', the server routes spot coins to the spot channel,
+                    // see https://github.com/ccxt/ccxt/issues/27475
+                    'type' => 'activeAssetCtx',
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
+                ),
+            );
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        })();
+    }
+
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches the price ticker stream of a specific $market
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             *
+             * @param {string} $symbol unified $symbol of the $market to stop watching the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {any} status of the unwatch $request
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
             }
-            $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
-            return $tickers[$symbol];
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $subMessageHash = 'ticker:' . $symbol;
+            $messageHash = 'unsubscribe:' . $subMessageHash;
+            $url = $this->urls['api']['ws']['public'];
+            $request = array(
+                'method' => 'unsubscribe',
+                'subscription' => array(
+                    'type' => 'activeAssetCtx',
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
+                ),
+            );
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         })();
     }
 
@@ -563,6 +607,42 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             }
             $client->resolve($this->tickers, $messageHash);
         }
+        return true;
+    }
+
+    public function handle_active_asset_ctx(Client $client, mixed $message) {
+        //
+        //     {
+        //         "channel" => "activeAssetCtx",
+        //         "data" => {
+        //             "coin" => "BTC",
+        //             "ctx" => {
+        //                 "dayNtlVlm" => "1169046.29406",
+        //                 "prevDayPx" => "15.322",
+        //                 "markPx" => "14.3161",
+        //                 "midPx" => "14.314",
+        //                 "oraclePx" => "14.32",
+        //                 "funding" => "0.0000125",
+        //                 "openInterest" => "688.11",
+        //                 "premium" => "0.00031774",
+        //                 "impactPxs" => array( "14.3047", "14.3444" )
+        //             }
+        //         }
+        //     }
+        //
+        // the spot variant arrives on the activeSpotAssetCtx channel and carries
+        // "circulatingSupply" instead of the swap-only fields
+        //
+        $data = $this->safe_dict($message, 'data', array());
+        $coin = $this->safe_string($data, 'coin');
+        $marketId = $this->coinToMarketId($coin);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $ctx = $this->safe_dict($data, 'ctx', array());
+        $ticker = $this->parse_ws_ticker($ctx, $market);
+        $this->tickers[$symbol] = $ticker;
+        $messageHash = 'ticker:' . $symbol;
+        $client->resolve($ticker, $messageHash);
         return true;
     }
 
@@ -1532,6 +1612,19 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
+    public function handle_ticker_unsubscription(Client $client, array $subscription) {
+        //
+        $coin = $this->safe_string($subscription, 'coin');
+        $marketId = $this->coinToMarketId($coin);
+        $symbol = $this->safe_symbol($marketId);
+        $subMessageHash = 'ticker:' . $symbol;
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
+            unset($this->tickers[$symbol]);
+        }
+    }
+
     public function handle_ohlcv_unsubscription(Client $client, array $subscription) {
         $coin = $this->safe_string($subscription, 'coin');
         $marketId = $this->coinToMarketId($coin);
@@ -1635,6 +1728,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 $this->handle_positions_unsubscription($client, $subscription);
             } elseif ($type === 'spotState') {
                 $this->handle_spot_balance_unsubscription($client, $subscription);
+            } elseif (($type === 'activeAssetCtx') || ($type === 'activeSpotAssetCtx')) {
+                $this->handle_ticker_unsubscription($client, $subscription);
+            } elseif ($type === 'allMids') {
+                $this->handle_tickers_unsubscription($client, $subscription);
             }
         }
     }
@@ -1666,6 +1763,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'orderUpdates' => array($this, 'handle_order'),
             'userFills' => array($this, 'handle_my_trades'),
             'allMids' => array($this, 'handle_ws_tickers'),
+            'activeAssetCtx' => array($this, 'handle_active_asset_ctx'),
+            'activeSpotAssetCtx' => array($this, 'handle_active_asset_ctx'),
             'post' => array($this, 'handle_ws_post'),
             'subscriptionResponse' => array($this, 'handle_subscription_response'),
             'clearinghouseState' => array($this, 'handle_balance'),
