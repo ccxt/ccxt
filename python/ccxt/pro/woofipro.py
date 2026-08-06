@@ -978,7 +978,7 @@ class woofipro(ccxt.async_support.woofipro):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type: Any, symbols: Strings = None):
+    def set_positions_cache(self, client: Client, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot:
             messageHash = 'fetchPositionsSnapshot'
