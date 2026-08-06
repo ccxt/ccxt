@@ -208,6 +208,15 @@ jobs:
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
+      - name: Build C# tests
+        # the clean step above wipes obj/bin, so the tests project has to be built here:
+        # the live-tests runner spawns one process per exchange and letting each of them
+        # restore/build on demand races on the shared obj/ and bin/ dirs
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_NOLOGO: 1
+          MSBUILDDISABLENODEREUSE: 1
+        run: npm run buildCSTests
       - name: Live tests
         if: env.important_modified == 'true'
         run: |

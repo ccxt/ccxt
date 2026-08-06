@@ -123,6 +123,69 @@ const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => {
     throw new Error ('RUNTEST_TIMED_OUT');
 }) ])
 
+/*  The C# lane spawns one process per exchange, and `dotnet run` restores and builds
+    on demand — so a pool of them races on the shared obj and bin dirs under cs/
+    (project.assets.json, tests.deps.json, tests.runtimeconfig.json, apphost) and on
+    the NuGet-Migrations mutex of the dotnet first-run experience. Build the project
+    once up front instead, then run the produced binary for every exchange.          */
+
+const csharpProject = 'cs/tests/tests.csproj'
+const csharpLock    = 'cs/tests/obj/.run-tests-build-lock'
+
+// telemetry and the first-run experience write to shared state under $HOME and $TMPDIR,
+// and msbuild node reuse leaves build daemons behind after each exchange
+const childEnv = Object.assign ({}, process.env, {
+    'DOTNET_CLI_TELEMETRY_OPTOUT': '1',
+    'DOTNET_NOLOGO': '1',
+    'DOTNET_SKIP_FIRST_TIME_EXPERIENCE': '1',
+    'MSBUILDDISABLENODEREUSE': '1',
+})
+
+let csharpExec = [ 'dotnet', 'run', '--project', csharpProject, '--' ]
+
+// the target framework is read from disk so the path survives a TFM bump in tests.csproj
+const csharpBinary = () => {
+    const outputDir = 'cs/tests/bin/Debug'
+    if (fs.existsSync (outputDir)) {
+        for (const targetFramework of fs.readdirSync (outputDir)) {
+            const binary = outputDir + '/' + targetFramework + '/tests'
+            if (fs.existsSync (binary)) {
+                return binary
+            }
+        }
+    }
+    return undefined
+}
+
+const buildCSharpTests = async () => {
+    // run-tests-simul.sh runs the rest and the ws lane as two parallel processes,
+    // so the build has to be serialized across them as well
+    fs.mkdirSync ('cs/tests/obj', { 'recursive': true })
+    let locked = false
+    for (let i = 0; !locked && (i < 300); i++) {
+        try {
+            fs.mkdirSync (csharpLock)
+            locked = true
+        } catch (e) {
+            if (e.code !== 'EEXIST') { throw e }
+            await sleep (1)
+        }
+    }
+    if (locked || !csharpBinary ()) {
+        log.bright ('Building', csharpProject.white, '...')
+        const build = ps.spawnSync ('dotnet', [ 'build', csharpProject ], { 'stdio': 'inherit', 'env': childEnv })
+        if (locked) { fs.rmSync (csharpLock, { 'recursive': true, 'force': true }) }
+        if (build.status !== 0) {
+            log.bright.red ('\n\tFailed to build', csharpProject.white, '\n')
+            process.exit (1)
+        }
+    }
+    const binary = csharpBinary ()
+    csharpExec = binary ? [ binary ] : [ 'dotnet', 'run', '--no-build', '--project', csharpProject, '--' ]
+}
+
+//  --------------------------------------------------------------------------- //
+
 /*  tests.ts unconditionally dumps "[INFO] TESTING  <exchange> <method>" when a method
     test starts and a matching "TESTING DONE" / "TESTING FAILED" line when it finishes.
     On a timeout, the started-but-never-finished markers identify the hung method(s) —
@@ -211,7 +274,7 @@ const exec = (bin, ...args) => {
 
     return timeout (timeoutSeconds, new Promise (resolver => {
 
-        const psSpawn = ps.spawn (bin, args)
+        const psSpawn = ps.spawn (bin, args, { 'env': childEnv })
 
         psSpawn.stdout.on ('data', data => { output += data.toString () })
         psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString ().trim (); })
@@ -355,7 +418,7 @@ const testExchange = async (exchange) => {
         { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/tests.init.js',                     ...args] },
         { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/tests_init.py',          ...args] },
         { key: '--php-async',    language: 'PHP Async',    exec: ['php', '-f', 'php/test/tests_init.php',                 ...args] },
-        { key: '--csharp',       language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
+        { key: '--csharp',       language: 'C#',           exec: [...csharpExec,                                            ...args] },
         { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests.init.ts',      ...args] },
         { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
@@ -510,6 +573,12 @@ async function testAllExchanges () {
         'Testing'.white, 
         Object.assign ({ exchanges, method, symbol, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
     )
+
+    // when no language is given every language runs, C# included
+    const csharpSelected = langKeys['--csharp'] || !Object.values (langKeys).some (x => x)
+    if (csharpSelected) {
+        await buildCSharpTests ()
+    }
 
     const tested    = await testAllExchanges ()
         , warnings  = tested.filter (t => !t.failed && t.hasWarnings)
