@@ -5317,7 +5317,10 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const innerList = this.safeList (result, 'list', []);
-        if (innerList.length === 0) {
+        // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
+        // see https://github.com/ccxt/ccxt/pull/29602
+        const innerListLength = innerList.length;
+        if (innerListLength === 0) {
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
