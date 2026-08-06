@@ -383,7 +383,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                     // TRON unsupported
                     'SOL': 'solana',
                     // BSC unsupported
-                    'ARBONE': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
                     'BASE': 'base',

@@ -222,7 +222,7 @@ export default class indodax extends Exchange {
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     // 'BEP2': 'bep2',
-                    // 'ARB': 'arb',
+                    // 'ARBITRUM': 'arb',
                     // 'ERC20': 'erc20',
                     // 'KIP7': 'kip7',
                     // 'MAINNET': 'mainnet',  // TODO: does mainnet just mean the default?

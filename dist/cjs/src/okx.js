@@ -1139,7 +1139,7 @@ class okx extends okx$1["default"] {
                     'APT': 'Aptos',
                     'SONIC': 'Sonic',
                     'SCROLL': 'Scroll',
-                    'ARBONE': 'Arbitrum One',
+                    'ARBITRUM': 'Arbitrum One',
                     'AVAXC': 'Avalanche C-Chain',
                     'AVAXX': 'Avalanche X-Chain',
                     'BASE': 'Base',

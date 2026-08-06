@@ -414,7 +414,7 @@ class digifinex extends digifinex$1["default"] {
                     'OTC': '3',
                 },
                 'networks': {
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',

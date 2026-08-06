@@ -692,6 +692,11 @@ export declare class BaseExchange {
                 default: string;
             };
         };
+        backwardSupportedNetworkCodes: {
+            ARB: string;
+            ARBONE: string;
+            ARBNOVA: string;
+        };
     };
     safeLedgerEntry(entry: object, currency?: Currency): {
         id: Str;

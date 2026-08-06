@@ -3593,6 +3593,11 @@ class BaseExchange {
                 'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
                 'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
             },
+            'backwardSupportedNetworkCodes': {
+                'ARB': 'ARBITRUM',
+                'ARBONE': 'ARBITRUM',
+                'ARBNOVA': 'ARBITRUM_NOVA',
+            },
         };
     }
     safeLedgerEntry(entry, currency = undefined) {
@@ -5166,6 +5171,11 @@ class BaseExchange {
             if (networkCode in networks) {
                 return this.safeString(networks[networkCode], 'id');
             }
+        }
+        // before returning the original input, try to match if it's backward-maintained networkCode
+        const oldCodes = this.safeDict(this.options, 'backwardSupportedNetworkCodes', {});
+        if (networkCode in oldCodes) {
+            return this.networkCodeToId(oldCodes[networkCode], currencyCode);
         }
         return networkCode;
     }

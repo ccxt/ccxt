@@ -1416,7 +1416,7 @@ export default class binance extends Exchange {
                     // 'FIAT': 'FIAT_MONEY', // not unified atm
                     // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
                     // 'STAKING': 'STAKING', // not unified atm
-                    'ARBONE': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'AVAXC': 'AVAXC',
                     'MATIC': 'MATIC',
                     'BASE': 'BASE',
