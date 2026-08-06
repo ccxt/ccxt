@@ -2171,7 +2171,7 @@ export default class coinbaseexchange extends Exchange {
                 }
             }
             const what = nonce + method + request + payload;
-            let secret: any = undefined;
+            let secret: Uint8Array | undefined = undefined;
             try {
                 secret = this.base64ToBinary (this.secret);
             } catch (e) {

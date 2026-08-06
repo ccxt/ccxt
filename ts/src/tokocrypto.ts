@@ -2685,7 +2685,7 @@ export default class tokocrypto extends Exchange {
             return config['noPoolId'];
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'] as any;
+            const byLimit = config['byLimit'] as List;
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {

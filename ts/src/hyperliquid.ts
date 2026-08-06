@@ -2107,7 +2107,7 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
-        const orders = await this.createOrders ([ order as any ], globalParams);
+        const orders = await this.createOrders ([ order as OrderRequest ], globalParams);
         return orders[0];
     }
 
@@ -2915,7 +2915,7 @@ export default class hyperliquid extends Exchange {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
         }
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (id, symbol, type, side, (amount as number), price, params);
-        const orders = await this.editOrders ([ order as any ], globalParams);
+        const orders = await this.editOrders ([ order as OrderRequest ], globalParams);
         return orders[0];
     }
 

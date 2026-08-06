@@ -2529,7 +2529,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data');
-        return this.parseDepositWithdrawFee (data, currency) as any;
+        return this.parseDepositWithdrawFee (data, currency) as DepositWithdrawFee;
     }
 
     override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
@@ -6867,15 +6867,17 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        let trades: any = undefined;
+        // v1 (historical) returns the trade list directly under 'data', v2 nests it under 'items'
+        let trades: NullableDict | NullableList = undefined;
         if (parseResponseData) {
             trades = data;
         } else {
             trades = this.safeList (data, 'items', []);
         }
-        let tradesList: Dict[] = [];
+        // v1 may put a bare list or dict under data; normalize once for parseTrades
+        let tradesList: List = [];
         if (trades !== undefined) {
-            tradesList = trades;
+            tradesList = this.toArray (trades);
         }
         return this.parseTrades (tradesList, market, since, limit);
     }
@@ -11211,7 +11213,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {}) as Dict;
-        return this.parseMarginMode (data, market) as any;
+        return this.parseMarginMode (data, market) as Dict; // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
     }
 
     /**

@@ -6,7 +6,7 @@ import Exchange from './abstract/mexc.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ExchangeNotAvailable, RequestTimeout, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, NullableList, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1305,7 +1305,7 @@ export default class mexc extends Exchange {
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
         const data = this.safeValue (response, 'symbols', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -1437,7 +1437,7 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -1989,7 +1989,7 @@ export default class mexc extends Exchange {
             market = this.market (firstSymbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let tickers: any = undefined;
+        let tickers: NullableList = undefined;
         if (isSingularMarket) {
             request['symbol'] = this.safeString (market, 'id');
         }
@@ -2272,7 +2272,7 @@ export default class mexc extends Exchange {
             market = this.market (symbols[0]);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let tickers: any = undefined;
+        let tickers: NullableList = undefined;
         if (marketType === 'spot') {
             tickers = await this.spotPublicGetTickerBookTicker (query);
             //
@@ -3958,7 +3958,7 @@ export default class mexc extends Exchange {
         //         "tradeEnabled": true
         //     }
         //
-        let wallet: any = undefined;
+        let wallet: List;
         if (marketType === 'margin') {
             wallet = this.safeValue (response, 'assets', []);
         } else if (marketType === 'swap') {
@@ -6241,8 +6241,8 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data');
-        const positions = this.parsePositions ((data as any[]), symbols, params);
+        const data = this.safeList (response, 'data', []);
+        const positions = this.parsePositions (data, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }
 
@@ -6290,7 +6290,7 @@ export default class mexc extends Exchange {
         //
         // { success: true, code: '0' }
         //
-        return this.parseLeverage (response, market) as any; // tmp revert type
+        return this.parseLeverage (response, market) as Dict; // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
     }
 
     override nonce () {

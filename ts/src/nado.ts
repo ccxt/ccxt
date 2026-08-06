@@ -2296,7 +2296,7 @@ export default class nado extends Exchange {
                 'currency': market['quote'],
             };
         }
-        let parsedAmount: any = undefined;
+        let parsedAmount: Str | Num = undefined;
         if (amountString !== undefined) {
             const absoluteAmount = Precise.stringAbs (amountString);
             if (isArchiveMatch) {
@@ -2305,7 +2305,7 @@ export default class nado extends Exchange {
                 parsedAmount = absoluteAmount;
             }
         }
-        let parsedCost: any = undefined;
+        let parsedCost: Str | Num = undefined;
         if (costString !== undefined) {
             const absoluteCost = Precise.stringAbs (costString);
             if (isArchiveMatch) {

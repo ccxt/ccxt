@@ -5,7 +5,7 @@ import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, NullableDict, FeeString } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, LeverageTier, LeverageTiers, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, NullableDict, FeeString } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -418,7 +418,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const instruments = this.safeValue (response, 'instruments', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
             const id = this.safeString (market, 'symbol');

@@ -4,7 +4,7 @@ import Exchange from './abstract/alpaca.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Dict, Fee, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances, Bool } from './base/types.js';
+import type{ Dict, Fee, Int, Market, NullableDict, NullableList, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 /**
@@ -617,7 +617,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let symbolTrades: any = undefined;
+        let symbolTrades: NullableList = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if (since !== undefined) {
                 request['start'] = this.iso8601 (since);
@@ -660,8 +660,8 @@ export default class alpaca extends Exchange {
             //    }
             //
             const trades = this.safeDict (response, 'trades', {});
-            symbolTrades = this.safeDict (trades, marketId, {});
-            symbolTrades = [ symbolTrades ];
+            const symbolTrade = this.safeDict (trades, marketId, {});
+            symbolTrades = [ symbolTrade ];
         } else {
             throw new NotSupported (this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
@@ -766,7 +766,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let ohlcvs: any = undefined;
+        let ohlcvs: NullableList = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -826,8 +826,8 @@ export default class alpaca extends Exchange {
             //     }
             //
             const bars = this.safeDict (response, 'bars', {});
-            ohlcvs = this.safeDict (bars, marketId, {});
-            ohlcvs = [ ohlcvs ];
+            const bar = this.safeDict (bars, marketId, {});
+            ohlcvs = [ bar ];
         } else {
             throw new NotSupported (this.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
         }

@@ -2945,7 +2945,7 @@ export default class binance extends Exchange {
             this.urls['apiBackupDemoTrading'] = this.urls['api'];
             this.urls['api'] = this.urls['demo'];
         } else if ('apiBackupDemoTrading' in this.urls) {
-            this.urls['api'] = this.urls['apiBackupDemoTrading'] as any;
+            this.urls['api'] = this.urls['apiBackupDemoTrading'];
             const newUrls = this.omit (this.urls, 'apiBackupDemoTrading');
             this.urls = newUrls;
         }
@@ -3576,7 +3576,7 @@ export default class binance extends Exchange {
         const filtersByType = this.indexBy (filters, 'filterType');
         const status = this.safeString2 (market, 'status', 'contractStatus');
         let contractSize: Num = undefined;
-        let fees = this.fees;
+        let fees: Dict = this.fees;
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
         let symbol = base + '/' + quote;
@@ -3594,7 +3594,7 @@ export default class binance extends Exchange {
             linear = settle === quote;
             inverse = settle === base;
             const feesType = linear ? 'linear' : 'inverse';
-            fees = this.safeDict (this.fees, feesType, {}) as any;
+            fees = this.safeDict (this.fees, feesType, {});
         }
         let active: Bool = (status === 'TRADING');
         if (spot) {
@@ -12456,7 +12456,7 @@ export default class binance extends Exchange {
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
-        const urls = this.urls as any;
+        const urls = this.urls;
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
@@ -12718,7 +12718,8 @@ export default class binance extends Exchange {
             return config['noPoolId'];
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'] as any;
+            // safeValue keeps runtime identical to the prior bare index (no empty-array default)
+            const byLimit: List = this.safeValue (config, 'byLimit');
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {

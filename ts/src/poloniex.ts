@@ -1473,7 +1473,7 @@ export default class poloniex extends Exchange {
             //         },
             //
             const tradesList = this.safeList (response, 'data');
-            return this.parseTrades (tradesList as any[], market, since, limit);
+            return this.parseTrades (tradesList as List, market, since, limit);
         }
         const trades = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
         //
@@ -1570,7 +1570,7 @@ export default class poloniex extends Exchange {
             //            },
             //
             const data = this.safeList (raw, 'data');
-            return this.parseTrades (data as any[], market, since, limit);
+            return this.parseTrades (data as List, market, since, limit);
         }
         const response = await this.privateGetTrades (this.extend (request, params));
         //

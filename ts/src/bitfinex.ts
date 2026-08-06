@@ -630,7 +630,7 @@ export default class bitfinex extends Exchange {
         };
         const [ spotMarketsInfo, futuresMarketsInfo, securitiesMarketsIds, marginIds ] = await this.publicGetConfConfig (this.extend (request, params));
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const pairObj = markets[i];
             const id = this.safeStringUpper (pairObj, 0);
@@ -1920,7 +1920,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests: any[] = [];
+        const ordersRequests: List[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -2555,8 +2555,8 @@ export default class bitfinex extends Exchange {
         let timestamp: Int = undefined;
         let updated: Int = undefined;
         let code: Str = undefined;
-        let amount: any = undefined;
-        let id: any = undefined;
+        let amount: Str | Num = undefined;
+        let id: Str | Int = undefined;
         let status: Str = undefined;
         let tag: Str = undefined;
         let type: Str = undefined;

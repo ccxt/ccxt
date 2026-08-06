@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptocom.js';
 import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder, RequestTimeout, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Currencies, Market, Num, Fee, Bool, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate, NullableDict, DepositWithdrawFees } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Currencies, List, Market, Num, Fee, Bool, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate, NullableDict, DepositWithdrawFees } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -770,7 +770,7 @@ export default class cryptocom extends Exchange {
         //
         const resultResponse = this.safeDict (response, 'result', {});
         const data = this.safeList (resultResponse, 'data', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const inst_type = this.safeString (market, 'inst_type');
@@ -2156,7 +2156,7 @@ export default class cryptocom extends Exchange {
         const network = this.safeStringUpper (params, 'network');
         params = this.omit (params, [ 'network' ]);
         const depositAddressesRaw = await this.fetchDepositAddressesByNetwork (code, params);
-        const depositAddresses: Dict = depositAddressesRaw as any;
+        const depositAddresses: Dict = depositAddressesRaw;
         if ((network as string) in depositAddresses) {
             return depositAddresses[(network as string)];
         }

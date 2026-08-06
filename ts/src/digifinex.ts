@@ -6,7 +6,7 @@ import Exchange from './abstract/digifinex.js';
 import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, NullableList, DepositWithdrawFees, Status } from './base/types.js';
+import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, NullableList, DepositWithdrawFees, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -654,7 +654,7 @@ export default class digifinex extends Exchange {
         const spotData = this.safeValue (spotMarkets, 'symbol_list', []);
         const swapData = this.safeValue (swapMarkets, 'data', []);
         const response = this.arrayConcat (spotData, swapData);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString2 (market, 'symbol', 'instrument_id');
@@ -764,7 +764,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const markets = this.safeValue (response, 'data', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'market');
@@ -3969,10 +3969,10 @@ export default class digifinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let currency: Str = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
-            currency = this.safeCurrencyCode (code);
+            currency = this.currency (code);
             if (currency === undefined) {
                 throw new ExchangeError (this.id + ' fetchTransfers() could not resolve currency');
             }
@@ -4001,7 +4001,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const transfers = this.safeList (response, 'data', []);
-        return this.parseTransfers (transfers, currency as any, since, limit);
+        return this.parseTransfers (transfers, currency, since, limit);
     }
 
     /**

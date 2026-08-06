@@ -1582,7 +1582,7 @@ export default class coinbase extends Exchange {
         const expiringFeeTier = this.safeDict (expiringFees, 'fee_tier', {}); // fee tier null?
         const perpetualFeeTier = this.safeDict (perpetualFees, 'fee_tier', {}); // fee tier null?
         const data = this.safeList (spot, 'products', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parseSpotMarket (data[i], feeTier));
         }

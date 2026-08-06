@@ -7283,11 +7283,16 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []) as List;
-        const rates: CrossBorrowRate[] = [];
+        // code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by code
+        const rates: CrossBorrowRates = {};
         for (let i = 0; i < data.length; i++) {
-            rates.push (this.parseBorrowRate (data[i]));
+            const rate = this.parseBorrowRate (data[i]);
+            const code = this.safeString (rate, 'currency');
+            if (code !== undefined) {
+                rates[code] = rate;
+            }
         }
-        return rates as any;
+        return rates;
     }
 
     /**
@@ -7559,7 +7564,8 @@ export default class okx extends Exchange {
         //
         const amountRaw = this.safeString2 (data, 'amt', 'posBalChg');
         const typeRaw = this.safeString (data, 'type');
-        let type: any = undefined;
+        // ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
+        let type: Str = undefined;
         if (typeRaw === '6') {
             type = Precise.stringGt (amountRaw, '0') ? 'add' : 'reduce';
         } else {
@@ -7573,7 +7579,8 @@ export default class okx extends Exchange {
         return {
             'info': data,
             'symbol': responseMarket['symbol'],
-            'type': type,
+            // unified values are 'add'|'reduce'|'set'; ledger '6' is mapped above; pass through otherwise
+            'type': type as MarginModification['type'],
             'marginMode': 'isolated',
             'amount': this.parseNumber (amount),
             'code': code,

@@ -6655,7 +6655,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const allAddresses = this.parseDepositAddresses (data, [ currency['code'] ], false) as any; // cjg: to do remove this weird object or array ambiguity
+        const allAddresses: Dict[] = this.parseDepositAddresses (data, [ currency['code'] ], false);
         const addresses: List = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];

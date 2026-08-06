@@ -2361,7 +2361,7 @@ export default class extended extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbols as any, since, limit, params, 'cursor', 'cursor', undefined, 10000) as Position[];
+            return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbols, since, limit, params, 'cursor', 'cursor', undefined, 10000) as Position[];
         }
         const request: Dict = {};
         if (symbols !== undefined) {

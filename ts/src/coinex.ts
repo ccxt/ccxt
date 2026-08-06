@@ -5814,7 +5814,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseDepositWithdrawFee (data, currency) as any;
+        return this.parseDepositWithdrawFee (data, currency) as DepositWithdrawFee;
     }
 
     /**

@@ -3,7 +3,7 @@ import Exchange from './abstract/coinsph.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict, Status } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict, Status } from './base/types.js';
 
 /**
  * @class coinsph
@@ -683,7 +683,7 @@ export default class coinsph extends Exchange {
         } else if (('byNumberOfSymbols' in config) && ('symbols' in params)) {
             const symbols = params['symbols'];
             const symbolsAmount = symbols.length;
-            const byNumberOfSymbols = config['byNumberOfSymbols'] as any;
+            const byNumberOfSymbols = config['byNumberOfSymbols'] as List;
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
                 if (symbolsAmount >= entry[0]) {
@@ -692,7 +692,7 @@ export default class coinsph extends Exchange {
             }
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'] as any;
+            const byLimit = config['byLimit'] as List;
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit >= entry[0]) {

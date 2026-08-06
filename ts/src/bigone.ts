@@ -1133,7 +1133,7 @@ export default class bigone extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'nonce': undefined,
-        } as any;
+        } as OrderBook;
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {

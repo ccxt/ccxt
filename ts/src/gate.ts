@@ -1385,7 +1385,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < spotMarketsResponse.length; i++) {
             const spotMarket = spotMarketsResponse[i];
             const id = this.safeString (spotMarket, 'id');
@@ -1461,7 +1461,7 @@ export default class gate extends Exchange {
     }
 
     async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
-        const result: any[] = [];
+        const result: List = [];
         let swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
         if (this.options['sandboxMode']) {
             swapSettlementCurrencies = [ 'usdt' ]; // gate sandbox only has usdt-margined swaps
@@ -1484,7 +1484,7 @@ export default class gate extends Exchange {
         if (this.options['sandboxMode']) {
             return []; // right now sandbox does not have inverse swaps
         }
-        const result: any[] = [];
+        const result: List = [];
         const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
@@ -1688,7 +1688,7 @@ export default class gate extends Exchange {
     }
 
     async fetchOptionMarkets (params: any = {}): Promise<Market[]> {
-        const result: any[] = [];
+        const result: List = [];
         const underlyings = await this.fetchOptionUnderlyings ();
         for (let i = 0; i < underlyings.length; i++) {
             const underlying = underlyings[i];
@@ -5885,7 +5885,7 @@ export default class gate extends Exchange {
         const request = {
             'settle': settle,
         };
-        const finalList = [ request ] as any; // hacky but needs to be done here
+        const finalList: List = [ request ]; // hacky but needs to be done here
         for (let i = 0; i < ids.length; i++) {
             finalList.push (ids[i]);
         }
@@ -7087,7 +7087,7 @@ export default class gate extends Exchange {
             path = this.implodeParams (path, settle as Dict);
             // remove the first element from params
             const newParams: List = [];
-            const anyParams = params as any;
+            const anyParams = params as List;
             for (let i = 1; i < anyParams.length; i++) {
                 newParams.push (params[i]);
             }

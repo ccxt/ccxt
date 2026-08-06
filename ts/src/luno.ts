@@ -526,7 +526,7 @@ export default class luno extends Exchange {
         //         ]
         //     }
         //
-        const result: any[] = [];
+        const result: List = [];
         const markets = this.safeValue (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];

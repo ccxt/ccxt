@@ -554,7 +554,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
@@ -651,7 +651,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');

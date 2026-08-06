@@ -8344,7 +8344,9 @@ export class BaseExchange {
         return this.filterBySinceLimit (uniqueResults, since, limit, key);
     }
 
-    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
+    // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
+    async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = 10;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
         let maxRetries = 3;
@@ -8370,7 +8372,8 @@ export class BaseExchange {
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method] (symbol, params);
                 } else if (method === 'fetchOpenInterestHistory') {
-                    if (symbol === undefined) {
+                    if (typeof symbol !== 'string') {
+                        // fetchOpenInterestHistory takes a single symbol, never a list
                         throw new ArgumentsRequired (this.id + ' fetchPaginatedCallCursor() requires a symbol argument');
                     }
                     if (timeframe === undefined) {

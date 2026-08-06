@@ -1411,7 +1411,7 @@ export default class bybit extends Exchange {
             this.urls['apiBackupDemoTrading'] = this.urls['api'];
             this.urls['api'] = this.urls['demotrading'];
         } else if ('apiBackupDemoTrading' in this.urls) {
-            this.urls['api'] = this.urls['apiBackupDemoTrading'] as any;
+            this.urls['api'] = this.urls['apiBackupDemoTrading'];
             const newUrls = this.omit (this.urls, 'apiBackupDemoTrading');
             this.urls = newUrls;
         }
@@ -2068,7 +2068,7 @@ export default class bybit extends Exchange {
     async fetchFutureMarkets (params: Dict = {}): Promise<Market[]> {
         params = this.extend (params, {});
         params['limit'] = 1000; // minimize number of requests
-        let preLaunchMarkets = [] as any;
+        let preLaunchMarkets: Dict = [];
         const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response: NullableDict = undefined;
         if (usePrivateInstrumentsInfo) {
@@ -6741,7 +6741,7 @@ export default class bybit extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchPositions', symbols as any, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 200) as Position[];
+            return await this.fetchPaginatedCallCursor ('fetchPositions', symbols, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 200) as Position[];
         }
         let symbol: Str = undefined;
         if ((symbols !== undefined) && Array.isArray (symbols)) {

@@ -6,7 +6,7 @@ import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int, List, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -410,7 +410,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const tickers = this.safeList (response, 'tickers', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeValue (tickers, i);
             const id = this.safeString (entry, 'id');

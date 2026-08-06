@@ -6,7 +6,7 @@ import Exchange from './abstract/bitrue.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, Int, MarginModification, Market, MarketType, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool, DepositWithdrawFees, Status } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, Int, List, MarginModification, Market, MarketType, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool, DepositWithdrawFees, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1485,7 +1485,7 @@ export default class bitrue extends Exchange {
             } else if (market['inverse']) {
                 response = await this.dapiV1PublicGetKlines (this.extend (request, params));
             }
-            data = response as any[];
+            data = response as Dict[];
         } else if (market['spot']) {
             const timeframesSpot = this.safeDict (timeframes, 'spot', {});
             const request: Dict = {
@@ -1661,7 +1661,7 @@ export default class bitrue extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         let data: Dict[] = [];
         const request: Dict = {};
         let type: Str = undefined;
@@ -1672,7 +1672,7 @@ export default class bitrue extends Exchange {
                 throw new NotSupported (this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } else if (market['spot']) {
                 response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
-                data = response as any[];
+                data = response as Dict[];
             } else {
                 throw new NotSupported (this.id + ' fetchTickers only support spot & swap markets');
             }
@@ -1682,7 +1682,7 @@ export default class bitrue extends Exchange {
                 throw new NotSupported (this.id + ' fetchTickers only support spot when symbols are not proved');
             }
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
-            data = response as any[];
+            data = response as Dict[];
         }
         //
         // spot
@@ -2361,7 +2361,7 @@ export default class bitrue extends Exchange {
         } else if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOpenOrders (this.extend (request, params));
-            data = response as any[];
+            data = response as Dict[];
         } else {
             throw new NotSupported (this.id + ' fetchOpenOrders only support spot & swap markets');
         }
@@ -2572,7 +2572,7 @@ export default class bitrue extends Exchange {
         } else if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.spotV2PrivateGetMyTrades (this.extend (request, params));
-            data = response as any[];
+            data = response as Dict[];
         } else {
             throw new NotSupported (this.id + ' fetchMyTrades only support spot & swap markets');
         }
@@ -3408,7 +3408,7 @@ export default class bitrue extends Exchange {
             return config['noSymbol'];
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'] as any;
+            const byLimit = config['byLimit'] as List;
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {

@@ -6,7 +6,7 @@ import Exchange from './abstract/bitbns.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, NullableDict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, FeeString, Status } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, FeeString, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -285,7 +285,7 @@ export default class bitbns extends Exchange {
         //         },
         //     ]
         //
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
@@ -1275,7 +1275,7 @@ export default class bitbns extends Exchange {
     }
 
     override sign (path: any, api: any = 'www', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        const urls = this.urls as any;
+        const urls = this.urls;
         if (!(api in urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
