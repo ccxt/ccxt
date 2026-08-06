@@ -354,7 +354,10 @@ export default class hyperliquid extends hyperliquidRest {
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
-                'type': market['spot'] ? 'activeSpotAssetCtx' : 'activeAssetCtx',
+                // 'activeSpotAssetCtx' is only a response channel; the subscription type is
+                // always 'activeAssetCtx', the server routes spot coins to the spot channel,
+                // see https://github.com/ccxt/ccxt/issues/27475
+                'type': 'activeAssetCtx',
                 'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
             },
         };
@@ -382,7 +385,7 @@ export default class hyperliquid extends hyperliquidRest {
         const request: Dict = {
             'method': 'unsubscribe',
             'subscription': {
-                'type': market['spot'] ? 'activeSpotAssetCtx' : 'activeAssetCtx',
+                'type': 'activeAssetCtx',
                 'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
             },
         };
