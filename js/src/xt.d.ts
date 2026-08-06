@@ -1,5 +1,5 @@
 import Exchange from './abstract/xt.js';
-import type { Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
+import type { Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, OpenInterest, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
 /**
  * @class xt
  * @augments Exchange
@@ -462,6 +462,17 @@ export default class xt extends Exchange {
      */
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
+    /**
+     * @method
+     * @name xt#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): OpenInterest;
     /**
      * @method
      * @name xt#fetchFundingHistory

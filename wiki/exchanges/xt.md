@@ -39,6 +39,7 @@
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
+* [fetchOpenInterest](#fetchopeninterest)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
@@ -897,6 +898,27 @@ fetch the current funding rate
 
 ```javascript
 xt.fetchFundingRate (symbol, params)
+```
+
+
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+retrieves the open interest of a contract trading pair
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+xt.fetchOpenInterest (symbol, params?)
 ```
 
 

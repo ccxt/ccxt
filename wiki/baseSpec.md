@@ -4482,6 +4482,7 @@ retrieves the open interest of a contract trading pair
 * [paradex](/exchanges/paradex.md#fetchopeninterest)
 * [phemex](/exchanges/phemex.md#fetchopeninterest)
 * [weex](/exchanges/weex.md#fetchopeninterest)
+* [xt](/exchanges/xt.md#fetchopeninterest)
 
 ---
 
