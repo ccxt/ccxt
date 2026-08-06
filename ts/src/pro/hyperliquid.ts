@@ -354,10 +354,7 @@ export default class hyperliquid extends hyperliquidRest {
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
-                // 'activeSpotAssetCtx' is only a response channel; the subscription type is
-                // always 'activeAssetCtx', the server routes spot coins to the spot channel,
-                // see https://github.com/ccxt/ccxt/issues/27475
-                'type': 'activeAssetCtx',
+                'type': market['spot'] ? 'activeSpotAssetCtx' : 'activeAssetCtx',
                 'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
             },
         };
@@ -385,7 +382,7 @@ export default class hyperliquid extends hyperliquidRest {
         const request: Dict = {
             'method': 'unsubscribe',
             'subscription': {
-                'type': 'activeAssetCtx',
+                'type': market['spot'] ? 'activeSpotAssetCtx' : 'activeAssetCtx',
                 'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
             },
         };
@@ -497,7 +494,8 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase ();
+        const trades = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -1361,7 +1359,14 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const orders = await this.watch (url, messageHash, message, messageHash);
+        // dedup by (channel, user), not by messageHash: the server subscription is per-user,
+        // so a second user must send its own subscribe (https://github.com/ccxt/ccxt/issues/28369),
+        // and a second symbol-scoped call for the same user must NOT resend - hyperliquid answers
+        // duplicates on the error channel ("Already subscribed"), which rejects every pending
+        // future on the connection. address lowercased because the server is case-insensitive.
+        // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
+        const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase ();
+        const orders = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1593,6 +1598,13 @@ export default class hyperliquid extends hyperliquidRest {
         const subHash = 'order';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
+        // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
+        // clear it for the user echoed in the ack so a later watch re-subscribes
+        const user = this.safeStringLower (subscription, 'user');
+        const subscribeHash = 'subscribe:orderUpdates::' + user;
+        if (subscribeHash in client.subscriptions) {
+            delete client.subscriptions[subscribeHash];
+        }
         const topicStructure = {
             'topic': 'orders',
         };
@@ -1603,6 +1615,13 @@ export default class hyperliquid extends hyperliquidRest {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
+        // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
+        // clear it for the user echoed in the ack so a later watch re-subscribes
+        const user = this.safeStringLower (subscription, 'user');
+        const subscribeHash = 'subscribe:userFills::' + user;
+        if (subscribeHash in client.subscriptions) {
+            delete client.subscriptions[subscribeHash];
+        }
         const topicStructure = {
             'topic': 'myTrades',
         };
