@@ -73,7 +73,7 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -124,17 +124,18 @@ export default class bithumb extends bithumbRest {
         [ generation, params ] = this.handleOptionAndParams (params, 'watchTickers', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const symbolsLength = (symbols === undefined) ? 0 : symbols.length;
+        if (isGenerationTwo && (symbolsLength === 0)) {
+            throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for the generation 2 API');
+        }
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        const symbolsLength = symbols.length;
-        if (isGenerationTwo && ((symbols === undefined) || (symbolsLength === 0))) {
-            throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for the generation 2 API');
-        }
+        const symbolsLengthDefined = symbols.length;
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const streamMarketIds: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbolsLength; i++) {
+        for (let i = 0; i < symbolsLengthDefined; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
             let streamMarketId = undefined;
@@ -371,9 +372,9 @@ export default class bithumb extends bithumbRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
-     * @returns {object} an [order book structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1028,7 +1029,7 @@ export default class bithumb extends bithumbRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (typeof message === 'string') {
             const content = message.toLowerCase ();
             if (content === 'pong') {
