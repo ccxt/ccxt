@@ -1173,6 +1173,7 @@ public partial class bybit : Exchange
                     { "BSC", "BEP20" },
                     { "OP", "OP" },
                     { "MATIC", "MATIC" },
+                    { "SPL", "SOL" },
                 } },
                 { "defaultNetwork", "ERC20" },
                 { "defaultNetworks", new Dictionary<string, object>() {

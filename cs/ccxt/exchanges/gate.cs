@@ -764,7 +764,7 @@ public partial class gate : Exchange
                     { "MNT", "MNT" },
                     { "CELO", "CELO" },
                     { "HBAR", "HBAR" },
-                    { "ZKSERA", "ZKSERA" },
+                    { "ZKSYNC", "ZKSERA" },
                     { "KLAY", "KLAY" },
                     { "EOS", "EOS" },
                     { "ACA", "ACA" },

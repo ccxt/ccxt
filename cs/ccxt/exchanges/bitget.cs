@@ -1648,6 +1648,7 @@ public partial class bitget : Exchange
                     { "AZERO", "AZERO" },
                     { "TRC10", "TRC10" },
                     { "JUNO", "JUNO" },
+                    { "CANTO", "CANTO-EVM" },
                     { "ZKSYNC", "zkSyncEra" },
                     { "STARKNET", "Starknet" },
                     { "VIC", "VICTION" },
