@@ -620,7 +620,12 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 }} );
             }};
             Object message = this.extend(request, parameters);
-            Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
+            if (Helpers.isTrue(Helpers.isEqual(userAddress, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a user address")) ;
+            }
+            Object subscribeHash = Helpers.add("subscribe:userFills::", ((String)userAddress).toLowerCase());
+            Object trades = (this.watch(url, messageHash, message, subscribeHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -1655,7 +1660,18 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 }} );
             }};
             Object message = this.extend(request, parameters);
-            Object orders = (this.watch(url, messageHash, message, messageHash, null)).join();
+            // dedup by (channel, user), not by messageHash: the server subscription is per-user,
+            // so a second user must send its own subscribe (https://github.com/ccxt/ccxt/issues/28369),
+            // and a second symbol-scoped call for the same user must NOT resend - hyperliquid answers
+            // duplicates on the error channel ("Already subscribed"), which rejects every pending
+            // future on the connection. address lowercased because the server is case-insensitive.
+            // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
+            if (Helpers.isTrue(Helpers.isEqual(userAddress, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a user address")) ;
+            }
+            Object subscribeHash = Helpers.add("subscribe:orderUpdates::", ((String)userAddress).toLowerCase());
+            Object orders = (this.watch(url, messageHash, message, subscribeHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -1799,6 +1815,13 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         if (Helpers.isTrue(Helpers.isEqual(channel, "error")))
         {
             Object ret_msg = this.safeString(message, "data", "");
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(ret_msg, "Already subscribed"), 0)))
+            {
+                // a duplicate subscribe is harmless - the server-side subscription is intact
+                // and data keeps flowing; rejecting all pending futures here would poison the
+                // whole connection, see https://github.com/ccxt/ccxt/issues/28369
+                return true;
+            }
             var error = new ExchangeError(Helpers.add(Helpers.add(this.id, " "), ret_msg));
             client.reject(error);
             return true;
@@ -1925,6 +1948,17 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object subHash = "order";
         Object unSubHash = Helpers.add("unsubscribe:", subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
+        // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
+        // clear it for the user echoed in the ack so a later watch re-subscribes
+        Object user = this.safeStringLower(subscription, "user");
+        if (Helpers.isTrue(!Helpers.isEqual(user, null)))
+        {
+            Object subscribeHash = Helpers.add("subscribe:orderUpdates::", user);
+            if (Helpers.isTrue(Helpers.inOp(client.subscriptions, subscribeHash)))
+            {
+                ((java.util.Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+            }
+        }
         Object topicStructure = new java.util.HashMap<String, Object>() {{
             put( "topic", "orders" );
         }};
@@ -1936,6 +1970,17 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object subHash = "myTrades";
         Object unSubHash = Helpers.add("unsubscribe:", subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
+        // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
+        // clear it for the user echoed in the ack so a later watch re-subscribes
+        Object user = this.safeStringLower(subscription, "user");
+        if (Helpers.isTrue(!Helpers.isEqual(user, null)))
+        {
+            Object subscribeHash = Helpers.add("subscribe:userFills::", user);
+            if (Helpers.isTrue(Helpers.inOp(client.subscriptions, subscribeHash)))
+            {
+                ((java.util.Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+            }
+        }
         Object topicStructure = new java.util.HashMap<String, Object>() {{
             put( "topic", "myTrades" );
         }};
