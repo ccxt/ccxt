@@ -241,7 +241,8 @@ func (this *Xt) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
  * @name xt#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
  * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
- * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+ * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
