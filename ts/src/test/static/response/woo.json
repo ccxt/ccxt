@@ -51,8 +51,12 @@
                         "currency": null
                     },
                     "info": {
+                        "success": true,
+                        "data": {
+                            "status": "EDIT_SENT"
+                        },
+                        "timestamp": 1786038156772,
                         "status": "EDIT_SENT",
-                        "timestamp": "1786038156772",
                         "orderId": "81982203662"
                     },
                     "fees": [
