@@ -6,7 +6,7 @@ import Exchange from './abstract/whitebit.js';
 import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Account, Balances, Bool, BorrowInterest, Conversion, CrossBorrowRate, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, List, Market, MarketType, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, Fee, FeeString, DepositWithdrawFees, Status } from './base/types.js';
+import type{ Account, Balances, Bool, BorrowInterest, Conversion, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, List, Market, MarketType, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, Fee, FeeString, DepositWithdrawFees, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ export default class whitebit extends Exchange {
                 'fetchConvertQuote': true,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': true,
-                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
@@ -4131,45 +4131,6 @@ export default class whitebit extends Exchange {
             'stopLossPrice': this.safeNumber (tpsl, 'stopLoss'),
             'takeProfitPrice': this.safeNumber (tpsl, 'takeProfit'),
         }) as Position;
-    }
-
-    /**
-     * @method
-     * @name whitebit#fetchCrossBorrowRate
-     * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
-     */
-    override async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const currency = this.currency (code);
-        const request: Dict = {
-            'ticker': currency['id'],
-        };
-        const response = await this.v4PrivatePostMainAccountSmartPlans (this.extend (request, params));
-        //
-        //
-        const data = this.safeList (response, 0, []);
-        return this.parseBorrowRate (data, currency);
-    }
-
-    override parseBorrowRate (info: any, currency: Currency = undefined) {
-        //
-        //
-        const currencyId = this.safeString (info, 'ticker');
-        const percent = this.safeString (info, 'percent');
-        return {
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'rate': this.parseNumber (Precise.stringDiv (percent, '100')),
-            'period': this.safeInteger (info, 'duration'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'info': info,
-        };
     }
 
     isFiat (currency: string): boolean {
