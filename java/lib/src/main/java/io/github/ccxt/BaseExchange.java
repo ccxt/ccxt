@@ -42,6 +42,42 @@ import java.lang.reflect.Constructor;
 
 public class BaseExchange {
 
+    private java.util.Map<String, long[]> wsBackoffState = new java.util.HashMap<>();
+
+    // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
+    // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
+    public int calculateWsBackoffDelay(String url) {
+        Object wsOptions = Helpers.SafeValue(this.options, "ws", new java.util.HashMap<String, Object>());
+        Object backoff = Helpers.SafeValue(wsOptions, "backoff", new java.util.HashMap<String, Object>());
+        long base = Helpers.SafeInteger(backoff, "base", 1000L);
+        long factor = Helpers.SafeInteger(backoff, "factor", 2L);
+        long maxDelay = Helpers.SafeInteger(backoff, "max", 60000L);
+        long stableAfter = Helpers.SafeInteger(backoff, "stableAfter", 30000L);
+        long now = this.milliseconds();
+        long attempts = 0L;
+        long lastAttempt = 0L;
+        long[] state = this.wsBackoffState.get(url);
+        if (state != null) {
+            attempts = state[0];
+            lastAttempt = state[1];
+        }
+        if ((lastAttempt > 0L) && ((now - lastAttempt) > stableAfter)) {
+            attempts = 0L; // the previous connection was healthy long enough, start fresh
+        }
+        this.wsBackoffState.put(url, new long[] { attempts + 1L, now });
+        if (attempts == 0L) {
+            return 0; // first dial or recovered, connect immediately
+        }
+        long delay = base;
+        long capped = Math.min(attempts, 20L); // overflow guard
+        for (long i = 1L; i < capped; i++) {
+            delay = delay * factor;
+        }
+        long jitterMillis = now % 1000L; // rng-free jitter
+        long jittered = (long) (delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
+        return (int) Math.min(jittered, maxDelay); // the ceiling holds regardless of jitter
+    }
+
     // Virtual thread executor for non-blocking async operations.
     // Virtual threads park at zero cost on .join(), enabling hundreds of concurrent
     // requests without exhausting platform threads.
@@ -1721,7 +1757,7 @@ public class BaseExchange {
         io.github.ccxt.ws.Future future = client.future(messageHash);
 
         if (client.subscriptionsMap().putIfAbsent(subscribeHash, subscription != null ? subscription : true) == null) {
-            client.connect(0).thenAccept(connected -> {
+            client.connect(this.calculateWsBackoffDelay(url)).thenAccept(connected -> {
                 if (message != null) {
                     try {
                         client.send(message);
@@ -1764,7 +1800,7 @@ public class BaseExchange {
         }
 
         if (subscribeHashes2 == null || !missingSubscriptions.isEmpty()) {
-            client.connect(0).thenAccept(connected -> {
+            client.connect(this.calculateWsBackoffDelay(url)).thenAccept(connected -> {
                 if (message != null) {
                     try {
                         client.send(message);
