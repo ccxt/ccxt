@@ -115,6 +115,16 @@ export default class hyperliquid extends hyperliquidRest {
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     /**
      * @method
+     * @name hyperliquid#unWatchTicker
+     * @description unWatches the price ticker stream of a specific market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified symbol of the market to stop watching the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
      * @name hyperliquid#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
@@ -159,6 +169,7 @@ export default class hyperliquid extends hyperliquidRest {
      */
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     handleWsTickers(client: Client, message: any): boolean;
+    handleActiveAssetCtx(client: Client, message: any): boolean;
     parseWsTicker(rawTicker: any, market?: Market): Ticker;
     handleMyTrades(client: Client, message: any): void;
     /**
@@ -286,6 +297,7 @@ export default class hyperliquid extends hyperliquidRest {
     handleOrderBookUnsubscription(client: Client, subscription: Dict): void;
     handleTradesUnsubscription(client: Client, subscription: Dict): void;
     handleTickersUnsubscription(client: Client, subscription: Dict): void;
+    handleTickerUnsubscription(client: Client, subscription: Dict): void;
     handleOHLCVUnsubscription(client: Client, subscription: Dict): void;
     handleOrderUnsubscription(client: Client, subscription: Dict): void;
     handleMyTradesUnsubscription(client: Client, subscription: Dict): void;
