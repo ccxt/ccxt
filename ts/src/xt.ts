@@ -5206,6 +5206,7 @@ export default class xt extends Exchange {
             'contractSize': market['contractSize'],
             'entryPrice': this.safeNumber2 (position, 'entryPrice', 'closeOpenPrice'),
             'markPrice': this.safeNumber2 (position, 'markPrice', 'calMarkPrice'),
+            'lastPrice': this.safeNumber (position, 'closePrice'),
             'notional': undefined,
             'leverage': this.safeInteger2 (position, 'leverage', 'endLeverage'),
             'collateral': collateral,
