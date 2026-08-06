@@ -120,11 +120,16 @@ public partial class BaseExchange
             }
             else
             {
-                foreach (var messageHash in this.futures.Keys)
+                // snapshot the keys and take each future out of the dictionary before
+                // rejecting it - the receive loop and the ping loop can both be
+                // rejecting the same client, and indexing a key another pass already
+                // removed would throw KeyNotFoundException
+                foreach (var messageHash in this.futures.Keys.ToList())
                 {
-                    var future = this.futures[messageHash];
-                    this.futures.Remove(messageHash); // this order matters
-                    future.reject(content);
+                    if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+                    {
+                        future.reject(content);
+                    }
                 }
             }
         }
@@ -234,7 +239,19 @@ public partial class BaseExchange
                 {
                     Console.WriteLine($"PingLoop error: {ex.Message}");
                 }
-                this.onError(this, ex);
+                // PingLoop is async void, so anything escaping this catch is rethrown on
+                // the thread pool and kills the host process instead of faulting a task
+                try
+                {
+                    this.onError(this, ex);
+                }
+                catch (Exception cleanupError)
+                {
+                    if (this.verbose)
+                    {
+                        Console.WriteLine($"PingLoop cleanup error: {cleanupError.Message}");
+                    }
+                }
             }
         }
 
@@ -458,7 +475,10 @@ public partial class BaseExchange
                     }
                     else if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        this.onClose(this, null);
+                        // every pending watcher is rejected with this error, so it has to
+                        // say what happened - a null here surfaces to the caller as
+                        // "Future rejected with null data"
+                        this.onClose(this, new ccxt.NetworkError("connection closed by remote server " + this.url));
                         await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
                         this.isConnected = false;
                     }

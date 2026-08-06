@@ -57,12 +57,13 @@ public partial class BaseExchange
         foreach (var KeyValue in urlClient.subscriptions)
         {
             urlClient.subscriptions.Remove(KeyValue.Key);
-            Future existingFuture = null;
-            if (urlClient.futures.TryGetValue(KeyValue.Key, out existingFuture))
-            {
-                existingFuture.reject(error);
-            }
         }
+        // futures are keyed by message hash while subscriptions are keyed by subscribe
+        // hash, and the two differ for most exchanges ('orders' vs 'orders::BTC/USDT'),
+        // so matching futures against subscription keys left every other watcher
+        // awaiting a future nobody would ever complete - reject them all, the way the
+        // js client does in Client.reset()
+        urlClient.reject(error);
     }
 
     public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
