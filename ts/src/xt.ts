@@ -5192,7 +5192,8 @@ export default class xt extends Exchange {
         const isCross = (positionType === 'CROSSED') || (positionType === '1');
         const marginMode = (isCross) ? 'cross' : 'isolated';
         const collateral = this.safeNumber (position, 'isolatedMargin');
-        const liquidationPriceString = this.omitZero (this.safeString (position, 'breakPrice'));
+        // history entries carry the liquidation price in forceMarkPrice when force is true
+        const liquidationPriceString = this.omitZero (this.safeString2 (position, 'breakPrice', 'forceMarkPrice'));
         const timestamp = this.safeInteger (position, 'closeTime');
         return this.safePosition ({
             'info': position,
