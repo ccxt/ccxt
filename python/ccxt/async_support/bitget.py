@@ -1723,7 +1723,7 @@ class bitget(Exchange, ImplicitAPI):
                     # 'CADUCEUS': 'CMP',
                     # 'CONFLUX': 'CFX',  # CFXeSpace is different
                     # 'CERE': 'CERE',
-                    # 'CANTO': 'CANTO',
+                    'CANTO': 'CANTO-EVM',  # live-verified raw chain id, see https://github.com/ccxt/ccxt/issues/23989
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
                     'VIC': 'VICTION',

@@ -797,7 +797,7 @@ class gate(Exchange, ImplicitAPI):
                     'CELO': 'CELO',
                     'HBAR': 'HBAR',
                     # 'FTM': SONIC REBRAND, todo
-                    'ZKSERA': 'ZKSERA',
+                    'ZKSYNC': 'ZKSERA',  # unified code is ZKSYNC, raw chain id is ZKSERA, see https://github.com/ccxt/ccxt/issues/23989
                     'KLAY': 'KLAY',
                     'EOS': 'EOS',
                     'ACA': 'ACA',
