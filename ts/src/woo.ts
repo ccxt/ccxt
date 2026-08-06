@@ -1579,6 +1579,7 @@ export default class woo extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id of the order to edit, used instead of the id argument
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
@@ -1626,8 +1627,9 @@ export default class woo extends Exchange {
                 request['callbackRate'] = convertedTrailingPercent;
             }
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
-        const isConditional = isTrailing || (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop' ]);
+        const isConditional = isTrigger || isTrailing || (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             if (isByClientOrder) {
