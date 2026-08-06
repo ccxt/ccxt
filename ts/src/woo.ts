@@ -1656,13 +1656,13 @@ export default class woo extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        data['timestamp'] = this.safeString (response, 'timestamp');
+        const order = this.extend (response, data);
         if (isByClientOrder) {
-            data['clientOrderId'] = clientOrderIdExchangeSpecific;
+            order['clientOrderId'] = clientOrderIdExchangeSpecific;
         } else {
-            data['orderId'] = id;
+            order['orderId'] = id;
         }
-        return this.parseOrder (data, market);
+        return this.parseOrder (order, market);
     }
 
     /**
