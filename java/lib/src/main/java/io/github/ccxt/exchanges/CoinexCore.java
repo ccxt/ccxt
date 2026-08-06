@@ -489,8 +489,8 @@ public class CoinexCore extends CoinexApi
                     put( "ACA", "ACA" );
                     put( "CHZ", "CHILIZ" );
                     put( "ADA", "ADA" );
-                    put( "ARB", "ARBITRUM" );
-                    put( "ARBNOVA", "ARBITRUM_NOVA" );
+                    put( "ARBITRUM", "ARBITRUM" );
+                    put( "ARBITRUM_NOVA", "ARBITRUM_NOVA" );
                     put( "OP", "OPTIMISM" );
                     put( "APT", "APTOS" );
                     put( "ATOM", "ATOM" );

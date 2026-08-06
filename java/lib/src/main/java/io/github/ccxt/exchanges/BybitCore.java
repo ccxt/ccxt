@@ -1126,8 +1126,8 @@ public class BybitCore extends BybitApi
                     put( "ADA", "ADA" );
                     put( "ALGO", "ALGO" );
                     put( "APT", "APTOS" );
-                    put( "ARBONE", "ARBI" );
-                    put( "ARBNOVA", "ARBINOVA" );
+                    put( "ARBITRUM", "ARBI" );
+                    put( "ARBITRUM_NOVA", "ARBINOVA" );
                     put( "AVAXC", "CAVAX" );
                     put( "AVAXX", "XAVAX" );
                     put( "COSMOS", "ATOM" );

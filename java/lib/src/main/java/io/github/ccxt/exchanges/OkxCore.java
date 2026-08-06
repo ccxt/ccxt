@@ -1100,7 +1100,7 @@ public class OkxCore extends OkxApi
                     put( "APT", "Aptos" );
                     put( "SONIC", "Sonic" );
                     put( "SCROLL", "Scroll" );
-                    put( "ARBONE", "Arbitrum One" );
+                    put( "ARBITRUM", "Arbitrum One" );
                     put( "AVAXC", "Avalanche C-Chain" );
                     put( "AVAXX", "Avalanche X-Chain" );
                     put( "BASE", "Base" );

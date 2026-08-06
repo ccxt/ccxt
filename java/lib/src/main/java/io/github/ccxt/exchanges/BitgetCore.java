@@ -1585,8 +1585,8 @@ public class BitgetCore extends BitgetApi
                     put( "ATOM", "ATOM" );
                     put( "ACA", "AcalaToken" );
                     put( "APT", "Aptos" );
-                    put( "ARBONE", "ArbitrumOne" );
-                    put( "ARBNOVA", "ArbitrumNova" );
+                    put( "ARBITRUM", "ArbitrumOne" );
+                    put( "ARBITRUM_NOVA", "ArbitrumNova" );
                     put( "AVAXC", "C-Chain" );
                     put( "AVAXX", "X-Chain" );
                     put( "AR", "Arweave" );

@@ -1440,7 +1440,7 @@ public class BinanceCore extends BinanceApi
                     put( "DOGE", "DOGE" );
                     put( "SOL", "SOL" );
                     put( "SONIC", "SONIC" );
-                    put( "ARBONE", "ARBITRUM" );
+                    put( "ARBITRUM", "ARBITRUM" );
                     put( "AVAXC", "AVAXC" );
                     put( "MATIC", "MATIC" );
                     put( "BASE", "BASE" );

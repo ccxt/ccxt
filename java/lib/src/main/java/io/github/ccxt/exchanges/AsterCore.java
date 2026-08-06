@@ -577,7 +577,7 @@ public class AsterCore extends AsterApi
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "ERC20", "ETH" );
                     put( "BEP20", "BSC" );
-                    put( "ARBONE", "Arbitrum" );
+                    put( "ARBITRUM", "Arbitrum" );
                 }} );
                 put( "networksToChainId", new java.util.HashMap<String, Object>() {{
                     put( "ETH", 1 );
