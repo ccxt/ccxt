@@ -273,6 +273,24 @@
                 "output": "{\"orderId\":\"371184779575507520\"}"
             }
         ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear swap open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://fapi.xt.com/future/market/v1/public/contract/open-interest?symbol=btc_usdt",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap open interest routes to dapi",
+                "method": "fetchOpenInterest",
+                "url": "https://dapi.xt.com/future/market/v1/public/contract/open-interest?symbol=btc_usd",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
         "fetchFundingInterval": [
             {
                 "description": "linear swap fetch the funding interval",
