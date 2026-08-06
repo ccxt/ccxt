@@ -3094,7 +3094,7 @@
                             }
                         }
                     },
-                    "ARBITRUM": {
+                    "ARB": {
                         "info": {
                             "code": "ARB",
                             "precision": "8",
@@ -3104,7 +3104,7 @@
                         },
                         "id": "ARB",
                         "numericId": null,
-                        "code": "ARBITRUM",
+                        "code": "ARB",
                         "precision": 1e-8,
                         "type": null,
                         "name": "Arbitrum",
