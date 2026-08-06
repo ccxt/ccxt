@@ -288,8 +288,10 @@ class bitmex extends bitmex$1["default"] {
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
-                'api-expires': 5, // in seconds
-                'fetchOHLCVOpenTimestamp': true,
+                'recvWindow': 5000,
+                'fetchOHLCV': {
+                    'useOpenTimestamp': true,
+                },
                 'oldPrecision': false,
                 'networks': {
                     'BTC': 'btc',
@@ -494,26 +496,28 @@ class bitmex extends bitmex$1["default"] {
             if (isWithdrawEnabled) {
                 withdrawEnabled = true;
             }
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': active,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': withdrawalFee,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': withdrawalFee,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         const currencyEnabled = this.safeValue(currency, 'enabled');
         const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
@@ -590,7 +594,7 @@ class bitmex extends bitmex$1["default"] {
         }
         const market = this.market(symbol);
         if (market['spot']) {
-            return this.parseNumber(this.convertToRealAmount(market[currencySide], rawQuantity));
+            return this.parseNumber(this.convertToRealAmount(this.safeString(market, currencySide), rawQuantity));
         }
         return this.parseNumber(rawQuantity);
     }
@@ -870,7 +874,10 @@ class bitmex extends bitmex$1["default"] {
             isQuanto = undefined;
             linear = undefined;
         }
-        return {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' parseMarket() requires a symbol');
+        }
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -921,7 +928,7 @@ class bitmex extends bitmex$1["default"] {
             },
             'created': undefined, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         //
@@ -981,7 +988,9 @@ class bitmex extends bitmex$1["default"] {
             const total = this.safeString(balance, 'marginBalance');
             account['free'] = this.convertToRealAmount(code, free);
             account['total'] = this.convertToRealAmount(code, total);
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1058,7 +1067,7 @@ class bitmex extends bitmex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1089,8 +1098,7 @@ class bitmex extends bitmex$1["default"] {
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null price in the orderbook
             if (price !== undefined) {
-                const resultSide = result[side];
-                resultSide.push([price, amount]);
+                result[side].push([price, amount]);
             }
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
@@ -1752,11 +1760,12 @@ class bitmex extends bitmex$1["default"] {
             request['endTime'] = this.iso8601(until);
         }
         const duration = this.parseTimeframe(timeframe) * 1000;
-        const fetchOHLCVOpenTimestamp = this.safeBool(this.options, 'fetchOHLCVOpenTimestamp', true);
+        let useOpenTimestamp = undefined;
+        [useOpenTimestamp, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'useOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let timestamp = since;
-            if (fetchOHLCVOpenTimestamp) {
+            if (useOpenTimestamp) {
                 timestamp = this.sum(timestamp, duration);
             }
             const startTime = this.iso8601(timestamp);
@@ -1774,7 +1783,7 @@ class bitmex extends bitmex$1["default"] {
         //     ]
         //
         const result = this.parseOHLCVs(response, market, timeframe, since, limit);
-        if (fetchOHLCVOpenTimestamp) {
+        if (useOpenTimestamp) {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
@@ -1972,7 +1981,7 @@ class bitmex extends bitmex$1["default"] {
             isInverse = (defaultSubType === 'inverse');
         }
         else {
-            isInverse = this.safeBool(market, 'inverse', false);
+            isInverse = this.safeBool(market, 'inverse', false) === true;
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity(symbol, qty);
@@ -2271,7 +2280,7 @@ class bitmex extends bitmex$1["default"] {
      * @description cancels an open order
      * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
      * @param {string} id order id
-     * @param {string} symbol not used by bitmex cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2305,7 +2314,7 @@ class bitmex extends bitmex$1["default"] {
      * @description cancel multiple orders
      * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by bitmex cancelOrders ()
+     * @param {string} symbol not used by cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2332,7 +2341,7 @@ class bitmex extends bitmex$1["default"] {
      * @name bitmex#cancelAllOrders
      * @description cancel all open orders
      * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2400,6 +2409,9 @@ class bitmex extends bitmex$1["default"] {
     async cancelAllOrdersAfter(timeout, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
+        }
+        if (timeout === undefined) {
+            throw new errors.ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
         }
         const request = {
             'timeout': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
@@ -2830,6 +2842,9 @@ class bitmex extends bitmex$1["default"] {
         }
         const request = {};
         let market = undefined;
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         if (symbol in this.currencies) {
             const code = this.currency(symbol);
             request['symbol'] = code['id'];
@@ -3047,10 +3062,12 @@ class bitmex extends bitmex$1["default"] {
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
                 const withdrawalFeeId = this.safeString(network, 'withdrawalFee');
                 const withdrawalFee = this.parseNumber(Precise["default"].stringMul(withdrawalFeeId, precision));
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': withdrawalFee, 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': withdrawalFee, 'percentage': false },
+                    };
+                }
                 if (networksLength === 1) {
                     result['withdraw']['fee'] = withdrawalFee;
                     result['withdraw']['percentage'] = false;
@@ -3613,7 +3630,7 @@ class bitmex extends bitmex$1["default"] {
      * @see https://docs.bitmex.com/api-explorer/order-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
-     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
@@ -3695,12 +3712,16 @@ class bitmex extends bitmex$1["default"] {
         if (api === 'private' || (api === 'public' && isAuthenticated)) {
             this.checkRequiredCredentials();
             let auth = method + query;
-            let expires = this.safeInteger(this.options, 'api-expires');
+            const apiExpires = this.safeInteger(this.options, 'api-expires'); // backwards compatibility
+            let expires = this.safeIntegerProduct(this.options, 'recvWindow', 0.001, apiExpires);
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
             };
             expires = this.sum(this.seconds(), expires);
+            if (expires === undefined) {
+                throw new errors.ExchangeError(this.id + ' sign() missing expires');
+            }
             const stringExpires = expires.toString();
             auth += stringExpires;
             headers['api-expires'] = stringExpires;

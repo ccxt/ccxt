@@ -1478,65 +1478,68 @@ export default class bitget extends Exchange {
             },
             'options': {
                 'uta': undefined,
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'timeframes': {
-                    'spot': {
-                        '1m': '1min',
-                        '5m': '5min',
-                        '3m': '3min',
-                        '15m': '15min',
-                        '30m': '30min',
-                        '1h': '1h',
-                        '4h': '4h',
-                        '6h': '6Hutc',
-                        '12h': '12Hutc',
-                        '1d': '1Dutc',
-                        '3d': '3Dutc',
-                        '1w': '1Wutc',
-                        '1M': '1Mutc',
-                    },
-                    'swap': {
-                        '1m': '1m',
-                        '3m': '3m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
-                        '1h': '1H',
-                        '2h': '2H',
-                        '4h': '4H',
-                        '6h': '6Hutc',
-                        '12h': '12Hutc',
-                        '1d': '1Dutc',
-                        '3d': '3Dutc',
-                        '1w': '1Wutc',
-                        '1M': '1Mutc',
-                    },
-                    'uta': {
-                        '1m': '1m',
-                        '3m': '3m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
-                        '1h': '1H',
-                        '2h': '2H',
-                        '4h': '4H',
-                        '6h': '6H',
-                        '12h': '12H',
-                        '1d': '1D',
-                    },
-                },
                 'fetchMarkets': {
                     'types': ['spot', 'swap'], // there is future markets but they use the same endpoints as swap
                 },
                 'defaultType': 'spot', // 'spot', 'swap', 'future'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
-                'createMarketBuyOrderRequiresPrice': true,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                    'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                },
                 'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
                 'fetchOHLCV': {
+                    'timeframes': {
+                        'spot': {
+                            '1m': '1min',
+                            '5m': '5min',
+                            '3m': '3min',
+                            '15m': '15min',
+                            '30m': '30min',
+                            '1h': '1h',
+                            '4h': '4h',
+                            '6h': '6Hutc',
+                            '12h': '12Hutc',
+                            '1d': '1Dutc',
+                            '3d': '3Dutc',
+                            '1w': '1Wutc',
+                            '1M': '1Mutc',
+                        },
+                        'swap': {
+                            '1m': '1m',
+                            '3m': '3m',
+                            '5m': '5m',
+                            '15m': '15m',
+                            '30m': '30m',
+                            '1h': '1H',
+                            '2h': '2H',
+                            '4h': '4H',
+                            '6h': '6Hutc',
+                            '12h': '12Hutc',
+                            '1d': '1Dutc',
+                            '3d': '3Dutc',
+                            '1w': '1Wutc',
+                            '1M': '1Mutc',
+                        },
+                        'uta': {
+                            '1m': '1m',
+                            '3m': '3m',
+                            '5m': '5m',
+                            '15m': '15m',
+                            '30m': '30m',
+                            '1h': '1H',
+                            '2h': '2H',
+                            '4h': '4H',
+                            '6h': '6H',
+                            '12h': '12H',
+                            '1d': '1D',
+                        },
+                    },
                     // ### Timeframe settings ###
                     // after testing, the below values are real ones, because the values provided by API DOCS are wrong
                     // so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
@@ -1618,8 +1621,8 @@ export default class bitget extends Exchange {
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
-                    'ARBONE': 'ArbitrumOne',
-                    'ARBNOVA': 'ArbitrumNova',
+                    'ARBITRUM': 'ArbitrumOne',
+                    'ARBITRUM_NOVA': 'ArbitrumNova',
                     'AVAXC': 'C-Chain',
                     'AVAXX': 'X-Chain',
                     'AR': 'Arweave',
@@ -1700,7 +1703,7 @@ export default class bitget extends Exchange {
                     // 'CADUCEUS': 'CMP',
                     // 'CONFLUX': 'CFX', // CFXeSpace is different
                     // 'CERE': 'CERE',
-                    // 'CANTO': 'CANTO',
+                    'CANTO': 'CANTO-EVM', // live-verified raw chain id, see https://github.com/ccxt/ccxt/issues/23989
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
                     'VIC': 'VICTION',
@@ -1709,9 +1712,10 @@ export default class bitget extends Exchange {
                 'fetchPositions': {
                     'method': 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 },
-                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                // fiat currencies on deposit page
-                'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
+                'fetchCurrencies': {
+                    // fiat currencies on deposit page
+                    'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
+                },
             },
             'rollingWindowSize': 1000.0,
             'features': {
@@ -2549,7 +2553,7 @@ export default class bitget extends Exchange {
         return this.parseCurrencies(data);
     }
     parseCurrency(rawCurrency) {
-        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.handleOption('fetchCurrencies', 'fiatCurrencies', []);
         const entry = rawCurrency;
         const id = this.safeString(entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
         const code = this.safeCurrencyCode(id);
@@ -2566,6 +2570,9 @@ export default class bitget extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'chain');
             let network = this.networkIdToCode(networkId, code);
+            if (network === undefined) {
+                throw new ArgumentsRequired(this.id + ' requires a network argument');
+            }
             network = network.toUpperCase();
             const withdrawable = (this.safeString(chain, 'withdrawable') === 'true');
             const rechargeable = (this.safeString(chain, 'rechargeable') === 'true');
@@ -3198,7 +3205,7 @@ export default class bitget extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -4319,15 +4326,16 @@ export default class bitget extends Exchange {
         };
         let marketType = undefined;
         let timeframes = undefined;
+        const timeframesOption = this.handleOption('fetchOHLCV', 'timeframes');
         let uta = undefined;
         [uta, params] = await this.handleUTAAndParams(params, 'fetchOHLCV', false);
         if (uta) {
-            timeframes = this.options['timeframes']['uta'];
+            timeframes = timeframesOption['uta'];
             request['interval'] = this.safeString(timeframes, timeframe, timeframe);
         }
         else {
             marketType = market['spot'] ? 'spot' : 'swap';
-            timeframes = this.options['timeframes'][marketType];
+            timeframes = timeframesOption[marketType];
             request['granularity'] = this.safeString(timeframes, timeframe, timeframe);
         }
         const msInDay = 86400000;
@@ -4668,7 +4676,9 @@ export default class bitget extends Exchange {
             account['used'] = this.safeString(entry, 'locked');
             account['free'] = this.safeString(entry, 'available');
             account['total'] = this.safeString(entry, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -4748,7 +4758,9 @@ export default class bitget extends Exchange {
                     account['used'] = Precise.stringAdd(frozen, locked);
                 }
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -5260,6 +5272,12 @@ export default class bitget extends Exchange {
         return this.parseOrder(data, market);
     }
     createUtaOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -5350,8 +5368,11 @@ export default class bitget extends Exchange {
             const exchangeSpecificTifParam = this.safeString(params, 'timeInForce');
             let postOnly = undefined;
             [postOnly, params] = this.handlePostOnly(isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
-            const defaultTimeInForce = this.safeStringUpper(this.options, 'defaultTimeInForce');
-            const timeInForce = this.safeStringUpper(params, 'timeInForce', defaultTimeInForce);
+            let timeInForce = undefined;
+            [timeInForce, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce');
+            if (timeInForce !== undefined) {
+                timeInForce = timeInForce.toUpperCase();
+            }
             if (postOnly) {
                 request['timeInForce'] = 'post_only';
             }
@@ -5387,6 +5408,12 @@ export default class bitget extends Exchange {
         return this.extend(request, params);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         let marketType = undefined;
         let marginMode = undefined;
@@ -5439,8 +5466,11 @@ export default class bitget extends Exchange {
         const exchangeSpecificTifParam = this.safeString2(params, 'force', 'timeInForce');
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
-        const defaultTimeInForce = this.safeStringUpper(this.options, 'defaultTimeInForce');
-        const timeInForce = this.safeStringUpper(params, 'timeInForce', defaultTimeInForce);
+        let timeInForce = undefined;
+        [timeInForce, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce');
+        if (timeInForce !== undefined) {
+            timeInForce = timeInForce.toUpperCase();
+        }
         if (postOnly) {
             request['force'] = 'post_only';
         }
@@ -5525,11 +5555,27 @@ export default class bitget extends Exchange {
             else {
                 if (hasStopLoss) {
                     const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
+                    if (slTriggerPrice === undefined) {
+                        throw new ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter');
+                    }
                     request['presetStopLossPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
+                    const slLimitPrice = this.safeValue(stopLoss, 'price');
+                    if (slLimitPrice !== undefined) {
+                        // without the execute price the exchange fills the attached stop loss
+                        // at the market price, see https://github.com/ccxt/ccxt/issues/23459
+                        request['presetStopLossExecutePrice'] = this.priceToPrecision(symbol, slLimitPrice);
+                    }
                 }
                 if (hasTakeProfit) {
                     const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
+                    if (tpTriggerPrice === undefined) {
+                        throw new ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter');
+                    }
                     request['presetStopSurplusPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
+                    const tpLimitPrice = this.safeValue(takeProfit, 'price');
+                    if (tpLimitPrice !== undefined) {
+                        request['presetStopSurplusExecutePrice'] = this.priceToPrecision(symbol, tpLimitPrice);
+                    }
                 }
             }
             if (!isStopLossOrTakeProfitTrigger) {
@@ -5575,7 +5621,7 @@ export default class bitget extends Exchange {
                 }
                 else if (createMarketBuyOrderRequiresPrice) {
                     if (price === undefined) {
-                        throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                        throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options["createOrder"] or params to false and pass the cost to spend in the amount argument');
                     }
                     else {
                         const amountString = this.numberToString(amount);
@@ -5932,7 +5978,11 @@ export default class bitget extends Exchange {
             request['orderType'] = type;
             if (triggerPrice !== undefined) {
                 request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-                request['executePrice'] = this.priceToPrecision(symbol, price);
+                // market plan orders carry no execute price, follow up to
+                // https://github.com/ccxt/ccxt/issues/25427
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision(symbol, price);
+                }
             }
             else {
                 request['price'] = this.priceToPrecision(symbol, price);
@@ -7231,7 +7281,7 @@ export default class bitget extends Exchange {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired(this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                 }
-                const endTime = this.safeIntegerN(params, ['endTime', 'until']);
+                const endTime = this.safeInteger2(params, 'endTime', 'until');
                 params = this.omit(params, ['until']);
                 if (since === undefined) {
                     since = now - 7776000000;
@@ -9417,7 +9467,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
      * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by bitget setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -9781,10 +9831,12 @@ export default class bitget extends Exchange {
             const networkId = this.safeString(chain, 'chain');
             const currencyCode = this.safeString(currency, 'code');
             const networkCode = this.networkIdToCode(networkId, currencyCode);
-            result['networks'][networkCode] = {
-                'deposit': { 'fee': undefined, 'percentage': undefined },
-                'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
+                };
+            }
             if (chainsLength === 1) {
                 result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
                 result['withdraw']['percentage'] = false;
@@ -10801,7 +10853,7 @@ export default class bitget extends Exchange {
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -11153,34 +11205,36 @@ export default class bitget extends Exchange {
             const entry = data[i];
             const id = this.safeString(entry, 'coin');
             const code = this.safeCurrencyCode(id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': this.safeNumber(entry, 'available'),
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(entry, 'minAmount'),
-                        'max': this.safeNumber(entry, 'maxAmount'),
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': this.safeNumber(entry, 'available'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber(entry, 'minAmount'),
+                            'max': this.safeNumber(entry, 'maxAmount'),
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-            };
+                    'created': undefined,
+                };
+            }
         }
         return result;
     }

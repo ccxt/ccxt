@@ -8,6 +8,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
+import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class bybit extends bybitRest {
@@ -126,7 +127,7 @@ export default class bybit extends bybitRest {
                 },
                 'watchMyTrades': {
                     // filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
-                    'filterExecTypes': [
+                    'execType': [
                         'Trade', 'AdlTrade', 'BustTrade', 'Settle',
                     ],
                 },
@@ -474,11 +475,8 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker(symbol, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        return await this.unWatchTickers([symbol], params);
+    unWatchTicker(symbol, params = {}) {
+        return this.unWatchTickers([symbol], params);
     }
     handleTicker(client, message) {
         //
@@ -873,8 +871,8 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    watchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -884,7 +882,7 @@ export default class bybit extends bybitRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -978,11 +976,8 @@ export default class bybit extends bybitRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook(symbol, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        return await this.unWatchOrderBookForSymbols([symbol], params);
+    unWatchOrderBook(symbol, params = {}) {
+        return this.unWatchOrderBookForSymbols([symbol], params);
     }
     handleOrderBook(client, message) {
         //
@@ -1077,8 +1072,8 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -1158,11 +1153,8 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    async unWatchTrades(symbol, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        return await this.unWatchTradesForSymbols([symbol], params);
+    unWatchTrades(symbol, params = {}) {
+        return this.unWatchTradesForSymbols([symbol], params);
     }
     handleTrades(client, message) {
         //
@@ -1466,7 +1458,23 @@ export default class bybit extends bybitRest {
         }
         const trades = this.myTrades;
         const symbols = {};
-        const filterExecTypes = this.handleOption('watchMyTrades', 'filterExecTypes', []);
+        // the option was renamed from filterExecTypes to execType to mirror
+        // the exchange's own field name, the old key is still read as a
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        let execTypeOption = this.handleOption('watchMyTrades', 'execType');
+        if (execTypeOption === undefined) {
+            execTypeOption = this.handleOption('watchMyTrades', 'filterExecTypes');
+        }
+        let execTypes = undefined;
+        if (typeof execTypeOption === 'string') {
+            // a single execution type is accepted as a plain string as well
+            execTypes = [execTypeOption];
+        }
+        else {
+            execTypes = execTypeOption;
+        }
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             let parsed = undefined;
@@ -1479,7 +1487,7 @@ export default class bybit extends bybitRest {
                 if (executionFast) {
                     execType = 'Trade';
                 }
-                if (!this.inArray(execType, filterExecTypes)) {
+                if ((execTypes !== undefined) && !this.inArray(execType, execTypes)) {
                     continue;
                 }
                 parsed = this.parseTrade(rawTrade);
@@ -2307,17 +2315,35 @@ export default class bybit extends bybitRest {
         const account = this.account();
         const currencyId = this.safeString2(balance, 'a', 'coin');
         const code = this.safeCurrencyCode(currencyId);
-        account['free'] = this.safeStringN(balance, ['availableToWithdraw', 'f', 'free', 'availableToWithdraw']);
-        account['used'] = this.safeString2(balance, 'l', 'locked');
-        account['total'] = this.safeString(balance, 'walletBalance');
+        account['free'] = this.safeStringN(balance, ['availableToWithdraw', 'f', 'free']);
+        const used = this.safeString2(balance, 'l', 'locked');
+        if (used !== undefined) {
+            account['used'] = used;
+        }
+        else {
+            // the unified account wallet stream has no locked field, the margin
+            // lives in the per coin initial margin fields, so the used amount
+            // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
+            const totalPositionIm = this.safeString(balance, 'totalPositionIM', '0');
+            const totalOrderIm = this.safeString(balance, 'totalOrderIM', '0');
+            account['used'] = Precise.stringAdd(totalPositionIm, totalOrderIm);
+        }
+        // on the unified rows the free amount and the margin are both measured
+        // against the equity, which includes the unrealized pnl, so the equity
+        // is the consistent total, the spot rows fall back to the wallet balance
+        account['total'] = this.safeString2(balance, 'equity', 'walletBalance');
         if (accountType !== undefined) {
             if (this.safeValue(this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         }
         else {
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
     }
     async watchTopics(url, messageHashes, topics, params = {}) {
@@ -2437,15 +2463,29 @@ export default class bybit extends bybitRest {
             return false;
         }
         catch (error) {
-            if (error instanceof AuthenticationError) {
-                const messageHash = 'authenticated';
+            const messageHash = this.safeString2(message, 'req_id', 'reqId');
+            if (messageHash !== undefined) {
                 client.reject(error, messageHash);
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
+            }
+            else if (error instanceof AuthenticationError) {
+                const authenticatedHash = 'authenticated';
+                client.reject(error, authenticatedHash);
+                if (authenticatedHash in client.subscriptions) {
+                    delete client.subscriptions[authenticatedHash];
+                }
+                const op = this.safeString(message, 'op');
+                if ((op !== undefined) && (op !== 'auth')) {
+                    // an operation response that carries no reqId, e.g. bybit
+                    // omits it on some permission rejections of trade ops,
+                    // would leave the awaiting future pending forever, and
+                    // since nothing on this client can proceed without
+                    // authentication, reject everything pending, mirroring the
+                    // behavior of unattributable non auth errors, see
+                    // https://github.com/ccxt/ccxt/issues/29361
+                    client.reject(error);
                 }
             }
             else {
-                const messageHash = this.safeString2(message, 'req_id', 'reqId');
                 client.reject(error, messageHash);
             }
             return true;

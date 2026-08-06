@@ -18,6 +18,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bullish extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -32,7 +34,7 @@ class bullish extends Exchange {
                 'spot' => true,
                 'margin' => false,
                 'swap' => true,
-                'future' => false,
+                'future' => true,
                 'option' => false,
                 'addMargin' => false,
                 'borrowMargin' => false,
@@ -239,7 +241,7 @@ class bullish extends Exchange {
             'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'networks' => array(
                     'BTC' => 'BTC',
@@ -920,7 +922,7 @@ class bullish extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (not used by bullish)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1413,7 +1415,7 @@ class bullish extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'createdAtTimestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -1574,7 +1576,7 @@ class bullish extends Exchange {
         })();
     }
 
-    public function handle_pagination_params(string $method, ?int $since = null, array $params = array()): array {
+    public function handle_pagination_params(string $method, ?int $since = null, $params = array()): array {
         $ninetyDays = 90 * 24 * 60 * 60 * 1000;
         $now = $this->milliseconds();
         $allowedSince = $now - $ninetyDays;
@@ -1590,7 +1592,7 @@ class bullish extends Exchange {
         return $params;
     }
 
-    public function handle_since_and_until(?int $since = null, array $params = array(), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
+    public function handle_since_and_until(?int $since = null, $params = array(), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
         $until = $this->safe_integer($params, 'until');
         if (($since !== null) || ($until !== null)) {
             $timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -1661,7 +1663,7 @@ class bullish extends Exchange {
              */
             $request = array(
                 'status' => 'CANCELLED',
-                'method' => 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+                'method' => 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         })();
@@ -1683,7 +1685,7 @@ class bullish extends Exchange {
              */
             $request = array(
                 'status' => 'CLOSED',
-                'method' => 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+                'method' => 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         })();
@@ -2274,7 +2276,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'DEPOSIT' => 'deposit',
             'WITHDRAW' => 'withdrawal',
@@ -2478,7 +2480,7 @@ class bullish extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         $id = $this->safe_string($depositAddress, 'symbol');
         $network = $this->safe_string($depositAddress, 'network');
         $code = $this->safe_currency_code($id, $currency);
@@ -2538,7 +2540,7 @@ class bullish extends Exchange {
         })();
     }
 
-    public function parse_balance_for_single_currency($response, ?string $code): array {
+    public function parse_balance_for_single_currency(mixed $response, ?string $code): array {
         $result = array( 'info' => $response );
         $account = $this->account();
         $account['free'] = $this->safe_string($response, 'availableQuantity');
@@ -2547,7 +2549,7 @@ class bullish extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2558,7 +2560,9 @@ class bullish extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'availableQuantity');
             $account['used'] = $this->safe_string($balance, 'lockedQuantity');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2779,7 +2783,7 @@ class bullish extends Exchange {
         })();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(mixed $transfer, ?array $currency = null) {
         //
         // fetchTransfers
         //     {
@@ -2820,7 +2824,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status) {
         $statuses = array(
             'CLOSED' => 'ok',
             'OPEN' => 'pending',
@@ -2882,7 +2886,7 @@ class bullish extends Exchange {
         })();
     }
 
-    public function parse_borrow_rate($info, ?array $currency = null) {
+    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
         //     {
         //         "assetId" => "1",
@@ -2970,7 +2974,7 @@ class bullish extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
@@ -3022,7 +3026,7 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
@@ -3117,7 +3121,7 @@ class bullish extends Exchange {
         })();
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

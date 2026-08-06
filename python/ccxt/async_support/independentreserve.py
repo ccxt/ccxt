@@ -394,7 +394,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -403,7 +403,8 @@ class independentreserve(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'AvailableBalance')
             account['total'] = self.safe_string(balance, 'TotalBalance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -423,7 +424,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -815,13 +816,15 @@ class independentreserve(Exchange, ImplicitAPI):
             currencyId = self.safe_string(fee, 'CurrencyCode')
             code = self.safe_currency_code(currencyId)
             tradingFee = self.safe_number(fee, 'Fee')
-            fees[code] = {
-                'info': fee,
-                'fee': tradingFee,
-            }
+            if code is not None:
+                fees[code] = {
+                    'info': fee,
+                    'fee': tradingFee,
+                }
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             fee = self.safe_value(fees, market['base'], {})
             result[symbol] = {
@@ -928,7 +931,7 @@ class independentreserve(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        Tag: '3307446684',
@@ -1050,7 +1053,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'internal': False,
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Any = None):
         url = self.urls['api'][api] + '/' + path
         if api == 'public':
             if params:

@@ -417,13 +417,145 @@ public partial class aster : Exchange
                     { "taker", this.parseNumber("0.00035") },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", null },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1500 },
+                    } },
+                } },
+                { "forDerivs", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", false },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", true },
+                        { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1500 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                    { "inverse", null },
+                } },
+            } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
                 { "recvWindow", multiply(10, 1000) },
-                { "defaultTimeInForce", "GTC" },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
                 { "v3ChainId", 1666 },
-                { "quoteOrderQty", true },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "timeInForce", "GTC" },
+                    { "quoteOrderQty", true },
+                } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "SPOT" },
                     { "swap", "FUTURE" },
@@ -433,7 +565,7 @@ public partial class aster : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
-                    { "ARBONE", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                 } },
                 { "networksToChainId", new Dictionary<string, object>() {
                     { "ETH", 1 },
@@ -1301,7 +1433,7 @@ public partial class aster : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1608,6 +1740,10 @@ public partial class aster : Exchange
         //         ...
         //     ]
         //
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " fetchLastPrices() returned empty response")) ;
+        }
         object results = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
@@ -1975,7 +2111,10 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "free", "availableBalance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2049,7 +2188,7 @@ public partial class aster : Exchange
      * @description set hedged to true or false for a market
      * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -2213,7 +2352,7 @@ public partial class aster : Exchange
         object statusId = this.safeStringUpper(order, "status");
         object rawType = this.safeStringUpper(order, "type");
         object stopPriceString = this.safeString(order, "stopPrice");
-        object triggerPrice = this.parseNumber(this.omitZero(((string)stopPriceString)));
+        object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", info },
             { "id", this.safeString(order, "orderId") },
@@ -2641,14 +2780,14 @@ public partial class aster : Exchange
         {
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
-            object currentMarket = this.market(((string)marketId));
+            object currentMarket = this.market(marketId);
             ((IList<object>)orderSymbols).Add(getValue(currentMarket, "symbol"));
             object type = this.safeString(rawOrder, "type");
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createOrderRequest(((string)marketId), ((string)type), side, amount, price, orderParams);
+            object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -2696,27 +2835,35 @@ public partial class aster : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name aster#createOrderRequest
-        * @description helper function to build the request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name aster#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
         object market = this.market(symbol);
         object initialUppercaseType = ((string)type).ToUpper();
         object isMarketOrder = isEqual(initialUppercaseType, "MARKET");
         object isLimitOrder = isEqual(initialUppercaseType, "LIMIT");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "side", ((string)((string)side)).ToUpper() },
+            { "side", ((string)side).ToUpper() },
         };
         object clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -2795,7 +2942,7 @@ public partial class aster : Exchange
         {
             if (isTrue(getValue(market, "spot")))
             {
-                object quoteOrderQty = this.safeBool(this.options, "quoteOrderQty", true);
+                object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
                 if (isTrue(quoteOrderQty))
                 {
                     object quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
@@ -2808,7 +2955,7 @@ public partial class aster : Exchange
                         object amountString = this.numberToString(amount);
                         object priceString = this.numberToString(price);
                         object quoteOrderQuantity = Precise.stringMul(amountString, priceString);
-                        ((IDictionary<string,object>)request)["quoteOrderQty"] = this.decimalToPrecision(((string)quoteOrderQuantity), TRUNCATE, precision, this.precisionMode);
+                        ((IDictionary<string,object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
                     } else
                     {
                         quantityIsRequired = true;
@@ -2887,7 +3034,11 @@ public partial class aster : Exchange
         }
         if (isTrue(isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))) && isTrue((isEqual(this.safeString(request, "timeInForce"), null)))))
         {
-            ((IDictionary<string,object>)request)["timeInForce"] = this.safeString(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            object tif = null;
+            var tifparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
+            tif = ((IList<object>)tifparametersVariable)[0];
+            parameters = ((IList<object>)tifparametersVariable)[1];
+            ((IDictionary<string,object>)request)["timeInForce"] = tif;
         }
         object requestParams = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"});
         if (isTrue(isTrue(this.safeBool(this.options, "builderFee")) && isTrue(getValue(market, "swap"))))
@@ -2964,7 +3115,7 @@ public partial class aster : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object clientOrderId = this.safeStringN(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
+        object clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["origClientOrderId"] = clientOrderId;
@@ -3232,7 +3383,7 @@ public partial class aster : Exchange
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
@@ -3273,7 +3424,7 @@ public partial class aster : Exchange
         //             "amount": "23.36332311",
         //             "asset": "USDT",
         //             "symbol": "BTCUSDT",
-        //             "time": 1578047897183,
+        //             "time": 1578047897182,
         //             "type": 1,
         //             "positionSide": "BOTH"
         //         }
@@ -3510,7 +3661,7 @@ public partial class aster : Exchange
             { "INSURANCE_CLEAR", "settlement" },
             { "MARKET_MERCHANT_RETURN_REWARD", "cashback" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
@@ -3591,7 +3742,7 @@ public partial class aster : Exchange
         object symbol = this.safeString(market, "symbol");
         object isolatedMarginString = this.safeString(position, "isolatedMargin");
         object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
-        object leverageBracket = this.safeList(leverageBrackets, ((string)symbol), new List<object>() {});
+        object leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
         object notionalString = this.safeString2(position, "notional", "notionalValue");
         object notionalStringAbs = Precise.stringAbs(notionalString);
         object maintenanceMarginPercentageString = null;
@@ -3609,7 +3760,7 @@ public partial class aster : Exchange
         object contracts = this.parseNumber(contractsAbs);
         object unrealizedPnlString = this.safeString(position, "unRealizedProfit");
         object unrealizedPnl = this.parseNumber(unrealizedPnlString);
-        object liquidationPriceString = this.omitZero(((string)this.safeString(position, "liquidationPrice")));
+        object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         object liquidationPrice = this.parseNumber(liquidationPriceString);
         object collateralString = null;
         object marginMode = this.safeString(position, "marginType");
@@ -3655,7 +3806,7 @@ public partial class aster : Exchange
                     }
                     object inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     object leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    object quotePrecision = this.precisionFromString(((string)this.safeString2(precision, "quote", "price")));
+                    object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                     if (isTrue(!isEqual(quotePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
@@ -3675,7 +3826,7 @@ public partial class aster : Exchange
                     }
                     object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     object rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    object basePrecision = this.precisionFromString(((string)this.safeString(precision, "base")));
+                    object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                     if (isTrue(!isEqual(basePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
@@ -3688,7 +3839,7 @@ public partial class aster : Exchange
         }
         collateralString = ((bool) isTrue((isEqual(collateralString, null)))) ? "0" : collateralString;
         object collateral = this.parseNumber(collateralString);
-        object markPrice = this.parseNumber(this.omitZero(((string)this.safeString(position, "markPrice"))));
+        object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         object timestamp = this.safeInteger(position, "updateTime");
         if (isTrue(isEqual(timestamp, 0)))
         {
@@ -3869,10 +4020,13 @@ public partial class aster : Exchange
             object code = this.safeCurrencyCode(currencyId);
             object crossWalletBalance = this.safeString(entry, "crossWalletBalance");
             object crossUnPnl = this.safeString(entry, "crossUnPnl");
-            ((IDictionary<string,object>)balances)[(string)code] = new Dictionary<string, object>() {
-                { "crossMargin", Precise.stringAdd(crossWalletBalance, crossUnPnl) },
-                { "crossWalletBalance", crossWalletBalance },
-            };
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)balances)[(string)code] = new Dictionary<string, object>() {
+                    { "crossMargin", Precise.stringAdd(crossWalletBalance, crossUnPnl) },
+                    { "crossWalletBalance", crossWalletBalance },
+                };
+            }
         }
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
@@ -3913,6 +4067,10 @@ public partial class aster : Exchange
         if (isTrue(!isEqual(leverageString, null)))
         {
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
+            if (isTrue(isEqual(leverage, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " parseAccountPosition() missing leverage")) ;
+            }
             object rational = this.isRoundNumber(mod(1000, leverage));
             if (!isTrue(rational))
             {
@@ -3939,7 +4097,7 @@ public partial class aster : Exchange
         }
         object contracts = this.parseNumber(contractsStringAbs);
         object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
-        object leverageBracket = this.safeList(leverageBrackets, ((string)symbol), new List<object>() {});
+        object leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
         object maintenanceMarginPercentageString = null;
         for (object i = 0; isLessThan(i, getArrayLength(leverageBracket)); postFixIncrement(ref i))
         {
@@ -4037,7 +4195,7 @@ public partial class aster : Exchange
                 object rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            object pricePrecision = this.precisionFromString(((string)this.safeString(getValue(market, "precision"), "price")));
+            object pricePrecision = this.precisionFromString(this.safeString(getValue(market, "precision"), "price"));
             object pricePrecisionPlusOne = add(pricePrecision, 1);
             object pricePrecisionPlusOneString = ((object)pricePrecisionPlusOne).ToString();
             // round half up
@@ -4045,6 +4203,10 @@ public partial class aster : Exchange
             object rounderString = ((object)rounder).ToString();
             object liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             object truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
+            if (isTrue(isEqual(truncatedLiquidationPrice, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " method() missing truncatedLiquidationPrice")) ;
+            }
             if (isTrue(isEqual(getValue(truncatedLiquidationPrice, 0), "-")))
             {
                 // user cannot be liquidated
@@ -4263,7 +4425,7 @@ public partial class aster : Exchange
         // TODO: check how ARBI signature would work
         object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network");
-        network = this.safeString(networks, ((string)network), network);
+        network = this.safeString(networks, network, network);
         if (isTrue(isTrue((isEqual(chainId, null))) && isTrue((!isEqual(network, null)))))
         {
             object chainIds = this.safeDict(this.options, "networksToChainId", new Dictionary<string, object>() {});
@@ -4401,7 +4563,7 @@ public partial class aster : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((string)this.numberToString(binaryMessageLength))));
+        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
@@ -4434,7 +4596,15 @@ public partial class aster : Exchange
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            object walletAddress = this.safeString(this.options, "cachedWalletAddress");
+            object privateKeyHash = this.hash(this.encode(this.privateKey), keccak, "hex");
+            object cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
+            if (isTrue(isTrue((isEqual(walletAddress, null))) || isTrue((!isEqual(cachedPrivateKeyHash, privateKeyHash)))))
+            {
+                walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+                ((IDictionary<string,object>)this.options)["cachedWalletAddress"] = walletAddress;
+                ((IDictionary<string,object>)this.options)["privateKeyHashForCachedWalletAddress"] = privateKeyHash;
+            }
             object signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (isTrue(isEqual(signerAddress, null)))
             {
@@ -4452,7 +4622,7 @@ public partial class aster : Exchange
     { "type", "string" },
 }} },
             };
-            // Build v3 params: original endpoint params + nonce (macroseconds) + user + signer
+            // Build v3 params: original endpoint params + nonce (microseconds) + user + signer
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             object finalParams = this.extend(new Dictionary<string, object>() {
                 { "nonce", ((object)nonce).ToString() },

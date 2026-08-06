@@ -1353,18 +1353,27 @@ public partial class binance : Exchange
                 { "fetchMargins", true },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot", "linear", "inverse"} },
+                    { "loadAllOptions", false },
                 } },
-                { "loadAllOptions", false },
                 { "fetchCurrencies", true },
-                { "defaultTimeInForce", "GTC" },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "timeInForce", "GTC" },
+                    { "warnOnSTPForInverse", true },
+                    { "quoteOrderQty", true },
+                } },
                 { "defaultType", "spot" },
                 { "defaultSubType", null },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
-                { "warnOnFetchOpenOrdersWithoutSymbol", true },
-                { "warnOnSTPForInverse", true },
+                { "fetchOpenOrders", new Dictionary<string, object>() {
+                    { "warnWithoutSymbol", true },
+                } },
                 { "currencyToPrecisionRoundingMode", TRUNCATE },
-                { "throwMarginModeAlreadySet", false },
-                { "fetchPositions", "positionRisk" },
+                { "setMarginMode", new Dictionary<string, object>() {
+                    { "throwMarginModeAlreadySet", true },
+                } },
+                { "fetchPositions", new Dictionary<string, object>() {
+                    { "method", "positionRisk" },
+                } },
                 { "recvWindow", multiply(10, 1000) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
@@ -1372,7 +1381,6 @@ public partial class binance : Exchange
                     { "market", "FULL" },
                     { "limit", "FULL" },
                 } },
-                { "quoteOrderQty", true },
                 { "broker", new Dictionary<string, object>() {
                     { "spot", "x-TKT5PX2F" },
                     { "margin", "x-TKT5PX2F" },
@@ -1420,7 +1428,7 @@ public partial class binance : Exchange
                     { "DOGE", "DOGE" },
                     { "SOL", "SOL" },
                     { "SONIC", "SONIC" },
-                    { "ARBONE", "ARBITRUM" },
+                    { "ARBITRUM", "ARBITRUM" },
                     { "AVAXC", "AVAXC" },
                     { "MATIC", "MATIC" },
                     { "BASE", "BASE" },
@@ -2746,6 +2754,10 @@ public partial class binance : Exchange
 
     public override object market(object symbol)
     {
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " market() requires a symbol argument")) ;
+        }
         if (isTrue(isEqual(this.markets, null)))
         {
             throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
@@ -2758,7 +2770,7 @@ public partial class binance : Exchange
         object isLegacy = isTrue(isLegacyLinear) || isTrue(isLegacyInverse);
         if (isTrue((symbol is string)))
         {
-            if (isTrue(inOp(this.markets, symbol)))
+            if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, symbol)))))
             {
                 object market = getValue(this.markets, symbol);
                 // begin diff
@@ -2766,7 +2778,7 @@ public partial class binance : Exchange
                 {
                     object settle = ((bool) isTrue(isLegacyLinear)) ? getValue(market, "quote") : getValue(market, "base");
                     object futuresSymbol = add(add(symbol, ":"), settle);
-                    if (isTrue(inOp(this.markets, futuresSymbol)))
+                    if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, futuresSymbol)))))
                     {
                         return getValue(this.markets, futuresSymbol);
                     }
@@ -2774,7 +2786,7 @@ public partial class binance : Exchange
                 {
                     return market;
                 }
-            } else if (isTrue(inOp(this.markets_by_id, symbol)))
+            } else if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, symbol)))))
             {
                 object markets = getValue(this.markets_by_id, symbol);
                 // begin diff
@@ -2792,7 +2804,7 @@ public partial class binance : Exchange
                 for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
                 {
                     object market = getValue(markets, i);
-                    if (isTrue(getValue(market, defaultType)))
+                    if (isTrue(this.safeValue(market, defaultType)))
                     {
                         return market;
                     }
@@ -2808,7 +2820,7 @@ public partial class binance : Exchange
                     var quote = ((IList<object>) bsquoteVariable)[1];
                     object settle = ((bool) isTrue((isEqual(quote, "USD")))) ? bs : quote;
                     object futuresSymbol = add(add(symbol, ":"), settle);
-                    if (isTrue(inOp(this.markets, futuresSymbol)))
+                    if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, futuresSymbol)))))
                     {
                         return getValue(this.markets, futuresSymbol);
                     }
@@ -2824,7 +2836,7 @@ public partial class binance : Exchange
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((isGreaterThan(getIndexOf(marketId, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(marketId, "-P"), -1)))));
-        if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
+        if (isTrue(isTrue(isOption) && isTrue((isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -2958,8 +2970,20 @@ public partial class binance : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(responseCurrencies)); postFixIncrement(ref i))
         {
             object parsed = this.parseCurrency(getValue(responseCurrencies, i));
+            if (isTrue(isEqual(parsed, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
+            }
             object code = getValue(parsed, "code");
+            if (isTrue(isEqual(parsed, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
+            }
             object marginEntry = this.safeDict(marginablesById, getValue(parsed, "id"));
+            if (isTrue(isEqual(parsed, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
+            }
             ((IDictionary<string,object>)parsed)["margin"] = this.safeBool(marginEntry, "isBorrowable");
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
@@ -3091,7 +3115,10 @@ public partial class binance : Exchange
             object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
             object depositEnable = this.safeBool(networkItem, "depositEnable");
             object withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
-            ((IDictionary<string,object>)fees)[(string)networkCode] = withdrawFee;
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)fees)[(string)networkCode] = withdrawFee;
+            }
             object isDefault = this.safeBool(networkItem, "isDefault");
             if (isTrue(isTrue(isDefault) || isTrue((isEqual(fee, null)))))
             {
@@ -3107,26 +3134,29 @@ public partial class binance : Exchange
             {
                 withdrawPrecision = this.safeString(this.options, "defaultFiatWithdrawPrecision");
             }
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", networkItem },
-                { "id", network },
-                { "network", networkCode },
-                { "active", null },
-                { "deposit", depositEnable },
-                { "withdraw", withdrawEnable },
-                { "fee", withdrawFee },
-                { "precision", this.parseNumber(withdrawPrecision) },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkItem, "withdrawMin") },
-                        { "max", this.safeNumber(networkItem, "withdrawMax") },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", networkItem },
+                    { "id", network },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", depositEnable },
+                    { "withdraw", withdrawEnable },
+                    { "fee", withdrawFee },
+                    { "precision", this.parseNumber(withdrawPrecision) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkItem, "withdrawMin") },
+                            { "max", this.safeNumber(networkItem, "withdrawMax") },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkItem, "depositDust") },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkItem, "depositDust") },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         object type = null;
         if (isTrue(isETF))
@@ -3185,8 +3215,7 @@ public partial class binance : Exchange
             // for backward-compatibility
             rawFetchMarkets = this.safeList(this.options, "fetchMarkets", defaultTypes);
         }
-        // handle loadAllOptions option
-        object loadAllOptions = this.safeBool(this.options, "loadAllOptions", false);
+        object loadAllOptions = this.handleOption("fetchMarkets", "loadAllOptions", false);
         if (isTrue(loadAllOptions))
         {
             if (!isTrue(this.inArray("option", rawFetchMarkets)))
@@ -3493,6 +3522,10 @@ public partial class binance : Exchange
         object option = false;
         object underlying = this.safeString(market, "underlying");
         object id = this.safeString(market, "symbol");
+        if (isTrue(isEqual(id, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing id")) ;
+        }
         object optionParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object optionBase = this.safeString(optionParts, 0);
         object lowercaseId = this.safeStringLower(market, "symbol");
@@ -3688,7 +3721,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)getValue(getValue(entry, "limits"), "cost"))["min"] = this.safeNumber2(filter, "minNotional", "notional");
             ((IDictionary<string,object>)getValue(getValue(entry, "limits"), "cost"))["max"] = this.safeNumber(filter, "maxNotional");
         }
-        return entry;
+        return this.safeMarketStructure(entry);
     }
 
     public virtual object parseBalanceHelper(object entry)
@@ -3743,7 +3776,10 @@ public partial class binance : Exchange
                     object totalWalletBalance = this.safeString(entry, "totalWalletBalance");
                     ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(totalUsed, totalWalletBalance);
                 }
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         } else if (isTrue(!isTrue(isolated) && isTrue((isTrue((isEqual(type, "spot"))) || isTrue(cross)))))
         {
@@ -3763,7 +3799,10 @@ public partial class binance : Exchange
                     object interest = this.safeString(balance, "interest");
                     ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(debt, interest);
                 }
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         } else if (isTrue(isolated))
         {
@@ -3778,8 +3817,14 @@ public partial class binance : Exchange
                 object baseCode = this.safeCurrencyCode(this.safeString(bs, "asset"));
                 object quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 object subResult = new Dictionary<string, object>() {};
-                ((IDictionary<string,object>)subResult)[(string)baseCode] = this.parseBalanceHelper(bs);
-                ((IDictionary<string,object>)subResult)[(string)quoteCode] = this.parseBalanceHelper(quote);
+                if (isTrue(!isEqual(baseCode, null)))
+                {
+                    ((IDictionary<string,object>)subResult)[(string)baseCode] = this.parseBalanceHelper(bs);
+                }
+                if (isTrue(!isEqual(quoteCode, null)))
+                {
+                    ((IDictionary<string,object>)subResult)[(string)quoteCode] = this.parseBalanceHelper(quote);
+                }
                 ((IDictionary<string,object>)result)[(string)symbol] = this.safeBalance(subResult);
             }
         } else if (isTrue(isEqual(type, "savings")))
@@ -3794,7 +3839,10 @@ public partial class binance : Exchange
                 object usedAndTotal = this.safeString(entry, "amount");
                 ((IDictionary<string,object>)account)["total"] = usedAndTotal;
                 ((IDictionary<string,object>)account)["used"] = usedAndTotal;
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         } else if (isTrue(isEqual(type, "funding")))
         {
@@ -3809,7 +3857,10 @@ public partial class binance : Exchange
                 object withdrawing = this.safeString(entry, "withdrawing");
                 object locked = this.safeString(entry, "locked");
                 ((IDictionary<string,object>)account)["used"] = Precise.stringAdd(frozen, Precise.stringAdd(locked, withdrawing));
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         } else
         {
@@ -3821,13 +3872,22 @@ public partial class binance : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
                 object balance = getValue(balances, i);
+                // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
+                object updateTime = this.safeInteger(balance, "updateTime");
+                if (isTrue(isEqual(updateTime, 0)))
+                {
+                    continue;
+                }
                 object currencyId = this.safeString(balance, "asset");
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "availableBalance");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "initialMargin");
                 ((IDictionary<string,object>)account)["total"] = this.safeString2(balance, "marginBalance", "balance");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
@@ -3919,12 +3979,19 @@ public partial class binance : Exchange
                 object symbols = "";
                 if (isTrue(((paramSymbols is IList<object>) || (paramSymbols.GetType().IsGenericType && paramSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
-                    symbols = this.marketId(getValue(paramSymbols, 0));
+                    object mid = this.marketId(getValue(paramSymbols, 0));
+                    if (isTrue(!isEqual(mid, null)))
+                    {
+                        symbols = mid;
+                    }
                     for (object i = 1; isLessThan(i, getArrayLength(paramSymbols)); postFixIncrement(ref i))
                     {
                         object symbol = getValue(paramSymbols, i);
                         object id = this.marketId(symbol);
-                        symbols = add(symbols, add(",", id));
+                        if (isTrue(!isEqual(id, null)))
+                        {
+                            symbols = add(symbols, add(",", id));
+                        }
                     }
                 } else
                 {
@@ -4142,7 +4209,7 @@ public partial class binance : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -4501,6 +4568,10 @@ public partial class binance : Exchange
             object firstTicker = this.safeDict(response, 0, new Dictionary<string, object>() {});
             return this.parseTicker(firstTicker, market);
         }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " fetchTicker() returned empty response")) ;
+        }
         return this.parseTicker(response, market);
     }
 
@@ -4616,7 +4687,7 @@ public partial class binance : Exchange
         //     {
         //         "symbol": "BTCUSDT",
         //         "price": "6000.01",
-        //         "time": 1589437530011   // Transaction time
+        //         "time": 1589437530011
         //     }
         //
         //
@@ -4772,6 +4843,10 @@ public partial class binance : Exchange
         {
             return this.parseTicker(this.safeDict(response, 0, new Dictionary<string, object>() {}), market);
         }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " fetchMarkPrice() returned empty response")) ;
+        }
         return this.parseTicker(response, market);
     }
 
@@ -4846,7 +4921,7 @@ public partial class binance : Exchange
         //         "0",                    // Ignore
         //         1591256519999,          // Close time
         //         "0",                    // Ignore
-        //         60,                     // Number of bisic data
+        //         60,                     // Number of basic data
         //         "0",                    // Ignore
         //         "0",                    // Ignore
         //         "0"                     // Ignore
@@ -4933,6 +5008,10 @@ public partial class binance : Exchange
             { "limit", limit },
         };
         object marketId = getValue(market, "id");
+        if (isTrue(isEqual(marketId, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchOHLCV() missing marketId")) ;
+        }
         if (isTrue(isEqual(price, "index")))
         {
             object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
@@ -5391,19 +5470,59 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["limit"] = ((bool) isTrue(isFutureOrSwap)) ? mathMin(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         parameters = this.omit(parameters, new List<object>() {"until", "fetchTradesMethod"});
+        if (isTrue(isEqual(method, null)))
+        {
+            if (isTrue(getValue(market, "option")))
+            {
+                method = "eapiPublicGetTrades";
+            } else if (isTrue(getValue(market, "linear")))
+            {
+                method = "fapiPublicGetAggTrades";
+            } else if (isTrue(getValue(market, "inverse")))
+            {
+                method = "dapiPublicGetAggTrades";
+            } else
+            {
+                method = "publicGetAggTrades";
+            }
+        }
         object response = null;
-        if (isTrue(isTrue(getValue(market, "option")) || isTrue(isEqual(method, "eapiPublicGetTrades"))))
-        {
-            response = await this.eapiPublicGetTrades(this.extend(request, parameters));
-        } else if (isTrue(isTrue(getValue(market, "linear")) || isTrue(isEqual(method, "fapiPublicGetAggTrades"))))
-        {
-            response = await this.fapiPublicGetAggTrades(this.extend(request, parameters));
-        } else if (isTrue(isTrue(getValue(market, "inverse")) || isTrue(isEqual(method, "dapiPublicGetAggTrades"))))
-        {
-            response = await this.dapiPublicGetAggTrades(this.extend(request, parameters));
-        } else
+        if (isTrue(isEqual(method, "publicGetAggTrades")))
         {
             response = await this.publicGetAggTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "publicGetTrades")))
+        {
+            response = await this.publicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "publicGetHistoricalTrades")))
+        {
+            response = await this.publicGetHistoricalTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "fapiPublicGetAggTrades")))
+        {
+            response = await this.fapiPublicGetAggTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "fapiPublicGetTrades")))
+        {
+            response = await this.fapiPublicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "fapiPublicGetHistoricalTrades")))
+        {
+            response = await this.fapiPublicGetHistoricalTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "dapiPublicGetAggTrades")))
+        {
+            response = await this.dapiPublicGetAggTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "dapiPublicGetTrades")))
+        {
+            response = await this.dapiPublicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "dapiPublicGetHistoricalTrades")))
+        {
+            response = await this.dapiPublicGetHistoricalTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "eapiPublicGetTrades")))
+        {
+            response = await this.eapiPublicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "eapiPublicGetHistoricalTrades")))
+        {
+            response = await this.eapiPublicGetHistoricalTrades(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchTrades() does not support this method")) ;
         }
         //
         // Caveats:
@@ -5471,7 +5590,12 @@ public partial class binance : Exchange
         //         },
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -5543,30 +5667,42 @@ public partial class binance : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "newOrderResponse");
+        object data = this.safeDict(response, "newOrderResponse", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
     public virtual object editSpotOrderRequest(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name binance#editSpotOrderRequest
-        * @description helper function to build request for editSpotOrder
-        * @param {string} id order id to be edited
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} params extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name binance#editSpotOrderRequest
+         * @description helper function to build request for editSpotOrder
+         * @param {string} id order id to be edited
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @returns {object} request to be sent to the exchange
+         */
         object market = this.market(symbol);
         object clientOrderId = this.safeStringN(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "origClientOrderId"});
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editSpotOrderRequest() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
@@ -5590,7 +5726,7 @@ public partial class binance : Exchange
             }
         }
         ((IDictionary<string,object>)request)["type"] = uppercaseType;
-        object validOrderTypes = this.safeList(getValue(market, "info"), "orderTypes");
+        object validOrderTypes = this.safeList(getValue(market, "info"), "orderTypes", new List<object>() {});
         if (!isTrue(this.inArray(uppercaseType, validOrderTypes)))
         {
             if (isTrue(!isEqual(initialUppercaseType, uppercaseType)))
@@ -5623,7 +5759,7 @@ public partial class binance : Exchange
         object quantityIsRequired = false;
         if (isTrue(isEqual(uppercaseType, "MARKET")))
         {
-            object quoteOrderQty = this.safeBool(this.options, "quoteOrderQty", true);
+            object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
             if (isTrue(quoteOrderQty))
             {
                 object quoteOrderQtyNew = this.safeValue2(parameters, "quoteOrderQty", "cost");
@@ -5679,7 +5815,7 @@ public partial class binance : Exchange
         }
         if (isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))))
         {
-            ((IDictionary<string,object>)request)["timeInForce"] = getValue(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            ((IDictionary<string,object>)request)["timeInForce"] = this.handleOption("createOrder", "timeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (isTrue(triggerPriceIsRequired))
         {
@@ -5709,6 +5845,14 @@ public partial class binance : Exchange
     public virtual object editContractOrderRequest(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         if (isTrue(isTrue((isEqual(price, null))) && !isTrue((inOp(parameters, "priceMatch")))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() and editOrderWs() require a price argument for swap orders")) ;
@@ -5717,6 +5861,10 @@ public partial class binance : Exchange
         if (!isTrue(getValue(market, "contract")))
         {
             throw new NotSupported ((string)add(add(add(this.id, " editContractOrder() does not support "), getValue(market, "type")), " orders")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editContractOrder() requires a side argument")) ;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -5815,6 +5963,10 @@ public partial class binance : Exchange
         //         "updateTime": 1684300587845
         //     }
         //
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseOrder() returned empty response")) ;
+        }
         return this.parseOrder(response, market);
     }
 
@@ -5994,7 +6146,7 @@ public partial class binance : Exchange
                 { "trailing_stop_market", "market" },
             };
         }
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -6847,25 +6999,41 @@ public partial class binance : Exchange
                 response = await this.privatePostOrder(request);
             }
         }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseOrder() returned empty response")) ;
+        }
         return this.parseOrder(response, market);
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name binance#createOrderRequest
-        * @description helper function to build the request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name binance#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrderRequest() requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object marketType = this.safeString(parameters, "type", getValue(market, "type"));
         object clientOrderId = this.safeStringN(parameters, new List<object>() {"clientAlgoId", "newClientOrderId", "clientOrderId"});
@@ -6993,7 +7161,7 @@ public partial class binance : Exchange
             }
         } else
         {
-            object validOrderTypes = this.safeList(getValue(market, "info"), "orderTypes");
+            object validOrderTypes = this.safeList(getValue(market, "info"), "orderTypes", new List<object>() {});
             if (!isTrue(this.inArray(uppercaseType, validOrderTypes)))
             {
                 if (isTrue(!isEqual(initialUppercaseType, uppercaseType)))
@@ -7096,7 +7264,7 @@ public partial class binance : Exchange
         {
             if (isTrue(getValue(market, "spot")))
             {
-                object quoteOrderQty = this.safeBool(this.options, "quoteOrderQty", true);
+                object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
                 if (isTrue(quoteOrderQty))
                 {
                     object quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
@@ -7225,7 +7393,7 @@ public partial class binance : Exchange
         }
         if (isTrue(isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))) && isTrue((isEqual(this.safeString(request, "timeInForce"), null)))))
         {
-            ((IDictionary<string,object>)request)["timeInForce"] = this.safeString(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            ((IDictionary<string,object>)request)["timeInForce"] = this.handleOption("createOrder", "timeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (isTrue(isTrue(!isTrue(isPortfolioMargin) && isTrue(getValue(market, "contract"))) && isTrue(postOnly)))
         {
@@ -7253,9 +7421,10 @@ public partial class binance : Exchange
         parameters = ((IList<object>)selfTradePreventionparametersVariable)[1];
         if (isTrue(!isEqual(selfTradePrevention, null)))
         {
-            if (isTrue(isTrue(getValue(market, "inverse")) && isTrue(getValue(this.options, "warnOnSTPForInverse"))))
+            object warnOnStpForInverse = this.handleOption("createOrder", "warnOnSTPForInverse");
+            if (isTrue(isTrue(getValue(market, "inverse")) && isTrue(warnOnStpForInverse)))
             {
-                throw new NotSupported ((string)add(this.id, " createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the \"warnOnSTPForInverse\" option to false.")) ;
+                throw new NotSupported ((string)add(this.id, " createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options[\"createOrder\"][\"warnOnSTPForInverse\"] to false.")) ;
             }
             ((IDictionary<string,object>)request)["selfTradePreventionMode"] = ((string)selfTradePrevention).ToUpper(); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
@@ -7466,6 +7635,10 @@ public partial class binance : Exchange
         } else
         {
             response = await this.privateGetOrder(this.extend(request, parameters));
+        }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseOrder() returned empty response")) ;
         }
         return this.parseOrder(response, market);
     }
@@ -7831,13 +8004,18 @@ public partial class binance : Exchange
             object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
             object marketType = ((bool) isTrue((inOp(market, "type")))) ? getValue(market, "type") : defaultType;
             type = this.safeString(parameters, "type", marketType);
-        } else if (isTrue(getValue(this.options, "warnOnFetchOpenOrdersWithoutSymbol")))
-        {
-            throw new ExchangeError ((string)add(add(add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set "), this.id), ".options[\"warnOnFetchOpenOrdersWithoutSymbol\"] = false to suppress this warning message.")) ;
         } else
         {
-            object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
-            type = this.safeString(parameters, "type", defaultType);
+            object warnWithoutSymbol = this.safeBool(getValue(this.options, "fetchOpenOrders"), "warnWithoutSymbol");
+            object optValue = this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol"); // for backward compatibility
+            if (isTrue(isTrue(optValue) || isTrue((isTrue(isEqual(optValue, null)) && isTrue(warnWithoutSymbol)))))
+            {
+                throw new ExchangeError ((string)add(add(add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message.")) ;
+            } else
+            {
+                object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
+                type = this.safeString(parameters, "type", defaultType);
+            }
         }
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
@@ -8152,6 +8330,10 @@ public partial class binance : Exchange
         //         "priceProtect": false
         //     }
         //
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseOrder() returned empty response")) ;
+        }
         return this.parseOrder(response, market);
     }
 
@@ -8403,6 +8585,10 @@ public partial class binance : Exchange
         } else
         {
             response = await this.privateDeleteOrder(this.extend(request, parameters));
+        }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseOrder() returned empty response")) ;
         }
         return this.parseOrder(response, market);
     }
@@ -8715,7 +8901,8 @@ public partial class binance : Exchange
                 if (isTrue(isTrue((isEqual(endTime, null))) && isTrue(this.safeBool(market, "linear"))))
                 {
                     endTime = this.sum(startTime, oneWeek);
-                    endTime = mathMin(endTime, currentTimestamp);
+                    object endTimeValue = ((bool) isTrue((isEqual(endTime, null)))) ? 0 : endTime;
+                    endTime = mathMin(endTimeValue, currentTimestamp);
                 }
             }
         }
@@ -8914,7 +9101,12 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -8922,7 +9114,7 @@ public partial class binance : Exchange
      * @name binance#fetchMyDustTrades
      * @description fetch all dust trades made by the user
      * @see https://developers.binance.com/docs/wallet/asset/dust-log
-     * @param {string} symbol not used by binance fetchMyDustTrades ()
+     * @param {string} symbol not used by fetchMyDustTrades ()
      * @param {int} [since] the earliest time in ms to fetch my dust trades for
      * @param {int} [limit] the maximum number of dust trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -9021,7 +9213,7 @@ public partial class binance : Exchange
         object earnedCurrency = getValue(bnb, "code");
         object applicantSymbol = add(add(earnedCurrency, "/"), tradedCurrency);
         object tradedCurrencyIsQuote = false;
-        if (isTrue(inOp(this.markets, applicantSymbol)))
+        if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, applicantSymbol)))))
         {
             tradedCurrencyIsQuote = true;
         }
@@ -9116,7 +9308,7 @@ public partial class binance : Exchange
         parameters = this.omit(parameters, "fiatOnly");
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (isTrue(isTrue(fiatOnly) || isTrue((inOp(legalMoney, code)))))
+        if (isTrue(isTrue(fiatOnly) || isTrue((isTrue((!isEqual(code, null))) && isTrue((inOp(legalMoney, code)))))))
         {
             if (isTrue(!isEqual(code, null)))
             {
@@ -9157,11 +9349,20 @@ public partial class binance : Exchange
             }
             response = await this.sapiGetCapitalDepositHisrec(this.extend(request, parameters));
         }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " method() returned empty response")) ;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(response, i))["type"] = "deposit";
         }
-        return this.parseTransactions(response, currency, since, limit);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        return this.parseTransactions(responseList, currency, since, limit);
     }
 
     /**
@@ -9206,7 +9407,7 @@ public partial class binance : Exchange
         }
         object response = null;
         object currency = null;
-        if (isTrue(isTrue(fiatOnly) || isTrue((inOp(legalMoney, code)))))
+        if (isTrue(isTrue(fiatOnly) || isTrue((isTrue((!isEqual(code, null))) && isTrue((inOp(legalMoney, code)))))))
         {
             if (isTrue(!isEqual(code, null)))
             {
@@ -9238,11 +9439,24 @@ public partial class binance : Exchange
             }
             response = await this.sapiGetCapitalWithdrawHistory(this.extend(request, parameters));
         }
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        if (isTrue(isEqual(response, null)))
         {
-            ((IDictionary<string,object>)getValue(response, i))["type"] = "withdrawal";
+            throw new NullResponse ((string)add(this.id, " method() returned empty response")) ;
         }
-        return this.parseTransactions(response, currency, since, limit);
+        if (isTrue((response is string)))
+        {
+            response = this.parseJson(response);
+        }
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(responseList)); postFixIncrement(ref i))
+        {
+            ((IDictionary<string,object>)getValue(responseList, i))["type"] = "withdrawal";
+        }
+        return this.parseTransactions(responseList, currency, since, limit);
     }
 
     public virtual object parseTransactionStatusByType(object status, object type = null)
@@ -9872,7 +10086,7 @@ public partial class binance : Exchange
      * @deprecated
      * @description please use fetchDepositWithdrawFees instead
      * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
-     * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
+     * @param {string[]|undefined} codes not used by fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
@@ -9972,14 +10186,20 @@ public partial class binance : Exchange
             object currencyId = this.safeString(entry, "coin");
             object code = this.safeCurrencyCode(currencyId);
             object networkList = this.safeList(entry, "networkList", new List<object>() {});
-            ((IDictionary<string,object>)withdrawFees)[(string)code] = new Dictionary<string, object>() {};
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)withdrawFees)[(string)code] = new Dictionary<string, object>() {};
+            }
             for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
                 object networkEntry = getValue(networkList, j);
                 object networkId = this.safeString(networkEntry, "network");
                 object networkCode = this.safeCurrencyCode(networkId);
                 object fee = this.safeNumber(networkEntry, "withdrawFee");
-                ((IDictionary<string,object>)getValue(withdrawFees, code))[(string)networkCode] = fee;
+                if (isTrue(isTrue((!isEqual(code, null))) && isTrue((!isEqual(networkCode, null)))))
+                {
+                    ((IDictionary<string,object>)getValue(withdrawFees, code))[(string)networkCode] = fee;
+                }
             }
         }
         return new Dictionary<string, object>() {
@@ -9994,7 +10214,7 @@ public partial class binance : Exchange
      * @name binance#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees
      * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
-     * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+     * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
@@ -10110,16 +10330,19 @@ public partial class binance : Exchange
                     { "percentage", null },
                 };
             }
-            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                { "withdraw", new Dictionary<string, object>() {
-                    { "fee", withdrawFee },
-                    { "percentage", null },
-                } },
-                { "deposit", new Dictionary<string, object>() {
-                    { "fee", null },
-                    { "percentage", null },
-                } },
-            };
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "fee", withdrawFee },
+                        { "percentage", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "fee", null },
+                        { "percentage", null },
+                    } },
+                };
+            }
         }
         return result;
     }
@@ -10285,6 +10508,10 @@ public partial class binance : Exchange
         {
             data = this.safeDict(data, 0, new Dictionary<string, object>() {});
         }
+        if (isTrue(isEqual(data, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseTradingFee() returned empty response")) ;
+        }
         return this.parseTradingFee(data, market);
     }
 
@@ -10394,11 +10621,18 @@ public partial class binance : Exchange
             //    ]
             //
             object result = new Dictionary<string, object>() {};
+            if (isTrue(isEqual(response, null)))
+            {
+                throw new NullResponse ((string)add(this.id, " method() returned empty response")) ;
+            }
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object fee = this.parseTradingFee(getValue(response, i));
                 object symbol = getValue(fee, "symbol");
-                ((IDictionary<string,object>)result)[(string)symbol] = fee;
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)symbol] = fee;
+                }
             }
             return result;
         } else if (isTrue(isLinear))
@@ -10424,7 +10658,12 @@ public partial class binance : Exchange
             //         ...
             //     }
             //
-            object symbols = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+            object markets = this.markets;
+            if (isTrue(isEqual(markets, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
+            }
+            object symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
             object result = new Dictionary<string, object>() {};
             object feeTier = this.safeInteger(response, "feeTier");
             object feeTiers = getValue(getValue(getValue(this.fees, "linear"), "trading"), "tiers");
@@ -10433,7 +10672,7 @@ public partial class binance : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                object market = getValue(this.markets, symbol);
+                object market = getValue(markets, symbol);
                 if (isTrue(getValue(market, "linear")))
                 {
                     ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -10458,7 +10697,12 @@ public partial class binance : Exchange
             //         "updateTime": 0
             //     }
             //
-            object symbols = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+            object markets = this.markets;
+            if (isTrue(isEqual(markets, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
+            }
+            object symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
             object result = new Dictionary<string, object>() {};
             object feeTier = this.safeInteger(response, "feeTier");
             object feeTiers = getValue(getValue(getValue(this.fees, "inverse"), "trading"), "tiers");
@@ -10467,7 +10711,7 @@ public partial class binance : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                object market = getValue(this.markets, symbol);
+                object market = getValue(markets, symbol);
                 if (isTrue(getValue(market, "inverse")))
                 {
                     ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -10482,7 +10726,7 @@ public partial class binance : Exchange
             }
             return result;
         }
-        return null;
+        return ((object)null);
     }
 
     /**
@@ -10555,6 +10799,10 @@ public partial class binance : Exchange
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchFundingRate() supports linear and inverse contracts only")) ;
+        }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " fetchFundingRate() returned empty response")) ;
         }
         if (isTrue(getValue(market, "inverse")))
         {
@@ -10792,10 +11040,13 @@ public partial class binance : Exchange
             object code = this.safeCurrencyCode(currencyId);
             object crossWalletBalance = this.safeString(entry, "crossWalletBalance");
             object crossUnPnl = this.safeString(entry, "crossUnPnl");
-            ((IDictionary<string,object>)balances)[(string)code] = new Dictionary<string, object>() {
-                { "crossMargin", Precise.stringAdd(crossWalletBalance, crossUnPnl) },
-                { "crossWalletBalance", crossWalletBalance },
-            };
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)balances)[(string)code] = new Dictionary<string, object>() {
+                    { "crossMargin", Precise.stringAdd(crossWalletBalance, crossUnPnl) },
+                    { "crossWalletBalance", crossWalletBalance },
+                };
+            }
         }
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
@@ -10893,7 +11144,7 @@ public partial class binance : Exchange
         //         "breakEvenPrice": "0.0"
         //     }
         //
-        // inverse portoflio margin
+        // inverse portfolio margin
         //
         //     {
         //         "symbol": "TRXUSD_PERP",
@@ -10915,7 +11166,7 @@ public partial class binance : Exchange
         object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         object symbol = this.safeString(market, "symbol");
-        object leverageString = this.safeString(position, "leverage");
+        object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         object leverage = ((bool) isTrue((!isEqual(leverageString, null)))) ? parseInt(leverageString) : null;
         object initialMarginString = this.safeString(position, "initialMargin");
         object initialMargin = this.parseNumber(initialMarginString);
@@ -10923,6 +11174,10 @@ public partial class binance : Exchange
         if (isTrue(!isEqual(leverageString, null)))
         {
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
+            if (isTrue(isEqual(leverage, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " method() missing leverage")) ;
+            }
             object rational = this.isRoundNumber(mod(1000, leverage));
             if (!isTrue(rational))
             {
@@ -11297,7 +11552,7 @@ public partial class binance : Exchange
         object maintenanceMargin = this.parseNumber(maintenanceMarginString);
         object initialMarginString = null;
         object initialMarginPercentageString = null;
-        object leverageString = this.safeString(position, "leverage");
+        object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         if (isTrue(!isEqual(leverageString, null)))
         {
             object leverage = parseInt(leverageString);
@@ -11402,6 +11657,10 @@ public partial class binance : Exchange
                 throw new NotSupported ((string)add(this.id, " loadLeverageBrackets() supports linear and inverse contracts only")) ;
             }
             ((IDictionary<string,object>)this.options)["leverageBrackets"] = this.createSafeDictionary();
+            if (isTrue(isEqual(response, null)))
+            {
+                throw new NullResponse ((string)add(this.id, " loadLeverageBrackets() returned empty response")) ;
+            }
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
@@ -11766,15 +12025,18 @@ public partial class binance : Exchange
         object defaultMethod = null;
         var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method");
         defaultMethod = ((IList<object>)defaultMethodparametersVariable)[0];
-        parameters = ((IList<object>)defaultMethodparametersVariable)[1];
+        parameters = ((IList<object>)defaultMethodparametersVariable)[1]; // check if there is a key in options|params
         if (isTrue(isEqual(defaultMethod, null)))
         {
+            // check if .options['fetchPositions'] dict exist at all
             object options = this.safeDict(this.options, "fetchPositions");
             if (isTrue(isEqual(options, null)))
             {
+                // if undefined, for backward compatibility, check if it is a string
                 defaultMethod = this.safeString(this.options, "fetchPositions", "positionRisk");
             } else
             {
+                // if it is a dict, then it doesn't seem to have any 'method', so set default value
                 defaultMethod = "positionRisk";
             }
         }
@@ -12040,6 +12302,10 @@ public partial class binance : Exchange
         //     ]
         //
         object result = new List<object>() {};
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " method() returned empty response")) ;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(response, i);
@@ -12201,6 +12467,10 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((string)add(this.id, " setLeverage() supports linear and inverse contracts only")) ;
         }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " setLeverage() returned empty response")) ;
+        }
         return response;
     }
 
@@ -12269,7 +12539,7 @@ public partial class binance : Exchange
             // binanceusdm
             if (isTrue(e is MarginModeAlreadySet))
             {
-                object throwMarginModeAlreadySet = this.safeBool(this.options, "throwMarginModeAlreadySet", false);
+                object throwMarginModeAlreadySet = this.handleOption("setMarginMode", "throwMarginModeAlreadySet", false);
                 if (isTrue(throwMarginModeAlreadySet))
                 {
                     throw e;
@@ -12285,6 +12555,10 @@ public partial class binance : Exchange
                 throw e;
             }
         }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " setMarginMode() returned empty response")) ;
+        }
         return response;
     }
 
@@ -12297,7 +12571,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
@@ -12363,6 +12637,10 @@ public partial class binance : Exchange
         //       "msg": "success"
         //     }
         //
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " setPositionMode() returned empty response")) ;
+        }
         return response;
     }
 
@@ -12798,6 +13076,10 @@ public partial class binance : Exchange
         if (isTrue(isEqual(type, "option")))
         {
             this.checkRequiredArgument("fetchLedger", code, "code");
+            if (isTrue(isEqual(currency, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchLedger() could not resolve currency")) ;
+            }
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             response = await this.eapiPrivateGetBill(this.extend(request, parameters));
         } else if (isTrue(this.isLinear(type, subType)))
@@ -12936,7 +13218,7 @@ public partial class binance : Exchange
             { "REFERRAL_KICKBACK", "referral" },
             { "COMMISSION", "commission" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     public virtual object getNetworkCodeByNetworkUrl(object currencyCode, object depositUrl = null)
@@ -12956,7 +13238,8 @@ public partial class binance : Exchange
             object info = this.safeDict(getValue(networks, currentNetworkCode), "info", new Dictionary<string, object>() {});
             object siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value
-            if (isTrue(isTrue(!isEqual(siteUrl, null)) && isTrue(((string)depositUrl).StartsWith(((string)this.getBaseDomainFromUrl(siteUrl))))))
+            object baseDomain = this.getBaseDomainFromUrl(siteUrl);
+            if (isTrue(isTrue(isTrue(!isEqual(siteUrl, null)) && isTrue(!isEqual(baseDomain, null))) && isTrue(((string)depositUrl).StartsWith(((string)baseDomain)))))
             {
                 networkCode = currentNetworkCode;
             }
@@ -13170,6 +13453,10 @@ public partial class binance : Exchange
 
     public virtual object getExceptionsByUrl(object url, object exactOrBroad)
     {
+        if (isTrue(isEqual(url, null)))
+        {
+            return new Dictionary<string, object>() {};
+        }
         object marketType = null;
         object hostname = ((bool) isTrue((!isEqual(this.hostname, null)))) ? this.hostname : "binance.com";
         if (isTrue(isTrue(isTrue(((string)url).StartsWith(((string)add(add("https://api.", hostname), "/")))) || isTrue(((string)url).StartsWith(((string)"https://demo-api")))) || isTrue(((string)url).StartsWith(((string)"https://testnet.binance.vision")))))
@@ -13203,9 +13490,9 @@ public partial class binance : Exchange
             throw new DDoSProtection ((string)add(add(add(add(add(add(this.id, " "), ((object)code).ToString()), " "), reason), " "), body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (isTrue(isGreaterThanOrEqual(code, 400)))
+        if (isTrue(isTrue((isGreaterThanOrEqual(code, 400))) && isTrue((!isEqual(body, null)))))
         {
             if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Price * QTY is zero or less"), 0)))
             {
@@ -13389,6 +13676,10 @@ public partial class binance : Exchange
         //         "type": 1
         //     }
         //
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseMarginModification() returned empty response")) ;
+        }
         return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "code", code },
         });
@@ -14107,7 +14398,7 @@ public partial class binance : Exchange
         object currencyId = this.safeString(info, "asset");
         object timestamp = this.safeInteger(info, "updateTime");
         return new Dictionary<string, object>() {
-            { "id", this.safeInteger(info, "tranId") },
+            { "id", this.safeString(info, "tranId") },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "amount", this.safeNumber(info, "amount") },
             { "symbol", null },
@@ -14292,11 +14583,11 @@ public partial class binance : Exchange
                     return item;
                 }
             }
+            throw new NullResponse ((string)add(add(this.id, " fetchOpenInterest() could not find open interest for "), symbol)) ;
         } else
         {
             return this.parseOpenInterest(response, market);
         }
-        return null;
     }
 
     public override object parseOpenInterest(object interest, object market = null)
@@ -14511,7 +14802,12 @@ public partial class binance : Exchange
         //     ]
         //
         object liquidations = this.safeList(response, "rows", response);
-        return this.parseLiquidations(liquidations, market, since, limit);
+        object liquidationsList = new List<object>() {};
+        if (isTrue(!isEqual(liquidations, null)))
+        {
+            liquidationsList = liquidations;
+        }
+        return this.parseLiquidations(liquidationsList, market, since, limit);
     }
 
     public override object parseLiquidation(object liquidation, object market = null)
@@ -14742,9 +15038,16 @@ public partial class binance : Exchange
         {
             object market = getValue(markets, i);
             object symbol = this.safeString(market, "symbol");
+            if (isTrue(isEqual(market, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchTradingLimits() could not resolve market")) ;
+            }
             if (isTrue(isTrue((isEqual(symbols, null))) || isTrue((this.inArray(symbol, symbols)))))
             {
-                ((IDictionary<string,object>)tradingLimits)[(string)symbol] = getValue(getValue(market, "limits"), "amount");
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    ((IDictionary<string,object>)tradingLimits)[(string)symbol] = getValue(getValue(market, "limits"), "amount");
+                }
             }
         }
         return tradingLimits;
@@ -14881,6 +15184,10 @@ public partial class binance : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchMarginMode () supports linear and inverse subTypes only")) ;
         }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " fetchMarginMode() returned empty response")) ;
+        }
         return this.parseMarginMode(getValue(response, 0), market);
     }
 
@@ -15012,7 +15319,7 @@ public partial class binance : Exchange
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
@@ -15075,6 +15382,10 @@ public partial class binance : Exchange
         //        ...
         //    ]
         //
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseMarginModifications() returned empty response")) ;
+        }
         object modifications = this.parseMarginModifications(response);
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
@@ -15109,34 +15420,37 @@ public partial class binance : Exchange
             object entry = getValue(response, i);
             object id = this.safeString(entry, "asset");
             object code = this.safeCurrencyCode(id);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "info", entry },
-                { "id", id },
-                { "code", code },
-                { "networks", null },
-                { "type", null },
-                { "name", null },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "fraction"))) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "info", entry },
+                    { "id", id },
+                    { "code", code },
+                    { "networks", null },
+                    { "type", null },
+                    { "name", null },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "fraction"))) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "created", null },
-            };
+                    { "created", null },
+                };
+            }
         }
         return result;
     }
@@ -15182,6 +15496,10 @@ public partial class binance : Exchange
         //
         object fromCurrency = this.currency(fromCode);
         object toCurrency = this.currency(toCode);
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseConversion() returned empty response")) ;
+        }
         return this.parseConversion(response, fromCurrency, toCurrency);
     }
 
@@ -15224,6 +15542,10 @@ public partial class binance : Exchange
         }
         object fromCurrency = this.currency(fromCode);
         object toCurrency = this.currency(toCode);
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseConversion() returned empty response")) ;
+        }
         return this.parseConversion(response, fromCurrency, toCurrency);
     }
 
@@ -15281,6 +15603,10 @@ public partial class binance : Exchange
         if (isTrue(!isEqual(toCurrencyId, null)))
         {
             toCurrency = this.currency(toCurrencyId);
+        }
+        if (isTrue(isEqual(data, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseConversion() returned empty response")) ;
         }
         return this.parseConversion(data, fromCurrency, toCurrency);
     }
@@ -15630,6 +15956,10 @@ public partial class binance : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchADLRank() supports linear subTypes only")) ;
         }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseADLRank() returned empty response")) ;
+        }
         return this.parseADLRank(response, market);
     }
 
@@ -15698,7 +16028,12 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        return this.parseADLRanks(response, symbols);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        return this.parseADLRanks(responseList, symbols);
     }
 
     public override object parseADLRank(object info, object market = null)

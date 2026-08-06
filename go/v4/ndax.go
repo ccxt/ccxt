@@ -107,8 +107,9 @@ func (this *NdaxCore) Describe() any {
 			"fetchPositionsRisk":             false,
 			"fetchPremiumIndexOHLCV":         false,
 			"fetchSettlementHistory":         false,
+			"fetchStatus":                    true,
 			"fetchTicker":                    true,
-			"fetchTickers":                   false,
+			"fetchTickers":                   true,
 			"fetchTime":                      false,
 			"fetchTrades":                    true,
 			"fetchTradingFee":                false,
@@ -164,6 +165,7 @@ func (this *NdaxCore) Describe() any {
 					"Activate2FA":                     1,
 					"Authenticate2FA":                 1,
 					"AuthenticateUser":                1,
+					"EnableXP2FA":                     1,
 					"GetL2Snapshot":                   1,
 					"GetLevel1":                       1,
 					"GetValidate2FARequiredEndpoints": 1,
@@ -173,9 +175,15 @@ func (this *NdaxCore) Describe() any {
 					"GetProducts":                     1,
 					"GetInstrument":                   1,
 					"GetInstruments":                  1,
+					"GetEarliestTickTime":             1,
 					"Ping":                            1,
+					"assets":                          1,
+					"orderbook":                       1,
+					"ticker":                          1,
+					"summary":                         1,
 					"trades":                          1,
 					"GetLastTrades":                   1,
+					"ConfirmWithdraw":                 1,
 					"SubscribeLevel1":                 1,
 					"SubscribeLevel2":                 1,
 					"SubscribeTicker":                 1,
@@ -231,10 +239,14 @@ func (this *NdaxCore) Describe() any {
 					"GetWithdrawTemplate":                1,
 					"GetWithdrawTemplateTypes":           1,
 					"GetWithdrawTicket":                  1,
+					"GetWithdrawTicketAttachment":        1,
 					"GetWithdrawTickets":                 1,
+					"GetDepositTicketAttachment":         1,
 				},
 				"post": map[string]any{
 					"AddUserAffiliateTag":               1,
+					"AddDepositTicketAttachment":        1,
+					"AddWithdrawTicketAttachment":       1,
 					"CancelUserReport":                  1,
 					"RegisterNewDevice":                 1,
 					"SubscribeAccountEvents":            1,
@@ -387,6 +399,44 @@ func (this *NdaxCore) Describe() any {
 
 /**
  * @method
+ * @name ndax#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @see https://apidoc.ndax.io/#ping
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+ */
+func (this *NdaxCore) FetchStatus(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		response := (<-this.PublicGetPing(params))
+		PanicOnError(response)
+		//
+		//     {
+		//         "msg":"PONG"
+		//     }
+		//
+		var message any = this.SafeString(response, "msg")
+
+		ch <- map[string]any{
+			"status":  Ternary(IsTrue((IsEqual(message, "PONG"))), "ok", "error"),
+			"updated": nil,
+			"eta":     nil,
+			"url":     nil,
+			"info":    response,
+		}
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
  * @name ndax#signIn
  * @description sign in, must be called prior to using other authenticated methods
  * @see https://apidoc.ndax.io/#authenticate2fa
@@ -463,7 +513,7 @@ func (this *NdaxCore) SignIn(optionalArgs ...any) <-chan any {
  * @method
  * @name ndax#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://apidoc.ndax.io/#getproduct
+ * @see https://apidoc.ndax.io/#getproducts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -627,7 +677,7 @@ func (this *NdaxCore) ParseMarket(market any) any {
 	var sessionStatus any = this.SafeString(market, "SessionStatus")
 	var isDisable any = this.SafeValue(market, "IsDisable")
 	var sessionRunning any = (IsEqual(sessionStatus, "Running"))
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
 		"base":           base,
@@ -675,7 +725,7 @@ func (this *NdaxCore) ParseMarket(market any) any {
 		},
 		"created": nil,
 		"info":    market,
-	}
+	})
 }
 func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
 	timestamp := GetArg(optionalArgs, 0, nil)
@@ -720,8 +770,8 @@ func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...
 		var bidask any = this.ParseOrderBookBidAsk(level, priceKey, amountKey)
 		var levelSide any = this.SafeInteger(level, 9)
 		var side any = Ternary(IsTrue(levelSide), asksKey, bidsKey)
-		var resultSide any = GetValue(result, side)
-		AppendToArray(&resultSide, bidask)
+		retRes71312 := GetValue(result, side)
+		AppendToArray(&retRes71312, bidask)
 	}
 	AddElementToObject(result, "bids", this.SortBy(GetValue(result, "bids"), 0, true))
 	AddElementToObject(result, "asks", this.SortBy(GetValue(result, "asks"), 0))
@@ -739,7 +789,7 @@ func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *NdaxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -753,8 +803,8 @@ func (this *NdaxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes70012 := (<-this.LoadMarkets())
-			PanicOnError(retRes70012)
+			retRes73612 := (<-this.LoadMarkets())
+			PanicOnError(retRes73612)
 		}
 		var market any = this.Market(symbol)
 		limit = Ternary(IsTrue((IsEqual(limit, nil))), 100, limit) // default 100
@@ -828,27 +878,44 @@ func (this *NdaxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//         "Rolling24HrPxChangePercent":0,
 	//     }
 	//
+	// fetchTickers
+	//
+	//     {
+	//         "trading_pairs":"BTC_CAD",
+	//         "last_price":75925.37,
+	//         "lowest_ask":75926.63,
+	//         "highest_bid":66.435340000000000000000000000,
+	//         "base_volume":75774.93,
+	//         "quote_volume":5112197.7830825000000000000000,
+	//         "price_change_percent_24h":-5.3894893561980828521107542600,
+	//         "highest_price_24h":79813.51,
+	//         "lowest_price_24h":73700.01
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp any = this.SafeInteger(ticker, "TimeStamp")
 	var marketId any = this.SafeString(ticker, "InstrumentId")
-	market = this.SafeMarket(marketId, market)
+	if IsTrue(IsEqual(marketId, nil)) {
+		marketId = this.SafeString(ticker, "trading_pairs")
+	}
+	market = this.SafeMarket(marketId, market, "_")
 	var symbol any = this.SafeSymbol(marketId, market)
-	var last any = this.SafeString(ticker, "LastTradedPx")
-	var percentage any = this.SafeString(ticker, "Rolling24HrPxChangePercent")
+	var last any = this.SafeString2(ticker, "LastTradedPx", "last_price")
+	var percentage any = this.SafeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h")
 	var change any = this.SafeString(ticker, "Rolling24HrPxChange")
 	var open any = this.SafeString(ticker, "SessionOpen")
-	var baseVolume any = this.SafeString(ticker, "Rolling24HrVolume")
-	var quoteVolume any = this.SafeString(ticker, "Rolling24HrNotional")
+	var baseVolume any = this.SafeString2(ticker, "Rolling24HrVolume", "base_volume")
+	var quoteVolume any = this.SafeString2(ticker, "Rolling24HrNotional", "quote_volume")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
-		"high":          this.SafeString(ticker, "SessionHigh"),
-		"low":           this.SafeString(ticker, "SessionLow"),
-		"bid":           this.SafeString(ticker, "BestBid"),
+		"high":          this.SafeString2(ticker, "SessionHigh", "highest_price_24h"),
+		"low":           this.SafeString2(ticker, "SessionLow", "lowest_price_24h"),
+		"bid":           this.SafeString2(ticker, "BestBid", "highest_bid"),
 		"bidVolume":     nil,
-		"ask":           this.SafeString(ticker, "BestOffer"),
+		"ask":           this.SafeString2(ticker, "BestOffer", "lowest_ask"),
 		"askVolume":     nil,
 		"vwap":          nil,
 		"open":          open,
@@ -862,6 +929,57 @@ func (this *NdaxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
 	}, market)
+}
+
+/**
+ * @method
+ * @name ndax#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://apidoc.ndax.io/#cmc-summary
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *NdaxCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbols := GetArg(optionalArgs, 0, nil)
+		_ = symbols
+		params := GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes86612 := (<-this.LoadMarkets())
+			PanicOnError(retRes86612)
+		}
+		symbols = this.MarketSymbols(symbols)
+
+		response := (<-this.PublicGetSummary(params))
+		PanicOnError(response)
+		//
+		//     [
+		//         {
+		//             "trading_pairs":"BTC_CAD",
+		//             "last_price":75925.37,
+		//             "lowest_ask":75926.63,
+		//             "highest_bid":66.435340000000000000000000000,
+		//             "base_volume":75774.93,
+		//             "quote_volume":5112197.7830825000000000000000,
+		//             "price_change_percent_24h":-5.3894893561980828521107542600,
+		//             "highest_price_24h":79813.51,
+		//             "lowest_price_24h":73700.01
+		//         }
+		//     ]
+		//
+		var tickers any = this.ParseTickers(response)
+
+		ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -883,8 +1001,8 @@ func (this *NdaxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes81412 := (<-this.LoadMarkets())
-			PanicOnError(retRes81412)
+			retRes90112 := (<-this.LoadMarkets())
+			PanicOnError(retRes90112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -978,8 +1096,8 @@ func (this *NdaxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes89412 := (<-this.LoadMarkets())
-			PanicOnError(retRes89412)
+			retRes98112 := (<-this.LoadMarkets())
+			PanicOnError(retRes98112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1213,8 +1331,8 @@ func (this *NdaxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes110912 := (<-this.LoadMarkets())
-			PanicOnError(retRes110912)
+			retRes119612 := (<-this.LoadMarkets())
+			PanicOnError(retRes119612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1299,12 +1417,14 @@ func (this *NdaxCore) ParseBalance(response any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId any = this.SafeString(balance, "ProductId")
-		if IsTrue(IsTrue((!IsEqual(currencyId, nil))) && IsTrue((InOp(this.Currencies_by_id, currencyId)))) {
+		if IsTrue(IsTrue(IsTrue((!IsEqual(currencyId, nil))) && IsTrue((!IsEqual(this.Currencies_by_id, nil)))) && IsTrue((InOp(this.Currencies_by_id, currencyId)))) {
 			var code any = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
 			AddElementToObject(account, "total", this.SafeString(balance, "Amount"))
 			AddElementToObject(account, "used", this.SafeString(balance, "Hold"))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 	}
 	return this.SafeBalance(result)
@@ -1328,12 +1448,12 @@ func (this *NdaxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes119712 := (<-this.LoadMarkets())
-			PanicOnError(retRes119712)
+			retRes128612 := (<-this.LoadMarkets())
+			PanicOnError(retRes128612)
 		}
 
-		retRes11998 := (<-this.LoadAccounts())
-		PanicOnError(retRes11998)
+		retRes12888 := (<-this.LoadAccounts())
+		PanicOnError(retRes12888)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId")
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		if IsTrue(IsEqual(accountId, nil)) {
@@ -1489,12 +1609,12 @@ func (this *NdaxCore) FetchLedger(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes133512 := (<-this.LoadMarkets())
-			PanicOnError(retRes133512)
+			retRes142412 := (<-this.LoadMarkets())
+			PanicOnError(retRes142412)
 		}
 
-		retRes13378 := (<-this.LoadAccounts())
-		PanicOnError(retRes13378)
+		retRes14268 := (<-this.LoadAccounts())
+		PanicOnError(retRes14268)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -1675,12 +1795,12 @@ func (this *NdaxCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes150212 := (<-this.LoadMarkets())
-			PanicOnError(retRes150212)
+			retRes159112 := (<-this.LoadMarkets())
+			PanicOnError(retRes159112)
 		}
 
-		retRes15048 := (<-this.LoadAccounts())
-		PanicOnError(retRes15048)
+		retRes15938 := (<-this.LoadAccounts())
+		PanicOnError(retRes15938)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		var clientOrderId any = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
@@ -1708,7 +1828,11 @@ func (this *NdaxCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		}
 		// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 		if IsTrue(!IsEqual(price, nil)) {
-			AddElementToObject(request, "LimitPrice", ParseFloat(this.PriceToPrecision(symbol, price)))
+			var limitPriceString any = this.PriceToPrecision(symbol, price)
+			if IsTrue(IsEqual(limitPriceString, nil)) {
+				limitPriceString = "0"
+			}
+			AddElementToObject(request, "LimitPrice", ParseFloat(limitPriceString))
 		}
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			AddElementToObject(request, "ClientOrderId", clientOrderId)
@@ -1733,6 +1857,21 @@ func (this *NdaxCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 	}()
 	return ch
 }
+
+/**
+ * @method
+ * @name ndax#editOrder
+ * @description cancels an open order and places a new order
+ * @see https://apidoc.ndax.io/#cancelreplaceorder
+ * @param {string} id order id
+ * @param {string} symbol unified market symbol
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} [amount] how much of currency you want to trade in units of base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *NdaxCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
@@ -1747,12 +1886,12 @@ func (this *NdaxCore) EditOrder(id any, symbol any, typeVar any, side any, optio
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes156312 := (<-this.LoadMarkets())
-			PanicOnError(retRes156312)
+			retRes167012 := (<-this.LoadMarkets())
+			PanicOnError(retRes167012)
 		}
 
-		retRes15658 := (<-this.LoadAccounts())
-		PanicOnError(retRes15658)
+		retRes16728 := (<-this.LoadAccounts())
+		PanicOnError(retRes16728)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		var clientOrderId any = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
@@ -1772,7 +1911,11 @@ func (this *NdaxCore) EditOrder(id any, symbol any, typeVar any, side any, optio
 		}
 		// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 		if IsTrue(!IsEqual(price, nil)) {
-			AddElementToObject(request, "LimitPrice", ParseFloat(this.PriceToPrecision(symbol, price)))
+			var limitPriceString any = this.PriceToPrecision(symbol, price)
+			if IsTrue(IsEqual(limitPriceString, nil)) {
+				limitPriceString = "0"
+			}
+			AddElementToObject(request, "LimitPrice", ParseFloat(limitPriceString))
 		}
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			AddElementToObject(request, "ClientOrderId", clientOrderId)
@@ -1823,12 +1966,12 @@ func (this *NdaxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes162512 := (<-this.LoadMarkets())
-			PanicOnError(retRes162512)
+			retRes173612 := (<-this.LoadMarkets())
+			PanicOnError(retRes173612)
 		}
 
-		retRes16278 := (<-this.LoadAccounts())
-		PanicOnError(retRes16278)
+		retRes17388 := (<-this.LoadAccounts())
+		PanicOnError(retRes17388)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -1906,7 +2049,7 @@ func (this *NdaxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @name ndax#cancelAllOrders
  * @description cancel all open orders
  * @see https://apidoc.ndax.io/#cancelallorders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1922,12 +2065,12 @@ func (this *NdaxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes171412 := (<-this.LoadMarkets())
-			PanicOnError(retRes171412)
+			retRes182512 := (<-this.LoadMarkets())
+			PanicOnError(retRes182512)
 		}
 
-		retRes17168 := (<-this.LoadAccounts())
-		PanicOnError(retRes17168)
+		retRes18278 := (<-this.LoadAccounts())
+		PanicOnError(retRes18278)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -1983,12 +2126,12 @@ func (this *NdaxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes175812 := (<-this.LoadMarkets())
-			PanicOnError(retRes175812)
+			retRes186912 := (<-this.LoadMarkets())
+			PanicOnError(retRes186912)
 		}
 
-		retRes17608 := (<-this.LoadAccounts())
-		PanicOnError(retRes17608)
+		retRes18718 := (<-this.LoadAccounts())
+		PanicOnError(retRes18718)
 		// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
 		// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
 		// params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -2048,12 +2191,12 @@ func (this *NdaxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes180112 := (<-this.LoadMarkets())
-			PanicOnError(retRes180112)
+			retRes191212 := (<-this.LoadMarkets())
+			PanicOnError(retRes191212)
 		}
 
-		retRes18038 := (<-this.LoadAccounts())
-		PanicOnError(retRes18038)
+		retRes19148 := (<-this.LoadAccounts())
+		PanicOnError(retRes19148)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2153,12 +2296,12 @@ func (this *NdaxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes188312 := (<-this.LoadMarkets())
-			PanicOnError(retRes188312)
+			retRes199412 := (<-this.LoadMarkets())
+			PanicOnError(retRes199412)
 		}
 
-		retRes18858 := (<-this.LoadAccounts())
-		PanicOnError(retRes18858)
+		retRes19968 := (<-this.LoadAccounts())
+		PanicOnError(retRes19968)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2260,12 +2403,12 @@ func (this *NdaxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes198012 := (<-this.LoadMarkets())
-			PanicOnError(retRes198012)
+			retRes209112 := (<-this.LoadMarkets())
+			PanicOnError(retRes209112)
 		}
 
-		retRes19828 := (<-this.LoadAccounts())
-		PanicOnError(retRes19828)
+		retRes20938 := (<-this.LoadAccounts())
+		PanicOnError(retRes20938)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2365,12 +2508,12 @@ func (this *NdaxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes206212 := (<-this.LoadMarkets())
-			PanicOnError(retRes206212)
+			retRes217312 := (<-this.LoadMarkets())
+			PanicOnError(retRes217312)
 		}
 
-		retRes20648 := (<-this.LoadAccounts())
-		PanicOnError(retRes20648)
+		retRes21758 := (<-this.LoadAccounts())
+		PanicOnError(retRes21758)
 		// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
 		// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
 		// params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -2463,12 +2606,12 @@ func (this *NdaxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan 
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes214412 := (<-this.LoadMarkets())
-			PanicOnError(retRes214412)
+			retRes225512 := (<-this.LoadMarkets())
+			PanicOnError(retRes225512)
 		}
 
-		retRes21468 := (<-this.LoadAccounts())
-		PanicOnError(retRes21468)
+		retRes22578 := (<-this.LoadAccounts())
+		PanicOnError(retRes22578)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2558,9 +2701,9 @@ func (this *NdaxCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan
 			"GenerateNewKey": true,
 		}
 
-		retRes222115 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
-		PanicOnError(retRes222115)
-		ch <- retRes222115
+		retRes233215 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
+		PanicOnError(retRes233215)
+		ch <- retRes233215
 		return nil
 
 	}()
@@ -2594,12 +2737,12 @@ func (this *NdaxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes223812 := (<-this.LoadMarkets())
-			PanicOnError(retRes223812)
+			retRes234912 := (<-this.LoadMarkets())
+			PanicOnError(retRes234912)
 		}
 
-		retRes22408 := (<-this.LoadAccounts())
-		PanicOnError(retRes22408)
+		retRes23518 := (<-this.LoadAccounts())
+		PanicOnError(retRes23518)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2682,12 +2825,12 @@ func (this *NdaxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes230112 := (<-this.LoadMarkets())
-			PanicOnError(retRes230112)
+			retRes241212 := (<-this.LoadMarkets())
+			PanicOnError(retRes241212)
 		}
 
-		retRes23038 := (<-this.LoadAccounts())
-		PanicOnError(retRes23038)
+		retRes24148 := (<-this.LoadAccounts())
+		PanicOnError(retRes24148)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2927,12 +3070,12 @@ func (this *NdaxCore) Withdraw(code any, amount any, address any, optionalArgs .
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes251812 := (<-this.LoadMarkets())
-			PanicOnError(retRes251812)
+			retRes262912 := (<-this.LoadMarkets())
+			PanicOnError(retRes262912)
 		}
 
-		retRes25208 := (<-this.LoadAccounts())
-		PanicOnError(retRes25208)
+		retRes26318 := (<-this.LoadAccounts())
+		PanicOnError(retRes26318)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})

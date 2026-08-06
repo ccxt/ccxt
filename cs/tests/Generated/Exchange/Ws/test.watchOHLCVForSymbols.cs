@@ -31,6 +31,10 @@ public partial class testMainClass : BaseTest
             try
             {
                 response = await exchange.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit);
+                if (isTrue(isEqual(response, null)))
+                {
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                }
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -43,6 +47,10 @@ public partial class testMainClass : BaseTest
             }
             if (isTrue(isEqual(success, true)))
             {
+                if (isTrue(isEqual(response, null)))
+                {
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                }
                 object assertionMessage = add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
                 assert(exchange.isDictionary(response), add("Response must be a dictionary. ", assertionMessage));
                 assert(inOp(response, symbol), add("Response should contain the symbol as key. ", assertionMessage));

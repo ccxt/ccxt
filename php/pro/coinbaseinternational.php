@@ -11,6 +11,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     public function describe(): mixed {
@@ -187,21 +189,16 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     }
 
     public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watch the current funding rate
-             *
-             * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
-             *
-             * @param {string} $symbol unified market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            return Async\await($this->subscribe('RISK', array( $symbol ), $params));
-        })();
+        /**
+         * watch the current funding rate
+         *
+         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        return $this->subscribe('RISK', array( $symbol ), $params);
     }
 
     public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -258,7 +255,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $output = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $market = $this->markets[$symbol];
+            $market = $this->market($symbol);
             if ($market['active']) {
                 $output[] = $symbol;
             }
@@ -293,7 +290,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         })();
     }
 
-    public function handle_instrument(Client $client, $message) {
+    public function handle_instrument(Client $client, mixed $message) {
         //
         //    {
         //        "sequence" => 1,
@@ -325,7 +322,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
     }
 
-    public function parse_ws_instrument(array $ticker, $market = null) {
+    public function parse_ws_instrument(array $ticker, ?array $market = null) {
         //
         //    {
         //        "sequence" => 1,
@@ -405,7 +402,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         ));
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // snapshot
         //    {
@@ -505,7 +502,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // {
         //     "sequence" => 0,
@@ -545,20 +542,18 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#match-channel
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#match-channel
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -585,7 +580,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         })();
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(mixed $client, mixed $message) {
         //
         //    {
         //       "sequence" => 0,
@@ -602,7 +597,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $trade = $this->parse_ws_trade($message);
         $symbol = $trade['symbol'];
         $channel = $this->safe_string($message, 'channel');
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $tradesArrayCache = new ArrayCache($limit);
             $this->trades[$symbol] = $tradesArrayCache;
@@ -615,7 +610,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $message;
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //    {
         //       "sequence" => 0,
@@ -648,41 +643,34 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
-             *
-             * @param {string[]} $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            return Async\await($this->subscribe_multiple('LEVEL2', $symbols, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+         *
+         * @param {string[]} $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->subscribe_multiple('LEVEL2', $symbols, $params);
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         // snapshot
         //    {
@@ -723,7 +711,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbol = $this->safe_symbol($marketId);
         $datetime = $this->safe_string($message, 'time');
         $channel = $this->safe_string($message, 'channel');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $limit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
@@ -743,7 +731,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client->resolve($orderbook, $channel . '::' . $symbol);
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $rawSide = $this->safe_string_lower($delta, 0);
         $side = ($rawSide === 'buy') ? 'bids' : 'asks';
         $price = $this->safe_float($delta, 1);
@@ -752,13 +740,13 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($orderbook, $deltas) {
+    public function handle_deltas(mixed $orderbook, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($orderbook, $deltas[$i]);
         }
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //    {
         //       "channels" => array(
@@ -786,7 +774,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $message;
     }
 
-    public function handle_funding_rate(Client $client, $message) {
+    public function handle_funding_rate(Client $client, mixed $message) {
         //
         // snapshot
         //    {
@@ -815,7 +803,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client->resolve($fundingRate, $channel . '::' . $fundingRate['symbol']);
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //        $message => 'Failed to subscribe',
@@ -841,7 +829,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return true;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(mixed $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }

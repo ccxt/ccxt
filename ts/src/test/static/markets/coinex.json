@@ -38,7 +38,7 @@
                 "max": null
             },
             "amount": {
-                "min": 0.0005,
+                "min": 0.001,
                 "max": null
             },
             "price": {
@@ -57,17 +57,17 @@
         "created": null,
         "info": {
             "base_ccy": "ETH",
-            "base_ccy_precision": "8",
-            "delisted_at": "0",
+            "base_ccy_precision": 8,
+            "delisted_at": 0,
             "is_amm_available": false,
             "is_api_trading_available": true,
             "is_margin_available": true,
             "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "ETHUSDT",
-            "min_amount": "0.0005",
+            "min_amount": "0.001",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "2",
+            "quote_ccy_precision": 2,
             "status": "online",
             "taker_fee_rate": "0.002"
         },
@@ -132,8 +132,8 @@
         "created": null,
         "info": {
             "base_ccy": "BTC",
-            "base_ccy_precision": "8",
-            "delisted_at": "0",
+            "base_ccy_precision": 8,
+            "delisted_at": 0,
             "is_amm_available": false,
             "is_api_trading_available": true,
             "is_margin_available": true,
@@ -142,7 +142,7 @@
             "market": "BTCUSDT",
             "min_amount": "0.0001",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "0",
+            "quote_ccy_precision": 0,
             "status": "online",
             "taker_fee_rate": "0.002"
         },
@@ -188,7 +188,7 @@
                 "max": null
             },
             "amount": {
-                "min": 0.02,
+                "min": 0.05,
                 "max": null
             },
             "price": {
@@ -207,17 +207,17 @@
         "created": null,
         "info": {
             "base_ccy": "LTC",
-            "base_ccy_precision": "8",
-            "delisted_at": "0",
+            "base_ccy_precision": 8,
+            "delisted_at": 0,
             "is_amm_available": false,
             "is_api_trading_available": true,
             "is_margin_available": true,
             "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "LTCUSDT",
-            "min_amount": "0.02",
+            "min_amount": "0.05",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "2",
+            "quote_ccy_precision": 2,
             "status": "online",
             "taker_fee_rate": "0.002"
         },
@@ -263,7 +263,7 @@
                 "max": null
             },
             "amount": {
-                "min": 5,
+                "min": 10,
                 "max": null
             },
             "price": {
@@ -282,17 +282,17 @@
         "created": null,
         "info": {
             "base_ccy": "ADA",
-            "base_ccy_precision": "8",
-            "delisted_at": "0",
+            "base_ccy_precision": 8,
+            "delisted_at": 0,
             "is_amm_available": false,
             "is_api_trading_available": true,
             "is_margin_available": true,
             "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "ADAUSDT",
-            "min_amount": "5",
+            "min_amount": "10",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "6",
+            "quote_ccy_precision": 6,
             "status": "online",
             "taker_fee_rate": "0.002"
         },
@@ -357,8 +357,8 @@
         "created": null,
         "info": {
             "base_ccy": "XRP",
-            "base_ccy_precision": "8",
-            "delisted_at": "0",
+            "base_ccy_precision": 8,
+            "delisted_at": 0,
             "is_amm_available": false,
             "is_api_trading_available": true,
             "is_margin_available": true,
@@ -367,7 +367,7 @@
             "market": "XRPUSDT",
             "min_amount": "1",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "4",
+            "quote_ccy_precision": 4,
             "status": "online",
             "taker_fee_rate": "0.002"
         },
@@ -432,8 +432,8 @@
         "created": null,
         "info": {
             "base_ccy": "SOL",
-            "base_ccy_precision": "8",
-            "delisted_at": "0",
+            "base_ccy_precision": 8,
+            "delisted_at": 0,
             "is_amm_available": false,
             "is_api_trading_available": true,
             "is_margin_available": true,
@@ -442,7 +442,7 @@
             "market": "SOLUSDT",
             "min_amount": "0.02",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "2",
+            "quote_ccy_precision": 2,
             "status": "online",
             "taker_fee_rate": "0.002"
         },
@@ -507,8 +507,8 @@
         "created": null,
         "info": {
             "base_ccy": "TRX",
-            "base_ccy_precision": "8",
-            "delisted_at": "0",
+            "base_ccy_precision": 8,
+            "delisted_at": 0,
             "is_amm_available": false,
             "is_api_trading_available": true,
             "is_margin_available": true,
@@ -517,7 +517,7 @@
             "market": "TRXUSDT",
             "min_amount": "5",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "4",
+            "quote_ccy_precision": 4,
             "status": "online",
             "taker_fee_rate": "0.002"
         },
@@ -563,7 +563,7 @@
                 "max": 50
             },
             "amount": {
-                "min": 0.1,
+                "min": 0.2,
                 "max": null
             },
             "price": {
@@ -582,11 +582,10 @@
         "created": null,
         "info": {
             "base_ccy": "LTC",
-            "base_ccy_precision": "2",
+            "base_ccy_precision": 2,
             "contract_type": "linear",
-            "delisted_at": "0",
+            "delisted_at": 0,
             "is_api_trading_available": true,
-            "is_copy_trading_available": false,
             "is_market_available": true,
             "leverage": [
                 "1",
@@ -602,10 +601,10 @@
             ],
             "maker_fee_rate": "0.0003",
             "market": "LTCUSDT",
-            "min_amount": "0.1",
-            "open_interest_volume": "47918.05",
+            "min_amount": "0.2",
+            "open_interest_volume": "31979.25",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "2",
+            "quote_ccy_precision": 2,
             "status": "online",
             "taker_fee_rate": "0.0005",
             "tick_size": "0.01"
@@ -671,11 +670,10 @@
         "created": null,
         "info": {
             "base_ccy": "BTC",
-            "base_ccy_precision": "4",
+            "base_ccy_precision": 4,
             "contract_type": "linear",
-            "delisted_at": "0",
+            "delisted_at": 0,
             "is_api_trading_available": true,
-            "is_copy_trading_available": true,
             "is_market_available": true,
             "leverage": [
                 "1",
@@ -693,9 +691,9 @@
             "maker_fee_rate": "0.0003",
             "market": "BTCUSDT",
             "min_amount": "0.0001",
-            "open_interest_volume": "1811.69",
+            "open_interest_volume": "1125.978",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "0",
+            "quote_ccy_precision": 0,
             "status": "online",
             "taker_fee_rate": "0.0005",
             "tick_size": "1"
@@ -742,7 +740,7 @@
                 "max": 50
             },
             "amount": {
-                "min": 20,
+                "min": 50,
                 "max": null
             },
             "price": {
@@ -761,11 +759,10 @@
         "created": null,
         "info": {
             "base_ccy": "ADA",
-            "base_ccy_precision": "0",
+            "base_ccy_precision": 0,
             "contract_type": "linear",
-            "delisted_at": "0",
+            "delisted_at": 0,
             "is_api_trading_available": true,
-            "is_copy_trading_available": false,
             "is_market_available": true,
             "leverage": [
                 "1",
@@ -781,10 +778,10 @@
             ],
             "maker_fee_rate": "0.0003",
             "market": "ADAUSDT",
-            "min_amount": "20",
-            "open_interest_volume": "17869170",
+            "min_amount": "50",
+            "open_interest_volume": "16914580",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "6",
+            "quote_ccy_precision": 6,
             "status": "online",
             "taker_fee_rate": "0.0005",
             "tick_size": "0.000001"
@@ -850,11 +847,10 @@
         "created": null,
         "info": {
             "base_ccy": "XRP",
-            "base_ccy_precision": "0",
+            "base_ccy_precision": 0,
             "contract_type": "linear",
-            "delisted_at": "0",
+            "delisted_at": 0,
             "is_api_trading_available": true,
-            "is_copy_trading_available": true,
             "is_market_available": true,
             "leverage": [
                 "1",
@@ -871,9 +867,9 @@
             "maker_fee_rate": "0.0003",
             "market": "XRPUSDT",
             "min_amount": "5",
-            "open_interest_volume": "3379355",
+            "open_interest_volume": "2924845",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "4",
+            "quote_ccy_precision": 4,
             "status": "online",
             "taker_fee_rate": "0.0005",
             "tick_size": "0.0001"
@@ -939,11 +935,10 @@
         "created": null,
         "info": {
             "base_ccy": "TRX",
-            "base_ccy_precision": "0",
+            "base_ccy_precision": 0,
             "contract_type": "linear",
-            "delisted_at": "0",
+            "delisted_at": 0,
             "is_api_trading_available": true,
-            "is_copy_trading_available": false,
             "is_market_available": true,
             "leverage": [
                 "1",
@@ -960,9 +955,9 @@
             "maker_fee_rate": "0.0003",
             "market": "TRXUSDT",
             "min_amount": "20",
-            "open_interest_volume": "3651255",
+            "open_interest_volume": "4183800",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "4",
+            "quote_ccy_precision": 4,
             "status": "online",
             "taker_fee_rate": "0.0005",
             "tick_size": "0.0001"
@@ -1028,11 +1023,10 @@
         "created": null,
         "info": {
             "base_ccy": "ETH",
-            "base_ccy_precision": "3",
+            "base_ccy_precision": 3,
             "contract_type": "linear",
-            "delisted_at": "0",
+            "delisted_at": 0,
             "is_api_trading_available": true,
-            "is_copy_trading_available": true,
             "is_market_available": true,
             "leverage": [
                 "1",
@@ -1050,9 +1044,9 @@
             "maker_fee_rate": "0.0003",
             "market": "ETHUSDT",
             "min_amount": "0.005",
-            "open_interest_volume": "12161.645",
+            "open_interest_volume": "9103.905",
             "quote_ccy": "USDT",
-            "quote_ccy_precision": "2",
+            "quote_ccy_precision": 2,
             "status": "online",
             "taker_fee_rate": "0.0005",
             "tick_size": "0.01"

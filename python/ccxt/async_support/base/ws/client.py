@@ -143,6 +143,11 @@ class Client(object):
             task = self.asyncio_loop.create_task(self.receive())
 
             def after_interrupt(resolved: asyncioFuture):
+                if resolved.cancelled():
+                    # the receive task was cancelled, e.g. during shutdown or a
+                    # reconnect, calling exception() on a cancelled task would
+                    # raise CancelledError inside this callback, so just stop
+                    return
                 exception = resolved.exception()
                 if exception is None:
                     self.handle_message(resolved.result())
@@ -299,9 +304,14 @@ class Client(object):
         if 'cookies' in self.options:
             for key, value in self.options['cookies'].items():
                 session.cookie_jar.update_cookies({key: value})
+        # offer permessage-deflate (RFC 7692) by default, matching the JS `ws` client and
+        # browsers - some gateways (e.g. nado behind cloudflare) 403 handshakes without the
+        # Sec-WebSocket-Extensions offer; servers that don't support it simply ignore it.
+        # can be disabled per exchange via options['ws'] = {'compress': 0}
+        compress = self.options.get('compress', 15)
         if (self.proxy):
-            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy=self.proxy, max_msg_size=10485760).__aenter__()
-        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), max_msg_size=10485760).__aenter__()
+            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, proxy=self.proxy, max_msg_size=10485760).__aenter__()
+        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, max_msg_size=10485760).__aenter__()
 
     async def send(self, message):
         if self.verbose:
@@ -334,6 +344,11 @@ class Client(object):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'ping loop')
         while self.keepAlive and not self.closed():
+            # sleep BEFORE the first (and every) ping so the initial subscribe goes out first —
+            # this matches the JS client (setInterval fires after one keepAlive, not immediately).
+            # some servers (e.g. Polymarket) close the connection if a ping arrives before the
+            # subscribe frame, which is why the first ping must not be sent on connect.
+            await sleep(self.keepAlive / 1000)
             now = milliseconds()
             self.lastPong = now if self.lastPong is None else self.lastPong
             if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
@@ -350,4 +365,3 @@ class Client(object):
                         self.on_error(e)
                 else:
                     await self.connection.ping()
-            await sleep(self.keepAlive / 1000)

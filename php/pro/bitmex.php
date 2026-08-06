@@ -10,6 +10,10 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bitmex extends \ccxt\async\bitmex {
     public function describe(): mixed {
@@ -126,7 +130,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "table" => "instrument",
@@ -359,7 +363,7 @@ class bitmex extends \ccxt\async\bitmex {
             $update = $data[$i];
             $marketId = $this->safe_string($update, 'symbol');
             $symbol = $this->safe_symbol($marketId);
-            if (!(is_array($this->tickers) && array_key_exists($symbol, $this->tickers))) {
+            if (!(is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers))) {
                 $this->tickers[$symbol] = $this->parse_ticker(array());
             }
             $updatedTicker = $this->parse_ticker($update);
@@ -431,7 +435,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_liquidation(Client $client, $message) {
+    public function handle_liquidation(Client $client, mixed $message) {
         //
         //    {
         //        "table":"liquidation",
@@ -506,7 +510,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "table" => "margin",
@@ -612,7 +616,7 @@ class bitmex extends \ccxt\async\bitmex {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         // initial snapshot
         //
@@ -696,20 +700,18 @@ class bitmex extends \ccxt\async\bitmex {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function authenticate($params = array()) {
@@ -739,7 +741,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         $authenticated = $this->safe_bool($message, 'success', false);
         $messageHash = 'authenticated';
         if ($authenticated) {
@@ -749,7 +751,7 @@ class bitmex extends \ccxt\async\bitmex {
         } else {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
@@ -792,7 +794,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         // partial
         //    {
@@ -1026,7 +1028,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //     {
         //         "table" => "order",
@@ -1248,7 +1250,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "table":"execution",
@@ -1334,19 +1336,17 @@ class bitmex extends \ccxt\async\bitmex {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://www.bitmex.com/app/wsAPI#OrderBookL2
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://www.bitmex.com/app/wsAPI#OrderBookL2
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1359,7 +1359,7 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $table = null;
             if ($limit === null) {
@@ -1474,7 +1474,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "table" => "tradeBin1m",
@@ -1588,7 +1588,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // first snapshot
         //
@@ -1683,7 +1683,7 @@ class bitmex extends \ccxt\async\bitmex {
                 if ($marketId === null) {
                     return; // protecting from weird update
                 }
-                if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
+                if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId ?? '', $numUpdatesByMarketId))) {
                     $numUpdatesByMarketId[$marketId] = 0;
                 }
                 $numUpdatesByMarketId[$marketId] = $this->sum($numUpdatesByMarketId[$marketId], 1);
@@ -1713,7 +1713,7 @@ class bitmex extends \ccxt\async\bitmex {
         }
     }
 
-    public function handle_system_status(Client $client, $message) {
+    public function handle_system_status(Client $client, mixed $message) {
         //
         // todo answer the question whether handleSystemStatus should be renamed
         // and unified for any usage pattern that
@@ -1730,7 +1730,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "success" => true,
@@ -1741,7 +1741,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         // generic $error format
         //
@@ -1780,7 +1780,7 @@ class bitmex extends \ccxt\async\bitmex {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         //     {
         //         "info" => "Welcome to the BitMEX Realtime API.",

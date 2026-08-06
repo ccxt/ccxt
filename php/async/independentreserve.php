@@ -13,6 +13,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class independentreserve extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -398,7 +400,7 @@ class independentreserve extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -407,7 +409,9 @@ class independentreserve extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'AvailableBalance');
             $account['total'] = $this->safe_string($balance, 'TotalBalance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -434,7 +438,7 @@ class independentreserve extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -855,7 +859,7 @@ class independentreserve extends Exchange {
             /**
              * fetch the trading $fees for multiple markets
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market $symbols
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -876,14 +880,17 @@ class independentreserve extends Exchange {
                 $currencyId = $this->safe_string($fee, 'CurrencyCode');
                 $code = $this->safe_currency_code($currencyId);
                 $tradingFee = $this->safe_number($fee, 'Fee');
-                $fees[$code] = array(
-                    'info' => $fee,
-                    'fee' => $tradingFee,
-                );
+                if ($code !== null) {
+                    $fees[$code] = array(
+                        'info' => $fee,
+                        'fee' => $tradingFee,
+                    );
+                }
             }
             $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
+            $symbols = $this->symbols;
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $fee = $this->safe_value($fees, $market['base'], array());
                 $result[$symbol] = array(
@@ -1005,7 +1012,7 @@ class independentreserve extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        Tag => '3307446684',
@@ -1135,7 +1142,7 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'public') {
             if ($params) {

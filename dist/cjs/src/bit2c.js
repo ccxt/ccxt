@@ -207,7 +207,9 @@ class bit2c extends bit2c$1["default"] {
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
+                'fetchTrades': {
+                    'method': 'public_get_exchanges_pair_trades',
+                },
             },
             'features': {
                 'spot': {
@@ -368,7 +370,7 @@ class bit2c extends bit2c$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -446,7 +448,8 @@ class bit2c extends bit2c$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const method = this.options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        const optionValue = this.safeString(this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
+        const method = this.handleOption('fetchTrades', 'method', optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         const request = {
             'pair': market['id'],
         };
@@ -473,7 +476,11 @@ class bit2c extends bit2c$1["default"] {
         if (typeof response === 'string') {
             throw new errors.ExchangeError(response);
         }
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -830,7 +837,11 @@ class bit2c extends bit2c$1["default"] {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     removeCommaFromValue(str) {
         let newString = '';

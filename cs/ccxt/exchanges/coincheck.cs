@@ -434,7 +434,7 @@ public partial class coincheck : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -586,8 +586,8 @@ public partial class coincheck : Exchange
                 takerOrMaker = "maker";
             }
             object funds = this.safeValue(trade, "funds", new Dictionary<string, object>() {});
-            amountString = this.safeString(funds, ((string)baseId));
-            costString = this.safeString(funds, ((string)quoteId));
+            amountString = this.safeString(funds, baseId);
+            costString = this.safeString(funds, quoteId);
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeString(trade, "fee_currency") },
                 { "cost", this.safeString(trade, "fee") },
@@ -634,7 +634,7 @@ public partial class coincheck : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
@@ -754,7 +754,7 @@ public partial class coincheck : Exchange
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object fee = this.safeValue(fees, ((string)getValue(market, "id")), new Dictionary<string, object>() {});
+            object fee = this.safeValue(fees, getValue(market, "id"), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
                 { "symbol", symbol },
@@ -827,7 +827,7 @@ public partial class coincheck : Exchange
      * @description cancels an open order
      * @see https://coincheck.com/documents/exchange/api#order-cancel
      * @param {string} id order id
-     * @param {string} symbol not used by coincheck cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

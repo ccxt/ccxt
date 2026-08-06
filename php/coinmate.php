@@ -328,12 +328,12 @@ class coinmate extends Exchange {
 
     public function fetch_time($params = array()): ?int {
         /**
-         * fetches the current integer timestamp in milliseconds from the bingx server
+         * fetches the current integer timestamp in milliseconds from the exchange server
          *
          * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int} the current integer timestamp in milliseconds from the bingx server
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->publicGetSystemTime($params);
         //
@@ -436,7 +436,7 @@ class coinmate extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'data', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
@@ -478,7 +478,7 @@ class coinmate extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1207,7 +1207,7 @@ class coinmate extends Exchange {
          * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by coinmate cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1232,7 +1232,7 @@ class coinmate extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = ($this->urls['api'])['rest'] . '/' . $path;
         if ($api === 'public') {
             if ($params) {
@@ -1256,7 +1256,7 @@ class coinmate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

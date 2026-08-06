@@ -10,8 +10,8 @@ public partial class mexc
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/test-connectivity"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -22,17 +22,17 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/check-server-time"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -52,7 +52,7 @@ public partial class mexc
     /// retrieves data on all swap markets for mexc
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -68,22 +68,22 @@ public partial class mexc
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchSpotMarkets(object parameters = null)
     {
         var res = await this.fetchSpotMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchSwapMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchSwapMarkets(object parameters = null)
     {
         var res = await this.fetchSwapMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/order-book"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-order-book-depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -99,7 +99,7 @@ public partial class mexc
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -110,9 +110,9 @@ public partial class mexc
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/recent-trades-list"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/compressedaggregate-trades-list"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-recent-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -152,8 +152,10 @@ public partial class mexc
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints#klinecandlestick-data"/>  <br/>
-    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints#get-candlestick-data"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/klinecandlestick-data"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-candlestick-data"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-index-price-candles"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-fair-price-candles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -199,8 +201,8 @@ public partial class mexc
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -220,8 +222,8 @@ public partial class mexc
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -241,7 +243,7 @@ public partial class mexc
     /// fetches the bid and ask price and volume for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/symbol-order-book-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -261,7 +263,7 @@ public partial class mexc
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -281,7 +283,7 @@ public partial class mexc
     /// create a market sell order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -301,10 +303,9 @@ public partial class mexc
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
-    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -403,7 +404,7 @@ public partial class mexc
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -432,7 +433,7 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateSpotOrder(object market, object type, object side, object amount, double? price2 = 0, string marginMode = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateSpotOrder(object market, string type, object side, object amount, double? price2 = 0, string marginMode = null, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createSpotOrder(market, type, side, amount, price, marginMode, parameters);
@@ -442,10 +443,8 @@ public partial class mexc
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -526,7 +525,7 @@ public partial class mexc
     /// *spot only*  *all orders must have the same symbol* create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/batch-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -546,8 +545,8 @@ public partial class mexc
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-order"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-order-information-by-order-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -573,9 +572,9 @@ public partial class mexc
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -626,9 +625,9 @@ public partial class mexc
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/current-open-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-current-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -668,9 +667,9 @@ public partial class mexc
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -704,9 +703,9 @@ public partial class mexc
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -747,9 +746,9 @@ public partial class mexc
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-order"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-order-under-maintenance"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-order"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-planned-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -775,7 +774,7 @@ public partial class mexc
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -795,20 +794,21 @@ public partial class mexc
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-symbol"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-open-orders-on-a-symbol"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.marginMode</term>
-    /// <description>
-    /// string : only 'isolated' is supported for spot-margin trading
     /// </description>
     /// </item>
     /// </list>
@@ -828,8 +828,8 @@ public partial class mexc
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -849,7 +849,7 @@ public partial class mexc
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-symbol-commission"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -869,8 +869,8 @@ public partial class mexc
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -897,7 +897,7 @@ public partial class mexc
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -938,8 +938,8 @@ public partial class mexc
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-trade-records-by-order-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -973,7 +973,7 @@ public partial class mexc
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -993,7 +993,7 @@ public partial class mexc
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-funding-fee-details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1027,7 +1027,7 @@ public partial class mexc
     /// fetch the current funding rate interval
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1047,7 +1047,7 @@ public partial class mexc
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1067,7 +1067,7 @@ public partial class mexc
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1101,7 +1101,7 @@ public partial class mexc
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1121,7 +1121,7 @@ public partial class mexc
     /// fetch a dictionary of addresses for a currency, indexed by network
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1141,7 +1141,7 @@ public partial class mexc
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/generate-deposit-address-supporting-network"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1167,7 +1167,7 @@ public partial class mexc
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1193,7 +1193,7 @@ public partial class mexc
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-historysupporting-network"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1227,7 +1227,7 @@ public partial class mexc
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdraw-history-supporting-network"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1261,7 +1261,7 @@ public partial class mexc
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1281,7 +1281,7 @@ public partial class mexc
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1321,9 +1321,8 @@ public partial class mexc
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records"/>  <br/>
-    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-user-universal-transfer-history"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-asset-transfer-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1375,7 +1374,7 @@ public partial class mexc
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/user-universal-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1401,8 +1400,8 @@ public partial class mexc
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new"/>  <br/>
-    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdrawnew"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/internal-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1434,7 +1433,7 @@ public partial class mexc
     /// set hedged to true or false for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1454,7 +1453,7 @@ public partial class mexc
     /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-user-position-mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1465,16 +1464,16 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
-    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PositionModeInfo> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionMode(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PositionModeInfo(res);
     }
     /// <summary>
     /// fetch deposit and withdrawal fees
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1494,7 +1493,7 @@ public partial class mexc
     /// fetch deposit and withdrawal fees
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1505,16 +1504,16 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-position-leverage-multipliers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1534,7 +1533,7 @@ public partial class mexc
     /// fetches historical positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-historical-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1551,7 +1550,7 @@ public partial class mexc
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -1580,7 +1579,7 @@ public partial class mexc
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>

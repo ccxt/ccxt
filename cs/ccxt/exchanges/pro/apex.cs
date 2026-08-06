@@ -178,12 +178,12 @@ public partial class apex : ccxt.apex
         //     }
         //
         object id = this.safeStringN(trade, new List<object>() {"i", "id", "v"});
-        object marketId = this.safeStringN(trade, new List<object>() {"s", "symbol"});
+        object marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market, null);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
-        object side = this.safeStringLowerN(trade, new List<object>() {"S", "side"});
-        object price = this.safeStringN(trade, new List<object>() {"p", "price"});
+        object side = this.safeStringLower2(trade, "S", "side");
+        object price = this.safeString2(trade, "p", "price");
         object amount = this.safeStringN(trade, new List<object>() {"q", "v", "size"});
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -226,7 +226,7 @@ public partial class apex : ccxt.apex
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -561,7 +561,7 @@ public partial class apex : ccxt.apex
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
-            object market = this.market(((string)symbolString));
+            object market = this.market(symbolString);
             symbolString = getValue(market, "id2");
             object unfiedTimeframe = this.safeString(data, 1, "1");
             object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -709,7 +709,7 @@ public partial class apex : ccxt.apex
             await this.loadMarkets();
         }
         object messageHash = "";
-        if (!isTrue(this.isEmpty((IList<object>)(symbols))))
+        if (!isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
             messageHash = add("::", String.Join(",", ((IList<object>)(IList<string>)(symbols)).ToArray()));

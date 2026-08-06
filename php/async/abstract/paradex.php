@@ -19,8 +19,14 @@ abstract class paradex extends \ccxt\async\Exchange {
     public function public_get_markets($params = array()) {
         return $this->request('markets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_markets_history($params = array()) {
+        return $this->request('markets/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_markets_klines($params = array()) {
         return $this->request('markets/klines', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_markets_settlement_price($params = array()) {
+        return $this->request('markets/settlement-price', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_markets_summary($params = array()) {
         return $this->request('markets/summary', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -346,8 +352,14 @@ abstract class paradex extends \ccxt\async\Exchange {
     public function publicGetMarkets($params = array()) {
         return $this->request('markets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetMarketsHistory($params = array()) {
+        return $this->request('markets/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetMarketsKlines($params = array()) {
         return $this->request('markets/klines', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketsSettlementPrice($params = array()) {
+        return $this->request('markets/settlement-price', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetMarketsSummary($params = array()) {
         return $this->request('markets/summary', 'public', 'GET', $params, null, null, array("cost" => 1));

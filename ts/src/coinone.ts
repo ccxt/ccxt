@@ -6,7 +6,7 @@ import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market,
  * @augments Exchange
  */
 export default class coinone extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinone',
             'name': 'CoinOne',
@@ -306,7 +306,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.v2PublicGetCurrencies (params);
         //
         //     {
@@ -332,7 +332,7 @@ export default class coinone extends Exchange {
         return this.parseCurrencies (currencies);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const isWithdrawEnabled = this.safeString (rawCurrency, 'withdraw_status', '') === 'normal';
@@ -371,7 +371,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const request: Dict = {
             'quote_currency': 'KRW',
         };
@@ -472,7 +472,7 @@ export default class coinone extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         const balances = this.omit (response, [
             'errorCode',
@@ -487,7 +487,9 @@ export default class coinone extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'avail');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -500,7 +502,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -516,9 +518,9 @@ export default class coinone extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -568,7 +570,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -577,10 +579,10 @@ export default class coinone extends Exchange {
             'quote_currency': 'KRW',
         };
         let market: Market = undefined;
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
-            market = this.market ((first as string));
+            market = this.market (first);
             request['quote_currency'] = market['quote'];
             request['target_currency'] = market['base'];
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency (this.extend (request, params));
@@ -633,7 +635,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -681,7 +683,7 @@ export default class coinone extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "quote_currency": "krw",
@@ -740,7 +742,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -775,7 +777,7 @@ export default class coinone extends Exchange {
         const amountString = this.safeString (trade, 'qty');
         const orderId = this.safeString (trade, 'orderId');
         let feeCostString = this.safeString (trade, 'fee');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCostString !== undefined) {
             feeCostString = Precise.stringAbs (feeCostString);
             let feeRateString = this.safeString (trade, 'feeRate');
@@ -815,7 +817,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -854,36 +856,45 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#createOrder
      * @description create a trade order
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+     * @see https://docs.coinone.co.kr/reference/order-v21
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type must be 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        if (type !== 'limit') {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const orderType = (type as string).toUpperCase (); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        const orderSide = (side as string).toUpperCase (); // unified lowercase order sides, same override rule
+        if (orderType !== 'LIMIT') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for the limit orders');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        // the v1 order/limit_buy and order/limit_sell endpoints were retired by
+        // the exchange and return 404, the v2.1 order endpoint replaces them,
+        // see https://github.com/ccxt/ccxt/issues/23174
         const request: Dict = {
-            'price': price,
-            'currency': market['id'],
-            'qty': amount,
+            'quote_currency': market['quoteId'],
+            'target_currency': market['baseId'],
+            'type': orderType,
+            'side': orderSide,
+            'price': this.priceToPrecision (symbol, price),
+            'qty': this.amountToPrecision (symbol, amount),
         };
-        const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize ((side as string));
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.v2_1PrivatePostOrderLimit (this.extend (request, params));
         //
         //     {
         //         "result": "success",
-        //         "errorCode": "0",
-        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //         "error_code": "0",
+        //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
         return this.parseOrder (response, market);
@@ -898,7 +909,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -946,7 +957,7 @@ export default class coinone extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -990,9 +1001,9 @@ export default class coinone extends Exchange {
         //         "feeRate": "-0.0015"
         //     }
         //
-        const id = this.safeString (order, 'orderId');
-        const baseId = this.safeString (order, 'baseCurrency');
-        const quoteId = this.safeString (order, 'targetCurrency');
+        const id = this.safeString2 (order, 'orderId', 'order_id');
+        const baseId = this.safeString2 (order, 'baseCurrency', 'target_currency');
+        const quoteId = this.safeString2 (order, 'targetCurrency', 'quote_currency');
         let base: Str = undefined;
         let quote: Str = undefined;
         if (baseId !== undefined) {
@@ -1006,15 +1017,21 @@ export default class coinone extends Exchange {
             symbol = base + '/' + quote;
             market = this.safeMarket (symbol, market, '/');
         }
-        const timestamp = this.safeTimestamp2 (order, 'timestamp', 'updatedAt');
-        let side = this.safeString2 (order, 'type', 'side');
+        let timestamp = this.safeTimestamp2 (order, 'timestamp', 'updatedAt');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger2 (order, 'ordered_at', 'updated_at'); // v2.1 sends milliseconds
+        }
+        let side = this.safeStringLower2 (order, 'type', 'side');
+        if ((side === 'limit') || (side === 'market') || (side === 'stop_limit')) {
+            side = this.safeStringLower (order, 'side'); // in v2.1 rows the type field carries the order type, the side lives in side
+        }
         if (side === 'ask') {
             side = 'sell';
         } else if (side === 'bid') {
             side = 'buy';
         }
-        const remainingString = this.safeString (order, 'remainQty');
-        const amountString = this.safeString2 (order, 'originalQty', 'qty');
+        const remainingString = this.safeString2 (order, 'remainQty', 'remain_qty');
+        const amountString = this.safeStringN (order, [ 'originalQty', 'qty', 'original_qty' ]);
         let status = this.safeString (order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'live') {
@@ -1026,13 +1043,13 @@ export default class coinone extends Exchange {
             }
         }
         status = this.parseOrderStatus (status);
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyCode = (side === 'sell') ? quote : base;
             fee = {
                 'cost': feeCostString,
-                'rate': this.safeString (order, 'feeRate'),
+                'rate': this.safeString2 (order, 'feeRate', 'fee_rate'),
                 'currency': feeCurrencyCode,
             };
         }
@@ -1051,9 +1068,9 @@ export default class coinone extends Exchange {
             'price': this.safeString (order, 'price'),
             'triggerPrice': undefined,
             'cost': undefined,
-            'average': this.safeString (order, 'averageExecutedPrice'),
+            'average': this.safeString2 (order, 'averageExecutedPrice', 'average_executed_price'),
             'amount': amountString,
-            'filled': this.safeString (order, 'executedQty'),
+            'filled': this.safeString2 (order, 'executedQty', 'executed_qty'),
             'remaining': remainingString,
             'status': status,
             'fee': fee,
@@ -1071,7 +1088,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if (symbol === undefined) {
@@ -1082,9 +1099,10 @@ export default class coinone extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'currency': market['id'],
+            'quote_currency': market['quoteId'],
+            'target_currency': market['baseId'],
         };
-        const response = await this.privatePostOrderLimitOrders (this.extend (request, params));
+        const response = await this.v2_1PrivatePostOrderOpenOrders (this.extend (request, params));
         //
         //     {
         //         "result": "success",
@@ -1102,8 +1120,8 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const limitOrders = this.safeList (response, 'limitOrders', []);
-        return this.parseOrders (limitOrders, market, since, limit);
+        const openOrders = this.safeList2 (response, 'open_orders', 'limitOrders', []);
+        return this.parseOrders (openOrders, market, since, limit);
     }
 
     /**
@@ -1116,7 +1134,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1161,7 +1179,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
         }
@@ -1199,7 +1217,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1239,7 +1257,7 @@ export default class coinone extends Exchange {
                     'network': undefined,
                     'address': undefined,
                     'tag': undefined,
-                } as DepositAddress;
+                };
             }
             const address = this.safeString (depositAddress, 'address', value);
             this.checkAddress (address);
@@ -1249,12 +1267,14 @@ export default class coinone extends Exchange {
                 depositAddress['tag'] = value;
                 depositAddress['info'] = [ address, value ];
             }
-            result[code] = depositAddress;
+            if (code !== undefined) {
+                result[code] = depositAddress;
+            }
         }
         return result as DepositAddress[];
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/';
@@ -1274,7 +1294,13 @@ export default class coinone extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             url += request;
-            const nonce = this.nonce ().toString ();
+            // the v2.1 api requires a uuid nonce, the older apis use a numeric one
+            let nonce: Str = undefined;
+            if (api === 'v2_1Private') {
+                nonce = this.uuid ();
+            } else {
+                nonce = this.nonce ().toString ();
+            }
             const json = this.json (this.extend ({
                 'access_token': this.apiKey,
                 'nonce': nonce,
@@ -1292,7 +1318,7 @@ export default class coinone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

@@ -83,8 +83,8 @@
                 "method": "fetchOrderBook",
                 "url": "https://data.alpaca.markets/v1beta3/crypto/us/latest/orderbooks?symbols=BTC%2FUSDT",
                 "input": [
-                  "BTC/USDT",
-                  1
+                    "BTC/USDT",
+                    1
                 ]
             }
         ],
@@ -105,7 +105,7 @@
                 "method": "fetchTicker",
                 "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD",
                 "input": [
-                  "BTC/USD"
+                    "BTC/USD"
                 ]
             }
         ],
@@ -115,10 +115,10 @@
                 "method": "fetchTickers",
                 "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD%2CLTC%2FUSD",
                 "input": [
-                  [
-                    "BTC/USD",
-                    "LTC/USD"
-                  ]
+                    [
+                        "BTC/USD",
+                        "LTC/USD"
+                    ]
                 ]
             }
         ],
@@ -168,12 +168,12 @@
                 "method": "editOrder",
                 "url": "https://paper-api.alpaca.markets/v2/orders/5951bf3a-1b42-42da-a8d0-a86bad815f33",
                 "input": [
-                  "5951bf3a-1b42-42da-a8d0-a86bad815f33",
-                  "LTC/USD",
-                  "limit",
-                  "buy",
-                  0.2,
-                  56
+                    "5951bf3a-1b42-42da-a8d0-a86bad815f33",
+                    "LTC/USD",
+                    "limit",
+                    "buy",
+                    0.2,
+                    56
                 ],
                 "output": "{\"qty\":\"0.2\",\"limit_price\":\"56\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_ced70043a38849718597ebad4846d007\"}"
             }
@@ -272,9 +272,9 @@
                 "method": "fetchMyTrades",
                 "url": "https://api.alpaca.markets/v2/account/activities/FILL?page_size=3",
                 "input": [
-                  "LTC/USD",
-                  null,
-                  3
+                    "LTC/USD",
+                    null,
+                    3
                 ]
             }
         ],
@@ -284,7 +284,7 @@
                 "method": "fetchDepositAddress",
                 "url": "https://api.alpaca.markets/v2/wallets?asset=BTC",
                 "input": [
-                  "BTC"
+                    "BTC"
                 ]
             }
         ],
@@ -294,8 +294,17 @@
                 "method": "fetchDeposits",
                 "url": "https://api.alpaca.markets/v2/wallets/transfers",
                 "input": [
-                  "USDT"
+                    "USDT"
                 ]
+            },
+            {
+                "description": "sandbox mode routes deposit history through account activities",
+                "method": "fetchDeposits",
+                "options": {
+                    "sandboxMode": true
+                },
+                "url": "https://paper-api.alpaca.markets/v2/account/activities?activity_types=CSD%2CCSW%2CTRANS",
+                "input": []
             }
         ],
         "fetchWithdrawals": [
@@ -304,7 +313,7 @@
                 "method": "fetchWithdrawals",
                 "url": "https://api.alpaca.markets/v2/wallets/transfers",
                 "input": [
-                  "USDT"
+                    "USDT"
                 ]
             }
         ],
@@ -314,7 +323,7 @@
                 "method": "fetchDepositsWithdrawals",
                 "url": "https://api.alpaca.markets/v2/wallets/transfers",
                 "input": [
-                  "USDT"
+                    "USDT"
                 ]
             }
         ],
@@ -324,9 +333,9 @@
                 "method": "withdraw",
                 "url": "https://api.alpaca.markets/v2/wallets/transfers",
                 "input": [
-                  "USDT",
-                  20,
-                  "0x49a2c0925196e4dcf05945f67f690153190fbaab"
+                    "USDT",
+                    20,
+                    "0x49a2c0925196e4dcf05945f67f690153190fbaab"
                 ],
                 "output": "{\"asset\":\"USDT\",\"address\":\"0x49a2c0925196e4dcf05945f67f690153190fbaab\",\"amount\":\"20\"}"
             }

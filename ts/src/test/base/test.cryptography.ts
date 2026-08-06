@@ -4,16 +4,14 @@ import assert from 'assert';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
 import { md5 } from '@noble/hashes/legacy.js';
-import { ecdsa, crc32, eddsa,  hash, hmac  } from '../../base/functions/crypto.js';
+import { ecdsa, crc32, hash, hmac  } from '../../base/functions/crypto.js';
 import { encode } from '../../base/functions/encode.js';
-import { Exchange } from '../../base/Exchange.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { ed25519 } from '@noble/curves/ed25519.js';
 import { rsa, jwt } from '../../base/functions/rsa.js';
 
 // even though no AUTO_TRANSP flag here, this file is manually transpiled
 
-function equals (a, b) {
+function equals (a: any, b: any) {
     // does not check if b has more properties than a
     // eslint-disable-next-line no-restricted-syntax
     for (const prop of Object.keys (a)) {

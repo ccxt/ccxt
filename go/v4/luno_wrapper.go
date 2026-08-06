@@ -30,6 +30,7 @@ func NewLunoFromCore(core *LunoCore) *Luno {
  * @method
  * @name luno#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks
  * @param {dict} [params] extra parameters specific to the exchange API endpoint
  * @returns {dict} an associative dictionary of currencies
  */
@@ -98,7 +99,7 @@ func (this *Luno) FetchBalance(params ...any) (Balances, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Luno) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -436,7 +437,7 @@ func (this *Luno) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
- * @param {object} params extra parameters specific to the luno api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Luno) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
@@ -705,6 +706,7 @@ func (this *Luno) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, err
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.name] an optional name for the new address
  * @param {int} [params.account_id] an optional account id for the new address
+ * @param {int} [params.network] the blockchain network id to use
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Luno) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
@@ -734,6 +736,7 @@ func (this *Luno) CreateDepositAddress(code string, options ...CreateDepositAddr
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] a specific cryptocurrency address to retrieve
+ * @param {int} [params.network] the blockchain network id to use
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Luno) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -753,6 +756,35 @@ func (this *Luno) FetchDepositAddress(code string, options ...FetchDepositAddres
 		return DepositAddress{}, CreateReturnError(res)
 	}
 	return NewDepositAddress(res), nil
+}
+
+/**
+ * @method
+ * @name luno#fetchDepositWithdrawFee
+ * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+ * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *Luno) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
+
+	opts := FetchDepositWithdrawFeeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchDepositWithdrawFee(code, params)
+	if IsError(res) {
+		return DepositWithdrawFee{}, CreateReturnError(res)
+	}
+	return NewDepositWithdrawFee(res), nil
 }
 
 // missing typed methods from base
@@ -907,10 +939,7 @@ func (this *Luno) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction,
 func (this *Luno) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Luno) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Luno) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Luno) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Luno) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1030,7 +1059,7 @@ func (this *Luno) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Luno) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Luno) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Luno) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Luno) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1048,7 +1077,7 @@ func (this *Luno) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Luno) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Luno) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Luno) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Luno) FetchTime(params ...any) (int64, error) {
@@ -1171,7 +1200,7 @@ func (this *Luno) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Luno) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Luno) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Luno) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Luno) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1216,7 +1245,7 @@ func (this *Luno) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Luno) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Luno) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Luno) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Luno) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

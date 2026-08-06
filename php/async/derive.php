@@ -15,6 +15,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class derive extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -28,11 +30,11 @@ class derive extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
-                'option' => false,
+                'option' => true,
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
@@ -377,7 +379,7 @@ class derive extends Exchange {
                     '14020' => '\\ccxt\\BadRequest', // The X-LyraWallet header does not match the requested subaccount_id or wallet
                     '14021' => '\\ccxt\\BadRequest', // The X-LyraWallet header not provided
                     '14022' => '\\ccxt\\AuthenticationError', // Subscription to a private channel failed
-                    '14023' => '\\ccxt\\InvalidOrder', // array(is_array(on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet") && array_key_exists("code":"14023","message":"Signer, on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"))
+                    '14023' => '\\ccxt\\InvalidOrder', // array(is_array(on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet") && array_key_exists("code":"14023","message":"Signer ?? '', on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"))
                     '14024' => '\\ccxt\\BadRequest', // Chain ID must match the current roll up chain id
                     '14025' => '\\ccxt\\BadRequest', // The private request is missing a wallet or subaccount_id param
                     '14026' => '\\ccxt\\BadRequest', // Session key not found
@@ -996,14 +998,33 @@ class derive extends Exchange {
         })();
     }
 
+    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        $result = array();
+        for ($i = 0; $i < count($trades); $i++) {
+            $rawTrade = $trades[$i];
+            $isFetchTrades = !(is_array($rawTrade) && array_key_exists('order_id' ?? '', $rawTrade));
+            $liquidityRole = $this->safe_string($rawTrade, 'liquidity_role');
+            if ($isFetchTrades && ($liquidityRole === 'maker')) {
+                // skip maker $trades
+                continue;
+            }
+            $parsed = $this->parse_trade($rawTrade, $market);
+            $trade = $this->extend($parsed, $params);
+            $result[] = $trade;
+        }
+        $result = $this->sort_by_2($result, 'timestamp', 'id');
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+    }
+
     public function parse_trade(array $trade, ?array $market = null): array {
+        //
+        // fetchTrades & fetchMyTrades
         //
         // {
         //     "subaccount_id" => 130837,
-        //     "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         //     "instrument_name" => "BTC-PERP",
         //     "direction" => "sell",
-        //     "label" => "test1234",
         //     "quote_id" => null,
         //     "trade_id" => "f8a30740-488c-4c2d-905d-e17057bafde1",
         //     "timestamp" => 1738065303708,
@@ -1014,11 +1035,17 @@ class derive extends Exchange {
         //     "liquidity_role" => "taker",
         //     "realized_pnl" => "0",
         //     "realized_pnl_excl_fees" => "0",
-        //     "is_transfer" => false,
         //     "tx_status" => "settled",
         //     "trade_fee" => "1.127415534092999815",
         //     "tx_hash" => "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     "label" => "test1234",                                      // only fetchMyTrades
+        //     "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer" => false,                                     // only fetchMyTrades
+        //     "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id" => null,                                           // only fetchTrades
+        //     "wallet" => "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate" => "0",                                   // only fetchTrades
+        //     "extra_fee" => "0",                                         // only fetchTrades
         // }
         //
         $marketId = $this->safe_string($trade, 'instrument_name');
@@ -1137,7 +1164,7 @@ class derive extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         $symbol = $this->safe_string($contract, 'symbol');
         $fundingTimestamp = $this->safe_integer($contract, 'timestamp');
         return array(
@@ -1162,7 +1189,7 @@ class derive extends Exchange {
         );
     }
 
-    public function hash_order_message($order) {
+    public function hash_order_message(mixed $order) {
         $accountHash = $this->hash($this->eth_abi_encode(array(
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
@@ -1173,21 +1200,21 @@ class derive extends Exchange {
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
     }
 
-    public function sign_order($order, $privateKey) {
+    public function sign_order(mixed $order, mixed $privateKey) {
         $hashOrder = $this->hash_order_message($order);
         return $this->sign_hash(mb_substr($hashOrder, -64), mb_substr($privateKey, -64));
     }
 
-    public function hash_message($message) {
+    public function hash_message(mixed $message) {
         $binaryMessage = $this->encode($message);
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
         $newline = $this->base16_to_binary('0a');
-        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode(($this->number_to_string($binaryMessageLength))));
+        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode($this->number_to_string($binaryMessageLength)));
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -1196,7 +1223,7 @@ class derive extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -1681,7 +1708,7 @@ class derive extends Exchange {
              * @see https://docs.derive.xyz/reference/post_private-cancel-all
              *
              * cancel all open orders in a $market
-             * @param {string} $symbol unified $market $symbol
+             * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -2215,7 +2242,7 @@ class derive extends Exchange {
              *
              * @see https://docs.derive.xyz/reference/post_private-get-$positions
              *
-             * @param {string[]} [$symbols] not used by kraken fetchPositions ()
+             * @param {string[]} [$symbols] not used by fetchPositions ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
@@ -2435,7 +2462,7 @@ class derive extends Exchange {
         })();
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         // {
         //     "instrument_name" => "BTC-PERP",
@@ -2533,7 +2560,7 @@ class derive extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2551,7 +2578,9 @@ class derive extends Exchange {
                     $amount = $this->safe_string($balance, 'amount');
                     $account['total'] = Precise::string_add($account['total'], $amount);
                 }
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
@@ -2709,7 +2738,7 @@ class derive extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_derive_subaccount_id(string $methodName, array $params) {
+    public function handle_derive_subaccount_id(string $methodName, array $params): array {
         $derivesubAccountId = null;
         list($derivesubAccountId, $params) = $this->handle_option_and_params($params, $methodName, 'subaccount_id');
         if (($derivesubAccountId !== null) && ($derivesubAccountId !== '')) {
@@ -2737,7 +2766,7 @@ class derive extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default $error handler
         }
@@ -2752,7 +2781,7 @@ class derive extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($method === 'POST') {
             $headers = array(

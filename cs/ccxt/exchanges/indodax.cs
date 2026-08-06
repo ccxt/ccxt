@@ -52,6 +52,8 @@ public partial class indodax : Exchange
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", true },
+                { "fetchDepositWithdrawFee", true },
+                { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
@@ -432,7 +434,10 @@ public partial class indodax : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(free, currencyId);
             ((IDictionary<string,object>)account)["used"] = this.safeString(used, currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -494,7 +499,7 @@ public partial class indodax : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -824,6 +829,7 @@ public partial class indodax : Exchange
         object price = this.safeString(order, "price");
         object amount = null;
         object remaining = null;
+        object filled = null;
         object marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
         if (isTrue(!isEqual(market, null)))
@@ -840,11 +846,11 @@ public partial class indodax : Exchange
                 baseId = "rp";
             }
             cost = this.safeString(order, add("order_", quoteId));
-            if (!isTrue(cost))
-            {
-                amount = this.safeString(order, add("order_", baseId));
-                remaining = this.safeString(order, add("remain_", baseId));
-            }
+            amount = this.safeString(order, add("order_", baseId));
+            remaining = this.safeString(order, add("remain_", baseId));
+            // filled buy orders on idr-quoted markets carry the executed base amount
+            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            filled = this.safeString(order, add("receive_", baseId));
         }
         object timestamp = this.safeInteger(order, "submit_time");
         object fee = null;
@@ -866,7 +872,7 @@ public partial class indodax : Exchange
             { "cost", cost },
             { "average", null },
             { "amount", amount },
-            { "filled", null },
+            { "filled", filled },
             { "remaining", remaining },
             { "status", status },
             { "fee", fee },
@@ -1052,7 +1058,7 @@ public partial class indodax : Exchange
             quantityIsRequired = true;
             if (isTrue(isEqual(side, "buy")))
             {
-                ((IDictionary<string,object>)request)[(string)((string)getValue(market, "quoteId"))] = this.parseToNumeric(Precise.stringMul(this.numberToString(amount), this.numberToString(price)));
+                ((IDictionary<string,object>)request)[(string)((string)getValue(market, "quoteId"))] = this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
             }
         }
         if (isTrue(priceIsRequired))
@@ -1170,6 +1176,43 @@ public partial class indodax : Exchange
             { "rate", this.safeNumber(data, "withdraw_fee") },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
         };
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchDepositWithdrawFee
+     * @description fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public async override Task<object> fetchDepositWithdrawFee(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.privatePostWithdrawFee(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": 1,
+        //         "return": {
+        //             "server_time": 1607923272,
+        //             "withdraw_fee": 0.005,
+        //             "currency": "eth"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        object result = this.depositWithdrawFee(response);
+        ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(data, "withdraw_fee");
+        ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
+        ((IDictionary<string,object>)getValue(result, "deposit"))["fee"] = 0;
+        ((IDictionary<string,object>)getValue(result, "deposit"))["percentage"] = false;
+        return this.assignDefaultDepositWithdrawFees(result, currency);
     }
 
     /**
@@ -1503,27 +1546,46 @@ public partial class indodax : Exchange
                 if (isTrue(inOp(networks, marketId)))
                 {
                     object networkId = this.safeString(networks, marketId);
+                    if (isTrue(isEqual(networkId, null)))
+                    {
+                        throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                    }
                     if (isTrue(isGreaterThanOrEqual(getIndexOf(networkId, ","), 0)))
                     {
                         network = new List<object>() {};
+                        if (isTrue(isEqual(networkId, null)))
+                        {
+                            throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                        }
                         object networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                         for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
                         {
-                            ((IList<object>)network).Add(((string)this.networkIdToCode(getValue(networkIds, j), code)).ToUpper());
+                            object _netIdTmp = this.networkIdToCode(getValue(networkIds, j), code);
+                            if (isTrue(!isEqual(_netIdTmp, null)))
+                            {
+                                ((IList<object>)network).Add(((string)_netIdTmp).ToUpper());
+                            }
                         }
                     } else
                     {
-                        network = ((string)this.networkIdToCode(networkId, code)).ToUpper();
+                        object _netIdTmp = this.networkIdToCode(networkId, code);
+                        if (isTrue(!isEqual(_netIdTmp, null)))
+                        {
+                            network = ((string)_netIdTmp).ToUpper();
+                        }
                     }
                 }
                 object finalNetwork = network; // java req
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "info", new Dictionary<string, object>() {} },
-                    { "currency", code },
-                    { "network", finalNetwork },
-                    { "address", address },
-                    { "tag", null },
-                };
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                        { "info", new Dictionary<string, object>() {} },
+                        { "currency", code },
+                        { "network", finalNetwork },
+                        { "address", address },
+                        { "tag", null },
+                    };
+                }
             }
         }
         return result;

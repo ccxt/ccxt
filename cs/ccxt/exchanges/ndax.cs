@@ -100,8 +100,9 @@ public partial class ndax : Exchange
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", false },
+                { "fetchStatus", true },
                 { "fetchTicker", true },
-                { "fetchTickers", false },
+                { "fetchTickers", true },
                 { "fetchTime", false },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -157,6 +158,7 @@ public partial class ndax : Exchange
                         { "Activate2FA", 1 },
                         { "Authenticate2FA", 1 },
                         { "AuthenticateUser", 1 },
+                        { "EnableXP2FA", 1 },
                         { "GetL2Snapshot", 1 },
                         { "GetLevel1", 1 },
                         { "GetValidate2FARequiredEndpoints", 1 },
@@ -166,9 +168,15 @@ public partial class ndax : Exchange
                         { "GetProducts", 1 },
                         { "GetInstrument", 1 },
                         { "GetInstruments", 1 },
+                        { "GetEarliestTickTime", 1 },
                         { "Ping", 1 },
+                        { "assets", 1 },
+                        { "orderbook", 1 },
+                        { "ticker", 1 },
+                        { "summary", 1 },
                         { "trades", 1 },
                         { "GetLastTrades", 1 },
+                        { "ConfirmWithdraw", 1 },
                         { "SubscribeLevel1", 1 },
                         { "SubscribeLevel2", 1 },
                         { "SubscribeTicker", 1 },
@@ -224,10 +232,14 @@ public partial class ndax : Exchange
                         { "GetWithdrawTemplate", 1 },
                         { "GetWithdrawTemplateTypes", 1 },
                         { "GetWithdrawTicket", 1 },
+                        { "GetWithdrawTicketAttachment", 1 },
                         { "GetWithdrawTickets", 1 },
+                        { "GetDepositTicketAttachment", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "AddUserAffiliateTag", 1 },
+                        { "AddDepositTicketAttachment", 1 },
+                        { "AddWithdrawTicketAttachment", 1 },
                         { "CancelUserReport", 1 },
                         { "RegisterNewDevice", 1 },
                         { "SubscribeAccountEvents", 1 },
@@ -380,6 +392,33 @@ public partial class ndax : Exchange
 
     /**
      * @method
+     * @name ndax#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://apidoc.ndax.io/#ping
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    public async override Task<object> fetchStatus(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.publicGetPing(parameters);
+        //
+        //     {
+        //         "msg":"PONG"
+        //     }
+        //
+        object message = this.safeString(response, "msg");
+        return new Dictionary<string, object>() {
+            { "status", ((bool) isTrue((isEqual(message, "PONG")))) ? "ok" : "error" },
+            { "updated", null },
+            { "eta", null },
+            { "url", null },
+            { "info", response },
+        };
+    }
+
+    /**
+     * @method
      * @name ndax#signIn
      * @description sign in, must be called prior to using other authenticated methods
      * @see https://apidoc.ndax.io/#authenticate2fa
@@ -421,9 +460,9 @@ public partial class ndax : Exchange
                 throw new AuthenticationError ((string)add(this.id, " signIn() requires exchange.twofa credentials")) ;
             }
             ((IDictionary<string,object>)this.options)["pending2faToken"] = pending2faToken;
-            request = ((object)new Dictionary<string, object>() {
+            request = new Dictionary<string, object>() {
                 { "Code", totp(this.twofa) },
-            });
+            };
             object responseInner = await this.publicGetAuthenticate2FA(this.extend(request, parameters));
             //
             //     {
@@ -443,7 +482,7 @@ public partial class ndax : Exchange
      * @method
      * @name ndax#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://apidoc.ndax.io/#getproduct
+     * @see https://apidoc.ndax.io/#getproducts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -590,7 +629,7 @@ public partial class ndax : Exchange
         object sessionStatus = this.safeString(market, "SessionStatus");
         object isDisable = this.safeValue(market, "IsDisable");
         object sessionRunning = (isEqual(sessionStatus, "Running"));
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -638,7 +677,7 @@ public partial class ndax : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object countOrIdKey = null)
@@ -685,8 +724,7 @@ public partial class ndax : Exchange
             object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             object levelSide = this.safeInteger(level, 9);
             object side = ((bool) isTrue(levelSide)) ? asksKey : bidsKey;
-            object resultSide = getValue(result, side);
-            ((IList<object>)resultSide).Add(bidask);
+            ((IList<object>)getValue(result, side)).Add(bidask);
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
         ((IDictionary<string,object>)result)["asks"] = this.sortBy(getValue(result, "asks"), 0);
@@ -704,7 +742,7 @@ public partial class ndax : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -781,25 +819,43 @@ public partial class ndax : Exchange
         //         "Rolling24HrPxChangePercent":0,
         //     }
         //
+        // fetchTickers
+        //
+        //     {
+        //         "trading_pairs":"BTC_CAD",
+        //         "last_price":75925.37,
+        //         "lowest_ask":75926.63,
+        //         "highest_bid":66.435340000000000000000000000,
+        //         "base_volume":75774.93,
+        //         "quote_volume":5112197.7830825000000000000000,
+        //         "price_change_percent_24h":-5.3894893561980828521107542600,
+        //         "highest_price_24h":79813.51,
+        //         "lowest_price_24h":73700.01
+        //     }
+        //
         object timestamp = this.safeInteger(ticker, "TimeStamp");
         object marketId = this.safeString(ticker, "InstrumentId");
-        market = this.safeMarket(marketId, market);
+        if (isTrue(isEqual(marketId, null)))
+        {
+            marketId = this.safeString(ticker, "trading_pairs");
+        }
+        market = this.safeMarket(marketId, market, "_");
         object symbol = this.safeSymbol(marketId, market);
-        object last = this.safeString(ticker, "LastTradedPx");
-        object percentage = this.safeString(ticker, "Rolling24HrPxChangePercent");
+        object last = this.safeString2(ticker, "LastTradedPx", "last_price");
+        object percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
         object change = this.safeString(ticker, "Rolling24HrPxChange");
         object open = this.safeString(ticker, "SessionOpen");
-        object baseVolume = this.safeString(ticker, "Rolling24HrVolume");
-        object quoteVolume = this.safeString(ticker, "Rolling24HrNotional");
+        object baseVolume = this.safeString2(ticker, "Rolling24HrVolume", "base_volume");
+        object quoteVolume = this.safeString2(ticker, "Rolling24HrNotional", "quote_volume");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "high", this.safeString(ticker, "SessionHigh") },
-            { "low", this.safeString(ticker, "SessionLow") },
-            { "bid", this.safeString(ticker, "BestBid") },
+            { "high", this.safeString2(ticker, "SessionHigh", "highest_price_24h") },
+            { "low", this.safeString2(ticker, "SessionLow", "lowest_price_24h") },
+            { "bid", this.safeString2(ticker, "BestBid", "highest_bid") },
             { "bidVolume", null },
-            { "ask", this.safeString(ticker, "BestOffer") },
+            { "ask", this.safeString2(ticker, "BestOffer", "lowest_ask") },
             { "askVolume", null },
             { "vwap", null },
             { "open", open },
@@ -813,6 +869,43 @@ public partial class ndax : Exchange
             { "quoteVolume", quoteVolume },
             { "info", ticker },
         }, market);
+    }
+
+    /**
+     * @method
+     * @name ndax#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://apidoc.ndax.io/#cmc-summary
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        object response = await this.publicGetSummary(parameters);
+        //
+        //     [
+        //         {
+        //             "trading_pairs":"BTC_CAD",
+        //             "last_price":75925.37,
+        //             "lowest_ask":75926.63,
+        //             "highest_bid":66.435340000000000000000000000,
+        //             "base_volume":75774.93,
+        //             "quote_volume":5112197.7830825000000000000000,
+        //             "price_change_percent_24h":-5.3894893561980828521107542600,
+        //             "highest_price_24h":79813.51,
+        //             "lowest_price_24h":73700.01
+        //         }
+        //     ]
+        //
+        object tickers = this.parseTickers(response);
+        return this.filterByArrayTickers(tickers, "symbol", symbols);
     }
 
     /**
@@ -1208,13 +1301,16 @@ public partial class ndax : Exchange
         {
             object balance = getValue(response, i);
             object currencyId = this.safeString(balance, "ProductId");
-            if (isTrue(isTrue((!isEqual(currencyId, null))) && isTrue((inOp(this.currencies_by_id, currencyId)))))
+            if (isTrue(isTrue(isTrue((!isEqual(currencyId, null))) && isTrue((!isEqual(this.currencies_by_id, null)))) && isTrue((inOp(this.currencies_by_id, currencyId)))))
             {
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "Amount");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "Hold");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1300,7 +1396,7 @@ public partial class ndax : Exchange
             { "MarginRelinquish", "trade" },
             { "MarginQuoteHold", "trade" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -1591,7 +1687,12 @@ public partial class ndax : Exchange
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (isTrue(!isEqual(price, null)))
         {
-            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(this.priceToPrecision(symbol, price));
+            object limitPriceString = this.priceToPrecision(symbol, price);
+            if (isTrue(isEqual(limitPriceString, null)))
+            {
+                limitPriceString = "0";
+            }
+            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(limitPriceString);
         }
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -1612,6 +1713,20 @@ public partial class ndax : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name ndax#editOrder
+     * @description cancels an open order and places a new order
+     * @see https://apidoc.ndax.io/#cancelreplaceorder
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1641,7 +1756,12 @@ public partial class ndax : Exchange
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (isTrue(!isEqual(price, null)))
         {
-            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(this.priceToPrecision(symbol, price));
+            object limitPriceString = this.priceToPrecision(symbol, price);
+            if (isTrue(isEqual(limitPriceString, null)))
+            {
+                limitPriceString = "0";
+            }
+            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(limitPriceString);
         }
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -1752,7 +1872,7 @@ public partial class ndax : Exchange
      * @name ndax#cancelAllOrders
      * @description cancel all open orders
      * @see https://apidoc.ndax.io/#cancelallorders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

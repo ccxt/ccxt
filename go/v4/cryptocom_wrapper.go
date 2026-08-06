@@ -265,7 +265,7 @@ func (this *Cryptocom) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) (
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the number of order book entries to return, max 50
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Cryptocom) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -461,7 +461,7 @@ func (this *Cryptocom) EditOrder(id string, symbol string, typeVar string, side 
  * @name cryptocom#cancelAllOrders
  * @description cancel all open orders
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
- * @param {string} symbol unified market symbol of the orders to cancel
+ * @param {string} [symbol] unified market symbol of the orders to cancel
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -870,7 +870,7 @@ func (this *Cryptocom) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]T
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Cryptocom) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Cryptocom) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -889,9 +889,9 @@ func (this *Cryptocom) FetchDepositWithdrawFees(options ...FetchDepositWithdrawF
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 /**
@@ -968,7 +968,7 @@ func (this *Cryptocom) FetchAccounts(params ...any) ([]Account, error) {
  * @param {int} [params.type] 'future', 'option'
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Cryptocom) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) (map[string]any, error) {
+func (this *Cryptocom) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchSettlementHistoryOptionsStruct{}
 
@@ -997,9 +997,9 @@ func (this *Cryptocom) FetchSettlementHistory(options ...FetchSettlementHistoryO
 	}
 	res := <-this.Core.FetchSettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -1319,7 +1319,7 @@ func (this *Cryptocom) FetchDepositAddresses(options ...FetchDepositAddressesOpt
 func (this *Cryptocom) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Cryptocom) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Cryptocom) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Cryptocom) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1430,7 +1430,7 @@ func (this *Cryptocom) FetchPaymentMethods(params ...any) (map[string]any, error
 func (this *Cryptocom) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Cryptocom) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Cryptocom) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Cryptocom) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1445,7 +1445,7 @@ func (this *Cryptocom) FetchPositionsRisk(options ...FetchPositionsRiskOptions) 
 func (this *Cryptocom) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Cryptocom) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Cryptocom) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Cryptocom) FetchTime(params ...any) (int64, error) {
@@ -1559,7 +1559,7 @@ func (this *Cryptocom) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Cryptocom) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Cryptocom) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Cryptocom) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Cryptocom) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1604,7 +1604,7 @@ func (this *Cryptocom) FetchTradesWs(symbol string, options ...FetchTradesWsOpti
 func (this *Cryptocom) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Cryptocom) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Cryptocom) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Cryptocom) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

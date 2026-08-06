@@ -145,7 +145,7 @@ class whitebit extends whitebit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -319,7 +319,7 @@ class whitebit extends whitebit$1["default"] {
         //
         const tickers = this.safeValue(message, 'params', []);
         const marketId = this.safeString(tickers, 0);
-        const market = this.safeMarket(marketId, undefined);
+        const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const rawTicker = this.safeValue(tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
@@ -456,7 +456,10 @@ class whitebit extends whitebit$1["default"] {
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ],
         //       "id": null
         //   }
@@ -483,7 +486,10 @@ class whitebit extends whitebit$1["default"] {
         //         "56.78", // price
         //         "0.16717", // amount
         //         "0.0094919126", // fee
-        //         '' // client order id
+        //         '', // client order id
+        //         "2", // side, 1 = sell, 2 = buy
+        //         "2", // role, 1 = maker, 2 = taker
+        //         "LTC" // fee asset
         //    ]
         //
         const orderId = this.safeString(trade, 3);
@@ -496,10 +502,28 @@ class whitebit extends whitebit$1["default"] {
         let fee = undefined;
         const feeCost = this.safeString(trade, 6);
         if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString(trade, 10);
+            const feeCurrencyCode = (feeCurrencyId !== undefined) ? this.safeCurrencyCode(feeCurrencyId) : market['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': feeCurrencyCode,
             };
+        }
+        const rawSide = this.safeInteger(trade, 8);
+        let side = undefined;
+        if (rawSide === 1) {
+            side = 'sell';
+        }
+        else if (rawSide === 2) {
+            side = 'buy';
+        }
+        const role = this.safeInteger(trade, 9);
+        let takerOrMaker = undefined;
+        if (role === 1) {
+            takerOrMaker = 'maker';
+        }
+        else if (role === 2) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade({
             'id': id,
@@ -509,8 +533,8 @@ class whitebit extends whitebit$1["default"] {
             'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -740,6 +764,9 @@ class whitebit extends whitebit$1["default"] {
         //   }
         //
         const method = this.safeString(message, 'method');
+        if (method === undefined) {
+            return;
+        }
         const data = this.safeValue(message, 'params');
         const balanceDict = this.safeValue(data, 0);
         this.balance['info'] = balanceDict;
@@ -750,7 +777,9 @@ class whitebit extends whitebit$1["default"] {
         const account = this.account();
         account['free'] = this.safeString(rawBalance, 'available');
         account['used'] = this.safeString(rawBalance, 'freeze');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         let messageHash = 'wallet:';
         if (method.indexOf('Spot') >= 0) {
@@ -785,7 +814,9 @@ class whitebit extends whitebit$1["default"] {
             const subscription = {};
             const market = this.market(symbol);
             const marketId = market['id'];
-            subscription[marketId] = true;
+            if (marketId !== undefined) {
+                subscription[marketId] = true;
+            }
             marketIds = [marketId];
             if (isNested) {
                 marketIds = [marketIds];
@@ -805,7 +836,9 @@ class whitebit extends whitebit$1["default"] {
             const marketId = market['id'];
             const isSubscribed = this.safeBool(subscription, marketId, false);
             if (!isSubscribed) {
-                subscription[marketId] = true;
+                if (marketId !== undefined) {
+                    subscription[marketId] = true;
+                }
                 hasSymbolSubscription = false;
             }
             if (hasSymbolSubscription) {

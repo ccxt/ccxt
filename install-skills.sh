@@ -1,29 +1,34 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-# CCXT Skills Installation Script
+# CCXT Skills Installation Script (POSIX sh)
 # Installs CCXT usage skills for Claude Code, OpenCode, Codex, and Gemini
 #
 # Usage:
 #   Local:  ./install-skills.sh
-#   Remote: curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | bash
+#   Remote: curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh
+#   Remote with options: 
+#       curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh -s -- --all
+#       curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh -s -- --typescript
+#       curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh -s -- --python
+#       ...
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Colors for output (printf octal escapes are POSIX)
+RED=$(printf '\033[0;31m')
+GREEN=$(printf '\033[0;32m')
+YELLOW=$(printf '\033[1;33m')
+BLUE=$(printf '\033[0;34m')
+NC=$(printf '\033[0m') # No Color
 
-# Skill names
-ALL_SKILLS=("ccxt-typescript" "ccxt-python" "ccxt-php" "ccxt-csharp" "ccxt-go")
+# Skill names (space-separated list instead of a bash array)
+ALL_SKILLS="ccxt-typescript ccxt-python ccxt-php ccxt-csharp ccxt-go ccxt-cli"
 
 # GitHub URL for remote installation
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ccxt/ccxt/master/.claude/skills"
 
-# Detect script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Detect script directory ($0 instead of BASH_SOURCE; falls back to "." when piped)
+SCRIPT_DIR=$(cd "$(dirname "$0")" 2>/dev/null && pwd) || SCRIPT_DIR=$(pwd)
 SKILLS_SOURCE_DIR="$SCRIPT_DIR/.claude/skills"
 
 # Target directories
@@ -36,21 +41,21 @@ GEMINI_SKILLS_DIR="$HOME/.gemini/skills"
 TEMP_DIR=""
 IS_REMOTE_INSTALL=false
 
-# Function to print colored output
+# Functions to print colored output
 print_success() {
-    echo -e "${GREEN}✓${NC} $1"
+    printf '%s\n' "${GREEN}✓${NC} $1"
 }
 
 print_error() {
-    echo -e "${RED}✗${NC} $1"
+    printf '%s\n' "${RED}✗${NC} $1"
 }
 
 print_info() {
-    echo -e "${BLUE}ℹ${NC} $1"
+    printf '%s\n' "${BLUE}ℹ${NC} $1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
+    printf '%s\n' "${YELLOW}⚠${NC} $1"
 }
 
 # Function to display usage
@@ -68,7 +73,10 @@ OPTIONS:
     --php           Install only ccxt-php skill
     --csharp        Install only ccxt-csharp skill
     --go            Install only ccxt-go skill
+    --cli           Install only ccxt-cli skill
     --all           Install all skills (default)
+    --remote        Force download from GitHub, even inside the repo
+    --github        Alias for --remote
     --help          Display this help message
 
 EXAMPLES:
@@ -76,6 +84,7 @@ EXAMPLES:
     $0 --all               # Install all skills
     $0 --typescript        # Install only TypeScript skill
     $0 --python --php      # Install Python and PHP skills
+    $0 --remote --go       # Install Go skill from GitHub, ignore working tree
 
 The skills will be installed to:
   - ~/.claude/skills/ (for Claude Code)
@@ -99,29 +108,32 @@ detect_remote_install() {
 }
 
 # Function to download a skill from GitHub
+# $1 = skill name
 download_skill() {
-    local skill_name=$1
-    local temp_skill_dir="$TEMP_DIR/$skill_name"
+    dl_skill_name=$1
+    dl_temp_skill_dir="$TEMP_DIR/$dl_skill_name"
 
-    mkdir -p "$temp_skill_dir"
+    mkdir -p "$dl_temp_skill_dir"
 
     # Download SKILL.md
-    local skill_url="$GITHUB_RAW_URL/$skill_name/SKILL.md"
-    print_info "Downloading $skill_name from GitHub..."
+    dl_skill_url="$GITHUB_RAW_URL/$dl_skill_name/SKILL.md"
+    print_info "Downloading $dl_skill_name from GitHub..."
 
-    if command -v curl &> /dev/null; then
-        curl -fsSL "$skill_url" -o "$temp_skill_dir/SKILL.md" 2>/dev/null
-    elif command -v wget &> /dev/null; then
-        wget -q "$skill_url" -O "$temp_skill_dir/SKILL.md" 2>/dev/null
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$dl_skill_url" -o "$dl_temp_skill_dir/SKILL.md" 2>/dev/null
+        dl_status=$?
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q "$dl_skill_url" -O "$dl_temp_skill_dir/SKILL.md" 2>/dev/null
+        dl_status=$?
     else
         print_error "Neither curl nor wget found. Please install one of them."
         return 1
     fi
 
-    if [ $? -eq 0 ] && [ -f "$temp_skill_dir/SKILL.md" ]; then
+    if [ "$dl_status" -eq 0 ] && [ -f "$dl_temp_skill_dir/SKILL.md" ]; then
         return 0
     else
-        print_warning "Failed to download $skill_name"
+        print_warning "Failed to download $dl_skill_name"
         return 1
     fi
 }
@@ -131,21 +143,20 @@ setup_remote_install() {
     print_info "Setting up remote installation..."
 
     # Create temporary directory
-    TEMP_DIR=$(mktemp -d)
-    if [ $? -ne 0 ]; then
+    TEMP_DIR=$(mktemp -d) || {
         print_error "Failed to create temporary directory"
         exit 1
-    fi
+    }
 
-    # Download all selected skills
-    local download_success=true
-    for skill in "${ALL_SKILLS[@]}"; do
-        if ! download_skill "$skill"; then
-            download_success=false
+    # Download the selected skills
+    ri_download_success=true
+    for ri_skill in $selected_skills; do
+        if ! download_skill "$ri_skill"; then
+            ri_download_success=false
         fi
     done
 
-    if [ "$download_success" = false ]; then
+    if [ "$ri_download_success" = false ]; then
         print_error "Failed to download some skills from GitHub"
         cleanup_remote_install
         exit 1
@@ -173,71 +184,71 @@ check_source_directory() {
 }
 
 # Function to install a single skill
+# $1 = skill name, $2 = target directory
 install_skill() {
-    local skill_name=$1
-    local target_dir=$2
-    local skill_source="$SKILLS_SOURCE_DIR/$skill_name"
-    local skill_target="$target_dir/$skill_name"
+    is_skill_name=$1
+    is_target_dir=$2
+    is_skill_source="$SKILLS_SOURCE_DIR/$is_skill_name"
+    is_skill_target="$is_target_dir/$is_skill_name"
 
-    if [ ! -d "$skill_source" ]; then
-        print_warning "Skill source not found: $skill_name"
+    if [ ! -d "$is_skill_source" ]; then
+        print_warning "Skill source not found: $is_skill_name"
         return 1
     fi
 
     # Create target directory if it doesn't exist
-    mkdir -p "$target_dir"
+    mkdir -p "$is_target_dir"
 
     # Copy skill
-    if [ -d "$skill_target" ]; then
-        print_info "Updating $skill_name..."
-        rm -rf "$skill_target"
+    if [ -d "$is_skill_target" ]; then
+        print_info "Updating $is_skill_name..."
+        rm -rf "$is_skill_target"
     fi
 
-    cp -r "$skill_source" "$skill_target"
-
-    if [ $? -eq 0 ]; then
-        print_success "Installed $skill_name to $target_dir"
+    if cp -R "$is_skill_source" "$is_skill_target"; then
+        print_success "Installed $is_skill_name to $is_target_dir"
         return 0
     else
-        print_error "Failed to install $skill_name"
+        print_error "Failed to install $is_skill_name"
         return 1
     fi
 }
 
 # Function to install skills to a target directory
+# $1 = target directory, $2 = target name, $3... = skills
 install_to_target() {
-    local target_dir=$1
-    local target_name=$2
-    local skills=("${@:3}")
+    it_target_dir=$1
+    it_target_name=$2
+    shift 2
 
-    if [ ${#skills[@]} -eq 0 ]; then
-        print_info "No skills selected for $target_name"
-        return
+    if [ $# -eq 0 ]; then
+        print_info "No skills selected for $it_target_name"
+        return 0
     fi
 
     echo ""
-    print_info "Installing to $target_name ($target_dir)..."
+    print_info "Installing to $it_target_name ($it_target_dir)..."
 
-    local success_count=0
-    local fail_count=0
+    it_success_count=0
+    it_fail_count=0
 
-    for skill in "${skills[@]}"; do
-        if install_skill "$skill" "$target_dir"; then
-            ((success_count++))
+    for it_skill in "$@"; do
+        if install_skill "$it_skill" "$it_target_dir"; then
+            it_success_count=$((it_success_count + 1))
         else
-            ((fail_count++))
+            it_fail_count=$((it_fail_count + 1))
         fi
     done
 
     echo ""
-    if [ $fail_count -eq 0 ]; then
-        print_success "Successfully installed $success_count skill(s) to $target_name"
+    if [ "$it_fail_count" -eq 0 ]; then
+        print_success "Successfully installed $it_success_count skill(s) to $it_target_name"
     else
-        print_warning "Installed $success_count skill(s), $fail_count failed"
+        print_warning "Installed $it_success_count skill(s), $it_fail_count failed"
     fi
 }
 
-# Function for interactive mode
+# Function for interactive mode (sets $selected_skills)
 interactive_mode() {
     echo ""
     echo "════════════════════════════════════════════════"
@@ -251,31 +262,49 @@ interactive_mode() {
     echo "  3) ccxt-php        - PHP (sync & async, REST & WebSocket)"
     echo "  4) ccxt-csharp     - C#/.NET (REST & WebSocket)"
     echo "  5) ccxt-go         - Go (REST & WebSocket)"
-    echo "  6) All skills      - Install all of the above"
-    echo "  7) Exit            - Cancel installation"
+    echo "  6) ccxt-cli        - Command-line interface (terminal, no code)"
+    echo "  7) All skills      - Install all of the above"
+    echo "  8) Exit            - Cancel installation"
     echo ""
-    read -p "Enter your choice (1-7): " choice
+    printf 'Enter your choice (1-8): '
+
+    # When the script is piped into sh (curl ... | sh), stdin is the script
+    # itself and is already at EOF, so read from the terminal directly.
+    if [ -t 0 ]; then
+        read -r choice
+    elif (exec < /dev/tty) 2>/dev/null; then
+        read -r choice < /dev/tty
+    else
+        # No terminal available (CI, docker build, etc.) - default to all
+        echo ""
+        print_warning "No terminal available for interactive input - installing all skills"
+        selected_skills="$ALL_SKILLS"
+        return 0
+    fi
 
     case $choice in
         1)
-            selected_skills=("ccxt-typescript")
+            selected_skills="ccxt-typescript"
             ;;
         2)
-            selected_skills=("ccxt-python")
+            selected_skills="ccxt-python"
             ;;
         3)
-            selected_skills=("ccxt-php")
+            selected_skills="ccxt-php"
             ;;
         4)
-            selected_skills=("ccxt-csharp")
+            selected_skills="ccxt-csharp"
             ;;
         5)
-            selected_skills=("ccxt-go")
+            selected_skills="ccxt-go"
             ;;
         6)
-            selected_skills=("${ALL_SKILLS[@]}")
+            selected_skills="ccxt-cli"
             ;;
         7)
+            selected_skills="$ALL_SKILLS"
+            ;;
+        8)
             echo "Installation cancelled."
             exit 0
             ;;
@@ -290,63 +319,77 @@ interactive_mode() {
 
 # Main installation function
 main() {
-    local selected_skills=()
+    selected_skills=""
+    FORCE_REMOTE=false
 
-    # Detect if running remotely and setup if needed
-    if detect_remote_install; then
-        # Remote installation - download skills from GitHub
-        # In remote mode, default to installing all skills
-        if [ $# -eq 0 ]; then
-            selected_skills=("${ALL_SKILLS[@]}")
-        fi
+    # Parse command line arguments first, so --remote/--github can
+    # influence source detection below
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --help|-h)
+                usage
+                ;;
+            --remote|--github)
+                FORCE_REMOTE=true
+                ;;
+            --typescript)
+                selected_skills="$selected_skills ccxt-typescript"
+                ;;
+            --python)
+                selected_skills="$selected_skills ccxt-python"
+                ;;
+            --php)
+                selected_skills="$selected_skills ccxt-php"
+                ;;
+            --csharp)
+                selected_skills="$selected_skills ccxt-csharp"
+                ;;
+            --go)
+                selected_skills="$selected_skills ccxt-go"
+                ;;
+            --cli)
+                selected_skills="$selected_skills ccxt-cli"
+                ;;
+            --all)
+                selected_skills="$ALL_SKILLS"
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                echo "Use --help for usage information."
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
+    # Decide the skills source:
+    #   --remote/--github  -> always pull from GitHub
+    #   otherwise          -> local working tree if present (default),
+    #                         GitHub if not (e.g. piped via curl outside the repo)
+    if [ "$FORCE_REMOTE" = true ]; then
+        IS_REMOTE_INSTALL=true
+        print_info "Remote mode forced - will download skills from GitHub"
+    else
+        detect_remote_install || true
     fi
 
-    # Parse command line arguments
-    if [ $# -eq 0 ]; then
-        # No arguments
-        if [ "$IS_REMOTE_INSTALL" = false ]; then
-            # Local mode - run interactive mode
+    # If no skills were selected via flags:
+    #   remote mode -> default to all skills
+    #   local mode  -> interactive menu
+    if [ -z "$selected_skills" ]; then
+        if [ "$IS_REMOTE_INSTALL" = true ]; then
+            selected_skills="$ALL_SKILLS"
+        else
             check_source_directory
             interactive_mode
         fi
-        # Remote mode - already set selected_skills to ALL_SKILLS above
-    else
-        # Parse flags
-        while [ $# -gt 0 ]; do
-            case "$1" in
-                --help|-h)
-                    usage
-                    ;;
-                --typescript)
-                    selected_skills+=("ccxt-typescript")
-                    ;;
-                --python)
-                    selected_skills+=("ccxt-python")
-                    ;;
-                --php)
-                    selected_skills+=("ccxt-php")
-                    ;;
-                --csharp)
-                    selected_skills+=("ccxt-csharp")
-                    ;;
-                --go)
-                    selected_skills+=("ccxt-go")
-                    ;;
-                --all)
-                    selected_skills=("${ALL_SKILLS[@]}")
-                    ;;
-                *)
-                    print_error "Unknown option: $1"
-                    echo "Use --help for usage information."
-                    exit 1
-                    ;;
-            esac
-            shift
-        done
     fi
 
+    # Trim leading whitespace from accumulated list
+    selected_skills=$(printf '%s' "$selected_skills" | sed 's/^ *//')
+
     # If no skills selected, show error
-    if [ ${#selected_skills[@]} -eq 0 ]; then
+    if [ -z "$selected_skills" ]; then
         print_error "No skills selected for installation."
         exit 1
     fi
@@ -367,22 +410,27 @@ main() {
     echo "═══════════════════════════════════════════════════════════════"
     echo ""
     echo "Skills to install:"
-    for skill in "${selected_skills[@]}"; do
+    for skill in $selected_skills; do
         echo "  • $skill"
     done
     echo ""
 
     # Install to Claude Code
-    install_to_target "$CLAUDE_SKILLS_DIR" "Claude Code" "${selected_skills[@]}"
+    # (word splitting of $selected_skills is intentional; skill names contain no spaces)
+    # shellcheck disable=SC2086
+    install_to_target "$CLAUDE_SKILLS_DIR" "Claude Code" $selected_skills
 
     # Install to OpenCode
-    install_to_target "$OPENCODE_SKILLS_DIR" "OpenCode" "${selected_skills[@]}"
+    # shellcheck disable=SC2086
+    install_to_target "$OPENCODE_SKILLS_DIR" "OpenCode" $selected_skills
 
     # Install to Codex
-    install_to_target "$CODEX_SKILLS_DIR" "Codex" "${selected_skills[@]}"
+    # shellcheck disable=SC2086
+    install_to_target "$CODEX_SKILLS_DIR" "Codex" $selected_skills
 
     # Install to Gemini
-    install_to_target "$GEMINI_SKILLS_DIR" "Gemini" "${selected_skills[@]}"
+    # shellcheck disable=SC2086
+    install_to_target "$GEMINI_SKILLS_DIR" "Gemini" $selected_skills
 
     # Display completion message
     echo ""
@@ -394,8 +442,8 @@ main() {
     echo ""
     echo "Usage examples:"
     echo ""
-    for skill in "${selected_skills[@]}"; do
-        local lang=$(echo "$skill" | sed 's/ccxt-//')
+    for skill in $selected_skills; do
+        lang=$(printf '%s' "$skill" | sed 's/ccxt-//')
         echo "  /$skill"
         echo "    Get help using CCXT in $lang"
         echo ""

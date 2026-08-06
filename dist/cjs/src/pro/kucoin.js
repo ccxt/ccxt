@@ -27,7 +27,7 @@ class kucoin extends kucoin$1["default"] {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchPosition': true,
-                'watchPositions': false,
+                'watchPositions': true,
                 'watchMyTrades': true,
                 'watchTickers': true,
                 'watchTicker': true,
@@ -42,7 +42,7 @@ class kucoin extends kucoin$1["default"] {
                 'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
                 'unWatchTrades': true,
-                'unWatchhTradesForSymbols': true,
+                'unWatchTradesForSymbols': true,
             },
             'urls': {
                 // only for pro (uta) accounts
@@ -276,8 +276,8 @@ class kucoin extends kucoin$1["default"] {
         }
         return this.safeString(this.options, 'utaToken');
     }
-    async unSubscribe(url, messageHash, topic, subscriptionHash, params = {}, subscription = undefined) {
-        return await this.unSubscribeMultiple(url, [messageHash], topic, [subscriptionHash], params, subscription);
+    unSubscribe(url, messageHash, topic, subscriptionHash, params = {}, subscription = undefined) {
+        return this.unSubscribeMultiple(url, [messageHash], topic, [subscriptionHash], params, subscription);
     }
     async subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params = {}, subscription = undefined) {
         const requestId = this.requestId().toString();
@@ -1379,7 +1379,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         //
@@ -1426,10 +1426,13 @@ class kucoin extends kucoin$1["default"] {
     /**
      * @method
      * @name kucoin#unWatchOrderBook
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+     * @see https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+     * @see https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+     * @see https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+     * @see https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+     * @see https://www.kucoin.com/docs-new/3470082w0 // futures incremental
+     * @see https://www.kucoin.com/docs-new/3470221w0 // uta
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1477,7 +1480,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const symbolsLength = symbols.length;
@@ -2215,9 +2218,36 @@ class kucoin extends kucoin$1["default"] {
         const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
         const order = this.safeValue(orders, orderId);
         if (order !== undefined) {
-            // todo add others to calculate average etc
             if (order['status'] === 'closed') {
                 parsed['status'] = 'closed';
+            }
+            // carry the accumulated fill state forward, the raw feed only
+            // carries the match prices on the match messages, and safeOrder
+            // derives cost from the order price otherwise, which is wrong for
+            // orders filled at better prices, so the accumulated values win on
+            // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
+            if (order['average'] !== undefined) {
+                parsed['average'] = order['average'];
+                parsed['cost'] = order['cost'];
+            }
+            if (parsed['filled'] === undefined) {
+                parsed['filled'] = order['filled'];
+            }
+        }
+        // accumulate the average fill price and cost from the match messages,
+        // which carry matchPrice and matchSize, the terminal filled message
+        // does not repeat them, see https://github.com/ccxt/ccxt/issues/19083
+        const rawType = this.safeString(data, 'type');
+        const matchPrice = this.safeString(data, 'matchPrice');
+        const matchSize = this.safeString(data, 'matchSize');
+        if ((rawType === 'match') && (matchPrice !== undefined) && (matchSize !== undefined)) {
+            const matchCost = Precise["default"].stringMul(matchPrice, matchSize);
+            const previousCost = (order === undefined) ? '0' : this.numberToString(this.safeNumber(order, 'cost', 0));
+            const costString = Precise["default"].stringAdd(previousCost, matchCost);
+            parsed['cost'] = this.parseNumber(costString);
+            const filledString = this.numberToString(parsed['filled']);
+            if ((filledString !== undefined) && (Precise["default"].stringGt(filledString, '0'))) {
+                parsed['average'] = this.parseNumber(Precise["default"].stringDiv(costString, filledString));
             }
         }
         cachedOrders.append(parsed);
@@ -2714,7 +2744,9 @@ class kucoin extends kucoin$1["default"] {
         account['free'] = this.safeString2(data, 'available', 'availableBalance');
         account['used'] = used;
         account['total'] = this.safeString(data, 'total');
-        this.balance[uniformType][code] = account;
+        if ((uniformType !== undefined) && (code !== undefined)) {
+            this.balance[uniformType][code] = account;
+        }
         this.balance[uniformType] = this.safeBalance(this.balance[uniformType]);
         const messageHash = uniformType + ':balance';
         client.resolve(this.balance[uniformType], messageHash);
@@ -2750,7 +2782,9 @@ class kucoin extends kucoin$1["default"] {
         account['free'] = this.safeString(data, 'a');
         account['used'] = this.safeString(data, 'h');
         account['total'] = this.safeString(data, 'b');
-        this.balance[type][code] = account;
+        if ((code !== undefined)) {
+            this.balance[type][code] = account;
+        }
         this.balance[type] = this.safeBalance(this.balance[type]);
         const messageHash = type + ':balance';
         client.resolve(this.balance[type], messageHash);
@@ -3189,7 +3223,9 @@ class kucoin extends kucoin$1["default"] {
         const data = this.safeDict(message, 'd', {});
         const fundingRate = this.parseWsFundingRate(data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        if (symbol !== undefined) {
+            this.fundingRates[symbol] = fundingRate;
+        }
         const messageHash = 'fundingRate:' + symbol;
         client.resolve(fundingRate, messageHash);
     }

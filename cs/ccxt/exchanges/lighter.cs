@@ -453,7 +453,7 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " requires accountIndex or account_index")) ;
         }
-        object strAccountIndex = ((string)this.numberToString(accountIndex));
+        object strAccountIndex = this.numberToString(accountIndex);
         object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         this.initAuthObject(strAccountIndex, strApiKeyIndex);
         object signer = this.safeDict(getValue(getValue(getValue(this.options, "auths"), strAccountIndex), strApiKeyIndex), "signer");
@@ -590,8 +590,8 @@ public partial class lighter : Exchange
             accountIndex = this.safeString(res, 0);
         }
         object auths = this.safeDict(this.options, "auths");
-        object accountAuths = this.safeDict(auths, ((string)accountIndex));
-        object cachedAuth = this.safeDict(accountAuths, ((string)apiKeyIndex));
+        object accountAuths = this.safeDict(auths, accountIndex);
+        object cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         object cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (isTrue(!isEqual(cachedDeadline, null)))
         {
@@ -642,7 +642,7 @@ public partial class lighter : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((string)this.numberToString(binaryMessageLength))));
+        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
@@ -694,8 +694,8 @@ public partial class lighter : Exchange
     public async virtual Task<object> approveBuilderFee(object builder, object takerFeeRate, object makerFeeRate, object accountIndex, object apiKeyIndex, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object strAccountIndex = ((string)this.numberToString(accountIndex));
-        object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
+        object strAccountIndex = this.numberToString(accountIndex);
+        object strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() {
             { "skipNonce", false },
@@ -776,24 +776,32 @@ public partial class lighter : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name lighter#createOrderRequest
-        * @description helper function to build the request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.nonce] nonce for the account
-        * @param {int} [params.apiKeyIndex] apiKeyIndex
-        * @param {int} [params.accountIndex] accountIndex
-        * @param {int} [params.orderExpiry] orderExpiry
-        * @returns {any[]} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name lighter#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.nonce] nonce for the account
+         * @param {int} [params.apiKeyIndex] apiKeyIndex
+         * @param {int} [params.accountIndex] accountIndex
+         * @param {int} [params.orderExpiry] orderExpiry
+         * @returns {any[]} request to be sent to the exchange
+         */
         if (isTrue(isEqual(price, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price argument")) ;
@@ -939,12 +947,12 @@ public partial class lighter : Exchange
             {
                 triggerOrderSide = "buy";
             }
-            object stopLossOrderTriggerPrice = this.safeNumberN(stopLoss, new List<object>() {"triggerPrice", "stopPrice"});
+            object stopLossOrderTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
             object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
-            object stopLossOrderLimitPrice = this.safeNumberN(stopLoss, new List<object>() {"price", "stopLossPrice"}, stopLossOrderTriggerPrice);
-            object takeProfitOrderTriggerPrice = this.safeNumberN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
+            object stopLossOrderLimitPrice = this.safeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
+            object takeProfitOrderTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
             object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
-            object takeProfitOrderLimitPrice = this.safeNumberN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
+            object takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (isTrue(!isEqual(stopLoss, null)))
             {
@@ -1487,7 +1495,7 @@ public partial class lighter : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2021,7 +2029,10 @@ public partial class lighter : Exchange
                     object balance = this.safeDict(result, code, this.account());
                     ((IDictionary<string,object>)balance)["total"] = Precise.stringAdd(getValue(balance, "total"), this.safeString(asset, "balance"));
                     ((IDictionary<string,object>)balance)["used"] = Precise.stringAdd(getValue(balance, "used"), this.safeString(asset, "locked_balance"));
-                    ((IDictionary<string,object>)result)[(string)code] = balance;
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)result)[(string)code] = balance;
+                    }
                 }
             } else
             {
@@ -2554,7 +2565,7 @@ public partial class lighter : Exchange
             object typeAsInteger = this.safeInteger(order, "order_type");
             type = this.parseOrderTypeInteger(typeAsInteger);
         }
-        object triggerPrice = this.parseNumber(this.omitZero(((string)this.safeString(order, "trigger_price"))));
+        object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "trigger_price")));
         object stopLossPrice = null;
         object takeProfitPrice = null;
         if (isTrue(!isEqual(type, null)))
@@ -2653,7 +2664,7 @@ public partial class lighter : Exchange
             { "twap-sub", "twap" },
             { "liquidation", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object parseOrderTypeInteger(object typeInteger)
@@ -3416,7 +3427,7 @@ public partial class lighter : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires an marginMode parameter")) ;
         }
         object leverage = null;
-        var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", "leverage");
+        var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage");
         leverage = ((IList<object>)leverageparametersVariable)[0];
         parameters = ((IList<object>)leverageparametersVariable)[1];
         if (isTrue(isEqual(leverage, null)))
@@ -3674,7 +3685,7 @@ public partial class lighter : Exchange
      * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}

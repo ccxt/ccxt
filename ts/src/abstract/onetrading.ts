@@ -21,9 +21,10 @@ interface Exchange {
     privateGetAccountFees (params?: {}): Promise<implicitReturnType>;
     privateGetAccountOrders (params?: {}): Promise<implicitReturnType>;
     privateGetAccountOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountOrdersClientClientId (params?: {}): Promise<implicitReturnType>;
     privateGetAccountOrdersOrderIdTrades (params?: {}): Promise<implicitReturnType>;
     privateGetAccountTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountTradesTradeId (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountTradeTradeId (params?: {}): Promise<implicitReturnType>;
     privatePostAccountOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteAccountOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteAccountOrdersOrderId (params?: {}): Promise<implicitReturnType>;

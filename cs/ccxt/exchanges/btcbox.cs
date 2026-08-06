@@ -131,7 +131,6 @@ public partial class btcbox : Exchange
                     { "webApiEnable", true },
                     { "webApiRetries", 3 },
                 } },
-                { "amountPrecision", "0.0001" },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -305,7 +304,7 @@ public partial class btcbox : Exchange
         object quoteId = this.safeString(market, "quote");
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", this.safeString(market, "symbol") },
             { "uppercaseId", null },
             { "symbol", symbol },
@@ -354,7 +353,7 @@ public partial class btcbox : Exchange
             { "active", null },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseBalance(object response)
@@ -408,7 +407,7 @@ public partial class btcbox : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -419,7 +418,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
+        object numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -474,7 +473,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
+        object numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -559,7 +558,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
+        object numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");

@@ -28,9 +28,25 @@ func NewNdaxFromCore(core *NdaxCore) *Ndax {
 
 /**
  * @method
+ * @name ndax#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @see https://apidoc.ndax.io/#ping
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+ */
+func (this *Ndax) FetchStatus(params ...any) (Status, error) {
+	res := <-this.Core.FetchStatus(params...)
+	if IsError(res) {
+		return Status{}, CreateReturnError(res)
+	}
+	return NewStatus(res), nil
+}
+
+/**
+ * @method
  * @name ndax#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://apidoc.ndax.io/#getproduct
+ * @see https://apidoc.ndax.io/#getproducts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -66,7 +82,7 @@ func (this *Ndax) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Ndax) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -90,6 +106,39 @@ func (this *Ndax) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
 		return OrderBook{}, CreateReturnError(res)
 	}
 	return NewOrderBook(res), nil
+}
+
+/**
+ * @method
+ * @name ndax#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://apidoc.ndax.io/#cmc-summary
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Ndax) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
+
+	opts := FetchTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTickers(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
 }
 
 /**
@@ -320,6 +369,21 @@ func (this *Ndax) CreateOrder(symbol string, typeVar string, side string, amount
 	}
 	return NewOrder(res), nil
 }
+
+/**
+ * @method
+ * @name ndax#editOrder
+ * @description cancels an open order and places a new order
+ * @see https://apidoc.ndax.io/#cancelreplaceorder
+ * @param {string} id order id
+ * @param {string} symbol unified market symbol
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} [amount] how much of currency you want to trade in units of base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Ndax) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
 	opts := EditOrderOptionsStruct{}
@@ -399,7 +463,7 @@ func (this *Ndax) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
  * @name ndax#cancelAllOrders
  * @description cancel all open orders
  * @see https://apidoc.ndax.io/#cancelallorders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -957,10 +1021,10 @@ func (this *Ndax) FetchDepositAddressesByNetwork(code string, options ...FetchDe
 func (this *Ndax) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Ndax) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Ndax) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Ndax) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Ndax) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Ndax) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1077,7 +1141,7 @@ func (this *Ndax) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Ndax) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Ndax) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Ndax) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Ndax) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1094,12 +1158,6 @@ func (this *Ndax) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 }
 func (this *Ndax) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Ndax) FetchStatus(params ...any) (map[string]any, error) {
-	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Ndax) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickers(options...)
 }
 func (this *Ndax) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
@@ -1218,7 +1276,7 @@ func (this *Ndax) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Ndax) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Ndax) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Ndax) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Ndax) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1263,7 +1321,7 @@ func (this *Ndax) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Ndax) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Ndax) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Ndax) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Ndax) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

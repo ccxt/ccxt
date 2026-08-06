@@ -505,6 +505,9 @@ func (this *DydxCore) ParseMarket(market any) any {
 	//
 	var quoteId any = "USDC"
 	var marketId any = this.SafeString(market, "ticker")
+	if IsTrue(IsEqual(marketId, nil)) {
+		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
+	}
 	var parts any = Split(marketId, "-")
 	var baseName any = this.SafeString(parts, 0)
 	var baseId any = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
@@ -695,8 +698,8 @@ func (this *DydxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes67412 := (<-this.LoadMarkets())
-			PanicOnError(retRes67412)
+			retRes67712 := (<-this.LoadMarkets())
+			PanicOnError(retRes67712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -782,8 +785,8 @@ func (this *DydxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes74612 := (<-this.LoadMarkets())
-			PanicOnError(retRes74612)
+			retRes74912 := (<-this.LoadMarkets())
+			PanicOnError(retRes74912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -864,8 +867,8 @@ func (this *DydxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes80712 := (<-this.LoadMarkets())
-			PanicOnError(retRes80712)
+			retRes81012 := (<-this.LoadMarkets())
+			PanicOnError(retRes81012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -931,7 +934,7 @@ func (this *DydxCore) HandlePublicAddress(methodName any, params any) any {
 	if IsTrue(IsTrue((!IsEqual(this.WalletAddress, nil))) && IsTrue((!IsEqual(this.WalletAddress, "")))) {
 		return []any{this.WalletAddress, params}
 	}
-	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a user parameter inside \\'params\\' or the walletAddress set")))
+	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a user parameter inside 'params' or the walletAddress set")))
 }
 func (this *DydxCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -1041,8 +1044,8 @@ func (this *DydxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes96512 := (<-this.LoadMarkets())
-			PanicOnError(retRes96512)
+			retRes96812 := (<-this.LoadMarkets())
+			PanicOnError(retRes96812)
 		}
 		var request any = map[string]any{
 			"orderId": id,
@@ -1094,8 +1097,8 @@ func (this *DydxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(subAccountNumberparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes99312 := (<-this.LoadMarkets())
-			PanicOnError(retRes99312)
+			retRes99612 := (<-this.LoadMarkets())
+			PanicOnError(retRes99612)
 		}
 		var request any = map[string]any{
 			"address":          userAddress,
@@ -1177,9 +1180,9 @@ func (this *DydxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			"status": "OPEN",
 		}
 
-		retRes105515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes105515)
-		ch <- retRes105515
+		retRes105815 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes105815)
+		ch <- retRes105815
 		return nil
 
 	}()
@@ -1216,9 +1219,9 @@ func (this *DydxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			"status": "FILLED",
 		}
 
-		retRes107515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes107515)
-		ch <- retRes107515
+		retRes107815 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes107815)
+		ch <- retRes107815
 		return nil
 
 	}()
@@ -1342,8 +1345,8 @@ func (this *DydxCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params = GetValue(subAccountNumberparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes116812 := (<-this.LoadMarkets())
-			PanicOnError(retRes116812)
+			retRes117112 := (<-this.LoadMarkets())
+			PanicOnError(retRes117112)
 		}
 		var request any = map[string]any{
 			"address":          userAddress,
@@ -1455,8 +1458,8 @@ func (this *DydxCore) FetchDydxAccount() <-chan any {
 		defer ReturnPanicError(ch)
 		// required in js
 
-		retRes12688 := (<-this.LoadDydxProtos())
-		PanicOnError(retRes12688)
+		retRes12718 := (<-this.LoadDydxProtos())
+		PanicOnError(retRes12718)
 		var dydxAccount any = this.SafeDict(this.Options, "dydxAccount")
 		if IsTrue(!IsEqual(dydxAccount, nil)) {
 
@@ -1514,9 +1517,18 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var orderType any = ToUpper(typeVar)
 	var market any = this.Market(symbol)
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createOrderRequest() requires a side argument")))
+	}
 	var orderSide any = ToUpper(side)
 	var subaccountId any = 0
 	subaccountIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "subAccountId", subaccountId)
@@ -1594,6 +1606,9 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	if IsTrue(IsEqual(orderFlag, 0)) {
 		if IsTrue(IsEqual(goodTillBlock, nil)) {
 			// short term order
+			if IsTrue(IsEqual(latestBlockHeight, nil)) {
+				panic(ExchangeError(Add(this.Id, " method() missing latestBlockHeight")))
+			}
 			goodTillBlock = Add(latestBlockHeight, 20)
 		}
 	} else {
@@ -1634,7 +1649,13 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		"value":   orderPayload,
 	}
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"})
-	var orderId any = this.CreateOrderIdFromParts(this.GetWalletAddress(), subaccountId, clientOrderId, orderFlag, GetValue(marketInfo, "clobPairId"))
+	var walletAddress any = this.GetWalletAddress()
+	var clobPairId any = this.SafeInteger(marketInfo, "clobPairId", 0)
+	var subaccountIdValue any = Ternary(IsTrue((IsEqual(subaccountId, nil))), 0, subaccountId)
+	var clientOrderIdValue any = Ternary(IsTrue((IsEqual(clientOrderId, nil))), 0, clientOrderId)
+	var orderFlagValue any = Ternary(IsTrue((IsEqual(orderFlag, nil))), 0, orderFlag)
+	var clobPairIdValue any = Ternary(IsTrue((IsEqual(clobPairId, nil))), 0, clobPairId)
+	var orderId any = this.CreateOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
 	return []any{orderId, this.Extend(signingPayload, params)}
 }
 func (this *DydxCore) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId any, orderFlags any, clobPairId any) any {
@@ -1670,8 +1691,12 @@ func (this *DydxCore) FetchLatestBlockHeight(optionalArgs ...any) <-chan any {
 		//
 		var result any = this.SafeDict(response, "result")
 		var info any = this.SafeDict(result, "response")
+		var height any = this.SafeInteger(info, "last_block_height")
+		if IsTrue(IsEqual(height, nil)) {
+			panic(ExchangeError(Add(this.Id, " fetchLatestBlockHeight() could not parse last_block_height")))
+		}
 
-		ch <- this.SafeInteger(info, "last_block_height")
+		ch <- height
 		return nil
 
 	}()
@@ -1711,8 +1736,8 @@ func (this *DydxCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148912 := (<-this.LoadMarkets())
-			PanicOnError(retRes148912)
+			retRes151412 := (<-this.LoadMarkets())
+			PanicOnError(retRes151412)
 		}
 		var credentials any = this.RetrieveCredentials()
 
@@ -1795,8 +1820,8 @@ func (this *DydxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes155012 := (<-this.LoadMarkets())
-			PanicOnError(retRes155012)
+			retRes157512 := (<-this.LoadMarkets())
+			PanicOnError(retRes157512)
 		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientId", id)
@@ -1915,8 +1940,8 @@ func (this *DydxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes164512 := (<-this.LoadMarkets())
-			PanicOnError(retRes164512)
+			retRes167012 := (<-this.LoadMarkets())
+			PanicOnError(retRes167012)
 		}
 		var market any = this.Market(symbol)
 		var clientOrderIds any = this.SafeList(params, "clientOrderIds")
@@ -1996,7 +2021,7 @@ func (this *DydxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *DydxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2009,8 +2034,8 @@ func (this *DydxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes171612 := (<-this.LoadMarkets())
-			PanicOnError(retRes171612)
+			retRes174112 := (<-this.LoadMarkets())
+			PanicOnError(retRes174112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2136,8 +2161,8 @@ func (this *DydxCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes182212 := (<-this.LoadMarkets())
-			PanicOnError(retRes182212)
+			retRes184712 := (<-this.LoadMarkets())
+			PanicOnError(retRes184712)
 		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2197,6 +2222,9 @@ func (this *DydxCore) EstimateTxFee(message any, memo any, account any) <-chan a
 		}
 		var gasLimit any = MathCeil(this.ParseToNumeric(Precise.StringMul(gasUsed, defaultFeeMultiplier)))
 		var feeAmount any = Precise.StringMul(this.NumberToString(gasLimit), gasPrice)
+		if IsTrue(IsEqual(feeAmount, nil)) {
+			panic(ExchangeError(Add(this.Id, " estimateTxFee() missing feeAmount")))
+		}
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(feeAmount, "."), 0)) {
 			feeAmount = this.NumberToString(MathCeil(this.ParseToNumeric(feeAmount)))
 		}
@@ -2239,13 +2267,13 @@ func (this *DydxCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes189812 := (<-this.LoadMarkets())
-			PanicOnError(retRes189812)
+			retRes192612 := (<-this.LoadMarkets())
+			PanicOnError(retRes192612)
 		}
 		var fromSubaccountId any = this.SafeInteger(params, "fromSubaccountId")
 		var toSubaccountId any = this.SafeInteger(params, "toSubaccountId")
 		if IsTrue(!IsEqual(fromAccount, "main")) {
-			// throw error if from subaccount id is undefind
+			// throw error if from subaccount id is undefined
 			if IsTrue(IsEqual(fromAccount, nil)) {
 				panic(NotSupported(Add(this.Id, " transfer only support main > subaccount and subaccount <> subaccount.")))
 			}
@@ -2403,8 +2431,8 @@ func (this *DydxCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes203612 := (<-this.LoadMarkets())
-			PanicOnError(retRes203612)
+			retRes206412 := (<-this.LoadMarkets())
+			PanicOnError(retRes206412)
 		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2506,8 +2534,8 @@ func (this *DydxCore) Withdraw(code any, amount any, address any, optionalArgs .
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes211912 := (<-this.LoadMarkets())
-			PanicOnError(retRes211912)
+			retRes214712 := (<-this.LoadMarkets())
+			PanicOnError(retRes214712)
 		}
 		this.CheckAddress(address)
 		var subaccountId any = this.SafeInteger(params, "subaccountId")
@@ -2596,8 +2624,8 @@ func (this *DydxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes218412 := (<-this.LoadMarkets())
-			PanicOnError(retRes218412)
+			retRes221212 := (<-this.LoadMarkets())
+			PanicOnError(retRes221212)
 		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2645,8 +2673,8 @@ func (this *DydxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes221012 := (<-this.LoadMarkets())
-			PanicOnError(retRes221012)
+			retRes223812 := (<-this.LoadMarkets())
+			PanicOnError(retRes223812)
 		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2694,8 +2722,8 @@ func (this *DydxCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes223612 := (<-this.LoadMarkets())
-			PanicOnError(retRes223612)
+			retRes226412 := (<-this.LoadMarkets())
+			PanicOnError(retRes226412)
 		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2885,8 +2913,8 @@ func (this *DydxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes237312 := (<-this.LoadMarkets())
-			PanicOnError(retRes237312)
+			retRes240112 := (<-this.LoadMarkets())
+			PanicOnError(retRes240112)
 		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchAccounts", params)
@@ -3009,7 +3037,7 @@ func (this *DydxCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var pathWithParams any = this.ImplodeParams(path, params)
-	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), section))
+	var url any = GetValue(GetValue(this.Urls, "api"), section)
 	params = this.Omit(params, this.ExtractParams(path))
 	params = this.Keysort(params)
 	url = Add(url, Add("/", pathWithParams))

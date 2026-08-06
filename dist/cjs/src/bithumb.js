@@ -284,7 +284,8 @@ class bithumb extends bithumb$1["default"] {
         return super.safeMarket(marketId, market, delimiter, 'spot');
     }
     amountToPrecision(symbol, amount) {
-        return this.decimalToPrecision(amount, number.TRUNCATE, this.markets[symbol]['precision']['amount'], number.DECIMAL_PLACES);
+        const market = this.market(symbol);
+        return this.decimalToPrecision(amount, number.TRUNCATE, market['precision']['amount'], number.DECIMAL_PLACES);
     }
     /**
      * @method
@@ -455,7 +456,7 @@ class bithumb extends bithumb$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1234,6 +1235,9 @@ class bithumb extends bithumb$1["default"] {
             body = this.urlencode(this.extend({
                 'endpoint': endpoint,
             }, query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            const bodyParts = body.split('%20');
+            body = bodyParts.join('+');
             const nonce = this.nonce().toString();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512);

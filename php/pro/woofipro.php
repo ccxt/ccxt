@@ -7,10 +7,15 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class woofipro extends \ccxt\async\woofipro {
     public function describe(): mixed {
@@ -71,7 +76,7 @@ class woofipro extends \ccxt\async\woofipro {
         ));
     }
 
-    public function request_id($url) {
+    public function request_id(mixed $url) {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
@@ -79,7 +84,7 @@ class woofipro extends \ccxt\async\woofipro {
         return $newValue;
     }
 
-    public function watch_public($messageHash, $message) {
+    public function watch_public(mixed $messageHash, mixed $message) {
         return Async\async(function () use ($messageHash, $message) {
             // the default $id
             $id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
@@ -100,13 +105,13 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/orderbook
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -124,7 +129,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "PERP_BTC_USDC@$orderbook",
@@ -151,7 +156,7 @@ class woofipro extends \ccxt\async\woofipro {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $topic = $this->safe_string($message, 'topic');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -165,7 +170,7 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-ticker
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
              *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -188,7 +193,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDC",
@@ -225,7 +230,7 @@ class woofipro extends \ccxt\async\woofipro {
         ), $market);
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "PERP_BTC_USDC@$ticker",
@@ -259,7 +264,7 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-$tickers
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-$tickers
              *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -282,7 +287,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function handle_tickers(Client $client, $message) {
+    public function handle_tickers(Client $client, mixed $message) {
         //
         //     {
         //         "topic":"tickers",
@@ -320,7 +325,7 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/bbos
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
              *
              * watches best bid & ask for $symbols
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -343,7 +348,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
         //       "topic" => "bbos",
@@ -365,13 +370,15 @@ class woofipro extends \ccxt\async\woofipro {
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->parse_ws_bid_ask($this->extend($data[$i], array( 'ts' => $timestamp )));
-            $this->tickers[$ticker['symbol']] = $ticker;
+            if ($ticker['symbol'] !== null) {
+                $this->tickers[$ticker['symbol']] = $ticker;
+            }
             $result[] = $ticker;
         }
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -393,7 +400,7 @@ class woofipro extends \ccxt\async\woofipro {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/k-line
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -425,7 +432,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -460,15 +467,16 @@ class woofipro extends \ccxt\async\woofipro {
             $this->safe_number($data, 'volume'),
         );
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            if (($symbol !== null) && ($timeframe !== null)) {
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
+            }
         }
-        $ohlcvCache = $this->ohlcvs[$symbol][$timeframe];
-        $ohlcvCache->append($parsed);
-        $client->resolve($ohlcvCache, $topic);
+        $stored->append($parsed);
+        $client->resolve($stored, $topic);
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -476,7 +484,7 @@ class woofipro extends \ccxt\async\woofipro {
             /**
              * watches information on multiple $trades made in a $market
              *
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/trade
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
              *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -503,7 +511,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         // {
         //     "topic":"PERP_ADA_USDC@$trade",
@@ -523,7 +531,7 @@ class woofipro extends \ccxt\async\woofipro {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $trade = $this->parse_ws_trade($this->extend($data, array( 'timestamp' => $timestamp )), $market);
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
@@ -534,7 +542,7 @@ class woofipro extends \ccxt\async\woofipro {
         $client->resolve($trades, $topic);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -609,7 +617,7 @@ class woofipro extends \ccxt\async\woofipro {
         ), $market);
     }
 
-    public function handle_auth(Client $client, $message) {
+    public function handle_auth(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "auth",
@@ -627,7 +635,7 @@ class woofipro extends \ccxt\async\woofipro {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
             // allows further authentication attempts
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions['authenticated']);
             }
         }
@@ -666,7 +674,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function watch_private($messageHash, $message, $params = array()) {
+    public function watch_private(mixed $messageHash, mixed $message, $params = array()) {
         return Async\async(function () use ($messageHash, $message, $params) {
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
@@ -679,7 +687,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function watch_private_multiple($messageHashes, $message, $params = array()) {
+    public function watch_private_multiple(mixed $messageHashes, mixed $message, $params = array()) {
         return Async\async(function () use ($messageHashes, $message, $params) {
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
@@ -697,8 +705,8 @@ class woofipro extends \ccxt\async\woofipro {
             /**
              * watches information on multiple $orders made by the user
              *
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
              *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -737,8 +745,8 @@ class woofipro extends \ccxt\async\woofipro {
             /**
              * watches information on multiple trades made by the user
              *
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
              *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -772,7 +780,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDT",
@@ -893,7 +901,7 @@ class woofipro extends \ccxt\async\woofipro {
         ));
     }
 
-    public function handle_order_update(Client $client, $message) {
+    public function handle_order_update(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "executionreport",
@@ -944,7 +952,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
     }
 
-    public function handle_order(Client $client, $message, $topic) {
+    public function handle_order(Client $client, mixed $message, mixed $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -965,7 +973,7 @@ class woofipro extends \ccxt\async\woofipro {
                 if ($fees !== null) {
                     $parsed['fees'] = $fees;
                 }
-                $parsed['trades'] = $this->safe_list($order, 'trades');
+                $parsed['trades'] = $this->safe_list($order, 'trades', array());
                 $parsed['timestamp'] = $this->safe_integer($order, 'timestamp');
                 $parsed['datetime'] = $this->safe_string($order, 'datetime');
             }
@@ -976,7 +984,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         // {
         //     $symbol => 'PERP_XRP_USDC',
@@ -1026,7 +1034,7 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
              *
              * watch all open positions
              * @param {string[]} [$symbols] list of unified market $symbols
@@ -1041,7 +1049,13 @@ class woofipro extends \ccxt\async\woofipro {
             $messageHashes = array();
             $symbols = $this->market_symbols($symbols);
             if (!$this->is_empty($symbols)) {
+                if ($symbols === null) {
+                    throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                }
                 for ($i = 0; $i < count($symbols); $i++) {
+                    if ($symbols === null) {
+                        throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                    }
                     $symbol = $symbols[$i];
                     $messageHashes[] = 'positions::' . $symbol;
                 }
@@ -1069,11 +1083,11 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, ?array $symbols = null) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot) {
             $messageHash = 'fetchPositionsSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
             }
@@ -1082,7 +1096,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash) {
         return Async\async(function () use ($client, $messageHash) {
             $positions = Async\await($this->fetch_positions());
             $this->positions = new ArrayCacheBySymbolBySide();
@@ -1095,7 +1109,7 @@ class woofipro extends \ccxt\async\woofipro {
                 }
             }
             // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve($cache);
                 $client->resolve($cache, 'positions');
@@ -1103,7 +1117,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //    {
         //        "topic":"position",
@@ -1156,7 +1170,7 @@ class woofipro extends \ccxt\async\woofipro {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null) {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1234,7 +1248,7 @@ class woofipro extends \ccxt\async\woofipro {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/balance
+             * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -1253,7 +1267,7 @@ class woofipro extends \ccxt\async\woofipro {
         })();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(mixed $client, mixed $message) {
         //
         //     {
         //         "topic":"balance",
@@ -1292,23 +1306,28 @@ class woofipro extends \ccxt\async\woofipro {
             $key = $keys[$i];
             $value = $balances[$key];
             $code = $this->safe_currency_code($key);
-            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+            $account = $this->account();
+            if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
+                $account = $this->balance[$code];
+            }
             $total = $this->safe_string($value, 'holding');
             $used = $this->safe_string($value, 'frozen');
             $account['total'] = $total;
             $account['used'] = $used;
             $account['free'] = Precise::string_sub($total, $used);
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
         }
         $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, 'balance');
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
         //
-        if (!(is_array($message) && array_key_exists('success', $message))) {
+        if (!(is_array($message) && array_key_exists('success' ?? '', $message))) {
             return false;
         }
         $success = $this->safe_bool($message, 'success');
@@ -1326,7 +1345,7 @@ class woofipro extends \ccxt\async\woofipro {
             if ($error instanceof AuthenticationError) {
                 $messageHash = 'authenticated';
                 $client->reject($error, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
@@ -1336,7 +1355,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -1373,6 +1392,9 @@ class woofipro extends \ccxt\async\woofipro {
             $splitLength = count($splitTopic);
             if ($splitLength === 2) {
                 $name = $this->safe_string($splitTopic, 1);
+                if ($name === null) {
+                    return;
+                }
                 $method = $this->safe_value($methods, $name);
                 if ($method !== null) {
                     $method($client, $message);
@@ -1394,17 +1416,17 @@ class woofipro extends \ccxt\async\woofipro {
         return array( 'event' => 'ping' );
     }
 
-    public function pong(Client $client, $message) {
+    public function pong(Client $client, mixed $message) {
         return Async\async(function () use ($client, $message) {
             Async\await($client->send(array( 'event' => 'pong' )));
         })();
     }
 
-    public function handle_ping(Client $client, $message) {
+    public function handle_ping(Client $client, mixed $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         // array( event => "pong", ts => 1614667590000 )
         //
@@ -1412,7 +1434,7 @@ class woofipro extends \ccxt\async\woofipro {
         return $message;
     }
 
-    public function handle_subscribe(Client $client, $message) {
+    public function handle_subscribe(Client $client, mixed $message) {
         //
         //     {
         //         "id" => "666888",

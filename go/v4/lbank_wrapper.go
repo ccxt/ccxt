@@ -74,19 +74,19 @@ func (this *Lbank) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Lbank) FetchSpotMarkets(params ...any) ([]map[string]any, error) {
+func (this *Lbank) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSpotMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Lbank) FetchSwapMarkets(params ...any) ([]map[string]any, error) {
+func (this *Lbank) FetchSwapMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSwapMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMarketInterfaceArray(res), nil
 }
 
 /**
@@ -160,7 +160,7 @@ func (this *Lbank) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Lbank) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -943,7 +943,7 @@ func (this *Lbank) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Trans
  * @name lbank#fetchTransactionFees
  * @deprecated
  * @description please use fetchDepositWithdrawFees instead
- * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
+ * @param {string[]|undefined} codes not used by fetchTransactionFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
@@ -995,7 +995,7 @@ func (this *Lbank) FetchPublicTransactionFees(params ...any) (map[string]any, er
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Lbank) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Lbank) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -1014,9 +1014,9 @@ func (this *Lbank) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesO
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 func (this *Lbank) FetchPrivateDepositWithdrawFees(options ...FetchPrivateDepositWithdrawFeesOptions) (map[string]any, error) {
 
@@ -1217,7 +1217,7 @@ func (this *Lbank) FetchDepositAddressesByNetwork(code string, options ...FetchD
 func (this *Lbank) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Lbank) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Lbank) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Lbank) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1334,7 +1334,7 @@ func (this *Lbank) FetchPosition(symbol string, options ...FetchPositionOptions)
 func (this *Lbank) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Lbank) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Lbank) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Lbank) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1352,7 +1352,7 @@ func (this *Lbank) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 func (this *Lbank) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Lbank) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Lbank) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Lbank) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
@@ -1460,7 +1460,7 @@ func (this *Lbank) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Lbank) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Lbank) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Lbank) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Lbank) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1505,7 +1505,7 @@ func (this *Lbank) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Lbank) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Lbank) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Lbank) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Lbank) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

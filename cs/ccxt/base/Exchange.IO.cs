@@ -1,6 +1,6 @@
 namespace ccxt;
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public string getTempDir()
     {

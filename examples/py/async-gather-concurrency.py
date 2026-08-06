@@ -69,7 +69,7 @@ async def main():
         # wait for some exchange to finish before adding a new one
         if len(tasks) >= max_concurrency:
             _done, tasks = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-        tasks.add(loop.create_task(work(exchange_id)))
+        tasks.add(asyncio.create_task(work(exchange_id)))
 
     # wait for the remaining exchanges to finish
     await asyncio.wait(tasks)

@@ -1,6 +1,7 @@
 name: Deploy Playground
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
 
-# Builds the CCXT Playground as a container (arm64, matching the docs box) and
+# Builds the CCXT Playground as a container (amd64, matching the docs box) and
 # deploys it as a long-running Next.js server behind nginx at /playground on
 # docs.ccxt.com. Mirrors the Fumadocs flow: build image -> push to GHCR ->
 # box pulls + canary smoke test -> promote (no downtime, auto-abort on failure).
@@ -8,13 +9,15 @@ name: Deploy Playground
 # Reuses the same DOCS_DEPLOY_* secrets and box as docs-fumadocs.yml.
 # One-time box setup (root): put the OpenRouter key in /root/ccxt-playground.env
 #   OPENROUTER_API_KEY=sk-or-...
-# and add an nginx `location /playground { proxy_pass http://127.0.0.1:3007; }`.
+# and add an nginx `location /playground { proxy_pass http://172.31.0.10:3000; }`
+# (the app's pinned IP on the internal network — see APP_IP below; publishing a
+# host port doesn't work on a Docker `internal` network).
 
 on:
   push:
     branches: [master]
     paths:
-      - 'playground/**'
+      - 'docs/playground/**'
       - '.github/workflows/deploy-playground.yml'
   workflow_dispatch:
 
@@ -29,7 +32,7 @@ permissions:
 jobs:
   deploy:
     if: github.repository == 'ccxt/ccxt'
-    runs-on: ubuntu-24.04-arm        # arm64 — native build matching the docs server
+    runs-on: [ self-hosted, linux, x64, deploy ]          # amd64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-playground
       IMAGE_PROXY: ghcr.io/ccxt/ccxt-playground-egress
@@ -43,7 +46,11 @@ jobs:
       CANARY_IP: 172.31.0.11
       BASE_PATH: /playground
     steps:
+      # Both docker build contexts are under docs/playground/ — the ~490MB of ts/, dist/ and the
+      # six generated language trees are never read here.
       - uses: actions/checkout@v6
+        with:
+          sparse-checkout: docs/playground
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
@@ -52,18 +59,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # The runtime layer resolves "latest" ccxt for Python/PHP/C#, so a cached
+      # layer would pin it forever. Keying on the ISO week re-resolves every
+      # Monday: six days out of seven the layer is a cache hit and the build is
+      # a couple of minutes instead of ~20.
+      - name: Compute runtime cache key
+        id: rev
+        run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
       - name: Build & push image
         uses: docker/build-push-action@v7
         with:
-          context: playground
-          platforms: linux/arm64
+          context: docs/playground
+          platforms: linux/amd64
           push: true
-          # Go stays install-only on this 7.5 GB shared box: compiling ccxt-go needs
-          # ~5 GB, which would OOM the host at build and exceed the run container's
-          # 2 GB cap. Drop "go" from PLAYGROUND_DISABLED on a larger dedicated box.
+          # All five runnable languages (TS/Python/PHP/C#/Go) are enabled. The Go
+          # warm build (~5 GB peak) happens here on the GitHub-hosted runner, not
+          # on the docs box; the box only needs headroom for warm `go run`s, which
+          # the 12 GB run cap below covers. To make a language install-only again
+          # (e.g. on a small box), add it back: PLAYGROUND_DISABLED=go
           build-args: |
             NEXT_BASE_PATH=${{ env.BASE_PATH }}
-            PLAYGROUND_DISABLED=go
+            RUNTIMES_REV=${{ steps.rev.outputs.week }}
           # SHA tag enables canary validation + rollback; latest moves only after smoke passes.
           tags: |
             ${{ env.IMAGE }}:latest
@@ -72,8 +89,8 @@ jobs:
       - name: Build & push egress proxy image
         uses: docker/build-push-action@v7
         with:
-          context: playground/proxy
-          platforms: linux/arm64
+          context: docs/playground/proxy
+          platforms: linux/amd64
           push: true
           tags: |
             ${{ env.IMAGE_PROXY }}:latest
@@ -88,6 +105,7 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host *\n  ServerAliveInterval 30\n  ServerAliveCountMax 10\n' > ~/.ssh/config
 
       - name: Deploy with canary smoke test (no-downtime, auto-abort on failure)
         env:
@@ -104,6 +122,18 @@ jobs:
             BASE_PATH="${BASE_PATH}" SHA="${SHA}" \
             GHCR_USER="${GHCR_USER}" GHCR_TOKEN="${GHCR_TOKEN}" 'bash -se' <<'EOF'
           set -e
+          # Self-heal: reclaim disk BEFORE login/pull. The cleanup at the end of this
+          # script only runs when a deploy succeeds, so a full disk would deadlock all
+          # future deploys (docker login can't even write ~/.docker/config.json).
+          # Remove by repo:tag (not image ID) so the :latest tag on the running image
+          # is never touched even when it shares an ID with an old :SHA tag.
+          docker image prune -f >/dev/null 2>&1 || true
+          for repo in "$IMAGE" "$IMAGE_PROXY"; do
+            docker images "$repo" --format '{{.Repository}}:{{.Tag}} {{.Tag}}' \
+              | awk -v keep="$SHA" '$2!=keep && $2!="latest" && $2!="<none>" {print $1}' \
+              | xargs -r docker rmi >/dev/null 2>&1 || true
+          done
+          df -h / | tail -1
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
           docker pull "$IMAGE:$SHA"
           docker pull "$IMAGE_PROXY:$SHA"
@@ -155,18 +185,30 @@ jobs:
           docker network connect "$NET_EGRESS" "$PROXY"
           docker tag "$IMAGE_PROXY:$SHA" "$IMAGE_PROXY:latest"
 
-          # OpenRouter key lives only on the box (root-only env-file, never in GitHub).
+          # Deployment-local settings (PLAYGROUND_AI_URL and anything else the box
+          # supplies) live only on the box, in a root-only env-file, never in GitHub.
           ENVFILE_ARG=""
           [ -f /root/ccxt-playground.env ] && ENVFILE_ARG="--env-file /root/ccxt-playground.env"
 
           # Force the app's egress through the proxy (it has no other route out).
+          # NO_PROXY carries the internal network's gateway so the assistant can
+          # reach the box-local endpoint in PLAYGROUND_AI_URL directly; everything
+          # else still goes through the exchange allowlist.
+          GATEWAY_IP="${SUBNET%.*/*}.1"
           PROXYENV="-e PLAYGROUND_EGRESS_PROXY=http://egress-proxy:3128 \
             -e HTTP_PROXY=http://egress-proxy:3128 -e HTTPS_PROXY=http://egress-proxy:3128 \
             -e http_proxy=http://egress-proxy:3128 -e https_proxy=http://egress-proxy:3128 \
-            -e NO_PROXY=localhost,127.0.0.1 -e no_proxy=localhost,127.0.0.1"
+            -e NO_PROXY=localhost,127.0.0.1,$GATEWAY_IP -e no_proxy=localhost,127.0.0.1,$GATEWAY_IP"
 
           # Hardening flags so a user run can't reach the host or exhaust it.
-          RUNFLAGS="--init --memory 2g --memory-swap 2g --cpus 2 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
+          # 12g/6cpu: sized for the dedicated docs box (8 cores / 31 GB). A warm
+          # `go run` only recompiles the user's main package, but an import
+          # outside the warmed dependency graph triggers a cold rebuild of the
+          # ccxt graph — 12 GB gives that headroom, and 6 CPUs (Go >= 1.25
+          # derives GOMAXPROCS from the cgroup quota) makes it finish well
+          # inside COMPILE_TIMEOUT_MS instead of crawling on 2. Still capped so
+          # user code can't exhaust the host.
+          RUNFLAGS="--init --memory 12g --memory-swap 12g --cpus 6 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
 
           # Persistent submission log — only the promoted live app (not the throwaway
           # canary) writes to the durable host mount; the file is logrotated above.
@@ -179,7 +221,9 @@ jobs:
           smoke_lang() { # json-payload
             local out
             # no -f: install-only languages reply HTTP 400 with a "runs locally" body we must read
-            out=$(curl -sS --max-time 60 -X POST "${SMOKE_BASE}/api/run" -H 'Content-Type: application/json' -d "$1") \
+            # 120s (not 60): Go/C# compile on first run and COMPILE_TIMEOUT_MS is 90s —
+            # a 60s curl would abort a legitimate cold compile and fail the canary.
+            out=$(curl -sS --max-time 120 -X POST "${SMOKE_BASE}/api/run" -H 'Content-Type: application/json' -d "$1") \
               || { echo "smoke[$1]: request failed"; return 1; }
             echo "$out" | grep -q "runs locally, not in the browser" && { echo "smoke: skip (install-only) $1"; return 0; }
             # /api/run streams chunks like {"type":"chunk","stream":"stdout","data":"42\n"}
@@ -191,7 +235,6 @@ jobs:
             for i in $(seq 1 30); do curl -fsS -o /dev/null "$SMOKE_BASE" 2>/dev/null && break; sleep 2; done
             html=$(curl -fsS --max-time 25 "$SMOKE_BASE") || { echo "smoke: homepage not 200"; return 1; }
             echo "$html" | grep -q "CCXT Playground" || { echo "smoke: homepage content missing"; return 1; }
-            smoke_lang '{"language":"js","code":"console.log(6*7)"}'               || return 1
             smoke_lang '{"language":"ts","code":"console.log(6*7)"}'               || return 1
             smoke_lang '{"language":"python","code":"print(6*7)"}'                 || return 1
             smoke_lang '{"language":"php","code":"<?php echo 6*7;"}'               || return 1

@@ -220,7 +220,7 @@ func TestDecimalToPrecision() {
 	//
 	// throws (() =>
 	//     decimalToPrecision ('0.01', ccxt.TRUNCATE, -1, ccxt.TICK_SIZE),
-	//         "ccxt.TICK_SIZE cant be used with negative numPrecisionDigits")
+	//         "TICK_SIZE cant be used with negative numPrecisionDigits")
 	// ----------------------------------------------------------------------------
 	// Additional Edge Cases
 	// Zero handling variations

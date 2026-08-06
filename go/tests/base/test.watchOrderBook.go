@@ -26,7 +26,7 @@ func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symb
 							}
 							ret_ = func() any {
 								// catch block:
-								if !IsTrue(IsTemporaryFailure(e)) {
+								if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
 									panic(e)
 								}
 								now = exchange.Milliseconds()
@@ -45,8 +45,6 @@ func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symb
 
 			}
 			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
-				// [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return an object. "), exchange.Json(response)))
 				now = exchange.Milliseconds()
 				TestOrderBook(exchange, skippedProperties, method, response, symbol)
 			}

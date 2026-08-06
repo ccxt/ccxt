@@ -37,6 +37,7 @@ type ClientInterface interface {
 	SetError(err error)
 	GetUrl() string
 	GetSubscriptions() any
+	GetRejections() map[string]any
 	GetLastPong() any
 	SetLastPong(lastPong any)
 	GetKeepAlive() any
@@ -440,6 +441,9 @@ func (this *Client) Send(message any) <-chan any {
 		if this.Connection == nil {
 			err := NetworkError("not connected to " + this.Url)
 			future.Reject(err)
+			// the caller receives on ch (see Exchange.watch); without sending here
+			// it would block forever when the connection is not established
+			ch <- err
 		} else {
 			err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
 			if err != nil {
@@ -581,6 +585,10 @@ func (this *Client) GetUrl() string {
 // real subscriptions. It is concurrency-safe: sync.Map handles concurrent access internally.
 func (this *Client) GetSubscriptions() any {
 	return this.Subscriptions
+}
+
+func (this *Client) GetRejections() map[string]any {
+	return this.Rejections
 }
 
 func (this *Client) GetLastPong() any {

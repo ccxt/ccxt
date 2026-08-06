@@ -46,7 +46,7 @@ async function testWatchTickersHelper(exchange, skippedProperties, argSymbols, a
             return false;
         }
         if (success === true) {
-            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(argSymbols) + ' must return an object. ' + exchange.json(response));
+            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(argSymbols) + ' must return a dictionary. ' + exchange.json(response));
             const values = Object.values(response);
             let checkedSymbol = undefined;
             if (argSymbols !== undefined && argSymbols.length === 1) {
@@ -59,7 +59,12 @@ async function testWatchTickersHelper(exchange, skippedProperties, argSymbols, a
                     testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
                 catch (ex) {
-                    await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+                    let ohlcv = undefined;
+                    const tickerSymbol = ticker['symbol'];
+                    if ((tickerSymbol !== undefined) && testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
+                        ohlcv = await exchange.fetchOHLCV(tickerSymbol, '1d', undefined, 5);
+                    }
+                    testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                 }
             }
             now = exchange.milliseconds();

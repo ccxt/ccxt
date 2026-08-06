@@ -92,6 +92,7 @@
 * [fetchPositionsHistory](#fetchpositionshistory)
 * [cancelOrders](#cancelorders)
 * [addMargin](#addmargin)
+* [reduceMargin](#reducemargin)
 * [fetchMarginMode](#fetchmarginmode)
 * [setMarginMode](#setmarginmode)
 * [setPositionMode](#setpositionmode)
@@ -214,7 +215,7 @@ loads the migration status for the account (hf or not)
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>any</code> - ignore
 
-**See**: https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type  
+**See**: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -280,7 +281,7 @@ kucoin.fetchAccounts (params?)
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://docs.kucoin.com/#get-withdrawal-quotas  
+**See**: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -551,7 +552,7 @@ kucoin.fetchDepositAddressesByNetwork (code, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1093,7 +1094,7 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'spot' or 'swap', used if symbol is not provided (default is 'spot') |
 | params.marginMode | <code>string</code> | No | *spot only* 'cross' or 'isolated' |
@@ -1101,7 +1102,7 @@ cancel all open orders
 
 
 ```javascript
-kucoin.cancelAllOrders (symbol, params?)
+kucoin.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -1545,7 +1546,7 @@ fetch all the trades made from a single order
 
 **See**
 
-- https://docs.kucoin.com/#list-fills
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
 - https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
 - https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
 - https://www.kucoin.com/docs-new/rest/ua/get-trade-history
@@ -1772,8 +1773,7 @@ fetch all deposits made to an account
 **See**
 
 - https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history
-- https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
-- https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
+- https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-deposit-history-old
 
 
 | Param | Type | Required | Description |
@@ -1825,8 +1825,7 @@ fetch all withdrawals made from an account
 **See**
 
 - https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
-- https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
-- https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
+- https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-withdrawal-history-old
 
 
 | Param | Type | Required | Description |
@@ -2264,7 +2263,7 @@ fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://docs.kucoin.com/#get-currencies  
+**See**: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2599,6 +2598,29 @@ kucoin.addMargin (symbol, amount, params?)
 ```
 
 
+<a name="reduceMargin" id="reducemargin"></a>
+
+### reduceMargin{docsify-ignore}
+remove margin from a position
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/remove-isolated-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | the amount of margin to remove |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.positionSide | <code>string</code> | No | *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH') |
+
+
+```javascript
+kucoin.reduceMargin (symbol, amount, params?)
+```
+
+
 <a name="fetchMarginMode" id="fetchmarginmode"></a>
 
 ### fetchMarginMode{docsify-ignore}
@@ -2655,7 +2677,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use two way position |
-| symbol | <code>string</code> | No | not used by bybit setPositionMode () |
+| symbol | <code>string</code> | No | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -2703,7 +2725,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | Yes | not used by kucoin closePositions |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | client order id of the order |
 
 
@@ -3148,7 +3170,7 @@ kucoin.unWatchTrades (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -3185,10 +3207,13 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 **See**
 
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+- https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+- https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+- https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+- https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+- https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+- https://www.kucoin.com/docs-new/3470082w0 // futures incremental
+- https://www.kucoin.com/docs-new/3470221w0 // uta
 
 
 | Param | Type | Required | Description |
@@ -3210,7 +3235,7 @@ kucoin.unWatchOrderBook (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

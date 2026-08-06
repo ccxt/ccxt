@@ -330,7 +330,7 @@ public partial class coinsph : Exchange
                     { "TRC20", "TRX" },
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
-                    { "ARB", "ARBITRUM" },
+                    { "ARBITRUM", "ARBITRUM" },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -616,26 +616,29 @@ public partial class coinsph : Exchange
             object networkItem = getValue(networkList, j);
             object network = this.safeString(networkItem, "network");
             object networkCode = this.networkIdToCode(network, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", networkItem },
-                { "id", network },
-                { "network", networkCode },
-                { "active", null },
-                { "deposit", this.safeBool(networkItem, "depositEnable") },
-                { "withdraw", this.safeBool(networkItem, "withdrawEnable") },
-                { "fee", this.safeNumber(networkItem, "withdrawFee") },
-                { "precision", this.safeNumber(networkItem, "withdrawIntegerMultiple") },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkItem, "withdrawMin") },
-                        { "max", this.safeNumber(networkItem, "withdrawMax") },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", networkItem },
+                    { "id", network },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", this.safeBool(networkItem, "depositEnable") },
+                    { "withdraw", this.safeBool(networkItem, "withdrawEnable") },
+                    { "fee", this.safeNumber(networkItem, "withdrawFee") },
+                    { "precision", this.safeNumber(networkItem, "withdrawIntegerMultiple") },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkItem, "withdrawMin") },
+                            { "max", this.safeNumber(networkItem, "withdrawMax") },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -1046,7 +1049,7 @@ public partial class coinsph : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1425,7 +1428,10 @@ public partial class coinsph : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1573,7 +1579,7 @@ public partial class coinsph : Exchange
      * @description fetches information on an order made by the user
      * @see https://docs.coins.ph/rest-api/#query-order-user_data
      * @param {int|string} id order id
-     * @param {string} symbol not used by coinsph fetchOrder ()
+     * @param {string} symbol not used by fetchOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1672,7 +1678,7 @@ public partial class coinsph : Exchange
      * @description cancels an open order
      * @see https://docs.coins.ph/rest-api/#cancel-order-trade
      * @param {string} id order id
-     * @param {string} symbol not used by coinsph cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2032,7 +2038,7 @@ public partial class coinsph : Exchange
      * @see https://docs.coins.ph/rest-api/#withdrawuser_data
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address not used by coinsph withdraw ()
+     * @param {string} address not used by withdraw ()
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}

@@ -9,6 +9,9 @@ use Exception; // a common import
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bitrue extends \ccxt\async\bitrue {
     public function describe(): mixed {
@@ -94,7 +97,7 @@ class bitrue extends \ccxt\async\bitrue {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "BALANCE",
@@ -146,7 +149,7 @@ class bitrue extends \ccxt\async\bitrue {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function parse_ws_balances($balances) {
+    public function parse_ws_balances(mixed $balances) {
         //
         //    [array(
         //         "a" => "btc",
@@ -182,7 +185,9 @@ class bitrue extends \ccxt\async\bitrue {
                 if ($updateUsed) {
                     $account['used'] = $used;
                 }
-                $this->balance[$code] = $account;
+                if ($code !== null) {
+                    $this->balance[$code] = $account;
+                }
             }
         }
         $this->balance = $this->safe_balance($this->balance);
@@ -225,7 +230,7 @@ class bitrue extends \ccxt\async\bitrue {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //    {
         //        "e" => "ORDER",
@@ -260,7 +265,7 @@ class bitrue extends \ccxt\async\bitrue {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //    {
         //        "e" => "ORDER",
@@ -356,7 +361,7 @@ class bitrue extends \ccxt\async\bitrue {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "market_ethbtc_simple_depth_step0",
@@ -413,7 +418,7 @@ class bitrue extends \ccxt\async\bitrue {
                 'buys' => $this->parse_contract_bids_asks($rawBuys, $symbol),
             );
         }
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -424,9 +429,13 @@ class bitrue extends \ccxt\async\bitrue {
     }
 
     public function find_swap_market_by_ws_base_quote(string $wsBaseQuote) {
-        $symbols = is_array($this->markets) ? array_keys($this->markets) : array();
+        $markets = $this->markets;
+        if ($markets === null) {
+            return null;
+        }
+        $symbols = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count($symbols); $i++) {
-            $candidate = $this->markets[$symbols[$i]];
+            $candidate = $markets[$symbols[$i]];
             if (!$candidate['swap']) {
                 continue;
             }
@@ -439,7 +448,7 @@ class bitrue extends \ccxt\async\bitrue {
         return null;
     }
 
-    public function parse_contract_bids_asks($bidsAsks, string $symbol) {
+    public function parse_contract_bids_asks(mixed $bidsAsks, string $symbol) {
         $result = array();
         for ($i = 0; $i < count($bidsAsks); $i++) {
             $level = $bidsAsks[$i];
@@ -451,7 +460,7 @@ class bitrue extends \ccxt\async\bitrue {
         return $result;
     }
 
-    public function convert_from_raw_quantity(string $symbol, $rawQuantity) {
+    public function convert_from_raw_quantity(string $symbol, mixed $rawQuantity) {
         if ($rawQuantity === null) {
             return null;
         }
@@ -506,7 +515,7 @@ class bitrue extends \ccxt\async\bitrue {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "event_rep" => "",
@@ -555,7 +564,7 @@ class bitrue extends \ccxt\async\bitrue {
         }
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($trade, 'ts');
         $sideLower = $this->safe_string_lower($trade, 'side');
@@ -628,7 +637,7 @@ class bitrue extends \ccxt\async\bitrue {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "market_e_btcusdt_kline_1min",
@@ -663,10 +672,10 @@ class bitrue extends \ccxt\async\bitrue {
             return;
         }
         $parsed = $this->parse_ws_ohlcv($tick, $market);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -676,7 +685,7 @@ class bitrue extends \ccxt\async\bitrue {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($tick, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $tick, ?array $market = null): array {
         $symbol = $market['symbol'];
         $idSeconds = $this->safe_integer($tick, 'id');
         $timestamp = ($idSeconds === null) ? null : $idSeconds * 1000;
@@ -726,7 +735,7 @@ class bitrue extends \ccxt\async\bitrue {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "market_e_btcusdt_ticker",
@@ -762,7 +771,7 @@ class bitrue extends \ccxt\async\bitrue {
         $client->resolve($parsed, $messageHash);
     }
 
-    public function parse_ws_ticker($tick, $market, ?int $timestamp = null): array {
+    public function parse_ws_ticker(mixed $tick, mixed $market, ?int $timestamp = null): array {
         $symbol = $market['symbol'];
         $rawVol = $this->safe_number($tick, 'vol');
         $rawAmount = $this->safe_number($tick, 'amount');
@@ -795,7 +804,7 @@ class bitrue extends \ccxt\async\bitrue {
         ), $market);
     }
 
-    public function parse_ws_order_type($typeId) {
+    public function parse_ws_order_type(mixed $typeId) {
         $types = array(
             '1' => 'limit',
             '2' => 'market',
@@ -804,7 +813,7 @@ class bitrue extends \ccxt\async\bitrue {
         return $this->safe_string($types, $typeId, $typeId);
     }
 
-    public function parse_ws_order_status($status) {
+    public function parse_ws_order_status(mixed $status) {
         $statuses = array(
             '0' => 'open', // The order has not been accepted by the engine.
             '1' => 'open', // The order has been accepted by the engine.
@@ -816,11 +825,11 @@ class bitrue extends \ccxt\async\bitrue {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_ping(Client $client, $message) {
+    public function handle_ping(Client $client, mixed $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function pong($client, $message) {
+    public function pong(Client $client, mixed $message) {
         return Async\async(function () use ($client, $message) {
             //
             //     {
@@ -835,8 +844,8 @@ class bitrue extends \ccxt\async\bitrue {
         })();
     }
 
-    public function handle_message(Client $client, $message) {
-        if (is_array($message) && array_key_exists('channel', $message)) {
+    public function handle_message(Client $client, mixed $message) {
+        if (is_array($message) && array_key_exists('channel' ?? '', $message)) {
             $channel = $this->safe_string($message, 'channel');
             if (mb_strpos($channel, '_depth_step') > -1) {
                 $this->handle_order_book($client, $message);
@@ -847,7 +856,7 @@ class bitrue extends \ccxt\async\bitrue {
             } elseif (mb_strpos($channel, '_ticker') > -1) {
                 $this->handle_ticker($client, $message);
             }
-        } elseif (is_array($message) && array_key_exists('ping', $message)) {
+        } elseif (is_array($message) && array_key_exists('ping' ?? '', $message)) {
             $this->handle_ping($client, $message);
         } else {
             $event = $this->safe_string($message, 'e');

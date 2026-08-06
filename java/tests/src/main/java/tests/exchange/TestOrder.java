@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,8 +11,15 @@ import io.github.ccxt.errors.*;
 
 
 public class TestOrder extends BaseTest {
-    public static void testOrder(Exchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
+    public static void testOrder(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
     {
+        // prediction-market orders are keyed by an outcome handle, not a `symbol`
+        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new java.util.HashMap<String, Object>() {{
+                put( "symbol", true );
+            }}, skippedProperties);
+        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "123" );
@@ -51,8 +59,8 @@ public class TestOrder extends BaseTest {
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "filled", "0");
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "remaining", "0");
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", ((String)exchange.safeString(entry, "remaining")));
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", ((String)exchange.safeString(entry, "filled")));
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "remaining"));
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "filled"));
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "trades"))))
         {
             Object skippedNew = exchange.deepExtend(skippedProperties, new java.util.HashMap<String, Object>() {{

@@ -259,6 +259,10 @@ func (this *MexcCore) SpotPrivateGetRebateAffiliateSubaffiliates(args ...any) <-
 	return this.callEndpointAsync("spotPrivateGetRebateAffiliateSubaffiliates", args...)
 }
 
+func (this *MexcCore) SpotPrivateGetRebateAffiliateList(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivateGetRebateAffiliateList", args...)
+}
+
 func (this *MexcCore) SpotPrivateGetMxDeductEnable(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetMxDeductEnable", args...)
 }
@@ -281,6 +285,10 @@ func (this *MexcCore) SpotPrivatePostOrder(args ...any) <-chan any {
 
 func (this *MexcCore) SpotPrivatePostOrderTest(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostOrderTest", args...)
+}
+
+func (this *MexcCore) SpotPrivatePostApiKeyInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivatePostApiKeyInfo", args...)
 }
 
 func (this *MexcCore) SpotPrivatePostSubAccountVirtualSubAccount(args ...any) <-chan any {
@@ -353,6 +361,10 @@ func (this *MexcCore) SpotPrivateDeleteOrder(args ...any) <-chan any {
 
 func (this *MexcCore) SpotPrivateDeleteOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateDeleteOpenOrders", args...)
+}
+
+func (this *MexcCore) SpotPrivateDeleteOrderAll(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivateDeleteOrderAll", args...)
 }
 
 func (this *MexcCore) SpotPrivateDeleteSubAccountApiKey(args ...any) <-chan any {

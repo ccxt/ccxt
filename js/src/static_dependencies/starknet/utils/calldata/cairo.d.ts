@@ -12,7 +12,7 @@ export declare const isLen: (name: string) => boolean;
  * @param {string} type - The type to check.
  * @returns - True if the type is felt, false otherwise.
  */
-export declare const isTypeFelt: (type: string) => type is "felt" | "core::felt252";
+export declare const isTypeFelt: (type: string) => type is "core::felt252" | "felt";
 /**
  * Checks if the given type is an array type.
  *

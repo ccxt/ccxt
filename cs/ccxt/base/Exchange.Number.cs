@@ -14,7 +14,7 @@ namespace ccxt;
 // omitZero,
 // precisionConstants,
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public static int ROUND = 1;                // rounding mode
@@ -353,6 +353,8 @@ public partial class Exchange
             return null;
         if (number.GetType() == typeof(Int32) || number.GetType() == typeof(Int64))
             return number.ToString();
+        if (number is System.Numerics.BigInteger)
+            return number.ToString(); // BigInteger is not IConvertible, Convert.ToDecimal would throw
 
         // double doubleValue = -1;
         // if (number.GetType() == typeof(string))

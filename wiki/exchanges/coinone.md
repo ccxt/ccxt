@@ -88,7 +88,7 @@ coinone.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.coinone.co.kr/v1.0/reference/orderbook  
 
@@ -181,11 +181,7 @@ create a trade order
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**
-
-- https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-- https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
-
+**See**: https://docs.coinone.co.kr/reference/order-v21  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -193,12 +189,12 @@ create a trade order
 | type | <code>string</code> | Yes | must be 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-coinone.createOrder (symbol, type, side, amount, price?, params?)
+coinone.createOrder (symbol, type, side, amount, price, params?)
 ```
 
 
@@ -314,7 +310,7 @@ coinone.fetchDepositAddresses (codes, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.coinone.co.kr/reference/public-websocket-orderbook  
 

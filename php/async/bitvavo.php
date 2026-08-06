@@ -14,6 +14,9 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TRUNCATE;
+use const ccxt\TICK_SIZE;
+
 class bitvavo extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -359,7 +362,7 @@ class bitvavo extends Exchange {
                     '230' => '\\ccxt\\ExchangeError', // The order is rejected by the matching engine.
                     '231' => '\\ccxt\\ExchangeError', // The order is rejected by the matching engine. TimeInForce must be GTC when markets are paused.
                     '232' => '\\ccxt\\BadRequest', // You must change at least one of amount, amountRemaining, price, timeInForce, selfTradePrevention or postOnly.
-                    '233' => '\\ccxt\\InvalidOrder', // array("errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling.")
+                    '233' => '\\ccxt\\OrderNotFound', // array("errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."), canceling an already filled or canceled order, see https://github.com/ccxt/ccxt/issues/24154
                     '234' => '\\ccxt\\InvalidOrder', // Market orders cannot be updated.
                     '235' => '\\ccxt\\ExchangeError', // You can only have 100 open orders on each book.
                     '236' => '\\ccxt\\BadRequest', // You can only update amount or amountRemaining, not both.
@@ -406,13 +409,15 @@ class bitvavo extends Exchange {
             'options' => array(
                 'mica' => true,
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
-                'BITVAVO-ACCESS-WINDOW' => 10000, // default 10 sec
+                'recvWindow' => 10000, // default 10 sec
                 'networks' => array(
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
                 ),
                 'operatorId' => null, // this will be required soon for order-related endpoints
-                'fiatCurrencies' => array( 'EUR' ), // only fiat atm
+                'fetchCurrencies' => array(
+                    'fiatCurrencies' => array( 'EUR' ), // only fiat atm
+                ),
             ),
             'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
@@ -474,7 +479,7 @@ class bitvavo extends Exchange {
         })();
     }
 
-    public function parse_markets($markets) {
+    public function parse_markets(mixed $markets) {
         $result = array();
         $fees = $this->fees;
         for ($i = 0; $i < count($markets); $i++) {
@@ -623,7 +628,7 @@ class bitvavo extends Exchange {
         //         ),
         //     )
         //
-        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
+        $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
         $id = $this->safe_string($rawCurrency, 'symbol');
         $code = $this->safe_currency_code($id);
         $isFiat = $this->in_array($code, $fiatCurrencies);
@@ -639,22 +644,24 @@ class bitvavo extends Exchange {
         for ($j = 0; $j < count($networksArray); $j++) {
             $networkId = $networksArray[$j];
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'info' => $rawCurrency,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => $active,
-                'deposit' => $deposit,
-                'withdraw' => $withdrawal,
-                'fee' => $withdrawFee,
-                'precision' => $this->parse_number($this->parse_precision($precision)),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $minWithdraw,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $rawCurrency,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => $active,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdrawal,
+                    'fee' => $withdrawFee,
+                    'precision' => $this->parse_number($this->parse_precision($precision)),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $minWithdraw,
+                            'max' => null,
+                        ),
                     ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $rawCurrency,
@@ -990,7 +997,7 @@ class bitvavo extends Exchange {
         })();
     }
 
-    public function parse_trading_fees($fees, ?array $market = null) {
+    public function parse_trading_fees(mixed $fees, ?array $market = null) {
         //
         //     {
         //         "fees" => {
@@ -1004,8 +1011,8 @@ class bitvavo extends Exchange {
         $maker = $this->safe_number($feesValue, 'maker');
         $taker = $this->safe_number($feesValue, 'taker');
         $result = array();
-        for ($i = 0; $i < count(($this->symbols)); $i++) {
-            $symbol = ($this->symbols)[$i];
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
             $result[$symbol] = array(
                 'info' => $fees,
                 'symbol' => $symbol,
@@ -1070,7 +1077,7 @@ class bitvavo extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1105,7 +1112,7 @@ class bitvavo extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1590383700000,
@@ -1153,7 +1160,7 @@ class bitvavo extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function fetch_ohlcv(?string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1191,7 +1198,7 @@ class bitvavo extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1204,7 +1211,9 @@ class bitvavo extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'inOrder');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1243,7 +1252,7 @@ class bitvavo extends Exchange {
              * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
              *
              * fetch all the $accounts associated with a profile
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=account-structure account structures~
              */
             if ($this->markets === null) {
@@ -1290,7 +1299,7 @@ class bitvavo extends Exchange {
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from, either 'master' or the subaccount id
              * @param {string} $toAccount account to transfer to, either 'master' or the subaccount id
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccountId] the unique identifier for the subaccount
              * @param {string} [$params->clientRequestId] client defined unique id
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
@@ -1353,7 +1362,7 @@ class bitvavo extends Exchange {
              * @param {string} [$code] unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of transfers structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccountId] the unique identifier for the subaccount
              * @param {int} [$params->until] the latest time in ms to fetch transfers for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
@@ -1412,7 +1421,7 @@ class bitvavo extends Exchange {
              * fetches a transfer
              * @param {string} $id transfer $id
              * @param {string} [$code] unified $currency $code of the $currency transferred
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=transfer-structure transfer structure~
              */
             if ($this->markets === null) {
@@ -1520,7 +1529,13 @@ class bitvavo extends Exchange {
         })();
     }
 
-    public function create_order_request(?string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1599,7 +1614,7 @@ class bitvavo extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(?string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1611,7 +1626,7 @@ class bitvavo extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
              * @param {float} [$params->stopPrice] Alias for triggerPrice
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
@@ -1675,7 +1690,7 @@ class bitvavo extends Exchange {
         })();
     }
 
-    public function edit_order_request(string $id, $symbol, $type, $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, mixed $type, mixed $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $request = array();
         $market = $this->market($symbol);
         $amountRemaining = $this->safe_number($params, 'amountRemaining');
@@ -1725,7 +1740,7 @@ class bitvavo extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} [$amount] how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($this->markets === null) {
@@ -1794,7 +1809,7 @@ class bitvavo extends Exchange {
              * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
              *
              * cancel all open orders
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -2285,7 +2300,7 @@ class bitvavo extends Exchange {
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] timestamp in ms of the earliest ledger entry
              * @param {int} [$limit] max number of ledger entries to return
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {int} [$params->page] the page number for the transaction history
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
@@ -2390,7 +2405,7 @@ class bitvavo extends Exchange {
         ), $currency);
     }
 
-    public function withdraw_request(?string $code, $amount, $address, ?string $tag = null, $params = array()) {
+    public function withdraw_request(?string $code, mixed $amount, mixed $address, ?string $tag = null, $params = array()) {
         $currency = $this->currency($code);
         $request = array(
             'symbol' => $currency['id'],
@@ -2469,7 +2484,7 @@ class bitvavo extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             if ($this->markets === null) {
@@ -2530,7 +2545,7 @@ class bitvavo extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             if ($this->markets === null) {
@@ -2624,7 +2639,7 @@ class bitvavo extends Exchange {
             );
         }
         $type = null;
-        if ((is_array($transaction) && array_key_exists('success', $transaction)) || (is_array($transaction) && array_key_exists('address', $transaction))) {
+        if ((is_array($transaction) && array_key_exists('success' ?? '', $transaction)) || (is_array($transaction) && array_key_exists('address' ?? '', $transaction))) {
             $type = 'withdrawal';
         } else {
             $type = 'deposit';
@@ -2654,7 +2669,7 @@ class bitvavo extends Exchange {
         );
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //   {
         //       "symbol" => "1INCH",
@@ -2691,14 +2706,16 @@ class bitvavo extends Exchange {
             $networkId = $currencyCode;
         }
         $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-        $result['networks'][$networkCode] = array(
-            'deposit' => $result['deposit'],
-            'withdraw' => $result['withdraw'],
-        );
+        if ($networkCode !== null) {
+            $result['networks'][$networkCode] = array(
+                'deposit' => $result['deposit'],
+                'withdraw' => $result['withdraw'],
+            );
+        }
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -2736,7 +2753,7 @@ class bitvavo extends Exchange {
         })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $getOrDelete = ($method === 'GET') || ($method === 'DELETE');
@@ -2757,7 +2774,7 @@ class bitvavo extends Exchange {
             $timestamp = (string) $this->milliseconds();
             $auth = $timestamp . $method . $url . $payload;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $accessWindow = $this->safe_string($this->options, 'BITVAVO-ACCESS-WINDOW', '10000');
+            $accessWindow = $this->safe_string_2($this->options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000');
             $headers = array(
                 'BITVAVO-ACCESS-KEY' => $this->apiKey,
                 'BITVAVO-ACCESS-SIGNATURE' => $signature,
@@ -2772,7 +2789,7 @@ class bitvavo extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
@@ -2792,8 +2809,8 @@ class bitvavo extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
-        if ((is_array($config) && array_key_exists('noMarket', $config)) && !(is_array($params) && array_key_exists('market', $params))) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+        if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
             return $config['noMarket'];
         }
         return $this->safe_value($config, 'cost', 1);

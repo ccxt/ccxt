@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.base.Precise;
 
@@ -11,8 +12,15 @@ import io.github.ccxt.base.Precise;
 
 
 public class TestOrderBook extends BaseTest {
-    public static void testOrderBook(Exchange exchange, Object skippedProperties, Object method, Object orderbook, Object symbol)
+    public static void testOrderBook(BaseExchange exchange, Object skippedProperties, Object method, Object orderbook, Object symbol)
     {
+        // prediction-market structures are keyed by an outcome handle, not a `symbol`
+        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new java.util.HashMap<String, Object>() {{
+                put( "symbol", true );
+            }}, skippedProperties);
+        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "symbol", "ETH/BTC" );
             put( "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(exchange.parseNumber("1.24"), exchange.parseNumber("0.453"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(exchange.parseNumber("1.25"), exchange.parseNumber("0.157"))))) );
@@ -22,8 +30,6 @@ public class TestOrderBook extends BaseTest {
             put( "nonce", 134234234 );
         }};
         Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("nonce"));
-        // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-        orderbook = exchange.deepExtend(new java.util.HashMap<String, Object>() {{}}, orderbook);
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, orderbook);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);

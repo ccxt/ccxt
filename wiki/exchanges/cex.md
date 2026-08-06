@@ -176,7 +176,7 @@ cex.fetchTrades (symbol, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://trade.cex.io/docs/#rest-public-api-calls-order-book  
 
@@ -435,12 +435,12 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-cex.cancelAllOrders (symbol, params?)
+cex.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -636,7 +636,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -656,7 +656,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -716,7 +716,7 @@ cex.watchMyTrades (symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://trade.cex.io/docs/#websocket-public-api-calls-order-book-subscribe  
 
@@ -770,7 +770,7 @@ fetches information on an order made by the user
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | not used by cex fetchOrder |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -793,7 +793,7 @@ fetch all unfilled currently open orders
 | symbol | <code>string</code> | Yes | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -818,7 +818,7 @@ create a trade order
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the kraken api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.maker_only | <code>boolean</code> | No | Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker" |
 
 
@@ -845,7 +845,7 @@ edit a trade order
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
 | price | <code>float</code>, <code>undefined</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -866,8 +866,8 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by cex cancelOrder () |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -888,8 +888,8 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | not used by cex cancelOrders() |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
+| symbol | <code>string</code> | Yes | not used by cancelOrders() |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript

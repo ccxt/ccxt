@@ -326,6 +326,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPrivateGetRebateAffiliateSubaffiliates",parameters);
     }
 
+    public async Task<object> spotPrivateGetRebateAffiliateList (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetRebateAffiliateList",parameters);
+    }
+
     public async Task<object> spotPrivateGetMxDeductEnable (object parameters = null)
     {
         return await this.callAsync ("spotPrivateGetMxDeductEnable",parameters);
@@ -354,6 +359,11 @@ public partial class mexc : Exchange
     public async Task<object> spotPrivatePostOrderTest (object parameters = null)
     {
         return await this.callAsync ("spotPrivatePostOrderTest",parameters);
+    }
+
+    public async Task<object> spotPrivatePostApiKeyInfo (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostApiKeyInfo",parameters);
     }
 
     public async Task<object> spotPrivatePostSubAccountVirtualSubAccount (object parameters = null)
@@ -444,6 +454,11 @@ public partial class mexc : Exchange
     public async Task<object> spotPrivateDeleteOpenOrders (object parameters = null)
     {
         return await this.callAsync ("spotPrivateDeleteOpenOrders",parameters);
+    }
+
+    public async Task<object> spotPrivateDeleteOrderAll (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteOrderAll",parameters);
     }
 
     public async Task<object> spotPrivateDeleteSubAccountApiKey (object parameters = null)

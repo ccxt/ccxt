@@ -470,42 +470,42 @@ func (this *CoinexCore) Describe() any {
 				"FUTURES": "swap",
 			},
 			"networks": map[string]any{
-				"BTC":     "BTC",
-				"BEP20":   "BSC",
-				"TRC20":   "TRC20",
-				"ERC20":   "ERC20",
-				"BRC20":   "BRC20",
-				"SOL":     "SOL",
-				"TON":     "TON",
-				"BSV":     "BSV",
-				"AVAXC":   "AVA_C",
-				"AVAXX":   "AVA",
-				"SUI":     "SUI",
-				"ACA":     "ACA",
-				"CHZ":     "CHILIZ",
-				"ADA":     "ADA",
-				"ARB":     "ARBITRUM",
-				"ARBNOVA": "ARBITRUM_NOVA",
-				"OP":      "OPTIMISM",
-				"APT":     "APTOS",
-				"ATOM":    "ATOM",
-				"FTM":     "FTM",
-				"BCH":     "BCH",
-				"ASTR":    "ASTR",
-				"LTC":     "LTC",
-				"MATIC":   "MATIC",
-				"CRONOS":  "CRONOS",
-				"DASH":    "DASH",
-				"DOT":     "DOT",
-				"ETC":     "ETC",
-				"ETHW":    "ETHPOW",
-				"FIL":     "FIL",
-				"ZIL":     "ZIL",
-				"DOGE":    "DOGE",
-				"TIA":     "CELESTIA",
-				"SEI":     "SEI",
-				"XRP":     "XRP",
-				"XMR":     "XMR",
+				"BTC":           "BTC",
+				"BEP20":         "BSC",
+				"TRC20":         "TRC20",
+				"ERC20":         "ERC20",
+				"BRC20":         "BRC20",
+				"SOL":           "SOL",
+				"TON":           "TON",
+				"BSV":           "BSV",
+				"AVAXC":         "AVA_C",
+				"AVAXX":         "AVA",
+				"SUI":           "SUI",
+				"ACA":           "ACA",
+				"CHZ":           "CHILIZ",
+				"ADA":           "ADA",
+				"ARBITRUM":      "ARBITRUM",
+				"ARBITRUM_NOVA": "ARBITRUM_NOVA",
+				"OP":            "OPTIMISM",
+				"APT":           "APTOS",
+				"ATOM":          "ATOM",
+				"FTM":           "FTM",
+				"BCH":           "BCH",
+				"ASTR":          "ASTR",
+				"LTC":           "LTC",
+				"MATIC":         "MATIC",
+				"CRONOS":        "CRONOS",
+				"DASH":          "DASH",
+				"DOT":           "DOT",
+				"ETC":           "ETC",
+				"ETHW":          "ETHPOW",
+				"FIL":           "FIL",
+				"ZIL":           "ZIL",
+				"DOGE":          "DOGE",
+				"TIA":           "CELESTIA",
+				"SEI":           "SEI",
+				"XRP":           "XRP",
+				"XMR":           "XMR",
 			},
 		},
 		"features": map[string]any{
@@ -734,16 +734,9 @@ func (this *CoinexCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 }
 func (this *CoinexCore) ParseCurrency(coin any) any {
 	var asset any = this.SafeDict(coin, "asset", map[string]any{})
-	var chains any = this.SafeList(coin, "chains", []any{})
 	var currencyId any = this.SafeString(asset, "ccy")
-	if IsTrue(IsEqual(currencyId, nil)) {
-		return nil // coinex returns empty structures for some reason
-	}
+	var chains any = this.SafeList(coin, "chains", []any{})
 	var code any = this.SafeCurrencyCode(currencyId)
-	var canDeposit any = this.SafeBool(asset, "deposit_enabled")
-	var canWithdraw any = this.SafeBool(asset, "withdraw_enabled")
-	var firstChain any = this.SafeDict(chains, 0, map[string]any{})
-	var firstPrecisionString any = this.ParsePrecision(this.SafeString(firstChain, "withdrawal_precision"))
 	var networks any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = GetValue(chains, j)
@@ -752,48 +745,44 @@ func (this *CoinexCore) ParseCurrency(coin any) any {
 		if IsTrue(IsEqual(networkId, nil)) {
 			continue
 		}
-		var precisionString any = this.ParsePrecision(this.SafeString(chain, "withdrawal_precision"))
-		var feeString any = this.SafeString(chain, "withdrawal_fee")
-		var minNetworkDepositString any = this.SafeString(chain, "min_deposit_amount")
-		var minNetworkWithdrawString any = this.SafeString(chain, "min_withdraw_amount")
-		var canDepositChain any = this.SafeBool(chain, "deposit_enabled")
-		var canWithdrawChain any = this.SafeBool(chain, "withdraw_enabled")
 		var network any = map[string]any{
 			"id":        networkId,
 			"network":   networkCode,
 			"name":      nil,
-			"active":    IsTrue(canDepositChain) && IsTrue(canWithdrawChain),
-			"deposit":   canDepositChain,
-			"withdraw":  canWithdrawChain,
-			"fee":       this.ParseNumber(feeString),
-			"precision": this.ParseNumber(precisionString),
+			"active":    nil,
+			"deposit":   this.SafeBool(chain, "deposit_enabled"),
+			"withdraw":  this.SafeBool(chain, "withdraw_enabled"),
+			"fee":       this.SafeNumber(chain, "withdrawal_fee"),
+			"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chain, "withdrawal_precision"))),
 			"limits": map[string]any{
 				"amount": map[string]any{
 					"min": nil,
 					"max": nil,
 				},
 				"deposit": map[string]any{
-					"min": this.ParseNumber(minNetworkDepositString),
+					"min": this.SafeNumber(chain, "min_deposit_amount"),
 					"max": nil,
 				},
 				"withdraw": map[string]any{
-					"min": this.ParseNumber(minNetworkWithdrawString),
+					"min": this.SafeNumber(chain, "min_withdraw_amount"),
 					"max": nil,
 				},
 			},
 			"info": chain,
 		}
-		AddElementToObject(networks, networkCode, network)
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, network)
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
 		"name":      nil,
-		"active":    IsTrue(canDeposit) && IsTrue(canWithdraw),
-		"deposit":   canDeposit,
-		"withdraw":  canWithdraw,
+		"active":    nil,
+		"deposit":   this.SafeBool(asset, "deposit_enabled"),
+		"withdraw":  this.SafeBool(asset, "withdraw_enabled"),
 		"fee":       nil,
-		"precision": this.ParseNumber(firstPrecisionString),
+		"precision": nil,
 		"limits": map[string]any{
 			"amount": map[string]any{
 				"min": nil,
@@ -1088,7 +1077,11 @@ func (this *CoinexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketType any = Ternary(IsTrue((InOp(ticker, "mark_price"))), "swap", "spot")
 	var marketId any = this.SafeString(ticker, "market")
-	var symbol any = this.SafeSymbol(marketId, market, nil, marketType)
+	market = this.SafeMarket(marketId, market, nil, marketType)
+	var symbol any = GetValue(market, "symbol")
+	// on inverse contracts 'value' is denominated in the settle currency, not
+	// the quote, so it is the quote volume only for spot and linear markets
+	var quoteVolume any = Ternary(IsTrue(GetValue(market, "inverse")), nil, this.SafeString(ticker, "value"))
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -1108,7 +1101,7 @@ func (this *CoinexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString(ticker, "volume"),
-		"quoteVolume":   nil,
+		"quoteVolume":   quoteVolume,
 		"markPrice":     this.SafeString(ticker, "mark_price"),
 		"indexPrice":    this.SafeString(ticker, "index_price"),
 		"info":          ticker,
@@ -1134,8 +1127,8 @@ func (this *CoinexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes110012 := (<-this.LoadMarkets())
-			PanicOnError(retRes110012)
+			retRes109312 := (<-this.LoadMarkets())
+			PanicOnError(retRes109312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1229,8 +1222,8 @@ func (this *CoinexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes117612 := (<-this.LoadMarkets())
-			PanicOnError(retRes117612)
+			retRes116912 := (<-this.LoadMarkets())
+			PanicOnError(retRes116912)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var market any = nil
@@ -1352,7 +1345,7 @@ func (this *CoinexCore) FetchTime(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CoinexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1365,8 +1358,8 @@ func (this *CoinexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes127812 := (<-this.LoadMarkets())
-			PanicOnError(retRes127812)
+			retRes127112 := (<-this.LoadMarkets())
+			PanicOnError(retRes127112)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
@@ -1498,8 +1491,8 @@ func (this *CoinexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes143912 := (<-this.LoadMarkets())
-			PanicOnError(retRes143912)
+			retRes143212 := (<-this.LoadMarkets())
+			PanicOnError(retRes143212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1562,8 +1555,8 @@ func (this *CoinexCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148712 := (<-this.LoadMarkets())
-			PanicOnError(retRes148712)
+			retRes148012 := (<-this.LoadMarkets())
+			PanicOnError(retRes148012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1607,8 +1600,8 @@ func (this *CoinexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes155612 := (<-this.LoadMarkets())
-			PanicOnError(retRes155612)
+			retRes154912 := (<-this.LoadMarkets())
+			PanicOnError(retRes154912)
 		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
@@ -1700,8 +1693,8 @@ func (this *CoinexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes167012 := (<-this.LoadMarkets())
-			PanicOnError(retRes167012)
+			retRes166312 := (<-this.LoadMarkets())
+			PanicOnError(retRes166312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1758,8 +1751,8 @@ func (this *CoinexCore) FetchMarginBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes171212 := (<-this.LoadMarkets())
-			PanicOnError(retRes171212)
+			retRes170512 := (<-this.LoadMarkets())
+			PanicOnError(retRes170512)
 		}
 
 		response := (<-this.V2PrivateGetAssetsMarginBalance(params))
@@ -1813,7 +1806,9 @@ func (this *CoinexCore) FetchMarginBalance(optionalArgs ...any) <-chan any {
 			var baseDebt any = this.SafeString(loan, "base_ccy")
 			var baseInterest any = this.SafeString(interest, "base_ccy")
 			AddElementToObject(baseAccount, "debt", Precise.StringAdd(baseDebt, baseInterest))
-			AddElementToObject(result, baseCurrencyCode, baseAccount)
+			if IsTrue(!IsEqual(baseCurrencyCode, nil)) {
+				AddElementToObject(result, baseCurrencyCode, baseAccount)
+			}
 		}
 
 		ch <- this.SafeBalance(result)
@@ -1831,8 +1826,8 @@ func (this *CoinexCore) FetchSpotBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes176912 := (<-this.LoadMarkets())
-			PanicOnError(retRes176912)
+			retRes176412 := (<-this.LoadMarkets())
+			PanicOnError(retRes176412)
 		}
 
 		response := (<-this.V2PrivateGetAssetsSpotBalance(params))
@@ -1861,7 +1856,9 @@ func (this *CoinexCore) FetchSpotBalance(optionalArgs ...any) <-chan any {
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(entry, "available"))
 			AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 
 		ch <- this.SafeBalance(result)
@@ -1879,8 +1876,8 @@ func (this *CoinexCore) FetchSwapBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes180112 := (<-this.LoadMarkets())
-			PanicOnError(retRes180112)
+			retRes179812 := (<-this.LoadMarkets())
+			PanicOnError(retRes179812)
 		}
 
 		response := (<-this.V2PrivateGetAssetsFuturesBalance(params))
@@ -1912,7 +1909,9 @@ func (this *CoinexCore) FetchSwapBalance(optionalArgs ...any) <-chan any {
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(entry, "available"))
 			AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 
 		ch <- this.SafeBalance(result)
@@ -1930,8 +1929,8 @@ func (this *CoinexCore) FetchFinancialBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes183612 := (<-this.LoadMarkets())
-			PanicOnError(retRes183612)
+			retRes183512 := (<-this.LoadMarkets())
+			PanicOnError(retRes183512)
 		}
 
 		response := (<-this.V2PrivateGetAssetsFinancialBalance(params))
@@ -1960,7 +1959,9 @@ func (this *CoinexCore) FetchFinancialBalance(optionalArgs ...any) <-chan any {
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(entry, "available"))
 			AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 
 		ch <- this.SafeBalance(result)
@@ -2000,27 +2001,27 @@ func (this *CoinexCore) FetchBalance(optionalArgs ...any) <-chan any {
 		var isMargin any = IsTrue((!IsEqual(marginMode, nil))) || IsTrue((IsEqual(marketType, "margin")))
 		if IsTrue(IsEqual(marketType, "swap")) {
 
-			retRes188519 := (<-this.FetchSwapBalance(params))
-			PanicOnError(retRes188519)
-			ch <- retRes188519
+			retRes188619 := (<-this.FetchSwapBalance(params))
+			PanicOnError(retRes188619)
+			ch <- retRes188619
 			return nil
 		} else if IsTrue(IsEqual(marketType, "financial")) {
 
-			retRes188719 := (<-this.FetchFinancialBalance(params))
-			PanicOnError(retRes188719)
-			ch <- retRes188719
+			retRes188819 := (<-this.FetchFinancialBalance(params))
+			PanicOnError(retRes188819)
+			ch <- retRes188819
 			return nil
 		} else if IsTrue(isMargin) {
 
-			retRes188919 := (<-this.FetchMarginBalance(params))
-			PanicOnError(retRes188919)
-			ch <- retRes188919
+			retRes189019 := (<-this.FetchMarginBalance(params))
+			PanicOnError(retRes189019)
+			ch <- retRes189019
 			return nil
 		} else {
 
-			retRes189119 := (<-this.FetchSpotBalance(params))
-			PanicOnError(retRes189119)
-			ch <- retRes189119
+			retRes189219 := (<-this.FetchSpotBalance(params))
+			PanicOnError(retRes189219)
+			ch <- retRes189219
 			return nil
 		}
 
@@ -2328,8 +2329,8 @@ func (this *CoinexCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optio
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes218812 := (<-this.LoadMarkets())
-			PanicOnError(retRes218812)
+			retRes218912 := (<-this.LoadMarkets())
+			PanicOnError(retRes218912)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
@@ -2337,9 +2338,9 @@ func (this *CoinexCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optio
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes219515 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes219515)
-		ch <- retRes219515
+		retRes219615 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes219615)
+		ch <- retRes219615
 		return nil
 
 	}()
@@ -2350,6 +2351,12 @@ func (this *CoinexCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var market any = this.Market(symbol)
 	var swap any = GetValue(market, "swap")
 	var clientOrderId any = this.SafeString2(params, "client_id", "clientOrderId")
@@ -2489,8 +2496,8 @@ func (this *CoinexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes232512 := (<-this.LoadMarkets())
-			PanicOnError(retRes232512)
+			retRes233212 := (<-this.LoadMarkets())
+			PanicOnError(retRes233212)
 		}
 		var market any = this.Market(symbol)
 		var reduceOnly any = this.SafeBool(params, "reduceOnly")
@@ -2570,8 +2577,8 @@ func (this *CoinexCore) CreateOrders(orders any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes255812 := (<-this.LoadMarkets())
-			PanicOnError(retRes255812)
+			retRes256512 := (<-this.LoadMarkets())
+			PanicOnError(retRes256512)
 		}
 		var ordersRequests any = []any{}
 		var symbol any = nil
@@ -2700,8 +2707,8 @@ func (this *CoinexCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes276512 := (<-this.LoadMarkets())
-			PanicOnError(retRes276512)
+			retRes277212 := (<-this.LoadMarkets())
+			PanicOnError(retRes277212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2791,8 +2798,8 @@ func (this *CoinexCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes295512 := (<-this.LoadMarkets())
-			PanicOnError(retRes295512)
+			retRes296212 := (<-this.LoadMarkets())
+			PanicOnError(retRes296212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2873,8 +2880,8 @@ func (this *CoinexCore) EditOrders(orders any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes309012 := (<-this.LoadMarkets())
-			PanicOnError(retRes309012)
+			retRes309712 := (<-this.LoadMarkets())
+			PanicOnError(retRes309712)
 		}
 		var ordersRequests any = []any{}
 		var orderSymbols any = []any{}
@@ -2882,7 +2889,9 @@ func (this *CoinexCore) EditOrders(orders any, optionalArgs ...any) <-chan any {
 			var rawOrder any = GetValue(orders, i)
 			var marketId any = this.SafeString(rawOrder, "symbol")
 			var market any = this.Market(marketId)
-			AppendToArray(&orderSymbols, marketId)
+			if IsTrue(!IsEqual(marketId, nil)) {
+				AppendToArray(&orderSymbols, marketId)
+			}
 			var id any = this.SafeString(rawOrder, "id")
 			var amount any = this.SafeValue(rawOrder, "amount")
 			var price any = this.SafeValue(rawOrder, "price")
@@ -2983,8 +2992,8 @@ func (this *CoinexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes317912 := (<-this.LoadMarkets())
-			PanicOnError(retRes317912)
+			retRes318812 := (<-this.LoadMarkets())
+			PanicOnError(retRes318812)
 		}
 		var market any = this.Market(symbol)
 		var isTriggerOrder any = this.SafeBool2(params, "stop", "trigger")
@@ -3096,8 +3105,8 @@ func (this *CoinexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes346812 := (<-this.LoadMarkets())
-			PanicOnError(retRes346812)
+			retRes347712 := (<-this.LoadMarkets())
+			PanicOnError(retRes347712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3158,8 +3167,8 @@ func (this *CoinexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes351712 := (<-this.LoadMarkets())
-			PanicOnError(retRes351712)
+			retRes352612 := (<-this.LoadMarkets())
+			PanicOnError(retRes352612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3217,8 +3226,8 @@ func (this *CoinexCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-c
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes361212 := (<-this.LoadMarkets())
-			PanicOnError(retRes361212)
+			retRes362112 := (<-this.LoadMarkets())
+			PanicOnError(retRes362112)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -3375,9 +3384,9 @@ func (this *CoinexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes395115 := (<-this.FetchOrdersByStatus("finished", symbol, since, limit, params))
-		PanicOnError(retRes395115)
-		ch <- retRes395115
+		retRes396015 := (<-this.FetchOrdersByStatus("finished", symbol, since, limit, params))
+		PanicOnError(retRes396015)
+		ch <- retRes396015
 		return nil
 
 	}()
@@ -3403,8 +3412,8 @@ func (this *CoinexCore) CreateDepositAddress(code any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes396612 := (<-this.LoadMarkets())
-			PanicOnError(retRes396612)
+			retRes397512 := (<-this.LoadMarkets())
+			PanicOnError(retRes397512)
 		}
 		var currency any = this.Currency(code)
 		var network any = this.SafeString2(params, "chain", "network")
@@ -3457,8 +3466,8 @@ func (this *CoinexCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes400512 := (<-this.LoadMarkets())
-			PanicOnError(retRes400512)
+			retRes401412 := (<-this.LoadMarkets())
+			PanicOnError(retRes401412)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3554,8 +3563,8 @@ func (this *CoinexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes407812 := (<-this.LoadMarkets())
-			PanicOnError(retRes407812)
+			retRes408712 := (<-this.LoadMarkets())
+			PanicOnError(retRes408712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3621,8 +3630,8 @@ func (this *CoinexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes416312 := (<-this.LoadMarkets())
-			PanicOnError(retRes416312)
+			retRes417212 := (<-this.LoadMarkets())
+			PanicOnError(retRes417212)
 		}
 		var defaultMethod any = nil
 		defaultMethodparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition")
@@ -3731,8 +3740,8 @@ func (this *CoinexCore) FetchPosition(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes425412 := (<-this.LoadMarkets())
-			PanicOnError(retRes425412)
+			retRes426312 := (<-this.LoadMarkets())
+			PanicOnError(retRes426312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3894,8 +3903,8 @@ func (this *CoinexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes439912 := (<-this.LoadMarkets())
-			PanicOnError(retRes439912)
+			retRes440812 := (<-this.LoadMarkets())
+			PanicOnError(retRes440812)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
@@ -3916,9 +3925,9 @@ func (this *CoinexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 			"leverage":    leverage,
 		}
 
-		retRes441915 := (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params)))
-		PanicOnError(retRes441915)
-		ch <- retRes441915
+		retRes442815 := (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params)))
+		PanicOnError(retRes442815)
+		ch <- retRes442815
 		return nil
 
 	}()
@@ -3950,8 +3959,8 @@ func (this *CoinexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes444812 := (<-this.LoadMarkets())
-			PanicOnError(retRes444812)
+			retRes445712 := (<-this.LoadMarkets())
+			PanicOnError(retRes445712)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -3973,9 +3982,9 @@ func (this *CoinexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 			"leverage":    leverage,
 		}
 
-		retRes446715 := (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params)))
-		PanicOnError(retRes446715)
-		ch <- retRes446715
+		retRes447615 := (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params)))
+		PanicOnError(retRes447615)
+		ch <- retRes447615
 		return nil
 
 	}()
@@ -4002,8 +4011,8 @@ func (this *CoinexCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes449112 := (<-this.LoadMarkets())
-			PanicOnError(retRes449112)
+			retRes450012 := (<-this.LoadMarkets())
+			PanicOnError(retRes450012)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -4082,8 +4091,8 @@ func (this *CoinexCore) ModifyMarginHelper(symbol any, amount any, addOrReduce a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes455612 := (<-this.LoadMarkets())
-			PanicOnError(retRes455612)
+			retRes456512 := (<-this.LoadMarkets())
+			PanicOnError(retRes456512)
 		}
 		var market any = this.Market(symbol)
 		var rawAmount any = this.AmountToPrecision(symbol, amount)
@@ -4137,7 +4146,7 @@ func (this *CoinexCore) ModifyMarginHelper(symbol any, amount any, addOrReduce a
 		//         "message": "OK"
 		//     }
 		//
-		var data any = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		var status any = this.SafeStringLower(response, "message")
 		var typeVar any = Ternary(IsTrue((IsEqual(addOrReduce, "reduce"))), "reduce", "add")
 
@@ -4242,9 +4251,9 @@ func (this *CoinexCore) AddMargin(symbol any, amount any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes470015 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes470015)
-		ch <- retRes470015
+		retRes470915 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes470915)
+		ch <- retRes470915
 		return nil
 
 	}()
@@ -4269,9 +4278,9 @@ func (this *CoinexCore) ReduceMargin(symbol any, amount any, optionalArgs ...any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes471415 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes471415)
-		ch <- retRes471415
+		retRes472315 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+		PanicOnError(retRes472315)
+		ch <- retRes472315
 		return nil
 
 	}()
@@ -4307,8 +4316,8 @@ func (this *CoinexCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes473312 := (<-this.LoadMarkets())
-			PanicOnError(retRes473312)
+			retRes474212 := (<-this.LoadMarkets())
+			PanicOnError(retRes474212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4391,8 +4400,8 @@ func (this *CoinexCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes480012 := (<-this.LoadMarkets())
-			PanicOnError(retRes480012)
+			retRes480912 := (<-this.LoadMarkets())
+			PanicOnError(retRes480912)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -4449,9 +4458,9 @@ func (this *CoinexCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes484315 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes484315)
-		ch <- retRes484315
+		retRes485215 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes485215)
+		ch <- retRes485215
 		return nil
 
 	}()
@@ -4532,8 +4541,8 @@ func (this *CoinexCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes491112 := (<-this.LoadMarkets())
-			PanicOnError(retRes491112)
+			retRes492012 := (<-this.LoadMarkets())
+			PanicOnError(retRes492012)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -4605,8 +4614,8 @@ func (this *CoinexCore) Withdraw(code any, amount any, address any, optionalArgs
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes496512 := (<-this.LoadMarkets())
-			PanicOnError(retRes496512)
+			retRes497412 := (<-this.LoadMarkets())
+			PanicOnError(retRes497412)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -4708,8 +4717,8 @@ func (this *CoinexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes504612 := (<-this.LoadMarkets())
-			PanicOnError(retRes504612)
+			retRes505512 := (<-this.LoadMarkets())
+			PanicOnError(retRes505512)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -4717,9 +4726,9 @@ func (this *CoinexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes505119 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
-			PanicOnError(retRes505119)
-			ch <- retRes505119
+			retRes506019 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
+			PanicOnError(retRes506019)
+			ch <- retRes506019
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -4859,7 +4868,7 @@ func (this *CoinexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	if IsTrue(IsEqual(typeVar, "deposit")) {
 		feeCost = "0"
 	}
-	var feeCurrencyId any = this.SafeString(transaction, "fee_asset")
+	var feeCurrencyId any = this.SafeString2(transaction, "fee_asset", "fee_ccy") // https://github.com/ccxt/ccxt/issues/25153
 	var fee any = map[string]any{
 		"cost":     this.ParseNumber(feeCost),
 		"currency": this.SafeCurrencyCode(feeCurrencyId),
@@ -4910,8 +4919,8 @@ func (this *CoinexCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes522412 := (<-this.LoadMarkets())
-			PanicOnError(retRes522412)
+			retRes523312 := (<-this.LoadMarkets())
+			PanicOnError(retRes523312)
 		}
 		var currency any = this.Currency(code)
 		var amountToPrecision any = this.CurrencyToPrecision(code, amount)
@@ -5013,8 +5022,8 @@ func (this *CoinexCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes530612 := (<-this.LoadMarkets())
-			PanicOnError(retRes530612)
+			retRes531512 := (<-this.LoadMarkets())
+			PanicOnError(retRes531512)
 		}
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
@@ -5099,8 +5108,8 @@ func (this *CoinexCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes536712 := (<-this.LoadMarkets())
-			PanicOnError(retRes536712)
+			retRes537612 := (<-this.LoadMarkets())
+			PanicOnError(retRes537612)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -5181,8 +5190,8 @@ func (this *CoinexCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes542812 := (<-this.LoadMarkets())
-			PanicOnError(retRes542812)
+			retRes543712 := (<-this.LoadMarkets())
+			PanicOnError(retRes543712)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -5289,8 +5298,8 @@ func (this *CoinexCore) FetchIsolatedBorrowRate(symbol any, optionalArgs ...any)
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes552012 := (<-this.LoadMarkets())
-			PanicOnError(retRes552012)
+			retRes552912 := (<-this.LoadMarkets())
+			PanicOnError(retRes552912)
 		}
 		var code any = this.SafeString(params, "code")
 		if IsTrue(IsEqual(code, nil)) {
@@ -5358,8 +5367,8 @@ func (this *CoinexCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes556612 := (<-this.LoadMarkets())
-			PanicOnError(retRes556612)
+			retRes557512 := (<-this.LoadMarkets())
+			PanicOnError(retRes557512)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -5460,8 +5469,8 @@ func (this *CoinexCore) BorrowIsolatedMargin(symbol any, code any, amount any, o
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes565212 := (<-this.LoadMarkets())
-			PanicOnError(retRes565212)
+			retRes566112 := (<-this.LoadMarkets())
+			PanicOnError(retRes566112)
 		}
 		var market any = this.Market(symbol)
 		var currency any = this.Currency(code)
@@ -5526,8 +5535,8 @@ func (this *CoinexCore) RepayIsolatedMargin(symbol any, code any, amount any, op
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes570312 := (<-this.LoadMarkets())
-			PanicOnError(retRes570312)
+			retRes571212 := (<-this.LoadMarkets())
+			PanicOnError(retRes571212)
 		}
 		var market any = this.Market(symbol)
 		var currency any = this.Currency(code)
@@ -5577,9 +5586,9 @@ func (this *CoinexCore) ParseMarginLoan(info any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(info, "market")
 	var timestamp any = this.SafeInteger(info, "expired_at")
 	return map[string]any{
-		"id":        this.SafeInteger(info, "borrow_id"),
+		"id":        this.SafeString(info, "borrow_id"),
 		"currency":  this.SafeCurrencyCode(currencyId, currency),
-		"amount":    this.SafeString(info, "borrow_amount"),
+		"amount":    this.SafeNumber(info, "borrow_amount"),
 		"symbol":    this.SafeSymbol(marketId, nil, nil, "spot"),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -5605,8 +5614,8 @@ func (this *CoinexCore) FetchDepositWithdrawFee(code any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes576612 := (<-this.LoadMarkets())
-			PanicOnError(retRes576612)
+			retRes577512 := (<-this.LoadMarkets())
+			PanicOnError(retRes577512)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -5677,8 +5686,8 @@ func (this *CoinexCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes582112 := (<-this.LoadMarkets())
-			PanicOnError(retRes582112)
+			retRes583012 := (<-this.LoadMarkets())
+			PanicOnError(retRes583012)
 		}
 
 		response := (<-this.V2PublicGetAssetsAllDepositWithdrawConfig(params))
@@ -5729,7 +5738,9 @@ func (this *CoinexCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any
 			}
 			var code any = this.SafeCurrencyCode(currencyId)
 			if IsTrue(IsTrue(IsEqual(codes, nil)) || IsTrue(this.InArray(code, codes))) {
-				AddElementToObject(result, code, this.ParseDepositWithdrawFee(item))
+				if IsTrue(!IsEqual(code, nil)) {
+					AddElementToObject(result, code, this.ParseDepositWithdrawFee(item))
+				}
 			}
 		}
 
@@ -5796,16 +5807,18 @@ func (this *CoinexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) an
 				var currencyId any = this.SafeString(asset, "ccy")
 				var feeCode any = this.SafeCurrencyCode(currencyId, currency)
 				var networkCode any = this.NetworkIdToCode(networkId, feeCode)
-				AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
-					"withdraw": map[string]any{
-						"fee":        this.SafeNumber(entry, "withdrawal_fee"),
-						"percentage": false,
-					},
-					"deposit": map[string]any{
-						"fee":        nil,
-						"percentage": nil,
-					},
-				})
+				if IsTrue(!IsEqual(networkCode, nil)) {
+					AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+						"withdraw": map[string]any{
+							"fee":        this.SafeNumber(entry, "withdrawal_fee"),
+							"percentage": false,
+						},
+						"deposit": map[string]any{
+							"fee":        nil,
+							"percentage": nil,
+						},
+					})
+				}
 			}
 		}
 	}
@@ -5831,8 +5844,8 @@ func (this *CoinexCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes595912 := (<-this.LoadMarkets())
-			PanicOnError(retRes595912)
+			retRes597212 := (<-this.LoadMarkets())
+			PanicOnError(retRes597212)
 		}
 		var code any = this.SafeString(params, "code")
 		if IsTrue(IsEqual(code, nil)) {
@@ -5902,7 +5915,7 @@ func (this *CoinexCore) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {string} symbol unified contract symbol
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch, default is 10
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch positions for
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
@@ -5919,8 +5932,8 @@ func (this *CoinexCore) FetchPositionHistory(symbol any, optionalArgs ...any) <-
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes602712 := (<-this.LoadMarkets())
-			PanicOnError(retRes602712)
+			retRes604012 := (<-this.LoadMarkets())
+			PanicOnError(retRes604012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -6017,8 +6030,8 @@ func (this *CoinexCore) ClosePosition(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes610612 := (<-this.LoadMarkets())
-			PanicOnError(retRes610612)
+			retRes611912 := (<-this.LoadMarkets())
+			PanicOnError(retRes611912)
 		}
 		var market any = this.Market(symbol)
 		var typeVar any = this.SafeString(params, "type", "market")
@@ -6076,7 +6089,7 @@ func (this *CoinexCore) HandleMarginModeAndParams(methodName any, optionalArgs .
 	 * @ignore
 	 * @method
 	 * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-	 * @param {object} params extra parameters specific to the exchange api endpoint
+	 * @param {object} params extra parameters specific to the exchange API endpoint
 	 * @returns {Array} the marginMode in lowercase
 	 */
 	params := GetArg(optionalArgs, 0, map[string]any{})
@@ -6243,7 +6256,7 @@ func (this *CoinexCore) HandleErrors(httpCode any, reason any, url any, method a
  * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
  * @param {int} [since] timestamp in ms of the earliest change to fetch
  * @param {int} [limit] the maximum amount of changes to fetch, default is 10
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
  * @param {int} [params.positionId] the id of the position that you want to retrieve margin adjustment history for
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
@@ -6265,8 +6278,8 @@ func (this *CoinexCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes631412 := (<-this.LoadMarkets())
-			PanicOnError(retRes631412)
+			retRes632712 := (<-this.LoadMarkets())
+			PanicOnError(retRes632712)
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory() requires a symbol argument")))

@@ -135,6 +135,7 @@ public partial class krakenfutures : Exchange
                     { "invalidAccount", typeof(BadRequest) },
                     { "invalidAmount", typeof(BadRequest) },
                     { "insufficientFunds", typeof(InsufficientFunds) },
+                    { "INSUFFICIENT_MARGIN", typeof(InsufficientFunds) },
                     { "Bad Request", typeof(BadRequest) },
                     { "Unavailable", typeof(ExchangeNotAvailable) },
                     { "invalidUnit", typeof(BadRequest) },
@@ -732,7 +733,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         object candles = this.safeList(response, "candles");
-        return this.parseOHLCVs((IList<object>)(candles), market, timeframe, since, limit);
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1062,6 +1063,14 @@ public partial class krakenfutures : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         type = this.safeString(parameters, "orderType", type);
@@ -1270,7 +1279,7 @@ public partial class krakenfutures : Exchange
                 ((IDictionary<string,object>)extendedParams)["order_tag"] = ((object)this.sum(i, 1)).ToString(); // sequential counter
             }
             ((IDictionary<string,object>)extendedParams)["order"] = "send";
-            object orderRequest = this.createOrderRequest(((string)marketId), ((string)type), side, amount, price, extendedParams);
+            object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         object request = new Dictionary<string, object>() {
@@ -1453,7 +1462,7 @@ public partial class krakenfutures : Exchange
      * @name krakenfutures#cancelAllOrders
      * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
      * @description Cancels all orders on the exchange, including trigger orders
-     * @param {str} symbol Unified market symbol
+     * @param {string} [symbol] Unified market symbol
      * @param {dict} [params] Exchange specific params
      * @returns Response from exchange api
      */
@@ -1630,7 +1639,8 @@ public partial class krakenfutures : Exchange
     /**
      * @method
      * @name krakenfutures#fetchClosedOrders
-     * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-trigger-events
      * @description Gets all closed orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order.
@@ -2173,7 +2183,7 @@ public partial class krakenfutures : Exchange
             return this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(orderDictFromFetchOrder, "orderId") },
-                { "clientOrderId", this.safeStringN(orderDictFromFetchOrder, new List<object>() {"cliOrdId"}) },
+                { "clientOrderId", this.safeString(orderDictFromFetchOrder, "cliOrdId") },
                 { "timestamp", this.parse8601(datetime) },
                 { "datetime", datetime },
                 { "lastTradeTimestamp", null },
@@ -2646,6 +2656,10 @@ public partial class krakenfutures : Exchange
             object currencyId = getValue(currencyIds, i);
             object balance = getValue(balances, currencyId);
             object code = this.safeCurrencyCode(currencyId);
+            if (isTrue(isEqual(code, null)))
+            {
+                continue;
+            }
             object splitCode = ((string)code).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object codeLength = getArrayLength(splitCode);
             if (isTrue(isGreaterThan(codeLength, 1)))
@@ -2667,7 +2681,10 @@ public partial class krakenfutures : Exchange
                 ((IDictionary<string,object>)account)["free"] = this.safeString(auxiliary, "af");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(auxiliary, "pv");
             }
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2740,7 +2757,7 @@ public partial class krakenfutures : Exchange
         //     }
         //
         object marketId = this.safeString(ticker, "symbol");
-        object symbol = this.symbol(((string)marketId));
+        object symbol = this.symbol(marketId);
         object timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         object markPriceString = this.safeString(ticker, "markPrice");
         object fundingRateString = this.safeString(ticker, "fundingRate");
@@ -2886,7 +2903,9 @@ public partial class krakenfutures : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
-        object positions = this.safeValue(response, "openPositions");
+        // a degraded response can omit openPositions entirely - default to an
+        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
+        object positions = this.safeList(response, "openPositions", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = this.parsePosition(getValue(positions, i));
@@ -3131,7 +3150,7 @@ public partial class krakenfutures : Exchange
         if (isTrue(inOp(accountByType, account)))
         {
             return getValue(accountByType, account);
-        } else if (isTrue(inOp(this.markets, account)))
+        } else if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, account)))))
         {
             object market = this.market(account);
             object marketId = getValue(market, "id");
@@ -3243,9 +3262,14 @@ public partial class krakenfutures : Exchange
         {
             await this.loadMarkets();
         }
+        object marketIdUpper = this.marketId(symbol);
+        if (isTrue(isEqual(marketIdUpper, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " marketId is required")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "maxLeverage", leverage },
-            { "symbol", ((string)this.marketId(symbol)).ToUpper() },
+            { "symbol", ((string)marketIdUpper).ToUpper() },
         };
         //
         // { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
@@ -3307,8 +3331,13 @@ public partial class krakenfutures : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        object marketIdUpper = this.marketId(symbol);
+        if (isTrue(isEqual(marketIdUpper, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " marketId is required")) ;
+        }
         object request = new Dictionary<string, object>() {
-            { "symbol", ((string)this.marketId(symbol)).ToUpper() },
+            { "symbol", ((string)marketIdUpper).ToUpper() },
         };
         object response = await this.privateGetLeveragepreferences(this.extend(request, parameters));
         //
