@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 156 implicit endpoints across 2 access groups.
+> 158 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -89,6 +89,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicLinearGetFutureMarketV1PublicQSymbolIndexPrice` | GET | `future/market/v1/public/q/symbol-index-price` | 1 |
 | `publicLinearGetFutureMarketV1PublicQSymbolMarkPrice` | GET | `future/market/v1/public/q/symbol-mark-price` | 1 |
 | `publicLinearGetFutureMarketV1PublicQTicker` | GET | `future/market/v1/public/q/ticker` | 1 |
+| `publicLinearGetFutureMarketV1PublicQTickerBooks` | GET | `future/market/v1/public/q/ticker/books` | 1 |
 | `publicLinearGetFutureMarketV1PublicQTickers` | GET | `future/market/v1/public/q/tickers` | 1 |
 | `publicLinearGetFutureMarketV1PublicSymbolCoins` | GET | `future/market/v1/public/symbol/coins` | 3.33 |
 | `publicLinearGetFutureMarketV1PublicSymbolDetail` | GET | `future/market/v1/public/symbol/detail` | 3.33 |
@@ -109,6 +110,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicInverseGetFutureMarketV1PublicQSymbolIndexPrice` | GET | `future/market/v1/public/q/symbol-index-price` | 1 |
 | `publicInverseGetFutureMarketV1PublicQSymbolMarkPrice` | GET | `future/market/v1/public/q/symbol-mark-price` | 1 |
 | `publicInverseGetFutureMarketV1PublicQTicker` | GET | `future/market/v1/public/q/ticker` | 1 |
+| `publicInverseGetFutureMarketV1PublicQTickerBooks` | GET | `future/market/v1/public/q/ticker/books` | 1 |
 | `publicInverseGetFutureMarketV1PublicQTickers` | GET | `future/market/v1/public/q/tickers` | 1 |
 | `publicInverseGetFutureMarketV1PublicSymbolCoins` | GET | `future/market/v1/public/symbol/coins` | 3.33 |
 | `publicInverseGetFutureMarketV1PublicSymbolDetail` | GET | `future/market/v1/public/symbol/detail` | 3.33 |
