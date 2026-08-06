@@ -4198,6 +4198,7 @@ export class BaseExchange {
                 'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
             },
             'backwardSupportedNetworkCodes': {
+                'ARB': 'ARBITRUM',
                 'ARBONE': 'ARBITRUM',
                 'ARBNOVA': 'ARBITRUM_NOVA',
             },
