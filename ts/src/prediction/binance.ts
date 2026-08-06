@@ -23,7 +23,7 @@ import type {
  * including market data, requires apiKey/secret credentials
  */
 export default class binance extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',
@@ -144,7 +144,7 @@ export default class binance extends Exchange {
         });
     }
 
-    nonce (): Int {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
@@ -161,7 +161,7 @@ export default class binance extends Exchange {
      * @param {int} [params.limit] for an unscoped listing (no query), the max number of topics to collect (defaults to options.maxFetchMarketsLimit, 200)
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const queries = this.parseSearchQueries (params) as any[];
         const queriesLength = queries.length;
         if (queriesLength > 0) {
@@ -208,6 +208,9 @@ export default class binance extends Exchange {
      * @returns {object[]} raw market topic objects
      */
     async fetchRawTopics (maxTopics: Int, rest = {}): Promise<any[]> {
+        if (maxTopics === undefined) {
+            maxTopics = this.safeInteger (this.options, 'maxFetchMarketsLimit', 200);
+        }
         let pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 100);
         if (pageLimit > 100) {
             pageLimit = 100;
@@ -345,7 +348,7 @@ export default class binance extends Exchange {
      * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
         if (!allowUnscopedFetchEvents) {
             this.requireEventQuery (params);
@@ -419,7 +422,9 @@ export default class binance extends Exchange {
                 const m = parsedMarkets[mi];
                 // prediction market rows are keyed by the unified 'market' handle
                 const handle = this.safeString (m, 'market');
-                this.markets[handle] = m;
+                if (handle !== undefined) {
+                    this.markets[handle] = m;
+                }
             }
         }
         this.populateOutcomes ();
@@ -498,7 +503,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+    override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
         const events = await this.fetchEvents (this.extend ({ 'eventId': id }, params));
         return this.safeDict (events, 0) as PredictionEvent;
     }
@@ -750,7 +755,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+    override async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -773,7 +778,7 @@ export default class binance extends Exchange {
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+    override parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
@@ -836,7 +841,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
@@ -859,7 +864,7 @@ export default class binance extends Exchange {
                 response = await this.sapiPrivateGetOrderBookLastTradePrice (this.extend (request, params));
                 responsesByMarketId[marketId] = response;
             }
-            const ticker = this.parsePredictionTicker (response, outcomeObj as any);
+            const ticker = this.parsePredictionTicker (response as Dict, outcomeObj as any);
             const symbolKey = this.safeString (ticker, 'outcome', outcomes[i]);
             result[symbolKey] = ticker;
         }
@@ -876,7 +881,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -909,7 +914,7 @@ export default class binance extends Exchange {
      * @param {string} [params.type] 'CeDefi', 'FUNDING', or 'SPOT'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         let type = undefined;
         [ type, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'type', 'SPOT');
         const response = await this.sapiPrivateGetBalancePaymentOptions (params);
@@ -924,7 +929,7 @@ export default class binance extends Exchange {
         //     ]
         // }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const balances = this.safeList (response, 'items', []);
@@ -950,7 +955,7 @@ export default class binance extends Exchange {
      * @param {object} [outcomeObj] the ourtome the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    parsePredictionOrder (order: Dict, outcomeObj: Market = undefined): PredictionOrder {
+    override parsePredictionOrder (order: Dict, outcomeObj: Market = undefined): PredictionOrder {
         //
         // {
         //     "orderId": "54124",
@@ -1055,7 +1060,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         let maxEntriesPerRequest = undefined;
@@ -1065,7 +1070,7 @@ export default class binance extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const request = {};
+        const request: Dict = {};
         const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
@@ -1138,7 +1143,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         let maxEntriesPerRequest = undefined;
@@ -1148,7 +1153,7 @@ export default class binance extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const request = {};
+        const request: Dict = {};
         const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
@@ -1222,9 +1227,9 @@ export default class binance extends Exchange {
      * @param {string} [params.tab] Position status tab. Values from PositionQueryType. Default ONGOING
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
         await this.loadOutcomes ();
-        const requestedOutcomeSymbols = {};
+        const requestedOutcomeSymbols: Dict = {};
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
@@ -1287,7 +1292,7 @@ export default class binance extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeList (response, 'positions');
+        const data = this.safeList (response, 'positions', []);
         const positions = this.parsePredictionPositions (data);
         if (outcomes === undefined) {
             return positions;
@@ -1313,8 +1318,8 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
-        const request = {};
+    override async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+        const request: Dict = {};
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
@@ -1342,7 +1347,7 @@ export default class binance extends Exchange {
      * @param {object} [outcomeObj] the ourtome the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    parsePredictionPosition (position: Dict, outcomeObj: Market = undefined): PredictionPosition {
+    override parsePredictionPosition (position: Dict, outcomeObj: Market = undefined): PredictionPosition {
         if (outcomeObj === undefined) {
             const marketId = this.safeString (position, 'marketId');
             const outcome = this.safeStringUpper (position, 'outcomeName');
@@ -1403,7 +1408,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         let maxEntriesPerRequest = undefined;
@@ -1413,7 +1418,7 @@ export default class binance extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionTrade[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const request = {
+        const request: Dict = {
             'status': 'FILLED',
         };
         const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
@@ -1488,7 +1493,7 @@ export default class binance extends Exchange {
      * @param {object} [outcomeObj] the outcome the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    parsePredictionTrade (trade: Dict, outcomeObj: Market = undefined): PredictionTrade {
+    override parsePredictionTrade (trade: Dict, outcomeObj: Market = undefined): PredictionTrade {
         //
         // {
         //     "orderId": "54124",
@@ -1626,7 +1631,7 @@ export default class binance extends Exchange {
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @returns {object} a quote
      */
-    async fetchQuote (request, params = {}): Promise<any> {
+    async fetchQuote (request: Dict, params = {}): Promise<any> {
         const response = await this.sapiPrivatePostTradeGetQuote (this.extend (request, params));
         //
         // {
@@ -1660,21 +1665,21 @@ export default class binance extends Exchange {
         return response;
     }
 
-    priceToPrecision (outcome: string, price: any): string {
+    override priceToPrecision (outcome: string, price: any): string {
         const market = this.market (outcome);
         const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'price', 0.0001);
         let decimals = 4;
-        if (prec > 0) {
+        if ((prec !== undefined) && (prec > 0)) {
             decimals = this.precisionFromString (this.numberToString (prec));
         }
         return this.decimalToPrecision (price, ROUND, decimals, DECIMAL_PLACES, this.paddingMode);
     }
 
-    amountToPrecision (outcome: string, amount: any): string {
+    override amountToPrecision (outcome: string, amount: any): string {
         const market = this.market (outcome);
         const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'amount', 0.01);
         let decimals = 2;
-        if (prec > 0) {
+        if ((prec !== undefined) && (prec > 0)) {
             decimals = this.precisionFromString (this.numberToString (prec));
         }
         // amounts truncate so a rounded-up value can never exceed the caller's balance
@@ -1701,12 +1706,12 @@ export default class binance extends Exchange {
      * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
-        const marketSymbol = this.safeString (outcomeObj, 'market');
+        const marketSymbol = this.safeString (outcomeObj, 'market') as string;
         const market = this.market (marketSymbol);
         const typeUpper = type.toUpperCase ();
         const sideUpper = side.toUpperCase ();
@@ -1715,12 +1720,12 @@ export default class binance extends Exchange {
         const slippage = this.safeString (params, 'slippage', defaultSlippage);
         const cost = this.safeString (params, 'cost');
         const slippageBps = this.parseToInt (Precise.stringMul (slippage, '10000'));
-        const commonRequest = {
+        const commonRequest: Dict = {
             'walletAddress': wallet['walletAddress'],
             'orderType': typeUpper,
             'slippageBps': slippageBps,
         };
-        let amountStr = this.numberToString (amount);
+        let amountStr: Str = this.numberToString (amount);
         const priceStr = this.numberToString (price);
         let defaultTif = 'FOK';
         if (typeUpper === 'LIMIT') {
@@ -1744,7 +1749,7 @@ export default class binance extends Exchange {
                     }
                 }
                 const feeRate = Precise.stringDiv (feeRateBps, '10000');
-                const minPrice = this.numberToString (Math.min (price, 1 - price));
+                const minPrice = Precise.stringMin (priceStr, Precise.stringSub ('1', priceStr));
                 const fee = Precise.stringMul (Precise.stringMul (feeRate, minPrice), amountStr);
                 amountStr = Precise.stringAdd (Precise.stringMul (amountStr, priceStr), fee);
             }
@@ -1820,7 +1825,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         const orders = await this.cancelOrders ([ id ], outcome, params);
         return this.safeDict (orders, 0, {}) as PredictionOrder;
     }
@@ -1835,14 +1840,14 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             outcomeObj = this.outcome (outcome);
         }
         const wallet = await this.fetchWallet ('cancelOrders', params);
-        const request = {
+        const request: Dict = {
             'walletAddress': wallet['walletAddress'],
             'walletId': wallet['walletId'],
         };
@@ -1895,7 +1900,7 @@ export default class binance extends Exchange {
         return orders;
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
@@ -1923,7 +1928,7 @@ export default class binance extends Exchange {
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign (path: any, api: any = 'sapi', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'sapi', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['sapi'] as string);
