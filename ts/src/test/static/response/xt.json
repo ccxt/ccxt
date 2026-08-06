@@ -2,6 +2,41 @@
   "exchange": "xt",
   "skipKeys": [],
   "methods": {
+    "fetchOpenInterest": [
+      {
+        "description": "linear swap open interest",
+        "method": "fetchOpenInterest",
+        "input": [
+          "BTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "symbol": "btc_usdt",
+            "openInterest": "21206.0654",
+            "openInterestUsd": "1133703183.13733",
+            "time": 1785927519723
+          }
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT:USDT",
+          "openInterestAmount": 21206.0654,
+          "openInterestValue": 1133703183.13733,
+          "timestamp": 1785927519723,
+          "datetime": "2026-08-05T10:58:39.723Z",
+          "info": {
+            "symbol": "btc_usdt",
+            "openInterest": "21206.0654",
+            "openInterestUsd": "1133703183.13733",
+            "time": 1785927519723
+          },
+          "baseVolume": null,
+          "quoteVolume": null
+        }
+      }
+    ],
     "fetchPositions": [
       {
         "description": "isolated short position with a real margin-call price (position/list and position/break-list share one mocked response here since the static test harness returns the same httpResponse for every fetch() call within a method; the raw payload below carries both position/list fields and position/break-list fields so the merge + parse logic is still exercised end-to-end)",
