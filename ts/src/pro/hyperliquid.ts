@@ -494,7 +494,8 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase ();
+        const userAddressLower = (userAddress !== undefined) ? userAddress.toLowerCase () : '';
+        const subscribeHash = 'subscribe:userFills::' + userAddressLower;
         const trades = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -1365,7 +1366,8 @@ export default class hyperliquid extends hyperliquidRest {
         // duplicates on the error channel ("Already subscribed"), which rejects every pending
         // future on the connection. address lowercased because the server is case-insensitive.
         // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
-        const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase ();
+        const userAddressLower = (userAddress !== undefined) ? userAddress.toLowerCase () : '';
+        const subscribeHash = 'subscribe:orderUpdates::' + userAddressLower;
         const orders = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
