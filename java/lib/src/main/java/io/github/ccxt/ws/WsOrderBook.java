@@ -15,7 +15,7 @@ import java.util.Map;
  * 3. reset(snapshot) to initialize from REST data
  * 4. Apply buffered deltas, then live deltas via handleDeltas()
  */
-public class WsOrderBook {
+public class WsOrderBook extends java.util.AbstractMap<String, Object> {
 
     public OrderBookSide.Asks asks;
     public OrderBookSide.Bids bids;
@@ -28,6 +28,62 @@ public class WsOrderBook {
     public Object outcomeId;
     public Object market;
     public final List<Object> cache = new ArrayList<>();
+
+    // ─── Map view (C# parity) ───
+    // the generated isDictionary() is `instanceof java.util.Map` (see the Helpers.isObject
+    // rationale for why transpiled checks are strict); C#'s OrderBook satisfies IDictionary,
+    // Java must too or shared structure tests fail with "entry is not a dict",
+    // see https://github.com/ccxt/ccxt/issues/29595 and https://github.com/ccxt/ccxt/pull/29594
+    private static final List<String> KEYS = List.of(
+        "asks", "bids", "symbol", "timestamp", "datetime", "nonce", "outcome", "outcomeId", "market");
+
+    @Override
+    public synchronized Object get(Object key) {
+        switch ((String) key) {
+            case "asks": return this.asks; // live side, delta handlers depend on it
+            case "bids": return this.bids;
+            case "symbol": return this.symbol;
+            case "timestamp": return this.timestamp;
+            case "datetime": return this.datetime;
+            case "nonce": return this.nonce;
+            case "outcome": return this.outcome;
+            case "outcomeId": return this.outcomeId;
+            case "market": return this.market;
+            default: return null;
+        }
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        return KEYS.contains(key);
+    }
+
+    @Override
+    public synchronized Object put(String key, Object value) {
+        Object prev = this.get(key);
+        switch (key) {
+            case "asks": this.asks = (OrderBookSide.Asks) value; break;
+            case "bids": this.bids = (OrderBookSide.Bids) value; break;
+            case "symbol": this.symbol = (String) value; break;
+            case "timestamp": this.timestamp = value; break;
+            case "datetime": this.datetime = value; break;
+            case "nonce": this.nonce = value; break;
+            case "outcome": this.outcome = value; break;
+            case "outcomeId": this.outcomeId = value; break;
+            case "market": this.market = value; break;
+            default: throw new IllegalArgumentException("WsOrderBook has no field " + key);
+        }
+        return prev;
+    }
+
+    @Override
+    public synchronized java.util.Set<Map.Entry<String, Object>> entrySet() {
+        final java.util.LinkedHashSet<Map.Entry<String, Object>> entries = new java.util.LinkedHashSet<>();
+        for (final String key : KEYS) {
+            entries.add(new java.util.AbstractMap.SimpleEntry<>(key, this.get(key)));
+        }
+        return entries;
+    }
 
     public WsOrderBook(Object snapshot, Object depth) {
         this.asks = new OrderBookSide.Asks(null, depth);
