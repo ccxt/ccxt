@@ -1835,11 +1835,13 @@ export default class xt extends Exchange {
         let subType: SubType = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
-        const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+        const isInverse = (subType === 'inverse');
+        const isLinear = (subType === 'linear') || (type === 'swap') || (type === 'future');
+        const isContract = isInverse || isLinear;
         let response = undefined;
-        if (subType === 'inverse') {
+        if (isInverse) {
             response = await this.publicInverseGetFutureMarketV1PublicQTickerBooks (this.extend (request, params));
-        } else if (isContract) {
+        } else if (isLinear) {
             response = await this.publicLinearGetFutureMarketV1PublicQTickerBooks (this.extend (request, params));
         } else {
             response = await this.publicSpotGetTickerBook (this.extend (request, params));
