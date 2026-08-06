@@ -173,6 +173,7 @@ export default class mexc extends Exchange {
                 'spot': {
                     'public': {
                         'get': {
+                            'announcements': 8,
                             'ping': 1,
                             'time': 1,
                             'defaultSymbols': 1,
