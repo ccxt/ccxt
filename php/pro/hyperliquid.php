@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -526,7 +527,11 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 ),
             );
             $message = $this->extend($request, $params);
-            $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            if ($userAddress === null) {
+                throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a user address');
+            }
+            $subscribeHash = 'subscribe:userFills::' . strtolower($userAddress);
+            $trades = Async\await($this->watch($url, $messageHash, $message, $subscribeHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit($symbol, $limit);
             }
@@ -1410,7 +1415,17 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 ),
             );
             $message = $this->extend($request, $params);
-            $orders = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            // dedup by (channel, user), not by $messageHash => the server subscription is per-user,
+            // so a second user must send its own subscribe (https://github.com/ccxt/ccxt/issues/28369),
+            // and a second $symbol-scoped call for the same user must NOT resend - hyperliquid answers
+            // duplicates on the error channel ("Already subscribed"), which rejects every pending
+            // future on the connection. address lowercased because the server is case-insensitive.
+            // note => orderUpdates payloads carry no user, so resolution/data stays shared across users
+            if ($userAddress === null) {
+                throw new ArgumentsRequired($this->id . ' watchOrders() requires a user address');
+            }
+            $subscribeHash = 'subscribe:orderUpdates::' . strtolower($userAddress);
+            $orders = Async\await($this->watch($url, $messageHash, $message, $subscribeHash));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit($symbol, $limit);
             }
@@ -1536,6 +1551,12 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $channel = $this->safe_string($message, 'channel', '');
         if ($channel === 'error') {
             $ret_msg = $this->safe_string($message, 'data', '');
+            if (mb_strpos($ret_msg, 'Already subscribed') !== false) {
+                // a duplicate subscribe is harmless - the server-side subscription is intact
+                // and $data keeps flowing; rejecting all pending futures here would poison the
+                // whole connection, see https://github.com/ccxt/ccxt/issues/28369
+                return true;
+            }
             $error = new ExchangeError($this->id . ' ' . $ret_msg);
             $client->reject($error);
             return true;
@@ -1645,6 +1666,15 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subHash = 'order';
         $unSubHash = 'unsubscribe:' . $subHash;
         $this->clean_unsubscription($client, $subHash, $unSubHash, true);
+        // the prefix sweep above can't see the per-$user dedup key (prefix-disjoint by design);
+        // clear it for the $user echoed in the ack so a later watch re-subscribes
+        $user = $this->safe_string_lower($subscription, 'user');
+        if ($user !== null) {
+            $subscribeHash = 'subscribe:orderUpdates::' . $user;
+            if (is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions)) {
+                unset($client->subscriptions[$subscribeHash]);
+            }
+        }
         $topicStructure = array(
             'topic' => 'orders',
         );
@@ -1655,6 +1685,15 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subHash = 'myTrades';
         $unSubHash = 'unsubscribe:' . $subHash;
         $this->clean_unsubscription($client, $subHash, $unSubHash, true);
+        // the prefix sweep above can't see the per-$user dedup key (prefix-disjoint by design);
+        // clear it for the $user echoed in the ack so a later watch re-subscribes
+        $user = $this->safe_string_lower($subscription, 'user');
+        if ($user !== null) {
+            $subscribeHash = 'subscribe:userFills::' . $user;
+            if (is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions)) {
+                unset($client->subscriptions[$subscribeHash]);
+            }
+        }
         $topicStructure = array(
             'topic' => 'myTrades',
         );
