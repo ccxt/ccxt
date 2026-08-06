@@ -1489,6 +1489,12 @@ export default class hyperliquid extends hyperliquidRest {
         const channel = this.safeString (message, 'channel', '');
         if (channel === 'error') {
             const ret_msg = this.safeString (message, 'data', '');
+            if (ret_msg.indexOf ('Already subscribed') >= 0) {
+                // a duplicate subscribe is harmless - the server-side subscription is intact
+                // and data keeps flowing; rejecting all pending futures here would poison the
+                // whole connection, see https://github.com/ccxt/ccxt/issues/28369
+                return true;
+            }
             const error = new ExchangeError (this.id + ' ' + ret_msg);
             client.reject (error);
             return true;
