@@ -325,6 +325,9 @@ export default class onetrading extends Exchange {
                     'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 },
                 'fiat': [ 'EUR', 'CHF' ],
+                'networks': {
+                    'ARBITRUM': 'ARB',
+                },
             },
             'features': {
                 'spot': {
