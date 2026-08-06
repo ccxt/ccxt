@@ -434,6 +434,7 @@ class MarketInterface(TypedDict):
     swap: Bool
     future: Bool
     option: Bool
+    stock: Bool
     prediction: Bool
     contract: Bool
     settle: Str

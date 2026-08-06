@@ -25,6 +25,7 @@ public final class MarketInterface {
     public Boolean swap;
     public Boolean future;
     public Boolean option;
+    public Boolean stock;
     public Boolean prediction;
     public Boolean contract;
     public String settle;
@@ -69,6 +70,7 @@ public final class MarketInterface {
         this.swap = TypeHelper.safeBool(data, "swap");
         this.future = TypeHelper.safeBool(data, "future");
         this.option = TypeHelper.safeBool(data, "option");
+        this.stock = TypeHelper.safeBool(data, "stock");
         this.prediction = TypeHelper.safeBool(data, "prediction");
         this.contract = TypeHelper.safeBool(data, "contract");
         this.settle = TypeHelper.safeString(data, "settle");

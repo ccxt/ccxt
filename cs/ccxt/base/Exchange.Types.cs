@@ -1831,6 +1831,7 @@ public struct MarketInterface
     public bool? swap;
     public bool? future;
     public bool? option;
+    public bool? stock;
     public bool? contract;
     public string settle;
     public string settleId;
@@ -1870,6 +1871,7 @@ public struct MarketInterface
         swap = Exchange.SafeValue(market, "swap") != null ? (bool)Exchange.SafeValue(market, "swap") : null;
         future = Exchange.SafeValue(market, "future") != null ? (bool)Exchange.SafeValue(market, "future") : null;
         option = Exchange.SafeValue(market, "option") != null ? (bool)Exchange.SafeValue(market, "option") : null;
+        stock = Exchange.SafeValue(market, "stock") != null ? (bool)Exchange.SafeValue(market, "stock") : null;
         contract = Exchange.SafeValue(market, "contract") != null ? (bool)Exchange.SafeValue(market, "contract") : null;
         settle = Exchange.SafeString(market, "settle");
         settleId = Exchange.SafeString(market, "settleId");
