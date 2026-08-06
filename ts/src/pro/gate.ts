@@ -1560,8 +1560,16 @@ export default class gate extends gateRest {
             'swap': 'futures',
             'option': 'options',
         });
-        const channel = typeId + '.orders';
-        let messageHash = 'orders';
+        const isTrigger = this.safeBool2 (query, 'trigger', 'stop', false);
+        query = this.omit (query, [ 'trigger', 'stop' ]);
+        if (isTrigger && (typeId === 'options')) {
+            throw new NotSupported (this.id + ' watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202');
+        }
+        // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
+        // see https://github.com/ccxt/ccxt/issues/27202
+        const suffix = isTrigger ? ((typeId === 'spot') ? '.priceorders' : '.autoorders') : '.orders';
+        const channel = typeId + suffix;
+        let messageHash = isTrigger ? 'triggerOrders' : 'orders';
         let payload = [ '!' + 'all' ];
         if (market !== undefined) {
             messageHash += ':' + market['id'];
@@ -1627,6 +1635,9 @@ export default class gate extends gateRest {
         //     }
         //
         const orders = this.safeValue (message, 'result', []);
+        const channel = this.safeString (message, 'channel', '');
+        const isTrigger = (channel.indexOf ('autoorders') >= 0) || (channel.indexOf ('priceorders') >= 0);
+        const hashPrefix = isTrigger ? 'triggerOrders' : 'orders';
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -1657,10 +1668,10 @@ export default class gate extends gateRest {
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'orders:' + keys[i];
+            const messageHash = hashPrefix + ':' + keys[i];
             client.resolve (this.orders, messageHash);
         }
-        client.resolve (this.orders, 'orders');
+        client.resolve (this.orders, hashPrefix);
     }
 
     /**
@@ -2126,6 +2137,8 @@ export default class gate extends gateRest {
             'usertrades': this.handleMyTrades,
             'candlesticks': this.handleOHLCV,
             'orders': this.handleOrder,
+            'autoorders': this.handleOrder, // futures trigger orders, see https://github.com/ccxt/ccxt/issues/27202
+            'priceorders': this.handleOrder, // spot trigger orders
             'positions': this.handlePositions,
             'tickers': this.handleTicker,
             'book_ticker': this.handleBidAsk,
