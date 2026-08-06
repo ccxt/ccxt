@@ -239,6 +239,11 @@ export default class binance extends binanceRest {
     }
 
     getWsUrl (type: any, category: any) {
+        if (type === 'option') {
+            // binance options ws (nbstream.binance.com/eoptions) is not integrated yet - without
+            // this guard the undefined base url produces a silent hang, see https://github.com/ccxt/ccxt/issues/26333
+            throw new NotSupported (this.id + ' watch methods do not support option markets yet');
+        }
         const baseUrl = this.urls['api']['ws'][type];
         if (type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
