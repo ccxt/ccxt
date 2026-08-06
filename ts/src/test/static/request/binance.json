@@ -753,6 +753,18 @@
                     300
                 ],
                 "output": "timestamp=1785927754015&symbol=AAPL&side=BUY&clientOrderId=x-TKT5PX2Fa3ca94f976ff4ae2b9197e&orderType=MARKET&notional=18&recvWindow=10000&signature=c7514dc98b54e133c483d19f7cb7fd84504d51fdaa468c511a938dce3f14d4bb"
+            },
+            {
+                "description": "stock market sell order createOrder",
+                "method": "createOrder",
+                "url": "https://api.binance.com/sapi/v1/equity/order/place",
+                "input": [
+                    "AAPL/USDC",
+                    "market",
+                    "sell",
+                    0.0576724
+                ],
+                "output": "timestamp=1785987650308&symbol=AAPL&side=SELL&clientOrderId=x-TKT5PX2F512ee9e3711341369454f9&orderType=MARKET&quantity=0.0576724&recvWindow=10000&signature=d071ca15633e8122f8ce7f4b8926aecc1065f5f156ebc09e042f42fe823d1a60"
             }
         ],
         "createOrders": [
@@ -1399,6 +1411,14 @@
                     {
                         "portfolioMargin": true
                     }
+                ]
+            },
+            {
+                "description": "stock fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api.binance.com/sapi/v1/equity/trade/history?timestamp=1785977357791&symbol=AAPL&endTime=1785977357790&startTime=1785372557790&recvWindow=10000&signature=2da5834144b04b30d315bf2219d5f5666aa90ba05655ca0ab3a959f6f48f676b",
+                "input": [
+                    "AAPL/USDC"
                 ]
             }
         ],

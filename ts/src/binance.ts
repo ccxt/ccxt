@@ -2950,6 +2950,147 @@ export default class binance extends Exchange {
 
     /**
      * @method
+     * @name binance#mintTokenizedAsset
+     * @ignore
+     * @description mint a tokenized asset from an underlying equity holding
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-mint
+     * @param {string} underlyingAsset underlying asset to mint into tokenized asset, ex. AAPL
+     * @param {string} underlyingAssetAmount quantity of the underlying asset to mint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
+     * @param {int} [params.recvWindow] cannot be greater than 60000
+     * @returns {object} the response from the exchange
+     */
+    mintTokenizedAsset (underlyingAsset: string, underlyingAssetAmount: string, params = {}): any {
+        const request: Dict = {
+            'underlyingAsset': underlyingAsset,
+            'underlyingAssetAmount': underlyingAssetAmount,
+            'timestamp': this.milliseconds (),
+        };
+        const response = this.sapiPostEquityTokenizedRedeem (this.extend (request, params));
+        //
+        //     {
+        //         "issuerRequestId": "mint-20260505-8f3b9e1a2d3c4b5a",
+        //         "status": "P"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name binance#redeemTokenizedAsset
+     * @ignore
+     * @description redeem a tokenized stock asset for the underlying asset
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-redeem
+     * @param {string} tokenizedAsset tokenized asset to redeem, the onchain token identifier not the equity ticker ex. AAPLB
+     * @param {string} tokenizedAssetAmount quantity of the tokenized asset to redeem
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
+     * @param {int} [params.recvWindow] cannot be greater than 60000
+     * @returns {object} the response from the exchange
+     */
+    redeemTokenizedAsset (tokenizedAsset: string, tokenizedAssetAmount: string, params = {}): any {
+        const request: Dict = {
+            'tokenizedAsset': tokenizedAsset,
+            'tokenizedAssetAmount': tokenizedAssetAmount,
+            'timestamp': this.milliseconds (),
+        };
+        const response = this.sapiPostEquityTokenizedRedeem (this.extend (request, params));
+        //
+        //     {
+        //         "issuerRequestId": "d9a01aa5-c8b0-46bb-bc58-43b7e122ec20",
+        //         "status": "P"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name binance#tokenizedConvertStatus
+     * @ignore
+     * @description check the status of redeeming or minting between a tokenized stock asset and the underlying asset
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-convert-status
+     * @param {string} issuerRequestId the issuerRequestId returned from redeemTokenizedAsset or mintTokenizedAsset
+     * @param {string} convertType either MINT or REDEEM
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.recvWindow] cannot be greater than 60000
+     * @returns {object} the response from the exchange
+     */
+    tokenizedConvertStatus (issuerRequestId: string, convertType: string, params = {}): any {
+        const request: Dict = {
+            'issuerRequestId': issuerRequestId,
+            'convertType': convertType,
+            'timestamp': this.milliseconds (),
+        };
+        const response = this.sapiGetEquityTokenizedConvertStatus (this.extend (request, params));
+        //
+        //     {
+        //         "underlyingAsset": "AAPL",
+        //         "underlyingAssetAmount": "0.0576724",
+        //         "tokenizedAsset": "AAPLB",
+        //         "tokenizedAssetAmount": "0.0576724",
+        //         "issuerRequestId": "d9a01aa5-c8b0-46bb-bc58-43b7e122ec20",
+        //         "convertType": "REDEEM",
+        //         "status": "S",
+        //         "createdAt": 1785986980000,
+        //         "updatedAt": 1785986980000
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name binance#tokenizedConvertHistory
+     * @ignore
+     * @description check the history of redeeming or minting between a tokenized stock asset and the underlying asset
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-convert-history
+     * @param {int} [since] timestamp in ms of the earliest conversion to fetch
+     * @param {int} [limit] the maximum amount of conversions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.recvWindow] cannot be greater than 60000
+     * @param {int} [params.endTime] timestamp in ms of the latest conversion to fetch
+     * @param {int} [params.lastTradeTokenId] last record id from the previous page
+     * @returns {object} the response from the exchange
+     */
+    tokenizedConvertHistory (since: Int = undefined, limit: Int = undefined, params = {}): any {
+        let request: Dict = {
+            'timestamp': this.milliseconds (),
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = this.sapiGetEquityTokenizedHistory (this.extend (request, params));
+        //
+        //     {
+        //         "rows": [
+        //             {
+        //                 "underlyingAsset": "AAPL",
+        //                 "underlyingAssetAmount": "0.0576724",
+        //                 "tokenizedAsset": "AAPLB",
+        //                 "tokenizedAssetAmount": "0.0576724",
+        //                 "issuerRequestId": "d9a01aa5-c8b0-46bb-bc58-43b7e122ec20",
+        //                 "convertType": "REDEEM",
+        //                 "status": "S",
+        //                 "createdAt": "1785986980000",
+        //                 "updatedAt": "1785986980000"
+        //             }
+        //         ],
+        //         "hasMore": true,
+        //         "nextLastId": "5167862022496942848"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
      * @name binance#enableDemoTrading
      * @description enables or disables demo trading mode
      * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
@@ -5251,7 +5392,23 @@ export default class binance extends Exchange {
         //         "isBestMatch": true
         //     }
         //
-        const timestamp = this.safeInteger2 (trade, 'T', 'time');
+        // fetchMyTrades: tokenized equities
+        //
+        //     {
+        //         "executionId": "cc942eb9-eaa0-47e7-8273-2a9bc10c5741",
+        //         "orderId": "ef66a86f-202b-4b41-b15c-e1c90f975f17",
+        //         "symbol": "AAPL",
+        //         "quote": "USDC",
+        //         "side": "BUY",
+        //         "orderType": "MARKET",
+        //         "price": "309.16",
+        //         "qty": "0.0576724",
+        //         "total": "17.83",
+        //         "executionAt": 1785936600545,
+        //         "updatedAt": 1785936601012
+        //     }
+        //
+        const timestamp = this.safeIntegerN (trade, [ 'T', 'time', 'executionAt' ]);
         let amount = this.safeString2 (trade, 'q', 'qty');
         amount = this.safeString (trade, 'quantity', amount);
         const marketId = this.safeString (trade, 'symbol');
@@ -5307,14 +5464,14 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeStringN (trade, [ 't', 'a', 'tradeId', 'id' ]),
+            'id': this.safeStringN (trade, [ 't', 'a', 'tradeId', 'id', 'executionId' ]),
             'order': this.safeString (trade, 'orderId'),
-            'type': this.safeStringLower (trade, 'type'),
+            'type': this.safeStringLower2 (trade, 'type', 'orderType'),
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': this.safeString2 (trade, 'p', 'price'),
             'amount': amount,
-            'cost': this.safeString2 (trade, 'quoteQty', 'baseQty'),
+            'cost': this.safeStringN (trade, [ 'quoteQty', 'baseQty', 'total' ]),
             'fee': fee,
         }, market);
     }
@@ -6858,28 +7015,25 @@ export default class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name binance#createOrderRequest
+     * @description helper function to build the request
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} request to be sent to the exchange
+     */
     createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
-        }
-        /**
-         * @method
-         * @ignore
-         * @name binance#createOrderRequest
-         * @description helper function to build the request
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} request to be sent to the exchange
-         */
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
         }
         const market = this.market (symbol);
         const marketType = this.safeString (params, 'type', market['type']);
@@ -7088,6 +7242,9 @@ export default class binance extends Exchange {
                         request['notional'] = (precisionAvailable === undefined) ? notional : this.decimalToPrecision (notional, TRUNCATE, precisionAvailable, this.precisionMode);
                     }
                 } else {
+                    // Redeem stock to underlying using sapiPostEquityTokenizedRedeem or call redeemTokenizedAsset (tokenizedAsset, tokenizedAssetAmount, params)
+                    // Poll sapiGetEquityTokenizedConvertStatus with the returned issuerRequestId and convertType REDEEM until status is S or call tokenizedConvertStatus (issuerRequestId, convertType, params)
+                    // Then you can place a sell order
                     const marketAmountPrecision = this.safeString (market['precision'], 'amount');
                     if (marketAmountPrecision !== undefined) {
                         request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -8105,7 +8262,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
         let stock = undefined;
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'stock', false);
@@ -8148,7 +8305,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         let market: Market = undefined;
         let stock = undefined;
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchCanceledOrders', 'stock', false);
@@ -8191,7 +8348,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
         let stock = undefined;
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'stock', false);
@@ -8907,9 +9064,36 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
+        // tokenized equities
+        //
+        //     {
+        //         "page": 1,
+        //         "size": 20,
+        //         "total": 1,
+        //         "rows": [
+        //             {
+        //                 "executionId": "cc942eb9-eaa0-47e7-8273-2a9bc10c5741",
+        //                 "orderId": "ef66a86f-202b-4b41-b15c-e1c90f975f17",
+        //                 "symbol": "AAPL",
+        //                 "quote": "USDC",
+        //                 "side": "BUY",
+        //                 "orderType": "MARKET",
+        //                 "price": "309.16",
+        //                 "qty": "0.0576724",
+        //                 "total": "17.83",
+        //                 "executionAt": 1785936600545,
+        //                 "updatedAt": 1785936601012
+        //             }
+        //         ]
+        //     }
         let responseList: any[] = [];
         if (response !== undefined) {
-            responseList = response;
+            if (stock) {
+                const rows = this.safeList (response, 'rows', []);
+                responseList = rows;
+            } else {
+                responseList = response;
+            }
         }
         return this.parseTrades (responseList, market, since, limit);
     }
