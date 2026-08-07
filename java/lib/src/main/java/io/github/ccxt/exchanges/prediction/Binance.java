@@ -12,15 +12,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * Typed wrapper for hyperliquid. Extends HyperliquidCore with typed method overloads.
+ * Typed wrapper for binance. Extends BinanceCore with typed method overloads.
  */
-public class Hyperliquid extends HyperliquidCore {
+public class Binance extends BinanceCore {
 
-    public Hyperliquid() {
+    public Binance() {
         super();
     }
 
-    public Hyperliquid(Object options) {
+    public Binance(Object options) {
         super(options);
     }
 
