@@ -301,6 +301,15 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     // 'fetchMarketsWs': true,
 }
 
+// TS aliases that are `T | undefined` (ts/src/base/types.ts). Method return types
+// annotated with these become Go pointers so nil can carry "undefined".
+const NULLABLE_SCALAR_GO_TYPES: dict = {
+    'Str': '*string',
+    'Int': '*int64',
+    'Num': '*float64',
+    'Bool': '*bool',
+};
+
 const INTERFACE_METHODS = [
     'cancelOrders',
     'cancelOrdersWithClientOrderIds',
@@ -946,7 +955,7 @@ class NewTranspiler {
         }
 
         if (name === 'fetchTime'){
-            return ` <- chan int64`; // custom handling for now
+            return `<- chan *int64`; // custom handling for now
         }
 
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
@@ -1020,6 +1029,13 @@ class NewTranspiler {
         }
         if (this.isDictionary(wrappedType)) {
             return addTaskIfNeeded('map[string]any');
+        }
+        // `Str`/`Int`/`Num`/`Bool` (ts/src/base/types.ts) are `T | undefined`. On the return
+        // path emit them as Go pointers, so the wrapper can hand back nil for undefined
+        // instead of an ambiguous -1 / "" sentinel. Case matters: the lowercase `int` alias
+        // is `number` (non-nullable) and keeps its value type. Lists keep value elements.
+        if (isReturn && !isList && NULLABLE_SCALAR_GO_TYPES[wrappedType] !== undefined) {
+            return addTaskIfNeeded(NULLABLE_SCALAR_GO_TYPES[wrappedType]);
         }
         if (this.isStringType(wrappedType)) {
             return addTaskIfNeeded('string');
@@ -1222,11 +1238,6 @@ class NewTranspiler {
     }
 
     createReturnStatement(methodName: string,  unwrappedType:string ) {
-
-        // custom handling for now
-        if (methodName === 'fetchTime'){
-            return `(res).(int64)`;
-        }
 
         if (unwrappedType === 'float64') {
             return `(res).(float64)`;
@@ -1478,6 +1489,16 @@ class NewTranspiler {
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.jsTypeToGo(methodName, methodWrapper.returnType, true);
         let unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
+        // An override without an explicit return annotation gets its type inferred from the
+        // body (e.g. poloniex#fetchOrderStatus returns 'open'/'closed', inferred as `string`),
+        // which drops the base's `Str` nullability. The derived signature must keep matching
+        // IExchange, so re-adopt the base pointer type.
+        if (!isExchange && !unwrappedType.startsWith('*')) {
+            const baseReturnType = WRAPPER_METHODS['Exchange']?.[methodName]?.returnType;
+            if (baseReturnType !== undefined && baseReturnType === `*${unwrappedType}`) {
+                unwrappedType = baseReturnType;
+            }
+        }
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
         this.createOptionsStruct(methodName, methodWrapper.parameters, isWs);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
@@ -1501,7 +1522,9 @@ class NewTranspiler {
         }
 
         let emptyObject = `${unwrappedType}{}`;
-        if (unwrappedType.startsWith('[]')) {
+        if (unwrappedType.startsWith('*')) {
+            emptyObject = 'nil' // maybe-undefined scalar: nil is unambiguous
+        } else if (unwrappedType.startsWith('[]')) {
             emptyObject = 'nil'
         } else if (unwrappedType.includes('int64')) {
             emptyObject = '-1'
@@ -1520,6 +1543,17 @@ class NewTranspiler {
         }
 
         const accessor = isExchange ? 'this.Exchange.' : 'this.Core.';
+        // maybe-undefined scalar: the core hands back a boxed value or nil, so the
+        // undefined case is handled here in the generated body — a failed assertion
+        // (nil, or the wrong dynamic type) leaves the pointer nil.
+        const returnLines = unwrappedType.startsWith('*')
+            ? [
+                `${two}if typed, ok := res.(${unwrappedType.slice(1)}); ok {`,
+                `${three}return &typed, nil`,
+                `${two}}`,
+                `${two}return nil, nil`,
+            ]
+            : [ `${two}return ${this.createReturnStatement(methodName, unwrappedType)}, nil` ];
         const body = [
             // `${two}ch:= make(chan ${unwrappedType})`,
             // `${two}go func() {`,
@@ -1530,7 +1564,7 @@ class NewTranspiler {
             `${two}if IsError(res) {`,
             `${three}return ${emptyObject}, CreateReturnError(res)`,
             `${two}}`,
-            `${two}return ${this.createReturnStatement(methodName, unwrappedType)}, nil`,
+            ...returnLines,
             // `${two}}()`,
             // `${two}return ch`,
         ];
@@ -1545,6 +1579,7 @@ class NewTranspiler {
             wrapper: methodWrapper,
             interface: interfaceMethod,
             params: stringArgs,
+            returnType: unwrappedType,
         };
         // wrapperMethods[exchangeName].push([interfaceMethod, stringArgs, methodWrapper]);
         const funcContext = isExchange ? 'ExchangeTyped' : capitalize(exchangeName);
@@ -2757,22 +2792,22 @@ ${caseStatements.join('\n')}
                 const lines = content.split("\n");
 
                 for (const line of lines) {
-                    // Only match lines that start with type or func
-                    if (!(
-                        /^\s*func\s+/.test(line) ||
-                        /^\s*type\s+\w+\s+(?:struct\s*\{|interface\s*\{|func\s*\()/.test(line)
-                    )) continue;
-
                     const trimmed = line.trim();
-
-                    // Exclude lines that are just "type" or "func"
-                    if (/^(type|func)$/.test(trimmed)) continue;
-
-                    const parts = trimmed.split(/\s+/);
-                    if (parts.length < 2) continue;
-
-                    let name = parts[1].split("(")[0]; // keep only before `(`
-                    if (name.trim() !== "") results.add(name);
+                    // type Name struct|interface|func(...)
+                    const typeMatch = trimmed.match(/^type\s+([A-Za-z_]\w*)\b/);
+                    if (typeMatch) {
+                        results.add(typeMatch[1]);
+                        continue;
+                    }
+                    // Package-level funcs only: `func Name` / `func Name[T any](...)`.
+                    // Do NOT match methods with receivers (`func (this *T) Name`) — those
+                    // names are not package-qualified symbols, and prefixing them breaks
+                    // local helpers that share a name (e.g. tests' Equals vs Precise.Equals).
+                    // \w* stops before `[`, so generics never contribute `Ptr[T`.
+                    const funcMatch = trimmed.match(/^func\s+([A-Za-z_]\w*)\b/);
+                    if (funcMatch) {
+                        results.add(funcMatch[1]);
+                    }
                 }
             }
         }
@@ -2788,7 +2823,14 @@ ${caseStatements.join('\n')}
      * @returns The content with the package prefix added.
      */
     addPackagePrefix(content: string, methodsAndTypes: Set<string>, packageName: string = 'ccxt') {
-        const pattern = Array.from(methodsAndTypes).join("|");
+        // Escape regex metacharacters so a scraped name can never blow up RegExp
+        // construction (e.g. a leftover `Foo[T` would open a character class).
+        const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const names = Array.from(methodsAndTypes).filter((n) => /^[A-Za-z_]\w*$/.test(n));
+        if (names.length === 0) {
+            return content;
+        }
+        const pattern = names.map(escapeRegExp).join("|");
         // any of the method or type names that are not preceded by a `.`, but `...` is allowed e.g. MarketInterface, or ...MarketInterface but not .MarketInterface
         const regex = new RegExp(`(?<![A-Za-z0-9_\\)\\}]\\.)\\b(${pattern})\\b`, "g");
         const variadicRegex = new RegExp(`(?<=\\.\\.\\.)(${pattern})\\b`, "g");

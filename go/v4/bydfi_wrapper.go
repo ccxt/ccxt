@@ -1467,7 +1467,7 @@ func (this *Bydfi) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBook
 func (this *Bydfi) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Bydfi) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Bydfi) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bydfi) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1488,7 +1488,7 @@ func (this *Bydfi) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremium
 func (this *Bydfi) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Bydfi) FetchTime(params ...any) (int64, error) {
+func (this *Bydfi) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bydfi) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

@@ -1552,7 +1552,7 @@ func (this *Deepcoin) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderB
 func (this *Deepcoin) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Deepcoin) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Deepcoin) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Deepcoin) FetchPaymentMethods(params ...any) (map[string]any, error) {
@@ -1582,7 +1582,7 @@ func (this *Deepcoin) FetchStatus(params ...any) (Status, error) {
 func (this *Deepcoin) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 	return this.exchangeTyped.FetchTicker(symbol, options...)
 }
-func (this *Deepcoin) FetchTime(params ...any) (int64, error) {
+func (this *Deepcoin) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Deepcoin) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

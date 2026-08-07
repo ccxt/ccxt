@@ -1060,12 +1060,15 @@ func (this *Hibachi) FetchMySettlementHistory(options ...FetchMySettlementHistor
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Hibachi) FetchTime(params ...any) (int64, error) {
+func (this *Hibachi) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
-		return -1, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return (res).(int64), nil
+	if typed, ok := res.(int64); ok {
+		return &typed, nil
+	}
+	return nil, nil
 }
 
 /**
@@ -1411,7 +1414,7 @@ func (this *Hibachi) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 func (this *Hibachi) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Hibachi) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Hibachi) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Hibachi) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {

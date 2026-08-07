@@ -1549,7 +1549,7 @@ func (this *Bitfinex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderB
 func (this *Bitfinex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Bitfinex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Bitfinex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bitfinex) FetchPaymentMethods(params ...any) (map[string]any, error) {
@@ -1576,7 +1576,7 @@ func (this *Bitfinex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Bitfinex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitfinex) FetchTime(params ...any) (int64, error) {
+func (this *Bitfinex) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bitfinex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

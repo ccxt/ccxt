@@ -334,7 +334,7 @@ func (this *Myokx) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBook
 func (this *Myokx) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Myokx) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Myokx) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Myokx) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -376,7 +376,7 @@ func (this *Myokx) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
 func (this *Myokx) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Myokx) FetchTime(params ...any) (int64, error) {
+func (this *Myokx) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Myokx) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {

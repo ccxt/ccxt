@@ -772,7 +772,7 @@ func (this *Bitbns) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBoo
 func (this *Bitbns) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Bitbns) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Bitbns) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bitbns) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -808,7 +808,7 @@ func (this *Bitbns) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiu
 func (this *Bitbns) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 	return this.exchangeTyped.FetchTicker(symbol, options...)
 }
-func (this *Bitbns) FetchTime(params ...any) (int64, error) {
+func (this *Bitbns) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bitbns) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

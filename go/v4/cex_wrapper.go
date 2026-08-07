@@ -66,12 +66,15 @@ func (this *Cex) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Cex) FetchTime(params ...any) (int64, error) {
+func (this *Cex) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
-		return -1, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return (res).(int64), nil
+	if typed, ok := res.(int64); ok {
+		return &typed, nil
+	}
+	return nil, nil
 }
 
 /**
@@ -1048,7 +1051,7 @@ func (this *Cex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks,
 func (this *Cex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Cex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Cex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Cex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {

@@ -622,7 +622,7 @@ func (this *Paymium) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 func (this *Paymium) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Paymium) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Paymium) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Paymium) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -661,7 +661,7 @@ func (this *Paymium) FetchStatus(params ...any) (Status, error) {
 func (this *Paymium) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Paymium) FetchTime(params ...any) (int64, error) {
+func (this *Paymium) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Paymium) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

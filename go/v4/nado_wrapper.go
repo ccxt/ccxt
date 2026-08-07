@@ -709,12 +709,15 @@ func (this *Nado) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Nado) FetchTime(params ...any) (int64, error) {
+func (this *Nado) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
-		return -1, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return (res).(int64), nil
+	if typed, ok := res.(int64); ok {
+		return &typed, nil
+	}
+	return nil, nil
 }
 
 /**
@@ -1364,7 +1367,7 @@ func (this *Nado) FetchOrderWithClientOrderId(clientOrderId string, options ...F
 func (this *Nado) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Nado) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Nado) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Nado) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {

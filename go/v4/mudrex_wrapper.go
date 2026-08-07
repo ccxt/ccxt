@@ -1043,7 +1043,7 @@ func (this *Mudrex) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 func (this *Mudrex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Mudrex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Mudrex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Mudrex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1073,7 +1073,7 @@ func (this *Mudrex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiu
 func (this *Mudrex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Mudrex) FetchTime(params ...any) (int64, error) {
+func (this *Mudrex) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Mudrex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {

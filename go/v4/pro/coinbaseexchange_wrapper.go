@@ -699,7 +699,7 @@ func (this *Coinbaseexchange) FetchOrderBooks(options ...ccxt.FetchOrderBooksOpt
 func (this *Coinbaseexchange) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Coinbaseexchange) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Coinbaseexchange) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Coinbaseexchange) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -741,7 +741,7 @@ func (this *Coinbaseexchange) FetchTicker(symbol string, options ...ccxt.FetchTi
 func (this *Coinbaseexchange) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Coinbaseexchange) FetchTime(params ...any) (int64, error) {
+func (this *Coinbaseexchange) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Coinbaseexchange) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {

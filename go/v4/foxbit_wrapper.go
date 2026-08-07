@@ -1240,7 +1240,7 @@ func (this *Foxbit) FetchOrderWithClientOrderId(clientOrderId string, options ..
 func (this *Foxbit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Foxbit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Foxbit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Foxbit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1273,7 +1273,7 @@ func (this *Foxbit) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Foxbit) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Foxbit) FetchTime(params ...any) (int64, error) {
+func (this *Foxbit) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Foxbit) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

@@ -288,12 +288,15 @@ func (this *Polymarket) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current server time in milliseconds
  */
-func (this *Polymarket) FetchTime(params ...any) (int64, error) {
+func (this *Polymarket) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if ccxt.IsError(res) {
-		return -1, ccxt.CreateReturnError(res)
+		return nil, ccxt.CreateReturnError(res)
 	}
-	return (res).(int64), nil
+	if typed, ok := res.(int64); ok {
+		return &typed, nil
+	}
+	return nil, nil
 }
 
 /**
