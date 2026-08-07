@@ -10,7 +10,7 @@ function testLoadedMarketTypes (exchange: Exchange, skippedProperties: object) {
     for (let i = 0; i < markets.length; i++) {
         const market = markets[i];
         if (!exchange.inArray (market['type'], collectedTypes)) {
-            collectedTypes.push(market['type']);
+            collectedTypes.push (market['type']);
         }
     }
     for (let i = 0; i < marketTypes.length; i++) {
@@ -19,7 +19,11 @@ function testLoadedMarketTypes (exchange: Exchange, skippedProperties: object) {
             const skipMarketTypes = ('optionsNotLoadedByDefault' in skippedProperties) && mType === 'option';
             assert (exchange.inArray (mType, collectedTypes) || skipMarketTypes, 'exchange.has[' + mType + '] is true, but no markets of type ' + mType + ' were found in exchange.markets');
         } else if (exchange.has[mType] === false) {
-            assert (!exchange.inArray (mType, collectedTypes), 'exchange.has[' + mType + '] is false, but markets of type ' + mType + ' were found in exchange.markets');
+            // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
+            // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
+            // in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
+            const isKnownException = (mType in skippedProperties);
+            assert (!exchange.inArray (mType, collectedTypes) || isKnownException, 'exchange.has[' + mType + '] is false, but markets of type ' + mType + ' were found in exchange.markets');
         }
     }
 }
