@@ -19,14 +19,14 @@ public class KrakenApi extends Exchange
         super(options);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  zendeskGet360000292886 (Object... optionalArgs)
-    {
-        return this.callAsync ("zendeskGet360000292886", optionalArgs);
-    }
-
     public java.util.concurrent.CompletableFuture<Object>  zendeskGet201893608 (Object... optionalArgs)
     {
         return this.callAsync ("zendeskGet201893608", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  zendeskGet360000292886 (Object... optionalArgs)
+    {
+        return this.callAsync ("zendeskGet360000292886", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicGetTime (Object... optionalArgs)
