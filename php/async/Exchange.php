@@ -3753,7 +3753,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $position;
     }
 
-    public function parse_positions(mixed $positions, ?array $symbols = null, $params = array()) {
+    public function parse_positions(array $positions, ?array $symbols = null, $params = array()) {
         $symbols = $this->market_symbols($symbols);
         $positionsArray = $this->to_array($positions);
         $result = array();
@@ -3771,7 +3771,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' parseADLRank() is not supported yet');
     }
 
-    public function parse_adl_ranks(mixed $ranks, ?array $symbols = null, $params = array()) {
+    public function parse_adl_ranks(array $ranks, ?array $symbols = null, $params = array()) {
         $symbols = $this->market_symbols($symbols);
         $ranksArray = $this->to_array($ranks);
         $result = array();
@@ -3782,7 +3782,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_accounts(mixed $accounts, $params = array()) {
+    public function parse_accounts(array $accounts, $params = array()) {
         $accountsArray = $this->to_array($accounts);
         $result = array();
         for ($i = 0; $i < count($accountsArray); $i++) {
@@ -3792,7 +3792,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $result;
     }
 
-    public function parse_trades_helper(bool $isWs, mixed $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_trades_helper(bool $isWs, array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $tradesArray = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($tradesArray); $i++) {
@@ -3810,15 +3810,15 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_trades(mixed $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return $this->parse_trades_helper(false, $trades, $market, $since, $limit, $params);
     }
 
-    public function parse_ws_trades(mixed $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_ws_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return $this->parse_trades_helper(true, $trades, $market, $since, $limit, $params);
     }
 
-    public function parse_transactions(mixed $transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_transactions(array $transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $transactionsArray = $this->to_array($transactions);
         $result = array();
         for ($i = 0; $i < count($transactionsArray); $i++) {
@@ -3830,7 +3830,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function parse_transfers(mixed $transfers, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_transfers(array $transfers, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $transfersArray = $this->to_array($transfers);
         $result = array();
         for ($i = 0; $i < count($transfersArray); $i++) {
@@ -6407,7 +6407,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' parseLeverage () is not supported yet');
     }
 
-    public function parse_conversions(mixed $conversions, ?string $code = null, ?string $fromCurrencyKey = null, ?string $toCurrencyKey = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_conversions(array $conversions, ?string $code = null, ?string $fromCurrencyKey = null, ?string $toCurrencyKey = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $conversionsArray = $this->to_array($conversions);
         $result = array();
         $fromCurrency = null;

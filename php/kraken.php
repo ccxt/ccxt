@@ -2620,7 +2620,8 @@ class kraken extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        $tradesList = $this->to_array($trades);
+        return $this->parse_trades($tradesList, $market, $since, $limit);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {

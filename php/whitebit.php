@@ -2806,7 +2806,8 @@ class whitebit extends Exchange {
         //         array( ... )                                 // More transactions (deposits and withdrawals)
         //     )
         //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        $records = $this->safe_list($response, 'records', array());
+        return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): array {

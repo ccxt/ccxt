@@ -698,7 +698,7 @@ class coinbaseexchange extends Exchange {
 
     public function fetch_accounts($params = array()): array {
         /**
-         * fetch all the accounts associated with a profile
+         * fetch all the $accounts associated with a profile
          *
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
          *
@@ -729,7 +729,8 @@ class coinbaseexchange extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_accounts($response, $params);
+        $accounts = $this->to_array($response);
+        return $this->parse_accounts($accounts, $params);
     }
 
     public function parse_account(mixed $account) {

@@ -5449,7 +5449,7 @@ class binance extends Exchange {
             //
             $responseList = array();
             if ($response !== null) {
-                $responseList = $response;
+                $responseList = $this->to_array($response);
             }
             return $this->parse_trades($responseList, $market, $since, $limit);
         })();
@@ -8613,7 +8613,7 @@ class binance extends Exchange {
             //
             $responseList = array();
             if ($response !== null) {
-                $responseList = $response;
+                $responseList = $this->to_array($response);
             }
             return $this->parse_trades($responseList, $market, $since, $limit);
         })();
@@ -15275,7 +15275,7 @@ class binance extends Exchange {
             //
             $responseList = array();
             if ($response !== null) {
-                $responseList = $response;
+                $responseList = $this->to_array($response);
             }
             return $this->parse_adl_ranks($responseList, $symbols);
         })();

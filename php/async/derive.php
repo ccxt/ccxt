@@ -998,7 +998,7 @@ class derive extends Exchange {
         })();
     }
 
-    public function parse_trades(mixed $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $tradesArray = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($tradesArray); $i++) {

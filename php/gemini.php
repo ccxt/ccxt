@@ -121,6 +121,10 @@ class gemini extends Exchange {
                 ),
                 'web' => array(
                     'get' => array(
+                        // fetchMarkets passes this through fetchWebEndpoint with
+                        // returnAsJson=false and a startRegex, i.e. it splits the
+                        // body => this endpoint answers with the docs page
+                        // markup, not with JSON
                         'rest-api' => array( 'cost' => 1 ),
                     ),
                 ),

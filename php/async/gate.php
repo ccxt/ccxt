@@ -6617,7 +6617,7 @@ class gate extends Exchange {
             //
             $responseList = array();
             if ($response !== null) {
-                $responseList = $response;
+                $responseList = $this->to_array($response);
             }
             return $this->parse_positions($responseList, $symbols);
         })();
@@ -8790,7 +8790,7 @@ class gate extends Exchange {
             //
             $responseList = array();
             if ($response !== null) {
-                $responseList = $response;
+                $responseList = $this->to_array($response);
             }
             return $this->parse_positions($responseList, $symbols, $params);
         })();

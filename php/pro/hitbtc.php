@@ -698,7 +698,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function parse_ws_trades(mixed $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_ws_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $tradesArray = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($tradesArray); $i++) {

@@ -1678,7 +1678,7 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            $trades = $this->safe_value($response, 'data');
+            $trades = $this->safe_list($response, 'data', array());
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -4173,6 +4173,7 @@ class mexc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
+        $trades = array();
         if ($marketType === 'spot') {
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -4242,7 +4243,7 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            $trades = $this->safe_value($response, 'data');
+            $trades = $this->safe_list($response, 'data', array());
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -4270,6 +4271,7 @@ class mexc extends Exchange {
             $market = $this->market($symbol);
         }
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
+        $trades = array();
         if ($marketType === 'spot') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
@@ -4324,7 +4326,7 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            $trades = $this->safe_value($response, 'data');
+            $trades = $this->safe_list($response, 'data', array());
         }
         return $this->parse_trades($trades, $market, $since, $limit, $query);
     }
