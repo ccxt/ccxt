@@ -150,64 +150,64 @@ class latoken(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'book/{currency}/{quote}': 1,
-                        'chart/week': 1,
-                        'chart/week/{currency}/{quote}': 1,
-                        'currency': 1,
-                        'currency/available': 1,
-                        'currency/quotes': 1,
-                        'currency/{currency}': 1,
-                        'pair': 1,
-                        'pair/available': 1,
-                        'ticker': 1,
-                        'ticker/{base}/{quote}': 1,
-                        'time': 1,
-                        'trade/history/{currency}/{quote}': 1,
-                        'trade/fee/{currency}/{quote}': 1,
-                        'trade/feeLevels': 1,
-                        'transaction/bindings': 1,
+                        'book/{currency}/{quote}': {'cost': 1},
+                        'chart/week': {'cost': 1},
+                        'chart/week/{currency}/{quote}': {'cost': 1},
+                        'currency': {'cost': 1},
+                        'currency/available': {'cost': 1},
+                        'currency/quotes': {'cost': 1},
+                        'currency/{currency}': {'cost': 1},
+                        'pair': {'cost': 1},
+                        'pair/available': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'ticker/{base}/{quote}': {'cost': 1},
+                        'time': {'cost': 1},
+                        'trade/history/{currency}/{quote}': {'cost': 1},
+                        'trade/fee/{currency}/{quote}': {'cost': 1},
+                        'trade/feeLevels': {'cost': 1},
+                        'transaction/bindings': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'auth/account': 1,
-                        'auth/account/currency/{currency}/{type}': 1,
-                        'auth/order': 1,
-                        'auth/order/getOrder/{id}': 1,
-                        'auth/order/pair/{currency}/{quote}': 1,
-                        'auth/order/pair/{currency}/{quote}/active': 1,
-                        'auth/stopOrder': 1,
-                        'auth/stopOrder/getOrder/{id}': 1,
-                        'auth/stopOrder/pair/{currency}/{quote}': 1,
-                        'auth/stopOrder/pair/{currency}/{quote}/active': 1,
-                        'auth/trade': 1,
-                        'auth/trade/pair/{currency}/{quote}': 1,
-                        'auth/trade/fee/{currency}/{quote}': 1,
-                        'auth/transaction': 1,
-                        'auth/transaction/bindings': 1,
-                        'auth/transaction/bindings/{currency}': 1,
-                        'auth/transaction/{id}': 1,
-                        'auth/transfer': 1,
+                        'auth/account': {'cost': 1},
+                        'auth/account/currency/{currency}/{type}': {'cost': 1},
+                        'auth/order': {'cost': 1},
+                        'auth/order/getOrder/{id}': {'cost': 1},
+                        'auth/order/pair/{currency}/{quote}': {'cost': 1},
+                        'auth/order/pair/{currency}/{quote}/active': {'cost': 1},
+                        'auth/stopOrder': {'cost': 1},
+                        'auth/stopOrder/getOrder/{id}': {'cost': 1},
+                        'auth/stopOrder/pair/{currency}/{quote}': {'cost': 1},
+                        'auth/stopOrder/pair/{currency}/{quote}/active': {'cost': 1},
+                        'auth/trade': {'cost': 1},
+                        'auth/trade/pair/{currency}/{quote}': {'cost': 1},
+                        'auth/trade/fee/{currency}/{quote}': {'cost': 1},
+                        'auth/transaction': {'cost': 1},
+                        'auth/transaction/bindings': {'cost': 1},
+                        'auth/transaction/bindings/{currency}': {'cost': 1},
+                        'auth/transaction/{id}': {'cost': 1},
+                        'auth/transfer': {'cost': 1},
                     },
                     'post': {
-                        'auth/order/cancel': 1,
-                        'auth/order/cancelAll': 1,
-                        'auth/order/cancelAll/{currency}/{quote}': 1,
-                        'auth/order/place': 1,
-                        'auth/spot/deposit': 1,
-                        'auth/spot/withdraw': 1,
-                        'auth/stopOrder/cancel': 1,
-                        'auth/stopOrder/cancelAll': 1,
-                        'auth/stopOrder/cancelAll/{currency}/{quote}': 1,
-                        'auth/stopOrder/place': 1,
-                        'auth/transaction/depositAddress': 1,
-                        'auth/transaction/withdraw': 1,
-                        'auth/transaction/withdraw/cancel': 1,
-                        'auth/transaction/withdraw/confirm': 1,
-                        'auth/transaction/withdraw/resendCode': 1,
-                        'auth/transfer/email': 1,
-                        'auth/transfer/id': 1,
-                        'auth/transfer/phone': 1,
+                        'auth/order/cancel': {'cost': 1},
+                        'auth/order/cancelAll': {'cost': 1},
+                        'auth/order/cancelAll/{currency}/{quote}': {'cost': 1},
+                        'auth/order/place': {'cost': 1},
+                        'auth/spot/deposit': {'cost': 1},
+                        'auth/spot/withdraw': {'cost': 1},
+                        'auth/stopOrder/cancel': {'cost': 1},
+                        'auth/stopOrder/cancelAll': {'cost': 1},
+                        'auth/stopOrder/cancelAll/{currency}/{quote}': {'cost': 1},
+                        'auth/stopOrder/place': {'cost': 1},
+                        'auth/transaction/depositAddress': {'cost': 1},
+                        'auth/transaction/withdraw': {'cost': 1},
+                        'auth/transaction/withdraw/cancel': {'cost': 1},
+                        'auth/transaction/withdraw/confirm': {'cost': 1},
+                        'auth/transaction/withdraw/resendCode': {'cost': 1},
+                        'auth/transfer/email': {'cost': 1},
+                        'auth/transfer/id': {'cost': 1},
+                        'auth/transfer/phone': {'cost': 1},
                     },
                 },
             },
@@ -417,8 +417,9 @@ class latoken(Exchange, ImplicitAPI):
         currencies = self.safe_dict(self.options, 'cachedCurrencies', {})
         currenciesById = self.index_by(currencies, 'id')
         result = []
-        for i in range(0, len(response)):
-            market = response[i]
+        rawMarkets = self.to_array(response)
+        for i in range(0, len(rawMarkets)):
+            market = rawMarkets[i]
             id = self.safe_string(market, 'id')
             # the exchange shows them inverted
             baseId = self.safe_string(market, 'baseCurrency')
@@ -997,7 +998,7 @@ class latoken(Exchange, ImplicitAPI):
         market = None
         if limit is not None:
             request['limit'] = limit  # default 100
-        response: List
+        response = []
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']

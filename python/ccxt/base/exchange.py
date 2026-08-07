@@ -5440,12 +5440,12 @@ class BaseExchange(object):
             position['contractSize'] = contractSize
         return position
 
-    def parse_positions(self, positions: List[Any], symbols: Strings = None, params={}):
+    def parse_positions(self, positions: dict | List, symbols: Strings = None, params={}):
         symbols = self.market_symbols(symbols)
-        positions = self.to_array(positions)
+        positionsArray = self.to_array(positions)
         result = []
-        for i in range(0, len(positions)):
-            position = self.extend(self.parse_position(positions[i]), params)
+        for i in range(0, len(positionsArray)):
+            position = self.extend(self.parse_position(positionsArray[i]), params)
             result.append(position)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
@@ -5454,59 +5454,59 @@ class BaseExchange(object):
             raise NotSupported(self.id + ' parseADLRank() is not supported yet')
         raise NotSupported(self.id + ' parseADLRank() is not supported yet')
 
-    def parse_adl_ranks(self, ranks: List[Any], symbols: Strings = None, params={}):
+    def parse_adl_ranks(self, ranks: dict | List, symbols: Strings = None, params={}):
         symbols = self.market_symbols(symbols)
-        ranks = self.to_array(ranks)
+        ranksArray = self.to_array(ranks)
         result = []
-        for i in range(0, len(ranks)):
-            rank = self.extend(self.parse_adl_rank(ranks[i]), params)
+        for i in range(0, len(ranksArray)):
+            rank = self.extend(self.parse_adl_rank(ranksArray[i]), params)
             result.append(rank)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_accounts(self, accounts: List[Any], params={}):
-        accounts = self.to_array(accounts)
+    def parse_accounts(self, accounts: dict | List, params={}):
+        accountsArray = self.to_array(accounts)
         result = []
-        for i in range(0, len(accounts)):
-            account = self.extend(self.parse_account(accounts[i]), params)
+        for i in range(0, len(accountsArray)):
+            account = self.extend(self.parse_account(accountsArray[i]), params)
             result.append(account)
         return result
 
-    def parse_trades_helper(self, isWs: bool, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
-        trades = self.to_array(trades)
+    def parse_trades_helper(self, isWs: bool, trades: dict | List, market: Market = None, since: Int = None, limit: Int = None, params={}):
+        tradesArray = self.to_array(trades)
         result = []
-        for i in range(0, len(trades)):
+        for i in range(0, len(tradesArray)):
             parsed = None
             if isWs:
-                parsed = self.parse_ws_trade(trades[i], market)
+                parsed = self.parse_ws_trade(tradesArray[i], market)
             else:
-                parsed = self.parse_trade(trades[i], market)
+                parsed = self.parse_trade(tradesArray[i], market)
             trade = self.extend(parsed, params)
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
+    def parse_trades(self, trades: dict | List, market: Market = None, since: Int = None, limit: Int = None, params={}):
         return self.parse_trades_helper(False, trades, market, since, limit, params)
 
-    def parse_ws_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
+    def parse_ws_trades(self, trades: dict | List, market: Market = None, since: Int = None, limit: Int = None, params={}):
         return self.parse_trades_helper(True, trades, market, since, limit, params)
 
-    def parse_transactions(self, transactions: List[Any], currency: Currency = None, since: Int = None, limit: Int = None, params={}):
-        transactions = self.to_array(transactions)
+    def parse_transactions(self, transactions: dict | List, currency: Currency = None, since: Int = None, limit: Int = None, params={}):
+        transactionsArray = self.to_array(transactions)
         result = []
-        for i in range(0, len(transactions)):
-            transaction = self.extend(self.parse_transaction(transactions[i], currency), params)
+        for i in range(0, len(transactionsArray)):
+            transaction = self.extend(self.parse_transaction(transactionsArray[i], currency), params)
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def parse_transfers(self, transfers: List[Any], currency: Currency = None, since: Int = None, limit: Int = None, params={}):
-        transfers = self.to_array(transfers)
+    def parse_transfers(self, transfers: dict | List, currency: Currency = None, since: Int = None, limit: Int = None, params={}):
+        transfersArray = self.to_array(transfers)
         result = []
-        for i in range(0, len(transfers)):
-            transfer = self.extend(self.parse_transfer(transfers[i], currency), params)
+        for i in range(0, len(transfersArray)):
+            transfer = self.extend(self.parse_transfer(transfersArray[i], currency), params)
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
@@ -7260,7 +7260,7 @@ class BaseExchange(object):
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
-    def fetch_paginated_call_cursor(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, cursorReceived: Str = None, cursorSent: Str = None, cursorIncrement: Int = None, maxEntriesPerRequest: Int = None):
+    def fetch_paginated_call_cursor(self, method: str, symbol: Str | Strings = None, since: Int = None, limit: Int = None, params: dict = {}, cursorReceived: Str = None, cursorSent: Str = None, cursorIncrement: Int = None, maxEntriesPerRequest: Int = None):
         maxCalls = 10
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
         maxRetries = 3
@@ -7284,7 +7284,8 @@ class BaseExchange(object):
                 elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
                     response = getattr(self, method)(symbol, params)
                 elif method == 'fetchOpenInterestHistory':
-                    if symbol is None:
+                    if not isinstance(symbol, str):
+                        # fetchOpenInterestHistory takes a single symbol, never a list
                         raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a symbol argument')
                     if timeframe is None:
                         raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a timeframe argument')
@@ -7525,13 +7526,13 @@ class BaseExchange(object):
     def parse_leverage(self, leverage: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
-    def parse_conversions(self, conversions: List[Any], code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
-        conversions = self.to_array(conversions)
+    def parse_conversions(self, conversions: dict | List, code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
+        conversionsArray = self.to_array(conversions)
         result = []
         fromCurrency = None
         toCurrency = None
-        for i in range(0, len(conversions)):
-            entry = conversions[i]
+        for i in range(0, len(conversionsArray)):
+            entry = conversionsArray[i]
             fromId = None if (fromCurrencyKey is None) else self.safe_string(entry, fromCurrencyKey)
             toId = None if (toCurrencyKey is None) else self.safe_string(entry, toCurrencyKey)
             if fromId is not None:

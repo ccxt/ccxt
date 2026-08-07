@@ -2,8 +2,8 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
-    zendesk_get_360000292886 = zendeskGet360000292886 = Entry('360000292886', 'zendesk', 'GET', {})
-    zendesk_get_201893608 = zendeskGet201893608 = Entry('201893608', 'zendesk', 'GET', {})
+    zendesk_get_201893608 = zendeskGet201893608 = Entry('201893608', 'zendesk', 'GET', {'cost': 1})
+    zendesk_get_360000292886 = zendeskGet360000292886 = Entry('360000292886', 'zendesk', 'GET', {'cost': 1})
     public_get_time = publicGetTime = Entry('Time', 'public', 'GET', {'cost': 1})
     public_get_systemstatus = publicGetSystemStatus = Entry('SystemStatus', 'public', 'GET', {'cost': 1})
     public_get_assets = publicGetAssets = Entry('Assets', 'public', 'GET', {'cost': 1})
