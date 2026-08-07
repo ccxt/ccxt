@@ -394,10 +394,10 @@ export default class binance extends Exchange {
             }
             let sortBy = this.safeStringUpper2 (params, 'sortBy', 'sort');
             if (sortBy !== undefined) {
-                // map the unified sort values onto the server enum
-                // ('RECOMMENDED' | 'VOLUME' | 'PARTICIPANTS' | 'CREATED_TIME' | 'END_DATE');
-                // 'liquidity' has no server-side equivalent and stays in params so the
-                // base applyEventFetchParams sorts it client-side instead
+                // map the unified sort values onto the server enum, one of RECOMMENDED,
+                // VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
+                // server-side equivalent and stays in params so the base
+                // applyEventFetchParams sorts it client-side instead
                 if (sortBy === 'NEWEST') {
                     sortBy = 'CREATED_TIME';
                 } else if (sortBy === 'LIQUIDITY') {
@@ -1665,7 +1665,7 @@ export default class binance extends Exchange {
         return response;
     }
 
-    override priceToPrecision (outcome: string, price: any): string {
+    override priceToPrecision (outcome: Str, price: any): string {
         const market = this.market (outcome);
         const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'price', 0.0001);
         let decimals = 4;
@@ -1675,7 +1675,7 @@ export default class binance extends Exchange {
         return this.decimalToPrecision (price, ROUND, decimals, DECIMAL_PLACES, this.paddingMode);
     }
 
-    override amountToPrecision (outcome: string, amount: any): string {
+    override amountToPrecision (outcome: Str, amount: any): string {
         const market = this.market (outcome);
         const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'amount', 0.01);
         let decimals = 2;
