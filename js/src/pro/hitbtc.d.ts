@@ -113,7 +113,7 @@ export default class hitbtc extends hitbtcRest {
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): any;
-    parseWsTrades(trades: Dict | List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseWsTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
     parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method

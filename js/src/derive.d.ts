@@ -63,7 +63,7 @@ export default class derive extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrades(trades: Dict | List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method

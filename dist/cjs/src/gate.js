@@ -6573,7 +6573,7 @@ class gate extends gate$1["default"] {
         //
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parsePositions(responseList, symbols);
     }
@@ -8699,7 +8699,7 @@ class gate extends gate$1["default"] {
         //
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parsePositions(responseList, symbols, params);
     }

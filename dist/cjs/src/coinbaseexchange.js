@@ -735,7 +735,8 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         //         },
         //     ]
         //
-        return this.parseAccounts(response, params);
+        const accounts = this.toArray(response);
+        return this.parseAccounts(accounts, params);
     }
     parseAccount(account) {
         //

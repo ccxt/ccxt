@@ -1682,7 +1682,7 @@ class mexc extends mexc$1["default"] {
             //         ]
             //     }
             //
-            trades = this.safeValue(response, 'data');
+            trades = this.safeList(response, 'data', []);
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -4205,7 +4205,7 @@ class mexc extends mexc$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        let trades;
+        let trades = [];
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -4276,7 +4276,7 @@ class mexc extends mexc$1["default"] {
             //         ]
             //     }
             //
-            trades = this.safeValue(response, 'data');
+            trades = this.safeList(response, 'data', []);
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -4303,7 +4303,7 @@ class mexc extends mexc$1["default"] {
             market = this.market(symbol);
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrderTrades', market, params);
-        let trades;
+        let trades = [];
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
@@ -4359,7 +4359,7 @@ class mexc extends mexc$1["default"] {
             //         ]
             //     }
             //
-            trades = this.safeValue(response, 'data');
+            trades = this.safeList(response, 'data', []);
         }
         return this.parseTrades(trades, market, since, limit, query);
     }

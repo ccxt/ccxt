@@ -1526,7 +1526,7 @@ class weex extends weex$1["default"] {
         //
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -3118,7 +3118,7 @@ class weex extends weex$1["default"] {
         }
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parseTrades(responseList, market, since, limit);
     }

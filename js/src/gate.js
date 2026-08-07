@@ -6574,7 +6574,7 @@ export default class gate extends Exchange {
         //
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parsePositions(responseList, symbols);
     }
@@ -8700,7 +8700,7 @@ export default class gate extends Exchange {
         //
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parsePositions(responseList, symbols, params);
     }

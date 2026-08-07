@@ -1,8 +1,8 @@
-import { Dict, List } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     webExchangeGet(params?: {}): Promise<string>;
-    webGetRestApi(params?: {}): Promise<Dict>;
+    webGetRestApi(params?: {}): Promise<string>;
     publicGetV1Symbols(params?: {}): Promise<List>;
     publicGetV1SymbolsDetailsSymbol(params?: {}): Promise<Dict>;
     publicGetV1NetworkToken(params?: {}): Promise<Dict>;

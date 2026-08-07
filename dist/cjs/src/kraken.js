@@ -2622,7 +2622,8 @@ class kraken extends kraken$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        return this.parseTrades(trades, market, since, limit);
+        const tradesList = this.toArray(trades);
+        return this.parseTrades(tradesList, market, since, limit);
     }
     /**
      * @method

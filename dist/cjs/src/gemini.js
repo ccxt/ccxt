@@ -127,6 +127,10 @@ class gemini extends gemini$1["default"] {
                 },
                 'web': {
                     'get': {
+                        // fetchMarkets passes this through fetchWebEndpoint with
+                        // returnAsJson=false and a startRegex, i.e. it splits the
+                        // body as text: this endpoint answers with the docs page
+                        // markup, not with JSON
                         'rest-api': { 'cost': 1 },
                     },
                 },

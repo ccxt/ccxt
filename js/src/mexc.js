@@ -1683,7 +1683,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            trades = this.safeValue(response, 'data');
+            trades = this.safeList(response, 'data', []);
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -4207,7 +4207,7 @@ export default class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let trades;
+        let trades = [];
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -4278,7 +4278,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            trades = this.safeValue(response, 'data');
+            trades = this.safeList(response, 'data', []);
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -4305,7 +4305,7 @@ export default class mexc extends Exchange {
             market = this.market(symbol);
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrderTrades', market, params);
-        let trades;
+        let trades = [];
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
@@ -4361,7 +4361,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            trades = this.safeValue(response, 'data');
+            trades = this.safeList(response, 'data', []);
         }
         return this.parseTrades(trades, market, since, limit, query);
     }

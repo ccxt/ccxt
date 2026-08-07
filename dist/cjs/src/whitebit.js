@@ -2810,7 +2810,8 @@ class whitebit extends whitebit$1["default"] {
         //         { ... }                                 // More transactions (deposits and withdrawals)
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        const records = this.safeList(response, 'records', []);
+        return this.parseTransactions(records, currency, since, limit);
     }
     /**
      * @method

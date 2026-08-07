@@ -5473,7 +5473,7 @@ class binance extends binance$1["default"] {
         //
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -8714,7 +8714,7 @@ class binance extends binance$1["default"] {
         //
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -15283,7 +15283,7 @@ class binance extends binance$1["default"] {
         //
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parseADLRanks(responseList, symbols);
     }
