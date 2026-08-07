@@ -1004,17 +1004,23 @@ export default class bithumb extends Exchange {
             if (marketIds.length === 0) {
                 return result;
             }
-            let maxMarketIdsPerRequest = this.safeInteger (this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
-            if ((maxMarketIdsPerRequest === undefined) || (maxMarketIdsPerRequest < 1)) {
-                maxMarketIdsPerRequest = 300;
-            }
             const marketIdsChunks: string[][] = [];
             const promises = [];
-            for (let i = 0; i < marketIds.length; i += maxMarketIdsPerRequest) {
-                const chunk = marketIds.slice (i, i + maxMarketIdsPerRequest);
-                marketIdsChunks.push (chunk);
-                request['markets'] = chunk.join (',');
+            if (symbols !== undefined) {
+                request['markets'] = marketIds.join (',');
+                marketIdsChunks.push (marketIds);
                 promises.push (this.publicGetV1Ticker (this.extend (request, params)));
+            } else {
+                let maxMarketIdsPerRequest = this.safeInteger (this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
+                if ((maxMarketIdsPerRequest === undefined) || (maxMarketIdsPerRequest < 1)) {
+                    maxMarketIdsPerRequest = 300;
+                }
+                for (let i = 0; i < marketIds.length; i += maxMarketIdsPerRequest) {
+                    const chunk = marketIds.slice (i, i + maxMarketIdsPerRequest);
+                    marketIdsChunks.push (chunk);
+                    request['markets'] = chunk.join (',');
+                    promises.push (this.publicGetV1Ticker (this.extend (request, params)));
+                }
             }
             //
             //     [
