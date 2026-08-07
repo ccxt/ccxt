@@ -133,7 +133,9 @@ export default class opinion extends Exchange {
             },
             'options': {
                 'eventScopeParams': [ 'labelId' ],
-                'defaultFetchEventsLimit': 20,
+                'defaultFetchEventsLimit': 20,   // events page size for the paginated categorical listing
+                'maxFetchEventsResults': 100,    // default cap on events fetched when the caller gives no limit
+                'maxEventsPages': 50,            // safety cap on event pages fetched per call
                 'marketsPageLimit': 20,
                 'maxMarketsPages': 50,
             },
@@ -372,6 +374,7 @@ export default class opinion extends Exchange {
      * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.labelId] filter by opinion category label id
+     * @param {int} [params.limit] max number of events to fetch (paginated server-side; defaults to options.maxFetchEventsResults, 100)
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
@@ -395,15 +398,46 @@ export default class opinion extends Exchange {
         }
         const rest = this.omit (params, [ 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
         const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 20);
-        const limit = Math.min (this.safeInteger (params, 'limit', pageLimit), pageLimit);
-        const request: Dict = {
-            'marketType': 1, // categorical only - these are the ones with childMarkets, our unified "event"
-            'limit': limit,
-            'page': 1,
-        };
-        const response = await this.opinionPublicGetMarket (this.extend (request, rest));
-        const result = this.safeDict (response, 'result', {});
-        const rawEvents = this.safeList (result, 'list', []);
+        const userLimit = this.safeInteger (params, 'limit');
+        // bound how many events are actually FETCHED: the user limit when given, otherwise
+        // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
+        // label can still hold more than one page
+        let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
+        if (userLimit !== undefined) {
+            fetchCap = userLimit;
+        }
+        const maxPages = this.safeInteger (this.options, 'maxEventsPages', 50);
+        const rawEvents: any[] = [];
+        let page = 1;
+        let fetchedRawCount = 0;
+        while (true) {
+            let reqLimit = pageLimit;
+            const remaining = fetchCap - fetchedRawCount;
+            if (remaining < reqLimit) {
+                reqLimit = remaining;
+            }
+            if (reqLimit <= 0) {
+                break;
+            }
+            const request: Dict = {
+                'marketType': 1, // categorical only - these are the ones with childMarkets, our unified "event"
+                'limit': reqLimit,
+                'page': page,
+            };
+            const response = await this.opinionPublicGetMarket (this.extend (request, rest));
+            const result = this.safeDict (response, 'result', {});
+            const pageEvents = this.safeList (result, 'list', []);
+            const pageEventsLength = pageEvents.length;
+            fetchedRawCount = this.sum (fetchedRawCount, pageEventsLength);
+            for (let i = 0; i < pageEventsLength; i++) {
+                rawEvents.push (pageEvents[i]);
+            }
+            const total = this.safeInteger (result, 'total');
+            if ((pageEventsLength < reqLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || (fetchedRawCount >= fetchCap)) {
+                break;
+            }
+            page = this.sum (page, 1);
+        }
         const rawEventsLength = rawEvents.length;
         const parsedEvents: any[] = [];
         if (this.markets === undefined) {
