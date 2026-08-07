@@ -1,29 +1,29 @@
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
-    publicGetExchangesPairTicker(params?: {}): Promise<implicitReturnType>;
-    publicGetExchangesPairOrderbook(params?: {}): Promise<implicitReturnType>;
-    publicGetExchangesPairTrades(params?: {}): Promise<implicitReturnType>;
-    publicGetExchangesPairLasttrades(params?: {}): Promise<implicitReturnType>;
-    privatePostMerchantCreateCheckout(params?: {}): Promise<implicitReturnType>;
-    privatePostFundsAddCoinFundsRequest(params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddFund(params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddOrder(params?: {}): Promise<implicitReturnType>;
-    privatePostOrderGetById(params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddOrderMarketPriceBuy(params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddOrderMarketPriceSell(params?: {}): Promise<implicitReturnType>;
-    privatePostOrderCancelOrder(params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddCoinFundsRequest(params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddStopOrder(params?: {}): Promise<implicitReturnType>;
-    privatePostPaymentGetMyId(params?: {}): Promise<implicitReturnType>;
-    privatePostPaymentSend(params?: {}): Promise<implicitReturnType>;
-    privatePostPaymentPay(params?: {}): Promise<implicitReturnType>;
-    privateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
-    privateGetAccountBalanceV2(params?: {}): Promise<implicitReturnType>;
-    privateGetOrderMyOrders(params?: {}): Promise<implicitReturnType>;
-    privateGetOrderGetById(params?: {}): Promise<implicitReturnType>;
-    privateGetOrderAccountHistory(params?: {}): Promise<implicitReturnType>;
-    privateGetOrderOrderHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetExchangesPairTicker(params?: {}): Promise<Dict>;
+    publicGetExchangesPairOrderbook(params?: {}): Promise<Dict>;
+    publicGetExchangesPairTrades(params?: {}): Promise<List>;
+    publicGetExchangesPairLasttrades(params?: {}): Promise<List>;
+    privatePostMerchantCreateCheckout(params?: {}): Promise<Dict>;
+    privatePostFundsAddCoinFundsRequest(params?: {}): Promise<Dict>;
+    privatePostOrderAddFund(params?: {}): Promise<Dict>;
+    privatePostOrderAddOrder(params?: {}): Promise<Dict>;
+    privatePostOrderGetById(params?: {}): Promise<Dict>;
+    privatePostOrderAddOrderMarketPriceBuy(params?: {}): Promise<Dict>;
+    privatePostOrderAddOrderMarketPriceSell(params?: {}): Promise<Dict>;
+    privatePostOrderCancelOrder(params?: {}): Promise<Dict>;
+    privatePostOrderAddCoinFundsRequest(params?: {}): Promise<Dict>;
+    privatePostOrderAddStopOrder(params?: {}): Promise<Dict>;
+    privatePostPaymentGetMyId(params?: {}): Promise<Dict>;
+    privatePostPaymentSend(params?: {}): Promise<Dict>;
+    privatePostPaymentPay(params?: {}): Promise<string>;
+    privateGetAccountBalance(params?: {}): Promise<Dict>;
+    privateGetAccountBalanceV2(params?: {}): Promise<Dict>;
+    privateGetOrderMyOrders(params?: {}): Promise<Dict>;
+    privateGetOrderGetById(params?: {}): Promise<Dict>;
+    privateGetOrderAccountHistory(params?: {}): Promise<List>;
+    privateGetOrderOrderHistory(params?: {}): Promise<List>;
 }
 declare abstract class Exchange extends _Exchange {
 }

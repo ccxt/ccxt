@@ -1,31 +1,31 @@
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
-    historyGetApiTwHistoryPairNameResolution(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiAsset(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiCurrencies(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiOrderbooksSymbol(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiOrders(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiPairName(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiPairs(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiPairsPrecisions(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiRates(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiTradeId(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiTrades(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiCcxtPairs(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiCmcAssets(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiCmcOrderbookPair(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiCmcSummary(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiCmcTicker(params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiCmcTradesPair(params?: {}): Promise<implicitReturnType>;
-    privateGetTradeApiCcxtBalance(params?: {}): Promise<implicitReturnType>;
-    privateGetTradeApiCcxtOrderId(params?: {}): Promise<implicitReturnType>;
-    privateGetTradeApiCcxtOrdersOfUser(params?: {}): Promise<implicitReturnType>;
-    privateGetTradeApiCcxtTradesOfUser(params?: {}): Promise<implicitReturnType>;
-    privateGetTradeApiTransactionsOfUser(params?: {}): Promise<implicitReturnType>;
-    privatePostTradeApiCcxtCancelAllOrder(params?: {}): Promise<implicitReturnType>;
-    privatePostTradeApiCcxtCancelorder(params?: {}): Promise<implicitReturnType>;
-    privatePostTradeApiCcxtOrdercreate(params?: {}): Promise<implicitReturnType>;
+    historyGetApiTwHistoryPairNameResolution(params?: {}): Promise<Dict>;
+    publicGetTradeApiAsset(params?: {}): Promise<Dict>;
+    publicGetTradeApiCurrencies(params?: {}): Promise<Dict>;
+    publicGetTradeApiOrderbooksSymbol(params?: {}): Promise<Dict>;
+    publicGetTradeApiOrders(params?: {}): Promise<Dict>;
+    publicGetTradeApiPairName(params?: {}): Promise<Dict>;
+    publicGetTradeApiPairs(params?: {}): Promise<Dict>;
+    publicGetTradeApiPairsPrecisions(params?: {}): Promise<Dict>;
+    publicGetTradeApiRates(params?: {}): Promise<Dict>;
+    publicGetTradeApiTradeId(params?: {}): Promise<Dict>;
+    publicGetTradeApiTrades(params?: {}): Promise<Dict>;
+    publicGetTradeApiCcxtPairs(params?: {}): Promise<Dict>;
+    publicGetTradeApiCmcAssets(params?: {}): Promise<Dict>;
+    publicGetTradeApiCmcOrderbookPair(params?: {}): Promise<Dict>;
+    publicGetTradeApiCmcSummary(params?: {}): Promise<List>;
+    publicGetTradeApiCmcTicker(params?: {}): Promise<Dict>;
+    publicGetTradeApiCmcTradesPair(params?: {}): Promise<List>;
+    privateGetTradeApiCcxtBalance(params?: {}): Promise<Dict>;
+    privateGetTradeApiCcxtOrderId(params?: {}): Promise<Dict>;
+    privateGetTradeApiCcxtOrdersOfUser(params?: {}): Promise<Dict>;
+    privateGetTradeApiCcxtTradesOfUser(params?: {}): Promise<Dict>;
+    privateGetTradeApiTransactionsOfUser(params?: {}): Promise<Dict>;
+    privatePostTradeApiCcxtCancelAllOrder(params?: {}): Promise<Dict>;
+    privatePostTradeApiCcxtCancelorder(params?: {}): Promise<Dict>;
+    privatePostTradeApiCcxtOrdercreate(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

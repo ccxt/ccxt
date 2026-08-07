@@ -150,32 +150,32 @@ class indodax extends indodax$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'api/server_time': 5,
-                        'api/pairs': 5,
-                        'api/price_increments': 5,
-                        'api/summaries': 5,
-                        'api/ticker/{pair}': 5,
-                        'api/ticker_all': 5,
-                        'api/trades/{pair}': 5,
-                        'api/depth/{pair}': 5,
-                        'tradingview/history_v2': 5,
+                        'api/server_time': { 'cost': 5 },
+                        'api/pairs': { 'cost': 5 },
+                        'api/price_increments': { 'cost': 5 },
+                        'api/summaries': { 'cost': 5 },
+                        'api/ticker/{pair}': { 'cost': 5 },
+                        'api/ticker_all': { 'cost': 5 },
+                        'api/trades/{pair}': { 'cost': 5 },
+                        'api/depth/{pair}': { 'cost': 5 },
+                        'tradingview/history_v2': { 'cost': 5 },
                     },
                 },
                 'private': {
                     'post': {
-                        'getInfo': 4,
-                        'transHistory': 4,
-                        'trade': 1,
-                        'tradeHistory': 4, // TODO add fetchMyTrades
-                        'openOrders': 4,
-                        'orderHistory': 4,
-                        'getOrder': 4,
-                        'cancelOrder': 4,
-                        'withdrawFee': 4,
-                        'withdrawCoin': 4,
-                        'listDownline': 4,
-                        'checkDownline': 4,
-                        'createVoucher': 4, // partner only
+                        'getInfo': { 'cost': 4 },
+                        'transHistory': { 'cost': 4 },
+                        'trade': { 'cost': 1 },
+                        'tradeHistory': { 'cost': 4 }, // TODO add fetchMyTrades
+                        'openOrders': { 'cost': 4 },
+                        'orderHistory': { 'cost': 4 },
+                        'getOrder': { 'cost': 4 },
+                        'cancelOrder': { 'cost': 4 },
+                        'withdrawFee': { 'cost': 4 },
+                        'withdrawCoin': { 'cost': 4 },
+                        'listDownline': { 'cost': 4 },
+                        'checkDownline': { 'cost': 4 },
+                        'createVoucher': { 'cost': 4 }, // partner only
                     },
                 },
             },
@@ -365,8 +365,9 @@ class indodax extends indodax$1["default"] {
         //     ]
         //
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray(response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString(market, 'id');
             const baseId = this.safeString(market, 'traded_currency');
             const quoteId = this.safeString(market, 'base_currency');
@@ -745,7 +746,7 @@ class indodax extends indodax$1["default"] {
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -877,7 +878,7 @@ class indodax extends indodax$1["default"] {
             'order_id': id,
         };
         const response = await this.privatePostGetOrder(this.extend(request, params));
-        const orders = response['return'];
+        const orders = this.safeDict(response, 'return', {});
         const order = this.parseOrder(this.extend({ 'id': id }, orders['order']), market);
         order['info'] = response;
         return order;
@@ -904,7 +905,8 @@ class indodax extends indodax$1["default"] {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostOpenOrders(this.extend(request, params));
-        const rawOrders = response['return']['orders'];
+        const openOrdersResult = this.safeDict(response, 'return', {});
+        const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
         if (!rawOrders) {
             return [];
@@ -948,7 +950,8 @@ class indodax extends indodax$1["default"] {
             'pair': market['id'],
         };
         const response = await this.privatePostOrderHistory(this.extend(request, params));
-        let orders = this.parseOrders(response['return']['orders'], market);
+        const historyResult = this.safeDict(response, 'return', {});
+        let orders = this.parseOrders(historyResult['orders'], market);
         orders = this.filterBy(orders, 'status', 'closed');
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }

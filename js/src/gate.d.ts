@@ -16,7 +16,7 @@ export default class gate extends Exchange {
      * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
      */
     loadUnifiedStatus(params?: {}): Promise<any>;
-    upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
+    upgradeUnifiedTradeAccount(params?: {}): Promise<Dict>;
     /**
      * @method
      * @name gate#fetchTime
@@ -900,7 +900,7 @@ export default class gate extends Exchange {
      * @param {string} params.settle settle currency
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name gate#fetchUnderlyingAssets
