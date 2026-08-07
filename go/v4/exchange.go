@@ -31,6 +31,7 @@ import (
 )
 
 type BaseExchange struct {
+	wsBackoffState map[string][]int64 // per-url reconnect attempts + lastAttempt, see CalculateWsBackoffDelay
 	MarketsMutex *sync.Mutex
 	// cachedCurrenciesMutex  sync.Mutex
 	loadMu                 sync.Mutex
@@ -216,7 +217,6 @@ type BaseExchange struct {
 // as an independent sibling instead of embedding Exchange, so the two hierarchies stay
 // decoupled while sharing the same base via method promotion.
 type Exchange struct {
-	wsBackoffState map[string][]int64 // per-url reconnect attempts + lastAttempt, see CalculateWsBackoffDelay
 	BaseExchange
 }
 
@@ -1712,7 +1712,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan any {
 
 	client := this.Client(url)
 	// todo: calculate the backoff using the clients cache
-	backoffDelay := this.CalculateWsBackoffDelay(url)
+	backoffDelay := 0
 	//
 	//  watchOrderBook ---- future ----+---------------+----→ user
 	//                                 |               |
@@ -1751,6 +1751,10 @@ func (this *BaseExchange) Watch(args ...any) <-chan any {
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
 	client.ConnectMu.Lock()
+	if !client.StartedConnecting {
+		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+		backoffDelay = this.CalculateWsBackoffDelay(url)
+	}
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
@@ -2022,7 +2026,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 
 	client := this.Client(url)
 	// todo: calculate the backoff using the clients cache
-	backoffDelay := this.CalculateWsBackoffDelay(url)
+	backoffDelay := 0
 	//
 	//  watchOrderBook ---- future ----+---------------+----→ user
 	//                                 |               |
@@ -2072,6 +2076,10 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
 	client.ConnectMu.Lock()
+	if !client.StartedConnecting {
+		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+		backoffDelay = this.CalculateWsBackoffDelay(url)
+	}
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
@@ -2393,7 +2401,7 @@ func (e *BaseExchange) GetFetchCache() []any {
 
 // CalculateWsBackoffDelay implements exponential reconnect backoff with rng-free jitter,
 // mirroring ts/src/base/Exchange.ts calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
-func (this *Exchange) CalculateWsBackoffDelay(url string) int {
+func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
 	if this.wsBackoffState == nil {
 		this.wsBackoffState = map[string][]int64{}
 	}
