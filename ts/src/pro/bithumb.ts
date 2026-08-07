@@ -4,11 +4,10 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import bithumbRest from '../bithumb.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str, Market } from '../base/types.js';
+import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str, Market, Balances, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, BadRequest, ExchangeError } from '../base/errors.js';
 import { jwt } from '../base/functions/rsa.js';
-import { Balances, FeeString } from '../base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bithumb extends bithumbRest {
@@ -44,7 +43,7 @@ export default class bithumb extends bithumbRest {
         });
     }
 
-    async pong (client, message) {
+    async pong (client: Client, message: any) {
         const ping = this.safeInteger (message, 'ping');
         if (ping !== undefined) {
             await client.send ({ 'pong': ping });
@@ -53,11 +52,11 @@ export default class bithumb extends bithumbRest {
         }
     }
 
-    handlePing (client: Client, message) {
+    handlePing (client: Client, message: any) {
         this.spawn (this.pong, client, message);
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
     }
 
