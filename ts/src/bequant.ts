@@ -15,6 +15,7 @@ export default class bequant extends hitbtc {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
+                'swap': false,
                 'future': undefined,
                 'option': undefined,
             },
