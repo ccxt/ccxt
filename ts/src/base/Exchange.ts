@@ -1719,8 +1719,6 @@ export class BaseExchange {
         let state = this.safeDict (wsOptions, 'backoffState');
         if (state === undefined) {
             state = {};
-            wsOptions['backoffState'] = state;
-            this.options['ws'] = wsOptions;
         }
         const nowMillis = this.milliseconds ();
         const urlState = this.safeDict (state, url, {});
@@ -1732,6 +1730,10 @@ export class BaseExchange {
         urlState['attempts'] = attempts + 1;
         urlState['lastAttempt'] = nowMillis;
         state[url] = urlState;
+        // write back unconditionally - transpiled php copies arrays by value, so
+        // mutations only persist through an explicit re-assignment into options
+        wsOptions['backoffState'] = state;
+        this.options['ws'] = wsOptions;
         if (attempts === 0) {
             return 0; // first dial or recovered, connect immediately
         }
@@ -1766,6 +1768,7 @@ export class BaseExchange {
         if (url === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMultiple() requires a url argument');
         }
+        const clientExisted = (url in this.clients);
         const client = this.client (url) as WsClient;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
@@ -1796,7 +1799,7 @@ export class BaseExchange {
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
         let backoffDelay = 0;
-        if (!client.startedConnecting) {
+        if (!clientExisted) {
             // count real dials only - re-entrant watch calls for live or in-flight
             // connections must not touch the backoff state, see https://github.com/ccxt/ccxt/pull/29627
             backoffDelay = this.calculateWsBackoffDelay (url);
@@ -1869,6 +1872,7 @@ export class BaseExchange {
         if (messageHash === undefined) {
             throw new ArgumentsRequired (this.id + ' watch() requires a messageHash argument');
         }
+        const clientExisted = (url in this.clients);
         const client = this.client (url) as WsClient;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
@@ -1896,7 +1900,7 @@ export class BaseExchange {
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
         let backoffDelay = 0;
-        if (!client.startedConnecting) {
+        if (!clientExisted) {
             // count real dials only - re-entrant watch calls for live or in-flight
             // connections must not touch the backoff state, see https://github.com/ccxt/ccxt/pull/29627
             backoffDelay = this.calculateWsBackoffDelay (url);
