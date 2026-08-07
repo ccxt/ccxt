@@ -1159,6 +1159,11 @@ public class BaseExchange {
         return Strings.uuid();
     }
 
+    // returns the version of the ccxt library, e.g. "4.5.71"
+    public String getCcxtVersion() {
+        return Version.VERSION;
+    }
+
     // =======================
     // Time
     // =======================

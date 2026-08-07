@@ -2542,6 +2542,11 @@ class BaseExchange {
         return true;
     }
 
+    // returns the version of the ccxt library, e.g. "4.5.54"
+    public function get_ccxt_version() {
+        return static::VERSION;
+    }
+
     public function check_required_dependencies() {
         if (!static::has_web3()) {
             throw new ExchangeError($this->id . ' requires web3 dependencies');
