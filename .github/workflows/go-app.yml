@@ -192,9 +192,18 @@ jobs:
 
           git commit -m "[Automated changes] GO files"
 
-          git fetch origin master
-          git rebase --autostash origin/master
-          git push origin HEAD:master
+          for attempt in 1 2 3 4 5; do
+            git fetch origin master
+            git rebase --autostash origin/master
+            if git push origin HEAD:master; then
+              echo "pushed on attempt ${attempt}"
+              exit 0
+            fi
+            echo "master moved, retrying (${attempt})..."
+            sleep $(( (RANDOM % 5) + 2 ))
+          done
+          echo "push failed after 5 attempts"
+          exit 1
 
   live-tests:
     needs: build
