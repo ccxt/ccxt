@@ -47,12 +47,22 @@ public class BaseExchange {
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
     public int calculateWsBackoffDelay(String url) {
-        Object wsOptions = Helpers.SafeValue(this.options, "ws", new java.util.HashMap<String, Object>());
-        Object backoff = Helpers.SafeValue(wsOptions, "backoff", new java.util.HashMap<String, Object>());
-        long base = Helpers.SafeInteger(backoff, "base", 1000L);
-        long factor = Helpers.SafeInteger(backoff, "factor", 2L);
-        long maxDelay = Helpers.SafeInteger(backoff, "max", 60000L);
-        long stableAfter = Helpers.SafeInteger(backoff, "stableAfter", 30000L);
+        long base = 1000L;
+        long factor = 2L;
+        long maxDelay = 60000L;
+        long stableAfter = 30000L;
+        Object wsOptions = Helpers.GetValue(this.options, "ws");
+        Object backoff = (wsOptions == null) ? null : Helpers.GetValue(wsOptions, "backoff");
+        if (backoff != null) {
+            Object value = Helpers.GetValue(backoff, "base");
+            if (value != null) { base = Helpers.toInt64(value); }
+            value = Helpers.GetValue(backoff, "factor");
+            if (value != null) { factor = Helpers.toInt64(value); }
+            value = Helpers.GetValue(backoff, "max");
+            if (value != null) { maxDelay = Helpers.toInt64(value); }
+            value = Helpers.GetValue(backoff, "stableAfter");
+            if (value != null) { stableAfter = Helpers.toInt64(value); }
+        }
         long now = this.milliseconds();
         long attempts = 0L;
         long lastAttempt = 0L;
