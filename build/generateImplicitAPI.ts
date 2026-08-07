@@ -745,14 +745,13 @@ ${IDEN}public function ${method}($params = array()): \\React\\Promise\\PromiseIn
 ${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
 ${IDEN}}`
             }
-            const native = phpNativeReturnType (exchange, camelCaseMethods[i])
-            const nativeSuffix = native ? (': ' + native) : ''
-            // sync REST: native `: array` / `: string` (or `array|string`). The
-            // async pass rewrites to PromiseInterface — see generateImplicitAPIs.
+            // Sync REST: shape stays in @return only. A native `: array` TypeErrors when
+            // the transport hands back a raw string (error page / some STATIC_RESPONSE
+            // fixtures), which is a real runtime path handleRestResponse already allows.
             return `${IDEN}/**
 ${IDEN} * @return ${bodyShape}
 ${IDEN} */
-${IDEN}public function ${method}($params = array())${nativeSuffix} {
+${IDEN}public function ${method}($params = array()) {
 ${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
 ${IDEN}}`
         })
@@ -793,19 +792,21 @@ function createImplicitMethodsCSharp(){
         const methodNames = storedCamelCaseMethods[exchange];
 
         const methods =  methodNames.map(method=> {
-            // callAsync is generic, so the declared shape lands on the
-            // signature itself. Dictionary/List/string resolve without an extra
-            // using: ImplicitUsings supplies System.Collections.Generic.
-            const returns = csharpReturnType (exchange, method);
+            // Signature stays Task<object>: Task<T> is reified/invariant, and a
+            // hard is-T filter in callAsync silently dropped real JSON bodies
+            // whenever the declared leaf shape disagreed with the fixture
+            // (STATIC_RESPONSE emptied balances/tickers). Shape is documented
+            // on <returns>; callers that want Task<T> can call callAsync<T>
+            // directly. (Java keeps a typed Future via erasure — different.)
             const shape = isUnionShape (exchange, method)
                 ? `${proseReturnShape (exchange, method)}, so this endpoint keeps object`
                 : proseReturnShape (exchange, method);
             return [
                 `${IDEN}/// <summary>Calls the ${method} endpoint.</summary>`,
-                `${IDEN}/// <returns>${shape}</returns>`,
-                `${IDEN}public async Task<${returns}> ${method} (object parameters = null)`,
+                `${IDEN}/// <returns>${shape} (runtime type: ${csharpReturnType (exchange, method)})</returns>`,
+                `${IDEN}public async Task<object> ${method} (object parameters = null)`,
                 `${IDEN}{`,
-                `${IDEN}${IDEN}return await this.callAsync<${returns}> ("${method}",parameters);`,
+                `${IDEN}${IDEN}return await this.callAsync ("${method}",parameters);`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')
@@ -1148,9 +1149,7 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
                 // for Psalm/PHPStan — parallel to TS Promise<Dict|List>.
                 for (let i = 3; i < x.length; i++) {
                     x[i] = x[i].replace (/^(\s*) \* @return (.+)$/m, '$1 * @return \\React\\Promise\\PromiseInterface<$2>')
-                    // sync `: array` / `: string` / `: array|string` → PromiseInterface
-                    x[i] = x[i].replace (/: (?:array\|string|array|string) \{/g, ': \\React\\Promise\\PromiseInterface {')
-                    // methods that had no sync native type still need the Promise return
+                    // methods with no prior native type still get the Promise return
                     x[i] = x[i].replace (/(public function \w+\(\$params = array\(\)) \{/g, '$1: \\React\\Promise\\PromiseInterface {')
                 }
             })
