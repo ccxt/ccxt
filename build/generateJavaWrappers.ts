@@ -40,6 +40,7 @@ const KNOWN_TYPES = new Set([
     'BorrowInterest', 'CrossBorrowRate', 'CrossBorrowRates',
     'IsolatedBorrowRate', 'IsolatedBorrowRates',
     'FundingHistory', 'DepositWithdrawFee', 'DepositWithdrawFees',
+    'OrderBooks',
     'OrderRequest', 'CancellationRequest', 'WithdrawalResponse',
     // native dedicated prediction-market types (io.github.ccxt.types.Prediction*)
     'PredictionTicker', 'PredictionTickers', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest', 'PredictionSettlement',
@@ -63,6 +64,14 @@ function isObjectType(t: string) { return isFreeFormType(t) || isDictType(t); }
 // same-named Java KNOWN_TYPES are parse-result POJOs built from a response, so inputs
 // stay Map-shaped rather than reusing them.
 const REQUEST_BAG_TYPES = new Set([ 'OrderRequest', 'CancellationRequest', 'PredictionOrderRequest' ]);
+
+// TS type aliases (`export type X = Y | undefined`) whose Java class carries
+// the non-null name. Kept out of KNOWN_TYPES because emitting `new X(res)`
+// for the alias name would be a `cannot find symbol` at compile time.
+const KNOWN_TYPE_ALIASES: Record<string, string> = {
+    'Market': 'MarketInterface',
+    'Currency': 'CurrencyInterface',
+};
 
 // Scalars map to BOXED reference types — Int→Long (64-bit, ms timestamps), Num→Double,
 // Str→String, Bool→Boolean — never primitives, so every optional slot accepts a typed null.
@@ -90,11 +99,15 @@ function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaTyp
 
     if (inner.endsWith('[]')) {
         const elem = inner.slice(0, -2);
-        if (KNOWN_TYPES.has(elem)) return { javaType: `List<${elem}>`, isArray: true, elementType: elem };
+        const className = KNOWN_TYPE_ALIASES[elem] ?? elem;
+        if (KNOWN_TYPES.has(className)) return { javaType: `List<${className}>`, isArray: true, elementType: className };
         if (elem === 'string') return { javaType: 'List<String>', isArray: true, elementType: null };
         return null;
     }
-    if (KNOWN_TYPES.has(inner)) return { javaType: inner, isArray: false, elementType: null };
+    {
+        const className = KNOWN_TYPE_ALIASES[inner] ?? inner;
+        if (KNOWN_TYPES.has(className)) return { javaType: className, isArray: false, elementType: null };
+    }
     if (isIntegerType(inner) || inner === 'number' && methodName === 'fetchTime') return { javaType: 'Long', isArray: false, elementType: null };
     if (isNumberType(inner)) return { javaType: 'Double', isArray: false, elementType: null };
     if (isStringType(inner)) return { javaType: 'String', isArray: false, elementType: null };
