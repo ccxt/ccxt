@@ -1938,6 +1938,11 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'TRX' => array( 'primary' => 'TRX', 'secondary' => 'TRC20', 'default' => 'secondary' ),
                 'BTC' => array( 'primary' => 'BTC', 'secondary' => 'BRC20', 'default' => 'primary' ),
             ),
+            'backwardSupportedNetworkCodes' => array(
+                'ARB' => 'ARBITRUM',
+                'ARBONE' => 'ARBITRUM',
+                'ARBNOVA' => 'ARBITRUM_NOVA',
+            ),
         );
     }
 
@@ -3523,6 +3528,11 @@ class BaseExchange extends \ccxt\BaseExchange {
             if (is_array($networks) && array_key_exists($networkCode ?? '', $networks)) {
                 return $this->safe_string($networks[$networkCode], 'id');
             }
+        }
+        // before returning the original input, try to match if it's backward-maintained $networkCode
+        $oldCodes = $this->safe_dict($this->options, 'backwardSupportedNetworkCodes', array());
+        if (is_array($oldCodes) && array_key_exists($networkCode ?? '', $oldCodes)) {
+            return $this->network_code_to_id($oldCodes[$networkCode], $currencyCode);
         }
         return $networkCode;
     }

@@ -1415,7 +1415,7 @@ class binance extends binance$1["default"] {
                     // 'FIAT': 'FIAT_MONEY', // not unified atm
                     // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
                     // 'STAKING': 'STAKING', // not unified atm
-                    'ARBONE': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'AVAXC': 'AVAXC',
                     'MATIC': 'MATIC',
                     'BASE': 'BASE',
@@ -13659,7 +13659,7 @@ class binance extends binance$1["default"] {
         const currencyId = this.safeString(info, 'asset');
         const timestamp = this.safeInteger(info, 'updateTime');
         return {
-            'id': this.safeInteger(info, 'tranId'),
+            'id': this.safeString(info, 'tranId'),
             'currency': this.safeCurrencyCode(currencyId, currency),
             'amount': this.safeNumber(info, 'amount'),
             'symbol': undefined,

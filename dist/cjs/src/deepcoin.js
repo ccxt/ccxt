@@ -309,7 +309,7 @@ class deepcoin extends deepcoin$1["default"] {
                 'networks': {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BSC': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',

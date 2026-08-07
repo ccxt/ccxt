@@ -1370,7 +1370,7 @@ func (this *Exmo) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Exmo) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Exmo) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Exmo) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Exmo) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1388,7 +1388,7 @@ func (this *Exmo) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Exmo) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Exmo) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Exmo) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Exmo) FetchTime(params ...any) (int64, error) {
@@ -1502,7 +1502,7 @@ func (this *Exmo) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Exmo) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Exmo) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Exmo) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Exmo) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1547,7 +1547,7 @@ func (this *Exmo) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Exmo) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Exmo) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Exmo) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Exmo) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

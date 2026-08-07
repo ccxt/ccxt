@@ -440,7 +440,7 @@ class toobit extends Exchange {
                     'TRC20' => 'TRX',
                     'SOL' => 'SOL',
                     'MATIC' => 'MATIC',
-                    'ARBONE' => 'ARBITRUM',
+                    'ARBITRUM' => 'ARBITRUM',
                     'BASE' => 'BASE',
                     'TON' => 'TON',
                     'AVAXC' => 'AVAXC',
@@ -542,7 +542,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *

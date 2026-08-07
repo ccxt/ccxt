@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -773,7 +773,8 @@ class gate(Exchange, ImplicitAPI):
                     'ADA': 'ADA',  # CARDANO
                     'AVAXC': 'AVAX_C',
                     'NEAR': 'NEAR',
-                    'ARBONE': 'ARBEVM',
+                    'ARBITRUM': 'ARBEVM',
+                    'ARBITRUM_NOVA': 'ARBNOVA',
                     'BASE': 'BASEEVM',
                     'SUI': 'SUI',
                     'CRONOS': 'CRO',
@@ -795,7 +796,7 @@ class gate(Exchange, ImplicitAPI):
                     'CELO': 'CELO',
                     'HBAR': 'HBAR',
                     # 'FTM': SONIC REBRAND, todo
-                    'ZKSERA': 'ZKSERA',
+                    'ZKSYNC': 'ZKSERA',  # unified code is ZKSYNC, raw chain id is ZKSERA, see https://github.com/ccxt/ccxt/issues/23989
                     'KLAY': 'KLAY',
                     'EOS': 'EOS',
                     'ACA': 'ACA',
@@ -1343,7 +1344,7 @@ class gate(Exchange, ImplicitAPI):
         results = rawPromises
         return self.arrays_concat(results)
 
-    def fetch_spot_markets(self, params: Any = {}):
+    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         marginPromise = self.publicMarginGetCurrencyPairs(params)
         spotMarketsPromise = self.publicSpotGetCurrencyPairs(params)
         marginResponse, spotMarketsResponse = [marginPromise, spotMarketsPromise]
@@ -1459,7 +1460,7 @@ class gate(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_swap_markets(self, params: Any = {}):
+    def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
         if self.options['sandboxMode']:
@@ -1475,7 +1476,7 @@ class gate(Exchange, ImplicitAPI):
                 result.append(parsedMarket)
         return result
 
-    def fetch_future_markets(self, params={}):
+    def fetch_future_markets(self, params={}) -> List[Market]:
         if self.options['sandboxMode']:
             return []  # right now sandbox does not have inverse swaps
         result = []
@@ -1675,7 +1676,7 @@ class gate(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def fetch_option_markets(self, params: Any = {}):
+    def fetch_option_markets(self, params: Any = {}) -> List[Market]:
         result = []
         underlyings = self.fetch_option_underlyings()
         for i in range(0, len(underlyings)):
@@ -5180,7 +5181,7 @@ class gate(Exchange, ImplicitAPI):
             request['last_id'] = lastId
         return [request, finalParams]
 
-    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         if self.markets is None:
             self.load_markets()
         self.load_unified_status()
@@ -6358,7 +6359,7 @@ class gate(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def repay_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
+    def repay_isolated_margin(self, symbol: str, code: str, amount: float, params={}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -6388,7 +6389,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    def repay_cross_margin(self, code: str, amount: float, params={}):
+    def repay_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         repay cross margin borrowed margin and interest
 
@@ -6438,7 +6439,7 @@ class gate(Exchange, ImplicitAPI):
             #
         return self.parse_margin_loan(response, currency)
 
-    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -6483,7 +6484,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    def borrow_cross_margin(self, code: str, amount: float, params={}):
+    def borrow_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -6530,7 +6531,7 @@ class gate(Exchange, ImplicitAPI):
             #
         return self.parse_margin_loan(response, currency)
 
-    def parse_margin_loan(self, info: Any, currency: Currency = None):
+    def parse_margin_loan(self, info: Any, currency: Currency = None) -> MarginLoan:
         #
         # Cross
         #
@@ -6574,7 +6575,7 @@ class gate(Exchange, ImplicitAPI):
         currencyId = self.safe_string(info, 'currency')
         marketId = self.safe_string(info, 'currency_pair')
         return {
-            'id': self.safe_integer(info, 'id'),
+            'id': self.safe_string(info, 'id'),
             'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(info, 'amount'),
             'symbol': self.safe_symbol(marketId, None, '_', 'margin'),
@@ -6904,7 +6905,7 @@ class gate(Exchange, ImplicitAPI):
             'info': interest,
         }
 
-    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 
@@ -7365,7 +7366,7 @@ class gate(Exchange, ImplicitAPI):
         request['dual_mode'] = hedged
         return self.privateFuturesPostSettleDualMode(self.extend(request, query))
 
-    def fetch_underlying_assets(self, params={}):
+    def fetch_underlying_assets(self, params={}) -> List[str]:
         """
         fetches the market ids of underlying assets for a specific contract market type
 

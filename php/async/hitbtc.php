@@ -1506,7 +1506,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_transactions_helper(mixed $types, mixed $code, mixed $since, mixed $limit, mixed $params) {
+    public function fetch_transactions_helper(mixed $types, mixed $code, mixed $since, mixed $limit, mixed $params): PromiseInterface {
         return Async\async(function () use ($types, $code, $since, $limit, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -2274,7 +2274,7 @@ class hitbtc extends Exchange {
         })();
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open order by it's $id

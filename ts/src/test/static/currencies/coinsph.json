@@ -446,7 +446,7 @@
                     }
                 }
             },
-            "ARB": {
+            "ARBITRUM": {
                 "info": {
                     "addressRegex": "^0x[0-9a-fA-F]{40}$",
                     "memoRegex": "",
@@ -464,7 +464,7 @@
                     "sameAddress": false
                 },
                 "id": "ARBITRUM",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -936,7 +936,7 @@
                     }
                 }
             },
-            "ARB": {
+            "ARBITRUM": {
                 "info": {
                     "addressRegex": "^0x[0-9a-fA-F]{40}$",
                     "memoRegex": "",
@@ -954,7 +954,7 @@
                     "sameAddress": false
                 },
                 "id": "ARBITRUM",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -1395,7 +1395,7 @@
                     }
                 }
             },
-            "ARB": {
+            "ARBITRUM": {
                 "info": {
                     "addressRegex": "^0x[0-9a-fA-F]{40}$",
                     "memoRegex": "",
@@ -1413,7 +1413,7 @@
                     "sameAddress": false
                 },
                 "id": "ARBITRUM",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,

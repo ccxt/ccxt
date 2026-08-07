@@ -57,7 +57,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "fetchConvertQuote", true );
                 put( "fetchConvertTrade", false );
                 put( "fetchConvertTradeHistory", true );
-                put( "fetchCrossBorrowRate", true );
+                put( "fetchCrossBorrowRate", false );
                 put( "fetchCrossBorrowRates", false );
                 put( "fetchCurrencies", true );
                 put( "fetchDeposit", true );
@@ -2144,6 +2144,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2200,7 +2201,21 @@ public class WhitebitCore extends WhitebitApi
             Object isMarketOrder = Helpers.isEqual(type, "market");
             Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "activation_price")));
             Object isStopOrder = (!Helpers.isEqual(triggerPrice, null));
+            Object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeInForce, null))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "GTC")))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "IOC")))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "PO")))))
+            {
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
+            }
             Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
+            Object ioc = (Helpers.isEqual(timeInForce, "IOC"));
+            if (Helpers.isTrue(Helpers.isTrue(isStopOrder) && Helpers.isTrue((Helpers.isTrue(postOnly) || Helpers.isTrue(ioc)))))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
+            }
+            if (Helpers.isTrue(Helpers.isTrue(ioc) && !Helpers.isTrue(isLimitOrder)))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
+            }
             var marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
@@ -2208,11 +2223,15 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "postOnly", true);
             }
+            if (Helpers.isTrue(ioc))
+            {
+                Helpers.addElementToObject(request, "ioc", true);
+            }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, null)) && Helpers.isTrue(!Helpers.isEqual(marginMode, "cross"))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createOrder() is only available for cross margin")) ;
             }
-            parameters = this.omit(query, new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
+            parameters = this.omit(query, new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly", "triggerPrice", "stopPrice", "timeInForce")));
             Object useCollateralEndpoint = Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "swap"));
             Object response = null;
             if (Helpers.isTrue(isStopOrder))
@@ -2914,7 +2933,19 @@ public class WhitebitCore extends WhitebitApi
         }
         Object timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
         Object lastTradeTimestamp = this.safeTimestamp(order, "ftime");
+        Object postOnly = this.safeBool(order, "postOnly");
+        Object ioc = this.safeBool(order, "ioc");
+        Object timeInForce = null;
+        if (Helpers.isTrue(Helpers.isEqual(ioc, true)))
+        {
+            timeInForce = "IOC";
+        } else if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
+        {
+            timeInForce = "PO";
+        }
         final Object finalClientOrderId = clientOrderId;
+        final Object finalTimeInForce = timeInForce;
+        final Object finalPostOnly = postOnly;
         final Object finalSide = side;
         final Object finalOrderType = orderType;
         final Object finalAmount = amount;
@@ -2928,8 +2959,8 @@ public class WhitebitCore extends WhitebitApi
             put( "timestamp", timestamp );
             put( "datetime", WhitebitCore.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
-            put( "timeInForce", null );
-            put( "postOnly", null );
+            put( "timeInForce", finalTimeInForce );
+            put( "postOnly", finalPostOnly );
             put( "status", WhitebitCore.this.parseOrderStatus(WhitebitCore.this.safeString(order, "status")) );
             put( "side", finalSide );
             put( "price", price );
@@ -4732,55 +4763,6 @@ public class WhitebitCore extends WhitebitApi
             put( "stopLossPrice", WhitebitCore.this.safeNumber(tpsl, "stopLoss") );
             put( "takeProfitPrice", WhitebitCore.this.safeNumber(tpsl, "takeProfit") );
         }});
-    }
-
-    /**
-     * @method
-     * @name whitebit#fetchCrossBorrowRate
-     * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
-     */
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(Object code, Object... optionalArgs)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
-            {
-                (this.loadMarkets()).join();
-            }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "ticker", Helpers.GetValue(currency, "id") );
-            }};
-            Object response = (this.v4PrivatePostMainAccountSmartPlans(this.extend(request, parameters))).join();
-            //
-            //
-            Object data = this.safeList(response, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseBorrowRate(data, currency);
-        });
-
-    }
-
-    public Object parseBorrowRate(Object info, Object... optionalArgs)
-    {
-        //
-        //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(info, "ticker");
-        Object percent = this.safeString(info, "percent");
-        return new java.util.HashMap<String, Object>() {{
-            put( "currency", WhitebitCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "rate", WhitebitCore.this.parseNumber(Precise.stringDiv(percent, "100")) );
-            put( "period", WhitebitCore.this.safeInteger(info, "duration") );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "info", info );
-        }};
     }
 
     public Object isFiat(Object currency)

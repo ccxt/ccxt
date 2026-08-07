@@ -85,7 +85,7 @@ class xt extends xt$1["default"] {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
@@ -180,6 +180,7 @@ class xt extends xt$1["default"] {
                             'future/market/v1/public/q/symbol-index-price': 1,
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
+                            'future/market/v1/public/q/ticker/books': 1,
                             'future/market/v1/public/q/tickers': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/detail': 3.33,
@@ -204,6 +205,7 @@ class xt extends xt$1["default"] {
                             'future/market/v1/public/q/symbol-index-price': 1,
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
+                            'future/market/v1/public/q/ticker/books': 1,
                             'future/market/v1/public/q/tickers': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/detail': 3.33,
@@ -1815,7 +1817,8 @@ class xt extends xt$1["default"] {
      * @name xt#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
-     * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
@@ -1829,12 +1832,25 @@ class xt extends xt$1["default"] {
         if (symbols !== undefined) {
             market = this.market(symbols[0]);
         }
+        let type = undefined;
         let subType = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchBidsAsks', market, params);
-        if (subType !== undefined) {
-            throw new errors.NotSupported(this.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
+        const isInverse = (subType === 'inverse');
+        const isLinear = (subType === 'linear') || (type === 'swap') || (type === 'future');
+        const isContract = isInverse || isLinear;
+        let response = undefined;
+        if (isInverse) {
+            response = await this.publicInverseGetFutureMarketV1PublicQTickerBooks(this.extend(request, params));
         }
-        const response = await this.publicSpotGetTickerBook(this.extend(request, params));
+        else if (isLinear) {
+            response = await this.publicLinearGetFutureMarketV1PublicQTickerBooks(this.extend(request, params));
+        }
+        else {
+            response = await this.publicSpotGetTickerBook(this.extend(request, params));
+        }
+        //
+        // spot
         //
         //     {
         //         "rc": 0,
@@ -1852,8 +1868,40 @@ class xt extends xt$1["default"] {
         //         ]
         //     }
         //
-        const tickers = this.safeValue(response, 'result', []);
-        return this.parseTickers(tickers, symbols);
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "s": "btc_usdt",
+        //                 "t": 1785928174370,
+        //                 "ap": "64085.5",
+        //                 "aq": "101843",
+        //                 "bp": "64085.3",
+        //                 "bq": "121042"
+        //             },
+        //         ]
+        //     }
+        //
+        const tickers = this.safeList(response, 'result', []);
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const rawTicker = tickers[i];
+            // the spot and contract payloads share the same field names, so
+            // the market type cannot be inferred from the entry itself
+            const marketId = this.safeString(rawTicker, 's');
+            const marketType = isContract ? 'contract' : 'spot';
+            const marketInner = this.safeMarket(marketId, market, '_', marketType);
+            const ticker = this.parseTicker(rawTicker, marketInner);
+            const symbol = ticker['symbol'];
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
+        }
+        return this.filterByArray(result, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -4667,6 +4715,70 @@ class xt extends xt$1["default"] {
             'previousFundingDatetime': undefined,
             'interval': interval,
         };
+    }
+    /**
+     * @method
+     * @name xt#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.NotSupported(this.id + ' fetchOpenInterest() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchOpenInterest', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.publicInverseGetFutureMarketV1PublicContractOpenInterest(this.extend(request, params));
+        }
+        else {
+            response = await this.publicLinearGetFutureMarketV1PublicContractOpenInterest(this.extend(request, params));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "symbol": "btc_usdt",
+        //             "openInterest": "21005.8646",
+        //             "openInterestUsd": "1120726916.46709",
+        //             "time": 1785925443734
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        return this.parseOpenInterest(result, market);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "openInterest": "21005.8646",
+        //         "openInterestUsd": "1120726916.46709",
+        //         "time": 1785925443734
+        //     }
+        //
+        const marketId = this.safeString(interest, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, 'contract');
+        const timestamp = this.safeInteger(interest, 'time');
+        return this.safeOpenInterest({
+            'symbol': market['symbol'],
+            'openInterestAmount': this.safeNumber(interest, 'openInterest'),
+            'openInterestValue': this.safeNumber(interest, 'openInterestUsd'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
+        }, market);
     }
     /**
      * @method

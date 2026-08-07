@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, NullableDict, FeeString, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, NullableDict, FeeString, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -496,7 +496,7 @@ export default class weex extends Exchange {
                     'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
-                    'ARBONE': 'ARBITRUM(ARB)',
+                    'ARBITRUM': 'ARBITRUM(ARB)',
                     'SOL': 'SOLANA(SOL)',
                     'OP': 'OPTIMISM(OP)',
                     'OPTIMISM': 'OPTIMISM(OP)',
@@ -506,7 +506,7 @@ export default class weex extends Exchange {
                     'BEP20(BSC)': 'BEP20',
                     'ERC20': 'ERC20',
                     'POLYGON(MATIC)': 'MATIC',
-                    'ARBITRUM(ARB)': 'ARBONE',
+                    'ARBITRUM(ARB)': 'ARBITRUM',
                     'SOLANA(SOL)': 'SOL',
                     'OPTIMISM(OP)': 'OP',
                     'AVALANCHE_C(AVAX_C)': 'AVAXC',
@@ -694,7 +694,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetApiV3Ping (params);
         // returns an empty response if the exchange is alive, otherwise will trigger an error
         return {
@@ -3805,7 +3805,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

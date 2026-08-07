@@ -6,7 +6,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict } from './base/types.js';
+import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -63,6 +63,8 @@ export default class indodax extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -219,7 +221,7 @@ export default class indodax extends Exchange {
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     // 'BEP2': 'bep2',
-                    // 'ARB': 'arb',
+                    // 'ARBITRUM': 'arb',
                     // 'ERC20': 'erc20',
                     // 'KIP7': 'kip7',
                     // 'MAINNET': 'mainnet',  // TODO: does mainnet just mean the default?
@@ -1124,6 +1126,41 @@ export default class indodax extends Exchange {
             'rate': this.safeNumber (data, 'withdraw_fee'),
             'currency': this.safeCurrencyCode (currencyId, currency),
         };
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchDepositWithdrawFee
+     * @description fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    override async fetchDepositWithdrawFee (code: string, params = {}): Promise<DepositWithdrawFee> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostWithdrawFee (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "return": {
+        //             "server_time": 1607923272,
+        //             "withdraw_fee": 0.005,
+        //             "currency": "eth"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'return', {});
+        const result = this.depositWithdrawFee (response);
+        result['withdraw']['fee'] = this.safeNumber (data, 'withdraw_fee');
+        result['withdraw']['percentage'] = false;
+        result['deposit']['fee'] = 0;
+        result['deposit']['percentage'] = false;
+        return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
     /**

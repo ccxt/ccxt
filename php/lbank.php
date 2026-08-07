@@ -525,7 +525,7 @@ class lbank extends Exchange {
         return $this->array_concat($resolvedMarkets[0], $resolvedMarkets[1]);
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): array {
         $response = $this->spotPublicGetAccuracy($params);
         //
         //     {
@@ -606,7 +606,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function fetch_swap_markets($params = array()) {
+    public function fetch_swap_markets($params = array()): array {
         $request = array(
             'productGroup' => 'SwapU',
         );

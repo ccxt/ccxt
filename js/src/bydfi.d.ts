@@ -1,5 +1,5 @@
 import Exchange from './abstract/bydfi.js';
-import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers } from './base/types.js';
+import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo } from './base/types.js';
 /**
  * @class bydfi
  * @augments Exchange
@@ -389,10 +389,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
-        info: any;
-        hedged: boolean;
-    }>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
     /**
      * @method
      * @name bydfi#fetchBalance
@@ -459,7 +456,7 @@ export default class bydfi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchTransactionsHelper(type: any, code: any, since: any, limit: any, params: any): Promise<any[]>;
+    fetchTransactionsHelper(type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {

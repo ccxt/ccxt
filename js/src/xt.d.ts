@@ -1,5 +1,5 @@
 import Exchange from './abstract/xt.js';
-import type { Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
+import type { Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, OpenInterest, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
 /**
  * @class xt
  * @augments Exchange
@@ -35,7 +35,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params?: any): Promise<List>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
     fetchSwapAndFutureMarkets(params?: {}): Promise<List>;
     parseMarkets(markets: any): List;
     parseMarket(market: Dict): Market;
@@ -95,7 +95,8 @@ export default class xt extends Exchange {
      * @name xt#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
-     * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
@@ -462,6 +463,17 @@ export default class xt extends Exchange {
      */
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
+    /**
+     * @method
+     * @name xt#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): OpenInterest;
     /**
      * @method
      * @name xt#fetchFundingHistory

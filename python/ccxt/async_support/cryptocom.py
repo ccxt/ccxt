@@ -388,6 +388,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
+                    'ARBITRUM': 'ARB',
                 },
                 'broker': 'CCXT',
             },
@@ -2822,7 +2823,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 

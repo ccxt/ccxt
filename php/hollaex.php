@@ -1045,7 +1045,7 @@ class hollaex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open order by it's $id
          *

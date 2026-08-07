@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -373,7 +373,7 @@ class coinsph(Exchange, ImplicitAPI):
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                 },
             },
             'features': {
@@ -711,7 +711,7 @@ class coinsph(Exchange, ImplicitAPI):
                     return entry[1]
         return self.safe_value(config, 'cost', 1)
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 

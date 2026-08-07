@@ -216,7 +216,7 @@ class bitbns extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

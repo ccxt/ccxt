@@ -13,6 +13,10 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Tra
 /**
  * @class coinbaseexchange
  * @augments Exchange
+ * @description This is the institutional Coinbase Exchange API class (exchange.coinbase.com), the venue formerly
+ * served by Coinbase Pro's backend. Credentials for it are issued through Coinbase's Exchange API program and are
+ * separate from regular coinbase.com keys - retail Coinbase.com / Advanced Trade accounts should use the coinbase
+ * class instead. For Coinbase International derivatives see coinbaseinternational.
  */
 export default class coinbaseexchange extends Exchange {
     override describe (): any {
@@ -379,7 +383,7 @@ export default class coinbaseexchange extends Exchange {
                     // TRON unsupported
                     'SOL': 'solana',
                     // BSC unsupported
-                    'ARBONE': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
                     'BASE': 'base',

@@ -388,7 +388,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                     # TRON unsupported
                     'SOL': 'solana',
                     # BSC unsupported
-                    'ARBONE': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
                     'BASE': 'base',

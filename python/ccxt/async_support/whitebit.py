@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -66,7 +66,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchConvertQuote': True,
                 'fetchConvertTrade': False,
                 'fetchConvertTradeHistory': True,
-                'fetchCrossBorrowRate': True,
+                'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
@@ -338,9 +338,9 @@ class whitebit(Exchange, ImplicitAPI):
                         'takeProfitPrice': False,  # todo
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'IOC': True,  # todo
+                            'IOC': True,
                             'FOK': False,
-                            'PO': True,  # todo
+                            'PO': True,
                             'GTD': False,
                         },
                         'hedged': False,
@@ -1832,7 +1832,7 @@ class whitebit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1917,6 +1917,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param float [params.cost]: *market orders only* the cost of the order in units of the base currency
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.postOnly]: If True, the order will only be posted to the order book and not executed immediately
+        :param str [params.timeInForce]: "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
         :param str [params.clientOrderId]: a unique id for the order
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -1949,13 +1950,23 @@ class whitebit(Exchange, ImplicitAPI):
         isMarketOrder = type == 'market'
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
         isStopOrder = (triggerPrice is not None)
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        if (timeInForce is not None) and (timeInForce != 'GTC') and (timeInForce != 'IOC') and (timeInForce != 'PO'):
+            raise NotSupported(self.id + ' createOrder() does not support timeInForce ' + timeInForce + ', only GTC, IOC and PO are allowed')
         postOnly = self.is_post_only(isMarketOrder, False, params)
+        ioc = (timeInForce == 'IOC')
+        if isStopOrder and (postOnly or ioc):
+            raise NotSupported(self.id + ' createOrder() does not support postOnly or timeInForce IOC for stop orders')
+        if ioc and not isLimitOrder:
+            raise NotSupported(self.id + ' createOrder() timeInForce IOC is only supported for limit orders')
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if postOnly:
             request['postOnly'] = True
+        if ioc:
+            request['ioc'] = True
         if marginMode is not None and marginMode != 'cross':
             raise NotSupported(self.id + ' createOrder() is only available for cross margin')
-        params = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice'])
+        params = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice', 'timeInForce'])
         useCollateralEndpoint = marginMode is not None or marketType == 'swap'
         response: dict
         if isStopOrder:
@@ -2449,6 +2460,13 @@ class whitebit(Exchange, ImplicitAPI):
             }
         timestamp = self.safe_timestamp_2(order, 'ctime', 'timestamp')
         lastTradeTimestamp = self.safe_timestamp(order, 'ftime')
+        postOnly = self.safe_bool(order, 'postOnly')
+        ioc = self.safe_bool(order, 'ioc')
+        timeInForce = None
+        if ioc is True:
+            timeInForce = 'IOC'
+        elif postOnly is True:
+            timeInForce = 'PO'
         return self.safe_order({
             'info': order,
             'id': orderId,
@@ -2457,8 +2475,8 @@ class whitebit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'status': self.parse_order_status(self.safe_string(order, 'status')),
             'side': side,
             'price': price,
@@ -3881,42 +3899,6 @@ class whitebit(Exchange, ImplicitAPI):
             'stopLossPrice': self.safe_number(tpsl, 'stopLoss'),
             'takeProfitPrice': self.safe_number(tpsl, 'takeProfit'),
         })
-
-    async def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
-        """
-        fetch the rate of interest to borrow a currency for margin trading
-
-        https://docs.whitebit.com/private/http-main-v4/#get-plans
-
-        :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
-        """
-        if self.markets is None:
-            await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'ticker': currency['id'],
-        }
-        response = await self.v4PrivatePostMainAccountSmartPlans(self.extend(request, params))
-        #
-        #
-        data = self.safe_list(response, 0, [])
-        return self.parse_borrow_rate(data, currency)
-
-    def parse_borrow_rate(self, info: Any, currency: Currency = None):
-        #
-        #
-        currencyId = self.safe_string(info, 'ticker')
-        percent = self.safe_string(info, 'percent')
-        return {
-            'currency': self.safe_currency_code(currencyId, currency),
-            'rate': self.parse_number(Precise.string_div(percent, '100')),
-            'period': self.safe_integer(info, 'duration'),
-            'timestamp': None,
-            'datetime': None,
-            'info': info,
-        }
 
     def is_fiat(self, currency: str) -> bool:
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])

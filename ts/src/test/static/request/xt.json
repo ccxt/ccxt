@@ -273,6 +273,56 @@
                 "output": "{\"orderId\":\"371184779575507520\"}"
             }
         ],
+        "fetchBidsAsks": [
+            {
+                "description": "spot bids and asks",
+                "method": "fetchBidsAsks",
+                "url": "https://sapi.xt.com/v4/public/ticker/book",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "linear swap bids and asks",
+                "method": "fetchBidsAsks",
+                "url": "https://fapi.xt.com/future/market/v1/public/q/ticker/books",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "inverse swap bids and asks routes to dapi",
+                "method": "fetchBidsAsks",
+                "url": "https://dapi.xt.com/future/market/v1/public/q/ticker/books",
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ]
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear swap open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://fapi.xt.com/future/market/v1/public/contract/open-interest?symbol=btc_usdt",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap open interest routes to dapi",
+                "method": "fetchOpenInterest",
+                "url": "https://dapi.xt.com/future/market/v1/public/contract/open-interest?symbol=btc_usd",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
         "fetchFundingInterval": [
             {
                 "description": "linear swap fetch the funding interval",

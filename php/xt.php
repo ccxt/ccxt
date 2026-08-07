@@ -79,7 +79,7 @@ class xt extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
-                'fetchOpenInterest' => false,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
@@ -174,6 +174,7 @@ class xt extends Exchange {
                             'future/market/v1/public/q/symbol-index-price' => 1,
                             'future/market/v1/public/q/symbol-mark-price' => 1,
                             'future/market/v1/public/q/ticker' => 1,
+                            'future/market/v1/public/q/ticker/books' => 1,
                             'future/market/v1/public/q/tickers' => 1,
                             'future/market/v1/public/symbol/coins' => 3.33,
                             'future/market/v1/public/symbol/detail' => 3.33,
@@ -198,6 +199,7 @@ class xt extends Exchange {
                             'future/market/v1/public/q/symbol-index-price' => 1,
                             'future/market/v1/public/q/symbol-mark-price' => 1,
                             'future/market/v1/public/q/ticker' => 1,
+                            'future/market/v1/public/q/ticker/books' => 1,
                             'future/market/v1/public/q/tickers' => 1,
                             'future/market/v1/public/symbol/coins' => 3.33,
                             'future/market/v1/public/symbol/detail' => 3.33,
@@ -1002,7 +1004,7 @@ class xt extends Exchange {
         return $this->array_concat($spotMarkets, $swapAndFutureMarkets);
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): array {
         $response = $this->publicSpotGetSymbol($params);
         //
         //     {
@@ -1803,15 +1805,16 @@ class xt extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
          * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+         * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-$market-information-for-all-trading-pairs
          *
-         * @param {string} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1822,12 +1825,23 @@ class xt extends Exchange {
         if ($symbols !== null) {
             $market = $this->market($symbols[0]);
         }
+        $type = null;
         $subType = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $params);
-        if ($subType !== null) {
-            throw new NotSupported($this->id . ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
+        $isInverse = ($subType === 'inverse');
+        $isLinear = ($subType === 'linear') || ($type === 'swap') || ($type === 'future');
+        $isContract = $isInverse || $isLinear;
+        $response = null;
+        if ($isInverse) {
+            $response = $this->publicInverseGetFutureMarketV1PublicQTickerBooks($this->extend($request, $params));
+        } elseif ($isLinear) {
+            $response = $this->publicLinearGetFutureMarketV1PublicQTickerBooks($this->extend($request, $params));
+        } else {
+            $response = $this->publicSpotGetTickerBook($this->extend($request, $params));
         }
-        $response = $this->publicSpotGetTickerBook($this->extend($request, $params));
+        //
+        // spot
         //
         //     {
         //         "rc" => 0,
@@ -1845,8 +1859,40 @@ class xt extends Exchange {
         //         )
         //     }
         //
-        $tickers = $this->safe_value($response, 'result', array());
-        return $this->parse_tickers($tickers, $symbols);
+        // swap and future
+        //
+        //     {
+        //         "returnCode" => 0,
+        //         "msgInfo" => "success",
+        //         "error" => null,
+        //         "result" => array(
+        //             array(
+        //                 "s" => "btc_usdt",
+        //                 "t" => 1785928174370,
+        //                 "ap" => "64085.5",
+        //                 "aq" => "101843",
+        //                 "bp" => "64085.3",
+        //                 "bq" => "121042"
+        //             ),
+        //         )
+        //     }
+        //
+        $tickers = $this->safe_list($response, 'result', array());
+        $result = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $rawTicker = $tickers[$i];
+            // the spot and contract payloads share the same field names, so
+            // the $market $type cannot be inferred from the entry itself
+            $marketId = $this->safe_string($rawTicker, 's');
+            $marketType = $isContract ? 'contract' : 'spot';
+            $marketInner = $this->safe_market($marketId, $market, '_', $marketType);
+            $ticker = $this->parse_ticker($rawTicker, $marketInner);
+            $symbol = $ticker['symbol'];
+            if ($symbol !== null) {
+                $result[$symbol] = $ticker;
+            }
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_ticker(mixed $ticker, ?array $market = null) {
@@ -2970,7 +3016,7 @@ class xt extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4628,6 +4674,71 @@ class xt extends Exchange {
             'previousFundingDatetime' => null,
             'interval' => $interval,
         );
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array()): array {
+        /**
+         * retrieves the open interest of a contract trading pair
+         *
+         * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new NotSupported($this->id . ' fetchOpenInterest() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenInterest', $market, $params);
+        $response = null;
+        if ($subType === 'inverse') {
+            $response = $this->publicInverseGetFutureMarketV1PublicContractOpenInterest($this->extend($request, $params));
+        } else {
+            $response = $this->publicLinearGetFutureMarketV1PublicContractOpenInterest($this->extend($request, $params));
+        }
+        //
+        //     {
+        //         "returnCode" => 0,
+        //         "msgInfo" => "success",
+        //         "error" => null,
+        //         "result" => {
+        //             "symbol" => "btc_usdt",
+        //             "openInterest" => "21005.8646",
+        //             "openInterestUsd" => "1120726916.46709",
+        //             "time" => 1785925443734
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_open_interest($result, $market);
+    }
+
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "btc_usdt",
+        //         "openInterest" => "21005.8646",
+        //         "openInterestUsd" => "1120726916.46709",
+        //         "time" => 1785925443734
+        //     }
+        //
+        $marketId = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $timestamp = $this->safe_integer($interest, 'time');
+        return $this->safe_open_interest(array(
+            'symbol' => $market['symbol'],
+            'openInterestAmount' => $this->safe_number($interest, 'openInterest'),
+            'openInterestValue' => $this->safe_number($interest, 'openInterestUsd'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        ), $market);
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {

@@ -1880,6 +1880,12 @@ public class AlpacaCore extends AlpacaApi
 
     }
 
+    public void setSandboxMode(Object enable)
+    {
+        super.setSandboxMode(enable);
+        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+    }
+
     public java.util.concurrent.CompletableFuture<Object> fetchTransactionsHelper(Object type2, Object code2, Object since, Object limit, Object parameters)
     {
         final Object type3 = type2;
@@ -1895,6 +1901,42 @@ public class AlpacaCore extends AlpacaApi
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
+            }
+            Object sandboxMode = Helpers.isTrue(this.isSandboxModeEnabled) || Helpers.isTrue(this.safeBool(this.options, "sandboxMode", false));
+            if (Helpers.isTrue(sandboxMode))
+            {
+                // paper-trading hosts do not serve the crypto wallets api at all, so route
+                // through the account activities ledger instead, filtered to transfer-like
+                // entries, see https://github.com/ccxt/ccxt/issues/24847
+                Object request = new java.util.HashMap<String, Object>() {{
+                    put( "activity_types", "CSD,CSW,TRANS" );
+                }};
+                Object activities = (this.traderPrivateGetV2AccountActivities(this.extend(request, parameters))).join();
+                //
+                //     [
+                //         {
+                //             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+                //             "activity_type": "CSD",
+                //             "date": "2025-01-10",
+                //             "net_amount": "1000",
+                //             "status": "executed"
+                //         }
+                //     ]
+                //
+                Object filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(activities)); i++)
+                {
+                    Object entry = Helpers.GetValue(activities, i);
+                    Object activityType = this.safeString(entry, "activity_type");
+                    Object amount = this.safeString(entry, "net_amount");
+                    Object isIncoming = Helpers.isTrue((Helpers.isEqual(activityType, "CSD"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(activityType, "TRANS"))) && !Helpers.isTrue(Precise.stringLt(amount, "0"))));
+                    Object entryDirection = ((Helpers.isTrue(isIncoming))) ? "INCOMING" : "OUTGOING";
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "BOTH"))) || Helpers.isTrue((Helpers.isEqual(entryDirection, type)))))
+                    {
+                        ((java.util.List<Object>)filtered).add(entry);
+                    }
+                }
+                return this.parseTransactions(filtered, currency, since, limit, parameters);
             }
             Object response = (this.traderPrivateGetV2WalletsTransfers(parameters)).join();
             //
@@ -2010,6 +2052,18 @@ public class AlpacaCore extends AlpacaApi
     public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
+        // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        //
+        //     {
+        //         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+        //         "activity_type": "CSD",
+        //         "date": "2025-01-10",
+        //         "net_amount": "1000",
+        //         "status": "executed"
+        //     }
+        //
+        // crypto wallets api entry
+        //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
         //         "tx_hash": null,
@@ -2027,37 +2081,104 @@ public class AlpacaCore extends AlpacaApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object datetime = this.safeString(transaction, "created_at");
-        Object currencyId = this.safeString(transaction, "asset");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object fees = this.safeString(transaction, "fees");
-        Object networkFee = this.safeString(transaction, "network_fee");
-        Object totalFee = Precise.stringAdd(fees, networkFee);
-        Object fee = new java.util.HashMap<String, Object>() {{
-            put( "cost", AlpacaCore.this.parseNumber(totalFee) );
-            put( "currency", code );
-        }};
+        Object activityType = this.safeString(transaction, "activity_type");
+        Object txid = null;
+        Object timestamp = null;
+        Object datetime = null;
+        Object network = null;
+        Object address = null;
+        Object addressTo = null;
+        Object addressFrom = null;
+        Object type = null;
+        Object amount = null;
+        Object code = null;
+        Object status = null;
+        Object comment = null;
+        Object intern = null;
+        Object fee = null;
+        if (Helpers.isTrue(!Helpers.isEqual(activityType, null)))
+        {
+            Object netAmount = this.safeString(transaction, "net_amount");
+            Object isIncoming = Helpers.isTrue((Helpers.isEqual(activityType, "CSD"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(activityType, "TRANS"))) && !Helpers.isTrue(Precise.stringLt(netAmount, "0"))));
+            timestamp = this.parse8601(Helpers.add(this.safeString(transaction, "date"), "T00:00:00Z"));
+            datetime = this.iso8601(timestamp);
+            type = ((Helpers.isTrue(isIncoming))) ? "deposit" : "withdrawal";
+            amount = this.parseNumber(Precise.stringAbs(netAmount));
+            // cash ledger rows carry no per-entry asset field and are USD, while crypto
+            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            Object activityCurrencyId = this.safeString2(transaction, "symbol", "asset");
+            if (Helpers.isTrue(!Helpers.isEqual(activityCurrencyId, null)))
+            {
+                code = this.safeCurrencyCode(activityCurrencyId);
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(activityType, "CSD"))) || Helpers.isTrue((Helpers.isEqual(activityType, "CSW")))))
+            {
+                code = "USD";
+            } else
+            {
+                code = this.safeCurrencyCode(null, currency);
+            }
+            status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+            comment = activityType;
+            intern = (!Helpers.isEqual(activityType, "TRANS"));
+        } else
+        {
+            txid = this.safeString(transaction, "tx_hash");
+            datetime = this.safeString(transaction, "created_at");
+            timestamp = this.parse8601(datetime);
+            network = this.safeString(transaction, "chain");
+            address = this.safeString(transaction, "to_address");
+            addressTo = this.safeString(transaction, "to_address");
+            addressFrom = this.safeString(transaction, "from_address");
+            type = this.parseTransactionType(this.safeString(transaction, "direction"));
+            amount = this.safeNumber(transaction, "amount");
+            Object currencyId = this.safeString(transaction, "asset");
+            code = this.safeCurrencyCode(currencyId, currency);
+            status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+            Object fees = this.safeString(transaction, "fees");
+            Object networkFee = this.safeString(transaction, "network_fee");
+            Object totalFee = Precise.stringAdd(fees, networkFee);
+            final Object finalCode = code;
+            fee = new java.util.HashMap<String, Object>() {{
+                put( "cost", AlpacaCore.this.parseNumber(totalFee) );
+                put( "currency", finalCode );
+            }};
+        }
+        final Object finalTxid = txid;
+        final Object finalTimestamp = timestamp;
+        final Object finalDatetime = datetime;
+        final Object finalNetwork = network;
+        final Object finalAddress = address;
+        final Object finalAddressTo = addressTo;
+        final Object finalAddressFrom = addressFrom;
+        final Object finalType = type;
+        final Object finalAmount = amount;
+        final Object finalCode_2 = code;
+        final Object finalStatus = status;
+        final Object finalComment = comment;
+        final Object finalIntern = intern;
+        final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", AlpacaCore.this.safeString(transaction, "id") );
-            put( "txid", AlpacaCore.this.safeString(transaction, "tx_hash") );
-            put( "timestamp", AlpacaCore.this.parse8601(datetime) );
-            put( "datetime", datetime );
-            put( "network", AlpacaCore.this.safeString(transaction, "chain") );
-            put( "address", AlpacaCore.this.safeString(transaction, "to_address") );
-            put( "addressTo", AlpacaCore.this.safeString(transaction, "to_address") );
-            put( "addressFrom", AlpacaCore.this.safeString(transaction, "from_address") );
+            put( "txid", finalTxid );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", finalDatetime );
+            put( "network", finalNetwork );
+            put( "address", finalAddress );
+            put( "addressTo", finalAddressTo );
+            put( "addressFrom", finalAddressFrom );
             put( "tag", null );
             put( "tagTo", null );
             put( "tagFrom", null );
-            put( "type", AlpacaCore.this.parseTransactionType(AlpacaCore.this.safeString(transaction, "direction")) );
-            put( "amount", AlpacaCore.this.safeNumber(transaction, "amount") );
-            put( "currency", code );
-            put( "status", AlpacaCore.this.parseTransactionStatus(AlpacaCore.this.safeString(transaction, "status")) );
+            put( "type", finalType );
+            put( "amount", finalAmount );
+            put( "currency", finalCode_2 );
+            put( "status", finalStatus );
             put( "updated", null );
-            put( "fee", fee );
-            put( "comment", null );
-            put( "internal", null );
+            put( "comment", finalComment );
+            put( "internal", finalIntern );
+            put( "fee", finalFee );
         }};
     }
 
@@ -2067,6 +2188,9 @@ public class AlpacaCore extends AlpacaApi
             put( "PROCESSING", "pending" );
             put( "FAILED", "failed" );
             put( "COMPLETE", "ok" );
+            put( "executed", "ok" );
+            put( "canceled", "canceled" );
+            put( "pending", "pending" );
         }};
         return this.safeString(statuses, status, status);
     }

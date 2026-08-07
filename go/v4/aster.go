@@ -570,9 +570,9 @@ func (this *AsterCore) Describe() any {
 				"linear": "FUTURE",
 			},
 			"networks": map[string]any{
-				"ERC20":  "ETH",
-				"BEP20":  "BSC",
-				"ARBONE": "Arbitrum",
+				"ERC20":    "ETH",
+				"BEP20":    "BSC",
+				"ARBITRUM": "Arbitrum",
 			},
 			"networksToChainId": map[string]any{
 				"ETH":      1,

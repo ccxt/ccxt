@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
+from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -437,7 +437,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.safe_integer_product(result, 'server_time', 0.001)
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3078,7 +3078,7 @@ class delta(Exchange, ImplicitAPI):
         #
         return await self.privatePostProductsProductIdOrdersLeverage(self.extend(request, params))
 
-    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 

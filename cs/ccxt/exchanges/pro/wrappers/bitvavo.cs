@@ -625,10 +625,10 @@ public partial class bitvavo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<Dictionary<string, object>> WithdrawWs(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> WithdrawWs(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdrawWs(code, amount, address, tag, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Transaction(res);
     }
     /// <summary>
     /// fetch all withdrawals made from an account
@@ -657,12 +657,12 @@ public partial class bitvavo
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchWithdrawalsWs(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchWithdrawalsWs(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchWithdrawalsWs(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -725,12 +725,12 @@ public partial class bitvavo
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositsWs(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchDepositsWs(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDepositsWs(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
     /// fetch the trading fees for multiple markets

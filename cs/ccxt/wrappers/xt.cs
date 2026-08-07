@@ -35,10 +35,10 @@ public partial class xt
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(object parameters = null)
+    public async Task<List<MarketInterface>> FetchSpotMarkets(object parameters = null)
     {
         var res = await this.fetchSpotMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<Dictionary<string, object>>> FetchSwapAndFutureMarkets(Dictionary<string, object> parameters = null)
     {
@@ -149,13 +149,8 @@ public partial class xt
     /// </summary>
     /// <remarks>
     /// See <see href="https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>symbols</term>
-    /// <description>
-    /// string : unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-    /// </description>
-    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}.</returns>
@@ -913,6 +908,26 @@ public partial class xt
     {
         var res = await this.fetchFundingRate(symbol, parameters);
         return new FundingRate(res);
+    }
+    /// <summary>
+    /// retrieves the open interest of a contract trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(symbol, parameters);
+        return new OpenInterest(res);
     }
     /// <summary>
     /// fetch the funding history

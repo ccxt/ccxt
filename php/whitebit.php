@@ -48,7 +48,7 @@ class whitebit extends Exchange {
                 'fetchConvertQuote' => true,
                 'fetchConvertTrade' => false,
                 'fetchConvertTradeHistory' => true,
-                'fetchCrossBorrowRate' => true,
+                'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
@@ -320,9 +320,9 @@ class whitebit extends Exchange {
                         'takeProfitPrice' => false, // todo
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'IOC' => true, // todo
+                            'IOC' => true,
                             'FOK' => false,
-                            'PO' => true, // todo
+                            'PO' => true,
                             'GTD' => false,
                         ),
                         'hedged' => false,
@@ -1907,7 +1907,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1996,6 +1996,7 @@ class whitebit extends Exchange {
          * @param {float} [$params->cost] *$market orders only* the $cost of the order in units of the base currency
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
          * @param {bool} [$params->postOnly] If true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [$params->timeInForce] "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
          * @param {string} [$params->clientOrderId] a unique id for the order
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
@@ -2033,15 +2034,29 @@ class whitebit extends Exchange {
         $isMarketOrder = $type === 'market';
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
         $isStopOrder = ($triggerPrice !== null);
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        if (($timeInForce !== null) && ($timeInForce !== 'GTC') && ($timeInForce !== 'IOC') && ($timeInForce !== 'PO')) {
+            throw new NotSupported($this->id . ' createOrder() does not support $timeInForce ' . $timeInForce . ', only GTC, IOC and PO are allowed');
+        }
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
+        $ioc = ($timeInForce === 'IOC');
+        if ($isStopOrder && ($postOnly || $ioc)) {
+            throw new NotSupported($this->id . ' createOrder() does not support $postOnly or $timeInForce IOC for stop orders');
+        }
+        if ($ioc && !$isLimitOrder) {
+            throw new NotSupported($this->id . ' createOrder() $timeInForce IOC is only supported for limit orders');
+        }
         list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($postOnly) {
             $request['postOnly'] = true;
         }
+        if ($ioc) {
+            $request['ioc'] = true;
+        }
         if ($marginMode !== null && $marginMode !== 'cross') {
             throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
         }
-        $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
+        $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice', 'timeInForce' ));
         $useCollateralEndpoint = $marginMode !== null || $marketType === 'swap';
         if ($isStopOrder) {
             $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -2590,6 +2605,14 @@ class whitebit extends Exchange {
         }
         $timestamp = $this->safe_timestamp_2($order, 'ctime', 'timestamp');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'ftime');
+        $postOnly = $this->safe_bool($order, 'postOnly');
+        $ioc = $this->safe_bool($order, 'ioc');
+        $timeInForce = null;
+        if ($ioc === true) {
+            $timeInForce = 'IOC';
+        } elseif ($postOnly === true) {
+            $timeInForce = 'PO';
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $orderId,
@@ -2598,8 +2621,8 @@ class whitebit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'timeInForce' => null,
-            'postOnly' => null,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'side' => $side,
             'price' => $price,
@@ -4116,45 +4139,6 @@ class whitebit extends Exchange {
             'stopLossPrice' => $this->safe_number($tpsl, 'stopLoss'),
             'takeProfitPrice' => $this->safe_number($tpsl, 'takeProfit'),
         ));
-    }
-
-    public function fetch_cross_borrow_rate(string $code, $params = array()): array {
-        /**
-         * fetch the rate of interest to borrow a $currency for margin trading
-         *
-         * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-         *
-         * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structure~
-         */
-        if ($this->markets === null) {
-            $this->load_markets();
-        }
-        $currency = $this->currency($code);
-        $request = array(
-            'ticker' => $currency['id'],
-        );
-        $response = $this->v4PrivatePostMainAccountSmartPlans($this->extend($request, $params));
-        //
-        //
-        $data = $this->safe_list($response, 0, array());
-        return $this->parse_borrow_rate($data, $currency);
-    }
-
-    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
-        //
-        //
-        $currencyId = $this->safe_string($info, 'ticker');
-        $percent = $this->safe_string($info, 'percent');
-        return array(
-            'currency' => $this->safe_currency_code($currencyId, $currency),
-            'rate' => $this->parse_number(Precise::string_div($percent, '100')),
-            'period' => $this->safe_integer($info, 'duration'),
-            'timestamp' => null,
-            'datetime' => null,
-            'info' => $info,
-        );
     }
 
     public function is_fiat(string $currency): bool {

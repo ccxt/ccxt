@@ -287,7 +287,7 @@ export default class cex extends Exchange {
                     'AVALANCHEC': 'avalanche',
                     'ETHPOW': 'ethereumpow',
                     'NEAR': 'near',
-                    'ARB': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'DOT': 'polkadot',
                     'OPT': 'optimism',
                     'INJ': 'injective',
@@ -1147,7 +1147,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1168,7 +1168,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

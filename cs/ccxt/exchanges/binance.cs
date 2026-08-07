@@ -1428,7 +1428,7 @@ public partial class binance : Exchange
                     { "DOGE", "DOGE" },
                     { "SOL", "SOL" },
                     { "SONIC", "SONIC" },
-                    { "ARBONE", "ARBITRUM" },
+                    { "ARBITRUM", "ARBITRUM" },
                     { "AVAXC", "AVAXC" },
                     { "MATIC", "MATIC" },
                     { "BASE", "BASE" },
@@ -14398,7 +14398,7 @@ public partial class binance : Exchange
         object currencyId = this.safeString(info, "asset");
         object timestamp = this.safeInteger(info, "updateTime");
         return new Dictionary<string, object>() {
-            { "id", this.safeInteger(info, "tranId") },
+            { "id", this.safeString(info, "tranId") },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "amount", this.safeNumber(info, "amount") },
             { "symbol", null },

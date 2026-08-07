@@ -3558,7 +3558,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical settlement records
          *

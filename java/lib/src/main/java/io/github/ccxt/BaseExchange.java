@@ -5935,6 +5935,11 @@ public Object describe()
                     put( "default", "primary" );
                 }} );
             }} );
+            put( "backwardSupportedNetworkCodes", new java.util.HashMap<String, Object>() {{
+                put( "ARB", "ARBITRUM" );
+                put( "ARBONE", "ARBITRUM" );
+                put( "ARBNOVA", "ARBITRUM_NOVA" );
+            }} );
         }};
     }
 
@@ -7989,6 +7994,12 @@ public Object describe()
             {
                 return this.safeString(Helpers.GetValue(networks, networkCode), "id");
             }
+        }
+        // before returning the original input, try to match if it's backward-maintained networkCode
+        Object oldCodes = this.safeDict(this.options, "backwardSupportedNetworkCodes", new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.inOp(oldCodes, networkCode)))
+        {
+            return this.networkCodeToId(Helpers.GetValue(oldCodes, networkCode), currencyCode);
         }
         return networkCode;
     }

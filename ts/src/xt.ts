@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/xt.js';
-import type { Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, SubType, Tickers, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
+import type { Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, OpenInterest, Order, OrderSide, OrderType, Position, Str, Strings, SubType, Tickers, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
@@ -85,7 +85,7 @@ export default class xt extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
@@ -180,6 +180,7 @@ export default class xt extends Exchange {
                             'future/market/v1/public/q/symbol-index-price': 1,
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
+                            'future/market/v1/public/q/ticker/books': 1,
                             'future/market/v1/public/q/tickers': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/detail': 3.33,
@@ -204,6 +205,7 @@ export default class xt extends Exchange {
                             'future/market/v1/public/q/symbol-index-price': 1,
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
+                            'future/market/v1/public/q/ticker/books': 1,
                             'future/market/v1/public/q/tickers': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/detail': 3.33,
@@ -1008,7 +1010,7 @@ export default class xt extends Exchange {
         return this.arrayConcat (spotMarkets, swapAndFutureMarkets);
     }
 
-    async fetchSpotMarkets (params: any = {}) {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const response = await this.publicSpotGetSymbol (params);
         //
         //     {
@@ -1814,11 +1816,12 @@ export default class xt extends Exchange {
      * @name xt#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
-     * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    override async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+    override async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1828,12 +1831,23 @@ export default class xt extends Exchange {
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
         }
+        let type: Str = undefined;
         let subType: SubType = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
-        if (subType !== undefined) {
-            throw new NotSupported (this.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
+        const isInverse = (subType === 'inverse');
+        const isLinear = (subType === 'linear') || (type === 'swap') || (type === 'future');
+        const isContract = isInverse || isLinear;
+        let response = undefined;
+        if (isInverse) {
+            response = await this.publicInverseGetFutureMarketV1PublicQTickerBooks (this.extend (request, params));
+        } else if (isLinear) {
+            response = await this.publicLinearGetFutureMarketV1PublicQTickerBooks (this.extend (request, params));
+        } else {
+            response = await this.publicSpotGetTickerBook (this.extend (request, params));
         }
-        const response = await this.publicSpotGetTickerBook (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "rc": 0,
@@ -1851,8 +1865,40 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue (response, 'result', []);
-        return this.parseTickers (tickers, symbols);
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "s": "btc_usdt",
+        //                 "t": 1785928174370,
+        //                 "ap": "64085.5",
+        //                 "aq": "101843",
+        //                 "bp": "64085.3",
+        //                 "bq": "121042"
+        //             },
+        //         ]
+        //     }
+        //
+        const tickers = this.safeList (response, 'result', []);
+        const result: Dict = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const rawTicker = tickers[i];
+            // the spot and contract payloads share the same field names, so
+            // the market type cannot be inferred from the entry itself
+            const marketId = this.safeString (rawTicker, 's');
+            const marketType = isContract ? 'contract' : 'spot';
+            const marketInner = this.safeMarket (marketId, market, '_', marketType);
+            const ticker = this.parseTicker (rawTicker, marketInner);
+            const symbol = ticker['symbol'];
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     override parseTicker (ticker: any, market: Market = undefined) {
@@ -2976,7 +3022,7 @@ export default class xt extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4635,6 +4681,71 @@ export default class xt extends Exchange {
             'previousFundingDatetime': undefined,
             'interval': interval,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name xt#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    override async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new NotSupported (this.id + ' fetchOpenInterest() supports swap contracts only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let subType: SubType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenInterest', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.publicInverseGetFutureMarketV1PublicContractOpenInterest (this.extend (request, params));
+        } else {
+            response = await this.publicLinearGetFutureMarketV1PublicContractOpenInterest (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "symbol": "btc_usdt",
+        //             "openInterest": "21005.8646",
+        //             "openInterestUsd": "1120726916.46709",
+        //             "time": 1785925443734
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOpenInterest (result, market);
+    }
+
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "openInterest": "21005.8646",
+        //         "openInterestUsd": "1120726916.46709",
+        //         "time": 1785925443734
+        //     }
+        //
+        const marketId = this.safeString (interest, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const timestamp = this.safeInteger (interest, 'time');
+        return this.safeOpenInterest ({
+            'symbol': market['symbol'],
+            'openInterestAmount': this.safeNumber (interest, 'openInterest'),
+            'openInterestValue': this.safeNumber (interest, 'openInterestUsd'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
     }
 
     /**

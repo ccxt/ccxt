@@ -371,6 +371,7 @@ class cryptocom extends cryptocom$1["default"] {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
+                    'ARBITRUM': 'ARB',
                 },
                 'broker': 'CCXT',
             },

@@ -4112,7 +4112,13 @@ class hyperliquid extends hyperliquid$1["default"] {
             throw new errors.NotSupported(this.id + ' transfer() only support main <> subaccount transfer');
         }
         this.checkAddress(subAccountAddress);
-        if (code === undefined || code.toUpperCase() === 'USDC') {
+        // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+        // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
+        // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
+        const transferType = this.safeString(params, 'type');
+        params = this.omit(params, 'type');
+        const isUsdc = (code === undefined) || (code.toUpperCase() === 'USDC');
+        if (isUsdc && (transferType !== 'spot')) {
             // Transfer USDC with subAccountTransfer
             const usd = this.parseToInt(Precise["default"].stringMul(this.numberToString(amount), '1000000'));
             const action = {
@@ -4134,13 +4140,21 @@ class hyperliquid extends hyperliquid$1["default"] {
             return this.parseTransfer(response);
         }
         else {
-            // Transfer non-USDC with subAccountSpotTransfer
-            const symbol = this.symbol(code);
+            // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
+            // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
+            if (code === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' transfer() requires a currency code for spot sub-account transfers');
+            }
+            const currency = this.currency(code);
+            const currencyInfo = this.safeDict(currency, 'info', {});
+            const tokenName = this.safeString(currencyInfo, 'name');
+            const tokenId = this.safeString(currencyInfo, 'tokenId');
+            const token = tokenName + ':' + tokenId;
             const action = {
                 'type': 'subAccountSpotTransfer',
                 'subAccountUser': subAccountAddress,
                 'isDeposit': isDeposit,
-                'token': symbol,
+                'token': token,
                 'amount': this.numberToString(amount),
             };
             const sig = this.signL1Action(action, nonce);

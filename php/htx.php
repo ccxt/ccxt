@@ -1299,7 +1299,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1510,7 +1510,7 @@ class htx extends Exchange {
             } else {
                 $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
             }
-            $updated = $this->safe_string($response, 'ts');
+            $updated = $this->safe_integer($response, 'ts');
         } else {
             $statusData = $this->safe_value($response, 'status', array());
             $statusRaw = $this->safe_string($statusData, 'indicator');
@@ -9178,7 +9178,7 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9216,7 +9216,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9251,7 +9251,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9294,7 +9294,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9335,7 +9335,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         // borrowMargin cross
         //
@@ -9369,7 +9369,7 @@ class htx extends Exchange {
         );
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Fetches historical settlement records
          *

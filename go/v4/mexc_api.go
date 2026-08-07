@@ -7,6 +7,10 @@
 
 package ccxt
 
+func (this *MexcCore) SpotPublicGetAnnouncements(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPublicGetAnnouncements", args...)
+}
+
 func (this *MexcCore) SpotPublicGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetPing", args...)
 }

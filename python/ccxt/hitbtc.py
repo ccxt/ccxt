@@ -1451,7 +1451,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_transactions_helper(self, types: Any, code: Any, since: Any, limit: Any, params: Any):
+    def fetch_transactions_helper(self, types: Any, code: Any, since: Any, limit: Any, params: Any) -> List[Transaction]:
         if self.markets is None:
             self.load_markets()
         request = {
@@ -2139,7 +2139,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 

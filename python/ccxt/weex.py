@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.weex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -506,7 +506,7 @@ class weex(Exchange, ImplicitAPI):
                     'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
-                    'ARBONE': 'ARBITRUM(ARB)',
+                    'ARBITRUM': 'ARBITRUM(ARB)',
                     'SOL': 'SOLANA(SOL)',
                     'OP': 'OPTIMISM(OP)',
                     'OPTIMISM': 'OPTIMISM(OP)',
@@ -516,7 +516,7 @@ class weex(Exchange, ImplicitAPI):
                     'BEP20(BSC)': 'BEP20',
                     'ERC20': 'ERC20',
                     'POLYGON(MATIC)': 'MATIC',
-                    'ARBITRUM(ARB)': 'ARBONE',
+                    'ARBITRUM(ARB)': 'ARBITRUM',
                     'SOLANA(SOL)': 'SOL',
                     'OPTIMISM(OP)': 'OP',
                     'AVALANCHE_C(AVAX_C)': 'AVAXC',
@@ -694,7 +694,7 @@ class weex(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -3534,7 +3534,7 @@ class weex(Exchange, ImplicitAPI):
                 request['crossLeverage'] = leverage
         return self.contractPrivatePostCapiV3AccountLeverage(self.extend(request, params))
 
-    def fetch_position_mode(self, symbol: Str = None, params={}):
+    def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way
 

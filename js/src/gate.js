@@ -758,7 +758,8 @@ export default class gate extends Exchange {
                     'ADA': 'ADA', // CARDANO
                     'AVAXC': 'AVAX_C',
                     'NEAR': 'NEAR',
-                    'ARBONE': 'ARBEVM',
+                    'ARBITRUM': 'ARBEVM',
+                    'ARBITRUM_NOVA': 'ARBNOVA',
                     'BASE': 'BASEEVM',
                     'SUI': 'SUI',
                     'CRONOS': 'CRO',
@@ -780,7 +781,7 @@ export default class gate extends Exchange {
                     'CELO': 'CELO',
                     'HBAR': 'HBAR',
                     // 'FTM': SONIC REBRAND, todo
-                    'ZKSERA': 'ZKSERA',
+                    'ZKSYNC': 'ZKSERA', // unified code is ZKSYNC, raw chain id is ZKSERA, see https://github.com/ccxt/ccxt/issues/23989
                     'KLAY': 'KLAY',
                     'EOS': 'EOS',
                     'ACA': 'ACA',
@@ -7024,7 +7025,7 @@ export default class gate extends Exchange {
         const currencyId = this.safeString(info, 'currency');
         const marketId = this.safeString(info, 'currency_pair');
         return {
-            'id': this.safeInteger(info, 'id'),
+            'id': this.safeString(info, 'id'),
             'currency': this.safeCurrencyCode(currencyId, currency),
             'amount': this.safeNumber(info, 'amount'),
             'symbol': this.safeSymbol(marketId, undefined, '_', 'margin'),

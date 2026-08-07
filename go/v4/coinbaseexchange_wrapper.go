@@ -1193,7 +1193,7 @@ func (this *Coinbaseexchange) FetchPosition(symbol string, options ...FetchPosit
 func (this *Coinbaseexchange) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinbaseexchange) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinbaseexchange) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinbaseexchange) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1211,7 +1211,7 @@ func (this *Coinbaseexchange) FetchPositionsRisk(options ...FetchPositionsRiskOp
 func (this *Coinbaseexchange) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinbaseexchange) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinbaseexchange) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinbaseexchange) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
@@ -1325,7 +1325,7 @@ func (this *Coinbaseexchange) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Coinbaseexchange) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coinbaseexchange) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Coinbaseexchange) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coinbaseexchange) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1370,7 +1370,7 @@ func (this *Coinbaseexchange) FetchTradesWs(symbol string, options ...FetchTrade
 func (this *Coinbaseexchange) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coinbaseexchange) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Coinbaseexchange) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Coinbaseexchange) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

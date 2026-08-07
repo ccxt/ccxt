@@ -312,7 +312,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "ERC20", "ERC20" );
                     put( "TRC20", "TRC20" );
-                    put( "ARB", "ARBITRUM" );
+                    put( "ARBITRUM", "ARBITRUM" );
                     put( "BSC", "BSC(BEP20)" );
                     put( "SOL", "SOL" );
                     put( "BTC", "Bitcoin" );

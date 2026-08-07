@@ -61,33 +61,33 @@ func (this *Gate) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gate) FetchSpotMarkets(params ...any) ([]map[string]any, error) {
+func (this *Gate) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSpotMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gate) FetchSwapMarkets(params ...any) ([]map[string]any, error) {
+func (this *Gate) FetchSwapMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSwapMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gate) FetchFutureMarkets(params ...any) ([]map[string]any, error) {
+func (this *Gate) FetchFutureMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchFutureMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gate) FetchOptionMarkets(params ...any) ([]map[string]any, error) {
+func (this *Gate) FetchOptionMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchOptionMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
 func (this *Gate) FetchOptionUnderlyings() ([]string, error) {
 	res := <-this.Core.FetchOptionUnderlyings()
@@ -1266,7 +1266,7 @@ func (this *Gate) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Gate) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) (map[string]any, error) {
+func (this *Gate) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 
@@ -1295,9 +1295,9 @@ func (this *Gate) FetchOrdersByStatus(status any, options ...FetchOrdersByStatus
 	}
 	res := <-this.Core.FetchOrdersByStatus(status, symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewOrderArray(res), nil
 }
 
 /**
@@ -1742,7 +1742,7 @@ func (this *Gate) FetchOpenInterestHistory(symbol string, options ...FetchOpenIn
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) (map[string]any, error) {
+func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchSettlementHistoryOptionsStruct{}
 
@@ -1771,9 +1771,9 @@ func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOption
 	}
 	res := <-this.Core.FetchSettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -2421,7 +2421,7 @@ func (this *Gate) FetchPaymentMethods(params ...any) (map[string]any, error) {
 func (this *Gate) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Gate) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Gate) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Gate) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -2433,7 +2433,7 @@ func (this *Gate) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Gate) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Gate) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Gate) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Gate) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
@@ -2535,7 +2535,7 @@ func (this *Gate) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Gate) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Gate) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Gate) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Gate) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2580,7 +2580,7 @@ func (this *Gate) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Gate) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Gate) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Gate) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Gate) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

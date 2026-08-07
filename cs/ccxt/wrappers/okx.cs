@@ -26,10 +26,10 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
@@ -834,7 +834,7 @@ public partial class okx
     /// <item>
     /// <term>params.ordType</term>
     /// <description>
-    /// string : "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+    /// string : market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
     /// </description>
     /// </item>
     /// <item>
@@ -1678,10 +1678,10 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
-    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PositionModeInfo> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionMode(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PositionModeInfo(res);
     }
     /// <summary>
     /// set hedged to true or false for a market
@@ -2037,12 +2037,12 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchSettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchSettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchSettlementHistory(symbol, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// fetches the market ids of underlying assets for a specific contract market type
@@ -2065,10 +2065,10 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchUnderlyingAssets(Dictionary<string, object> parameters = null)
+    public async Task<List<string>> FetchUnderlyingAssets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchUnderlyingAssets(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as string)).ToList();
     }
     /// <summary>
     /// fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract

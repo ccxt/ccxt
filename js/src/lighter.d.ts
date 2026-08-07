@@ -1,5 +1,5 @@
 import Exchange from './abstract/lighter.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status } from './base/types.js';
 /**
  * @class lighter
  * @augments Exchange
@@ -76,13 +76,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name lighter#fetchTime

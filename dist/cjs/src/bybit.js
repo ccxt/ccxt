@@ -1186,8 +1186,8 @@ class bybit extends bybit$1["default"] {
                     'ADA': 'ADA',
                     'ALGO': 'ALGO',
                     'APT': 'APTOS',
-                    'ARBONE': 'ARBI',
-                    'ARBNOVA': 'ARBINOVA',
+                    'ARBITRUM': 'ARBI',
+                    'ARBITRUM_NOVA': 'ARBINOVA',
                     'AVAXC': 'CAVAX',
                     'AVAXX': 'XAVAX',
                     'COSMOS': 'ATOM',
@@ -1251,6 +1251,7 @@ class bybit extends bybit$1["default"] {
                     'BSC': 'BEP20',
                     'OP': 'OP',
                     'MATIC': 'MATIC',
+                    'SPL': 'SOL', // see https://github.com/ccxt/ccxt/issues/23989
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -4001,17 +4002,22 @@ class bybit extends bybit$1["default"] {
         market = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2(order, 'createdTime', 'createdAt');
-        const marketUnit = this.safeString(order, 'marketUnit', 'baseCoin');
+        const marketUnit = this.safeString(order, 'marketUnit'); // '' is filtered by safeString, do not force a default:
+        // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
+        // see https://github.com/ccxt/ccxt/issues/27725
         const id = this.safeString(order, 'orderId');
         const type = this.safeStringLower(order, 'orderType');
         const price = this.safeString(order, 'price');
+        const side = this.safeStringLower(order, 'side');
         let amount = undefined;
         let cost = undefined;
-        if (marketUnit === 'baseCoin') {
-            amount = this.safeString(order, 'qty');
+        const qtyIsQuote = market['spot'] && (type === 'market') && ((marketUnit === 'quoteCoin') || ((marketUnit === undefined) && (side === 'buy')));
+        if (qtyIsQuote) {
+            // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = this.safeString(order, 'cumExecValue');
         }
         else {
+            amount = this.safeString(order, 'qty');
             cost = this.safeString(order, 'cumExecValue');
         }
         const filled = this.safeString(order, 'cumExecQty');
@@ -4019,7 +4025,6 @@ class bybit extends bybit$1["default"] {
         const lastTradeTimestamp = this.safeInteger2(order, 'updatedTime', 'updatedAt');
         const rawStatus = this.safeString(order, 'orderStatus');
         const status = this.parseOrderStatus(rawStatus);
-        const side = this.safeStringLower(order, 'side');
         let fee = undefined;
         const cumFeeDetail = this.safeDict(order, 'cumFeeDetail', {});
         const feeCoins = Object.keys(cumFeeDetail);
@@ -5337,7 +5342,10 @@ class bybit extends bybit$1["default"] {
         //
         const result = this.safeDict(response, 'result', {});
         const innerList = this.safeList(result, 'list', []);
-        if (innerList.length === 0) {
+        // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
+        // see https://github.com/ccxt/ccxt/pull/29602
+        const innerListLength = innerList.length;
+        if (innerListLength === 0) {
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new errors.OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -7892,7 +7900,7 @@ class bybit extends bybit$1["default"] {
         return {
             'id': undefined,
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'amount': this.safeString(info, 'amount'),
+            'amount': this.safeNumber(info, 'amount'),
             'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,

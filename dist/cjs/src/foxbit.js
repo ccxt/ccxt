@@ -1483,7 +1483,7 @@ class foxbit extends foxbit$1["default"] {
         };
         return {
             'status': this.safeString(statusMap, statusRaw, statusRaw),
-            'updated': this.safeString(attributes, 'updatedAt'),
+            'updated': this.parse8601(this.safeString(attributes, 'updatedAt')),
             'eta': undefined,
             'url': undefined,
             'info': response,

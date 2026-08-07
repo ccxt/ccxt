@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.toobit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -457,7 +457,7 @@ class toobit(Exchange, ImplicitAPI):
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
-                    'ARBONE': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BASE': 'BASE',
                     'TON': 'TON',
                     'AVAXC': 'AVAXC',
@@ -558,7 +558,7 @@ class toobit(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, Transaction, TransferEntry
+from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, OpenInterest, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -99,7 +99,7 @@ class xt(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOpenInterest': False,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
@@ -194,6 +194,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/market/v1/public/q/symbol-index-price': 1,
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
+                            'future/market/v1/public/q/ticker/books': 1,
                             'future/market/v1/public/q/tickers': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/detail': 3.33,
@@ -218,6 +219,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/market/v1/public/q/symbol-index-price': 1,
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
+                            'future/market/v1/public/q/ticker/books': 1,
                             'future/market/v1/public/q/tickers': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/detail': 3.33,
@@ -1011,7 +1013,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = promises[1]
         return self.array_concat(spotMarkets, swapAndFutureMarkets)
 
-    def fetch_spot_markets(self, params: Any = {}):
+    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         response = self.publicSpotGetSymbol(params)
         #
         #     {
@@ -1771,13 +1773,14 @@ class xt(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    def fetch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
         https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+        https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
 
-        :param str [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
@@ -1788,11 +1791,22 @@ class xt(Exchange, ImplicitAPI):
         market = None
         if symbols is not None:
             market = self.market(symbols[0])
+        type = None
         subType = None
+        type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
-        if subType is not None:
-            raise NotSupported(self.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported')
-        response = self.publicSpotGetTickerBook(self.extend(request, params))
+        isInverse = (subType == 'inverse')
+        isLinear = (subType == 'linear') or (type == 'swap') or (type == 'future')
+        isContract = isInverse or isLinear
+        response = None
+        if isInverse:
+            response = self.publicInverseGetFutureMarketV1PublicQTickerBooks(self.extend(request, params))
+        elif isLinear:
+            response = self.publicLinearGetFutureMarketV1PublicQTickerBooks(self.extend(request, params))
+        else:
+            response = self.publicSpotGetTickerBook(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "rc": 0,
@@ -1810,8 +1824,38 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickers = self.safe_value(response, 'result', [])
-        return self.parse_tickers(tickers, symbols)
+        # swap and future
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": [
+        #             {
+        #                 "s": "btc_usdt",
+        #                 "t": 1785928174370,
+        #                 "ap": "64085.5",
+        #                 "aq": "101843",
+        #                 "bp": "64085.3",
+        #                 "bq": "121042"
+        #             },
+        #         ]
+        #     }
+        #
+        tickers = self.safe_list(response, 'result', [])
+        result = {}
+        for i in range(0, len(tickers)):
+            rawTicker = tickers[i]
+            # the spot and contract payloads share the same field names, so
+            # the market type cannot be inferred from the entry itself
+            marketId = self.safe_string(rawTicker, 's')
+            marketType = 'contract' if isContract else 'spot'
+            marketInner = self.safe_market(marketId, market, '_', marketType)
+            ticker = self.parse_ticker(rawTicker, marketInner)
+            symbol = ticker['symbol']
+            if symbol is not None:
+                result[symbol] = ticker
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker: Any, market: Market = None):
         #
@@ -2861,7 +2905,7 @@ class xt(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -4411,6 +4455,67 @@ class xt(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
             'interval': interval,
         }
+
+    def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+        """
+        retrieves the open interest of a contract trading pair
+
+        https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' fetchOpenInterest() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchOpenInterest', market, params)
+        response = None
+        if subType == 'inverse':
+            response = self.publicInverseGetFutureMarketV1PublicContractOpenInterest(self.extend(request, params))
+        else:
+            response = self.publicLinearGetFutureMarketV1PublicContractOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": {
+        #             "symbol": "btc_usdt",
+        #             "openInterest": "21005.8646",
+        #             "openInterestUsd": "1120726916.46709",
+        #             "time": 1785925443734
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_open_interest(result, market)
+
+    def parse_open_interest(self, interest: Any, market: Market = None) -> OpenInterest:
+        #
+        #     {
+        #         "symbol": "btc_usdt",
+        #         "openInterest": "21005.8646",
+        #         "openInterestUsd": "1120726916.46709",
+        #         "time": 1785925443734
+        #     }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        market = self.safe_market(marketId, market, None, 'contract')
+        timestamp = self.safe_integer(interest, 'time')
+        return self.safe_open_interest({
+            'symbol': market['symbol'],
+            'openInterestAmount': self.safe_number(interest, 'openInterest'),
+            'openInterestValue': self.safe_number(interest, 'openInterestUsd'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, market)
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

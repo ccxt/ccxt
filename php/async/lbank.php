@@ -542,7 +542,7 @@ class lbank extends Exchange {
         })();
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->spotPublicGetAccuracy($params));
             //
@@ -625,7 +625,7 @@ class lbank extends Exchange {
         })();
     }
 
-    public function fetch_swap_markets($params = array()) {
+    public function fetch_swap_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             $request = array(
                 'productGroup' => 'SwapU',

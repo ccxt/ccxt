@@ -1124,7 +1124,7 @@ export default class kucoin extends Exchange {
                     'EOS': 'eos',
                     'BEP20': 'bsc',
                     'BEP2': 'bnb',
-                    'ARBONE': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'AVAXX': 'avax',
                     'AVAXC': 'avaxc',
                     'TLOS': 'tlos', // tlosevm is different
@@ -3835,7 +3835,13 @@ export default class kucoin extends Exchange {
             if (level !== 2 && level !== undefined) {
                 throw new BadRequest(this.id + ' fetchOrderBook() can only return level 2');
             }
-            if ((limit === undefined) || limit === 20) {
+            if (limit === undefined) {
+                // full L2 snapshot - required for correct ws diff-sync: the futures delta
+                // stream covers the whole book while depth20/depth100 truncate the snapshot,
+                // see https://github.com/ccxt/ccxt/issues/22063
+                response = await this.futuresPublicGetLevel2Snapshot(this.extend(request, params));
+            }
+            else if (limit === 20) {
                 //
                 //     {
                 //         "code": "200000",

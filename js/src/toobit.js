@@ -447,7 +447,7 @@ export default class toobit extends Exchange {
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
-                    'ARBONE': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BASE': 'BASE',
                     'TON': 'TON',
                     'AVAXC': 'AVAXC',

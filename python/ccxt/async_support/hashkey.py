@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hashkey import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -370,7 +370,7 @@ class hashkey(Exchange, ImplicitAPI):
                     'DOT': 'Polkadot',
                     'LTC': 'LTC',
                     'OPTIMISM': 'Optimism',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'DOGE': 'Dogecoin',
                     'TRC20': 'Tron',
                     'ZKSYNC': 'zkSync',
@@ -387,7 +387,7 @@ class hashkey(Exchange, ImplicitAPI):
                     'AVAX C-Chain': 'AVAX',
                     'Solana': 'SOL',
                     'Cosmos': 'ATOM',
-                    'Arbitrum': 'ARB',
+                    'Arbitrum': 'ARBITRUM',
                     'Polygon': 'MATIC',
                     'Optimism': 'OPTIMISM',
                     'Polkadot': 'DOT',
@@ -673,7 +673,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -3924,7 +3924,7 @@ class hashkey(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}) -> Leverage:
         """
         set the level of leverage for a market
 

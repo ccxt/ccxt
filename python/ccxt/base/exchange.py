@@ -3932,6 +3932,11 @@ class BaseExchange(object):
                 'TRX': {'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary'},
                 'BTC': {'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary'},
             },
+            'backwardSupportedNetworkCodes': {
+                'ARB': 'ARBITRUM',
+                'ARBONE': 'ARBITRUM',
+                'ARBNOVA': 'ARBITRUM_NOVA',
+            },
         }
 
     def safe_ledger_entry(self, entry: object, currency: Currency = None):
@@ -5256,6 +5261,10 @@ class BaseExchange(object):
             networks = self.safe_dict(currenciesToCheck[i], 'networks', {})
             if networkCode in networks:
                 return self.safe_string(networks[networkCode], 'id')
+        # before returning the original input, try to match if it's backward-maintained networkCode
+        oldCodes = self.safe_dict(self.options, 'backwardSupportedNetworkCodes', {})
+        if networkCode in oldCodes:
+            return self.network_code_to_id(oldCodes[networkCode], currencyCode)
         return networkCode
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):

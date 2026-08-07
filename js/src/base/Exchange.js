@@ -955,7 +955,10 @@ export class BaseExchange {
             await this.loadProxyModules();
         }
         // user-agent
-        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        let userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        if ((userAgent === undefined) && isNode) {
+            userAgent = this.userAgents['chrome'];
+        }
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
                 headers = this.extend({ 'User-Agent': userAgent }, headers);
@@ -1336,6 +1339,11 @@ export class BaseExchange {
     }
     spawn(method, ...args) {
         const future = Future();
+        // spawned tasks are fire-and-forget - when the caller does not await the
+        // returned future, a rejection (e.g. a keepalive pong sent after the test
+        // harness closed the socket) must not escalate to unhandledRejection and
+        // crash the process, see https://github.com/ccxt/ccxt/actions/runs/31173661492
+        future.catch(() => { });
         // using setTimeout 0 to force the execution to run after the future is returned
         setTimeout(() => {
             method.apply(this, args).then(future.resolve).catch(future.reject);
@@ -3574,6 +3582,11 @@ export class BaseExchange {
                 'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
                 'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
             },
+            'backwardSupportedNetworkCodes': {
+                'ARB': 'ARBITRUM',
+                'ARBONE': 'ARBITRUM',
+                'ARBNOVA': 'ARBITRUM_NOVA',
+            },
         };
     }
     safeLedgerEntry(entry, currency = undefined) {
@@ -5147,6 +5160,11 @@ export class BaseExchange {
             if (networkCode in networks) {
                 return this.safeString(networks[networkCode], 'id');
             }
+        }
+        // before returning the original input, try to match if it's backward-maintained networkCode
+        const oldCodes = this.safeDict(this.options, 'backwardSupportedNetworkCodes', {});
+        if (networkCode in oldCodes) {
+            return this.networkCodeToId(oldCodes[networkCode], currencyCode);
         }
         return networkCode;
     }

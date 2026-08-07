@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -292,7 +292,7 @@ export default class coincheck extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Dict> {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetExchangeStatus (params);
         //
         //     {

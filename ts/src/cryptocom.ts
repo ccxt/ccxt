@@ -370,6 +370,7 @@ export default class cryptocom extends Exchange {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
+                    'ARBITRUM': 'ARB',
                 },
                 'broker': 'CCXT',
             },
@@ -3003,7 +3004,7 @@ export default class cryptocom extends Exchange {
      * @param {int} [params.type] 'future', 'option'
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

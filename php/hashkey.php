@@ -341,7 +341,7 @@ class hashkey extends Exchange {
                     'DOT' => 'Polkadot',
                     'LTC' => 'LTC',
                     'OPTIMISM' => 'Optimism',
-                    'ARB' => 'Arbitrum',
+                    'ARBITRUM' => 'Arbitrum',
                     'DOGE' => 'Dogecoin',
                     'TRC20' => 'Tron',
                     'ZKSYNC' => 'zkSync',
@@ -358,7 +358,7 @@ class hashkey extends Exchange {
                     'AVAX C-Chain' => 'AVAX',
                     'Solana' => 'SOL',
                     'Cosmos' => 'ATOM',
-                    'Arbitrum' => 'ARB',
+                    'Arbitrum' => 'ARBITRUM',
                     'Polygon' => 'MATIC',
                     'Optimism' => 'OPTIMISM',
                     'Polkadot' => 'DOT',
@@ -646,7 +646,7 @@ class hashkey extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -4131,7 +4131,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a $market
          *

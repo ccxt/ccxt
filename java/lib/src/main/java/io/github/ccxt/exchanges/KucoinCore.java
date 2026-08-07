@@ -988,7 +988,7 @@ public class KucoinCore extends KucoinApi
                     put( "EOS", "eos" );
                     put( "BEP20", "bsc" );
                     put( "BEP2", "bnb" );
-                    put( "ARBONE", "arbitrum" );
+                    put( "ARBITRUM", "arbitrum" );
                     put( "AVAXX", "avax" );
                     put( "AVAXC", "avaxc" );
                     put( "TLOS", "tlos" );
@@ -3870,7 +3870,13 @@ public class KucoinCore extends KucoinApi
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " fetchOrderBook() can only return level 2")) ;
                 }
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(limit, null))) || Helpers.isTrue(Helpers.isEqual(limit, 20))))
+                if (Helpers.isTrue(Helpers.isEqual(limit, null)))
+                {
+                    // full L2 snapshot - required for correct ws diff-sync: the futures delta
+                    // stream covers the whole book while depth20/depth100 truncate the snapshot,
+                    // see https://github.com/ccxt/ccxt/issues/22063
+                    response = (this.futuresPublicGetLevel2Snapshot(this.extend(request, parameters))).join();
+                } else if (Helpers.isTrue(Helpers.isEqual(limit, 20)))
                 {
                     //
                     //     {

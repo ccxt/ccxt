@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1164,7 +1164,7 @@ class okx(Exchange, ImplicitAPI):
                     'APT': 'Aptos',
                     'SONIC': 'Sonic',
                     'SCROLL': 'Scroll',
-                    'ARBONE': 'Arbitrum One',
+                    'ARBITRUM': 'Arbitrum One',
                     'AVAXC': 'Avalanche C-Chain',
                     'AVAXX': 'Avalanche X-Chain',
                     'BASE': 'Base',
@@ -1563,7 +1563,7 @@ class okx(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(okx, self).safe_market(marketId, market, delimiter, marketType)
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -4268,7 +4268,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if fetching trigger or conditional orders
-        :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+        :param str [params.ordType]: market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
         :param str [params.algoId]: Algo ID "'433845797218942976'"
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
@@ -6740,7 +6740,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_position_mode(self, symbol: Str = None, params={}):
+    def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
 
         https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
@@ -7354,7 +7354,7 @@ class okx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def borrow_cross_margin(self, code: str, amount: float, params={}):
+    def borrow_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         create a loan to borrow margin(need to be VIP 5 and above)
 
@@ -7393,7 +7393,7 @@ class okx(Exchange, ImplicitAPI):
         loan = self.safe_dict(data, 0, {})
         return self.parse_margin_loan(loan, currency)
 
-    def repay_cross_margin(self, code: str, amount: float, params={}):
+    def repay_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -7438,7 +7438,7 @@ class okx(Exchange, ImplicitAPI):
         loan = self.safe_dict(data, 0, {})
         return self.parse_margin_loan(loan, currency)
 
-    def parse_margin_loan(self, info: Any, currency: Currency = None):
+    def parse_margin_loan(self, info: Any, currency: Currency = None) -> MarginLoan:
         #
         #     {
         #         "amt": "102",
@@ -7805,7 +7805,7 @@ class okx(Exchange, ImplicitAPI):
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
 
-    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 
@@ -7901,7 +7901,7 @@ class okx(Exchange, ImplicitAPI):
                 }))
         return result
 
-    def fetch_underlying_assets(self, params={}):
+    def fetch_underlying_assets(self, params={}) -> List[str]:
         """
         fetches the market ids of underlying assets for a specific contract market type
 

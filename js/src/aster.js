@@ -579,7 +579,7 @@ export default class aster extends Exchange {
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksToChainId': {
                     'ETH': 1,

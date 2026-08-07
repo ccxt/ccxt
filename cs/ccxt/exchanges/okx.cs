@@ -1088,7 +1088,7 @@ public partial class okx : Exchange
                     { "APT", "Aptos" },
                     { "SONIC", "Sonic" },
                     { "SCROLL", "Scroll" },
-                    { "ARBONE", "Arbitrum One" },
+                    { "ARBITRUM", "Arbitrum One" },
                     { "AVAXC", "Avalanche C-Chain" },
                     { "AVAXX", "Avalanche X-Chain" },
                     { "BASE", "Base" },
@@ -4758,7 +4758,7 @@ public partial class okx : Exchange
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] True if fetching trigger or conditional orders
-     * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+     * @param {string} [params.ordType] market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders

@@ -181,7 +181,7 @@ class grvt(Exchange, ImplicitAPI):
                 'accountId': None,  # needs to be set manually by user
                 # https://api.rhino.fi/bridge/configs
                 'networks': {
-                    'ARBONE': '42161',
+                    'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
                     'BSC': '56',
@@ -2338,7 +2338,7 @@ class grvt(Exchange, ImplicitAPI):
         results = self.safe_list(response, 'results', [])
         return self.parse_leverages(results, symbols)
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}) -> Leverage:
         """
         set the level of leverage for a market
 

@@ -477,8 +477,8 @@ public partial class coinex : Exchange
                     { "ACA", "ACA" },
                     { "CHZ", "CHILIZ" },
                     { "ADA", "ADA" },
-                    { "ARB", "ARBITRUM" },
-                    { "ARBNOVA", "ARBITRUM_NOVA" },
+                    { "ARBITRUM", "ARBITRUM" },
+                    { "ARBITRUM_NOVA", "ARBITRUM_NOVA" },
                     { "OP", "OPTIMISM" },
                     { "APT", "APTOS" },
                     { "ATOM", "ATOM" },
@@ -5017,9 +5017,9 @@ public partial class coinex : Exchange
         object marketId = this.safeString(info, "market");
         object timestamp = this.safeInteger(info, "expired_at");
         return new Dictionary<string, object>() {
-            { "id", this.safeInteger(info, "borrow_id") },
+            { "id", this.safeString(info, "borrow_id") },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "amount", this.safeString(info, "borrow_amount") },
+            { "amount", this.safeNumber(info, "borrow_amount") },
             { "symbol", this.safeSymbol(marketId, null, null, "spot") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

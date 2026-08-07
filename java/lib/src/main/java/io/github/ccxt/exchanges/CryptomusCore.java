@@ -214,7 +214,7 @@ public class CryptomusCore extends CryptomusApi
                     put( "BEP20", "bsc" );
                     put( "DASH", "dash" );
                     put( "POLYGON", "polygon" );
-                    put( "ARB", "arbitrum" );
+                    put( "ARBITRUM", "arbitrum" );
                     put( "SOL", "sol" );
                     put( "TON", "ton" );
                     put( "ERC20", "eth" );
@@ -231,7 +231,7 @@ public class CryptomusCore extends CryptomusApi
                     put( "bsc", "BEP20" );
                     put( "dash", "DASH" );
                     put( "polygon", "POLYGON" );
-                    put( "arbitrum", "ARB" );
+                    put( "arbitrum", "ARBITRUM" );
                     put( "sol", "SOL" );
                     put( "ton", "TON" );
                     put( "eth", "ERC20" );

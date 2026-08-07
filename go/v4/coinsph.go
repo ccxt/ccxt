@@ -334,10 +334,10 @@ func (this *CoinsphCore) Describe() any {
 				"method": "publicGetOpenapiQuoteV1Ticker24hr",
 			},
 			"networks": map[string]any{
-				"TRC20": "TRX",
-				"ERC20": "ETH",
-				"BEP20": "BSC",
-				"ARB":   "ARBITRUM",
+				"TRC20":    "TRX",
+				"ERC20":    "ETH",
+				"BEP20":    "BSC",
+				"ARBITRUM": "ARBITRUM",
 			},
 		},
 		"features": map[string]any{

@@ -52,6 +52,8 @@ func (this *LunoCore) Describe() any {
 			"fetchCrossBorrowRates":        false,
 			"fetchCurrencies":              true,
 			"fetchDepositAddress":          true,
+			"fetchDepositWithdrawFee":      true,
+			"fetchDepositWithdrawFees":     false,
 			"fetchFundingHistory":          false,
 			"fetchFundingInterval":         false,
 			"fetchFundingIntervals":        false,
@@ -690,8 +692,8 @@ func (this *LunoCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes65512 := (<-this.LoadMarkets())
-			PanicOnError(retRes65512)
+			retRes65712 := (<-this.LoadMarkets())
+			PanicOnError(retRes65712)
 		}
 
 		response := (<-this.PrivateGetBalance(params))
@@ -736,8 +738,8 @@ func (this *LunoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes68412 := (<-this.LoadMarkets())
-			PanicOnError(retRes68412)
+			retRes68612 := (<-this.LoadMarkets())
+			PanicOnError(retRes68612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -864,8 +866,8 @@ func (this *LunoCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes79412 := (<-this.LoadMarkets())
-			PanicOnError(retRes79412)
+			retRes79612 := (<-this.LoadMarkets())
+			PanicOnError(retRes79612)
 		}
 		var request any = map[string]any{
 			"id": id,
@@ -895,8 +897,8 @@ func (this *LunoCore) FetchOrdersByState(state any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes80512 := (<-this.LoadMarkets())
-			PanicOnError(retRes80512)
+			retRes80712 := (<-this.LoadMarkets())
+			PanicOnError(retRes80712)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -944,9 +946,9 @@ func (this *LunoCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes83315 := (<-this.FetchOrdersByState(nil, symbol, since, limit, params))
-		PanicOnError(retRes83315)
-		ch <- retRes83315
+		retRes83515 := (<-this.FetchOrdersByState(nil, symbol, since, limit, params))
+		PanicOnError(retRes83515)
+		ch <- retRes83515
 		return nil
 
 	}()
@@ -978,9 +980,9 @@ func (this *LunoCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes84815 := (<-this.FetchOrdersByState("PENDING", symbol, since, limit, params))
-		PanicOnError(retRes84815)
-		ch <- retRes84815
+		retRes85015 := (<-this.FetchOrdersByState("PENDING", symbol, since, limit, params))
+		PanicOnError(retRes85015)
+		ch <- retRes85015
 		return nil
 
 	}()
@@ -1012,9 +1014,9 @@ func (this *LunoCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes86315 := (<-this.FetchOrdersByState("COMPLETE", symbol, since, limit, params))
-		PanicOnError(retRes86315)
-		ch <- retRes86315
+		retRes86515 := (<-this.FetchOrdersByState("COMPLETE", symbol, since, limit, params))
+		PanicOnError(retRes86515)
+		ch <- retRes86515
 		return nil
 
 	}()
@@ -1080,8 +1082,8 @@ func (this *LunoCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes91512 := (<-this.LoadMarkets())
-			PanicOnError(retRes91512)
+			retRes91712 := (<-this.LoadMarkets())
+			PanicOnError(retRes91712)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -1123,8 +1125,8 @@ func (this *LunoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes94312 := (<-this.LoadMarkets())
-			PanicOnError(retRes94312)
+			retRes94512 := (<-this.LoadMarkets())
+			PanicOnError(retRes94512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1265,8 +1267,8 @@ func (this *LunoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes106612 := (<-this.LoadMarkets())
-			PanicOnError(retRes106612)
+			retRes106812 := (<-this.LoadMarkets())
+			PanicOnError(retRes106812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1327,8 +1329,8 @@ func (this *LunoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes110712 := (<-this.LoadMarkets())
-			PanicOnError(retRes110712)
+			retRes110912 := (<-this.LoadMarkets())
+			PanicOnError(retRes110912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1411,8 +1413,8 @@ func (this *LunoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes117612 := (<-this.LoadMarkets())
-			PanicOnError(retRes117612)
+			retRes117812 := (<-this.LoadMarkets())
+			PanicOnError(retRes117812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1475,8 +1477,8 @@ func (this *LunoCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes122512 := (<-this.LoadMarkets())
-			PanicOnError(retRes122512)
+			retRes122712 := (<-this.LoadMarkets())
+			PanicOnError(retRes122712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1532,8 +1534,8 @@ func (this *LunoCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes126512 := (<-this.LoadMarkets())
-			PanicOnError(retRes126512)
+			retRes126712 := (<-this.LoadMarkets())
+			PanicOnError(retRes126712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1597,8 +1599,8 @@ func (this *LunoCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes131112 := (<-this.LoadMarkets())
-			PanicOnError(retRes131112)
+			retRes131312 := (<-this.LoadMarkets())
+			PanicOnError(retRes131312)
 		}
 		var request any = map[string]any{
 			"order_id": id,
@@ -1646,9 +1648,9 @@ func (this *LunoCore) FetchLedgerByEntries(optionalArgs ...any) <-chan any {
 			"max_row": this.Sum(entry, limit),
 		}
 
-		retRes134015 := (<-this.FetchLedger(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes134015)
-		ch <- retRes134015
+		retRes134215 := (<-this.FetchLedger(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes134215)
+		ch <- retRes134215
 		return nil
 
 	}()
@@ -1681,12 +1683,12 @@ func (this *LunoCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes135612 := (<-this.LoadMarkets())
-			PanicOnError(retRes135612)
+			retRes135812 := (<-this.LoadMarkets())
+			PanicOnError(retRes135812)
 		}
 
-		retRes13588 := (<-this.LoadAccounts())
-		PanicOnError(retRes13588)
+		retRes13608 := (<-this.LoadAccounts())
+		PanicOnError(retRes13608)
 		var currency any = nil
 		var id any = this.SafeString(params, "id") // account id
 		var min_row any = this.SafeValue(params, "min_row")
@@ -1843,8 +1845,8 @@ func (this *LunoCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes150112 := (<-this.LoadMarkets())
-			PanicOnError(retRes150112)
+			retRes150312 := (<-this.LoadMarkets())
+			PanicOnError(retRes150312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1901,8 +1903,8 @@ func (this *LunoCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes154412 := (<-this.LoadMarkets())
-			PanicOnError(retRes154412)
+			retRes154612 := (<-this.LoadMarkets())
+			PanicOnError(retRes154612)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1970,6 +1972,54 @@ func (this *LunoCore) ParseDepositAddress(depositAddress any, optionalArgs ...an
 		"address":  this.SafeString(depositAddress, "address"),
 		"tag":      this.SafeString(depositAddress, "name"),
 	}
+}
+
+/**
+ * @method
+ * @name luno#fetchDepositWithdrawFee
+ * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+ * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *LunoCore) FetchDepositWithdrawFee(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		var address any = this.SafeString(params, "address")
+		if IsTrue(IsEqual(address, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")))
+		}
+
+		retRes16238 := (<-this.LoadMarkets())
+		PanicOnError(retRes16238)
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
+			"currency": GetValue(currency, "id"),
+		}
+
+		response := (<-this.PrivateGetSendFee(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//     {
+		//         "currency": "XBT",
+		//         "fee": "0.00015"
+		//     }
+		//
+		var result any = this.DepositWithdrawFee(response)
+		AddElementToObject(GetValue(result, "withdraw"), "fee", this.SafeNumber(response, "fee"))
+		AddElementToObject(GetValue(result, "withdraw"), "percentage", false)
+
+		ch <- this.AssignDefaultDepositWithdrawFees(result, currency)
+		return nil
+
+	}()
+	return ch
 }
 func (this *LunoCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")

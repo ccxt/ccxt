@@ -1463,7 +1463,7 @@ class hibachi(Exchange, ImplicitAPI):
         # ]
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
  @ignore
         fetch orders filtered by terminal status

@@ -496,8 +496,8 @@ class coinex extends coinex$1["default"] {
                     'ACA': 'ACA',
                     'CHZ': 'CHILIZ',
                     'ADA': 'ADA',
-                    'ARB': 'ARBITRUM',
-                    'ARBNOVA': 'ARBITRUM_NOVA',
+                    'ARBITRUM': 'ARBITRUM',
+                    'ARBITRUM_NOVA': 'ARBITRUM_NOVA',
                     'OP': 'OPTIMISM',
                     'APT': 'APTOS',
                     'ATOM': 'ATOM',
@@ -5751,9 +5751,9 @@ class coinex extends coinex$1["default"] {
         const marketId = this.safeString(info, 'market');
         const timestamp = this.safeInteger(info, 'expired_at');
         return {
-            'id': this.safeInteger(info, 'borrow_id'),
+            'id': this.safeString(info, 'borrow_id'),
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'amount': this.safeString(info, 'borrow_amount'),
+            'amount': this.safeNumber(info, 'borrow_amount'),
             'symbol': this.safeSymbol(marketId, undefined, undefined, 'spot'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

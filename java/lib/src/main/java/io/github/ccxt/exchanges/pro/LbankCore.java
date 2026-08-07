@@ -74,6 +74,16 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         return newValue;
     }
 
+    public void checkContractMarket(Object market, Object methodName)
+    {
+        // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        // see https://github.com/ccxt/ccxt/issues/26864
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue(Helpers.GetValue(market, "contract"))))
+        {
+            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support "), Helpers.GetValue(market, "type")), " markets yet")) ;
+        }
+    }
+
     /**
      * @method
      * @name lbank#fetchOHLCVWs
@@ -100,6 +110,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            this.checkContractMarket(market, "fetchOHLCVWs");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new java.util.HashMap<String, Object>() {{}});
             Object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
@@ -152,6 +163,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            this.checkContractMarket(market, "watchOHLCV");
             Object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new java.util.HashMap<String, Object>() {{}});
             Object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object timeframeId = this.safeString(timeframes, timeframe, timeframe);
@@ -290,6 +302,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            this.checkContractMarket(market, "fetchTickerWs");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("fetchTicker:", Helpers.GetValue(market, "symbol"));
             Object message = new java.util.HashMap<String, Object>() {{
@@ -324,6 +337,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            this.checkContractMarket(market, "watchTicker");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
             Object message = new java.util.HashMap<String, Object>() {{
@@ -447,6 +461,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            this.checkContractMarket(market, "fetchTradesWs");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("fetchTrades:", Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -491,6 +506,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            this.checkContractMarket(market, "watchTrades");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("trades:", Helpers.GetValue(market, "symbol"));
             Object message = new java.util.HashMap<String, Object>() {{
@@ -895,6 +911,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            this.checkContractMarket(market, "fetchOrderBookWs");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("fetchOrderbook:", Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -937,6 +954,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            this.checkContractMarket(market, "watchOrderBook");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             parameters = this.omit(parameters, "aggregation");

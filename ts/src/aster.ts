@@ -6,7 +6,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -576,7 +576,7 @@ export default class aster extends Exchange {
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksToChainId': {
                     'ETH': 1,
@@ -2125,7 +2125,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         const response = await this.fapiPrivateGetV3PositionSideDual (params);
         //
         //     {
@@ -2403,7 +2403,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
         }

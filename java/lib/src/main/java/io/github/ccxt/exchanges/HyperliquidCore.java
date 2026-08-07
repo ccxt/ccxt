@@ -4978,7 +4978,13 @@ final Object finalClientOrderId = clientOrderId;
                 throw new NotSupported((String)Helpers.add(this.id, " transfer() only support main <> subaccount transfer")) ;
             }
             this.checkAddress(subAccountAddress);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, null)) || Helpers.isTrue(Helpers.isEqual(((String)code).toUpperCase(), "USDC"))))
+            // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+            // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
+            // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
+            Object transferType = this.safeString(parameters, "type");
+            parameters = this.omit(parameters, "type");
+            Object isUsdc = Helpers.isTrue((Helpers.isEqual(code, null))) || Helpers.isTrue((Helpers.isEqual(((String)code).toUpperCase(), "USDC")));
+            if (Helpers.isTrue(Helpers.isTrue(isUsdc) && Helpers.isTrue((!Helpers.isEqual(transferType, "spot")))))
             {
                 // Transfer USDC with subAccountTransfer
                 Object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
@@ -5003,15 +5009,24 @@ final Object finalClientOrderId = clientOrderId;
                 return this.parseTransfer(response);
             } else
             {
-                // Transfer non-USDC with subAccountSpotTransfer
-                Object symbol = this.symbol(code);
+                // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
+                // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
+                if (Helpers.isTrue(Helpers.isEqual(code, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires a currency code for spot sub-account transfers")) ;
+                }
+                Object currency = this.currency(code);
+                Object currencyInfo = this.safeDict(currency, "info", new java.util.HashMap<String, Object>() {{}});
+                Object tokenName = this.safeString(currencyInfo, "name");
+                Object tokenId = this.safeString(currencyInfo, "tokenId");
+                Object token = Helpers.add(Helpers.add(tokenName, ":"), tokenId);
                 final Object finalSubAccountAddress_2 = subAccountAddress;
                 final Object finalIsDeposit_2 = isDeposit;
                 Object action = new java.util.HashMap<String, Object>() {{
                     put( "type", "subAccountSpotTransfer" );
                     put( "subAccountUser", finalSubAccountAddress_2 );
                     put( "isDeposit", finalIsDeposit_2 );
-                    put( "token", symbol );
+                    put( "token", token );
                     put( "amount", HyperliquidCore.this.numberToString(amount) );
                 }};
                 Object sig = this.signL1Action(action, nonce);

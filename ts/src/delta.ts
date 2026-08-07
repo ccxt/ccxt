@@ -6,7 +6,7 @@ import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
+import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -445,7 +445,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetSettings (params);
         //
         //     {
@@ -3200,7 +3200,7 @@ export default class delta extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {

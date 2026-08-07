@@ -409,7 +409,7 @@ class digifinex extends Exchange {
                     'OTC' => '3',
                 ),
                 'networks' => array(
-                    'ARBONE' => 'Arbitrum',
+                    'ARBITRUM' => 'Arbitrum',
                     'AVALANCEC' => 'AVAX-CCHAIN',
                     'AVALANCEX' => 'AVAX-XCHAIN',
                     'BEP20' => 'BEP20',
@@ -580,7 +580,7 @@ class digifinex extends Exchange {
         return $this->fetch_markets_v1($params);
     }
 
-    public function fetch_markets_v2($params = array()) {
+    public function fetch_markets_v2($params = array()): array {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchMarketsV2', $params);
         $promisesRaw = array();
@@ -1424,7 +1424,7 @@ class digifinex extends Exchange {
         return $this->safe_timestamp($response, 'server_time');
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *

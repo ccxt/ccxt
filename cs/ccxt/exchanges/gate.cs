@@ -745,7 +745,8 @@ public partial class gate : Exchange
                     { "ADA", "ADA" },
                     { "AVAXC", "AVAX_C" },
                     { "NEAR", "NEAR" },
-                    { "ARBONE", "ARBEVM" },
+                    { "ARBITRUM", "ARBEVM" },
+                    { "ARBITRUM_NOVA", "ARBNOVA" },
                     { "BASE", "BASEEVM" },
                     { "SUI", "SUI" },
                     { "CRONOS", "CRO" },
@@ -763,7 +764,7 @@ public partial class gate : Exchange
                     { "MNT", "MNT" },
                     { "CELO", "CELO" },
                     { "HBAR", "HBAR" },
-                    { "ZKSERA", "ZKSERA" },
+                    { "ZKSYNC", "ZKSERA" },
                     { "KLAY", "KLAY" },
                     { "EOS", "EOS" },
                     { "ACA", "ACA" },
@@ -7582,7 +7583,7 @@ public partial class gate : Exchange
         object currencyId = this.safeString(info, "currency");
         object marketId = this.safeString(info, "currency_pair");
         return new Dictionary<string, object>() {
-            { "id", this.safeInteger(info, "id") },
+            { "id", this.safeString(info, "id") },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "amount", this.safeNumber(info, "amount") },
             { "symbol", this.safeSymbol(marketId, null, "_", "margin") },

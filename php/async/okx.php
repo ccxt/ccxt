@@ -1147,7 +1147,7 @@ class okx extends Exchange {
                     'APT' => 'Aptos',
                     'SONIC' => 'Sonic',
                     'SCROLL' => 'Scroll',
-                    'ARBONE' => 'Arbitrum One',
+                    'ARBITRUM' => 'Arbitrum One',
                     'AVAXC' => 'Avalanche C-Chain',
                     'AVAXX' => 'Avalanche X-Chain',
                     'BASE' => 'Base',
@@ -1555,7 +1555,7 @@ class okx extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -4546,7 +4546,7 @@ class okx extends Exchange {
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] True if fetching $trigger or conditional orders
-             * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+             * @param {string} [$params->ordType] $market, $limit, post_only, fok, ioc and stop orders => conditional, oco, $trigger, move_order_stop, iceberg, or twap
              * @param {string} [$params->algoId] Algo ID "'433845797218942976'"
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->trailing] set to true if you want to fetch $trailing orders
@@ -7240,7 +7240,7 @@ class okx extends Exchange {
         })();
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -7929,7 +7929,7 @@ class okx extends Exchange {
         );
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a $loan to borrow margin (need to be VIP 5 and above)
@@ -7972,7 +7972,7 @@ class okx extends Exchange {
         })();
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -8022,7 +8022,7 @@ class okx extends Exchange {
         })();
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "amt" => "102",
@@ -8431,7 +8431,7 @@ class okx extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical settlement records
@@ -8539,7 +8539,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function fetch_underlying_assets($params = array()) {
+    public function fetch_underlying_assets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the market ids of underlying assets for a specific contract market type

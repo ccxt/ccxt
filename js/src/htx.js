@@ -1522,7 +1522,7 @@ export default class htx extends Exchange {
             else {
                 status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
             }
-            updated = this.safeString(response, 'ts');
+            updated = this.safeInteger(response, 'ts');
         }
         else {
             const statusData = this.safeValue(response, 'status', {});

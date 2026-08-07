@@ -172,7 +172,7 @@ export default class grvt extends Exchange {
                 'accountId': undefined, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks': {
-                    'ARBONE': '42161',
+                    'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
                     'BSC': '56',
@@ -2465,7 +2465,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

@@ -119,6 +119,10 @@ func (this *XtCore) PublicLinearGetFutureMarketV1PublicQTicker(args ...any) <-ch
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQTicker", args...)
 }
 
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQTickerBooks(args ...any) <-chan any {
+	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQTickerBooks", args...)
+}
+
 func (this *XtCore) PublicLinearGetFutureMarketV1PublicQTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQTickers", args...)
 }
@@ -197,6 +201,10 @@ func (this *XtCore) PublicInverseGetFutureMarketV1PublicQSymbolMarkPrice(args ..
 
 func (this *XtCore) PublicInverseGetFutureMarketV1PublicQTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQTicker", args...)
+}
+
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQTickerBooks(args ...any) <-chan any {
+	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQTickerBooks", args...)
 }
 
 func (this *XtCore) PublicInverseGetFutureMarketV1PublicQTickers(args ...any) <-chan any {

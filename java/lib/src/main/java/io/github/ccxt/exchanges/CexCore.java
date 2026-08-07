@@ -287,7 +287,7 @@ public class CexCore extends CexApi
                     put( "AVALANCHEC", "avalanche" );
                     put( "ETHPOW", "ethereumpow" );
                     put( "NEAR", "near" );
-                    put( "ARB", "arbitrum" );
+                    put( "ARBITRUM", "arbitrum" );
                     put( "DOT", "polkadot" );
                     put( "OPT", "optimism" );
                     put( "INJ", "injective" );

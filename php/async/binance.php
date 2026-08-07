@@ -1423,7 +1423,7 @@ class binance extends Exchange {
                     // 'FIAT' => 'FIAT_MONEY', // not unified atm
                     // 'LEVERAGE_TOKEN' => 'ETF', // not unified atm
                     // 'STAKING' => 'STAKING', // not unified atm
-                    'ARBONE' => 'ARBITRUM',
+                    'ARBITRUM' => 'ARBITRUM',
                     'AVAXC' => 'AVAXC',
                     'MATIC' => 'MATIC',
                     'BASE' => 'BASE',
@@ -4432,7 +4432,7 @@ class binance extends Exchange {
         ), $market);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -7644,7 +7644,7 @@ class binance extends Exchange {
         })();
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open order by the $id
@@ -12128,7 +12128,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical settlement records
@@ -13420,7 +13420,7 @@ class binance extends Exchange {
         );
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -13486,7 +13486,7 @@ class binance extends Exchange {
         })();
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -13522,7 +13522,7 @@ class binance extends Exchange {
         })();
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -13564,7 +13564,7 @@ class binance extends Exchange {
         })();
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -13600,7 +13600,7 @@ class binance extends Exchange {
         })();
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "tranId" => 108988250265,
@@ -13620,7 +13620,7 @@ class binance extends Exchange {
         $currencyId = $this->safe_string($info, 'asset');
         $timestamp = $this->safe_integer($info, 'updateTime');
         return array(
-            'id' => $this->safe_integer($info, 'tranId'),
+            'id' => $this->safe_string($info, 'tranId'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($info, 'amount'),
             'symbol' => null,
@@ -14208,7 +14208,7 @@ class binance extends Exchange {
         })();
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets

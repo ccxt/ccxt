@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, AccountSuspended, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange, ManualInteractionNeeded, BadSymbol, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee, FeeString, DepositWithdrawFees } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee, FeeString, DepositWithdrawFees, Status, MarginLoan } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1186,8 +1186,8 @@ export default class bybit extends Exchange {
                     'ADA': 'ADA',
                     'ALGO': 'ALGO',
                     'APT': 'APTOS',
-                    'ARBONE': 'ARBI',
-                    'ARBNOVA': 'ARBINOVA',
+                    'ARBITRUM': 'ARBI',
+                    'ARBITRUM_NOVA': 'ARBINOVA',
                     'AVAXC': 'CAVAX',
                     'AVAXX': 'XAVAX',
                     'COSMOS': 'ATOM',
@@ -1251,6 +1251,7 @@ export default class bybit extends Exchange {
                     'BSC': 'BEP20',
                     'OP': 'OP',
                     'MATIC': 'MATIC',
+                    'SPL': 'SOL', // see https://github.com/ccxt/ccxt/issues/23989
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -1694,7 +1695,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
      */
-    override async fetchStatus (params = {}): Promise<Dict> {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetV5SystemStatus (params);
         //
         //     {
@@ -3991,16 +3992,21 @@ export default class bybit extends Exchange {
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (order, 'createdTime', 'createdAt');
-        const marketUnit = this.safeString (order, 'marketUnit', 'baseCoin');
+        const marketUnit = this.safeString (order, 'marketUnit'); // '' is filtered by safeString, do not force a default:
+        // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
+        // see https://github.com/ccxt/ccxt/issues/27725
         const id = this.safeString (order, 'orderId');
         const type = this.safeStringLower (order, 'orderType');
         const price = this.safeString (order, 'price');
+        const side = this.safeStringLower (order, 'side');
         let amount: Str = undefined;
         let cost: Str = undefined;
-        if (marketUnit === 'baseCoin') {
-            amount = this.safeString (order, 'qty');
+        const qtyIsQuote = market['spot'] && (type === 'market') && ((marketUnit === 'quoteCoin') || ((marketUnit === undefined) && (side === 'buy')));
+        if (qtyIsQuote) {
+            // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = this.safeString (order, 'cumExecValue');
         } else {
+            amount = this.safeString (order, 'qty');
             cost = this.safeString (order, 'cumExecValue');
         }
         const filled = this.safeString (order, 'cumExecQty');
@@ -4008,7 +4014,6 @@ export default class bybit extends Exchange {
         const lastTradeTimestamp = this.safeInteger2 (order, 'updatedTime', 'updatedAt');
         const rawStatus = this.safeString (order, 'orderStatus');
         const status = this.parseOrderStatus (rawStatus);
-        const side = this.safeStringLower (order, 'side');
         let fee: Fee = undefined;
         const cumFeeDetail = this.safeDict (order, 'cumFeeDetail', {});
         const feeCoins = Object.keys (cumFeeDetail);
@@ -5313,7 +5318,10 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const innerList = this.safeList (result, 'list', []);
-        if (innerList.length === 0) {
+        // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
+        // see https://github.com/ccxt/ccxt/pull/29602
+        const innerListLength = innerList.length;
+        if (innerListLength === 0) {
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
@@ -7803,7 +7811,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowCrossMargin (code: string, amount: number, params = {}) {
+    override async borrowCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7839,7 +7847,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount: number, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7861,13 +7869,13 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const transaction = this.parseMarginLoan (result, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (result, currency);
         return this.extend (transaction, {
             'amount': amount,
         });
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): Dict {
+    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
         //
         // borrowCrossMargin
         //
@@ -7886,7 +7894,7 @@ export default class bybit extends Exchange {
         return {
             'id': undefined,
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.safeString (info, 'amount'),
+            'amount': this.safeNumber (info, 'amount'),
             'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -8241,7 +8249,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @returns {object[]} a list of [settlement history objects]
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

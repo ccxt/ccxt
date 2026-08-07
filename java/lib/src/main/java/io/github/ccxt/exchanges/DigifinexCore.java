@@ -321,7 +321,7 @@ public class DigifinexCore extends DigifinexApi
                     put( "OTC", "3" );
                 }} );
                 put( "networks", new java.util.HashMap<String, Object>() {{
-                    put( "ARBONE", "Arbitrum" );
+                    put( "ARBITRUM", "Arbitrum" );
                     put( "AVALANCEC", "AVAX-CCHAIN" );
                     put( "AVALANCEX", "AVAX-XCHAIN" );
                     put( "BEP20", "BEP20" );

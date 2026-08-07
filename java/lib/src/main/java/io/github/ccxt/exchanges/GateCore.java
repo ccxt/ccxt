@@ -757,7 +757,8 @@ public class GateCore extends GateApi
                     put( "ADA", "ADA" );
                     put( "AVAXC", "AVAX_C" );
                     put( "NEAR", "NEAR" );
-                    put( "ARBONE", "ARBEVM" );
+                    put( "ARBITRUM", "ARBEVM" );
+                    put( "ARBITRUM_NOVA", "ARBNOVA" );
                     put( "BASE", "BASEEVM" );
                     put( "SUI", "SUI" );
                     put( "CRONOS", "CRO" );
@@ -775,7 +776,7 @@ public class GateCore extends GateApi
                     put( "MNT", "MNT" );
                     put( "CELO", "CELO" );
                     put( "HBAR", "HBAR" );
-                    put( "ZKSERA", "ZKSERA" );
+                    put( "ZKSYNC", "ZKSERA" );
                     put( "KLAY", "KLAY" );
                     put( "EOS", "EOS" );
                     put( "ACA", "ACA" );
@@ -8027,7 +8028,7 @@ final Object finalI = i;
         Object marketId = this.safeString(info, "currency_pair");
         final Object finalTimestamp = timestamp;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", GateCore.this.safeInteger(info, "id") );
+            put( "id", GateCore.this.safeString(info, "id") );
             put( "currency", GateCore.this.safeCurrencyCode(currencyId, currency) );
             put( "amount", GateCore.this.safeNumber(info, "amount") );
             put( "symbol", GateCore.this.safeSymbol(marketId, null, "_", "margin") );

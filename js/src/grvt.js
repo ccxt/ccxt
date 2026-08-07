@@ -173,7 +173,7 @@ export default class grvt extends Exchange {
                 'accountId': undefined, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks': {
-                    'ARBONE': '42161',
+                    'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
                     'BSC': '56',

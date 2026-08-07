@@ -45,6 +45,8 @@ public partial class luno : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositWithdrawFee", true },
+                { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
@@ -1705,6 +1707,42 @@ public partial class luno : Exchange
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "name") },
         };
+    }
+
+    /**
+     * @method
+     * @name luno#fetchDepositWithdrawFee
+     * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public async override Task<object> fetchDepositWithdrawFee(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object address = this.safeString(parameters, "address");
+        if (isTrue(isEqual(address, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
+        }
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.privateGetSendFee(this.extend(request, parameters));
+        //
+        //     {
+        //         "currency": "XBT",
+        //         "fee": "0.00015"
+        //     }
+        //
+        object result = this.depositWithdrawFee(response);
+        ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(response, "fee");
+        ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
+        return this.assignDefaultDepositWithdrawFees(result, currency);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

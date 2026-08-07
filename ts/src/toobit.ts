@@ -5,7 +5,7 @@ import Exchange from './abstract/toobit.js';
 import { OperationFailed, ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol, NotSupported, PermissionDenied, RateLimitExceeded, OperationRejected, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -445,7 +445,7 @@ export default class toobit extends Exchange {
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
-                    'ARBONE': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BASE': 'BASE',
                     'TON': 'TON',
                     'AVAXC': 'AVAXC',
@@ -555,7 +555,7 @@ export default class toobit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.commonGetApiV1Ping (params);
         return {
             'status': 'ok',

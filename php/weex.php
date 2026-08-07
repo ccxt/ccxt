@@ -490,7 +490,7 @@ class weex extends Exchange {
                     'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
-                    'ARBONE' => 'ARBITRUM(ARB)',
+                    'ARBITRUM' => 'ARBITRUM(ARB)',
                     'SOL' => 'SOLANA(SOL)',
                     'OP' => 'OPTIMISM(OP)',
                     'OPTIMISM' => 'OPTIMISM(OP)',
@@ -500,7 +500,7 @@ class weex extends Exchange {
                     'BEP20(BSC)' => 'BEP20',
                     'ERC20' => 'ERC20',
                     'POLYGON(MATIC)' => 'MATIC',
-                    'ARBITRUM(ARB)' => 'ARBONE',
+                    'ARBITRUM(ARB)' => 'ARBITRUM',
                     'SOLANA(SOL)' => 'SOL',
                     'OPTIMISM(OP)' => 'OP',
                     'AVALANCHE_C(AVAX_C)' => 'AVAXC',
@@ -680,7 +680,7 @@ class weex extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -3790,7 +3790,7 @@ class weex extends Exchange {
         return $this->contractPrivatePostCapiV3AccountLeverage($this->extend($request, $params));
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way
          *

@@ -1643,12 +1643,46 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any):
+    def set_sandbox_mode(self, enable: bool):
+        super(alpaca, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
+
+    def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any) -> List[Transaction]:
         if self.markets is None:
             self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
+        sandboxMode = self.isSandboxModeEnabled or self.safe_bool(self.options, 'sandboxMode', False)
+        if sandboxMode:
+            # paper-trading hosts do not serve the crypto wallets api at all, so route
+            # through the account activities ledger instead, filtered to transfer-like
+            # entries, see https://github.com/ccxt/ccxt/issues/24847
+            request = {
+                'activity_types': 'CSD,CSW,TRANS',
+            }
+            activities = self.traderPrivateGetV2AccountActivities(self.extend(request, params))
+            #
+            #     [
+            #         {
+            #             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+            #             "activity_type": "CSD",
+            #             "date": "2025-01-10",
+            #             "net_amount": "1000",
+            #             "status": "executed"
+            #         }
+            #     ]
+            #
+            filtered = []
+            for i in range(0, len(activities)):
+                entry = activities[i]
+                activityType = self.safe_string(entry, 'activity_type')
+                amount = self.safe_string(entry, 'net_amount')
+                isIncoming = (activityType == 'CSD') or ((activityType == 'TRANS') and not Precise.string_lt(amount, '0'))
+                entryDirection = 'INCOMING' if isIncoming else 'OUTGOING'
+                if (type == 'BOTH') or (entryDirection == type):
+                    filtered.append(entry)
+            return self.parse_transactions(filtered, currency, since, limit, params)
         response = self.traderPrivateGetV2WalletsTransfers(params)
         #
         #     {
@@ -1721,6 +1755,18 @@ class alpaca(Exchange, ImplicitAPI):
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
+        # account activities ledger entry(paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        #
+        #     {
+        #         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+        #         "activity_type": "CSD",
+        #         "date": "2025-01-10",
+        #         "net_amount": "1000",
+        #         "status": "executed"
+        #     }
+        #
+        # crypto wallets api entry
+        #
         #     {
         #         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
         #         "tx_hash": null,
@@ -1737,44 +1783,94 @@ class alpaca(Exchange, ImplicitAPI):
         #         "fees": "0.1"
         #     }
         #
-        datetime = self.safe_string(transaction, 'created_at')
-        currencyId = self.safe_string(transaction, 'asset')
-        code = self.safe_currency_code(currencyId, currency)
-        fees = self.safe_string(transaction, 'fees')
-        networkFee = self.safe_string(transaction, 'network_fee')
-        totalFee = Precise.string_add(fees, networkFee)
-        fee = {
-            'cost': self.parse_number(totalFee),
-            'currency': code,
-        }
+        activityType = self.safe_string(transaction, 'activity_type')
+        txid = None
+        timestamp = None
+        datetime = None
+        network = None
+        address = None
+        addressTo = None
+        addressFrom = None
+        type = None
+        amount = None
+        code = None
+        status = None
+        comment = None
+        internal = None
+        fee = None
+        if activityType is not None:
+            netAmount = self.safe_string(transaction, 'net_amount')
+            isIncoming = (activityType == 'CSD') or ((activityType == 'TRANS') and not Precise.string_lt(netAmount, '0'))
+            timestamp = self.parse8601(self.safe_string(transaction, 'date') + 'T00:00:00Z')
+            datetime = self.iso8601(timestamp)
+            type = 'deposit' if isIncoming else 'withdrawal'
+            amount = self.parse_number(Precise.string_abs(netAmount))
+            # cash ledger rows carry no per-entry asset field and are USD, while crypto
+            # TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            # currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            activityCurrencyId = self.safe_string_2(transaction, 'symbol', 'asset')
+            if activityCurrencyId is not None:
+                code = self.safe_currency_code(activityCurrencyId)
+            elif (activityType == 'CSD') or (activityType == 'CSW'):
+                code = 'USD'
+            else:
+                code = self.safe_currency_code(None, currency)
+            status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+            comment = activityType
+            internal = (activityType != 'TRANS')
+        else:
+            txid = self.safe_string(transaction, 'tx_hash')
+            datetime = self.safe_string(transaction, 'created_at')
+            timestamp = self.parse8601(datetime)
+            network = self.safe_string(transaction, 'chain')
+            address = self.safe_string(transaction, 'to_address')
+            addressTo = self.safe_string(transaction, 'to_address')
+            addressFrom = self.safe_string(transaction, 'from_address')
+            type = self.parse_transaction_type(self.safe_string(transaction, 'direction'))
+            amount = self.safe_number(transaction, 'amount')
+            currencyId = self.safe_string(transaction, 'asset')
+            code = self.safe_currency_code(currencyId, currency)
+            status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+            fees = self.safe_string(transaction, 'fees')
+            networkFee = self.safe_string(transaction, 'network_fee')
+            totalFee = Precise.string_add(fees, networkFee)
+            fee = {
+                'cost': self.parse_number(totalFee),
+                'currency': code,
+            }
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
-            'txid': self.safe_string(transaction, 'tx_hash'),
-            'timestamp': self.parse8601(datetime),
+            'txid': txid,
+            'timestamp': timestamp,
             'datetime': datetime,
-            'network': self.safe_string(transaction, 'chain'),
-            'address': self.safe_string(transaction, 'to_address'),
-            'addressTo': self.safe_string(transaction, 'to_address'),
-            'addressFrom': self.safe_string(transaction, 'from_address'),
+            'network': network,
+            'address': address,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
-            'type': self.parse_transaction_type(self.safe_string(transaction, 'direction')),
-            'amount': self.safe_number(transaction, 'amount'),
+            'type': type,
+            'amount': amount,
             'currency': code,
-            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
+            'status': status,
             'updated': None,
+            'comment': comment,
+            'internal': internal,
             'fee': fee,
-            'comment': None,
-            'internal': None,
         }
 
     def parse_transaction_status(self, status: Str):
         statuses = {
+            # crypto wallets api
             'PROCESSING': 'pending',
             'FAILED': 'failed',
             'COMPLETE': 'ok',
+            # account activities ledger, see https://github.com/ccxt/ccxt/issues/24847
+            'executed': 'ok',
+            'canceled': 'canceled',
+            'pending': 'pending',
         }
         return self.safe_string(statuses, status, status)
 

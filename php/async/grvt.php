@@ -176,7 +176,7 @@ class grvt extends Exchange {
                 'accountId' => null, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks' => array(
-                    'ARBONE' => '42161',
+                    'ARBITRUM' => '42161',
                     'AVAXC' => '43114',
                     'BASE' => '8453',
                     'BSC' => '56',
@@ -2505,7 +2505,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

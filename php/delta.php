@@ -430,7 +430,7 @@ class delta extends Exchange {
         return $this->safe_integer_product($result, 'server_time', 0.001);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3177,7 +3177,7 @@ class delta extends Exchange {
         return $this->privatePostProductsProductIdOrdersLeverage($this->extend($request, $params));
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical settlement records
          *
