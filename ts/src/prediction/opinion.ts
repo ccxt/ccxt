@@ -1085,7 +1085,10 @@ export default class opinion extends Exchange {
         const response = await this.opinionPrivatePostOrderCancel (this.extend (request, params));
         const result = this.safeDict (response, 'result', {});
         const canceled = this.safeBool (result, 'result', false);
-        const status = canceled ? 'canceled' : 'open';
+        // a false result does NOT mean the order is still open — it may already be filled,
+        // already cancelled, or unknown; don't invent a status the venue didn't report
+        // (error responses with an errno never reach this line, handleErrors throws on them)
+        const status = (canceled) ? 'canceled' : undefined;
         return this.safePredictionOrder ({ 'id': id, 'status': status, 'info': response }) as PredictionOrder;
     }
 
