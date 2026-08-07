@@ -955,7 +955,10 @@ export class BaseExchange {
             await this.loadProxyModules();
         }
         // user-agent
-        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        let userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        if ((userAgent === undefined) && isNode) {
+            userAgent = this.userAgents['chrome'];
+        }
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
                 headers = this.extend({ 'User-Agent': userAgent }, headers);
