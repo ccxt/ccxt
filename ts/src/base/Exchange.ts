@@ -1707,7 +1707,7 @@ export class BaseExchange {
         return this.clients[url];
     }
 
-    calculateWsBackoffDelay (url: string): Int {
+    calculateWsBackoffDelay (url: string): number {
         // exponential reconnect backoff with rng-free jitter, verified behaviorally,
         // replaces the long-standing hardcoded 0, see https://github.com/ccxt/ccxt/issues/23525
         const wsOptions = this.safeDict (this.options, 'ws', {});
