@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, FeeString, DepositWithdrawFees, EndpointSpec } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, FeeString, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -165,42 +165,42 @@ export default class bitopro extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'order-book/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'tickers': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'tickers/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trades/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'provisioning/currencies': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'provisioning/trading-pairs': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'provisioning/limitations-and-fees': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trading-history/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'price/otc/{currency}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'order-book/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'provisioning/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'provisioning/trading-pairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'provisioning/limitations-and-fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'trading-history/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'price/otc/{currency}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/balance': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'orders/history': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'orders/all/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'orders/trades/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'orders/{pair}/{orderId}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'wallet/withdraw/{currency}/{serial}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'wallet/withdraw/{currency}/id/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'wallet/depositHistory/{currency}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'wallet/withdrawHistory/{currency}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'orders/open': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'accounts/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/all/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/trades/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{pair}/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/withdraw/{currency}/{serial}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/withdraw/{currency}/id/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/depositHistory/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/withdrawHistory/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/open': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'orders/{pair}': { 'cost': 1 / 2 } as EndpointSpec<Dict>, // 1200/m => 20/s => 10/20 = 1/2
-                        'orders/batch': { 'cost': 20 / 3 } as EndpointSpec<Dict>, // 90/m => 1.5/s => 10/1.5 = 20/3
-                        'wallet/withdraw/{currency}': { 'cost': 10 } as EndpointSpec<Dict>, // 60/m => 1/s => 10/1 = 10
+                        'orders/{pair}': { 'cost': 1 / 2 } as Endpoint<Dict>, // 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch': { 'cost': 20 / 3 } as Endpoint<Dict>, // 90/m => 1.5/s => 10/1.5 = 20/3
+                        'wallet/withdraw/{currency}': { 'cost': 10 } as Endpoint<Dict>, // 60/m => 1/s => 10/1 = 10
                     },
                     'put': {
-                        'orders': { 'cost': 5 } as EndpointSpec<Dict>, // 2/s => 10/2 = 5
+                        'orders': { 'cost': 5 } as Endpoint<Dict>, // 2/s => 10/2 = 5
                     },
                     'delete': {
-                        'orders/{pair}/{id}': { 'cost': 2 / 3 } as EndpointSpec<Dict>, // 900/m => 15/s => 10/15 = 2/3
-                        'orders/all': { 'cost': 5 } as EndpointSpec<Dict>, // 2/s => 10/2 = 5
-                        'orders/{pair}': { 'cost': 5 } as EndpointSpec<Dict>, // 2/s => 10/2 = 5
+                        'orders/{pair}/{id}': { 'cost': 2 / 3 } as Endpoint<Dict>, // 900/m => 15/s => 10/15 = 2/3
+                        'orders/all': { 'cost': 5 } as Endpoint<Dict>, // 2/s => 10/2 = 5
+                        'orders/{pair}': { 'cost': 5 } as Endpoint<Dict>, // 2/s => 10/2 = 5
                     },
                 },
             },

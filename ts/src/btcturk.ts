@@ -6,7 +6,7 @@ import Exchange from './abstract/btcturk.js';
 import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict, FeeString, EndpointSpec, List } from './base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict, FeeString, Endpoint, List } from './base/types.js';
 
 ;
 
@@ -139,34 +139,34 @@ export default class btcturk extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'orderbook': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'ticker': { 'cost': 0.1 } as EndpointSpec<Dict>,
-                        'trades': { 'cost': 1 } as EndpointSpec<Dict>,   // ?last=COUNT (max 50)
-                        'ohlc': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'server/exchangeinfo': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,   // ?last=COUNT (max 50)
+                        'ohlc': { 'cost': 1 } as Endpoint<Dict>,
+                        'server/exchangeinfo': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'users/balances': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'openOrders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'allOrders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'users/transactions/trade': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'users/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'openOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'allOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/trade': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'users/transactions/crypto': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'users/transactions/fiat': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'order': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'cancelOrder': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'users/transactions/crypto': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/fiat': { 'cost': 1 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrder': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'graph': {
                     'get': {
-                        'ohlcs': { 'cost': 1 } as EndpointSpec<List>,
-                        'klines/history': { 'cost': 1 } as EndpointSpec<List>,
+                        'ohlcs': { 'cost': 1 } as Endpoint<List>,
+                        'klines/history': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
             },

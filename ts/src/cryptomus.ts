@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, Fee, List, NullableDict, EndpointSpec } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, Fee, List, NullableDict, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -170,30 +170,30 @@ export default class cryptomus extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v2/user-api/exchange/markets': { 'cost': 1 } as EndpointSpec<Dict>, // done
-                        'v2/user-api/exchange/market/price': { 'cost': 1 } as EndpointSpec<Dict>, // not used
-                        'v1/exchange/market/assets': { 'cost': 1 } as EndpointSpec<Dict>, // done
-                        'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1 } as EndpointSpec<Dict>, // done
-                        'v1/exchange/market/tickers': { 'cost': 1 } as EndpointSpec<Dict>, // done
-                        'v1/exchange/market/trades/{currencyPair}': { 'cost': 1 } as EndpointSpec<Dict>, // done
+                        'v2/user-api/exchange/markets': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/market/price': { 'cost': 1 } as Endpoint<Dict>, // not used
+                        'v1/exchange/market/assets': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v1/exchange/market/tickers': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v1/exchange/market/trades/{currencyPair}': { 'cost': 1 } as Endpoint<Dict>, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/user-api/exchange/orders': { 'cost': 1 } as EndpointSpec<Dict>, // done
-                        'v2/user-api/exchange/orders/history': { 'cost': 1 } as EndpointSpec<Dict>, // done
-                        'v2/user-api/exchange/account/balance': { 'cost': 1 } as EndpointSpec<Dict>, // done
-                        'v2/user-api/exchange/account/tariffs': { 'cost': 1 } as EndpointSpec<Dict>, // done
-                        'v2/user-api/payment/services': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'v2/user-api/payout/services': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'v2/user-api/transaction/list': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v2/user-api/exchange/orders': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/orders/history': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/account/balance': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/account/tariffs': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/payment/services': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/user-api/payout/services': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/user-api/transaction/list': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'v2/user-api/exchange/orders': { 'cost': 1 } as EndpointSpec<Dict>, // done
-                        'v2/user-api/exchange/orders/market': { 'cost': 1 } as EndpointSpec<Dict>, // done
+                        'v2/user-api/exchange/orders': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/orders/market': { 'cost': 1 } as Endpoint<Dict>, // done
                     },
                     'delete': {
-                        'v2/user-api/exchange/orders/{orderId}': { 'cost': 1 } as EndpointSpec<Dict>, // done
+                        'v2/user-api/exchange/orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>, // done
                     },
                 },
             },

@@ -5,7 +5,7 @@ import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeString, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int, EndpointSpec } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeString, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -164,34 +164,34 @@ export default class onetrading extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'currencies': { 'cost': 1 } as EndpointSpec<List>,
-                        'candlesticks/{instrument_code}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'fees': { 'cost': 1 } as EndpointSpec<List>,
-                        'instruments': { 'cost': 1 } as EndpointSpec<List>,
-                        'order-book/{instrument_code}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'market-ticker': { 'cost': 1 } as EndpointSpec<List>,
-                        'market-ticker/{instrument_code}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'time': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'currencies': { 'cost': 1 } as Endpoint<List>,
+                        'candlesticks/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
+                        'fees': { 'cost': 1 } as Endpoint<List>,
+                        'instruments': { 'cost': 1 } as Endpoint<List>,
+                        'order-book/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
+                        'market-ticker': { 'cost': 1 } as Endpoint<List>,
+                        'market-ticker/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
+                        'time': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'account/balances': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'account/fees': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'account/orders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'account/orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'account/orders/client/{client_id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'account/orders/{order_id}/trades': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'account/trades': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'account/trade/{trade_id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/client/{client_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/{order_id}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trade/{trade_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'account/orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/orders': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'account/orders': { 'cost': 1 } as EndpointSpec<List>,
-                        'account/orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'account/orders/client/{client_id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/orders': { 'cost': 1 } as Endpoint<List>,
+                        'account/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/client/{client_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },

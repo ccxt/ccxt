@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
-import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, EndpointSpec, List } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, Endpoint, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -89,48 +89,48 @@ export default class nado extends Exchange {
                 'gateway': {
                     'public': {
                         'get': {
-                            'symbols': { 'cost': 2 } as EndpointSpec<List>,
-                            'query': { 'cost': 1 } as EndpointSpec<Dict>,
-                            'edge/query': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'symbols': { 'cost': 2 } as Endpoint<List>,
+                            'query': { 'cost': 1 } as Endpoint<Dict>,
+                            'edge/query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'query': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'post': {
-                            'execute': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'execute': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'gatewayV2': {
                     'public': {
                         'get': {
-                            'assets': { 'cost': 2 } as EndpointSpec<List>,
-                            'pairs': { 'cost': 1 } as EndpointSpec<List>,
-                            'orderbook': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'assets': { 'cost': 2 } as Endpoint<List>,
+                            'pairs': { 'cost': 1 } as Endpoint<List>,
+                            'orderbook': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': { 'cost': 1 } as EndpointSpec<Dict>,
+                        '': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': { 'cost': 1 } as EndpointSpec<List>,
-                            'contracts': { 'cost': 1 } as EndpointSpec<Dict>,
-                            'trades': { 'cost': 1 } as EndpointSpec<List>,
+                            'tickers': { 'cost': 1 } as Endpoint<List>,
+                            'contracts': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades': { 'cost': 1 } as Endpoint<List>,
                         },
                     },
                 },
                 'trigger': {
                     'private': {
                         'post': {
-                            'execute': { 'cost': 1 } as EndpointSpec<Dict>,
-                            'query': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'execute': { 'cost': 1 } as Endpoint<Dict>,
+                            'query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },

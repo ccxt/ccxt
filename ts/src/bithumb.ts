@@ -6,7 +6,7 @@ import Exchange from './abstract/bithumb.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, FeeString, EndpointSpec } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, FeeString, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -125,38 +125,38 @@ export default class bithumb extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'ticker/ALL_{quoteId}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'ticker/{baseId}_{quoteId}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'orderbook/ALL_{quoteId}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'orderbook/{baseId}_{quoteId}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'transaction_history/{baseId}_{quoteId}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'network-info': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'assetsstatus/multichain/ALL': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'assetsstatus/multichain/{currency}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'withdraw/minimum/ALL': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'withdraw/minimum/{currency}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'assetsstatus/ALL': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'assetsstatus/{baseId}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'candlestick/{baseId}_{quoteId}/{interval}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'ticker/ALL_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker/{baseId}_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/ALL_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/{baseId}_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction_history/{baseId}_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'network-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetsstatus/multichain/ALL': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetsstatus/multichain/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw/minimum/ALL': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw/minimum/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetsstatus/ALL': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetsstatus/{baseId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'candlestick/{baseId}_{quoteId}/{interval}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'post': {
-                        'info/account': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'info/balance': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'info/wallet_address': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'info/ticker': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'info/orders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'info/user_transactions': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'info/order_detail': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/place': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/cancel': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/btc_withdrawal': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/krw_deposit': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/krw_withdrawal': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/market_buy': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/market_sell': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/stop_limit': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'info/account': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/wallet_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/user_transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/order_detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/place': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/btc_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/krw_deposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/krw_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/market_buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/market_sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/stop_limit': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },

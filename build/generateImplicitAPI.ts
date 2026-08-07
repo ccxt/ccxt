@@ -2,7 +2,221 @@ import ccxt, { Dict, Exchange } from '../ts/ccxt.js';
 import fs from 'fs';
 import { writeFile, unlink } from 'fs/promises';
 import log from 'ololog'
-import { returnTypesOfFiles, importsRestTwin } from './apiReturnTypes.js';
+
+// ---------------------------------------------------------------------------
+// Read declared Endpoint<Returns> shapes from describe().api leaves via the
+// TypeScript compiler API (typescript6). Shapes are erased at runtime.
+// ---------------------------------------------------------------------------
+import ts from 'typescript6';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const HTTP_METHODS = [ 'get', 'post', 'put', 'delete', 'patch' ];
+
+// the phantom carrying an endpoint's response shape as its type argument
+const ENDPOINT_NAME = 'Endpoint';
+
+// the repo root, resolved from this module rather than from the working
+// directory: a cwd-relative lookup silently reads nothing when the generator is
+// invoked from anywhere but the root, and emits 14k default signatures instead
+const ROOT = path.join (path.dirname (fileURLToPath (import.meta.url)), '..');
+
+type ReturnTypes = { [method: string]: string };
+
+const capitalize = (s: string): string => {
+    return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
+};
+
+// the camelCase name generateImplicitAPI gives the method of one api leaf —
+// must stay identical to the path building in generateImplicitMethodNames
+function methodName (paths: string[], endpoint: string): string {
+    const parts = paths.concat (endpoint.split (/[^a-zA-Z0-9]/)).filter ((p) => p.length > 0);
+    const camel = parts.map (capitalize).join ('');
+    return camel.charAt (0).toLowerCase () + camel.slice (1);
+}
+
+// literal text of an object-literal key, whatever quoting the source uses
+function keyText (node: ts.PropertyAssignment): string {
+    const name = node.name;
+    if (ts.isStringLiteral (name) || ts.isNumericLiteral (name) || ts.isIdentifier (name)) {
+        return name.text;
+    }
+    return '';
+}
+
+// true when the literal has an http-method key somewhere under it, which is what
+// separates the api tree from same-named siblings such as urls.api
+function hasHttpMethodKey (node: ts.ObjectLiteralExpression): boolean {
+    for (const property of node.properties) {
+        if (!ts.isPropertyAssignment (property)) {
+            continue;
+        }
+        if (HTTP_METHODS.includes (keyText (property).toLowerCase ())) {
+            return true;
+        }
+        const value = property.initializer;
+        if (ts.isObjectLiteralExpression (value) && hasHttpMethodKey (value)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// the 'api' property of the object literal returned by describe()
+function findApiObject (source: ts.SourceFile): ts.ObjectLiteralExpression | undefined {
+    let found: ts.ObjectLiteralExpression | undefined = undefined;
+    const visit = (node: ts.Node) => {
+        if (found !== undefined) {
+            return;
+        }
+        if (ts.isMethodDeclaration (node) && node.name.getText (source) === 'describe') {
+            const inner = (n: ts.Node) => {
+                if (found !== undefined) {
+                    return;
+                }
+                if (ts.isPropertyAssignment (n) && keyText (n as ts.PropertyAssignment) === 'api') {
+                    const value = (n as ts.PropertyAssignment).initializer;
+                    if (ts.isObjectLiteralExpression (value) && hasHttpMethodKey (value)) {
+                        found = value;
+                        return;
+                    }
+                }
+                ts.forEachChild (n, inner);
+            };
+            ts.forEachChild (node, inner);
+            return;
+        }
+        ts.forEachChild (node, visit);
+    };
+    ts.forEachChild (source, visit);
+    return found;
+}
+
+// the response shape asserted onto one api leaf, as the source spells the type:
+// `{ 'cost': 1 } as Endpoint<Dict | List>` -> 'Dict | List'
+function declaredShape (source: ts.SourceFile, leaf: ts.Expression): string | undefined {
+    if (!ts.isAsExpression (leaf)) {
+        return undefined;
+    }
+    const asType = leaf.type;
+    if (!ts.isTypeReferenceNode (asType)) {
+        return undefined;
+    }
+    if (asType.typeName.getText (source) !== ENDPOINT_NAME) {
+        return undefined;
+    }
+    const args = asType.typeArguments;
+    if (args === undefined || args.length !== 1) {
+        return undefined;
+    }
+    // the type argument verbatim, so unions keep the spacing the author wrote
+    return args[0].getText (source).replace (/\s+/g, ' ').trim ();
+}
+
+// A leaf that names Endpoint but which declaredShape could not read is a
+// contributor mistake, not an undeclared endpoint: `satisfies Endpoint<T>`,
+// a parenthesised or aliased assertion and an angle-bracket type assertion all
+// type-check while carrying no shape this reader can see. Silently degrading
+// them to the permissive default is exactly the failure the string tags had, so
+// refuse instead of guessing.
+function assertReadable (file: string, source: ts.SourceFile, leaf: ts.Expression) {
+    if (!leaf.getText (source).includes (ENDPOINT_NAME)) {
+        return;
+    }
+    const { line } = source.getLineAndCharacterOfPosition (leaf.getStart (source));
+    throw new Error (
+        file + ':' + (line + 1) + ' declares ' + ENDPOINT_NAME + ' in a form this reader cannot resolve. '
+        + "An api leaf must spell its shape as `{ 'cost': 1 } as " + ENDPOINT_NAME + '<Dict>` — a plain `as` '
+        + 'assertion of an unaliased, unqualified ' + ENDPOINT_NAME + ' with exactly one type argument.'
+    );
+}
+
+function walkApi (file: string, source: ts.SourceFile, node: ts.ObjectLiteralExpression, paths: string[], out: ReturnTypes) {
+    for (const property of node.properties) {
+        if (!ts.isPropertyAssignment (property)) {
+            continue;
+        }
+        const key = keyText (property);
+        const value = property.initializer;
+        if (HTTP_METHODS.includes (key.toLowerCase ())) {
+            if (!ts.isObjectLiteralExpression (value)) {
+                // 'get': [ 'a', 'b' ] — the bare array form carries no shape
+                continue;
+            }
+            for (const leaf of value.properties) {
+                if (!ts.isPropertyAssignment (leaf)) {
+                    continue;
+                }
+                const shape = declaredShape (source, leaf.initializer);
+                if (shape === undefined) {
+                    assertReadable (file, source, leaf.initializer);
+                    continue;
+                }
+                out[methodName (paths.concat ([ key ]), keyText (leaf))] = shape;
+            }
+        } else if (ts.isObjectLiteralExpression (value)) {
+            walkApi (file, source, value, paths.concat ([ key ]), out);
+        }
+    }
+}
+
+const cache: { [path: string]: ReturnTypes } = {};
+
+// every shape declared by the api tree of one exchange source file
+function returnTypesOfFile (file: string): ReturnTypes {
+    if (file in cache) {
+        return cache[file];
+    }
+    const absolute = path.isAbsolute (file) ? file : path.join (ROOT, file);
+    if (!fs.existsSync (absolute)) {
+        throw new Error ('no such exchange source: ' + absolute);
+    }
+    const out: ReturnTypes = {};
+    const text = fs.readFileSync (absolute, 'utf8');
+    const source = ts.createSourceFile (absolute, text, ts.ScriptTarget.ES2020, true);
+    const api = findApiObject (source);
+    if (api !== undefined) {
+        walkApi (file, source, api, [], out);
+    }
+    cache[file] = out;
+    return out;
+}
+
+// true when a pro exchange's module imports the rest module of the same id,
+// which is how a pro class that does not *extend* its rest twin still merges
+// that twin's describe() into its own (pro/binanceus.ts: `new binanceusRest ()`)
+function importsRestTwin (proFile: string, id: string): boolean {
+    const absolute = path.isAbsolute (proFile) ? proFile : path.join (ROOT, proFile);
+    if (!fs.existsSync (absolute)) {
+        return false;
+    }
+    const source = ts.createSourceFile (absolute, fs.readFileSync (absolute, 'utf8'), ts.ScriptTarget.ES2020, true);
+    for (const statement of source.statements) {
+        if (!ts.isImportDeclaration (statement)) {
+            continue;
+        }
+        const specifier = statement.moduleSpecifier;
+        if (ts.isStringLiteral (specifier) && specifier.text === '../' + id + '.js') {
+            return true;
+        }
+    }
+    return false;
+}
+
+// The api tree an exchange exposes is the deep merge of describe() along its
+// prototype chain, so the declarations are merged the same way: over the same
+// files, in the same order deepExtend applied them (root-first, so a derived
+// exchange overrides its parent). The caller resolves the file list from the
+// live prototype chain — a name-based guess cannot tell a pro class from the
+// rest class of the same name, and the two are not always the same chain.
+function returnTypesOfFiles (files: string[]): ReturnTypes {
+    const merged: ReturnTypes = {};
+    for (const file of files) {
+        Object.assign (merged, returnTypesOfFile (file));
+    }
+    return merged;
+}
+
 
 // const JS_PATH = './js/src/abstract/';
 const TS_PATH = './ts/src/abstract/';
@@ -26,13 +240,13 @@ const IDEN = '    ';
 // leaf that already carries its rate limit cost, in that exchange's describe(),
 // which is the single source of truth:
 //
-//     'klines': { 'cost': 1 } as EndpointSpec<List>,
+//     'klines': { 'cost': 1 } as Endpoint<List>,
 //
-// `EndpointSpec<Returns>` is a phantom type (ts/src/base/types.ts): the
+// `Endpoint<Returns>` is a phantom type (ts/src/base/types.ts): the
 // assertion is erased at compile time, so the leaf the rate limiter sees is
 // still exactly `{ 'cost': 1 }` — no key was added to it, in any language. The
 // declaration is read here from the TypeScript source with the compiler API
-// (build/apiReturnTypes.ts), never from the running object, so the shape is a
+// (the TypeScript compiler API reader below), never from the running object, so the shape is a
 // checked type reference rather than a string tag: `List` is the same `List`
 // the generated abstract file imports from base/types.js.
 //
@@ -93,7 +307,7 @@ let storedTypeScriptMethods: Dict = {};
 let storedCSharpMethods: Dict = {};
 let storedContext: Dict = {};
 // exchange id -> camelCase method name -> the TypeScript type declared for that
-// endpoint by the `as EndpointSpec<...>` assertion on its api leaf in describe()
+// endpoint by the `as Endpoint<...>` assertion on its api leaf in describe()
 let storedReturnTypes: Dict = {};
 let storedPhpMethods: Dict = {};
 let storedPyMethods: Dict = {};
@@ -202,10 +416,6 @@ function firstProIndex (files: string[], proDir: string): number {
 }
 //-------------------------------------------------------------------------
 
-const capitalize = (s: string): string => {
-    return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
-};
-
 //-------------------------------------------------------------------------
 
 function lowercaseFirstLetter(string: string): string {
@@ -267,7 +477,7 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                 }
                 // Nothing has to be stripped from the config here: the response
                 // shape is declared as an erased type assertion on the api leaf
-                // (`{ 'cost': 1 } as EndpointSpec<List>`), so it never becomes a
+                // (`{ 'cost': 1 } as Endpoint<List>`), so it never becomes a
                 // key of the runtime object and cannot reach the rate limiter in
                 // any language. It is read straight from the TypeScript source
                 // by populateImplicitMethods, into storedReturnTypes.

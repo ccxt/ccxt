@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, Fee, FeeString, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict, EndpointSpec, List } from './base/types.js';
+import type{ Balances, Currencies, Dict, Fee, FeeString, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict, Endpoint, List } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
@@ -140,44 +140,44 @@ export default class hibachi extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'market/exchange-info': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'market/inventory': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'market/data/prices': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'market/data/stats': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'market/data/trades': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'market/data/klines': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'market/data/open-interest': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'market/data/orderbook': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'market/data/funding-rates': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/utc-timestamp': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'market/exchange-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/inventory': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/prices': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/stats': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/klines': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/funding-rates': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/utc-timestamp': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'capital/balance': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'capital/history': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'capital/deposit-info': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/account/info': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/account/trades': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/account/trading_history': { 'cost': 1 } as EndpointSpec<Dict>, // not in current docs, used by fetchLedger
-                        'trade/account/settlements_history': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/orders': { 'cost': 1 } as EndpointSpec<List>,
-                        'trade/order': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/orders/history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'capital/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'capital/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'capital/deposit-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/account/info': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/account/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/account/trading_history': { 'cost': 1 } as Endpoint<Dict>, // not in current docs, used by fetchLedger
+                        'trade/account/settlements_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders': { 'cost': 1 } as Endpoint<List>,
+                        'trade/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders/history': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'trade/order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trade/order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'trade/order': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trade/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'trade/order': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/orders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'capital/withdraw': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'capital/transfer': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/account/leverage': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trade/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'capital/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'capital/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/account/leverage': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },

@@ -5,7 +5,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, EndpointSpec } from './base/types.js';
+import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -176,41 +176,41 @@ export default class bitteam extends Exchange {
             'api': {
                 'history': {
                     'get': {
-                        'api/tw/history/{pairName}/{resolution}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'api/tw/history/{pairName}/{resolution}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'public': {
                     'get': {
-                        'trade/api/asset': { 'cost': 1 } as EndpointSpec<Dict>, // not unified
-                        'trade/api/currencies': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/orderbooks/{symbol}': { 'cost': 1 } as EndpointSpec<Dict>, // not unified
-                        'trade/api/orders': { 'cost': 1 } as EndpointSpec<Dict>, // not unified
-                        'trade/api/pair/{name}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/pairs': { 'cost': 1 } as EndpointSpec<Dict>, // not unified
-                        'trade/api/pairs/precisions': { 'cost': 1 } as EndpointSpec<Dict>, // not unified
-                        'trade/api/rates': { 'cost': 1 } as EndpointSpec<Dict>, // not unified
-                        'trade/api/trade/{id}': { 'cost': 1 } as EndpointSpec<Dict>, // not unified
-                        'trade/api/trades': { 'cost': 1 } as EndpointSpec<Dict>, // not unified
-                        'trade/api/ccxt/pairs': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/cmc/assets': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/cmc/orderbook/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/cmc/summary': { 'cost': 1 } as EndpointSpec<List>,
-                        'trade/api/cmc/ticker': { 'cost': 1 } as EndpointSpec<Dict>, // not unified
-                        'trade/api/cmc/trades/{pair}': { 'cost': 1 } as EndpointSpec<List>,
+                        'trade/api/asset': { 'cost': 1 } as Endpoint<Dict>, // not unified
+                        'trade/api/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/orderbooks/{symbol}': { 'cost': 1 } as Endpoint<Dict>, // not unified
+                        'trade/api/orders': { 'cost': 1 } as Endpoint<Dict>, // not unified
+                        'trade/api/pair/{name}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/pairs': { 'cost': 1 } as Endpoint<Dict>, // not unified
+                        'trade/api/pairs/precisions': { 'cost': 1 } as Endpoint<Dict>, // not unified
+                        'trade/api/rates': { 'cost': 1 } as Endpoint<Dict>, // not unified
+                        'trade/api/trade/{id}': { 'cost': 1 } as Endpoint<Dict>, // not unified
+                        'trade/api/trades': { 'cost': 1 } as Endpoint<Dict>, // not unified
+                        'trade/api/ccxt/pairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/cmc/assets': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/cmc/orderbook/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/cmc/summary': { 'cost': 1 } as Endpoint<List>,
+                        'trade/api/cmc/ticker': { 'cost': 1 } as Endpoint<Dict>, // not unified
+                        'trade/api/cmc/trades/{pair}': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'get': {
-                        'trade/api/ccxt/balance': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/ccxt/order/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/ccxt/ordersOfUser': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/ccxt/tradesOfUser': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/transactionsOfUser': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trade/api/ccxt/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/ccxt/order/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/ccxt/ordersOfUser': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/ccxt/tradesOfUser': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/transactionsOfUser': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'trade/api/ccxt/cancel-all-order': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/ccxt/cancelorder': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trade/api/ccxt/ordercreate': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trade/api/ccxt/cancel-all-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/ccxt/cancelorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/api/ccxt/ordercreate': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },

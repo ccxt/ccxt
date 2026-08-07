@@ -5,7 +5,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status, EndpointSpec } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status, Endpoint } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------
@@ -167,81 +167,81 @@ export default class lighter extends Exchange {
                 'root': {
                     'get': {
                         // root
-                        '': { 'cost': 1 } as EndpointSpec<Dict>, // status
-                        'info': { 'cost': 1 } as EndpointSpec<Dict>,
+                        '': { 'cost': 1 } as Endpoint<Dict>, // status
+                        'info': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'public': {
                     'get': {
                         // account
-                        'account': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'accountsByL1Address': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'apikeys': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account': { 'cost': 1 } as Endpoint<Dict>,
+                        'accountsByL1Address': { 'cost': 1 } as Endpoint<Dict>,
+                        'apikeys': { 'cost': 1 } as Endpoint<Dict>,
                         // order
-                        'exchangeStats': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'assetDetails': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'orderBookDetails': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'orderBookOrders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'orderBooks': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'recentTrades': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'exchangeStats': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetDetails': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderBookDetails': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderBookOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderBooks': { 'cost': 1 } as Endpoint<Dict>,
+                        'recentTrades': { 'cost': 1 } as Endpoint<Dict>,
                         // transaction
-                        'blockTxs': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'nextNonce': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'tx': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'txFromL1TxHash': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'txs': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'blockTxs': { 'cost': 1 } as Endpoint<Dict>,
+                        'nextNonce': { 'cost': 1 } as Endpoint<Dict>,
+                        'tx': { 'cost': 1 } as Endpoint<Dict>,
+                        'txFromL1TxHash': { 'cost': 1 } as Endpoint<Dict>,
+                        'txs': { 'cost': 1 } as Endpoint<Dict>,
                         // announcement
-                        'announcement': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'announcement': { 'cost': 1 } as Endpoint<Dict>,
                         // block
-                        'block': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'blocks': { 'cost': 1 } as EndpointSpec<List>,
-                        'currentHeight': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'block': { 'cost': 1 } as Endpoint<Dict>,
+                        'blocks': { 'cost': 1 } as Endpoint<List>,
+                        'currentHeight': { 'cost': 1 } as Endpoint<Dict>,
                         // candlestick
-                        'candles': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'fundings': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'fundings': { 'cost': 1 } as Endpoint<Dict>,
                         // bridge
-                        'fastbridge/info': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'fastbridge/info': { 'cost': 1 } as Endpoint<Dict>,
                         // funding
-                        'funding-rates': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'funding-rates': { 'cost': 1 } as Endpoint<Dict>,
                         // info
-                        'withdrawalDelay': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'withdrawalDelay': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         // transaction
-                        'sendTx': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'sendTxBatch': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'sendTx': { 'cost': 1 } as Endpoint<Dict>,
+                        'sendTxBatch': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'accountLimits': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'accountMetadata': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'pnl': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'l1Metadata': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'liquidations': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'positionFunding': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'publicPoolsMetadata': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'accountLimits': { 'cost': 1 } as Endpoint<Dict>,
+                        'accountMetadata': { 'cost': 1 } as Endpoint<Dict>,
+                        'pnl': { 'cost': 1 } as Endpoint<Dict>,
+                        'l1Metadata': { 'cost': 1 } as Endpoint<Dict>,
+                        'liquidations': { 'cost': 1 } as Endpoint<Dict>,
+                        'positionFunding': { 'cost': 1 } as Endpoint<Dict>,
+                        'publicPoolsMetadata': { 'cost': 1 } as Endpoint<Dict>,
                         // order
-                        'accountActiveOrders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'accountInactiveOrders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'export': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'accountActiveOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'accountInactiveOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'export': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
                         // transaction
-                        'accountTxs': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'deposit/history': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'transfer/history': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'withdraw/history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'accountTxs': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposit/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw/history': { 'cost': 1 } as Endpoint<Dict>,
                         // referral
-                        'referral/points': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'referral/points': { 'cost': 1 } as Endpoint<Dict>,
                         // info
-                        'transferFeeInfo': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'transferFeeInfo': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         // account
-                        'changeAccountTier': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'changeAccountTier': { 'cost': 1 } as Endpoint<Dict>,
                         // notification
-                        'notification/ack': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'notification/ack': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },

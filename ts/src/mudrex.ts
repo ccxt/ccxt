@@ -4,7 +4,7 @@
 import Exchange from './abstract/mudrex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee, EndpointSpec } from './base/types.js';
+import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -97,8 +97,8 @@ export default class mudrex extends Exchange {
             'api': {
                 'market': {
                     'get': {
-                        'price/kline': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'price/mark-kline': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'price/kline': { 'cost': 1 } as Endpoint<Dict>,
+                        'price/mark-kline': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'public': {
@@ -107,36 +107,36 @@ export default class mudrex extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'futures': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'futures/{asset_id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'wallet/funds': { 'cost': 5 } as EndpointSpec<Dict>,
-                        'futures/funds': { 'cost': 5 } as EndpointSpec<Dict>,
-                        'futures/orders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'futures/orders/history': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'futures/orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'futures/positions': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'futures/positions/history': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'futures/fee/history': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'futures/{asset_id}/leverage': { 'cost': 2 } as EndpointSpec<Dict>,
-                        'futures/positions/{position_id}/liq-price': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'futures': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/{asset_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/funds': { 'cost': 5 } as Endpoint<Dict>,
+                        'futures/funds': { 'cost': 5 } as Endpoint<Dict>,
+                        'futures/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/positions/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/fee/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/{asset_id}/leverage': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/liq-price': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'wallet/futures/transfer': { 'cost': 5 } as EndpointSpec<Dict>,
-                        'futures/transfers/inr': { 'cost': 5 } as EndpointSpec<Dict>,
-                        'futures/{asset_id}/order': { 'cost': 2 } as EndpointSpec<Dict>,
-                        'futures/positions/{position_id}/close': { 'cost': 2 } as EndpointSpec<Dict>,
-                        'futures/positions/{position_id}/close/partial': { 'cost': 2 } as EndpointSpec<Dict>,
-                        'futures/positions/{position_id}/reverse': { 'cost': 2 } as EndpointSpec<Dict>,
-                        'futures/positions/{position_id}/add-margin': { 'cost': 2 } as EndpointSpec<Dict>,
-                        'futures/positions/{position_id}/riskorder': { 'cost': 2 } as EndpointSpec<Dict>,
-                        'futures/{asset_id}/leverage': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'wallet/futures/transfer': { 'cost': 5 } as Endpoint<Dict>,
+                        'futures/transfers/inr': { 'cost': 5 } as Endpoint<Dict>,
+                        'futures/{asset_id}/order': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/close': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/close/partial': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/reverse': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/add-margin': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/riskorder': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/{asset_id}/leverage': { 'cost': 2 } as Endpoint<Dict>,
                     },
                     'patch': {
-                        'futures/orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'futures/positions/{position_id}/riskorder': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'futures/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/riskorder': { 'cost': 2 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'futures/orders/{order_id}': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'futures/orders/{order_id}': { 'cost': 2 } as Endpoint<Dict>,
                     },
                 },
             },

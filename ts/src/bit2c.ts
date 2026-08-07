@@ -6,7 +6,7 @@ import Exchange from './abstract/bit2c.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict, FeeString, EndpointSpec, List } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict, FeeString, Endpoint, List } from './base/types.js';
 
 ;
 
@@ -132,35 +132,35 @@ export default class bit2c extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'Exchanges/{pair}/Ticker': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Exchanges/{pair}/orderbook': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Exchanges/{pair}/trades': { 'cost': 1 } as EndpointSpec<List>,
-                        'Exchanges/{pair}/lasttrades': { 'cost': 1 } as EndpointSpec<List>,
+                        'Exchanges/{pair}/Ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'Exchanges/{pair}/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'Exchanges/{pair}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'Exchanges/{pair}/lasttrades': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'post': {
-                        'Merchant/CreateCheckout': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Funds/AddCoinFundsRequest': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/AddFund': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/AddOrder': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/GetById': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/AddOrderMarketPriceBuy': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/AddOrderMarketPriceSell': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/CancelOrder': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/AddCoinFundsRequest': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/AddStopOrder': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Payment/GetMyId': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Payment/Send': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Payment/Pay': { 'cost': 1 } as EndpointSpec<string>,
+                        'Merchant/CreateCheckout': { 'cost': 1 } as Endpoint<Dict>,
+                        'Funds/AddCoinFundsRequest': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddFund': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/GetById': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddOrderMarketPriceBuy': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddOrderMarketPriceSell': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/CancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddCoinFundsRequest': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddStopOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'Payment/GetMyId': { 'cost': 1 } as Endpoint<Dict>,
+                        'Payment/Send': { 'cost': 1 } as Endpoint<Dict>,
+                        'Payment/Pay': { 'cost': 1 } as Endpoint<string>,
                     },
                     'get': {
-                        'Account/Balance': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Account/Balance/v2': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/MyOrders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/GetById': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'Order/AccountHistory': { 'cost': 1 } as EndpointSpec<List>,
-                        'Order/OrderHistory': { 'cost': 1 } as EndpointSpec<List>,
+                        'Account/Balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'Account/Balance/v2': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/MyOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/GetById': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AccountHistory': { 'cost': 1 } as Endpoint<List>,
+                        'Order/OrderHistory': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
             },

@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int, Status, EndpointSpec } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -123,46 +123,46 @@ export default class coincheck extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'exchange/orders/rate': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange_status': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'order_books': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'rate/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'ticker': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'exchange/orders/rate': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange_status': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_books': { 'cost': 1 } as Endpoint<Dict>,
+                        'rate/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'accounts/balance': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'accounts/leverage_balance': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'bank_accounts': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'deposit_money': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/orders/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/orders/opens': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/orders/cancel_status': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/orders/transactions': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/orders/transactions_pagination': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/leverage/positions': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'lending/borrows/matches': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'send_money': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'withdraws': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts/leverage_balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'bank_accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposit_money': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/opens': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/cancel_status': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/transactions_pagination': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/leverage/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'lending/borrows/matches': { 'cost': 1 } as Endpoint<Dict>,
+                        'send_money': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraws': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'bank_accounts': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'deposit_money/{id}/fast': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/orders': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/transfers/to_leverage': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/transfers/from_leverage': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'lending/borrows': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'lending/borrows/{id}/repay': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'send_money': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'withdraws': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'bank_accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposit_money/{id}/fast': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/transfers/to_leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/transfers/from_leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'lending/borrows': { 'cost': 1 } as Endpoint<Dict>,
+                        'lending/borrows/{id}/repay': { 'cost': 1 } as Endpoint<Dict>,
+                        'send_money': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraws': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'bank_accounts/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'exchange/orders/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
-                        'withdraws/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'bank_accounts/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraws/{id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
