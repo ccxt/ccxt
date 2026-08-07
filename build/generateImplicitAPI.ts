@@ -286,6 +286,115 @@ function typescriptImportedTypes (exchange: string): string[] {
     return imported;
 }
 
+// -------------------------------------------------------------------------
+// The same per-endpoint shape, spelled for the other ports.
+//
+// A declared shape is a fact about the decoded JSON body, so it is worth the
+// same in every language — but not every language can carry it in the same
+// place. PHP and Python can express it where a caller and a type checker will
+// both see it; C#, Go and Java cannot narrow their generated signatures at all
+// without breaking the code that consumes them, so there the shape is
+// documented rather than declared. Each mapping is derived from the one
+// storedReturnTypes map, so all six languages stay in step with the api leaf
+// by construction.
+// -------------------------------------------------------------------------
+
+// the members a declared shape can be built out of, per language
+const PHPDOC_RETURN_TYPES: Dict = {
+    'Dict': 'array<string, mixed>',
+    'List': 'list<mixed>',
+    'string': 'string',
+};
+const PYTHON_RETURN_ALIASES: Dict = {
+    'Dict': '_Dict',
+    'List': '_List',
+    'string': 'str',
+};
+const PROSE_RETURN_SHAPES: Dict = {
+    'Dict': 'a JSON object',
+    'List': 'a JSON array',
+    'string': 'a JSON scalar',
+};
+
+// split a declared type into its union members ('Dict | List' -> [Dict, List])
+function returnTypeMembers (exchange: string, method: string): string[] {
+    return typescriptReturnType (exchange, method).split ('|').map ((name) => name.trim ());
+}
+
+// the PHPDoc type for one generated method. PHP has one `array` for both an
+// object and a list, so a native `: array` would throw the Dict/List
+// distinction away; the PHPStan/Psalm array shapes keep it. It stays a
+// docblock rather than a native return type because the same method text is
+// written to both the sync and the async abstract, and the async request()
+// resolves to the body instead of returning it — see createImplicitMethodsPhp.
+function phpdocReturnType (exchange: string, method: string): string {
+    const members = returnTypeMembers (exchange, method).map ((name) => PHPDOC_RETURN_TYPES[name] || 'mixed');
+    return members.join ('|');
+}
+
+// the Python type argument for one generated method, as an alias declared in
+// the generated module's header (see createPyHeader): subscripting the alias
+// once per module is what keeps the ~14k Entry constructions cheap.
+function pythonReturnType (exchange: string, method: string): string {
+    const members = returnTypeMembers (exchange, method);
+    const mapped = members.map ((name) => PYTHON_RETURN_ALIASES[name] || '_Any');
+    if (mapped.length === 1) {
+        return mapped[0];
+    }
+    return 'Union[' + mapped.join (', ') + ']';
+}
+
+// the Python aliases one generated module actually uses, so a module that only
+// answers with objects does not declare a list alias it never mentions
+function pythonUsedAliases (exchange: string): string[] {
+    const used: string[] = [];
+    const methods = storedCamelCaseMethods[exchange] || [];
+    for (const method of methods) {
+        for (const name of returnTypeMembers (exchange, method)) {
+            const alias = PYTHON_RETURN_ALIASES[name] || '_Any';
+            if ((alias[0] === '_') && !used.includes (alias)) {
+                used.push (alias);
+            }
+        }
+    }
+    return used;
+}
+
+// storedPyMethods[exchange][1] is the alias block, left empty by createPyHeader
+// for the same reason the TypeScript import line is: the set of shapes an
+// exchange answers with is only known after generateImplicitMethodNames ran
+function finalizePythonAliases (exchange: string) {
+    const aliases = pythonUsedAliases (exchange);
+    if (!aliases.length) {
+        storedPyMethods[exchange][1] = '';
+        return;
+    }
+    const spelled: Dict = {
+        '_Dict': 'Dict[str, PythonAny]',
+        '_List': 'List[PythonAny]',
+        '_Any': 'PythonAny',
+    };
+    const lines = [ 'from typing import Any as PythonAny, Dict, List, Union', '' ];
+    for (const alias of aliases) {
+        lines.push (alias + ' = ' + spelled[alias]);
+    }
+    storedPyMethods[exchange][1] = lines.join ('\n');
+}
+
+// a one-line prose description of the decoded body, for the languages whose
+// generated signature cannot be narrowed (see createImplicitMethodsGo /
+// CSharp / Java for why each one cannot)
+function proseReturnShape (exchange: string, method: string): string {
+    const members = returnTypeMembers (exchange, method).map ((name) => PROSE_RETURN_SHAPES[name]);
+    if (members.includes (undefined)) {
+        return 'a decoded JSON value';
+    }
+    if (members.length === 1) {
+        return members[0];
+    }
+    return members.slice (0, -1).join (', ') + ' or ' + members[members.length - 1];
+}
+
 // storedTypeScriptMethods[exchange][1] is the `import { ... } from base/types.js`
 // line, left empty by createTypescriptHeader because the set of types an
 // exchange needs is only known after generateImplicitMethodNames has filled
@@ -511,9 +620,10 @@ function createImplicitMethodsPython(){
             const i = idx % underscoreMethods.length
             const camelCaseMethod = camelCaseMethods[i]
             const context = storedContext[exchange][i]
-            return `${IDEN}${method} = ${camelCaseMethod} = Entry('${context.endpoint}', ${context.pyPath}, '${context.method}', ${context.pyConfig})`
+            return `${IDEN}${method} = ${camelCaseMethod} = Entry[${pythonReturnType (exchange, camelCaseMethod)}]('${context.endpoint}', ${context.pyPath}, '${context.method}', ${context.pyConfig})`
         })
         storedPyMethods[exchange] = storedPyMethods[exchange].concat (pythonMethods)
+        finalizePythonAliases (exchange)
     }
 }
 
@@ -532,7 +642,14 @@ function createImplicitMethodsPhp(){
         const phpMethods = underscoreMethods.concat (camelCaseMethods).map ((method, idx) => {
             const i = idx % underscoreMethods.length
             const context = storedContext[exchange][i]
-            return `${IDEN}public function ${method}($params = array()) {
+            // storedReturnTypes is keyed by the camelCase name, and the two name
+            // arrays are filled in lockstep by generateImplicitMethodNames, so
+            // index i is the same endpoint in both halves of this concat
+            const returns = phpdocReturnType (exchange, camelCaseMethods[i])
+            return `${IDEN}/**
+${IDEN} * @return ${returns}
+${IDEN} */
+${IDEN}public function ${method}($params = array()) {
 ${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
 ${IDEN}}`
         })
@@ -574,6 +691,8 @@ function createImplicitMethodsCSharp(){
 
         const methods =  methodNames.map(method=> {
             return [
+                `${IDEN}/// <summary>Calls the ${method} endpoint.</summary>`,
+                `${IDEN}/// <returns>${proseReturnShape (exchange, method)}</returns>`,
                 `${IDEN}public async Task<object> ${method} (object parameters = null)`,
                 `${IDEN}{`,
                 `${IDEN}${IDEN}return await this.callAsync ("${method}",parameters);`,
@@ -596,6 +715,12 @@ function createImplicitMethodsJava(){
 
         const methods =  methodNames.map(method=> {
             return [
+                `${IDEN}/**`,
+                `${IDEN} * Calls the ${method} endpoint.`,
+                `${IDEN} *`,
+                `${IDEN} * @param optionalArgs the request parameters`,
+                `${IDEN} * @return ${proseReturnShape (exchange, method)}`,
+                `${IDEN} */`,
                 `${IDEN}public java.util.concurrent.CompletableFuture<Object>  ${method} (Object... optionalArgs)`,
                 `${IDEN}{`,
                 `${IDEN}${IDEN}return this.callAsync ("${method}", optionalArgs);`,
@@ -655,6 +780,7 @@ function createImplicitMethodsGo(){
         const ownMethodNames = methodNames.filter (method => !(capitalize(method) in inherited));
         const methods = ownMethodNames.map(method=> {
             return [
+                `// ${capitalize(method)} returns a channel that yields ${proseReturnShape (exchange, method)}.`,
                 `func (this *${capitalize(exchange)}Core) ${capitalize(method)}(args ...any) <-chan any {`,
                 `\treturn this.${callEndpoint}("${method}", args...)`,
                 `}`,
@@ -898,6 +1024,12 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
             Object.values (storedPhpMethods).forEach (x => {
                 x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
                 x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
+                // the async Exchange::request() resolves to the decoded body
+                // instead of returning it, so the same @return has to be
+                // restated as the promise of that shape
+                for (let i = 3; i < x.length; i++) {
+                    x[i] = x[i].replace (/^(\s*) \* @return (.+)$/m, '$1 * @return \\React\\Promise\\PromiseInterface<$2>')
+                }
             })
             await editFiles (ASYNC_PHP_PATH + subdir, storedPhpMethods, '.php');
             log.bright.cyan ('PHP async implicit api methods completed!')
