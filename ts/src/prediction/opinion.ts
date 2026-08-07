@@ -156,7 +156,10 @@ export default class opinion extends Exchange {
         const pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 20);
         const maxPages = this.safeInteger (this.options, 'maxMarketsPages', 50);
         const flatMarkets: Market[] = [];
-        const eventsDict: Dict = {};
+        // seen-guard keyed by the event handle; the events themselves go through setEvents below
+        // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
+        const seenEvents: Dict = {};
+        const eventsList: any[] = [];
         let page = 1;
         let fetchedRawCount = 0;
         while (true) {
@@ -185,8 +188,9 @@ export default class opinion extends Exchange {
                         flatMarkets.push (childMarkets[ci] as unknown as Market);
                     }
                     const eventKey = this.safeString (event, 'event');
-                    if ((eventKey !== undefined) && (eventKey !== '')) {
-                        eventsDict[eventKey] = event;
+                    if ((eventKey !== undefined) && (eventKey !== '') && !(eventKey in seenEvents)) {
+                        seenEvents[eventKey] = true;
+                        eventsList.push (event);
                     }
                 } else {
                     flatMarkets.push (this.parseOpinionMarket (raw));
@@ -198,7 +202,7 @@ export default class opinion extends Exchange {
             }
             page = this.sum (page, 1);
         }
-        this.events = eventsDict;
+        this.setEvents (eventsList);
         const flatMarketsLength = flatMarkets.length;
         if ((userLimit !== undefined) && (flatMarketsLength > userLimit)) {
             return this.arraySlice (flatMarkets, 0, userLimit);
