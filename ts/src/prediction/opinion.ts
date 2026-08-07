@@ -982,9 +982,6 @@ export default class opinion extends Exchange {
      */
     async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         this.checkRequiredCredentials ();
-        if (this.privateKey === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey to sign orders');
-        }
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
         const isMarket = (type === 'market');
