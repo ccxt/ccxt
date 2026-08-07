@@ -11,8 +11,8 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     publicGetApiServerTime (params?: {}): Promise<Dict>;
     publicGetApiPairs (params?: {}): Promise<List>;
-    publicGetApiPriceIncrements (params?: {}): Promise<Dict | List>;
-    publicGetApiSummaries (params?: {}): Promise<Dict | List>;
+    publicGetApiPriceIncrements (params?: {}): Promise<Dict>;
+    publicGetApiSummaries (params?: {}): Promise<Dict>;
     publicGetApiTickerPair (params?: {}): Promise<Dict>;
     publicGetApiTickerAll (params?: {}): Promise<Dict>;
     publicGetApiTradesPair (params?: {}): Promise<List>;
@@ -28,9 +28,9 @@ interface Exchange {
     privatePostCancelOrder (params?: {}): Promise<Dict>;
     privatePostWithdrawFee (params?: {}): Promise<Dict>;
     privatePostWithdrawCoin (params?: {}): Promise<Dict>;
-    privatePostListDownline (params?: {}): Promise<Dict | List>;
-    privatePostCheckDownline (params?: {}): Promise<Dict | List>;
-    privatePostCreateVoucher (params?: {}): Promise<Dict | List>;
+    privatePostListDownline (params?: {}): Promise<Dict>;
+    privatePostCheckDownline (params?: {}): Promise<Dict>;
+    privatePostCreateVoucher (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

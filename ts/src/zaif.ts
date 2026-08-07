@@ -108,11 +108,11 @@ export default class zaif extends Exchange {
                 'public': {
                     'get': {
                         'depth/{pair}': { 'cost': 1, 'returnType': 'Dict' },
-                        'currencies/{pair}': 1,
-                        'currencies/all': 1,
-                        'currency_pairs/{pair}': 1,
+                        'currencies/{pair}': { 'cost': 1, 'returnType': 'List' },
+                        'currencies/all': { 'cost': 1, 'returnType': 'List' },
+                        'currency_pairs/{pair}': { 'cost': 1, 'returnType': 'List' },
                         'currency_pairs/all': { 'cost': 1, 'returnType': 'List' },
-                        'last_price/{pair}': 1,
+                        'last_price/{pair}': { 'cost': 1, 'returnType': 'Dict' },
                         'ticker/{pair}': { 'cost': 1, 'returnType': 'Dict' },
                         'trades/{pair}': { 'cost': 1, 'returnType': 'List' },
                     },
@@ -121,42 +121,42 @@ export default class zaif extends Exchange {
                     'post': {
                         'active_orders': { 'cost': 5, 'returnType': 'Dict' }, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
                         'cancel_order': { 'cost': 5, 'returnType': 'Dict' },
-                        'deposit_history': 5,
-                        'get_id_info': 5,
+                        'deposit_history': { 'cost': 5, 'returnType': 'Dict' },
+                        'get_id_info': { 'cost': 5, 'returnType': 'Dict' },
                         'get_info': { 'cost': 10, 'returnType': 'Dict' }, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
-                        'get_info2': 5, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
-                        'get_personal_info': 5,
+                        'get_info2': { 'cost': 5, 'returnType': 'Dict' }, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info': { 'cost': 5, 'returnType': 'Dict' },
                         'trade': { 'cost': 5, 'returnType': 'Dict' },
                         'trade_history': { 'cost': 50, 'returnType': 'Dict' }, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
                         'withdraw': { 'cost': 5, 'returnType': 'Dict' },
-                        'withdraw_history': 5,
+                        'withdraw_history': { 'cost': 5, 'returnType': 'Dict' },
                     },
                 },
                 'ecapi': {
                     'post': {
-                        'createInvoice': 1, // unverified
-                        'getInvoice': 1,
-                        'getInvoiceIdsByOrderNumber': 1,
-                        'cancelInvoice': 1,
+                        'createInvoice': { 'cost': 1, 'returnType': 'Dict' }, // unverified
+                        'getInvoice': { 'cost': 1, 'returnType': 'Dict' },
+                        'getInvoiceIdsByOrderNumber': { 'cost': 1, 'returnType': 'Dict' },
+                        'cancelInvoice': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'tlapi': {
                     'post': {
-                        'get_positions': 66, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
-                        'position_history': 66, // 10 in 60 seconds
-                        'active_positions': 5, // 20 in 10 seconds
-                        'create_position': 33, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
-                        'change_position': 33, // 3 in 10 seconds
-                        'cancel_position': 33, // 3 in 10 seconds
+                        'get_positions': { 'cost': 66, 'returnType': 'Dict' }, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': { 'cost': 66, 'returnType': 'Dict' }, // 10 in 60 seconds
+                        'active_positions': { 'cost': 5, 'returnType': 'Dict' }, // 20 in 10 seconds
+                        'create_position': { 'cost': 33, 'returnType': 'Dict' }, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': { 'cost': 33, 'returnType': 'Dict' }, // 3 in 10 seconds
+                        'cancel_position': { 'cost': 33, 'returnType': 'Dict' }, // 3 in 10 seconds
                     },
                 },
                 'fapi': {
                     'get': {
-                        'groups/{group_id}': 1, // testing
-                        'last_price/{group_id}/{pair}': 1,
-                        'ticker/{group_id}/{pair}': 1,
-                        'trades/{group_id}/{pair}': 1,
-                        'depth/{group_id}/{pair}': 1,
+                        'groups/{group_id}': { 'cost': 1, 'returnType': 'List' }, // testing
+                        'last_price/{group_id}/{pair}': { 'cost': 1, 'returnType': 'Dict' },
+                        'ticker/{group_id}/{pair}': { 'cost': 1, 'returnType': 'Dict' },
+                        'trades/{group_id}/{pair}': { 'cost': 1, 'returnType': 'List' },
+                        'depth/{group_id}/{pair}': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },

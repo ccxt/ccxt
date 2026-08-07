@@ -157,16 +157,16 @@ export default class phemex extends Exchange {
                     'get': {
                         'cfg/v2/products': { 'cost': 5, 'returnType': 'Dict' }, // spot + contracts
                         'cfg/fundingRates': 5,
-                        'products': 5, // contracts only
-                        'nomics/trades': 5, // ?market=<symbol>&since=<since>
-                        'md/kline': 5, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'products': { 'cost': 5, 'returnType': 'Dict' }, // contracts only
+                        'nomics/trades': { 'cost': 5, 'returnType': 'Dict' }, // ?market=<symbol>&since=<since>
+                        'md/kline': { 'cost': 5, 'returnType': 'Dict' }, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
                         'md/v2/kline/list': { 'cost': 5, 'returnType': 'Dict' }, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
                         'md/v2/kline': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                         'md/v2/kline/last': { 'cost': 5, 'returnType': 'Dict' }, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/orderbook': 5, // ?symbol=<symbol>
-                        'md/trade': 5, // ?symbol=<symbol>
-                        'md/spot/ticker/24hr': 5, // ?symbol=<symbol>
-                        'exchange/public/cfg/chain-settings': 5, // ?currency=<currency>
+                        'md/orderbook': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
+                        'md/trade': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
+                        'md/spot/ticker/24hr': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
+                        'exchange/public/cfg/chain-settings': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>
                     },
                 },
                 'v1': {
@@ -185,7 +185,7 @@ export default class phemex extends Exchange {
                 'v2': {
                     'get': {
                         'public/products': { 'cost': 5, 'returnType': 'Dict' },
-                        'public/products-plus': 5,
+                        'public/products-plus': { 'cost': 5, 'returnType': 'Dict' },
                         'md/v2/orderbook': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&id=<id>
                         'md/v2/trade': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&id=<id>
@@ -196,10 +196,10 @@ export default class phemex extends Exchange {
                 'private': {
                     'get': {
                         // spot
-                        'spot/orders/active': 1, // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/active': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>
                         // 'spot/orders/active': 5, // ?symbol=<symbol>&clOrDID=<clOrdID>
                         'spot/orders': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'spot/wallets': 5, // ?currency=<currency>
+                        'spot/wallets': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>
                         'exchange/spot/order': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'exchange/spot/order/trades': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'exchange/order/v2/orderList': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
@@ -208,18 +208,18 @@ export default class phemex extends Exchange {
                         'accounts/accountPositions': { 'cost': 1, 'returnType': 'Dict' }, // ?currency=<currency>
                         'g-accounts/accountPositions': { 'cost': 1, 'returnType': 'Dict' }, // ?currency=<currency>
                         'g-accounts/positions': { 'cost': 25, 'returnType': 'Dict' }, // ?currency=<currency>
-                        'g-accounts/risk-unit': 1,
+                        'g-accounts/risk-unit': { 'cost': 1, 'returnType': 'Dict' },
                         'api-data/futures/funding-fees': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'api-data/futures/orders': 5, // ?symbol=<symbol>
-                        'api-data/g-futures/orders': 5, // ?symbol=<symbol>
-                        'api-data/futures/orders/by-order-id': 5, // ?symbol=<symbol>
+                        'api-data/futures/orders': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
+                        'api-data/g-futures/orders': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
+                        'api-data/futures/orders/by-order-id': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
                         'api-data/g-futures/orders/by-order-id': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'api-data/futures/trades': 5, // ?symbol=<symbol>
-                        'api-data/g-futures/trades': 5, // ?symbol=<symbol>
+                        'api-data/futures/trades': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
+                        'api-data/g-futures/trades': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
                         'api-data/futures/trading-fees': 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees': 5, // ?symbol=<symbol>
-                        'api-data/futures/v2/tradeAccountDetail': 5, // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/futures/v2/tradeAccountDetail': { 'cost': 5, 'returnType': 'List' }, // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'api-data/g-futures/closedPosition': { 'cost': 5, 'returnType': 'Dict' },
                         'g-orders/activeList': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>
                         'orders/activeList': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>
@@ -230,28 +230,28 @@ export default class phemex extends Exchange {
                         'phemex-user/users/children': 5, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
                         'phemex-user/wallets/v2/depositAddress': 5, // ?_t=1592722635531&currency=USDT
                         'phemex-user/wallets/tradeAccountDetail': 5, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
-                        'phemex-deposit/wallets/api/depositAddress': 5, // ?currency=<currency>&chainName=<chainName>
-                        'phemex-deposit/wallets/api/depositHist': 5, // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-deposit/wallets/api/chainCfg': 5, // ?currency=<currency>
-                        'phemex-withdraw/wallets/api/withdrawHist': 5, // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-withdraw/wallets/api/asset/info': 5, // ?currency=<currency>&amount=<amount>
+                        'phemex-deposit/wallets/api/depositAddress': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&chainName=<chainName>
+                        'phemex-deposit/wallets/api/depositHist': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-deposit/wallets/api/chainCfg': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>
+                        'phemex-withdraw/wallets/api/withdrawHist': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-withdraw/wallets/api/asset/info': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&amount=<amount>
                         'phemex-user/order/closedPositionList': 5, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
                         'exchange/margins/transfer': 5, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         'exchange/wallets/confirm/withdraw': 5, // ?code=<withdrawConfirmCode>
                         'exchange/wallets/withdrawList': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
                         'exchange/wallets/depositList': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&offset=<offset>&limit=<limit>
                         'exchange/wallets/v2/depositAddress': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>
-                        'api-data/spots/funds': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'api-data/spots/funds': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'api-data/spots/orders': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
                         'api-data/spots/orders/by-order-id': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
-                        'api-data/spots/pnls': 5,
-                        'api-data/spots/trades': 5, // ?symbol=<symbol>
-                        'api-data/spots/trades/by-order-id': 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'api-data/spots/pnls': { 'cost': 5, 'returnType': 'List' },
+                        'api-data/spots/trades': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
+                        'api-data/spots/trades/by-order-id': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
                         'assets/convert': { 'cost': 5, 'returnType': 'Dict' }, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         // transfer
                         'assets/transfer': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/spots/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/futures/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer': { 'cost': 5, 'returnType': 'List' }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer': { 'cost': 5, 'returnType': 'List' }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote': { 'cost': 5, 'returnType': 'Dict' }, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
                     },
@@ -270,39 +270,39 @@ export default class phemex extends Exchange {
                         'exchange/wallets/createWithdrawAddress': 5, // ?otpCode={optCode}
                         // transfer
                         'assets/transfer': { 'cost': 5, 'returnType': 'Dict' },
-                        'assets/spots/sub-accounts/transfer': 5, // for sub-account only
-                        'assets/futures/sub-accounts/transfer': 5, // for sub-account only
+                        'assets/spots/sub-accounts/transfer': { 'cost': 5, 'returnType': 'Dict' }, // for sub-account only
+                        'assets/futures/sub-accounts/transfer': { 'cost': 5, 'returnType': 'Dict' }, // for sub-account only
                         'assets/universal-transfer': { 'cost': 5, 'returnType': 'Dict' }, // for Main account only
                         'assets/convert': { 'cost': 5, 'returnType': 'Dict' },
                         // withdraw
                         'phemex-withdraw/wallets/api/createWithdraw': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
-                        'phemex-withdraw/wallets/api/cancelWithdraw': 5, // ?id=<id>
+                        'phemex-withdraw/wallets/api/cancelWithdraw': { 'cost': 5, 'returnType': 'Dict' }, // ?id=<id>
                     },
                     'put': {
                         // spot
-                        'spot/orders/create': 1, // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
+                        'spot/orders/create': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
                         'spot/orders': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
                         'orders/replace': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
                         'g-orders/replace': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/create': 1,
-                        'positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/switch-pos-mode-sync': 5, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
-                        'positions/riskLimit': 5, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                        'g-orders/create': { 'cost': 1, 'returnType': 'Dict' },
+                        'positions/leverage': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/leverage': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/switch-pos-mode-sync': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
+                        'positions/riskLimit': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
                     },
                     'delete': {
                         // spot
                         'spot/orders': { 'cost': 2, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>
-                        'spot/orders/all': 2, // ?symbol=<symbol>&untriggered=<untriggered>
+                        'spot/orders/all': { 'cost': 2, 'returnType': 'Dict' }, // ?symbol=<symbol>&untriggered=<untriggered>
                         // 'spot/orders': 5, // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
                         'orders/cancel': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>
-                        'orders': 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'orders': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
                         'orders/all': { 'cost': 3, 'returnType': 'Dict' }, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                         'g-orders/cancel': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders': 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all': 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all': { 'cost': 3, 'returnType': 'Dict' }, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     },
                 },
             },

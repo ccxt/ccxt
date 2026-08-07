@@ -141,7 +141,7 @@ export default class btcbox extends Exchange {
                         'trade_cancel': { 'cost': 1, 'returnType': 'Dict' },
                         'trade_list': { 'cost': 1, 'returnType': 'List' },
                         'trade_view': { 'cost': 1, 'returnType': 'Dict' },
-                        'wallet': 1,
+                        'wallet': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'webApi': {

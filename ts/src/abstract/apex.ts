@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -25,10 +25,10 @@ interface Exchange {
     privateGetV3HistoryOrders (params?: {}): Promise<Dict>;
     privateGetV3OrderByClientOrderId (params?: {}): Promise<Dict>;
     privateGetV3Funding (params?: {}): Promise<Dict>;
-    privateGetV3HistoricalPnl (params?: {}): Promise<Dict | List>;
+    privateGetV3HistoricalPnl (params?: {}): Promise<Dict>;
     privateGetV3OpenOrders (params?: {}): Promise<Dict>;
-    privateGetV3Transfers (params?: {}): Promise<Dict | List>;
-    privateGetV3Transfer (params?: {}): Promise<Dict | List>;
+    privateGetV3Transfers (params?: {}): Promise<Dict>;
+    privateGetV3Transfer (params?: {}): Promise<Dict>;
     privatePostV3DeleteOpenOrders (params?: {}): Promise<Dict>;
     privatePostV3DeleteClientOrderId (params?: {}): Promise<Dict>;
     privatePostV3DeleteOrder (params?: {}): Promise<Dict>;

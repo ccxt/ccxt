@@ -5,38 +5,38 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetTickerALLQuoteId (params?: {}): Promise<Dict | List>;
+    publicGetTickerALLQuoteId (params?: {}): Promise<Dict>;
     publicGetTickerBaseIdQuoteId (params?: {}): Promise<Dict>;
-    publicGetOrderbookALLQuoteId (params?: {}): Promise<Dict | List>;
+    publicGetOrderbookALLQuoteId (params?: {}): Promise<Dict>;
     publicGetOrderbookBaseIdQuoteId (params?: {}): Promise<Dict>;
     publicGetTransactionHistoryBaseIdQuoteId (params?: {}): Promise<Dict>;
-    publicGetNetworkInfo (params?: {}): Promise<Dict | List>;
-    publicGetAssetsstatusMultichainALL (params?: {}): Promise<Dict | List>;
-    publicGetAssetsstatusMultichainCurrency (params?: {}): Promise<Dict | List>;
-    publicGetWithdrawMinimumALL (params?: {}): Promise<Dict | List>;
-    publicGetWithdrawMinimumCurrency (params?: {}): Promise<Dict | List>;
-    publicGetAssetsstatusALL (params?: {}): Promise<Dict | List>;
-    publicGetAssetsstatusBaseId (params?: {}): Promise<Dict | List>;
+    publicGetNetworkInfo (params?: {}): Promise<Dict>;
+    publicGetAssetsstatusMultichainALL (params?: {}): Promise<Dict>;
+    publicGetAssetsstatusMultichainCurrency (params?: {}): Promise<Dict>;
+    publicGetWithdrawMinimumALL (params?: {}): Promise<Dict>;
+    publicGetWithdrawMinimumCurrency (params?: {}): Promise<Dict>;
+    publicGetAssetsstatusALL (params?: {}): Promise<Dict>;
+    publicGetAssetsstatusBaseId (params?: {}): Promise<Dict>;
     publicGetCandlestickBaseIdQuoteIdInterval (params?: {}): Promise<Dict>;
-    privatePostInfoAccount (params?: {}): Promise<Dict | List>;
+    privatePostInfoAccount (params?: {}): Promise<Dict>;
     privatePostInfoBalance (params?: {}): Promise<Dict>;
-    privatePostInfoWalletAddress (params?: {}): Promise<Dict | List>;
-    privatePostInfoTicker (params?: {}): Promise<Dict | List>;
+    privatePostInfoWalletAddress (params?: {}): Promise<Dict>;
+    privatePostInfoTicker (params?: {}): Promise<Dict>;
     privatePostInfoOrders (params?: {}): Promise<Dict>;
-    privatePostInfoUserTransactions (params?: {}): Promise<Dict | List>;
+    privatePostInfoUserTransactions (params?: {}): Promise<Dict>;
     privatePostInfoOrderDetail (params?: {}): Promise<Dict>;
-    privatePostTradePlace (params?: {}): Promise<Dict | List>;
+    privatePostTradePlace (params?: {}): Promise<Dict>;
     privatePostTradeCancel (params?: {}): Promise<Dict>;
     privatePostTradeBtcWithdrawal (params?: {}): Promise<Dict>;
-    privatePostTradeKrwDeposit (params?: {}): Promise<Dict | List>;
-    privatePostTradeKrwWithdrawal (params?: {}): Promise<Dict | List>;
-    privatePostTradeMarketBuy (params?: {}): Promise<Dict | List>;
-    privatePostTradeMarketSell (params?: {}): Promise<Dict | List>;
-    privatePostTradeStopLimit (params?: {}): Promise<Dict | List>;
+    privatePostTradeKrwDeposit (params?: {}): Promise<Dict>;
+    privatePostTradeKrwWithdrawal (params?: {}): Promise<Dict>;
+    privatePostTradeMarketBuy (params?: {}): Promise<Dict>;
+    privatePostTradeMarketSell (params?: {}): Promise<Dict>;
+    privatePostTradeStopLimit (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

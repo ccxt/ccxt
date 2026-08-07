@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -15,37 +15,37 @@ interface Exchange {
     publicGetOrderBook (params?: {}): Promise<Dict>;
     publicGetTrades (params?: {}): Promise<Dict>;
     publicGetOhlc (params?: {}): Promise<Dict>;
-    privateGetAccountStatus (params?: {}): Promise<Dict | List>;
+    privateGetAccountStatus (params?: {}): Promise<Dict>;
     privateGetBalance (params?: {}): Promise<Dict>;
     privateGetFees (params?: {}): Promise<Dict>;
     privateGetFundings (params?: {}): Promise<Dict>;
     privateGetFundingsFid (params?: {}): Promise<Dict>;
     privateGetFundingDestination (params?: {}): Promise<Dict>;
-    privateGetKycDocuments (params?: {}): Promise<Dict | List>;
+    privateGetKycDocuments (params?: {}): Promise<Dict>;
     privateGetLedger (params?: {}): Promise<Dict>;
-    privateGetLedgerTrades (params?: {}): Promise<Dict | List>;
-    privateGetLedgerFees (params?: {}): Promise<Dict | List>;
-    privateGetLedgerFundings (params?: {}): Promise<Dict | List>;
-    privateGetLedgerWithdrawals (params?: {}): Promise<Dict | List>;
-    privateGetMxBankCodes (params?: {}): Promise<Dict | List>;
+    privateGetLedgerTrades (params?: {}): Promise<Dict>;
+    privateGetLedgerFees (params?: {}): Promise<Dict>;
+    privateGetLedgerFundings (params?: {}): Promise<Dict>;
+    privateGetLedgerWithdrawals (params?: {}): Promise<Dict>;
+    privateGetMxBankCodes (params?: {}): Promise<Dict>;
     privateGetOpenOrders (params?: {}): Promise<Dict>;
     privateGetOrderTradesOid (params?: {}): Promise<Dict>;
     privateGetOrdersOid (params?: {}): Promise<Dict>;
     privateGetUserTrades (params?: {}): Promise<Dict>;
-    privateGetUserTradesTid (params?: {}): Promise<Dict | List>;
-    privateGetWithdrawals (params?: {}): Promise<Dict | List>;
-    privateGetWithdrawalsWid (params?: {}): Promise<Dict | List>;
-    privatePostBitcoinWithdrawal (params?: {}): Promise<Dict | List>;
-    privatePostDebitCardWithdrawal (params?: {}): Promise<Dict | List>;
-    privatePostEtherWithdrawal (params?: {}): Promise<Dict | List>;
+    privateGetUserTradesTid (params?: {}): Promise<Dict>;
+    privateGetWithdrawals (params?: {}): Promise<Dict>;
+    privateGetWithdrawalsWid (params?: {}): Promise<Dict>;
+    privatePostBitcoinWithdrawal (params?: {}): Promise<Dict>;
+    privatePostDebitCardWithdrawal (params?: {}): Promise<Dict>;
+    privatePostEtherWithdrawal (params?: {}): Promise<Dict>;
     privatePostOrders (params?: {}): Promise<Dict>;
-    privatePostPhoneNumber (params?: {}): Promise<Dict | List>;
-    privatePostPhoneVerification (params?: {}): Promise<Dict | List>;
-    privatePostPhoneWithdrawal (params?: {}): Promise<Dict | List>;
-    privatePostSpeiWithdrawal (params?: {}): Promise<Dict | List>;
-    privatePostRippleWithdrawal (params?: {}): Promise<Dict | List>;
-    privatePostBcashWithdrawal (params?: {}): Promise<Dict | List>;
-    privatePostLitecoinWithdrawal (params?: {}): Promise<Dict | List>;
+    privatePostPhoneNumber (params?: {}): Promise<Dict>;
+    privatePostPhoneVerification (params?: {}): Promise<Dict>;
+    privatePostPhoneWithdrawal (params?: {}): Promise<Dict>;
+    privatePostSpeiWithdrawal (params?: {}): Promise<Dict>;
+    privatePostRippleWithdrawal (params?: {}): Promise<Dict>;
+    privatePostBcashWithdrawal (params?: {}): Promise<Dict>;
+    privatePostLitecoinWithdrawal (params?: {}): Promise<Dict>;
     privateDeleteOrders (params?: {}): Promise<Dict>;
     privateDeleteOrdersOid (params?: {}): Promise<Dict>;
     privateDeleteOrdersAll (params?: {}): Promise<Dict>;

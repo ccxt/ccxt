@@ -173,26 +173,26 @@ export default class tokocrypto extends Exchange {
             'api': {
                 'binance': {
                     'get': {
-                        'ping': 1,
-                        'time': 1,
+                        'ping': { 'cost': 1, 'returnType': 'Dict' },
+                        'time': { 'cost': 1, 'returnType': 'Dict' },
                         'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ], 'returnType': 'Dict' },
                         'trades': { 'cost': 1, 'returnType': 'List' },
                         'aggTrades': { 'cost': 1, 'returnType': 'List' },
-                        'historicalTrades': 5,
+                        'historicalTrades': { 'cost': 5, 'returnType': 'List' },
                         'klines': { 'cost': 1, 'returnType': 'Dict' },
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
-                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2, 'returnType': 'Dict' },
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2, 'returnType': 'List' },
-                        'exchangeInfo': 10,
+                        'exchangeInfo': { 'cost': 10, 'returnType': 'Dict' },
                     },
                     'put': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'delete': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'public': {
@@ -202,16 +202,16 @@ export default class tokocrypto extends Exchange {
                         // all the actual symbols are type 1
                         'open/v1/market/depth': { 'cost': 1, 'returnType': 'Dict' }, // when symbol type is not 1
                         'open/v1/market/trades': { 'cost': 1, 'returnType': 'Dict' }, // when symbol type is not 1
-                        'open/v1/market/agg-trades': 1, // when symbol type is not 1
+                        'open/v1/market/agg-trades': { 'cost': 1, 'returnType': 'Dict' }, // when symbol type is not 1
                         'open/v1/market/klines': { 'cost': 1, 'returnType': 'Dict' }, // when symbol type is not 1
                     },
                 },
                 'private': {
                     'get': {
-                        'open/v1/orders/detail': 1,
+                        'open/v1/orders/detail': { 'cost': 1, 'returnType': 'Dict' },
                         'open/v1/orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/account/spot': 1,
-                        'open/v1/account/spot/asset': 1,
+                        'open/v1/account/spot': { 'cost': 1, 'returnType': 'Dict' },
+                        'open/v1/account/spot/asset': { 'cost': 1, 'returnType': 'Dict' },
                         'open/v1/orders/trades': { 'cost': 1, 'returnType': 'Dict' },
                         'open/v1/withdraws': { 'cost': 1, 'returnType': 'Dict' },
                         'open/v1/deposits': { 'cost': 1, 'returnType': 'Dict' },
@@ -220,9 +220,9 @@ export default class tokocrypto extends Exchange {
                     'post': {
                         'open/v1/orders': { 'cost': 1, 'returnType': 'Dict' },
                         'open/v1/orders/cancel': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/orders/oco': 1,
+                        'open/v1/orders/oco': { 'cost': 1, 'returnType': 'Dict' },
                         'open/v1/withdraws': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/user-data-stream': 1,
+                        'open/v1/user-data-stream': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },

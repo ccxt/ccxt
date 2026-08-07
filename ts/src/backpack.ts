@@ -159,11 +159,11 @@ export default class backpack extends Exchange {
                 'public': {
                     'get': {
                         'api/v1/assets': { 'cost': 1, 'returnType': 'List' }, // done
-                        'api/v1/collateral': 1, // not used
-                        'api/v1/borrowLend/markets': 1,
-                        'api/v1/borrowLend/markets/history': 1,
+                        'api/v1/collateral': { 'cost': 1, 'returnType': 'List' }, // not used
+                        'api/v1/borrowLend/markets': { 'cost': 1, 'returnType': 'List' },
+                        'api/v1/borrowLend/markets/history': { 'cost': 1, 'returnType': 'List' },
                         'api/v1/markets': { 'cost': 1, 'returnType': 'List' }, // done
-                        'api/v1/market': 1, // not used
+                        'api/v1/market': { 'cost': 1, 'returnType': 'Dict' }, // not used
                         'api/v1/ticker': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'api/v1/tickers': { 'cost': 1, 'returnType': 'List' }, // done
                         'api/v1/depth': { 'cost': 1, 'returnType': 'Dict' }, // done
@@ -172,51 +172,51 @@ export default class backpack extends Exchange {
                         'api/v1/openInterest': { 'cost': 1, 'returnType': 'List' }, // done
                         'api/v1/fundingRates': { 'cost': 1, 'returnType': 'List' }, // done
                         'api/v1/status': { 'cost': 1, 'returnType': 'Dict' }, // done
-                        'api/v1/ping': 1, // todo check if it is needed for ws
+                        'api/v1/ping': { 'cost': 1, 'returnType': 'string' }, // todo check if it is needed for ws
                         'api/v1/time': { 'cost': 1, 'returnType': 'List' }, // done
-                        'api/v1/wallets': 1, // not used
+                        'api/v1/wallets': { 'cost': 1, 'returnType': 'List' }, // not used
                         'api/v1/trades': { 'cost': 1, 'returnType': 'List' }, // done
                         'api/v1/trades/history': { 'cost': 1, 'returnType': 'List' }, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 1, // todo fetchTradingFee
-                        'api/v1/account/limits/borrow': 1, // not used
-                        'api/v1/account/limits/order': 1, // not used
-                        'api/v1/account/limits/withdrawal': 1, // not used
-                        'api/v1/borrowLend/positions': 1, // todo fetchBorrowInterest
+                        'api/v1/account': { 'cost': 1, 'returnType': 'Dict' }, // todo fetchTradingFee
+                        'api/v1/account/limits/borrow': { 'cost': 1, 'returnType': 'Dict' }, // not used
+                        'api/v1/account/limits/order': { 'cost': 1, 'returnType': 'Dict' }, // not used
+                        'api/v1/account/limits/withdrawal': { 'cost': 1, 'returnType': 'Dict' }, // not used
+                        'api/v1/borrowLend/positions': { 'cost': 1, 'returnType': 'List' }, // todo fetchBorrowInterest
                         'api/v1/capital': { 'cost': 1, 'returnType': 'Dict' }, // done
-                        'api/v1/capital/collateral': 1, // not used
+                        'api/v1/capital/collateral': { 'cost': 1, 'returnType': 'Dict' }, // not used
                         'wapi/v1/capital/deposits': { 'cost': 1, 'returnType': 'List' }, // done
                         'wapi/v1/capital/deposit/address': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'wapi/v1/capital/withdrawals': { 'cost': 1, 'returnType': 'List' }, // todo complete after withdrawal
                         'api/v1/position': { 'cost': 1, 'returnType': 'List' }, // done but todo check if all is right
-                        'wapi/v1/history/borrowLend': 1, // not used
-                        'wapi/v1/history/interest': 1, // not used
-                        'wapi/v1/history/borrowLend/positions': 1, // not used
-                        'wapi/v1/history/dust': 1, // not used
+                        'wapi/v1/history/borrowLend': { 'cost': 1, 'returnType': 'List' }, // not used
+                        'wapi/v1/history/interest': { 'cost': 1, 'returnType': 'List' }, // not used
+                        'wapi/v1/history/borrowLend/positions': { 'cost': 1, 'returnType': 'List' }, // not used
+                        'wapi/v1/history/dust': { 'cost': 1, 'returnType': 'List' }, // not used
                         'wapi/v1/history/fills': { 'cost': 1, 'returnType': 'List' }, // done
                         'wapi/v1/history/funding': { 'cost': 1, 'returnType': 'List' }, // done
                         'wapi/v1/history/orders': { 'cost': 1, 'returnType': 'List' }, // done
-                        'wapi/v1/history/rfq': 1,
-                        'wapi/v1/history/quote': 1,
-                        'wapi/v1/history/settlement': 1,
-                        'wapi/v1/history/strategies': 1,
+                        'wapi/v1/history/rfq': { 'cost': 1, 'returnType': 'List' },
+                        'wapi/v1/history/quote': { 'cost': 1, 'returnType': 'List' },
+                        'wapi/v1/history/settlement': { 'cost': 1, 'returnType': 'List' },
+                        'wapi/v1/history/strategies': { 'cost': 1, 'returnType': 'List' },
                         'api/v1/order': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'api/v1/orders': { 'cost': 1, 'returnType': 'List' }, // done
                     },
                     'post': {
-                        'api/v1/account/convertDust': 1,
-                        'api/v1/borrowLend': 1, // todo borrowCrossMargin
+                        'api/v1/account/convertDust': { 'cost': 1, 'returnType': 'Dict' },
+                        'api/v1/borrowLend': { 'cost': 1, 'returnType': 'Dict' }, // todo borrowCrossMargin
                         'wapi/v1/capital/withdrawals': { 'cost': 1, 'returnType': 'Dict' }, // todo complete after withdrawal
                         'api/v1/order': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'api/v1/orders': { 'cost': 1, 'returnType': 'List' }, // done
-                        'api/v1/rfq': 1,
-                        'api/v1/rfq/accept': 1,
-                        'api/v1/rfq/refresh': 1,
-                        'api/v1/rfq/cancel': 1,
-                        'api/v1/rfq/quote': 1,
+                        'api/v1/rfq': { 'cost': 1, 'returnType': 'Dict' },
+                        'api/v1/rfq/accept': { 'cost': 1, 'returnType': 'Dict' },
+                        'api/v1/rfq/refresh': { 'cost': 1, 'returnType': 'Dict' },
+                        'api/v1/rfq/cancel': { 'cost': 1, 'returnType': 'Dict' },
+                        'api/v1/rfq/quote': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'delete': {
                         'api/v1/order': { 'cost': 1, 'returnType': 'Dict' }, // done

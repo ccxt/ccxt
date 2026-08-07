@@ -21,14 +21,14 @@ interface Exchange {
     privateGetAccountFees (params?: {}): Promise<Dict>;
     privateGetAccountOrders (params?: {}): Promise<Dict>;
     privateGetAccountOrdersOrderId (params?: {}): Promise<Dict>;
-    privateGetAccountOrdersClientClientId (params?: {}): Promise<Dict | List>;
+    privateGetAccountOrdersClientClientId (params?: {}): Promise<Dict>;
     privateGetAccountOrdersOrderIdTrades (params?: {}): Promise<Dict>;
     privateGetAccountTrades (params?: {}): Promise<Dict>;
-    privateGetAccountTradeTradeId (params?: {}): Promise<Dict | List>;
+    privateGetAccountTradeTradeId (params?: {}): Promise<Dict>;
     privatePostAccountOrders (params?: {}): Promise<Dict>;
-    privateDeleteAccountOrders (params?: {}): Promise<Dict | List>;
-    privateDeleteAccountOrdersOrderId (params?: {}): Promise<Dict | List>;
-    privateDeleteAccountOrdersClientClientId (params?: {}): Promise<Dict | List>;
+    privateDeleteAccountOrders (params?: {}): Promise<List>;
+    privateDeleteAccountOrdersOrderId (params?: {}): Promise<Dict>;
+    privateDeleteAccountOrdersClientClientId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

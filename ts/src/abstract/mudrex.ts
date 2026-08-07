@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -22,18 +22,18 @@ interface Exchange {
     privateGetFuturesPositionsHistory (params?: {}): Promise<Dict>;
     privateGetFuturesFeeHistory (params?: {}): Promise<Dict>;
     privateGetFuturesAssetIdLeverage (params?: {}): Promise<Dict>;
-    privateGetFuturesPositionsPositionIdLiqPrice (params?: {}): Promise<Dict | List>;
+    privateGetFuturesPositionsPositionIdLiqPrice (params?: {}): Promise<Dict>;
     privatePostWalletFuturesTransfer (params?: {}): Promise<Dict>;
     privatePostFuturesTransfersInr (params?: {}): Promise<Dict>;
     privatePostFuturesAssetIdOrder (params?: {}): Promise<Dict>;
     privatePostFuturesPositionsPositionIdClose (params?: {}): Promise<Dict>;
     privatePostFuturesPositionsPositionIdClosePartial (params?: {}): Promise<Dict>;
-    privatePostFuturesPositionsPositionIdReverse (params?: {}): Promise<Dict | List>;
+    privatePostFuturesPositionsPositionIdReverse (params?: {}): Promise<Dict>;
     privatePostFuturesPositionsPositionIdAddMargin (params?: {}): Promise<Dict>;
     privatePostFuturesPositionsPositionIdRiskorder (params?: {}): Promise<Dict>;
-    privatePostFuturesAssetIdLeverage (params?: {}): Promise<Dict | List>;
+    privatePostFuturesAssetIdLeverage (params?: {}): Promise<Dict>;
     privatePatchFuturesOrdersOrderId (params?: {}): Promise<Dict>;
-    privatePatchFuturesPositionsPositionIdRiskorder (params?: {}): Promise<Dict | List>;
+    privatePatchFuturesPositionsPositionIdRiskorder (params?: {}): Promise<Dict>;
     privateDeleteFuturesOrdersOrderId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}

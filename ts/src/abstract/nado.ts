@@ -5,17 +5,17 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    gatewayPublicGetSymbols (params?: {}): Promise<Dict | List>;
+    gatewayPublicGetSymbols (params?: {}): Promise<List>;
     gatewayPublicGetQuery (params?: {}): Promise<Dict>;
     gatewayPublicGetEdgeQuery (params?: {}): Promise<Dict>;
-    gatewayPublicPostQuery (params?: {}): Promise<Dict | List>;
+    gatewayPublicPostQuery (params?: {}): Promise<Dict>;
     gatewayPrivatePostExecute (params?: {}): Promise<Dict>;
     gatewayV2PublicGetAssets (params?: {}): Promise<List>;
-    gatewayV2PublicGetPairs (params?: {}): Promise<Dict | List>;
+    gatewayV2PublicGetPairs (params?: {}): Promise<List>;
     gatewayV2PublicGetOrderbook (params?: {}): Promise<Dict>;
     archivePost (params?: {}): Promise<Dict>;
     archiveV2PublicGetTickers (params?: {}): Promise<List>;

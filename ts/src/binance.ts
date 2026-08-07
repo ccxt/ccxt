@@ -269,131 +269,131 @@ export default class binance extends Exchange {
                     // 1 UID (sapi) => cost = 0.006667 => (1000 / (50 * 0.006667)) * 60 = 180000
                     'get': {
                         // copy trading
-                        'copyTrading/futures/userStatus': 2,
-                        'copyTrading/futures/leadSymbol': 2,
+                        'copyTrading/futures/userStatus': { 'cost': 2, 'returnType': 'Dict' },
+                        'copyTrading/futures/leadSymbol': { 'cost': 2, 'returnType': 'Dict' },
                         'system/status': { 'cost': 0.1, 'returnType': 'Dict' },
                         // these endpoints require this.apiKey
-                        'accountSnapshot': 240, // Weight(IP): 2400 => cost = 0.1 * 2400 = 240
-                        'account/info': 0.1,
-                        'margin/asset': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
-                        'margin/pair': 1,
-                        'margin/allAssets': 0.1,
-                        'margin/allPairs': 0.1,
-                        'margin/priceIndex': 1,
+                        'accountSnapshot': { 'cost': 240, 'returnType': 'Dict' }, // Weight(IP): 2400 => cost = 0.1 * 2400 = 240
+                        'account/info': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'margin/asset': { 'cost': 1, 'returnType': 'Dict' }, // Weight(IP): 10 => cost = 0.1 * 10 = 1
+                        'margin/pair': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/allAssets': { 'cost': 0.1, 'returnType': 'List' },
+                        'margin/allPairs': { 'cost': 0.1, 'returnType': 'List' },
+                        'margin/priceIndex': { 'cost': 1, 'returnType': 'Dict' },
                         // these endpoints require this.apiKey + this.secret
-                        'spot/delist-schedule': 10,
-                        'asset/assetDividend': 1,
+                        'spot/delist-schedule': { 'cost': 10, 'returnType': 'List' },
+                        'asset/assetDividend': { 'cost': 1, 'returnType': 'Dict' },
                         'asset/dribblet': { 'cost': 0.1, 'returnType': 'Dict' },
                         'asset/transfer': { 'cost': 0.1, 'returnType': 'Dict' },
-                        'asset/assetDetail': 0.1,
+                        'asset/assetDetail': { 'cost': 0.1, 'returnType': 'Dict' },
                         'asset/tradeFee': { 'cost': 0.1, 'returnType': 'Dict' },
-                        'asset/ledger-transfer/cloud-mining/queryByPage': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'asset/ledger-transfer/cloud-mining/queryByPage': { 'cost': 4.0002, 'returnType': 'Dict' }, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'asset/convert-transfer/queryByPage': { 'cost': 0.033335, 'returnType': 'Dict' },
-                        'asset/wallet/balance': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
-                        'asset/custody/transfer-history': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
-                        'margin/borrow-repay': 1,
-                        'margin/loan': 1,
-                        'margin/repay': 1,
-                        'margin/account': 1,
-                        'margin/transfer': 0.1,
+                        'asset/wallet/balance': { 'cost': 6, 'returnType': 'List' }, // Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'asset/custody/transfer-history': { 'cost': 6, 'returnType': 'Dict' }, // Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'margin/borrow-repay': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/loan': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/repay': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/account': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/transfer': { 'cost': 0.1, 'returnType': 'Dict' },
                         'margin/interestHistory': { 'cost': 0.1, 'returnType': 'Dict' },
                         'margin/forceLiquidationRec': { 'cost': 0.1, 'returnType': 'Dict' },
                         'margin/order': { 'cost': 1, 'returnType': 'Dict' },
                         'margin/openOrders': { 'cost': 1, 'returnType': 'List' },
                         'margin/allOrders': { 'cost': 20, 'returnType': 'List' }, // Weight(IP): 200 => cost = 0.1 * 200 = 20
                         'margin/myTrades': { 'cost': 1, 'returnType': 'List' },
-                        'margin/maxBorrowable': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
-                        'margin/maxTransferable': 5,
-                        'margin/tradeCoeff': 1,
-                        'margin/isolated/transfer': 0.1,
-                        'margin/isolated/account': 1,
-                        'margin/isolated/pair': 1,
-                        'margin/isolated/allPairs': 1,
-                        'margin/isolated/accountLimit': 0.1,
+                        'margin/maxBorrowable': { 'cost': 5, 'returnType': 'Dict' }, // Weight(IP): 50 => cost = 0.1 * 50 = 5
+                        'margin/maxTransferable': { 'cost': 5, 'returnType': 'Dict' },
+                        'margin/tradeCoeff': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/isolated/transfer': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'margin/isolated/account': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/isolated/pair': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/isolated/allPairs': { 'cost': 1, 'returnType': 'List' },
+                        'margin/isolated/accountLimit': { 'cost': 0.1, 'returnType': 'Dict' },
                         'margin/interestRateHistory': { 'cost': 0.1, 'returnType': 'List' },
-                        'margin/orderList': 1,
-                        'margin/allOrderList': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
-                        'margin/openOrderList': 1,
-                        'margin/crossMarginData': { 'cost': 0.1, 'noCoin': 0.5 },
-                        'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1 },
-                        'margin/isolatedMarginTier': 0.1,
-                        'margin/rateLimit/order': 2,
-                        'margin/dribblet': 0.1,
-                        'margin/dust': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20
-                        'margin/crossMarginCollateralRatio': 10,
-                        'margin/exchange-small-liability': 0.6667,
-                        'margin/exchange-small-liability-history': 0.6667,
-                        'margin/next-hourly-interest-rate': 0.6667,
-                        'margin/capital-flow': 10, // Weight(IP): 100 => cost = 0.1 * 100 = 10
-                        'margin/delist-schedule': 10, // Weight(IP): 100 => cost = 0.1 * 100 = 10
-                        'margin/available-inventory': 0.3334, // Weight(UID): 50 => cost = 0.006667 * 50 = 0.3334
-                        'margin/leverageBracket': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'loan/vip/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/vip/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/vip/request/data': 2.6668, // Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
-                        'loan/vip/request/interestRate': 2.6668, // Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
-                        'loan/income': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
-                        'loan/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/repay/collateral/rate': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
-                        'loan/flexible/ongoing/orders': 30, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
-                        'loan/flexible/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
-                        'loan/flexible/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
-                        'loan/flexible/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
-                        'loan/vip/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/vip/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/vip/collateral/account': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
+                        'margin/orderList': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/allOrderList': { 'cost': 20, 'returnType': 'List' }, // Weight(IP): 200 => cost = 0.1 * 200 = 20
+                        'margin/openOrderList': { 'cost': 1, 'returnType': 'List' },
+                        'margin/crossMarginData': { 'cost': 0.1, 'noCoin': 0.5, 'returnType': 'List' },
+                        'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1, 'returnType': 'List' },
+                        'margin/isolatedMarginTier': { 'cost': 0.1, 'returnType': 'List' },
+                        'margin/rateLimit/order': { 'cost': 2, 'returnType': 'List' },
+                        'margin/dribblet': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'margin/dust': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20
+                        'margin/crossMarginCollateralRatio': { 'cost': 10, 'returnType': 'List' },
+                        'margin/exchange-small-liability': { 'cost': 0.6667, 'returnType': 'List' },
+                        'margin/exchange-small-liability-history': { 'cost': 0.6667, 'returnType': 'Dict' },
+                        'margin/next-hourly-interest-rate': { 'cost': 0.6667, 'returnType': 'List' },
+                        'margin/capital-flow': { 'cost': 10, 'returnType': 'List' }, // Weight(IP): 100 => cost = 0.1 * 100 = 10
+                        'margin/delist-schedule': { 'cost': 10, 'returnType': 'List' }, // Weight(IP): 100 => cost = 0.1 * 100 = 10
+                        'margin/available-inventory': { 'cost': 0.3334, 'returnType': 'Dict' }, // Weight(UID): 50 => cost = 0.006667 * 50 = 0.3334
+                        'margin/leverageBracket': { 'cost': 0.1, 'returnType': 'List' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'loan/vip/loanable/data': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/collateral/data': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/request/data': { 'cost': 2.6668, 'returnType': 'Dict' }, // Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
+                        'loan/vip/request/interestRate': { 'cost': 2.6668, 'returnType': 'List' }, // Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
+                        'loan/income': { 'cost': 40.002, 'returnType': 'List' }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/ongoing/orders': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/ltv/adjustment/history': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/borrow/history': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/repay/history': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/loanable/data': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/collateral/data': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/repay/collateral/rate': { 'cost': 600, 'returnType': 'Dict' }, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
+                        'loan/flexible/ongoing/orders': { 'cost': 30, 'returnType': 'Dict' }, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
+                        'loan/flexible/borrow/history': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
+                        'loan/flexible/repay/history': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
+                        'loan/flexible/ltv/adjustment/history': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
+                        'loan/vip/ongoing/orders': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/repay/history': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/collateral/account': { 'cost': 600, 'returnType': 'Dict' }, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
                         'fiat/orders': { 'cost': 600.03, 'returnType': 'Dict' }, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
-                        'fiat/payments': 0.1,
-                        'futures/transfer': 1,
-                        'futures/histDataLink': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'rebate/taxQuery': 80.004, // Weight(UID): 12000 => cost = 0.006667 * 12000 = 80.004
+                        'fiat/payments': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'futures/transfer': { 'cost': 1, 'returnType': 'Dict' },
+                        'futures/histDataLink': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'rebate/taxQuery': { 'cost': 80.004, 'returnType': 'Dict' }, // Weight(UID): 12000 => cost = 0.006667 * 12000 = 80.004
                         'capital/config/getall': { 'cost': 1, 'returnType': 'List' }, // get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address': { 'cost': 1, 'returnType': 'Dict' },
-                        'capital/deposit/address/list': 1,
+                        'capital/deposit/address/list': { 'cost': 1, 'returnType': 'List' },
                         'capital/deposit/hisrec': { 'cost': 0.1, 'returnType': 'List' },
-                        'capital/deposit/subAddress': 0.1,
-                        'capital/deposit/subHisrec': 0.1,
-                        'capital/withdraw/history': 2, // Weight(UID): 18000 + (Additional: 10 requests per second => cost = ( 1000 / rateLimit ) / 10 = 2
-                        'capital/withdraw/address/list': 10,
-                        'capital/contract/convertible-coins': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
-                        'convert/tradeFlow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'convert/exchangeInfo': 50,
+                        'capital/deposit/subAddress': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'capital/deposit/subHisrec': { 'cost': 0.1, 'returnType': 'List' },
+                        'capital/withdraw/history': { 'cost': 2, 'returnType': 'List' }, // Weight(UID): 18000 + (Additional: 10 requests per second => cost = ( 1000 / rateLimit ) / 10 = 2
+                        'capital/withdraw/address/list': { 'cost': 10, 'returnType': 'List' },
+                        'capital/contract/convertible-coins': { 'cost': 4.0002, 'returnType': 'Dict' }, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'convert/tradeFlow': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'convert/exchangeInfo': { 'cost': 50, 'returnType': 'List' },
                         'convert/assetInfo': { 'cost': 10, 'returnType': 'List' },
                         'convert/orderStatus': { 'cost': 0.6667, 'returnType': 'Dict' },
-                        'convert/limit/queryOpenOrders': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'account/status': 0.1,
-                        'account/apiTradingStatus': 0.1,
+                        'convert/limit/queryOpenOrders': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'account/status': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'account/apiTradingStatus': { 'cost': 0.1, 'returnType': 'Dict' },
                         'account/apiRestrictions/ipRestriction': 0.1,
-                        'bnbBurn': 0.1,
-                        'sub-account/futures/account': 1,
-                        'sub-account/futures/accountSummary': 0.1,
-                        'sub-account/futures/positionRisk': 1,
-                        'sub-account/futures/internalTransfer': 0.1,
-                        'sub-account/list': 0.1,
-                        'sub-account/margin/account': 1,
-                        'sub-account/margin/accountSummary': 1,
-                        'sub-account/spotSummary': 0.1,
-                        'sub-account/status': 1,
-                        'sub-account/sub/transfer/history': 0.1,
-                        'sub-account/transfer/subUserHistory': 0.1,
-                        'sub-account/universalTransfer': 0.1,
+                        'bnbBurn': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/futures/account': { 'cost': 1, 'returnType': 'Dict' },
+                        'sub-account/futures/accountSummary': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/futures/positionRisk': { 'cost': 1, 'returnType': 'List' },
+                        'sub-account/futures/internalTransfer': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/list': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/margin/account': { 'cost': 1, 'returnType': 'Dict' },
+                        'sub-account/margin/accountSummary': { 'cost': 1, 'returnType': 'Dict' },
+                        'sub-account/spotSummary': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/status': { 'cost': 1, 'returnType': 'List' },
+                        'sub-account/sub/transfer/history': { 'cost': 0.1, 'returnType': 'List' },
+                        'sub-account/transfer/subUserHistory': { 'cost': 0.1, 'returnType': 'List' },
+                        'sub-account/universalTransfer': { 'cost': 0.1, 'returnType': 'Dict' },
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
-                        'sub-account/transaction-statistics': 0.40002, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
-                        'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'managed-subaccount/asset': 0.1,
-                        'managed-subaccount/accountSnapshot': 240,
-                        'managed-subaccount/queryTransLogForInvestor': 0.1,
-                        'managed-subaccount/queryTransLogForTradeParent': 0.40002, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
-                        'managed-subaccount/fetch-future-asset': 0.40002, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
-                        'managed-subaccount/marginAsset': 0.1,
-                        'managed-subaccount/info': 0.40002, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
-                        'managed-subaccount/deposit/address': 0.006667, // Weight(UID): 1 => cost = 0.006667 * 1 = 0.006667
-                        'managed-subaccount/query-trans-log': 0.40002,
+                        'sub-account/transaction-statistics': { 'cost': 0.40002, 'returnType': 'Dict' }, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi/ipRestriction': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'managed-subaccount/asset': { 'cost': 0.1, 'returnType': 'List' },
+                        'managed-subaccount/accountSnapshot': { 'cost': 240, 'returnType': 'Dict' },
+                        'managed-subaccount/queryTransLogForInvestor': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'managed-subaccount/queryTransLogForTradeParent': { 'cost': 0.40002, 'returnType': 'Dict' }, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'managed-subaccount/fetch-future-asset': { 'cost': 0.40002, 'returnType': 'Dict' }, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'managed-subaccount/marginAsset': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'managed-subaccount/info': { 'cost': 0.40002, 'returnType': 'Dict' }, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'managed-subaccount/deposit/address': { 'cost': 0.006667, 'returnType': 'Dict' }, // Weight(UID): 1 => cost = 0.006667 * 1 = 0.006667
+                        'managed-subaccount/query-trans-log': { 'cost': 0.40002, 'returnType': 'Dict' },
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -403,351 +403,351 @@ export default class binance extends Exchange {
                         'lending/union/purchaseRecord': 0.1,
                         'lending/union/redemptionRecord': 0.1,
                         'lending/union/interestHistory': 0.1,
-                        'lending/project/list': 0.1,
-                        'lending/project/position/list': 0.1,
+                        'lending/project/list': { 'cost': 0.1, 'returnType': 'List' },
+                        'lending/project/position/list': { 'cost': 0.1, 'returnType': 'List' },
                         // eth-staking
-                        'eth-staking/eth/history/stakingHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'eth-staking/eth/history/redemptionHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'eth-staking/eth/history/rewardsHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'eth-staking/eth/quota': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'eth-staking/eth/history/rateHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'eth-staking/account': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'eth-staking/wbeth/history/wrapHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'eth-staking/wbeth/history/unwrapHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'eth-staking/eth/history/wbethRewardsHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'sol-staking/sol/history/stakingHistory': 15,
-                        'sol-staking/sol/history/redemptionHistory': 15,
-                        'sol-staking/sol/history/bnsolRewardsHistory': 15,
-                        'sol-staking/sol/history/rateHistory': 15,
-                        'sol-staking/account': 15,
-                        'sol-staking/sol/quota': 15,
+                        'eth-staking/eth/history/stakingHistory': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/redemptionHistory': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/rewardsHistory': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/quota': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/rateHistory': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/account': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/history/wrapHistory': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/history/unwrapHistory': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/wbethRewardsHistory': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sol-staking/sol/history/stakingHistory': { 'cost': 15, 'returnType': 'Dict' },
+                        'sol-staking/sol/history/redemptionHistory': { 'cost': 15, 'returnType': 'Dict' },
+                        'sol-staking/sol/history/bnsolRewardsHistory': { 'cost': 15, 'returnType': 'Dict' },
+                        'sol-staking/sol/history/rateHistory': { 'cost': 15, 'returnType': 'Dict' },
+                        'sol-staking/account': { 'cost': 15, 'returnType': 'Dict' },
+                        'sol-staking/sol/quota': { 'cost': 15, 'returnType': 'Dict' },
                         // mining endpoints
-                        'mining/pub/algoList': 0.1,
-                        'mining/pub/coinList': 0.1,
-                        'mining/worker/detail': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
-                        'mining/worker/list': 0.5,
-                        'mining/payment/list': 0.5,
-                        'mining/statistics/user/status': 0.5,
-                        'mining/statistics/user/list': 0.5,
-                        'mining/payment/uid': 0.5,
+                        'mining/pub/algoList': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'mining/pub/coinList': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'mining/worker/detail': { 'cost': 0.5, 'returnType': 'Dict' }, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'mining/worker/list': { 'cost': 0.5, 'returnType': 'Dict' },
+                        'mining/payment/list': { 'cost': 0.5, 'returnType': 'Dict' },
+                        'mining/statistics/user/status': { 'cost': 0.5, 'returnType': 'Dict' },
+                        'mining/statistics/user/list': { 'cost': 0.5, 'returnType': 'Dict' },
+                        'mining/payment/uid': { 'cost': 0.5, 'returnType': 'Dict' },
                         // liquid swap endpoints
-                        'bswap/pools': 0.1,
-                        'bswap/liquidity': { 'cost': 0.1, 'noPoolId': 1 },
-                        'bswap/liquidityOps': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'bswap/quote': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
-                        'bswap/swap': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'bswap/poolConfigure': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
-                        'bswap/addLiquidityPreview': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
-                        'bswap/removeLiquidityPreview': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
-                        'bswap/unclaimedRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
-                        'bswap/claimedHistory': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
+                        'bswap/pools': { 'cost': 0.1, 'returnType': 'List' },
+                        'bswap/liquidity': { 'cost': 0.1, 'noPoolId': 1, 'returnType': 'List' },
+                        'bswap/liquidityOps': { 'cost': 20.001, 'returnType': 'List' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'bswap/quote': { 'cost': 1.00005, 'returnType': 'Dict' }, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/swap': { 'cost': 20.001, 'returnType': 'List' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'bswap/poolConfigure': { 'cost': 1.00005, 'returnType': 'List' }, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/addLiquidityPreview': { 'cost': 1.00005, 'returnType': 'Dict' }, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/removeLiquidityPreview': { 'cost': 1.00005, 'returnType': 'Dict' }, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/unclaimedRewards': { 'cost': 6.667, 'returnType': 'Dict' }, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
+                        'bswap/claimedHistory': { 'cost': 6.667, 'returnType': 'List' }, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
-                        'blvt/tokenInfo': 0.1,
-                        'blvt/subscribe/record': 0.1,
-                        'blvt/redeem/record': 0.1,
-                        'blvt/userLimit': 0.1,
+                        'blvt/tokenInfo': { 'cost': 0.1, 'returnType': 'List' },
+                        'blvt/subscribe/record': { 'cost': 0.1, 'returnType': 'List' },
+                        'blvt/redeem/record': { 'cost': 0.1, 'returnType': 'List' },
+                        'blvt/userLimit': { 'cost': 0.1, 'returnType': 'List' },
                         // broker api TODO (NOT IN DOCS)
-                        'apiReferral/ifNewUser': 1,
-                        'apiReferral/customization': 1,
-                        'apiReferral/userCustomization': 1,
-                        'apiReferral/rebate/recentRecord': 1,
+                        'apiReferral/ifNewUser': { 'cost': 1, 'returnType': 'Dict' },
+                        'apiReferral/customization': { 'cost': 1, 'returnType': 'List' },
+                        'apiReferral/userCustomization': { 'cost': 1, 'returnType': 'Dict' },
+                        'apiReferral/rebate/recentRecord': { 'cost': 1, 'returnType': 'List' },
                         'apiReferral/rebate/historicalRecord': 1,
-                        'apiReferral/kickback/recentRecord': 1,
+                        'apiReferral/kickback/recentRecord': { 'cost': 1, 'returnType': 'List' },
                         'apiReferral/kickback/historicalRecord': 1,
                         // brokerage API TODO https://binance-docs.github.io/Brokerage-API/General/ does not state ratelimits
-                        'broker/subAccountApi': 1,
-                        'broker/subAccount': 1,
-                        'broker/subAccountApi/commission/futures': 1,
-                        'broker/subAccountApi/commission/coinFutures': 1,
-                        'broker/info': 1,
-                        'broker/transfer': 1,
-                        'broker/transfer/futures': 1,
-                        'broker/rebate/recentRecord': 1,
+                        'broker/subAccountApi': { 'cost': 1, 'returnType': 'List' },
+                        'broker/subAccount': { 'cost': 1, 'returnType': 'List' },
+                        'broker/subAccountApi/commission/futures': { 'cost': 1, 'returnType': 'List' },
+                        'broker/subAccountApi/commission/coinFutures': { 'cost': 1, 'returnType': 'List' },
+                        'broker/info': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/transfer': { 'cost': 1, 'returnType': 'List' },
+                        'broker/transfer/futures': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/rebate/recentRecord': { 'cost': 1, 'returnType': 'List' },
                         'broker/rebate/historicalRecord': 1,
-                        'broker/subAccount/bnbBurn/status': 1,
-                        'broker/subAccount/depositHist': 1,
-                        'broker/subAccount/spotSummary': 1,
-                        'broker/subAccount/marginSummary': 1,
+                        'broker/subAccount/bnbBurn/status': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccount/depositHist': { 'cost': 1, 'returnType': 'List' },
+                        'broker/subAccount/spotSummary': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccount/marginSummary': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/futuresSummary': 1,
-                        'broker/rebate/futures/recentRecord': 1,
-                        'broker/subAccountApi/ipRestriction': 1,
-                        'broker/universalTransfer': 1,
+                        'broker/rebate/futures/recentRecord': { 'cost': 1, 'returnType': 'List' },
+                        'broker/subAccountApi/ipRestriction': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/universalTransfer': { 'cost': 1, 'returnType': 'List' },
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
-                        'account/apiRestrictions': 0.1,
+                        'account/apiRestrictions': { 'cost': 0.1, 'returnType': 'Dict' },
                         // c2c / p2p
-                        'c2c/orderMatch/listUserOrderHistory': 0.1,
+                        'c2c/orderMatch/listUserOrderHistory': { 'cost': 0.1, 'returnType': 'Dict' },
                         // nft endpoints
-                        'nft/history/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'nft/history/deposit': 20.001,
-                        'nft/history/withdraw': 20.001,
-                        'nft/user/getAsset': 20.001,
+                        'nft/history/transactions': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'nft/history/deposit': { 'cost': 20.001, 'returnType': 'Dict' },
+                        'nft/history/withdraw': { 'cost': 20.001, 'returnType': 'Dict' },
+                        'nft/user/getAsset': { 'cost': 20.001, 'returnType': 'Dict' },
                         'pay/transactions': { 'cost': 20.001, 'returnType': 'Dict' },
-                        'giftcard/verify': 0.1,
-                        'giftcard/cryptography/rsa-public-key': 0.1,
-                        'giftcard/buyCode/token-limit': 0.1,
-                        'algo/spot/openOrders': 0.1,
-                        'algo/spot/historicalOrders': 0.1,
-                        'algo/spot/subOrders': 0.1,
-                        'algo/futures/openOrders': 0.1,
-                        'algo/futures/historicalOrders': 0.1,
-                        'algo/futures/subOrders': 0.1,
-                        'portfolio/account': 0.1,
-                        'portfolio/collateralRate': 5,
-                        'portfolio/pmLoan': 3.3335,
-                        'portfolio/interest-history': 0.6667,
-                        'portfolio/asset-index-price': 0.1,
-                        'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
-                        'portfolio/margin-asset-leverage': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
-                        'portfolio/balance': 2,
+                        'giftcard/verify': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'giftcard/cryptography/rsa-public-key': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'giftcard/buyCode/token-limit': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'algo/spot/openOrders': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'algo/spot/historicalOrders': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'algo/spot/subOrders': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'algo/futures/openOrders': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'algo/futures/historicalOrders': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'algo/futures/subOrders': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'portfolio/account': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'portfolio/collateralRate': { 'cost': 5, 'returnType': 'List' },
+                        'portfolio/pmLoan': { 'cost': 3.3335, 'returnType': 'Dict' },
+                        'portfolio/interest-history': { 'cost': 0.6667, 'returnType': 'List' },
+                        'portfolio/asset-index-price': { 'cost': 0.1, 'returnType': 'List' },
+                        'portfolio/repay-futures-switch': { 'cost': 3, 'returnType': 'Dict' }, // Weight(IP): 30 => cost = 0.1 * 30 = 3
+                        'portfolio/margin-asset-leverage': { 'cost': 5, 'returnType': 'List' }, // Weight(IP): 50 => cost = 0.1 * 50 = 5
+                        'portfolio/balance': { 'cost': 2, 'returnType': 'List' },
                         'portfolio/negative-balance-exchange-record': 2,
-                        'portfolio/pmloan-history': 5,
-                        'portfolio/earn-asset-balance': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/delta-mode': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/pmloan-history': { 'cost': 5, 'returnType': 'Dict' },
+                        'portfolio/earn-asset-balance': { 'cost': 150, 'returnType': 'Dict' }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/delta-mode': { 'cost': 150, 'returnType': 'Dict' }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         // staking
-                        'staking/productList': 0.1,
-                        'staking/position': 0.1,
-                        'staking/stakingRecord': 0.1,
-                        'staking/personalLeftQuota': 0.1,
-                        'lending/auto-invest/target-asset/list': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/target-asset/roi/list': 0.1,
-                        'lending/auto-invest/all/asset': 0.1,
-                        'lending/auto-invest/source-asset/list': 0.1,
-                        'lending/auto-invest/plan/list': 0.1,
-                        'lending/auto-invest/plan/id': 0.1,
-                        'lending/auto-invest/history/list': 0.1,
-                        'lending/auto-invest/index/info': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/index/user-summary': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/one-off/status': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/redeem/history': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/rebalance/history': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'staking/productList': { 'cost': 0.1, 'returnType': 'List' },
+                        'staking/position': { 'cost': 0.1, 'returnType': 'List' },
+                        'staking/stakingRecord': { 'cost': 0.1, 'returnType': 'List' },
+                        'staking/personalLeftQuota': { 'cost': 0.1, 'returnType': 'List' },
+                        'lending/auto-invest/target-asset/list': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/target-asset/roi/list': { 'cost': 0.1, 'returnType': 'List' },
+                        'lending/auto-invest/all/asset': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'lending/auto-invest/source-asset/list': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'lending/auto-invest/plan/list': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'lending/auto-invest/plan/id': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'lending/auto-invest/history/list': { 'cost': 0.1, 'returnType': 'List' },
+                        'lending/auto-invest/index/info': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/index/user-summary': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off/status': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem/history': { 'cost': 0.1, 'returnType': 'List' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/rebalance/history': { 'cost': 0.1, 'returnType': 'List' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         // simple earn
-                        'simple-earn/flexible/list': 15,
-                        'simple-earn/locked/list': 15,
-                        'simple-earn/flexible/personalLeftQuota': 15,
-                        'simple-earn/locked/personalLeftQuota': 15,
-                        'simple-earn/flexible/subscriptionPreview': 15,
-                        'simple-earn/locked/subscriptionPreview': 15,
-                        'simple-earn/flexible/history/rateHistory': 15,
-                        'simple-earn/flexible/position': 15,
-                        'simple-earn/locked/position': 15,
-                        'simple-earn/account': 15,
-                        'simple-earn/flexible/history/subscriptionRecord': 15,
-                        'simple-earn/locked/history/subscriptionRecord': 15,
-                        'simple-earn/flexible/history/redemptionRecord': 15,
-                        'simple-earn/locked/history/redemptionRecord': 15,
-                        'simple-earn/flexible/history/rewardsRecord': 15,
-                        'simple-earn/locked/history/rewardsRecord': 15,
-                        'simple-earn/flexible/history/collateralRecord': 0.1,
+                        'simple-earn/flexible/list': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/locked/list': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/flexible/personalLeftQuota': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/locked/personalLeftQuota': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/flexible/subscriptionPreview': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/locked/subscriptionPreview': { 'cost': 15, 'returnType': 'List' },
+                        'simple-earn/flexible/history/rateHistory': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/flexible/position': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/locked/position': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/account': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/flexible/history/subscriptionRecord': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/locked/history/subscriptionRecord': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/flexible/history/redemptionRecord': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/locked/history/redemptionRecord': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/flexible/history/rewardsRecord': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/locked/history/rewardsRecord': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/flexible/history/collateralRecord': { 'cost': 0.1, 'returnType': 'Dict' },
                         // Convert
-                        'dci/product/list': 0.1,
-                        'dci/product/positions': 0.1,
-                        'dci/product/accounts': 0.1,
+                        'dci/product/list': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'dci/product/positions': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'dci/product/accounts': { 'cost': 0.1, 'returnType': 'Dict' },
                         // Discount Buy
                         'accumulator/product/list': 0.1,
                         'accumulator/product/position/list': 0.1,
                         'accumulator/product/sum-holding': 0.1,
                     },
                     'post': {
-                        'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
-                        'asset/dust-btc': 0.1,
+                        'asset/dust': { 'cost': 0.06667, 'returnType': 'Dict' }, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'asset/dust-btc': { 'cost': 0.1, 'returnType': 'Dict' },
                         'asset/transfer': { 'cost': 6.0003, 'returnType': 'Dict' }, // Weight(UID): 900 => cost = 0.006667 * 900 = 6.0003
-                        'asset/get-funding-asset': 0.1,
+                        'asset/get-funding-asset': { 'cost': 0.1, 'returnType': 'List' },
                         'asset/convert-transfer': { 'cost': 0.033335, 'returnType': 'Dict' },
-                        'account/disableFastWithdrawSwitch': 0.1,
-                        'account/enableFastWithdrawSwitch': 0.1,
+                        'account/disableFastWithdrawSwitch': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'account/enableFastWithdrawSwitch': { 'cost': 0.1, 'returnType': 'Dict' },
                         // 'account/apiRestrictions/ipRestriction': 1, discontinued
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
                         'capital/withdraw/apply': { 'cost': 4.0002, 'returnType': 'Dict' }, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
-                        'capital/contract/convertible-coins': 4.0002,
-                        'capital/deposit/credit-apply': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'capital/contract/convertible-coins': { 'cost': 4.0002, 'returnType': 'Dict' },
+                        'capital/deposit/credit-apply': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'margin/borrow-repay': { 'cost': 20.001, 'returnType': 'Dict' },
-                        'margin/transfer': 4.0002,
-                        'margin/loan': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'margin/repay': 20.001,
+                        'margin/transfer': { 'cost': 4.0002, 'returnType': 'Dict' },
+                        'margin/loan': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'margin/repay': { 'cost': 20.001, 'returnType': 'Dict' },
                         'margin/order': { 'cost': 0.040002, 'returnType': 'Dict' }, // Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
-                        'margin/order/oco': 0.040002,
-                        'margin/dust': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'margin/exchange-small-liability': 20.001,
+                        'margin/order/oco': { 'cost': 0.040002, 'returnType': 'Dict' },
+                        'margin/dust': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'margin/exchange-small-liability': { 'cost': 20.001, 'returnType': 'Dict' },
                         // 'margin/isolated/create': 1, discontinued
-                        'margin/isolated/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
-                        'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
-                        'margin/max-leverage': 300, // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
-                        'bnbBurn': 0.1,
-                        'sub-account/virtualSubAccount': 0.1,
-                        'sub-account/margin/transfer': 4.0002, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
-                        'sub-account/margin/enable': 0.1,
-                        'sub-account/futures/enable': 0.1,
-                        'sub-account/futures/transfer': 0.1,
-                        'sub-account/futures/internalTransfer': 0.1,
-                        'sub-account/transfer/subToSub': 0.1,
-                        'sub-account/transfer/subToMaster': 0.1,
-                        'sub-account/universalTransfer': 0.1,
+                        'margin/isolated/transfer': { 'cost': 4.0002, 'returnType': 'Dict' }, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'margin/isolated/account': { 'cost': 2.0001, 'returnType': 'Dict' }, // Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
+                        'margin/max-leverage': { 'cost': 300, 'returnType': 'Dict' }, // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
+                        'bnbBurn': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/virtualSubAccount': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/margin/transfer': { 'cost': 4.0002, 'returnType': 'Dict' }, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
+                        'sub-account/margin/enable': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/futures/enable': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/futures/transfer': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/futures/internalTransfer': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/transfer/subToSub': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/transfer/subToMaster': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/universalTransfer': { 'cost': 0.1, 'returnType': 'Dict' },
                         'sub-account/options/enable': 0.1,
-                        'managed-subaccount/deposit': 0.1,
-                        'managed-subaccount/withdraw': 0.1,
-                        'userDataStream': 0.1,
-                        'userDataStream/isolated': 0.1,
+                        'managed-subaccount/deposit': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'managed-subaccount/withdraw': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'userDataStream': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'userDataStream/isolated': { 'cost': 0.1, 'returnType': 'Dict' },
                         'userListenToken': { 'cost': 0.1, 'returnType': 'Dict' },
                         'futures/transfer': { 'cost': 0.1, 'returnType': 'Dict' },
                         // lending
-                        'lending/customizedFixed/purchase': 0.1,
+                        'lending/customizedFixed/purchase': { 'cost': 0.1, 'returnType': 'Dict' },
                         'lending/daily/purchase': 0.1,
                         'lending/daily/redeem': 0.1,
                         // liquid swap endpoints
-                        'bswap/liquidityAdd': 60, // Weight(UID): 1000 + (Additional: 1 request every 3 seconds =  0.333 requests per second) => cost = ( 1000 / rateLimit ) / 0.333 = 60.0000006
-                        'bswap/liquidityRemove': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
-                        'bswap/swap': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
-                        'bswap/claimRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
+                        'bswap/liquidityAdd': { 'cost': 60, 'returnType': 'Dict' }, // Weight(UID): 1000 + (Additional: 1 request every 3 seconds =  0.333 requests per second) => cost = ( 1000 / rateLimit ) / 0.333 = 60.0000006
+                        'bswap/liquidityRemove': { 'cost': 60, 'returnType': 'Dict' }, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/swap': { 'cost': 60, 'returnType': 'Dict' }, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/claimRewards': { 'cost': 6.667, 'returnType': 'Dict' }, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
-                        'blvt/subscribe': 0.1,
-                        'blvt/redeem': 0.1,
+                        'blvt/subscribe': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'blvt/redeem': { 'cost': 0.1, 'returnType': 'Dict' },
                         // brokerage API TODO: NO MENTION OF RATELIMITS IN BROKERAGE DOCS
-                        'apiReferral/customization': 1,
-                        'apiReferral/userCustomization': 1,
+                        'apiReferral/customization': { 'cost': 1, 'returnType': 'Dict' },
+                        'apiReferral/userCustomization': { 'cost': 1, 'returnType': 'Dict' },
                         'apiReferral/rebate/historicalRecord': 1,
                         'apiReferral/kickback/historicalRecord': 1,
-                        'broker/subAccount': 1,
+                        'broker/subAccount': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/margin': 1,
-                        'broker/subAccount/futures': 1,
-                        'broker/subAccountApi': 1,
-                        'broker/subAccountApi/permission': 1,
-                        'broker/subAccountApi/commission': 1,
-                        'broker/subAccountApi/commission/futures': 1,
-                        'broker/subAccountApi/commission/coinFutures': 1,
-                        'broker/transfer': 1,
-                        'broker/transfer/futures': 1,
+                        'broker/subAccount/futures': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccountApi': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccountApi/permission': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccountApi/commission': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccountApi/commission/futures': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccountApi/commission/coinFutures': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/transfer': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/transfer/futures': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/rebate/historicalRecord': 1,
-                        'broker/subAccount/bnbBurn/spot': 1,
-                        'broker/subAccount/bnbBurn/marginInterest': 1,
+                        'broker/subAccount/bnbBurn/spot': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccount/bnbBurn/marginInterest': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/blvt': 1,
                         'broker/subAccountApi/ipRestriction': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
-                        'broker/universalTransfer': 1,
-                        'broker/subAccountApi/permission/universalTransfer': 1,
+                        'broker/universalTransfer': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccountApi/permission/universalTransfer': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccountApi/permission/vanillaOptions': 1,
                         //
                         'giftcard/createCode': { 'cost': 0.1, 'returnType': 'Dict' },
-                        'giftcard/redeemCode': 0.1,
-                        'giftcard/buyCode': 0.1,
-                        'algo/spot/newOrderTwap': 20.001,
-                        'algo/futures/newOrderVp': 20.001,
-                        'algo/futures/newOrderTwap': 20.001,
+                        'giftcard/redeemCode': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'giftcard/buyCode': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'algo/spot/newOrderTwap': { 'cost': 20.001, 'returnType': 'Dict' },
+                        'algo/futures/newOrderVp': { 'cost': 20.001, 'returnType': 'Dict' },
+                        'algo/futures/newOrderTwap': { 'cost': 20.001, 'returnType': 'Dict' },
                         // staking
-                        'staking/purchase': 0.1,
-                        'staking/redeem': 0.1,
-                        'staking/setAutoStaking': 0.1,
+                        'staking/purchase': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'staking/redeem': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'staking/setAutoStaking': { 'cost': 0.1, 'returnType': 'Dict' },
                         // eth-staking
-                        'eth-staking/eth/stake': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'eth-staking/eth/redeem': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'eth-staking/wbeth/wrap': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'sol-staking/sol/stake': 15,
-                        'sol-staking/sol/redeem': 15,
+                        'eth-staking/eth/stake': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/redeem': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/wrap': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sol-staking/sol/stake': { 'cost': 15, 'returnType': 'Dict' },
+                        'sol-staking/sol/redeem': { 'cost': 15, 'returnType': 'Dict' },
                         // mining endpoints
-                        'mining/hash-transfer/config': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
-                        'mining/hash-transfer/config/cancel': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
-                        'portfolio/repay': 20.001,
-                        'loan/vip/renew': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
-                        'loan/vip/borrow': 40.002,
-                        'loan/borrow': 40.002,
-                        'loan/repay': 40.002,
-                        'loan/adjust/ltv': 40.002,
-                        'loan/customize/margin_call': 40.002,
-                        'loan/flexible/repay': 40.002, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
-                        'loan/flexible/adjust/ltv': 40.002, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
-                        'loan/vip/repay': 40.002,
+                        'mining/hash-transfer/config': { 'cost': 0.5, 'returnType': 'Dict' }, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'mining/hash-transfer/config/cancel': { 'cost': 0.5, 'returnType': 'Dict' }, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'portfolio/repay': { 'cost': 20.001, 'returnType': 'Dict' },
+                        'loan/vip/renew': { 'cost': 40.002, 'returnType': 'Dict' }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/vip/borrow': { 'cost': 40.002, 'returnType': 'Dict' },
+                        'loan/borrow': { 'cost': 40.002, 'returnType': 'Dict' },
+                        'loan/repay': { 'cost': 40.002, 'returnType': 'Dict' },
+                        'loan/adjust/ltv': { 'cost': 40.002, 'returnType': 'Dict' },
+                        'loan/customize/margin_call': { 'cost': 40.002, 'returnType': 'Dict' },
+                        'loan/flexible/repay': { 'cost': 40.002, 'returnType': 'Dict' }, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
+                        'loan/flexible/adjust/ltv': { 'cost': 40.002, 'returnType': 'Dict' }, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
+                        'loan/vip/repay': { 'cost': 40.002, 'returnType': 'Dict' },
                         'convert/getQuote': { 'cost': 1.3334, 'returnType': 'Dict' }, // Weight(UID): 200 => cost = 0.006667 * 200 = 1.3334
                         'convert/acceptQuote': { 'cost': 3.3335, 'returnType': 'Dict' }, // Weight(UID): 500 => cost = 0.006667 * 500 = 3.3335
-                        'convert/limit/placeOrder': 3.3335, // Weight(UID): 500 => cost = 0.006667 * 500 = 3.3335
-                        'convert/limit/cancelOrder': 1.3334, // Weight(UID): 200 => cost = 0.006667 * 200 = 1.3334
-                        'portfolio/auto-collection': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/asset-collection': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
-                        'portfolio/bnb-transfer': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/repay-futures-switch': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/repay-futures-negative-balance': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/mint': 20,
-                        'portfolio/redeem': 20,
-                        'portfolio/earn-asset-transfer': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/delta-mode': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'lending/auto-invest/plan/add': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/plan/edit': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/plan/edit-status': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/one-off': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/redeem': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'convert/limit/placeOrder': { 'cost': 3.3335, 'returnType': 'Dict' }, // Weight(UID): 500 => cost = 0.006667 * 500 = 3.3335
+                        'convert/limit/cancelOrder': { 'cost': 1.3334, 'returnType': 'Dict' }, // Weight(UID): 200 => cost = 0.006667 * 200 = 1.3334
+                        'portfolio/auto-collection': { 'cost': 150, 'returnType': 'Dict' }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/asset-collection': { 'cost': 6, 'returnType': 'Dict' }, // Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'portfolio/bnb-transfer': { 'cost': 150, 'returnType': 'Dict' }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-switch': { 'cost': 150, 'returnType': 'Dict' }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-negative-balance': { 'cost': 150, 'returnType': 'Dict' }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/mint': { 'cost': 20, 'returnType': 'Dict' },
+                        'portfolio/redeem': { 'cost': 20, 'returnType': 'Dict' },
+                        'portfolio/earn-asset-transfer': { 'cost': 150, 'returnType': 'Dict' }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/delta-mode': { 'cost': 150, 'returnType': 'Dict' }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'lending/auto-invest/plan/add': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/plan/edit': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/plan/edit-status': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem': { 'cost': 0.1, 'returnType': 'Dict' }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         // simple earn
-                        'simple-earn/flexible/subscribe': 0.1,
-                        'simple-earn/locked/subscribe': 0.1,
-                        'simple-earn/flexible/redeem': 0.1,
-                        'simple-earn/locked/redeem': 0.1,
-                        'simple-earn/flexible/setAutoSubscribe': 15,
-                        'simple-earn/locked/setAutoSubscribe': 15,
-                        'simple-earn/locked/setRedeemOption': 5,
+                        'simple-earn/flexible/subscribe': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'simple-earn/locked/subscribe': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'simple-earn/flexible/redeem': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'simple-earn/locked/redeem': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'simple-earn/flexible/setAutoSubscribe': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/locked/setAutoSubscribe': { 'cost': 15, 'returnType': 'Dict' },
+                        'simple-earn/locked/setRedeemOption': { 'cost': 5, 'returnType': 'Dict' },
                         // convert
-                        'dci/product/subscribe': 0.1,
+                        'dci/product/subscribe': { 'cost': 0.1, 'returnType': 'Dict' },
                         'dci/product/auto_compound/edit': 0.1,
                         // discount buy
                         'accumulator/product/subscribe': 0.1,
                     },
                     'put': {
-                        'userDataStream': 0.1,
-                        'userDataStream/isolated': 0.1,
+                        'userDataStream': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'userDataStream/isolated': { 'cost': 0.1, 'returnType': 'Dict' },
                     },
                     'delete': {
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
                         'margin/openOrders': { 'cost': 0.1, 'returnType': 'List' },
                         'margin/order': { 'cost': 0.006667, 'returnType': 'Dict' }, // Weight(UID): 1 => cost = 0.006667
-                        'margin/orderList': 0.006667,
-                        'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost =  0.006667 * 300 = 2.0001
-                        'userDataStream': 0.1,
-                        'userDataStream/isolated': 0.1,
+                        'margin/orderList': { 'cost': 0.006667, 'returnType': 'Dict' },
+                        'margin/isolated/account': { 'cost': 2.0001, 'returnType': 'Dict' }, // Weight(UID): 300 => cost =  0.006667 * 300 = 2.0001
+                        'userDataStream': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'userDataStream/isolated': { 'cost': 0.1, 'returnType': 'Dict' },
                         // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
-                        'broker/subAccountApi': 1,
-                        'broker/subAccountApi/ipRestriction/ipList': 1,
-                        'algo/spot/order': 0.1,
-                        'algo/futures/order': 0.1,
-                        'sub-account/subAccountApi/ipRestriction/ipList': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'broker/subAccountApi': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccountApi/ipRestriction/ipList': { 'cost': 1, 'returnType': 'Dict' },
+                        'algo/spot/order': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'algo/futures/order': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/subAccountApi/ipRestriction/ipList': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     },
                 },
                 'sapiV2': {
                     'get': {
-                        'eth-staking/account': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'sub-account/futures/account': 0.1,
-                        'sub-account/futures/accountSummary': 1,
-                        'sub-account/futures/positionRisk': 0.1,
-                        'loan/flexible/ongoing/orders': 30, // Weight(IP): 300 => cost = 0.1 * 300 = 30
-                        'loan/flexible/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'portfolio/account': 2,
+                        'eth-staking/account': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/futures/account': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'sub-account/futures/accountSummary': { 'cost': 1, 'returnType': 'Dict' },
+                        'sub-account/futures/positionRisk': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'loan/flexible/ongoing/orders': { 'cost': 30, 'returnType': 'Dict' }, // Weight(IP): 300 => cost = 0.1 * 300 = 30
+                        'loan/flexible/borrow/history': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/repay/history': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/ltv/adjustment/history': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/loanable/data': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/collateral/data': { 'cost': 40, 'returnType': 'Dict' }, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'portfolio/account': { 'cost': 2, 'returnType': 'Dict' },
                     },
                     'post': {
-                        'eth-staking/eth/stake': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
-                        'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'loan/flexible/borrow': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
-                        'loan/flexible/repay': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
-                        'loan/flexible/adjust/ltv': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'eth-staking/eth/stake': { 'cost': 15, 'returnType': 'Dict' }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/subAccountApi/ipRestriction': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'loan/flexible/borrow': { 'cost': 40.002, 'returnType': 'Dict' }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/repay': { 'cost': 40.002, 'returnType': 'Dict' }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/adjust/ltv': { 'cost': 40.002, 'returnType': 'Dict' }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                     },
                 },
                 'sapiV3': {
                     'get': {
-                        'sub-account/assets': 0.40002, // Weight(UID): 60 => cost =  0.006667 * 60 = 0.40002
+                        'sub-account/assets': { 'cost': 0.40002, 'returnType': 'Dict' }, // Weight(UID): 60 => cost =  0.006667 * 60 = 0.40002
                     },
                     'post': {
-                        'asset/getUserAsset': 0.5,
+                        'asset/getUserAsset': { 'cost': 0.5, 'returnType': 'List' },
                     },
                 },
                 'sapiV4': {
                     'get': {
-                        'sub-account/assets': 0.40002, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/assets': { 'cost': 0.40002, 'returnType': 'Dict' }, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
                     },
                 },
                 'dapiPublic': {
                     'get': {
-                        'ping': 1,
+                        'ping': { 'cost': 1, 'returnType': 'Dict' },
                         'time': { 'cost': 1, 'returnType': 'Dict' },
-                        'exchangeInfo': 1,
+                        'exchangeInfo': { 'cost': 1, 'returnType': 'Dict' },
                         'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ], 'returnType': 'Dict' },
                         'trades': { 'cost': 5, 'returnType': 'List' },
                         'historicalTrades': { 'cost': 20, 'returnType': 'List' },
@@ -755,70 +755,70 @@ export default class binance extends Exchange {
                         'premiumIndex': { 'cost': 10, 'returnType': 'List' },
                         'fundingRate': { 'cost': 1, 'returnType': 'List' },
                         'klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' },
-                        'continuousKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'continuousKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' },
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' },
                         'markPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' },
                         'premiumIndexKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' },
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
                         'ticker/price': { 'cost': 1, 'noSymbol': 2, 'returnType': 'List' },
                         'ticker/bookTicker': { 'cost': 2, 'noSymbol': 5, 'returnType': 'List' },
-                        'constituents': 2,
+                        'constituents': { 'cost': 2, 'returnType': 'Dict' },
                         'openInterest': { 'cost': 1, 'returnType': 'Dict' },
                         'fundingInfo': { 'cost': 1, 'returnType': 'List' },
                     },
                 },
                 'dapiData': {
                     'get': {
-                        'delivery-price': 1,
-                        'openInterestHist': 1,
-                        'topLongShortAccountRatio': 1,
-                        'topLongShortPositionRatio': 1,
-                        'globalLongShortAccountRatio': 1,
-                        'takerBuySellVol': 1,
-                        'basis': 1,
+                        'delivery-price': { 'cost': 1, 'returnType': 'List' },
+                        'openInterestHist': { 'cost': 1, 'returnType': 'List' },
+                        'topLongShortAccountRatio': { 'cost': 1, 'returnType': 'List' },
+                        'topLongShortPositionRatio': { 'cost': 1, 'returnType': 'List' },
+                        'globalLongShortAccountRatio': { 'cost': 1, 'returnType': 'List' },
+                        'takerBuySellVol': { 'cost': 1, 'returnType': 'List' },
+                        'basis': { 'cost': 1, 'returnType': 'List' },
                     },
                 },
                 'dapiPrivate': {
                     'get': {
                         'positionSide/dual': { 'cost': 30, 'returnType': 'Dict' },
-                        'orderAmendment': 1,
+                        'orderAmendment': { 'cost': 1, 'returnType': 'List' },
                         'order': { 'cost': 1, 'returnType': 'Dict' },
                         'openOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'openOrders': { 'cost': 1, 'noSymbol': 5, 'returnType': 'List' },
                         'openAlgoOrders': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
                         'allOrders': { 'cost': 5, 'returnType': 'List' },
-                        'balance': 1,
+                        'balance': { 'cost': 1, 'returnType': 'List' },
                         'account': { 'cost': 5, 'returnType': 'Dict' },
                         'positionMargin/history': { 'cost': 1, 'returnType': 'List' },
                         'positionRisk': { 'cost': 1, 'returnType': 'List' },
                         'userTrades': { 'cost': 5, 'returnType': 'List' },
                         'income': { 'cost': 20, 'returnType': 'List' },
-                        'leverageBracket': { 'cost': 2, 'noSymbol': 2 },
+                        'leverageBracket': { 'cost': 2, 'noSymbol': 2, 'returnType': 'List' },
                         'forceOrders': { 'cost': 20, 'noSymbol': 50, 'returnType': 'Dict' },
                         'adlQuantile': { 'cost': 5, 'returnType': 'List' },
-                        'commissionRate': 20,
-                        'income/asyn': 5,
-                        'income/asyn/id': 5,
-                        'trade/asyn': 0.5,
-                        'trade/asyn/id': 0.5,
-                        'order/asyn': 0.5,
-                        'order/asyn/id': 0.5,
-                        'pmExchangeInfo': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
-                        'pmAccountInfo': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'commissionRate': { 'cost': 20, 'returnType': 'Dict' },
+                        'income/asyn': { 'cost': 5, 'returnType': 'Dict' },
+                        'income/asyn/id': { 'cost': 5, 'returnType': 'Dict' },
+                        'trade/asyn': { 'cost': 0.5, 'returnType': 'Dict' },
+                        'trade/asyn/id': { 'cost': 0.5, 'returnType': 'Dict' },
+                        'order/asyn': { 'cost': 0.5, 'returnType': 'Dict' },
+                        'order/asyn/id': { 'cost': 0.5, 'returnType': 'Dict' },
+                        'pmExchangeInfo': { 'cost': 0.5, 'returnType': 'Dict' }, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'pmAccountInfo': { 'cost': 0.5, 'returnType': 'Dict' }, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                     },
                     'post': {
                         'positionSide/dual': { 'cost': 1, 'returnType': 'Dict' },
                         'order': { 'cost': 4, 'returnType': 'Dict' },
                         'algoOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'batchOrders': { 'cost': 5, 'returnType': 'List' },
-                        'countdownCancelAll': 10,
+                        'countdownCancelAll': { 'cost': 10, 'returnType': 'Dict' },
                         'leverage': { 'cost': 1, 'returnType': 'Dict' },
                         'marginType': { 'cost': 1, 'returnType': 'Dict' },
                         'positionMargin': { 'cost': 1, 'returnType': 'Dict' },
                         'listenKey': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'put': {
-                        'listenKey': 1,
+                        'listenKey': { 'cost': 1, 'returnType': 'Dict' },
                         'order': { 'cost': 1, 'returnType': 'Dict' },
                         'batchOrders': { 'cost': 5, 'returnType': 'List' },
                     },
@@ -827,7 +827,7 @@ export default class binance extends Exchange {
                         'algoOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'allOpenOrders': { 'cost': 1, 'returnType': 'List' },
                         'batchOrders': { 'cost': 5, 'returnType': 'List' },
-                        'listenKey': 1,
+                        'listenKey': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'dapiPrivateV2': {
@@ -837,16 +837,16 @@ export default class binance extends Exchange {
                 },
                 'fapiPublic': {
                     'get': {
-                        'ping': 1,
+                        'ping': { 'cost': 1, 'returnType': 'Dict' },
                         'time': { 'cost': 1, 'returnType': 'Dict' },
-                        'exchangeInfo': 1,
+                        'exchangeInfo': { 'cost': 1, 'returnType': 'Dict' },
                         'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ], 'returnType': 'Dict' },
                         'rpiDepth': { 'cost': 20, 'returnType': 'Dict' },
                         'trades': { 'cost': 5, 'returnType': 'List' },
                         'historicalTrades': { 'cost': 20, 'returnType': 'List' },
                         'aggTrades': { 'cost': 20, 'returnType': 'List' },
                         'klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' },
-                        'continuousKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'continuousKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' },
                         'markPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' },
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' },
                         'premiumIndexKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' },
@@ -854,29 +854,29 @@ export default class binance extends Exchange {
                         'fundingInfo': { 'cost': 1, 'returnType': 'List' },
                         'premiumIndex': { 'cost': 1, 'returnType': 'List' },
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
-                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2, 'returnType': 'Dict' },
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2, 'returnType': 'List' },
                         'openInterest': { 'cost': 1, 'returnType': 'Dict' },
-                        'indexInfo': 1,
-                        'assetIndex': { 'cost': 1, 'noSymbol': 10 },
-                        'constituents': 2,
-                        'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
-                        'lvtKlines': 1,
-                        'convert/exchangeInfo': 4,
+                        'indexInfo': { 'cost': 1, 'returnType': 'List' },
+                        'assetIndex': { 'cost': 1, 'noSymbol': 10, 'returnType': 'Dict' },
+                        'constituents': { 'cost': 2, 'returnType': 'Dict' },
+                        'apiTradingStatus': { 'cost': 1, 'noSymbol': 10, 'returnType': 'Dict' },
+                        'lvtKlines': { 'cost': 1, 'returnType': 'List' },
+                        'convert/exchangeInfo': { 'cost': 4, 'returnType': 'List' },
                         'insuranceBalance': 1,
                         'symbolAdlRisk': { 'cost': 1, 'returnType': 'Dict' },
-                        'tradingSchedule': 5,
+                        'tradingSchedule': { 'cost': 5, 'returnType': 'Dict' },
                     },
                 },
                 'fapiData': {
                     'get': {
-                        'delivery-price': 1,
-                        'openInterestHist': 1,
-                        'topLongShortAccountRatio': 1,
-                        'topLongShortPositionRatio': 1,
-                        'globalLongShortAccountRatio': 1,
-                        'takerlongshortRatio': 1,
-                        'basis': 1,
+                        'delivery-price': { 'cost': 1, 'returnType': 'List' },
+                        'openInterestHist': { 'cost': 1, 'returnType': 'List' },
+                        'topLongShortAccountRatio': { 'cost': 1, 'returnType': 'List' },
+                        'topLongShortPositionRatio': { 'cost': 1, 'returnType': 'List' },
+                        'globalLongShortAccountRatio': { 'cost': 1, 'returnType': 'List' },
+                        'takerlongshortRatio': { 'cost': 1, 'returnType': 'List' },
+                        'basis': { 'cost': 1, 'returnType': 'List' },
                     },
                 },
                 'fapiPrivate': {
@@ -894,32 +894,32 @@ export default class binance extends Exchange {
                         'positionSide/dual': { 'cost': 30, 'returnType': 'Dict' },
                         'userTrades': { 'cost': 5, 'returnType': 'List' },
                         'income': { 'cost': 30, 'returnType': 'List' },
-                        'commissionRate': 20,
-                        'rateLimit/order': 1,
-                        'apiTradingStatus': 1,
-                        'multiAssetsMargin': 30,
+                        'commissionRate': { 'cost': 20, 'returnType': 'Dict' },
+                        'rateLimit/order': { 'cost': 1, 'returnType': 'List' },
+                        'apiTradingStatus': { 'cost': 1, 'returnType': 'Dict' },
+                        'multiAssetsMargin': { 'cost': 30, 'returnType': 'Dict' },
                         // broker endpoints
-                        'apiReferral/ifNewUser': 1,
-                        'apiReferral/customization': 1,
-                        'apiReferral/userCustomization': 1,
-                        'apiReferral/traderNum': 1,
-                        'apiReferral/overview': 1,
-                        'apiReferral/tradeVol': 1,
-                        'apiReferral/rebateVol': 1,
-                        'apiReferral/traderSummary': 1,
+                        'apiReferral/ifNewUser': { 'cost': 1, 'returnType': 'Dict' },
+                        'apiReferral/customization': { 'cost': 1, 'returnType': 'List' },
+                        'apiReferral/userCustomization': { 'cost': 1, 'returnType': 'Dict' },
+                        'apiReferral/traderNum': { 'cost': 1, 'returnType': 'List' },
+                        'apiReferral/overview': { 'cost': 1, 'returnType': 'Dict' },
+                        'apiReferral/tradeVol': { 'cost': 1, 'returnType': 'List' },
+                        'apiReferral/rebateVol': { 'cost': 1, 'returnType': 'List' },
+                        'apiReferral/traderSummary': { 'cost': 1, 'returnType': 'List' },
                         'adlQuantile': { 'cost': 5, 'returnType': 'List' },
-                        'pmAccountInfo': 5,
-                        'orderAmendment': 1,
-                        'income/asyn': 1000,
-                        'income/asyn/id': 10,
-                        'order/asyn': 1000,
-                        'order/asyn/id': 10,
-                        'trade/asyn': 1000,
-                        'trade/asyn/id': 10,
-                        'feeBurn': 1,
-                        'symbolConfig': 5,
+                        'pmAccountInfo': { 'cost': 5, 'returnType': 'Dict' },
+                        'orderAmendment': { 'cost': 1, 'returnType': 'List' },
+                        'income/asyn': { 'cost': 1000, 'returnType': 'Dict' },
+                        'income/asyn/id': { 'cost': 10, 'returnType': 'Dict' },
+                        'order/asyn': { 'cost': 1000, 'returnType': 'Dict' },
+                        'order/asyn/id': { 'cost': 10, 'returnType': 'Dict' },
+                        'trade/asyn': { 'cost': 1000, 'returnType': 'Dict' },
+                        'trade/asyn/id': { 'cost': 10, 'returnType': 'Dict' },
+                        'feeBurn': { 'cost': 1, 'returnType': 'Dict' },
+                        'symbolConfig': { 'cost': 5, 'returnType': 'Dict' },
                         'accountConfig': { 'cost': 5, 'returnType': 'Dict' },
-                        'convert/orderStatus': 5,
+                        'convert/orderStatus': { 'cost': 5, 'returnType': 'Dict' },
                         // conditional orders
                         'algoOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'openAlgoOrders': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
@@ -932,22 +932,22 @@ export default class binance extends Exchange {
                         'positionMargin': { 'cost': 1, 'returnType': 'Dict' },
                         'marginType': { 'cost': 1, 'returnType': 'Dict' },
                         'order': { 'cost': 4, 'returnType': 'Dict' },
-                        'order/test': 1,
+                        'order/test': { 'cost': 1, 'returnType': 'Dict' },
                         'leverage': { 'cost': 1, 'returnType': 'Dict' },
                         'listenKey': { 'cost': 1, 'returnType': 'Dict' },
-                        'countdownCancelAll': 10,
-                        'multiAssetsMargin': 1,
+                        'countdownCancelAll': { 'cost': 10, 'returnType': 'Dict' },
+                        'multiAssetsMargin': { 'cost': 1, 'returnType': 'Dict' },
                         // broker endpoints
-                        'apiReferral/customization': 1,
-                        'apiReferral/userCustomization': 1,
-                        'feeBurn': 1,
-                        'convert/getQuote': 200, // 360 requests per hour
-                        'convert/acceptQuote': 20,
+                        'apiReferral/customization': { 'cost': 1, 'returnType': 'Dict' },
+                        'apiReferral/userCustomization': { 'cost': 1, 'returnType': 'Dict' },
+                        'feeBurn': { 'cost': 1, 'returnType': 'Dict' },
+                        'convert/getQuote': { 'cost': 200, 'returnType': 'Dict' }, // 360 requests per hour
+                        'convert/acceptQuote': { 'cost': 20, 'returnType': 'Dict' },
                         // conditional orders
                         'algoOrder': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'put': {
-                        'listenKey': 1,
+                        'listenKey': { 'cost': 1, 'returnType': 'Dict' },
                         'order': { 'cost': 1, 'returnType': 'Dict' },
                         'batchOrders': { 'cost': 5, 'returnType': 'List' },
                     },
@@ -955,7 +955,7 @@ export default class binance extends Exchange {
                         'batchOrders': { 'cost': 1, 'returnType': 'List' },
                         'order': { 'cost': 1, 'returnType': 'Dict' },
                         'allOpenOrders': { 'cost': 1, 'returnType': 'List' },
-                        'listenKey': 1,
+                        'listenKey': { 'cost': 1, 'returnType': 'Dict' },
                         // conditional orders
                         'algoOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'algoOpenOrders': { 'cost': 1, 'returnType': 'List' },
@@ -968,8 +968,8 @@ export default class binance extends Exchange {
                 },
                 'fapiPrivateV2': {
                     'get': {
-                        'account': 1,
-                        'balance': 1,
+                        'account': { 'cost': 1, 'returnType': 'Dict' },
+                        'balance': { 'cost': 1, 'returnType': 'List' },
                         'positionRisk': { 'cost': 1, 'returnType': 'List' },
                     },
                 },
@@ -978,70 +978,70 @@ export default class binance extends Exchange {
                 },
                 'fapiPrivateV3': {
                     'get': {
-                        'account': 1,
-                        'balance': 1,
+                        'account': { 'cost': 1, 'returnType': 'Dict' },
+                        'balance': { 'cost': 1, 'returnType': 'List' },
                         'positionRisk': { 'cost': 1, 'returnType': 'List' },
                     },
                 },
                 'eapiPublic': {
                     'get': {
-                        'ping': 1,
-                        'time': 1,
-                        'exchangeInfo': 1,
-                        'index': 1,
+                        'ping': { 'cost': 1, 'returnType': 'Dict' },
+                        'time': { 'cost': 1, 'returnType': 'Dict' },
+                        'exchangeInfo': { 'cost': 1, 'returnType': 'Dict' },
+                        'index': { 'cost': 1, 'returnType': 'Dict' },
                         'ticker': { 'cost': 5, 'returnType': 'List' },
                         'mark': { 'cost': 5, 'returnType': 'List' },
                         'depth': { 'cost': 1, 'returnType': 'Dict' },
                         'klines': { 'cost': 1, 'returnType': 'List' },
                         'trades': { 'cost': 5, 'returnType': 'List' },
                         'historicalTrades': { 'cost': 20, 'returnType': 'List' },
-                        'exerciseHistory': 3,
+                        'exerciseHistory': { 'cost': 3, 'returnType': 'List' },
                         'openInterest': { 'cost': 3, 'returnType': 'Dict' },
                     },
                 },
                 'eapiPrivate': {
                     'get': {
-                        'account': 3,
+                        'account': { 'cost': 3, 'returnType': 'Dict' },
                         'position': { 'cost': 5, 'returnType': 'List' },
                         'openOrders': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
                         'historyOrders': { 'cost': 3, 'returnType': 'List' },
                         'userTrades': { 'cost': 5, 'returnType': 'List' },
-                        'exerciseRecord': 5,
+                        'exerciseRecord': { 'cost': 5, 'returnType': 'List' },
                         'bill': { 'cost': 1, 'returnType': 'List' },
-                        'income/asyn': 5,
-                        'income/asyn/id': 5,
-                        'marginAccount': 3,
-                        'mmp': 1,
-                        'countdownCancelAll': 1,
+                        'income/asyn': { 'cost': 5, 'returnType': 'Dict' },
+                        'income/asyn/id': { 'cost': 5, 'returnType': 'Dict' },
+                        'marginAccount': { 'cost': 3, 'returnType': 'Dict' },
+                        'mmp': { 'cost': 1, 'returnType': 'Dict' },
+                        'countdownCancelAll': { 'cost': 1, 'returnType': 'Dict' },
                         'order': { 'cost': 1, 'returnType': 'Dict' },
-                        'block/order/orders': 5,
-                        'block/order/execute': 5,
-                        'block/user-trades': 5,
-                        'blockTrades': 5,
+                        'block/order/orders': { 'cost': 5, 'returnType': 'List' },
+                        'block/order/execute': { 'cost': 5, 'returnType': 'Dict' },
+                        'block/user-trades': { 'cost': 5, 'returnType': 'List' },
+                        'blockTrades': { 'cost': 5, 'returnType': 'List' },
                         'comission': 5,
                     },
                     'post': {
                         'order': { 'cost': 1, 'returnType': 'Dict' },
                         'batchOrders': { 'cost': 5, 'returnType': 'List' },
-                        'listenKey': 1,
-                        'mmpSet': 1,
-                        'mmpReset': 1,
-                        'countdownCancelAll': 1,
-                        'countdownCancelAllHeartBeat': 10,
-                        'block/order/create': 5,
-                        'block/order/execute': 5,
+                        'listenKey': { 'cost': 1, 'returnType': 'Dict' },
+                        'mmpSet': { 'cost': 1, 'returnType': 'Dict' },
+                        'mmpReset': { 'cost': 1, 'returnType': 'Dict' },
+                        'countdownCancelAll': { 'cost': 1, 'returnType': 'Dict' },
+                        'countdownCancelAllHeartBeat': { 'cost': 10, 'returnType': 'Dict' },
+                        'block/order/create': { 'cost': 5, 'returnType': 'Dict' },
+                        'block/order/execute': { 'cost': 5, 'returnType': 'Dict' },
                     },
                     'put': {
-                        'listenKey': 1,
-                        'block/order/create': 5,
+                        'listenKey': { 'cost': 1, 'returnType': 'Dict' },
+                        'block/order/create': { 'cost': 5, 'returnType': 'Dict' },
                     },
                     'delete': {
                         'order': { 'cost': 1, 'returnType': 'Dict' },
-                        'batchOrders': 1,
+                        'batchOrders': { 'cost': 1, 'returnType': 'List' },
                         'allOpenOrders': { 'cost': 1, 'returnType': 'List' },
-                        'allOpenOrdersByUnderlying': 1,
-                        'listenKey': 1,
-                        'block/order/create': 5,
+                        'allOpenOrdersByUnderlying': { 'cost': 1, 'returnType': 'Dict' },
+                        'listenKey': { 'cost': 1, 'returnType': 'Dict' },
+                        'block/order/create': { 'cost': 5, 'returnType': 'Dict' },
                     },
                 },
                 'public': {
@@ -1055,47 +1055,47 @@ export default class binance extends Exchange {
                         'aggTrades': { 'cost': 0.4, 'returnType': 'List' },
                         'historicalTrades': { 'cost': 2, 'returnType': 'List' }, // Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'klines': { 'cost': 0.4, 'returnType': 'List' },
-                        'uiKlines': 0.4,
+                        'uiKlines': { 'cost': 0.4, 'returnType': 'List' },
                         'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16, 'returnType': 'List' },
                         'ticker': { 'cost': 0.4, 'noSymbol': 16, 'returnType': 'List' },
-                        'ticker/tradingDay': 0.8,
+                        'ticker/tradingDay': { 'cost': 0.8, 'returnType': 'Dict' },
                         'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8, 'returnType': 'List' },
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8, 'returnType': 'List' },
-                        'exchangeInfo': 4, // Weight(IP): 20 => cost = 0.2 * 20 = 4
-                        'avgPrice': 0.4,
+                        'exchangeInfo': { 'cost': 4, 'returnType': 'Dict' }, // Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'avgPrice': { 'cost': 0.4, 'returnType': 'Dict' },
                     },
                     'put': {
-                        'userDataStream': 0.4,
+                        'userDataStream': { 'cost': 0.4, 'returnType': 'Dict' },
                     },
                     'post': {
                         'userDataStream': { 'cost': 0.4, 'returnType': 'Dict' },
                     },
                     'delete': {
-                        'userDataStream': 0.4,
+                        'userDataStream': { 'cost': 0.4, 'returnType': 'Dict' },
                     },
                 },
                 'private': {
                     'get': {
-                        'allOrderList': 4, // oco Weight(IP): 20 => cost = 0.2 * 20 = 4
-                        'openOrderList': 1.2, // oco Weight(IP): 6 => cost = 0.2 * 6 = 1.2
-                        'orderList': 0.8, // oco
+                        'allOrderList': { 'cost': 4, 'returnType': 'List' }, // oco Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'openOrderList': { 'cost': 1.2, 'returnType': 'List' }, // oco Weight(IP): 6 => cost = 0.2 * 6 = 1.2
+                        'orderList': { 'cost': 0.8, 'returnType': 'Dict' }, // oco
                         'order': { 'cost': 0.8, 'returnType': 'Dict' },
                         'openOrders': { 'cost': 1.2, 'noSymbol': 16, 'returnType': 'List' },
                         'allOrders': { 'cost': 4, 'returnType': 'List' },
                         'account': { 'cost': 4, 'returnType': 'List' },
                         'myTrades': { 'cost': 4, 'returnType': 'List' },
-                        'rateLimit/order': 8, // Weight(IP): 40 => cost = 0.2 * 40 = 8
-                        'myPreventedMatches': 4, // Weight(IP): 20 => cost = 0.2 * 20 = 4
-                        'myAllocations': 4,
-                        'account/commission': 4,
+                        'rateLimit/order': { 'cost': 8, 'returnType': 'List' }, // Weight(IP): 40 => cost = 0.2 * 40 = 8
+                        'myPreventedMatches': { 'cost': 4, 'returnType': 'List' }, // Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'myAllocations': { 'cost': 4, 'returnType': 'List' },
+                        'account/commission': { 'cost': 4, 'returnType': 'Dict' },
                     },
                     'post': {
-                        'order/oco': 0.2,
-                        'orderList/oco': 0.2,
-                        'orderList/oto': 0.2,
-                        'orderList/otoco': 0.2,
-                        'orderList/opo': 0.2,
-                        'orderList/opoco': 0.2,
+                        'order/oco': { 'cost': 0.2, 'returnType': 'Dict' },
+                        'orderList/oco': { 'cost': 0.2, 'returnType': 'Dict' },
+                        'orderList/oto': { 'cost': 0.2, 'returnType': 'Dict' },
+                        'orderList/otoco': { 'cost': 0.2, 'returnType': 'Dict' },
+                        'orderList/opo': { 'cost': 0.2, 'returnType': 'Dict' },
+                        'orderList/opoco': { 'cost': 0.2, 'returnType': 'Dict' },
                         'sor/order': { 'cost': 0.2, 'returnType': 'Dict' },
                         'sor/order/test': { 'cost': 0.2, 'returnType': 'Dict' },
                         'order': { 'cost': 0.2, 'returnType': 'Dict' },
@@ -1104,7 +1104,7 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         'openOrders': { 'cost': 0.2, 'returnType': 'List' },
-                        'orderList': 0.2, // oco
+                        'orderList': { 'cost': 0.2, 'returnType': 'Dict' }, // oco
                         'order': { 'cost': 0.2, 'returnType': 'Dict' },
                     },
                 },
@@ -1114,7 +1114,7 @@ export default class binance extends Exchange {
                     // Order (papi) request rate limit of 1200 per minute
                     // 1 Order (papi) => cost = 1 => (1000 / (50 * 1)) * 60 = 1200
                     'get': {
-                        'ping': 0.2,
+                        'ping': { 'cost': 0.2, 'returnType': 'Dict' },
                         'um/order': { 'cost': 1, 'returnType': 'Dict' },
                         'um/openOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'um/openOrders': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
@@ -1125,27 +1125,27 @@ export default class binance extends Exchange {
                         'cm/allOrders': { 'cost': 20, 'returnType': 'List' },
                         'um/conditional/openOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'um/conditional/openOrders': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
-                        'um/conditional/orderHistory': 1,
+                        'um/conditional/orderHistory': { 'cost': 1, 'returnType': 'Dict' },
                         'um/conditional/allOrders': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
                         'cm/conditional/openOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'cm/conditional/openOrders': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
-                        'cm/conditional/orderHistory': 1,
+                        'cm/conditional/orderHistory': { 'cost': 1, 'returnType': 'Dict' },
                         'cm/conditional/allOrders': { 'cost': 40, 'returnType': 'List' },
                         'margin/order': { 'cost': 10, 'returnType': 'Dict' },
                         'margin/openOrders': { 'cost': 5, 'returnType': 'List' },
                         'margin/allOrders': { 'cost': 100, 'returnType': 'List' },
-                        'margin/orderList': 5,
-                        'margin/allOrderList': 100,
-                        'margin/openOrderList': 5,
+                        'margin/orderList': { 'cost': 5, 'returnType': 'Dict' },
+                        'margin/allOrderList': { 'cost': 100, 'returnType': 'List' },
+                        'margin/openOrderList': { 'cost': 5, 'returnType': 'List' },
                         'margin/myTrades': { 'cost': 5, 'returnType': 'List' },
-                        'balance': 4,
-                        'account': 4,
-                        'margin/maxBorrowable': 1,
-                        'margin/maxWithdraw': 1,
+                        'balance': { 'cost': 4, 'returnType': 'List' },
+                        'account': { 'cost': 4, 'returnType': 'Dict' },
+                        'margin/maxBorrowable': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/maxWithdraw': { 'cost': 1, 'returnType': 'Dict' },
                         'um/positionRisk': { 'cost': 1, 'returnType': 'List' },
                         'cm/positionRisk': { 'cost': 0.2, 'returnType': 'List' },
-                        'um/positionSide/dual': 6,
-                        'cm/positionSide/dual': 6,
+                        'um/positionSide/dual': { 'cost': 6, 'returnType': 'Dict' },
+                        'cm/positionSide/dual': { 'cost': 6, 'returnType': 'Dict' },
                         'um/userTrades': { 'cost': 5, 'returnType': 'List' },
                         'cm/userTrades': { 'cost': 20, 'returnType': 'List' },
                         'um/leverageBracket': { 'cost': 0.2, 'returnType': 'List' },
@@ -1153,34 +1153,34 @@ export default class binance extends Exchange {
                         'margin/forceOrders': { 'cost': 1, 'returnType': 'Dict' },
                         'um/forceOrders': { 'cost': 20, 'noSymbol': 50, 'returnType': 'Dict' },
                         'cm/forceOrders': { 'cost': 20, 'noSymbol': 50, 'returnType': 'Dict' },
-                        'um/apiTradingStatus': { 'cost': 0.2, 'noSymbol': 2 },
-                        'um/commissionRate': 4,
-                        'cm/commissionRate': 4,
-                        'margin/marginLoan': 2,
-                        'margin/repayLoan': 2,
+                        'um/apiTradingStatus': { 'cost': 0.2, 'noSymbol': 2, 'returnType': 'Dict' },
+                        'um/commissionRate': { 'cost': 4, 'returnType': 'Dict' },
+                        'cm/commissionRate': { 'cost': 4, 'returnType': 'Dict' },
+                        'margin/marginLoan': { 'cost': 2, 'returnType': 'Dict' },
+                        'margin/repayLoan': { 'cost': 2, 'returnType': 'Dict' },
                         'margin/marginInterestHistory': { 'cost': 0.2, 'returnType': 'Dict' },
-                        'portfolio/interest-history': 10,
+                        'portfolio/interest-history': { 'cost': 10, 'returnType': 'List' },
                         'um/income': { 'cost': 6, 'returnType': 'List' },
                         'cm/income': { 'cost': 6, 'returnType': 'List' },
                         'um/account': { 'cost': 1, 'returnType': 'Dict' },
                         'cm/account': { 'cost': 1, 'returnType': 'Dict' },
-                        'repay-futures-switch': 6,
+                        'repay-futures-switch': { 'cost': 6, 'returnType': 'Dict' },
                         'um/adlQuantile': { 'cost': 5, 'returnType': 'List' },
                         'cm/adlQuantile': { 'cost': 5, 'returnType': 'List' },
-                        'um/trade/asyn': 300,
-                        'um/trade/asyn/id': 2,
-                        'um/order/asyn': 300,
-                        'um/order/asyn/id': 2,
-                        'um/income/asyn': 300,
-                        'um/income/asyn/id': 2,
-                        'um/orderAmendment': 1,
-                        'cm/orderAmendment': 1,
-                        'um/feeBurn': 30,
-                        'um/accountConfig': 1,
-                        'um/symbolConfig': 1,
+                        'um/trade/asyn': { 'cost': 300, 'returnType': 'Dict' },
+                        'um/trade/asyn/id': { 'cost': 2, 'returnType': 'Dict' },
+                        'um/order/asyn': { 'cost': 300, 'returnType': 'Dict' },
+                        'um/order/asyn/id': { 'cost': 2, 'returnType': 'Dict' },
+                        'um/income/asyn': { 'cost': 300, 'returnType': 'Dict' },
+                        'um/income/asyn/id': { 'cost': 2, 'returnType': 'Dict' },
+                        'um/orderAmendment': { 'cost': 1, 'returnType': 'List' },
+                        'cm/orderAmendment': { 'cost': 1, 'returnType': 'List' },
+                        'um/feeBurn': { 'cost': 30, 'returnType': 'Dict' },
+                        'um/accountConfig': { 'cost': 1, 'returnType': 'Dict' },
+                        'um/symbolConfig': { 'cost': 1, 'returnType': 'List' },
                         'cm/accountConfig': 1,
                         'cm/symbolConfig': 1,
-                        'rateLimit/order': 1,
+                        'rateLimit/order': { 'cost': 1, 'returnType': 'List' },
                     },
                     'post': {
                         'um/order': { 'cost': 1, 'returnType': 'Dict' },
@@ -1190,23 +1190,23 @@ export default class binance extends Exchange {
                         'margin/order': { 'cost': 1, 'returnType': 'Dict' },
                         'marginLoan': { 'cost': 100, 'returnType': 'Dict' },
                         'repayLoan': { 'cost': 100, 'returnType': 'Dict' },
-                        'margin/order/oco': 1,
+                        'margin/order/oco': { 'cost': 1, 'returnType': 'Dict' },
                         'um/leverage': { 'cost': 0.2, 'returnType': 'Dict' },
                         'cm/leverage': { 'cost': 0.2, 'returnType': 'Dict' },
                         'um/positionSide/dual': { 'cost': 0.2, 'returnType': 'Dict' },
                         'cm/positionSide/dual': { 'cost': 0.2, 'returnType': 'Dict' },
-                        'auto-collection': 150,
-                        'bnb-transfer': 150,
-                        'repay-futures-switch': 150,
-                        'repay-futures-negative-balance': 150,
+                        'auto-collection': { 'cost': 150, 'returnType': 'Dict' },
+                        'bnb-transfer': { 'cost': 150, 'returnType': 'Dict' },
+                        'repay-futures-switch': { 'cost': 150, 'returnType': 'Dict' },
+                        'repay-futures-negative-balance': { 'cost': 150, 'returnType': 'Dict' },
                         'listenKey': { 'cost': 0.2, 'returnType': 'Dict' },
-                        'asset-collection': 6,
+                        'asset-collection': { 'cost': 6, 'returnType': 'Dict' },
                         'margin/repay-debt': { 'cost': 3000, 'returnType': 'Dict' },
-                        'um/feeBurn': 1,
-                        'um/stock/contract': 1,
+                        'um/feeBurn': { 'cost': 1, 'returnType': 'Dict' },
+                        'um/stock/contract': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'put': {
-                        'listenKey': 0.2,
+                        'listenKey': { 'cost': 0.2, 'returnType': 'Dict' },
                         'um/order': { 'cost': 1, 'returnType': 'Dict' },
                         'cm/order': { 'cost': 1, 'returnType': 'Dict' },
                     },
@@ -1221,13 +1221,13 @@ export default class binance extends Exchange {
                         'cm/conditional/allOpenOrders': { 'cost': 1, 'returnType': 'List' },
                         'margin/order': { 'cost': 2, 'returnType': 'Dict' },
                         'margin/allOpenOrders': { 'cost': 5, 'returnType': 'List' },
-                        'margin/orderList': 2,
-                        'listenKey': 0.2,
+                        'margin/orderList': { 'cost': 2, 'returnType': 'Dict' },
+                        'listenKey': { 'cost': 0.2, 'returnType': 'Dict' },
                     },
                 },
                 'papiV2': {
                     'get': {
-                        'um/account': 1,
+                        'um/account': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },

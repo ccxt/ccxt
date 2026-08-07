@@ -146,13 +146,13 @@ export default class luno extends Exchange {
                 'exchangePrivate': {
                     'get': {
                         'candles': { 'cost': 1, 'returnType': 'Dict' },
-                        'move': 1,
-                        'move/list_moves': 1,
-                        'transfers': 1,
+                        'move': { 'cost': 1, 'returnType': 'Dict' },
+                        'move/list_moves': { 'cost': 1, 'returnType': 'Dict' },
+                        'transfers': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
-                        'convert': 1,
-                        'move': 1,
+                        'convert': { 'cost': 1, 'returnType': 'Dict' },
+                        'move': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'public': {
@@ -166,10 +166,10 @@ export default class luno extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'accounts/{id}/pending': 1,
+                        'accounts/{id}/pending': { 'cost': 1, 'returnType': 'Dict' },
                         'accounts/{id}/transactions': { 'cost': 1, 'returnType': 'Dict' },
                         'balance': { 'cost': 1, 'returnType': 'Dict' },
-                        'beneficiaries': 1,
+                        'beneficiaries': { 'cost': 1, 'returnType': 'Dict' },
                         'send/networks': { 'cost': 1, 'returnType': 'Dict' },
                         'fee_info': { 'cost': 1, 'returnType': 'Dict' },
                         'funding_address': { 'cost': 1, 'returnType': 'Dict' },
@@ -177,31 +177,31 @@ export default class luno extends Exchange {
                         'listtrades': { 'cost': 1, 'returnType': 'Dict' },
                         'send_fee': { 'cost': 1, 'returnType': 'Dict' },
                         'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'withdrawals': 1,
-                        'withdrawals/{id}': 1,
+                        'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
+                        'withdrawals/{id}': { 'cost': 1, 'returnType': 'Dict' },
                         'transfers': 1, // not found in current docs, use GET /api/exchange/1/transfers
-                        'users/linked': 1,
+                        'users/linked': { 'cost': 1, 'returnType': 'Dict' },
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
                     },
                     'post': {
-                        'accounts': 1,
-                        'address/validate': 1,
+                        'accounts': { 'cost': 1, 'returnType': 'Dict' },
+                        'address/validate': { 'cost': 1, 'returnType': 'Dict' },
                         'postorder': { 'cost': 1, 'returnType': 'Dict' },
                         'marketorder': { 'cost': 1, 'returnType': 'Dict' },
-                        'stoporder': 1,
+                        'stoporder': { 'cost': 1, 'returnType': 'Dict' },
                         'funding_address': { 'cost': 1, 'returnType': 'Dict' },
                         'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
-                        'send': 1,
+                        'send': { 'cost': 1, 'returnType': 'Dict' },
                         'oauth2/grant': 1, // deprecated for new applications
-                        'beneficiaries': 1,
+                        'beneficiaries': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'put': {
-                        'accounts/{id}/name': 1,
+                        'accounts/{id}/name': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'delete': {
-                        'withdrawals/{id}': 1,
+                        'withdrawals/{id}': { 'cost': 1, 'returnType': 'Dict' },
                         'beneficiaries/{id}': 1,
                     },
                 },

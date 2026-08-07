@@ -98,7 +98,7 @@ export default class blockchaincom extends Exchange {
                         'tickers': { 'cost': 1, 'returnType': 'List' }, // fetchTickers
                         'tickers/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchTicker
                         'symbols': { 'cost': 1, 'returnType': 'Dict' }, // fetchMarkets
-                        'symbols/{symbol}': 1, // fetchMarket
+                        'symbols/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchMarket
                         'l2/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchL2OrderBook
                         'l3/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchL3OrderBook
                     },
@@ -108,14 +108,14 @@ export default class blockchaincom extends Exchange {
                         'fees': { 'cost': 1, 'returnType': 'Dict' }, // fetchFees
                         'orders': { 'cost': 1, 'returnType': 'List' }, // fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}': { 'cost': 1, 'returnType': 'Dict' }, // fetchOrder(id)
-                        'trades': 1,
+                        'trades': { 'cost': 1, 'returnType': 'List' },
                         'fills': { 'cost': 1, 'returnType': 'List' }, // fetchMyTrades
                         'deposits': { 'cost': 1, 'returnType': 'List' }, // fetchDeposits
                         'deposits/{depositId}': { 'cost': 1, 'returnType': 'Dict' }, // fetchDeposit
                         'accounts': { 'cost': 1, 'returnType': 'Dict' }, // fetchBalance
-                        'accounts/{account}/{currency}': 1,
-                        'whitelist': 1, // fetchWithdrawalWhitelist
-                        'whitelist/{currency}': 1, // fetchWithdrawalWhitelistByCurrency
+                        'accounts/{account}/{currency}': { 'cost': 1, 'returnType': 'Dict' },
+                        'whitelist': { 'cost': 1, 'returnType': 'List' }, // fetchWithdrawalWhitelist
+                        'whitelist/{currency}': { 'cost': 1, 'returnType': 'List' }, // fetchWithdrawalWhitelistByCurrency
                         'withdrawals': { 'cost': 1, 'returnType': 'List' }, // fetchWithdrawalWhitelist
                         'withdrawals/{withdrawalId}': { 'cost': 1, 'returnType': 'Dict' }, // fetchWithdrawalById
                     },

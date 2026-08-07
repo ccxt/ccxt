@@ -123,10 +123,10 @@ export default class lbank extends Exchange {
                 'spot': {
                     'public': {
                         'get': {
-                            'currencyPairs': 2.5,
+                            'currencyPairs': { 'cost': 2.5, 'returnType': 'Dict' },
                             'accuracy': { 'cost': 2.5, 'returnType': 'Dict' },
                             'usdToCny': 2.5,
-                            'assetConfigs': 2.5,
+                            'assetConfigs': { 'cost': 2.5, 'returnType': 'Dict' },
                             'withdrawConfigs': { 'cost': 2.5 * 1.5, 'returnType': 'Dict' }, // frequently rate-limits, so increase this endpoint RL
                             'timestamp': { 'cost': 2.5, 'returnType': 'Dict' },
                             'ticker/24hr': { 'cost': 2.5, 'returnType': 'Dict' },
@@ -136,14 +136,14 @@ export default class lbank extends Exchange {
                             'trades': { 'cost': 2.5, 'returnType': 'Dict' },
                             'kline': { 'cost': 2.5, 'returnType': 'Dict' },
                             // new quote endpoints
-                            'supplement/system_ping': 2.5,
+                            'supplement/system_ping': { 'cost': 2.5, 'returnType': 'Dict' },
                             'supplement/incrDepth': 2.5,
                             'supplement/trades': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'supplement/ticker/price': 2.5,
-                            'supplement/ticker/bookTicker': 2.5,
+                            'supplement/ticker/price': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'supplement/ticker/bookTicker': { 'cost': 2.5, 'returnType': 'Dict' },
                         },
                         'post': {
-                            'supplement/system_status': 2.5,
+                            'supplement/system_status': { 'cost': 2.5, 'returnType': 'Dict' },
                         },
                     },
                     'private': {
@@ -152,7 +152,7 @@ export default class lbank extends Exchange {
                             'user_info': 2.5,
                             'subscribe/get_key': { 'cost': 2.5, 'returnType': 'Dict' },
                             'subscribe/refresh_key': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'subscribe/destroy_key': 2.5,
+                            'subscribe/destroy_key': { 'cost': 2.5, 'returnType': 'Dict' },
                             'get_deposit_address': { 'cost': 2.5, 'returnType': 'Dict' },
                             'deposit_history': 2.5,
                             // order
@@ -164,7 +164,7 @@ export default class lbank extends Exchange {
                             'orders_info_history': 2.5,
                             'order_transaction_detail': 2.5,
                             'transaction_history': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'orders_info_no_deal': 2.5,
+                            'orders_info_no_deal': { 'cost': 2.5, 'returnType': 'Dict' },
                             // withdraw
                             'withdraw': 2.5,
                             'withdrawCancel': 2.5,
@@ -174,21 +174,21 @@ export default class lbank extends Exchange {
                             'supplement/deposit_history': { 'cost': 2.5, 'returnType': 'Dict' },
                             'supplement/withdraws': { 'cost': 2.5, 'returnType': 'Dict' },
                             'supplement/get_deposit_address': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'supplement/asset_detail': 2.5,
+                            'supplement/asset_detail': { 'cost': 2.5, 'returnType': 'Dict' },
                             'supplement/customer_trade_fee': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'supplement/api_Restrictions': 2.5,
+                            'supplement/api_Restrictions': { 'cost': 2.5, 'returnType': 'Dict' },
                             // new quote endpoints
-                            'supplement/system_ping': 2.5,
+                            'supplement/system_ping': { 'cost': 2.5, 'returnType': 'Dict' },
                             // new order endpoints
-                            'supplement/create_order_test': 1,
+                            'supplement/create_order_test': { 'cost': 1, 'returnType': 'Dict' },
                             'supplement/create_order': { 'cost': 1, 'returnType': 'Dict' },
                             'supplement/cancel_order': { 'cost': 1, 'returnType': 'Dict' },
                             'supplement/cancel_order_by_symbol': { 'cost': 1, 'returnType': 'Dict' },
                             'supplement/orders_info': { 'cost': 2.5, 'returnType': 'Dict' },
                             'supplement/orders_info_no_deal': { 'cost': 2.5, 'returnType': 'Dict' },
                             'supplement/orders_info_history': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'supplement/user_info_account': 2.5,
-                            'supplement/transaction_history': 2.5,
+                            'supplement/user_info_account': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'supplement/transaction_history': { 'cost': 2.5, 'returnType': 'Dict' },
                         },
                     },
                 },

@@ -152,8 +152,8 @@ export default class indodax extends Exchange {
                     'get': {
                         'api/server_time': { 'cost': 5, 'returnType': 'Dict' },
                         'api/pairs': { 'cost': 5, 'returnType': 'List' },
-                        'api/price_increments': 5,
-                        'api/summaries': 5,
+                        'api/price_increments': { 'cost': 5, 'returnType': 'Dict' },
+                        'api/summaries': { 'cost': 5, 'returnType': 'Dict' },
                         'api/ticker/{pair}': { 'cost': 5, 'returnType': 'Dict' },
                         'api/ticker_all': { 'cost': 5, 'returnType': 'Dict' },
                         'api/trades/{pair}': { 'cost': 5, 'returnType': 'List' },
@@ -173,9 +173,9 @@ export default class indodax extends Exchange {
                         'cancelOrder': { 'cost': 4, 'returnType': 'Dict' },
                         'withdrawFee': { 'cost': 4, 'returnType': 'Dict' },
                         'withdrawCoin': { 'cost': 4, 'returnType': 'Dict' },
-                        'listDownline': 4,
-                        'checkDownline': 4,
-                        'createVoucher': 4, // partner only
+                        'listDownline': { 'cost': 4, 'returnType': 'Dict' },
+                        'checkDownline': { 'cost': 4, 'returnType': 'Dict' },
+                        'createVoucher': { 'cost': 4, 'returnType': 'Dict' }, // partner only
                     },
                 },
             },

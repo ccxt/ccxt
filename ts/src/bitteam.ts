@@ -181,21 +181,21 @@ export default class bitteam extends Exchange {
                 },
                 'public': {
                     'get': {
-                        'trade/api/asset': 1, // not unified
+                        'trade/api/asset': { 'cost': 1, 'returnType': 'Dict' }, // not unified
                         'trade/api/currencies': { 'cost': 1, 'returnType': 'Dict' },
-                        'trade/api/orderbooks/{symbol}': 1, // not unified
-                        'trade/api/orders': 1, // not unified
+                        'trade/api/orderbooks/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // not unified
+                        'trade/api/orders': { 'cost': 1, 'returnType': 'Dict' }, // not unified
                         'trade/api/pair/{name}': { 'cost': 1, 'returnType': 'Dict' },
-                        'trade/api/pairs': 1, // not unified
-                        'trade/api/pairs/precisions': 1, // not unified
-                        'trade/api/rates': 1, // not unified
-                        'trade/api/trade/{id}': 1, // not unified
-                        'trade/api/trades': 1, // not unified
+                        'trade/api/pairs': { 'cost': 1, 'returnType': 'Dict' }, // not unified
+                        'trade/api/pairs/precisions': { 'cost': 1, 'returnType': 'Dict' }, // not unified
+                        'trade/api/rates': { 'cost': 1, 'returnType': 'Dict' }, // not unified
+                        'trade/api/trade/{id}': { 'cost': 1, 'returnType': 'Dict' }, // not unified
+                        'trade/api/trades': { 'cost': 1, 'returnType': 'Dict' }, // not unified
                         'trade/api/ccxt/pairs': { 'cost': 1, 'returnType': 'Dict' },
-                        'trade/api/cmc/assets': 1,
+                        'trade/api/cmc/assets': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/api/cmc/orderbook/{pair}': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/api/cmc/summary': { 'cost': 1, 'returnType': 'List' },
-                        'trade/api/cmc/ticker': 1, // not unified
+                        'trade/api/cmc/ticker': { 'cost': 1, 'returnType': 'Dict' }, // not unified
                         'trade/api/cmc/trades/{pair}': { 'cost': 1, 'returnType': 'List' },
                     },
                 },

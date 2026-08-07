@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -19,8 +19,8 @@ interface Exchange {
     publicGetMarketCandles (params?: {}): Promise<Dict>;
     publicGetMarketIndexCandles (params?: {}): Promise<Dict>;
     publicGetMarketMarkPriceCandles (params?: {}): Promise<Dict>;
-    publicGetMarketPositionTiers (params?: {}): Promise<Dict | List>;
-    privateGetAssetBalances (params?: {}): Promise<Dict | List>;
+    publicGetMarketPositionTiers (params?: {}): Promise<Dict>;
+    privateGetAssetBalances (params?: {}): Promise<Dict>;
     privateGetAssetBills (params?: {}): Promise<Dict>;
     privateGetAssetWithdrawalHistory (params?: {}): Promise<Dict>;
     privateGetAssetDepositHistory (params?: {}): Promise<Dict>;
@@ -34,41 +34,41 @@ interface Exchange {
     privateGetAccountLeverageInfo (params?: {}): Promise<Dict>;
     privateGetAccountBatchLeverageInfo (params?: {}): Promise<Dict>;
     privateGetTradeOrdersPending (params?: {}): Promise<Dict>;
-    privateGetTradeOrderDetail (params?: {}): Promise<Dict | List>;
+    privateGetTradeOrderDetail (params?: {}): Promise<Dict>;
     privateGetTradeOrdersTpslPending (params?: {}): Promise<Dict>;
-    privateGetTradeOrderTpslDetail (params?: {}): Promise<Dict | List>;
+    privateGetTradeOrderTpslDetail (params?: {}): Promise<Dict>;
     privateGetTradeOrdersAlgoPending (params?: {}): Promise<Dict>;
     privateGetTradeOrdersHistory (params?: {}): Promise<Dict>;
     privateGetTradeOrdersTpslHistory (params?: {}): Promise<Dict>;
     privateGetTradeOrdersAlgoHistory (params?: {}): Promise<Dict>;
     privateGetTradeFillsHistory (params?: {}): Promise<Dict>;
-    privateGetTradeOrderPriceRange (params?: {}): Promise<Dict | List>;
-    privateGetAffiliateBasic (params?: {}): Promise<Dict | List>;
-    privateGetAffiliateReferralCode (params?: {}): Promise<Dict | List>;
-    privateGetAffiliateInvitees (params?: {}): Promise<Dict | List>;
-    privateGetAffiliateSubInvitees (params?: {}): Promise<Dict | List>;
-    privateGetAffiliateSubAffiliates (params?: {}): Promise<Dict | List>;
-    privateGetAffiliateInviteesDailyInfo (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingInstruments (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingConfig (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingAccountBalance (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingAccountPositionsByOrder (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingAccountPositionsDetailsByOrder (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingAccountPositionsByContract (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingAccountPositionMode (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingAccountLeverageInfo (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingTradeOrdersPending (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingTradePendingTpslByContract (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingTradePositionHistoryByOrder (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingTradeOrdersHistory (params?: {}): Promise<Dict | List>;
-    privateGetCopytradingTradePendingTpslByOrder (params?: {}): Promise<Dict | List>;
-    privateGetUserQueryApikey (params?: {}): Promise<Dict | List>;
+    privateGetTradeOrderPriceRange (params?: {}): Promise<Dict>;
+    privateGetAffiliateBasic (params?: {}): Promise<Dict>;
+    privateGetAffiliateReferralCode (params?: {}): Promise<Dict>;
+    privateGetAffiliateInvitees (params?: {}): Promise<Dict>;
+    privateGetAffiliateSubInvitees (params?: {}): Promise<Dict>;
+    privateGetAffiliateSubAffiliates (params?: {}): Promise<Dict>;
+    privateGetAffiliateInviteesDailyInfo (params?: {}): Promise<Dict>;
+    privateGetCopytradingInstruments (params?: {}): Promise<Dict>;
+    privateGetCopytradingConfig (params?: {}): Promise<Dict>;
+    privateGetCopytradingAccountBalance (params?: {}): Promise<Dict>;
+    privateGetCopytradingAccountPositionsByOrder (params?: {}): Promise<Dict>;
+    privateGetCopytradingAccountPositionsDetailsByOrder (params?: {}): Promise<Dict>;
+    privateGetCopytradingAccountPositionsByContract (params?: {}): Promise<Dict>;
+    privateGetCopytradingAccountPositionMode (params?: {}): Promise<Dict>;
+    privateGetCopytradingAccountLeverageInfo (params?: {}): Promise<Dict>;
+    privateGetCopytradingTradeOrdersPending (params?: {}): Promise<Dict>;
+    privateGetCopytradingTradePendingTpslByContract (params?: {}): Promise<Dict>;
+    privateGetCopytradingTradePositionHistoryByOrder (params?: {}): Promise<Dict>;
+    privateGetCopytradingTradeOrdersHistory (params?: {}): Promise<Dict>;
+    privateGetCopytradingTradePendingTpslByOrder (params?: {}): Promise<Dict>;
+    privateGetUserQueryApikey (params?: {}): Promise<Dict>;
     privateGetSpotTradeFillsHistory (params?: {}): Promise<Dict>;
     privatePostAssetTransfer (params?: {}): Promise<Dict>;
-    privatePostAssetDemoApplyMoney (params?: {}): Promise<Dict | List>;
+    privatePostAssetDemoApplyMoney (params?: {}): Promise<Dict>;
     privatePostAccountSetMarginMode (params?: {}): Promise<Dict>;
-    privatePostAccountSetPositionMode (params?: {}): Promise<Dict | List>;
-    privatePostAccountSetLeverage (params?: {}): Promise<Dict | List>;
+    privatePostAccountSetPositionMode (params?: {}): Promise<Dict>;
+    privatePostAccountSetLeverage (params?: {}): Promise<Dict>;
     privatePostTradeOrder (params?: {}): Promise<Dict>;
     privatePostTradeBatchOrders (params?: {}): Promise<Dict>;
     privatePostTradeOrderTpsl (params?: {}): Promise<Dict>;
@@ -78,16 +78,16 @@ interface Exchange {
     privatePostTradeCancelTpsl (params?: {}): Promise<Dict>;
     privatePostTradeCancelAlgo (params?: {}): Promise<Dict>;
     privatePostTradeClosePosition (params?: {}): Promise<Dict>;
-    privatePostCopytradingAccountSetPositionMode (params?: {}): Promise<Dict | List>;
-    privatePostCopytradingAccountSetLeverage (params?: {}): Promise<Dict | List>;
-    privatePostCopytradingTradePlaceOrder (params?: {}): Promise<Dict | List>;
-    privatePostCopytradingTradeCancelOrder (params?: {}): Promise<Dict | List>;
-    privatePostCopytradingTradePlaceTpslByContract (params?: {}): Promise<Dict | List>;
-    privatePostCopytradingTradeCancelTpslByContract (params?: {}): Promise<Dict | List>;
-    privatePostCopytradingTradePlaceTpslByOrder (params?: {}): Promise<Dict | List>;
-    privatePostCopytradingTradeCancelTpslByOrder (params?: {}): Promise<Dict | List>;
-    privatePostCopytradingTradeClosePositionByOrder (params?: {}): Promise<Dict | List>;
-    privatePostCopytradingTradeClosePositionByContract (params?: {}): Promise<Dict | List>;
+    privatePostCopytradingAccountSetPositionMode (params?: {}): Promise<Dict>;
+    privatePostCopytradingAccountSetLeverage (params?: {}): Promise<Dict>;
+    privatePostCopytradingTradePlaceOrder (params?: {}): Promise<Dict>;
+    privatePostCopytradingTradeCancelOrder (params?: {}): Promise<Dict>;
+    privatePostCopytradingTradePlaceTpslByContract (params?: {}): Promise<Dict>;
+    privatePostCopytradingTradeCancelTpslByContract (params?: {}): Promise<Dict>;
+    privatePostCopytradingTradePlaceTpslByOrder (params?: {}): Promise<Dict>;
+    privatePostCopytradingTradeCancelTpslByOrder (params?: {}): Promise<Dict>;
+    privatePostCopytradingTradeClosePositionByOrder (params?: {}): Promise<Dict>;
+    privatePostCopytradingTradeClosePositionByContract (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

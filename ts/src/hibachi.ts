@@ -141,9 +141,9 @@ export default class hibachi extends Exchange {
                 'public': {
                     'get': {
                         'market/exchange-info': { 'cost': 1, 'returnType': 'Dict' },
-                        'market/inventory': 1,
+                        'market/inventory': { 'cost': 1, 'returnType': 'Dict' },
                         'market/data/prices': { 'cost': 1, 'returnType': 'Dict' },
-                        'market/data/stats': 1,
+                        'market/data/stats': { 'cost': 1, 'returnType': 'Dict' },
                         'market/data/trades': { 'cost': 1, 'returnType': 'Dict' },
                         'market/data/klines': { 'cost': 1, 'returnType': 'Dict' },
                         'market/data/open-interest': { 'cost': 1, 'returnType': 'Dict' },
@@ -154,7 +154,7 @@ export default class hibachi extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'capital/balance': 1,
+                        'capital/balance': { 'cost': 1, 'returnType': 'Dict' },
                         'capital/history': { 'cost': 1, 'returnType': 'Dict' },
                         'capital/deposit-info': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/account/info': { 'cost': 1, 'returnType': 'Dict' },
@@ -166,17 +166,17 @@ export default class hibachi extends Exchange {
                         'trade/orders/history': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'put': {
-                        'trade/order': 1,
+                        'trade/order': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'delete': {
                         'trade/order': 1,
-                        'trade/orders': 1,
+                        'trade/orders': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         'trade/order': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'capital/withdraw': 1,
-                        'capital/transfer': 1,
+                        'capital/withdraw': { 'cost': 1, 'returnType': 'Dict' },
+                        'capital/transfer': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/account/leverage': 1,
                     },
                 },

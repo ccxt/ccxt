@@ -154,18 +154,18 @@ export default class btcturk extends Exchange {
                         'users/transactions/trade': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
-                        'users/transactions/crypto': 1,
-                        'users/transactions/fiat': 1,
+                        'users/transactions/crypto': { 'cost': 1, 'returnType': 'Dict' },
+                        'users/transactions/fiat': { 'cost': 1, 'returnType': 'Dict' },
                         'order': { 'cost': 1, 'returnType': 'Dict' },
                         'cancelOrder': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'delete': {
-                        'order': 1,
+                        'order': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'graph': {
                     'get': {
-                        'ohlcs': 1,
+                        'ohlcs': { 'cost': 1, 'returnType': 'List' },
                         'klines/history': { 'cost': 1, 'returnType': 'List' },
                     },
                 },

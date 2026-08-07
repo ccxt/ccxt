@@ -179,10 +179,10 @@ export default class apex extends Exchange {
                         'v3/history-orders': { 'cost': 1, 'returnType': 'Dict' },
                         'v3/order-by-client-order-id': { 'cost': 1, 'returnType': 'Dict' },
                         'v3/funding': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/historical-pnl': 1,
+                        'v3/historical-pnl': { 'cost': 1, 'returnType': 'Dict' },
                         'v3/open-orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/transfers': 1,
-                        'v3/transfer': 1,
+                        'v3/transfers': { 'cost': 1, 'returnType': 'Dict' },
+                        'v3/transfer': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         'v3/delete-open-orders': { 'cost': 1, 'returnType': 'Dict' },

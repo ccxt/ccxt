@@ -173,7 +173,7 @@ export default class bitopro extends Exchange {
                         'provisioning/trading-pairs': { 'cost': 1, 'returnType': 'Dict' },
                         'provisioning/limitations-and-fees': { 'cost': 1, 'returnType': 'Dict' },
                         'trading-history/{pair}': { 'cost': 1, 'returnType': 'Dict' },
-                        'price/otc/{currency}': 1,
+                        'price/otc/{currency}': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'private': {
@@ -184,7 +184,7 @@ export default class bitopro extends Exchange {
                         'orders/trades/{pair}': { 'cost': 1, 'returnType': 'Dict' },
                         'orders/{pair}/{orderId}': { 'cost': 1, 'returnType': 'Dict' },
                         'wallet/withdraw/{currency}/{serial}': { 'cost': 1, 'returnType': 'Dict' },
-                        'wallet/withdraw/{currency}/id/{id}': 1,
+                        'wallet/withdraw/{currency}/id/{id}': { 'cost': 1, 'returnType': 'Dict' },
                         'wallet/depositHistory/{currency}': { 'cost': 1, 'returnType': 'Dict' },
                         'wallet/withdrawHistory/{currency}': { 'cost': 1, 'returnType': 'Dict' },
                         'orders/open': { 'cost': 1, 'returnType': 'Dict' },

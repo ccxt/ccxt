@@ -109,7 +109,7 @@ export default class krakenfutures extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'feeschedules': 1,
+                        'feeschedules': { 'cost': 1, 'returnType': 'Dict' },
                         'instruments': { 'cost': 1, 'returnType': 'Dict' },
                         'orderbook': { 'cost': 1, 'returnType': 'Dict' },
                         'tickers': { 'cost': 1, 'returnType': 'Dict' },
@@ -119,18 +119,18 @@ export default class krakenfutures extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'feeschedules/volumes': 1,
+                        'feeschedules/volumes': { 'cost': 1, 'returnType': 'Dict' },
                         'openpositions': { 'cost': 1, 'returnType': 'List' },
-                        'notifications': 1,
+                        'notifications': { 'cost': 1, 'returnType': 'Dict' },
                         'accounts': { 'cost': 1, 'returnType': 'Dict' },
                         'openorders': { 'cost': 1, 'returnType': 'Dict' },
                         'recentorders': 1,
                         'fills': { 'cost': 1, 'returnType': 'Dict' },
-                        'transfers': 1,
+                        'transfers': { 'cost': 1, 'returnType': 'Dict' },
                         'leveragepreferences': { 'cost': 1, 'returnType': 'Dict' },
-                        'pnlpreferences': 1,
-                        'assignmentprogram/current': 1,
-                        'assignmentprogram/history': 1,
+                        'pnlpreferences': { 'cost': 1, 'returnType': 'Dict' },
+                        'assignmentprogram/current': { 'cost': 1, 'returnType': 'Dict' },
+                        'assignmentprogram/history': { 'cost': 1, 'returnType': 'Dict' },
                         'orders/status': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
@@ -140,15 +140,15 @@ export default class krakenfutures extends Exchange {
                         'transfer': { 'cost': 1, 'returnType': 'Dict' },
                         'batchorder': { 'cost': 1, 'returnType': 'Dict' },
                         'cancelallorders': { 'cost': 1, 'returnType': 'Dict' },
-                        'cancelallordersafter': 1,
+                        'cancelallordersafter': { 'cost': 1, 'returnType': 'Dict' },
                         'withdrawal': { 'cost': 1, 'returnType': 'Dict' },
-                        'assignmentprogram/add': 1,
-                        'assignmentprogram/delete': 1,
+                        'assignmentprogram/add': { 'cost': 1, 'returnType': 'Dict' },
+                        'assignmentprogram/delete': { 'cost': 1, 'returnType': 'Dict' },
                     },
-                    'put': [
-                        'leveragepreferences',
-                        'pnlpreferences',
-                    ],
+                    'put': {
+                        'leveragepreferences': { 'cost': 1, 'returnType': 'Dict' },
+                        'pnlpreferences': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'charts': {
                     'get': {
@@ -158,11 +158,11 @@ export default class krakenfutures extends Exchange {
                 'history': {
                     'get': {
                         'orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'executions': 1,
+                        'executions': { 'cost': 1, 'returnType': 'Dict' },
                         'triggers': { 'cost': 1, 'returnType': 'Dict' },
                         'accountlogcsv': 1,
-                        'account-log': 1,
-                        'market/{symbol}/orders': 1,
+                        'account-log': { 'cost': 1, 'returnType': 'Dict' },
+                        'market/{symbol}/orders': { 'cost': 1, 'returnType': 'Dict' },
                         'market/{symbol}/executions': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },

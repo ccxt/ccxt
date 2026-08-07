@@ -118,7 +118,7 @@ export default class mudrex extends Exchange {
                         'futures/positions/history': { 'cost': 1, 'returnType': 'Dict' },
                         'futures/fee/history': { 'cost': 1, 'returnType': 'Dict' },
                         'futures/{asset_id}/leverage': { 'cost': 2, 'returnType': 'Dict' },
-                        'futures/positions/{position_id}/liq-price': 1,
+                        'futures/positions/{position_id}/liq-price': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         'wallet/futures/transfer': { 'cost': 5, 'returnType': 'Dict' },
@@ -126,14 +126,14 @@ export default class mudrex extends Exchange {
                         'futures/{asset_id}/order': { 'cost': 2, 'returnType': 'Dict' },
                         'futures/positions/{position_id}/close': { 'cost': 2, 'returnType': 'Dict' },
                         'futures/positions/{position_id}/close/partial': { 'cost': 2, 'returnType': 'Dict' },
-                        'futures/positions/{position_id}/reverse': 2,
+                        'futures/positions/{position_id}/reverse': { 'cost': 2, 'returnType': 'Dict' },
                         'futures/positions/{position_id}/add-margin': { 'cost': 2, 'returnType': 'Dict' },
                         'futures/positions/{position_id}/riskorder': { 'cost': 2, 'returnType': 'Dict' },
-                        'futures/{asset_id}/leverage': 2,
+                        'futures/{asset_id}/leverage': { 'cost': 2, 'returnType': 'Dict' },
                     },
                     'patch': {
                         'futures/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'futures/positions/{position_id}/riskorder': 2,
+                        'futures/positions/{position_id}/riskorder': { 'cost': 2, 'returnType': 'Dict' },
                     },
                     'delete': {
                         'futures/orders/{order_id}': { 'cost': 2, 'returnType': 'Dict' },

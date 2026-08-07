@@ -186,45 +186,45 @@ export default class gate extends Exchange {
                     // all public endpoints 200r/10s per endpoint
                     'wallet': {
                         'get': {
-                            'currency_chains': 1,
+                            'currency_chains': { 'cost': 1, 'returnType': 'List' },
                         },
                     },
                     'unified': {
                         'get': {
-                            'currencies': 1,
-                            'history_loan_rate': 1,
+                            'currencies': { 'cost': 1, 'returnType': 'List' },
+                            'history_loan_rate': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                     'spot': {
                         'get': {
                             'currencies': { 'cost': 1, 'returnType': 'List' },
-                            'currencies/{currency}': 1,
+                            'currencies/{currency}': { 'cost': 1, 'returnType': 'Dict' },
                             'currency_pairs': { 'cost': 1, 'returnType': 'List' },
-                            'currency_pairs/{currency_pair}': 1,
+                            'currency_pairs/{currency_pair}': { 'cost': 1, 'returnType': 'Dict' },
                             'tickers': { 'cost': 1, 'returnType': 'List' },
                             'order_book': { 'cost': 1, 'returnType': 'Dict' },
                             'trades': { 'cost': 1, 'returnType': 'List' },
                             'candlesticks': { 'cost': 1, 'returnType': 'List' },
                             'time': { 'cost': 1, 'returnType': 'Dict' },
-                            'insurance_history': 1,
+                            'insurance_history': { 'cost': 1, 'returnType': 'List' },
                         },
                     },
                     'margin': {
                         'get': {
                             'uni/currency_pairs': { 'cost': 1, 'returnType': 'List' },
                             'uni/currency_pairs/{currency_pair}': { 'cost': 1, 'returnType': 'Dict' },
-                            'loan_margin_tiers': 1,
+                            'loan_margin_tiers': { 'cost': 1, 'returnType': 'List' },
                             'currency_pairs': { 'cost': 1, 'returnType': 'List' }, // deprecated
                             'currency_pairs/{currency_pair}': { 'cost': 1, 'returnType': 'Dict' }, // deprecated
-                            'funding_book': 1, // deprecated
-                            'cross/currencies': 1, // deprecated
-                            'cross/currencies/{currency}': 1, // deprecated
+                            'funding_book': { 'cost': 1, 'returnType': 'List' }, // deprecated
+                            'cross/currencies': { 'cost': 1, 'returnType': 'List' }, // deprecated
+                            'cross/currencies/{currency}': { 'cost': 1, 'returnType': 'Dict' }, // deprecated
                         },
                     },
                     'flash_swap': {
                         'get': {
-                            'currency_pairs': 1,
-                            'currencies': 1, // deprecated
+                            'currency_pairs': { 'cost': 1, 'returnType': 'List' },
+                            'currencies': { 'cost': 1, 'returnType': 'List' }, // deprecated
                         },
                     },
                     'futures': {
@@ -234,12 +234,12 @@ export default class gate extends Exchange {
                             '{settle}/order_book': { 'cost': 1, 'returnType': 'Dict' },
                             '{settle}/trades': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/candlesticks': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/premium_index': 1,
+                            '{settle}/premium_index': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/tickers': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/funding_rate': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/insurance': 1,
-                            '{settle}/contract_stats': 1,
-                            '{settle}/index_constituents/{index}': 1,
+                            '{settle}/insurance': { 'cost': 1, 'returnType': 'List' },
+                            '{settle}/contract_stats': { 'cost': 1, 'returnType': 'List' },
+                            '{settle}/index_constituents/{index}': { 'cost': 1, 'returnType': 'Dict' },
                             '{settle}/liq_orders': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/risk_limit_tiers': { 'cost': 1, 'returnType': 'List' },
                         },
@@ -247,46 +247,46 @@ export default class gate extends Exchange {
                     'delivery': {
                         'get': {
                             '{settle}/contracts': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/contracts/{contract}': 1,
+                            '{settle}/contracts/{contract}': { 'cost': 1, 'returnType': 'Dict' },
                             '{settle}/order_book': { 'cost': 1, 'returnType': 'Dict' },
                             '{settle}/trades': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/candlesticks': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/tickers': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/insurance': 1,
+                            '{settle}/insurance': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/risk_limit_tiers': { 'cost': 1, 'returnType': 'List' },
                         },
                     },
                     'options': {
                         'get': {
                             'underlyings': { 'cost': 1, 'returnType': 'List' },
-                            'expirations': 1,
+                            'expirations': { 'cost': 1, 'returnType': 'List' },
                             'contracts': { 'cost': 1, 'returnType': 'List' },
-                            'contracts/{contract}': 1,
-                            'settlements': 1,
-                            'settlements/{contract}': 1,
+                            'contracts/{contract}': { 'cost': 1, 'returnType': 'Dict' },
+                            'settlements': { 'cost': 1, 'returnType': 'List' },
+                            'settlements/{contract}': { 'cost': 1, 'returnType': 'Dict' },
                             'order_book': { 'cost': 1, 'returnType': 'Dict' },
                             'tickers': { 'cost': 1, 'returnType': 'List' },
-                            'underlying/tickers/{underlying}': 1,
+                            'underlying/tickers/{underlying}': { 'cost': 1, 'returnType': 'Dict' },
                             'candlesticks': { 'cost': 1, 'returnType': 'List' },
-                            'underlying/candlesticks': 1,
+                            'underlying/candlesticks': { 'cost': 1, 'returnType': 'List' },
                             'trades': { 'cost': 1, 'returnType': 'List' },
                         },
                     },
                     'earn': {
                         'get': {
-                            'uni/currencies': 1,
-                            'uni/currencies/{currency}': 1,
-                            'dual/investment_plan': 1,
-                            'structured/products': 1,
+                            'uni/currencies': { 'cost': 1, 'returnType': 'List' },
+                            'uni/currencies/{currency}': { 'cost': 1, 'returnType': 'Dict' },
+                            'dual/investment_plan': { 'cost': 1, 'returnType': 'List' },
+                            'structured/products': { 'cost': 1, 'returnType': 'List' },
                         },
                     },
                     'loan': {
                         'get': {
-                            'collateral/currencies': 1,
-                            'multi_collateral/currencies': 1,
-                            'multi_collateral/ltv': 1,
-                            'multi_collateral/fixed_rate': 1,
-                            'multi_collateral/current_rate': 1,
+                            'collateral/currencies': { 'cost': 1, 'returnType': 'List' },
+                            'multi_collateral/currencies': { 'cost': 1, 'returnType': 'Dict' },
+                            'multi_collateral/ltv': { 'cost': 1, 'returnType': 'Dict' },
+                            'multi_collateral/fixed_rate': { 'cost': 1, 'returnType': 'List' },
+                            'multi_collateral/current_rate': { 'cost': 1, 'returnType': 'List' },
                         },
                     },
                 },
@@ -295,10 +295,10 @@ export default class gate extends Exchange {
                     'withdrawals': {
                         'post': {
                             'withdrawals': { 'cost': 20, 'returnType': 'Dict' }, // 1r/s cost = 20 / 1 = 20
-                            'push': 1,
+                            'push': { 'cost': 1, 'returnType': 'Dict' },
                         },
                         'delete': {
-                            'withdrawals/{withdrawal_id}': 1,
+                            'withdrawals/{withdrawal_id}': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                     'wallet': {
@@ -306,38 +306,38 @@ export default class gate extends Exchange {
                             'deposit_address': { 'cost': 1, 'returnType': 'Dict' },
                             'withdrawals': { 'cost': 1, 'returnType': 'List' },
                             'deposits': { 'cost': 1, 'returnType': 'List' },
-                            'sub_account_transfers': 1,
-                            'order_status': 1,
+                            'sub_account_transfers': { 'cost': 1, 'returnType': 'List' },
+                            'order_status': { 'cost': 1, 'returnType': 'Dict' },
                             'withdraw_status': { 'cost': 1, 'returnType': 'List' },
-                            'sub_account_balances': 2.5,
-                            'sub_account_margin_balances': 2.5,
-                            'sub_account_futures_balances': 2.5,
-                            'sub_account_cross_margin_balances': 2.5,
-                            'saved_address': 1,
-                            'fee': 1,
-                            'total_balance': 2.5,
-                            'small_balance': 1,
-                            'small_balance_history': 1,
-                            'push': 1,
-                            'getLowCapExchangeList': 1,
+                            'sub_account_balances': { 'cost': 2.5, 'returnType': 'List' },
+                            'sub_account_margin_balances': { 'cost': 2.5, 'returnType': 'List' },
+                            'sub_account_futures_balances': { 'cost': 2.5, 'returnType': 'List' },
+                            'sub_account_cross_margin_balances': { 'cost': 2.5, 'returnType': 'List' },
+                            'saved_address': { 'cost': 1, 'returnType': 'List' },
+                            'fee': { 'cost': 1, 'returnType': 'Dict' },
+                            'total_balance': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'small_balance': { 'cost': 1, 'returnType': 'List' },
+                            'small_balance_history': { 'cost': 1, 'returnType': 'List' },
+                            'push': { 'cost': 1, 'returnType': 'List' },
+                            'getLowCapExchangeList': { 'cost': 1, 'returnType': 'List' },
                         },
                         'post': {
                             'transfers': { 'cost': 2.5, 'returnType': 'Dict' }, // 8r/s cost = 20 / 8 = 2.5
-                            'sub_account_transfers': 2.5,
-                            'sub_account_to_sub_account': 2.5,
+                            'sub_account_transfers': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'sub_account_to_sub_account': { 'cost': 2.5, 'returnType': 'Dict' },
                             'small_balance': 1,
                         },
                     },
                     'subAccounts': {
                         'get': {
-                            'sub_accounts': 2.5,
-                            'sub_accounts/{user_id}': 2.5,
-                            'sub_accounts/{user_id}/keys': 2.5,
-                            'sub_accounts/{user_id}/keys/{key}': 2.5,
+                            'sub_accounts': { 'cost': 2.5, 'returnType': 'List' },
+                            'sub_accounts/{user_id}': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'sub_accounts/{user_id}/keys': { 'cost': 2.5, 'returnType': 'List' },
+                            'sub_accounts/{user_id}/keys/{key}': { 'cost': 2.5, 'returnType': 'Dict' },
                         },
                         'post': {
-                            'sub_accounts': 2.5,
-                            'sub_accounts/{user_id}/keys': 2.5,
+                            'sub_accounts': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'sub_accounts/{user_id}/keys': { 'cost': 2.5, 'returnType': 'Dict' },
                             'sub_accounts/{user_id}/lock': 2.5,
                             'sub_accounts/{user_id}/unlock': 2.5,
                         },
@@ -351,27 +351,27 @@ export default class gate extends Exchange {
                     'unified': {
                         'get': {
                             'accounts': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'borrowable': 20 / 15,
-                            'transferable': 20 / 15,
-                            'transferables': 20 / 15,
-                            'batch_borrowable': 20 / 15,
-                            'loans': 20 / 15,
-                            'loan_records': 20 / 15,
+                            'borrowable': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'transferable': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'transferables': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'batch_borrowable': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'loans': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'loan_records': { 'cost': 20 / 15, 'returnType': 'List' },
                             'interest_records': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'risk_units': 20 / 15,
-                            'unified_mode': 20 / 15,
-                            'estimate_rate': 20 / 15,
-                            'currency_discount_tiers': 20 / 15,
-                            'loan_margin_tiers': 20 / 15,
-                            'leverage/user_currency_config': 20 / 15,
-                            'leverage/user_currency_setting': 20 / 15,
+                            'risk_units': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'unified_mode': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'estimate_rate': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'currency_discount_tiers': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'loan_margin_tiers': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'leverage/user_currency_config': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'leverage/user_currency_setting': { 'cost': 20 / 15, 'returnType': 'List' },
                             'account_mode': 20 / 15, // deprecated
                         },
                         'post': {
-                            'loans': 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
-                            'portfolio_calculator': 20 / 15,
+                            'loans': { 'cost': 200 / 15, 'returnType': 'Dict' }, // 15r/10s cost = 20 / 1.5 = 13.33
+                            'portfolio_calculator': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'leverage/user_currency_setting': 20 / 15,
-                            'collateral_currencies': 20 / 15,
+                            'collateral_currencies': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'account_mode': 20 / 15, // deprecated
                         },
                         'put': {
@@ -381,9 +381,9 @@ export default class gate extends Exchange {
                     'spot': {
                         // default is 200r/10s
                         'get': {
-                            'fee': 1,
-                            'batch_fee': 1,
-                            'accounts': 1,
+                            'fee': { 'cost': 1, 'returnType': 'Dict' },
+                            'batch_fee': { 'cost': 1, 'returnType': 'Dict' },
+                            'accounts': { 'cost': 1, 'returnType': 'List' },
                             'account_book': { 'cost': 1, 'returnType': 'List' },
                             'open_orders': { 'cost': 1, 'returnType': 'List' },
                             'orders': { 'cost': 1, 'returnType': 'List' },
@@ -394,11 +394,11 @@ export default class gate extends Exchange {
                         },
                         'post': {
                             'batch_orders': { 'cost': 0.4, 'returnType': 'List' },
-                            'cross_liquidate_orders': 1,
+                            'cross_liquidate_orders': { 'cost': 1, 'returnType': 'Dict' },
                             'orders': { 'cost': 0.4, 'returnType': 'Dict' },
                             'cancel_batch_orders': { 'cost': 20 / 75, 'returnType': 'List' },
-                            'countdown_cancel_all': 20 / 75,
-                            'amend_batch_orders': 0.4,
+                            'countdown_cancel_all': { 'cost': 20 / 75, 'returnType': 'Dict' },
+                            'amend_batch_orders': { 'cost': 0.4, 'returnType': 'List' },
                             'price_orders': { 'cost': 0.4, 'returnType': 'Dict' },
                         },
                         'delete': {
@@ -413,101 +413,101 @@ export default class gate extends Exchange {
                     },
                     'margin': {
                         'get': {
-                            'accounts': 20 / 15,
+                            'accounts': { 'cost': 20 / 15, 'returnType': 'List' },
                             'account_book': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'funding_accounts': 20 / 15,
-                            'auto_repay': 20 / 15,
-                            'transferable': 20 / 15,
-                            'uni/estimate_rate': 20 / 15,
-                            'uni/loans': 20 / 15,
-                            'uni/loan_records': 20 / 15,
+                            'funding_accounts': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'auto_repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'transferable': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'uni/estimate_rate': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'uni/loans': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'uni/loan_records': { 'cost': 20 / 15, 'returnType': 'List' },
                             'uni/interest_records': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'uni/borrowable': 20 / 15,
-                            'user/loan_margin_tiers': 20 / 15,
-                            'user/account': 20 / 15,
-                            'loans': 20 / 15, // deprecated
-                            'loans/{loan_id}': 20 / 15, // deprecated
-                            'loans/{loan_id}/repayment': 20 / 15, // deprecated
-                            'loan_records': 20 / 15, // deprecated
-                            'loan_records/{loan_record_id}': 20 / 15, // deprecated
-                            'borrowable': 20 / 15, // deprecated
-                            'cross/accounts': 20 / 15, // deprecated
-                            'cross/account_book': 20 / 15, // deprecated
-                            'cross/loans': 20 / 15, // deprecated
-                            'cross/loans/{loan_id}': 20 / 15, // deprecated
-                            'cross/repayments': 20 / 15, // deprecated
+                            'uni/borrowable': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'user/loan_margin_tiers': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'user/account': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'loans': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
+                            'loans/{loan_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'loans/{loan_id}/repayment': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
+                            'loan_records': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
+                            'loan_records/{loan_record_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'borrowable': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'cross/accounts': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'cross/account_book': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
+                            'cross/loans': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
+                            'cross/loans/{loan_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'cross/repayments': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
                             'cross/interest_records': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'cross/transferable': 20 / 15, // deprecated
-                            'cross/estimate_rate': 20 / 15, // deprecated
-                            'cross/borrowable': 20 / 15, // deprecated
+                            'cross/transferable': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'cross/estimate_rate': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'cross/borrowable': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                         },
                         'post': {
-                            'auto_repay': 20 / 15,
+                            'auto_repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'uni/loans': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'leverage/user_market_setting': 20 / 15,
-                            'loans': 20 / 15, // deprecated
-                            'merged_loans': 20 / 15, // deprecated
-                            'loans/{loan_id}/repayment': 20 / 15, // deprecated
+                            'loans': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'merged_loans': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'loans/{loan_id}/repayment': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                             'cross/loans': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                             'cross/repayments': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
                         },
                         'patch': {
-                            'loans/{loan_id}': 20 / 15, // deprecated
-                            'loan_records/{loan_record_id}': 20 / 15, // deprecated
+                            'loans/{loan_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'loan_records/{loan_record_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                         },
                         'delete': {
-                            'loans/{loan_id}': 20 / 15, // deprecated
+                            'loans/{loan_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                         },
                     },
                     'flash_swap': {
                         'get': {
-                            'orders': 1,
-                            'orders/{order_id}': 1,
+                            'orders': { 'cost': 1, 'returnType': 'List' },
+                            'orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
                         },
                         'post': {
-                            'orders': 1,
-                            'orders/preview': 1,
+                            'orders': { 'cost': 1, 'returnType': 'Dict' },
+                            'orders/preview': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                     'futures': {
                         'get': {
-                            '{settle}/accounts': 1,
+                            '{settle}/accounts': { 'cost': 1, 'returnType': 'Dict' },
                             '{settle}/account_book': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/positions': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/positions/{contract}': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/get_leverage/{contract}': 1,
-                            '{settle}/dual_comp/positions/{contract}': 1,
+                            '{settle}/get_leverage/{contract}': { 'cost': 1, 'returnType': 'Dict' },
+                            '{settle}/dual_comp/positions/{contract}': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/orders': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/orders_timerange': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/my_trades': 1,
+                            '{settle}/my_trades': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/my_trades_timerange': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/position_close': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/liquidates': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/auto_deleverages': 1,
-                            '{settle}/fee': 1,
-                            '{settle}/risk_limit_table': 1,
+                            '{settle}/auto_deleverages': { 'cost': 1, 'returnType': 'List' },
+                            '{settle}/fee': { 'cost': 1, 'returnType': 'Dict' },
+                            '{settle}/risk_limit_table': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/price_orders': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/price_orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/positions/{contract}/leverage': 1,
-                            '{settle}/positions/{contract}/set_leverage': 1,
-                            '{settle}/positions/{contract}/risk_limit': 1,
-                            '{settle}/positions/cross_mode': 1,
-                            '{settle}/dual_comp/positions/cross_mode': 1,
-                            '{settle}/dual_mode': 1,
-                            '{settle}/set_position_mode': 1,
-                            '{settle}/dual_comp/positions/{contract}/margin': 1,
-                            '{settle}/dual_comp/positions/{contract}/leverage': 1,
-                            '{settle}/dual_comp/positions/{contract}/risk_limit': 1,
+                            '{settle}/positions/{contract}/leverage': { 'cost': 1, 'returnType': 'Dict' },
+                            '{settle}/positions/{contract}/set_leverage': { 'cost': 1, 'returnType': 'Dict' },
+                            '{settle}/positions/{contract}/risk_limit': { 'cost': 1, 'returnType': 'Dict' },
+                            '{settle}/positions/cross_mode': { 'cost': 1, 'returnType': 'Dict' },
+                            '{settle}/dual_comp/positions/cross_mode': { 'cost': 1, 'returnType': 'List' },
+                            '{settle}/dual_mode': { 'cost': 1, 'returnType': 'Dict' },
+                            '{settle}/set_position_mode': { 'cost': 1, 'returnType': 'Dict' },
+                            '{settle}/dual_comp/positions/{contract}/margin': { 'cost': 1, 'returnType': 'List' },
+                            '{settle}/dual_comp/positions/{contract}/leverage': { 'cost': 1, 'returnType': 'List' },
+                            '{settle}/dual_comp/positions/{contract}/risk_limit': { 'cost': 1, 'returnType': 'List' },
                             '{settle}/orders': { 'cost': 0.4, 'returnType': 'Dict' },
                             '{settle}/batch_orders': { 'cost': 0.4, 'returnType': 'List' },
-                            '{settle}/countdown_cancel_all': 0.4,
+                            '{settle}/countdown_cancel_all': { 'cost': 0.4, 'returnType': 'Dict' },
                             '{settle}/batch_cancel_orders': { 'cost': 0.4, 'returnType': 'List' },
-                            '{settle}/batch_amend_orders': 0.4,
-                            '{settle}/bbo_orders': 0.4,
+                            '{settle}/batch_amend_orders': { 'cost': 0.4, 'returnType': 'List' },
+                            '{settle}/bbo_orders': { 'cost': 0.4, 'returnType': 'Dict' },
                             '{settle}/price_orders': { 'cost': 0.4, 'returnType': 'Dict' },
                         },
                         'put': {
@@ -523,7 +523,7 @@ export default class gate extends Exchange {
                     },
                     'delivery': {
                         'get': {
-                            '{settle}/accounts': 20 / 15,
+                            '{settle}/accounts': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             '{settle}/account_book': { 'cost': 20 / 15, 'returnType': 'List' },
                             '{settle}/positions': { 'cost': 20 / 15, 'returnType': 'List' },
                             '{settle}/positions/{contract}': { 'cost': 20 / 15, 'returnType': 'Dict' },
@@ -538,8 +538,8 @@ export default class gate extends Exchange {
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            '{settle}/positions/{contract}/leverage': 20 / 15,
-                            '{settle}/positions/{contract}/risk_limit': 20 / 15,
+                            '{settle}/positions/{contract}/leverage': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            '{settle}/positions/{contract}/risk_limit': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             '{settle}/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             '{settle}/price_orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
                         },
@@ -553,7 +553,7 @@ export default class gate extends Exchange {
                     'options': {
                         'get': {
                             'my_settlements': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'accounts': 20 / 15,
+                            'accounts': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'account_book': { 'cost': 20 / 15, 'returnType': 'List' },
                             'positions': { 'cost': 20 / 15, 'returnType': 'List' },
                             'positions/{contract}': { 'cost': 20 / 15, 'returnType': 'Dict' },
@@ -561,13 +561,13 @@ export default class gate extends Exchange {
                             'orders': { 'cost': 20 / 15, 'returnType': 'List' },
                             'orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'my_trades': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'mmp': 20 / 15,
+                            'mmp': { 'cost': 20 / 15, 'returnType': 'List' },
                         },
                         'post': {
                             'orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'countdown_cancel_all': 20 / 15,
-                            'mmp': 20 / 15,
-                            'mmp/reset': 20 / 15,
+                            'countdown_cancel_all': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'mmp': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'mmp/reset': { 'cost': 20 / 15, 'returnType': 'Dict' },
                         },
                         'delete': {
                             'orders': { 'cost': 20 / 15, 'returnType': 'List' },
@@ -576,30 +576,30 @@ export default class gate extends Exchange {
                     },
                     'earn': {
                         'get': {
-                            'uni/lends': 20 / 15,
-                            'uni/lend_records': 20 / 15,
-                            'uni/interests/{currency}': 20 / 15,
-                            'uni/interest_records': 20 / 15,
-                            'uni/interest_status/{currency}': 20 / 15,
-                            'uni/chart': 20 / 15,
-                            'uni/rate': 20 / 15,
-                            'staking/eth2/rate_records': 20 / 15,
-                            'dual/orders': 20 / 15,
-                            'dual/balance': 20 / 15,
-                            'structured/orders': 20 / 15,
-                            'staking/coins': 20 / 15,
-                            'staking/order_list': 20 / 15,
-                            'staking/award_list': 20 / 15,
-                            'staking/assets': 20 / 15,
-                            'uni/currencies': 20 / 15, // deprecated
-                            'uni/currencies/{currency}': 20 / 15, // deprecated
+                            'uni/lends': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'uni/lend_records': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'uni/interests/{currency}': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'uni/interest_records': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'uni/interest_status/{currency}': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'uni/chart': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'uni/rate': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'staking/eth2/rate_records': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'dual/orders': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'dual/balance': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'structured/orders': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'staking/coins': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'staking/order_list': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'staking/award_list': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'staking/assets': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'uni/currencies': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
+                            'uni/currencies/{currency}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                         },
                         'post': {
                             'uni/lends': 20 / 15,
                             'staking/eth2/swap': 20 / 15,
-                            'dual/orders': 20 / 15,
+                            'dual/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'structured/orders': 20 / 15,
-                            'staking/swap': 20 / 15,
+                            'staking/swap': { 'cost': 20 / 15, 'returnType': 'Dict' },
                         },
                         'put': {
                             'uni/interest_reinvest': 20 / 15, // deprecated
@@ -610,77 +610,77 @@ export default class gate extends Exchange {
                     },
                     'loan': {
                         'get': {
-                            'collateral/orders': 20 / 15,
-                            'collateral/orders/{order_id}': 20 / 15,
-                            'collateral/repay_records': 20 / 15,
-                            'collateral/collaterals': 20 / 15,
-                            'collateral/total_amount': 20 / 15,
-                            'collateral/ltv': 20 / 15,
-                            'multi_collateral/orders': 20 / 15,
-                            'multi_collateral/orders/{order_id}': 20 / 15,
-                            'multi_collateral/repay': 20 / 15,
-                            'multi_collateral/mortgage': 20 / 15,
-                            'multi_collateral/currency_quota': 20 / 15,
-                            'collateral/currencies': 20 / 15, // deprecated
-                            'multi_collateral/currencies': 20 / 15, // deprecated
-                            'multi_collateral/ltv': 20 / 15, // deprecated
-                            'multi_collateral/fixed_rate': 20 / 15, // deprecated
-                            'multi_collateral/current_rate': 20 / 15, // deprecated
+                            'collateral/orders': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'collateral/orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'collateral/repay_records': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'collateral/collaterals': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'collateral/total_amount': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'collateral/ltv': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'multi_collateral/orders': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'multi_collateral/orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'multi_collateral/repay': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'multi_collateral/mortgage': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'multi_collateral/currency_quota': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'collateral/currencies': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
+                            'multi_collateral/currencies': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'multi_collateral/ltv': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'multi_collateral/fixed_rate': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
+                            'multi_collateral/current_rate': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
                         },
                         'post': {
-                            'collateral/orders': 20 / 15,
-                            'collateral/repay': 20 / 15,
+                            'collateral/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'collateral/repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'collateral/collaterals': 20 / 15,
-                            'multi_collateral/orders': 20 / 15,
-                            'multi_collateral/repay': 20 / 15,
-                            'multi_collateral/mortgage': 20 / 15,
+                            'multi_collateral/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'multi_collateral/repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'multi_collateral/mortgage': { 'cost': 20 / 15, 'returnType': 'Dict' },
                         },
                     },
                     'account': {
                         'get': {
                             'detail': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'main_keys': 20 / 15,
-                            'rate_limit': 20 / 15,
-                            'stp_groups': 20 / 15,
-                            'stp_groups/{stp_id}/users': 20 / 15,
+                            'main_keys': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'rate_limit': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'stp_groups': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'stp_groups/{stp_id}/users': { 'cost': 20 / 15, 'returnType': 'List' },
                             'stp_groups/debit_fee': 20 / 15,
-                            'debit_fee': 20 / 15,
+                            'debit_fee': { 'cost': 20 / 15, 'returnType': 'Dict' },
                         },
                         'post': {
-                            'stp_groups': 20 / 15,
-                            'stp_groups/{stp_id}/users': 20 / 15,
+                            'stp_groups': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'stp_groups/{stp_id}/users': { 'cost': 20 / 15, 'returnType': 'List' },
                             'debit_fee': 20 / 15,
                         },
                         'delete': {
-                            'stp_groups/{stp_id}/users': 20 / 15,
+                            'stp_groups/{stp_id}/users': { 'cost': 20 / 15, 'returnType': 'List' },
                         },
                     },
                     'rebate': {
                         'get': {
-                            'agency/transaction_history': 20 / 15,
-                            'agency/commission_history': 20 / 15,
-                            'partner/transaction_history': 20 / 15,
-                            'partner/commission_history': 20 / 15,
-                            'partner/sub_list': 20 / 15,
-                            'broker/commission_history': 20 / 15,
-                            'broker/transaction_history': 20 / 15,
-                            'user/info': 20 / 15,
-                            'user/sub_relation': 20 / 15,
+                            'agency/transaction_history': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'agency/commission_history': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'partner/transaction_history': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'partner/commission_history': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'partner/sub_list': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'broker/commission_history': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'broker/transaction_history': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'user/info': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'user/sub_relation': { 'cost': 20 / 15, 'returnType': 'Dict' },
                         },
                     },
                     'otc': {
                         'get': {
                             'get_user_def_bank': 1,
-                            'order/list': 1,
-                            'stable_coin/order/list': 1,
-                            'order/detail': 1,
+                            'order/list': { 'cost': 1, 'returnType': 'Dict' },
+                            'stable_coin/order/list': { 'cost': 1, 'returnType': 'Dict' },
+                            'order/detail': { 'cost': 1, 'returnType': 'Dict' },
                         },
                         'post': {
-                            'quote': 1,
-                            'order/create': 1,
-                            'stable_coin/order/create': 1,
-                            'order/paid': 1,
-                            'order/cancel': 1,
+                            'quote': { 'cost': 1, 'returnType': 'Dict' },
+                            'order/create': { 'cost': 1, 'returnType': 'Dict' },
+                            'stable_coin/order/create': { 'cost': 1, 'returnType': 'Dict' },
+                            'order/paid': { 'cost': 1, 'returnType': 'Dict' },
+                            'order/cancel': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                 },

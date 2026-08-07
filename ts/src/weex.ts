@@ -207,10 +207,10 @@ export default class weex extends Exchange {
                     'get': {
                         'api/v3/time': { 'cost': 5, 'returnType': 'Dict' }, // done
                         'api/v3/coins': { 'cost': 25, 'returnType': 'List' }, // done
-                        'api/v3/exchangeInfo': 100, // done
-                        'api/v3/ping': 5, // done
-                        'api/v3/apiTradingSymbols': 25, // not unified
-                        'api/v3/market/ticker/price': 20, // not unified
+                        'api/v3/exchangeInfo': { 'cost': 100, 'returnType': 'Dict' }, // done
+                        'api/v3/ping': { 'cost': 5, 'returnType': 'Dict' }, // done
+                        'api/v3/apiTradingSymbols': { 'cost': 25, 'returnType': 'List' }, // not unified
+                        'api/v3/market/ticker/price': { 'cost': 20, 'returnType': 'Dict' }, // not unified
                         'api/v3/market/ticker/24hr': { 'cost': 10, 'returnType': 'List' }, // done
                         'api/v3/market/trades': { 'cost': 125, 'returnType': 'List' }, // done
                         'api/v3/market/klines': { 'cost': 10, 'returnType': 'List' }, // done
@@ -226,21 +226,21 @@ export default class weex extends Exchange {
                         'api/v3/openOrders': { 'cost': 3, 'returnType': 'List' }, // done
                         'api/v3/allOrders': { 'cost': 10, 'returnType': 'List' }, // done
                         'api/v3/myTrades': { 'cost': 5, 'returnType': 'List' }, // done
-                        'api/v3/rebate/affiliate/getAffiliateUIDs': 20, // not unified
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': 20, // not unified
-                        'api/v3/rebate/affiliate/getAffiliateCommission': 20, // not unified
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': 100, // not unified
-                        'api/v3/rebate/affiliate/querySubChannelTransactions': 10, // not unified
-                        'api/v3/agency/verifyReferrals': 20, // not unified
-                        'api/v3/agency/getAssert': 20, // not unified
-                        'api/v3/agency/getDealData': 20, // not unified
+                        'api/v3/rebate/affiliate/getAffiliateUIDs': { 'cost': 20, 'returnType': 'Dict' }, // not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': { 'cost': 20, 'returnType': 'Dict' }, // not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission': { 'cost': 20, 'returnType': 'Dict' }, // not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': { 'cost': 100, 'returnType': 'Dict' }, // not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions': { 'cost': 10, 'returnType': 'Dict' }, // not unified
+                        'api/v3/agency/verifyReferrals': { 'cost': 20, 'returnType': 'List' }, // not unified
+                        'api/v3/agency/getAssert': { 'cost': 20, 'returnType': 'Dict' }, // not unified
+                        'api/v3/agency/getDealData': { 'cost': 20, 'returnType': 'Dict' }, // not unified
                     },
                     'post': {
                         'api/v3/account/bills': { 'cost': 5, 'returnType': 'List' }, // done
                         'api/v3/account/fundingBills': { 'cost': 5, 'returnType': 'Dict' }, // done
                         'api/v3/order': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'api/v3/order/batch': 50, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
-                        'api/v3/rebate/affiliate/internalWithdrawal': 100, // not unified
+                        'api/v3/order/batch': { 'cost': 50, 'returnType': 'Dict' }, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'api/v3/rebate/affiliate/internalWithdrawal': { 'cost': 100, 'returnType': 'string' }, // not unified
                     },
                     'delete': {
                         'api/v3/order': { 'cost': 1, 'returnType': 'Dict' }, // done
@@ -252,7 +252,7 @@ export default class weex extends Exchange {
                     // multiply public endpoints weight by 5
                     'get': {
                         'capi/v3/market/time': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'capi/v3/market/exchangeInfo': 5, // done
+                        'capi/v3/market/exchangeInfo': { 'cost': 5, 'returnType': 'Dict' }, // done
                         'capi/v3/market/depth': { 'cost': 5, 'returnType': 'Dict' }, // done
                         'capi/v3/market/ticker/24hr': { 'cost': 200, 'returnType': 'List' }, // done
                         'capi/v3/market/ticker/bookTicker': { 'cost': 5, 'returnType': 'List' }, // done
@@ -261,18 +261,18 @@ export default class weex extends Exchange {
                         'capi/v3/market/indexPriceKlines': { 'cost': 5, 'returnType': 'List' }, // done
                         'capi/v3/market/markPriceKlines': { 'cost': 5, 'returnType': 'List' }, // done
                         'capi/v3/market/historyKlines': { 'cost': 25, 'returnType': 'List' }, // done
-                        'capi/v3/market/symbolPrice': 5, // not unified
+                        'capi/v3/market/symbolPrice': { 'cost': 5, 'returnType': 'Dict' }, // not unified
                         'capi/v3/market/openInterest': { 'cost': 10, 'returnType': 'Dict' }, // done
                         'capi/v3/market/premiumIndex': { 'cost': 5, 'returnType': 'List' }, // done
                         'capi/v3/market/fundingRate': { 'cost': 25, 'returnType': 'List' }, // done
-                        'capi/v3/market/apiTradingSymbols': 25, // not unified
+                        'capi/v3/market/apiTradingSymbols': { 'cost': 25, 'returnType': 'List' }, // not unified
                     },
                 },
                 'contractPrivate': {
                     'get': {
                         'capi/v3/account/balance': { 'cost': 10, 'returnType': 'Dict' }, // done
                         'capi/v3/account/commissionRate': { 'cost': 10, 'returnType': 'Dict' }, // done
-                        'capi/v3/account/accountConfig': 10, // not unified
+                        'capi/v3/account/accountConfig': { 'cost': 10, 'returnType': 'Dict' }, // not unified
                         'capi/v3/account/symbolConfig': { 'cost': 10, 'returnType': 'List' }, // done
                         'capi/v3/account/position/allPosition': { 'cost': 15, 'returnType': 'List' }, // done
                         'capi/v3/account/position/singlePosition': { 'cost': 3, 'returnType': 'List' }, // done
@@ -281,20 +281,20 @@ export default class weex extends Exchange {
                         'capi/v3/order/history': { 'cost': 10, 'returnType': 'List' }, // done
                         'capi/v3/userTrades': { 'cost': 5, 'returnType': 'List' }, // done
                         'capi/v3/openAlgoOrders': { 'cost': 3, 'returnType': 'List' }, // done
-                        'capi/v3/allAlgoOrders': 10, // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/allAlgoOrders': { 'cost': 10, 'returnType': 'Dict' }, // not unified - capi/v3/order/history returns both regular and algo orders
                     },
                     'post': {
                         'capi/v3/account/income': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'capi/v3/account/marginType': 50, // done
-                        'capi/v3/account/leverage': 20, // done
+                        'capi/v3/account/marginType': { 'cost': 50, 'returnType': 'Dict' }, // done
+                        'capi/v3/account/leverage': { 'cost': 20, 'returnType': 'Dict' }, // done
                         'capi/v3/account/positionMargin': { 'cost': 30, 'returnType': 'Dict' }, // done
-                        'capi/v3/account/modifyAutoAppendMargin': 30, // not unified
+                        'capi/v3/account/modifyAutoAppendMargin': { 'cost': 30, 'returnType': 'Dict' }, // not unified
                         'capi/v3/order': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'capi/v3/batchOrders': 10, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'capi/v3/batchOrders': { 'cost': 10, 'returnType': 'List' }, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
                         'capi/v3/closePositions': { 'cost': 50, 'returnType': 'List' }, // done
                         'capi/v3/algoOrder': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'capi/v3/placeTpSlOrder': 5, // not unified
-                        'capi/v3/modifyTpSlOrder': 5, // not unified
+                        'capi/v3/placeTpSlOrder': { 'cost': 5, 'returnType': 'List' }, // not unified
+                        'capi/v3/modifyTpSlOrder': { 'cost': 5, 'returnType': 'Dict' }, // not unified
                     },
                     'delete': {
                         'capi/v3/order': { 'cost': 3, 'returnType': 'Dict' }, // done

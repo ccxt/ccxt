@@ -180,19 +180,19 @@ export default class onetrading extends Exchange {
                         'account/fees': { 'cost': 1, 'returnType': 'Dict' },
                         'account/orders': { 'cost': 1, 'returnType': 'Dict' },
                         'account/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/orders/client/{client_id}': 1,
+                        'account/orders/client/{client_id}': { 'cost': 1, 'returnType': 'Dict' },
                         'account/orders/{order_id}/trades': { 'cost': 1, 'returnType': 'Dict' },
                         'account/trades': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/trade/{trade_id}': 1,
+                        'account/trade/{trade_id}': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         'account/orders': { 'cost': 1, 'returnType': 'Dict' },
                     },
-                    'delete': [
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                    ],
+                    'delete': {
+                        'account/orders': { 'cost': 1, 'returnType': 'List' },
+                        'account/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
+                        'account/orders/client/{client_id}': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
             },
             'fees': {

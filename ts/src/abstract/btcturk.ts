@@ -18,12 +18,12 @@ interface Exchange {
     privateGetOpenOrders (params?: {}): Promise<Dict>;
     privateGetAllOrders (params?: {}): Promise<Dict>;
     privateGetUsersTransactionsTrade (params?: {}): Promise<Dict>;
-    privatePostUsersTransactionsCrypto (params?: {}): Promise<Dict | List>;
-    privatePostUsersTransactionsFiat (params?: {}): Promise<Dict | List>;
+    privatePostUsersTransactionsCrypto (params?: {}): Promise<Dict>;
+    privatePostUsersTransactionsFiat (params?: {}): Promise<Dict>;
     privatePostOrder (params?: {}): Promise<Dict>;
     privatePostCancelOrder (params?: {}): Promise<Dict>;
-    privateDeleteOrder (params?: {}): Promise<Dict | List>;
-    graphGetOhlcs (params?: {}): Promise<Dict | List>;
+    privateDeleteOrder (params?: {}): Promise<Dict>;
+    graphGetOhlcs (params?: {}): Promise<List>;
     graphGetKlinesHistory (params?: {}): Promise<List>;
 }
 abstract class Exchange extends _Exchange {}

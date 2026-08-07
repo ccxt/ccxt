@@ -9,39 +9,39 @@ import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    binanceGetPing (params?: {}): Promise<Dict | List>;
-    binanceGetTime (params?: {}): Promise<Dict | List>;
+    binanceGetPing (params?: {}): Promise<Dict>;
+    binanceGetTime (params?: {}): Promise<Dict>;
     binanceGetDepth (params?: {}): Promise<Dict>;
     binanceGetTrades (params?: {}): Promise<List>;
     binanceGetAggTrades (params?: {}): Promise<List>;
-    binanceGetHistoricalTrades (params?: {}): Promise<Dict | List>;
+    binanceGetHistoricalTrades (params?: {}): Promise<List>;
     binanceGetKlines (params?: {}): Promise<Dict>;
     binanceGetTicker24hr (params?: {}): Promise<List>;
-    binanceGetTickerPrice (params?: {}): Promise<Dict | List>;
+    binanceGetTickerPrice (params?: {}): Promise<Dict>;
     binanceGetTickerBookTicker (params?: {}): Promise<List>;
-    binanceGetExchangeInfo (params?: {}): Promise<Dict | List>;
-    binancePutUserDataStream (params?: {}): Promise<Dict | List>;
-    binancePostUserDataStream (params?: {}): Promise<Dict | List>;
-    binanceDeleteUserDataStream (params?: {}): Promise<Dict | List>;
+    binanceGetExchangeInfo (params?: {}): Promise<Dict>;
+    binancePutUserDataStream (params?: {}): Promise<Dict>;
+    binancePostUserDataStream (params?: {}): Promise<Dict>;
+    binanceDeleteUserDataStream (params?: {}): Promise<Dict>;
     publicGetOpenV1CommonTime (params?: {}): Promise<Dict>;
     publicGetOpenV1CommonSymbols (params?: {}): Promise<Dict>;
     publicGetOpenV1MarketDepth (params?: {}): Promise<Dict>;
     publicGetOpenV1MarketTrades (params?: {}): Promise<Dict>;
-    publicGetOpenV1MarketAggTrades (params?: {}): Promise<Dict | List>;
+    publicGetOpenV1MarketAggTrades (params?: {}): Promise<Dict>;
     publicGetOpenV1MarketKlines (params?: {}): Promise<Dict>;
-    privateGetOpenV1OrdersDetail (params?: {}): Promise<Dict | List>;
+    privateGetOpenV1OrdersDetail (params?: {}): Promise<Dict>;
     privateGetOpenV1Orders (params?: {}): Promise<Dict>;
-    privateGetOpenV1AccountSpot (params?: {}): Promise<Dict | List>;
-    privateGetOpenV1AccountSpotAsset (params?: {}): Promise<Dict | List>;
+    privateGetOpenV1AccountSpot (params?: {}): Promise<Dict>;
+    privateGetOpenV1AccountSpotAsset (params?: {}): Promise<Dict>;
     privateGetOpenV1OrdersTrades (params?: {}): Promise<Dict>;
     privateGetOpenV1Withdraws (params?: {}): Promise<Dict>;
     privateGetOpenV1Deposits (params?: {}): Promise<Dict>;
     privateGetOpenV1DepositsAddress (params?: {}): Promise<Dict>;
     privatePostOpenV1Orders (params?: {}): Promise<Dict>;
     privatePostOpenV1OrdersCancel (params?: {}): Promise<Dict>;
-    privatePostOpenV1OrdersOco (params?: {}): Promise<Dict | List>;
+    privatePostOpenV1OrdersOco (params?: {}): Promise<Dict>;
     privatePostOpenV1Withdraws (params?: {}): Promise<Dict>;
-    privatePostOpenV1UserDataStream (params?: {}): Promise<Dict | List>;
+    privatePostOpenV1UserDataStream (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

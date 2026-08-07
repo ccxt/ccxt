@@ -159,7 +159,7 @@ export default class p2b extends Exchange {
                 'public': {
                     'get': {
                         'markets': { 'cost': 1, 'returnType': 'Dict' },
-                        'market': 1,
+                        'market': { 'cost': 1, 'returnType': 'Dict' },
                         'tickers': { 'cost': 1, 'returnType': 'Dict' },
                         'ticker': { 'cost': 1, 'returnType': 'Dict' },
                         'book': { 'cost': 1, 'returnType': 'Dict' },
@@ -171,15 +171,15 @@ export default class p2b extends Exchange {
                 'private': {
                     'post': {
                         'account/balances': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/balance': 1,
+                        'account/balance': { 'cost': 1, 'returnType': 'Dict' },
                         'order/new': { 'cost': 1, 'returnType': 'Dict' },
                         'order/cancel': { 'cost': 1, 'returnType': 'Dict' },
                         'orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/market_order_history': 1,
+                        'account/market_order_history': { 'cost': 1, 'returnType': 'Dict' },
                         'account/market_deal_history': { 'cost': 1, 'returnType': 'Dict' },
                         'account/order': { 'cost': 1, 'returnType': 'Dict' },
                         'account/order_history': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/executed_history': 1,
+                        'account/executed_history': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },

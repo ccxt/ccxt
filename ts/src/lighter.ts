@@ -168,7 +168,7 @@ export default class lighter extends Exchange {
                     'get': {
                         // root
                         '': { 'cost': 1, 'returnType': 'Dict' }, // status
-                        'info': 1,
+                        'info': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'public': {
@@ -176,72 +176,72 @@ export default class lighter extends Exchange {
                         // account
                         'account': { 'cost': 1, 'returnType': 'Dict' },
                         'accountsByL1Address': { 'cost': 1, 'returnType': 'Dict' },
-                        'apikeys': 1,
+                        'apikeys': { 'cost': 1, 'returnType': 'Dict' },
                         // order
-                        'exchangeStats': 1,
+                        'exchangeStats': { 'cost': 1, 'returnType': 'Dict' },
                         'assetDetails': { 'cost': 1, 'returnType': 'Dict' },
                         'orderBookDetails': { 'cost': 1, 'returnType': 'Dict' },
                         'orderBookOrders': { 'cost': 1, 'returnType': 'Dict' },
                         'orderBooks': { 'cost': 1, 'returnType': 'Dict' },
-                        'recentTrades': 1,
+                        'recentTrades': { 'cost': 1, 'returnType': 'Dict' },
                         // transaction
-                        'blockTxs': 1,
+                        'blockTxs': { 'cost': 1, 'returnType': 'Dict' },
                         'nextNonce': { 'cost': 1, 'returnType': 'Dict' },
-                        'tx': 1,
-                        'txFromL1TxHash': 1,
-                        'txs': 1,
+                        'tx': { 'cost': 1, 'returnType': 'Dict' },
+                        'txFromL1TxHash': { 'cost': 1, 'returnType': 'Dict' },
+                        'txs': { 'cost': 1, 'returnType': 'Dict' },
                         // announcement
-                        'announcement': 1,
+                        'announcement': { 'cost': 1, 'returnType': 'Dict' },
                         // block
-                        'block': 1,
-                        'blocks': 1,
-                        'currentHeight': 1,
+                        'block': { 'cost': 1, 'returnType': 'Dict' },
+                        'blocks': { 'cost': 1, 'returnType': 'List' },
+                        'currentHeight': { 'cost': 1, 'returnType': 'Dict' },
                         // candlestick
                         'candles': { 'cost': 1, 'returnType': 'Dict' },
-                        'fundings': 1,
+                        'fundings': { 'cost': 1, 'returnType': 'Dict' },
                         // bridge
-                        'fastbridge/info': 1,
+                        'fastbridge/info': { 'cost': 1, 'returnType': 'Dict' },
                         // funding
                         'funding-rates': { 'cost': 1, 'returnType': 'Dict' },
                         // info
-                        'withdrawalDelay': 1,
+                        'withdrawalDelay': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         // transaction
                         'sendTx': { 'cost': 1, 'returnType': 'Dict' },
-                        'sendTxBatch': 1,
+                        'sendTxBatch': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'accountLimits': 1,
-                        'accountMetadata': 1,
-                        'pnl': 1,
-                        'l1Metadata': 1,
+                        'accountLimits': { 'cost': 1, 'returnType': 'Dict' },
+                        'accountMetadata': { 'cost': 1, 'returnType': 'Dict' },
+                        'pnl': { 'cost': 1, 'returnType': 'Dict' },
+                        'l1Metadata': { 'cost': 1, 'returnType': 'Dict' },
                         'liquidations': { 'cost': 1, 'returnType': 'Dict' },
-                        'positionFunding': 1,
-                        'publicPoolsMetadata': 1,
+                        'positionFunding': { 'cost': 1, 'returnType': 'Dict' },
+                        'publicPoolsMetadata': { 'cost': 1, 'returnType': 'Dict' },
                         // order
                         'accountActiveOrders': { 'cost': 1, 'returnType': 'Dict' },
                         'accountInactiveOrders': { 'cost': 1, 'returnType': 'Dict' },
-                        'export': 1,
+                        'export': { 'cost': 1, 'returnType': 'Dict' },
                         'trades': { 'cost': 1, 'returnType': 'Dict' },
                         // transaction
-                        'accountTxs': 1,
+                        'accountTxs': { 'cost': 1, 'returnType': 'Dict' },
                         'deposit/history': { 'cost': 1, 'returnType': 'Dict' },
                         'transfer/history': { 'cost': 1, 'returnType': 'Dict' },
                         'withdraw/history': { 'cost': 1, 'returnType': 'Dict' },
                         // referral
-                        'referral/points': 1,
+                        'referral/points': { 'cost': 1, 'returnType': 'Dict' },
                         // info
-                        'transferFeeInfo': 1,
+                        'transferFeeInfo': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         // account
-                        'changeAccountTier': 1,
+                        'changeAccountTier': { 'cost': 1, 'returnType': 'Dict' },
                         // notification
-                        'notification/ack': 1,
+                        'notification/ack': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },

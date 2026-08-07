@@ -5,12 +5,12 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetCountries (params?: {}): Promise<Dict | List>;
-    publicGetCurrencies (params?: {}): Promise<Dict | List>;
+    publicGetCountries (params?: {}): Promise<List>;
+    publicGetCurrencies (params?: {}): Promise<List>;
     publicGetDataCurrencyTicker (params?: {}): Promise<Dict>;
     publicGetDataCurrencyTrades (params?: {}): Promise<List>;
     publicGetDataCurrencyDepth (params?: {}): Promise<Dict>;
@@ -19,17 +19,17 @@ interface Exchange {
     privateGetUser (params?: {}): Promise<Dict>;
     privateGetUserAddresses (params?: {}): Promise<List>;
     privateGetUserAddressesAddress (params?: {}): Promise<Dict>;
-    privateGetUserOrders (params?: {}): Promise<Dict | List>;
-    privateGetUserOrdersUuid (params?: {}): Promise<Dict | List>;
+    privateGetUserOrders (params?: {}): Promise<List>;
+    privateGetUserOrdersUuid (params?: {}): Promise<Dict>;
     privateGetUserPriceAlerts (params?: {}): Promise<Dict | List>;
-    privateGetMerchantGetPaymentUuid (params?: {}): Promise<Dict | List>;
+    privateGetMerchantGetPaymentUuid (params?: {}): Promise<Dict>;
     privatePostUserAddresses (params?: {}): Promise<Dict>;
     privatePostUserOrders (params?: {}): Promise<Dict>;
-    privatePostUserWithdrawals (params?: {}): Promise<Dict | List>;
+    privatePostUserWithdrawals (params?: {}): Promise<Dict>;
     privatePostUserEmailTransfers (params?: {}): Promise<Dict>;
-    privatePostUserPaymentRequests (params?: {}): Promise<Dict | List>;
+    privatePostUserPaymentRequests (params?: {}): Promise<List>;
     privatePostUserPriceAlerts (params?: {}): Promise<Dict | List>;
-    privatePostMerchantCreatePayment (params?: {}): Promise<Dict | List>;
+    privatePostMerchantCreatePayment (params?: {}): Promise<Dict>;
     privateDeleteUserOrdersUuid (params?: {}): Promise<Dict | List>;
     privateDeleteUserOrdersUuidCancel (params?: {}): Promise<Dict | List>;
     privateDeleteUserPriceAlertsId (params?: {}): Promise<Dict | List>;

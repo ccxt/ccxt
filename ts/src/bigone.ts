@@ -125,7 +125,7 @@ export default class bigone extends Exchange {
                 'public': {
                     'get': {
                         'ping': { 'cost': 1, 'returnType': 'Dict' },
-                        'asset_pairs': 1,
+                        'asset_pairs': { 'cost': 1, 'returnType': 'Dict' },
                         'asset_pairs/{asset_pair_name}/depth': { 'cost': 1, 'returnType': 'Dict' },
                         'asset_pairs/{asset_pair_name}/trades': { 'cost': 1, 'returnType': 'Dict' },
                         'asset_pairs/{asset_pair_name}/ticker': { 'cost': 1, 'returnType': 'Dict' },
@@ -140,7 +140,7 @@ export default class bigone extends Exchange {
                         'assets/{asset_symbol}/address': { 'cost': 1, 'returnType': 'Dict' },
                         'orders': { 'cost': 1, 'returnType': 'Dict' },
                         'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders/multi': 1,
+                        'orders/multi': { 'cost': 1, 'returnType': 'Dict' },
                         'trades': { 'cost': 1, 'returnType': 'Dict' },
                         'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
                         'deposits': { 'cost': 1, 'returnType': 'Dict' },
@@ -155,41 +155,41 @@ export default class bigone extends Exchange {
                 },
                 'contractPublic': {
                     'get': {
-                        'symbols': 1,
+                        'symbols': { 'cost': 1, 'returnType': 'List' },
                         'instruments': { 'cost': 1, 'returnType': 'List' },
                         'depth@{symbol}/snapshot': { 'cost': 1, 'returnType': 'Dict' },
-                        'instruments/difference': 1,
-                        'instruments/prices': 1,
+                        'instruments/difference': { 'cost': 1, 'returnType': 'Dict' },
+                        'instruments/prices': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'contractPrivate': {
-                    'get': [
-                        'accounts',
-                        'orders/{id}',
-                        'orders',
-                        'orders/opening',
-                        'orders/count',
-                        'orders/opening/count',
-                        'trades',
-                        'trades/count',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/batch',
-                    ],
-                    'put': [
-                        'positions/{symbol}/margin',
-                        'positions/{symbol}/risk-limit',
-                    ],
+                    'get': {
+                        'accounts': { 'cost': 1, 'returnType': 'List' },
+                        'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders': { 'cost': 1, 'returnType': 'List' },
+                        'orders/opening': { 'cost': 1, 'returnType': 'List' },
+                        'orders/count': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders/opening/count': { 'cost': 1, 'returnType': 'Dict' },
+                        'trades': { 'cost': 1, 'returnType': 'List' },
+                        'trades/count': { 'cost': 1, 'returnType': 'Dict' },
+                    },
+                    'post': {
+                        'orders': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders/batch': 1,
+                    },
+                    'put': {
+                        'positions/{symbol}/margin': { 'cost': 1, 'returnType': 'Dict' },
+                        'positions/{symbol}/risk-limit': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                     'delete': [
                         'orders/{id}',
                         'orders/batch',
                     ],
                 },
                 'webExchange': {
-                    'get': [
-                        'v3/assets',
-                    ],
+                    'get': {
+                        'v3/assets': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
             },
             'fees': {

@@ -171,7 +171,7 @@ export default class cryptomus extends Exchange {
                 'public': {
                     'get': {
                         'v2/user-api/exchange/markets': { 'cost': 1, 'returnType': 'Dict' }, // done
-                        'v2/user-api/exchange/market/price': 1, // not used
+                        'v2/user-api/exchange/market/price': { 'cost': 1, 'returnType': 'Dict' }, // not used
                         'v1/exchange/market/assets': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'v1/exchange/market/tickers': { 'cost': 1, 'returnType': 'Dict' }, // done
@@ -184,16 +184,16 @@ export default class cryptomus extends Exchange {
                         'v2/user-api/exchange/orders/history': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'v2/user-api/exchange/account/balance': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'v2/user-api/exchange/account/tariffs': { 'cost': 1, 'returnType': 'Dict' }, // done
-                        'v2/user-api/payment/services': 1,
-                        'v2/user-api/payout/services': 1,
-                        'v2/user-api/transaction/list': 1,
+                        'v2/user-api/payment/services': { 'cost': 1, 'returnType': 'Dict' },
+                        'v2/user-api/payout/services': { 'cost': 1, 'returnType': 'Dict' },
+                        'v2/user-api/transaction/list': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         'v2/user-api/exchange/orders': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'v2/user-api/exchange/orders/market': { 'cost': 1, 'returnType': 'Dict' }, // done
                     },
                     'delete': {
-                        'v2/user-api/exchange/orders/{orderId}': 1, // done
+                        'v2/user-api/exchange/orders/{orderId}': { 'cost': 1, 'returnType': 'Dict' }, // done
                     },
                 },
             },

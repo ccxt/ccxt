@@ -89,12 +89,12 @@ export default class nado extends Exchange {
                 'gateway': {
                     'public': {
                         'get': {
-                            'symbols': 2,
+                            'symbols': { 'cost': 2, 'returnType': 'List' },
                             'query': { 'cost': 1, 'returnType': 'Dict' },
                             'edge/query': { 'cost': 1, 'returnType': 'Dict' },
                         },
                         'post': {
-                            'query': 1,
+                            'query': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                     'private': {
@@ -107,7 +107,7 @@ export default class nado extends Exchange {
                     'public': {
                         'get': {
                             'assets': { 'cost': 2, 'returnType': 'List' },
-                            'pairs': 1,
+                            'pairs': { 'cost': 1, 'returnType': 'List' },
                             'orderbook': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },

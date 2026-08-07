@@ -5,42 +5,42 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetExchangeOrdersRate (params?: {}): Promise<Dict | List>;
+    publicGetExchangeOrdersRate (params?: {}): Promise<Dict>;
     publicGetExchangeStatus (params?: {}): Promise<Dict>;
     publicGetOrderBooks (params?: {}): Promise<Dict>;
-    publicGetRatePair (params?: {}): Promise<Dict | List>;
+    publicGetRatePair (params?: {}): Promise<Dict>;
     publicGetTicker (params?: {}): Promise<Dict>;
     publicGetTrades (params?: {}): Promise<Dict>;
     privateGetAccounts (params?: {}): Promise<Dict>;
     privateGetAccountsBalance (params?: {}): Promise<Dict>;
-    privateGetAccountsLeverageBalance (params?: {}): Promise<Dict | List>;
-    privateGetBankAccounts (params?: {}): Promise<Dict | List>;
+    privateGetAccountsLeverageBalance (params?: {}): Promise<Dict>;
+    privateGetBankAccounts (params?: {}): Promise<Dict>;
     privateGetDepositMoney (params?: {}): Promise<Dict>;
-    privateGetExchangeOrdersId (params?: {}): Promise<Dict | List>;
+    privateGetExchangeOrdersId (params?: {}): Promise<Dict>;
     privateGetExchangeOrdersOpens (params?: {}): Promise<Dict>;
-    privateGetExchangeOrdersCancelStatus (params?: {}): Promise<Dict | List>;
-    privateGetExchangeOrdersTransactions (params?: {}): Promise<Dict | List>;
+    privateGetExchangeOrdersCancelStatus (params?: {}): Promise<Dict>;
+    privateGetExchangeOrdersTransactions (params?: {}): Promise<Dict>;
     privateGetExchangeOrdersTransactionsPagination (params?: {}): Promise<Dict>;
-    privateGetExchangeLeveragePositions (params?: {}): Promise<Dict | List>;
-    privateGetLendingBorrowsMatches (params?: {}): Promise<Dict | List>;
-    privateGetSendMoney (params?: {}): Promise<Dict | List>;
+    privateGetExchangeLeveragePositions (params?: {}): Promise<Dict>;
+    privateGetLendingBorrowsMatches (params?: {}): Promise<Dict>;
+    privateGetSendMoney (params?: {}): Promise<Dict>;
     privateGetWithdraws (params?: {}): Promise<Dict>;
-    privatePostBankAccounts (params?: {}): Promise<Dict | List>;
-    privatePostDepositMoneyIdFast (params?: {}): Promise<Dict | List>;
+    privatePostBankAccounts (params?: {}): Promise<Dict>;
+    privatePostDepositMoneyIdFast (params?: {}): Promise<Dict>;
     privatePostExchangeOrders (params?: {}): Promise<Dict>;
-    privatePostExchangeTransfersToLeverage (params?: {}): Promise<Dict | List>;
-    privatePostExchangeTransfersFromLeverage (params?: {}): Promise<Dict | List>;
-    privatePostLendingBorrows (params?: {}): Promise<Dict | List>;
-    privatePostLendingBorrowsIdRepay (params?: {}): Promise<Dict | List>;
-    privatePostSendMoney (params?: {}): Promise<Dict | List>;
-    privatePostWithdraws (params?: {}): Promise<Dict | List>;
-    privateDeleteBankAccountsId (params?: {}): Promise<Dict | List>;
+    privatePostExchangeTransfersToLeverage (params?: {}): Promise<Dict>;
+    privatePostExchangeTransfersFromLeverage (params?: {}): Promise<Dict>;
+    privatePostLendingBorrows (params?: {}): Promise<Dict>;
+    privatePostLendingBorrowsIdRepay (params?: {}): Promise<Dict>;
+    privatePostSendMoney (params?: {}): Promise<Dict>;
+    privatePostWithdraws (params?: {}): Promise<Dict>;
+    privateDeleteBankAccountsId (params?: {}): Promise<Dict>;
     privateDeleteExchangeOrdersId (params?: {}): Promise<Dict>;
-    privateDeleteWithdrawsId (params?: {}): Promise<Dict | List>;
+    privateDeleteWithdrawsId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

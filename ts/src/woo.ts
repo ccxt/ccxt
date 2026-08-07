@@ -160,80 +160,80 @@ export default class woo extends Exchange {
                 'v1': {
                     'pub': {
                         'get': {
-                            'hist/kline': 10,
+                            'hist/kline': { 'cost': 10, 'returnType': 'Dict' },
                             'hist/trades': 10,
                         },
                     },
                     'public': {
                         'get': {
-                            'info': 1,
-                            'info/{symbol}': 1,
-                            'system_info': 1,
-                            'market_trades': 1,
+                            'info': { 'cost': 1, 'returnType': 'Dict' },
+                            'info/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
+                            'system_info': { 'cost': 1, 'returnType': 'Dict' },
+                            'market_trades': { 'cost': 1, 'returnType': 'Dict' },
                             'token': { 'cost': 1, 'returnType': 'Dict' },
                             'token_network': { 'cost': 1, 'returnType': 'Dict' },
-                            'funding_rates': 1,
-                            'funding_rate/{symbol}': 1,
-                            'funding_rate_history': 1,
-                            'futures': 1,
-                            'futures/{symbol}': 1,
-                            'orderbook/{symbol}': 1,
+                            'funding_rates': { 'cost': 1, 'returnType': 'Dict' },
+                            'funding_rate/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
+                            'funding_rate_history': { 'cost': 1, 'returnType': 'Dict' },
+                            'futures': { 'cost': 1, 'returnType': 'Dict' },
+                            'futures/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
+                            'orderbook/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
                             'kline': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                     'private': {
                         'get': {
-                            'client/token': 1,
+                            'client/token': { 'cost': 1, 'returnType': 'Dict' },
                             'order/{oid}': { 'cost': 1, 'returnType': 'Dict' },
                             'client/order/{client_order_id}': { 'cost': 1, 'returnType': 'Dict' },
                             'orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'client/trade/{tid}': 1,
+                            'client/trade/{tid}': { 'cost': 1, 'returnType': 'Dict' },
                             'order/{oid}/trades': { 'cost': 1, 'returnType': 'Dict' },
-                            'client/trades': 1,
-                            'client/hist_trades': 1,
+                            'client/trades': { 'cost': 1, 'returnType': 'Dict' },
+                            'client/hist_trades': { 'cost': 1, 'returnType': 'Dict' },
                             'staking/yield_history': 1,
                             'client/holding': { 'cost': 1, 'returnType': 'Dict' },
-                            'asset/deposit': 10,
+                            'asset/deposit': { 'cost': 10, 'returnType': 'Dict' },
                             'asset/history': { 'cost': 60, 'returnType': 'Dict' },
-                            'sub_account/all': 60,
-                            'sub_account/assets': 60,
-                            'sub_account/asset_detail': 60,
-                            'sub_account/ip_restriction': 10,
-                            'asset/main_sub_transfer_history': 30,
-                            'token_interest': 60,
-                            'token_interest/{token}': 60,
-                            'interest/history': 60,
-                            'interest/repay': 60,
+                            'sub_account/all': { 'cost': 60, 'returnType': 'Dict' },
+                            'sub_account/assets': { 'cost': 60, 'returnType': 'Dict' },
+                            'sub_account/asset_detail': { 'cost': 60, 'returnType': 'Dict' },
+                            'sub_account/ip_restriction': { 'cost': 10, 'returnType': 'Dict' },
+                            'asset/main_sub_transfer_history': { 'cost': 30, 'returnType': 'Dict' },
+                            'token_interest': { 'cost': 60, 'returnType': 'Dict' },
+                            'token_interest/{token}': { 'cost': 60, 'returnType': 'Dict' },
+                            'interest/history': { 'cost': 60, 'returnType': 'Dict' },
+                            'interest/repay': { 'cost': 60, 'returnType': 'Dict' },
                             'funding_fee/history': { 'cost': 30, 'returnType': 'Dict' },
                             'positions': { 'cost': 3.33, 'returnType': 'Dict' }, // 30 requests per 10 seconds
                             'position/{symbol}': { 'cost': 3.33, 'returnType': 'Dict' },
-                            'client/transaction_history': 60,
-                            'client/futures_leverage': 60,
+                            'client/transaction_history': { 'cost': 60, 'returnType': 'Dict' },
+                            'client/futures_leverage': { 'cost': 60, 'returnType': 'Dict' },
                         },
                         'post': {
                             'order': { 'cost': 1, 'returnType': 'Dict' }, // 10 requests per 1 second per symbol
-                            'order/cancel_all_after': 1,
-                            'asset/ltv': 30,
-                            'asset/internal_withdraw': 30,
+                            'order/cancel_all_after': { 'cost': 1, 'returnType': 'Dict' },
+                            'asset/ltv': { 'cost': 30, 'returnType': 'Dict' },
+                            'asset/internal_withdraw': { 'cost': 30, 'returnType': 'Dict' },
                             'interest/repay': { 'cost': 60, 'returnType': 'Dict' },
-                            'client/account_mode': 120,
-                            'client/position_mode': 5,
-                            'client/leverage': 120,
-                            'client/futures_leverage': 30,
-                            'client/isolated_margin': 30,
+                            'client/account_mode': { 'cost': 120, 'returnType': 'Dict' },
+                            'client/position_mode': { 'cost': 5, 'returnType': 'Dict' },
+                            'client/leverage': { 'cost': 120, 'returnType': 'Dict' },
+                            'client/futures_leverage': { 'cost': 30, 'returnType': 'Dict' },
+                            'client/isolated_margin': { 'cost': 30, 'returnType': 'Dict' },
                         },
                         'delete': {
                             'order': { 'cost': 1, 'returnType': 'Dict' },
                             'client/order': { 'cost': 1, 'returnType': 'Dict' },
                             'orders': { 'cost': 1, 'returnType': 'List' },
-                            'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw': { 'cost': 120, 'returnType': 'Dict' },  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
                 'v2': {
                     'private': {
                         'get': {
-                            'client/holding': 1,
+                            'client/holding': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                 },
@@ -242,18 +242,18 @@ export default class woo extends Exchange {
                         'get': {
                             'systemInfo': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'instruments': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'token': 1, // 10/1s
-                            'tokenNetwork': 1, // 10/1s
-                            'tokenInfo': 1, // 10/1s
+                            'token': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
+                            'tokenNetwork': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
+                            'tokenInfo': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'marketTrades': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'marketTradesHistory': 1, // 10/1s
+                            'marketTradesHistory': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'orderbook': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'kline': 1, // 10/1s
+                            'kline': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'klineHistory': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'futures': 1, // 10/1s
+                            'futures': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'fundingRate': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'fundingRateHistory': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'insuranceFund': 1, // 10/1s
+                            'insuranceFund': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                         },
                     },
                     'private': {
@@ -262,33 +262,33 @@ export default class woo extends Exchange {
                             'trade/orders': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'trade/algoOrder': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'trade/algoOrders': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'trade/transaction': 1, // 10/1s
+                            'trade/transaction': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'trade/transactionHistory': { 'cost': 5, 'returnType': 'Dict' }, // 2/1s
                             'trade/tradingFee': { 'cost': 5, 'returnType': 'Dict' }, // 2/1s
                             'account/info': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'account/tokenConfig': 1, // 10/1s
-                            'account/symbolConfig': 1, // 10/1s
+                            'account/tokenConfig': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
+                            'account/symbolConfig': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'account/subAccounts/all': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'account/referral/summary': 60, // 10/60s
-                            'account/referral/rewardHistory': 60, // 10/60s
-                            'account/credentials': 60, // 10/60s
+                            'account/referral/summary': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
+                            'account/referral/rewardHistory': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
+                            'account/credentials': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
                             'asset/balances': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'asset/token/history': 60, // 10/60s
+                            'asset/token/history': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
                             'asset/transfer/history': { 'cost': 30, 'returnType': 'Dict' }, // 20/60s
                             'asset/wallet/history': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
                             'asset/wallet/deposit': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'asset/staking/yieldHistory': 60, // 10/60s
+                            'asset/staking/yieldHistory': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
                             'futures/positions': { 'cost': 3.33, 'returnType': 'Dict' }, // 30/10s
                             'futures/leverage': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'futures/defaultMarginMode': 60, // 10/60s
+                            'futures/defaultMarginMode': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
                             'futures/fundingFee/history': { 'cost': 30, 'returnType': 'Dict' }, // 20/60s
-                            'spotMargin/interestRate': 60, // 10/60s
-                            'spotMargin/interestHistory': 60, // 10/60s
-                            'spotMargin/maxMargin': 60, // 10/60s
-                            'algo/order/{oid}': 1,
-                            'algo/orders': 1,
-                            'positions': 3.33,
-                            'buypower': 1,
+                            'spotMargin/interestRate': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
+                            'spotMargin/interestHistory': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
+                            'spotMargin/maxMargin': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
+                            'algo/order/{oid}': { 'cost': 1, 'returnType': 'Dict' },
+                            'algo/orders': { 'cost': 1, 'returnType': 'Dict' },
+                            'positions': { 'cost': 3.33, 'returnType': 'Dict' },
+                            'buypower': { 'cost': 1, 'returnType': 'Dict' },
                             'convert/exchangeInfo': 1,
                             'convert/assetInfo': { 'cost': 1, 'returnType': 'Dict' },
                             'convert/rfq': { 'cost': 60, 'returnType': 'Dict' },
@@ -298,21 +298,21 @@ export default class woo extends Exchange {
                         'post': {
                             'trade/order': { 'cost': 2, 'returnType': 'Dict' }, // 5/1s
                             'trade/algoOrder': { 'cost': 5, 'returnType': 'Dict' }, // 2/1s
-                            'trade/cancelAllAfter': 1, // 10/1s
-                            'account/tradingMode': 120, // 5/60s
-                            'account/listenKey': 20, // 5/10s
+                            'trade/cancelAllAfter': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
+                            'account/tradingMode': { 'cost': 120, 'returnType': 'Dict' }, // 5/60s
+                            'account/listenKey': { 'cost': 20, 'returnType': 'Dict' }, // 5/10s
                             'asset/transfer': { 'cost': 30, 'returnType': 'Dict' }, // 20/60s
                             'asset/wallet/withdraw': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'spotMargin/leverage': 120, // 5/60s
-                            'spotMargin/interestRepay': 60, // 10/60s
-                            'algo/order': 5,
+                            'spotMargin/leverage': { 'cost': 120, 'returnType': 'Dict' }, // 5/60s
+                            'spotMargin/interestRepay': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
+                            'algo/order': { 'cost': 5, 'returnType': 'Dict' },
                             'convert/rft': { 'cost': 60, 'returnType': 'Dict' },
                         },
                         'put': {
-                            'trade/order': 2, // 5/1s
-                            'trade/algoOrder': 2, // 5/1s
-                            'futures/leverage': 60, // 10/60s
-                            'futures/positionMode': 120, // 5/60s
+                            'trade/order': { 'cost': 2, 'returnType': 'Dict' }, // 5/1s
+                            'trade/algoOrder': { 'cost': 2, 'returnType': 'Dict' }, // 5/1s
+                            'futures/leverage': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
+                            'futures/positionMode': { 'cost': 120, 'returnType': 'Dict' }, // 5/60s
                             'order/{oid}': { 'cost': 2, 'returnType': 'Dict' },
                             'order/client/{client_order_id}': { 'cost': 2, 'returnType': 'Dict' },
                             'algo/order/{oid}': { 'cost': 2, 'returnType': 'Dict' },
@@ -323,11 +323,11 @@ export default class woo extends Exchange {
                             'trade/orders': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'trade/algoOrder': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
                             'trade/algoOrders': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'trade/allOrders': 1, // 10/1s
-                            'algo/order/{order_id}': 1,
-                            'algo/orders/pending': 1,
-                            'algo/orders/pending/{symbol}': 1,
-                            'orders/pending': 1,
+                            'trade/allOrders': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
+                            'algo/order/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
+                            'algo/orders/pending': { 'cost': 1, 'returnType': 'Dict' },
+                            'algo/orders/pending/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
+                            'orders/pending': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                 },

@@ -5,36 +5,36 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetPairTicker (params?: {}): Promise<Dict>;
-    publicGetTickers (params?: {}): Promise<Dict | List>;
-    publicGetTickersJpy (params?: {}): Promise<Dict | List>;
+    publicGetTickers (params?: {}): Promise<Dict>;
+    publicGetTickersJpy (params?: {}): Promise<Dict>;
     publicGetPairDepth (params?: {}): Promise<Dict>;
     publicGetPairTransactions (params?: {}): Promise<Dict>;
-    publicGetPairTransactionsYyyymmdd (params?: {}): Promise<Dict | List>;
+    publicGetPairTransactionsYyyymmdd (params?: {}): Promise<Dict>;
     publicGetPairCandlestickCandletypeYyyymmdd (params?: {}): Promise<Dict>;
-    publicGetPairCircuitBreakInfo (params?: {}): Promise<Dict | List>;
+    publicGetPairCircuitBreakInfo (params?: {}): Promise<Dict>;
     privateGetUserAssets (params?: {}): Promise<Dict>;
     privateGetUserSpotOrder (params?: {}): Promise<Dict>;
     privateGetUserSpotActiveOrders (params?: {}): Promise<Dict>;
-    privateGetUserMarginPositions (params?: {}): Promise<Dict | List>;
+    privateGetUserMarginPositions (params?: {}): Promise<Dict>;
     privateGetUserSpotTradeHistory (params?: {}): Promise<Dict>;
-    privateGetUserDepositHistory (params?: {}): Promise<Dict | List>;
-    privateGetUserUnconfirmedDeposits (params?: {}): Promise<Dict | List>;
-    privateGetUserDepositOriginators (params?: {}): Promise<Dict | List>;
+    privateGetUserDepositHistory (params?: {}): Promise<Dict>;
+    privateGetUserUnconfirmedDeposits (params?: {}): Promise<Dict>;
+    privateGetUserDepositOriginators (params?: {}): Promise<Dict>;
     privateGetUserWithdrawalAccount (params?: {}): Promise<Dict>;
-    privateGetUserWithdrawalHistory (params?: {}): Promise<Dict | List>;
-    privateGetSpotStatus (params?: {}): Promise<Dict | List>;
-    privateGetSpotPairs (params?: {}): Promise<Dict | List>;
+    privateGetUserWithdrawalHistory (params?: {}): Promise<Dict>;
+    privateGetSpotStatus (params?: {}): Promise<Dict>;
+    privateGetSpotPairs (params?: {}): Promise<Dict>;
     privatePostUserSpotOrder (params?: {}): Promise<Dict>;
     privatePostUserSpotCancelOrder (params?: {}): Promise<Dict>;
-    privatePostUserSpotCancelOrders (params?: {}): Promise<Dict | List>;
-    privatePostUserSpotOrdersInfo (params?: {}): Promise<Dict | List>;
-    privatePostUserConfirmDeposits (params?: {}): Promise<Dict | List>;
-    privatePostUserConfirmDepositsAll (params?: {}): Promise<Dict | List>;
+    privatePostUserSpotCancelOrders (params?: {}): Promise<Dict>;
+    privatePostUserSpotOrdersInfo (params?: {}): Promise<Dict>;
+    privatePostUserConfirmDeposits (params?: {}): Promise<Dict>;
+    privatePostUserConfirmDepositsAll (params?: {}): Promise<Dict>;
     privatePostUserRequestWithdrawal (params?: {}): Promise<Dict>;
     marketsGetSpotPairs (params?: {}): Promise<Dict>;
 }

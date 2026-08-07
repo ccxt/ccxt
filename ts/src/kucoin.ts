@@ -163,29 +163,29 @@ export default class kucoin extends Exchange {
                     'get': {
                         // spot trading
                         'currencies': { 'cost': 3, 'returnType': 'Dict' },
-                        'currencies/{currency}': 3,
+                        'currencies/{currency}': { 'cost': 3, 'returnType': 'Dict' },
                         'symbols': { 'cost': 4, 'returnType': 'Dict' },
-                        'market/orderbook/level1': 2,
+                        'market/orderbook/level1': { 'cost': 2, 'returnType': 'Dict' },
                         'market/allTickers': { 'cost': 15, 'returnType': 'Dict' },
                         'market/stats': { 'cost': 15, 'returnType': 'Dict' },
-                        'markets': 3,
+                        'markets': { 'cost': 3, 'returnType': 'Dict' },
                         'market/orderbook/level{level}_{limit}': { 'cost': 4, 'returnType': 'Dict' },
-                        'market/orderbook/level2_20': 2,
-                        'market/orderbook/level2_100': 4,
+                        'market/orderbook/level2_20': { 'cost': 2, 'returnType': 'Dict' },
+                        'market/orderbook/level2_100': { 'cost': 4, 'returnType': 'Dict' },
                         'market/histories': { 'cost': 3, 'returnType': 'Dict' },
                         'market/candles': { 'cost': 3, 'returnType': 'Dict' },
-                        'prices': 3,
+                        'prices': { 'cost': 3, 'returnType': 'Dict' },
                         'timestamp': { 'cost': 3, 'returnType': 'Dict' },
                         'status': { 'cost': 3, 'returnType': 'Dict' },
                         // margin trading
                         'mark-price/{symbol}/current': { 'cost': 2, 'returnType': 'Dict' },
                         'mark-price/all-symbols': { 'cost': 10, 'returnType': 'Dict' },
-                        'margin/config': 25,
-                        'announcements': 20,
-                        'margin/collateralRatio': 10,
+                        'margin/config': { 'cost': 25, 'returnType': 'Dict' },
+                        'announcements': { 'cost': 20, 'returnType': 'Dict' },
+                        'margin/collateralRatio': { 'cost': 10, 'returnType': 'Dict' },
                         // convert
-                        'convert/symbol': 5,
-                        'convert/currencies': 5,
+                        'convert/symbol': { 'cost': 5, 'returnType': 'Dict' },
+                        'convert/currencies': { 'cost': 5, 'returnType': 'Dict' },
                     },
                     'post': {
                         // ws
@@ -195,18 +195,18 @@ export default class kucoin extends Exchange {
                 'private': {
                     'get': {
                         // account
-                        'user-info': 20,
-                        'user/api-key': 20,
+                        'user-info': { 'cost': 20, 'returnType': 'Dict' },
+                        'user/api-key': { 'cost': 20, 'returnType': 'Dict' },
                         'accounts': { 'cost': 5, 'returnType': 'Dict' },
-                        'accounts/{accountId}': 5,
+                        'accounts/{accountId}': { 'cost': 5, 'returnType': 'Dict' },
                         'accounts/ledgers': { 'cost': 2, 'returnType': 'Dict' },
                         'hf/accounts/ledgers': { 'cost': 2, 'returnType': 'Dict' },
                         'hf/margin/account/ledgers': { 'cost': 2, 'returnType': 'Dict' },
-                        'transaction-history': 2,
-                        'sub/user': 20,
-                        'sub-accounts/{subUserId}': 15,
-                        'sub-accounts': 20,
-                        'sub/api-key': 20,
+                        'transaction-history': { 'cost': 2, 'returnType': 'Dict' },
+                        'sub/user': { 'cost': 20, 'returnType': 'Dict' },
+                        'sub-accounts/{subUserId}': { 'cost': 15, 'returnType': 'Dict' },
+                        'sub-accounts': { 'cost': 20, 'returnType': 'Dict' },
+                        'sub/api-key': { 'cost': 20, 'returnType': 'Dict' },
                         // funding
                         'margin/account': { 'cost': 40, 'returnType': 'Dict' },
                         'margin/accounts': { 'cost': 15, 'returnType': 'Dict' },
@@ -217,25 +217,25 @@ export default class kucoin extends Exchange {
                         'withdrawals': { 'cost': 20, 'returnType': 'Dict' },
                         'hist-withdrawals': { 'cost': 20, 'returnType': 'Dict' },
                         'withdrawals/quotas': { 'cost': 20, 'returnType': 'Dict' },
-                        'accounts/transferable': 20,
-                        'transfer-list': 20,
-                        'base-fee': 3,
+                        'accounts/transferable': { 'cost': 20, 'returnType': 'Dict' },
+                        'transfer-list': { 'cost': 20, 'returnType': 'Dict' },
+                        'base-fee': { 'cost': 3, 'returnType': 'Dict' },
                         'trade-fees': { 'cost': 3, 'returnType': 'Dict' },
                         // spot trading
-                        'market/orderbook/level{level}': 3,
+                        'market/orderbook/level{level}': { 'cost': 3, 'returnType': 'Dict' },
                         'market/orderbook/level2': { 'cost': 3, 'returnType': 'Dict' },
-                        'market/orderbook/level3': 3,
+                        'market/orderbook/level3': { 'cost': 3, 'returnType': 'Dict' },
                         'hf/accounts/opened': { 'cost': 2, 'returnType': 'Dict' },
                         'hf/orders/active': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/orders/active/symbols': 2,
-                        'hf/margin/order/active/symbols': 2,
+                        'hf/orders/active/symbols': { 'cost': 2, 'returnType': 'Dict' },
+                        'hf/margin/order/active/symbols': { 'cost': 2, 'returnType': 'Dict' },
                         'hf/orders/done': { 'cost': 2, 'returnType': 'Dict' },
                         'hf/orders/{orderId}': { 'cost': 2, 'returnType': 'Dict' },
                         'hf/orders/client-order/{clientOid}': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/orders/dead-cancel-all/query': 2,
+                        'hf/orders/dead-cancel-all/query': { 'cost': 2, 'returnType': 'Dict' },
                         'hf/fills': { 'cost': 2, 'returnType': 'Dict' },
                         'orders': { 'cost': 2, 'returnType': 'Dict' },
-                        'limit/orders': 3,
+                        'limit/orders': { 'cost': 3, 'returnType': 'Dict' },
                         'orders/{orderId}': { 'cost': 2, 'returnType': 'Dict' },
                         'order/client-order/{clientOid}': { 'cost': 2, 'returnType': 'Dict' },
                         'fills': { 'cost': 10, 'returnType': 'Dict' },
@@ -243,10 +243,10 @@ export default class kucoin extends Exchange {
                         'stop-order': { 'cost': 8, 'returnType': 'Dict' },
                         'stop-order/{orderId}': { 'cost': 3, 'returnType': 'Dict' },
                         'stop-order/queryOrderByClientOid': { 'cost': 3, 'returnType': 'Dict' },
-                        'oco/order/{orderId}': 2,
-                        'oco/order/details/{orderId}': 2,
-                        'oco/client-order/{clientOid}': 2,
-                        'oco/orders': 2,
+                        'oco/order/{orderId}': { 'cost': 2, 'returnType': 'Dict' },
+                        'oco/order/details/{orderId}': { 'cost': 2, 'returnType': 'Dict' },
+                        'oco/client-order/{clientOid}': { 'cost': 2, 'returnType': 'Dict' },
+                        'oco/orders': { 'cost': 2, 'returnType': 'Dict' },
                         // margin trading
                         'hf/margin/orders/active': { 'cost': 4, 'returnType': 'Dict' },
                         'hf/margin/orders/done': { 'cost': 10, 'returnType': 'Dict' },
@@ -256,52 +256,52 @@ export default class kucoin extends Exchange {
                         'hf/margin/stop-orders': { 'cost': 8, 'returnType': 'Dict' },
                         'hf/margin/stop-order/orderId': { 'cost': 3, 'returnType': 'Dict' },
                         'hf/margin/stop-order/clientOid': { 'cost': 3, 'returnType': 'Dict' },
-                        'hf/margin/oco-order/orderId': 2,
-                        'hf/margin/oco-order/clientOid': 2,
-                        'hf/margin/oco-order/detail/orderId': 2,
-                        'hf/margin/oco-orders': 2,
-                        'etf/info': 25,
-                        'margin/currencies': 20,
-                        'risk/limit/strategy': 20, // Deprecate
-                        'isolated/symbols': 3,
-                        'margin/symbols': 3,
-                        'isolated/account/{symbol}': 50,
-                        'margin/borrow': 15,
-                        'margin/repay': 15,
+                        'hf/margin/oco-order/orderId': { 'cost': 2, 'returnType': 'Dict' },
+                        'hf/margin/oco-order/clientOid': { 'cost': 2, 'returnType': 'Dict' },
+                        'hf/margin/oco-order/detail/orderId': { 'cost': 2, 'returnType': 'Dict' },
+                        'hf/margin/oco-orders': { 'cost': 2, 'returnType': 'Dict' },
+                        'etf/info': { 'cost': 25, 'returnType': 'Dict' },
+                        'margin/currencies': { 'cost': 20, 'returnType': 'Dict' },
+                        'risk/limit/strategy': { 'cost': 20, 'returnType': 'Dict' }, // Deprecate
+                        'isolated/symbols': { 'cost': 3, 'returnType': 'Dict' },
+                        'margin/symbols': { 'cost': 3, 'returnType': 'Dict' },
+                        'isolated/account/{symbol}': { 'cost': 50, 'returnType': 'Dict' },
+                        'margin/borrow': { 'cost': 15, 'returnType': 'Dict' },
+                        'margin/repay': { 'cost': 15, 'returnType': 'Dict' },
                         'margin/interest': { 'cost': 20, 'returnType': 'Dict' },
-                        'project/list': 10,
-                        'project/marketInterestRate': 5,
-                        'redeem/orders': 10,
-                        'purchase/orders': 10,
+                        'project/list': { 'cost': 10, 'returnType': 'Dict' },
+                        'project/marketInterestRate': { 'cost': 5, 'returnType': 'Dict' },
+                        'redeem/orders': { 'cost': 10, 'returnType': 'Dict' },
+                        'purchase/orders': { 'cost': 10, 'returnType': 'Dict' },
                         // broker
                         'broker/api/rebase/download': 3,
-                        'broker/queryMyCommission': 3,
-                        'broker/queryUser': 3,
-                        'broker/queryDetailByUid': 3,
-                        'migrate/user/account/status': 3,
+                        'broker/queryMyCommission': { 'cost': 3, 'returnType': 'Dict' },
+                        'broker/queryUser': { 'cost': 3, 'returnType': 'Dict' },
+                        'broker/queryDetailByUid': { 'cost': 3, 'returnType': 'Dict' },
+                        'migrate/user/account/status': { 'cost': 3, 'returnType': 'Dict' },
                         // convert
-                        'convert/quote': 20,
-                        'convert/order/detail': 5,
-                        'convert/order/history': 5,
-                        'convert/limit/quote': 20,
-                        'convert/limit/order/detail': 5,
-                        'convert/limit/orders': 5,
+                        'convert/quote': { 'cost': 20, 'returnType': 'Dict' },
+                        'convert/order/detail': { 'cost': 5, 'returnType': 'Dict' },
+                        'convert/order/history': { 'cost': 5, 'returnType': 'Dict' },
+                        'convert/limit/quote': { 'cost': 20, 'returnType': 'Dict' },
+                        'convert/limit/order/detail': { 'cost': 5, 'returnType': 'Dict' },
+                        'convert/limit/orders': { 'cost': 5, 'returnType': 'Dict' },
                         // affiliate
-                        'affiliate/inviter/statistics': 30,
+                        'affiliate/inviter/statistics': { 'cost': 30, 'returnType': 'Dict' },
                     },
                     'post': {
                         // account
-                        'sub/user/created': 15,
-                        'sub/api-key': 20,
-                        'sub/api-key/update': 30,
+                        'sub/user/created': { 'cost': 15, 'returnType': 'Dict' },
+                        'sub/api-key': { 'cost': 20, 'returnType': 'Dict' },
+                        'sub/api-key/update': { 'cost': 30, 'returnType': 'Dict' },
                         // funding
                         'deposit-addresses': { 'cost': 20, 'returnType': 'Dict' },
                         'withdrawals': { 'cost': 5, 'returnType': 'Dict' },
                         'accounts/universal-transfer': { 'cost': 4, 'returnType': 'Dict' },
-                        'accounts/sub-transfer': 30,
+                        'accounts/sub-transfer': { 'cost': 30, 'returnType': 'Dict' },
                         'accounts/inner-transfer': { 'cost': 15, 'returnType': 'Dict' },
-                        'transfer-out': 20,
-                        'transfer-in': 20,
+                        'transfer-out': { 'cost': 20, 'returnType': 'Dict' },
+                        'transfer-in': { 'cost': 20, 'returnType': 'Dict' },
                         // spot trading
                         'hf/orders': { 'cost': 1, 'returnType': 'Dict' },
                         'hf/orders/test': { 'cost': 1, 'returnType': 'Dict' },
@@ -309,93 +309,93 @@ export default class kucoin extends Exchange {
                         'hf/orders/multi': { 'cost': 1, 'returnType': 'Dict' },
                         'hf/orders/multi/sync': { 'cost': 1, 'returnType': 'Dict' },
                         'hf/orders/alter': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/dead-cancel-all': 2,
+                        'hf/orders/dead-cancel-all': { 'cost': 2, 'returnType': 'Dict' },
                         'orders': { 'cost': 2, 'returnType': 'Dict' },
                         'orders/test': { 'cost': 2, 'returnType': 'Dict' },
                         'orders/multi': { 'cost': 3, 'returnType': 'Dict' },
                         'stop-order': { 'cost': 2, 'returnType': 'Dict' },
-                        'oco/order': 2,
+                        'oco/order': { 'cost': 2, 'returnType': 'Dict' },
                         // margin trading
                         'hf/margin/order': { 'cost': 2, 'returnType': 'Dict' },
                         'hf/margin/order/test': { 'cost': 2, 'returnType': 'Dict' },
                         'hf/margin/stop-order': { 'cost': 3, 'returnType': 'Dict' },
                         'margin/order': { 'cost': 5, 'returnType': 'Dict' },
                         'margin/order/test': { 'cost': 5, 'returnType': 'Dict' },
-                        'hf/margin/oco-order': 2,
+                        'hf/margin/oco-order': { 'cost': 2, 'returnType': 'Dict' },
                         'margin/borrow': { 'cost': 15, 'returnType': 'Dict' },
                         'margin/repay': { 'cost': 10, 'returnType': 'Dict' },
-                        'purchase': 15,
-                        'redeem': 15,
-                        'lend/purchase/update': 10,
+                        'purchase': { 'cost': 15, 'returnType': 'Dict' },
+                        'redeem': { 'cost': 15, 'returnType': 'Dict' },
+                        'lend/purchase/update': { 'cost': 10, 'returnType': 'Dict' },
                         // convert
-                        'convert/order': 20,
-                        'convert/limit/order': 20,
+                        'convert/order': { 'cost': 20, 'returnType': 'Dict' },
+                        'convert/limit/order': { 'cost': 20, 'returnType': 'Dict' },
                         // ws
                         'bullet-private': { 'cost': 10, 'returnType': 'Dict' },
-                        'position/update-user-leverage': 5,
+                        'position/update-user-leverage': { 'cost': 5, 'returnType': 'Dict' },
                         'deposit-address/create': { 'cost': 20, 'returnType': 'Dict' },
                     },
                     'delete': {
                         // account
-                        'sub/api-key': 30,
+                        'sub/api-key': { 'cost': 30, 'returnType': 'Dict' },
                         // funding
-                        'withdrawals/{withdrawalId}': 20,
+                        'withdrawals/{withdrawalId}': { 'cost': 20, 'returnType': 'Dict' },
                         // spot trading
                         'hf/orders/{orderId}': { 'cost': 1, 'returnType': 'Dict' },
                         'hf/orders/sync/{orderId}': { 'cost': 1, 'returnType': 'Dict' },
                         'hf/orders/client-order/{clientOid}': { 'cost': 1, 'returnType': 'Dict' },
                         'hf/orders/sync/client-order/{clientOid}': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/cancel/{orderId}': 1,
-                        'hf/orders': 2,
-                        'hf/orders/cancelAll': 30,
+                        'hf/orders/cancel/{orderId}': { 'cost': 1, 'returnType': 'Dict' },
+                        'hf/orders': { 'cost': 2, 'returnType': 'Dict' },
+                        'hf/orders/cancelAll': { 'cost': 30, 'returnType': 'Dict' },
                         'orders/{orderId}': { 'cost': 3, 'returnType': 'Dict' },
                         'order/client-order/{clientOid}': { 'cost': 5, 'returnType': 'Dict' },
-                        'orders': 20,
+                        'orders': { 'cost': 20, 'returnType': 'Dict' },
                         'stop-order/{orderId}': { 'cost': 3, 'returnType': 'Dict' },
                         'stop-order/cancelOrderByClientOid': { 'cost': 5, 'returnType': 'Dict' },
-                        'stop-order/cancel': 3,
-                        'oco/order/{orderId}': 3,
-                        'oco/client-order/{clientOid}': 3,
-                        'oco/orders': 3,
+                        'stop-order/cancel': { 'cost': 3, 'returnType': 'Dict' },
+                        'oco/order/{orderId}': { 'cost': 3, 'returnType': 'Dict' },
+                        'oco/client-order/{clientOid}': { 'cost': 3, 'returnType': 'Dict' },
+                        'oco/orders': { 'cost': 3, 'returnType': 'Dict' },
                         // margin trading
                         'hf/margin/orders/{orderId}': { 'cost': 2, 'returnType': 'Dict' },
                         'hf/margin/orders/client-order/{clientOid}': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/margin/orders': 5,
+                        'hf/margin/orders': { 'cost': 5, 'returnType': 'Dict' },
                         'hf/margin/stop-order/cancel-by-id': { 'cost': 3, 'returnType': 'Dict' },
                         'hf/margin/stop-order/cancel-by-clientOid': { 'cost': 5, 'returnType': 'Dict' },
-                        'hf/margin/stop-order/cancel': 3,
-                        'hf/margin/oco-order/cancel-by-id': 3,
-                        'hf/margin/oco-order/cancel-by-clientOid': 3,
-                        'hf/margin/oco-order/cancel': 3,
+                        'hf/margin/stop-order/cancel': { 'cost': 3, 'returnType': 'Dict' },
+                        'hf/margin/oco-order/cancel-by-id': { 'cost': 3, 'returnType': 'Dict' },
+                        'hf/margin/oco-order/cancel-by-clientOid': { 'cost': 3, 'returnType': 'Dict' },
+                        'hf/margin/oco-order/cancel': { 'cost': 3, 'returnType': 'Dict' },
                         // convert
-                        'convert/limit/order/cancel': 5,
+                        'convert/limit/order/cancel': { 'cost': 5, 'returnType': 'Dict' },
                     },
                 },
                 'futuresPublic': {
                     'get': {
                         'contracts/active': { 'cost': 6, 'returnType': 'Dict' },
-                        'contracts/{symbol}': 6, // 3PW
+                        'contracts/{symbol}': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
                         'ticker': { 'cost': 4, 'returnType': 'Dict' }, // 2PW
                         'allTickers': { 'cost': 10, 'returnType': 'Dict' }, // 5PW
-                        'level2/snapshot': 6, // 3PW
+                        'level2/snapshot': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
                         'level2/depth20': { 'cost': 10, 'returnType': 'Dict' }, // 5PW
                         'level2/depth100': { 'cost': 20, 'returnType': 'Dict' }, // 10PW
                         'trade/history': { 'cost': 10, 'returnType': 'Dict' }, // 5PW
                         'kline/query': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
-                        'interest/query': 10, // 5PW
-                        'index/query': 4, // 2PW
+                        'interest/query': { 'cost': 10, 'returnType': 'Dict' }, // 5PW
+                        'index/query': { 'cost': 4, 'returnType': 'Dict' }, // 2PW
                         'mark-price/{symbol}/current': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
-                        'premium/query': 6, // 3PW
-                        'trade-statistics': 6, // 3PW
+                        'premium/query': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
+                        'trade-statistics': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
                         'funding-rate/{symbol}/current': { 'cost': 4, 'returnType': 'Dict' }, // 2PW
                         'contract/funding-rates': { 'cost': 10, 'returnType': 'Dict' }, // 5PW
                         'timestamp': { 'cost': 4, 'returnType': 'Dict' }, // 2PW
                         'status': { 'cost': 8, 'returnType': 'Dict' }, // 4PW
                         // ?
-                        'level2/message/query': 1.3953,
+                        'level2/message/query': { 'cost': 1.3953, 'returnType': 'Dict' },
                         'contracts/risk-limit/{symbol}': { 'cost': 3, 'returnType': 'Dict' },
-                        'level3/message/query': 3, // deprecated，level3/snapshot is suggested
-                        'level3/snapshot': 3, // v2
+                        'level3/message/query': { 'cost': 3, 'returnType': 'Dict' }, // deprecated，level3/snapshot is suggested
+                        'level3/snapshot': { 'cost': 3, 'returnType': 'Dict' }, // v2
                     },
                     'post': {
                         // ws
@@ -408,35 +408,35 @@ export default class kucoin extends Exchange {
                         'transaction-history': { 'cost': 4, 'returnType': 'Dict' }, // 2MW
                         // funding
                         'account-overview': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
-                        'account-overview-all': 12, // 6FW
-                        'transfer-list': 20,
+                        'account-overview-all': { 'cost': 12, 'returnType': 'Dict' }, // 6FW
+                        'transfer-list': { 'cost': 20, 'returnType': 'Dict' },
                         // futures
                         'orders': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
                         'stopOrders': { 'cost': 12, 'returnType': 'Dict' }, // 6FW
-                        'recentDoneOrders': 10, // 5FW
+                        'recentDoneOrders': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
                         'orders/{orderId}': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
                         'orders/byClientOid': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
                         'fills': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
-                        'recentFills': 6, // 3FW
+                        'recentFills': { 'cost': 6, 'returnType': 'Dict' }, // 3FW
                         'trade-fees': { 'cost': 6, 'returnType': 'Dict' },
-                        'openOrderStatistics': 20, // 10FW
+                        'openOrderStatistics': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
                         'position': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
                         'positions': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'margin/maxWithdrawMargin': 20, // 10FW
-                        'contracts/risk-limit/{symbol}': 10, // 5FW
+                        'margin/maxWithdrawMargin': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
+                        'contracts/risk-limit/{symbol}': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
                         'funding-history': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
-                        'copy-trade/futures/get-max-open-size': 8, // 4FW
-                        'copy-trade/futures/position/margin/max-withdraw-margin': 20, // 10FW
+                        'copy-trade/futures/get-max-open-size': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
+                        'copy-trade/futures/position/margin/max-withdraw-margin': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
                         'history-positions': { 'cost': 4, 'returnType': 'Dict' },
                         'position/getMarginMode': { 'cost': 4, 'returnType': 'Dict' },
                         'position/getPositionMode': { 'cost': 4, 'returnType': 'Dict' },
                         'deposit-address': { 'cost': 4, 'returnType': 'Dict' },
                         'deposit-list': { 'cost': 4, 'returnType': 'Dict' },
-                        'withdrawals/quotas': 4,
+                        'withdrawals/quotas': { 'cost': 4, 'returnType': 'Dict' },
                         'withdrawal-list': { 'cost': 4, 'returnType': 'Dict' },
-                        'sub/api-key': 4,
-                        'trade-statistics': 4,
-                        'getMaxOpenSize': 4,
+                        'sub/api-key': { 'cost': 4, 'returnType': 'Dict' },
+                        'trade-statistics': { 'cost': 4, 'returnType': 'Dict' },
+                        'getMaxOpenSize': { 'cost': 4, 'returnType': 'Dict' },
                         'getCrossUserLeverage': { 'cost': 4, 'returnType': 'Dict' },
                     },
                     'post': {
@@ -448,125 +448,125 @@ export default class kucoin extends Exchange {
                         'st-orders': { 'cost': 4, 'returnType': 'Dict' },
                         'orders/test': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
                         'orders/multi': { 'cost': 6, 'returnType': 'Dict' }, // 3FW
-                        'position/margin/auto-deposit-status': 8, // 4FW
+                        'position/margin/auto-deposit-status': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
                         'margin/withdrawMargin': { 'cost': 10, 'returnType': 'Dict' }, // 10FW
                         'position/margin/deposit-margin': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
-                        'position/risk-limit-level/change': 8, // 4FW
-                        'copy-trade/futures/orders': 4, // 2FW
-                        'copy-trade/futures/orders/test': 4, // 2FW
-                        'copy-trade/futures/st-orders': 4, // 2FW
-                        'copy-trade/futures/position/margin/deposit-margin': 8, // 4FW
-                        'copy-trade/futures/position/margin/withdraw-margin': 20, // 10FW
-                        'copy-trade/futures/position/risk-limit-level/change': 4, // 2FW
-                        'copy-trade/futures/position/margin/auto-deposit-status': 8, // 4FW
-                        'copy-trade/futures/position/changeMarginMode': 4, // 2FW
-                        'copy-trade/futures/position/changeCrossUserLeverage': 4, // 2FW
-                        'copy-trade/getCrossModeMarginRequirement': 6, // 3FW
-                        'copy-trade/position/switchPositionMode': 4, // 2FW
+                        'position/risk-limit-level/change': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
+                        'copy-trade/futures/orders': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
+                        'copy-trade/futures/orders/test': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
+                        'copy-trade/futures/st-orders': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
+                        'copy-trade/futures/position/margin/deposit-margin': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
+                        'copy-trade/futures/position/margin/withdraw-margin': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
+                        'copy-trade/futures/position/risk-limit-level/change': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
+                        'copy-trade/futures/position/margin/auto-deposit-status': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
+                        'copy-trade/futures/position/changeMarginMode': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
+                        'copy-trade/futures/position/changeCrossUserLeverage': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
+                        'copy-trade/getCrossModeMarginRequirement': { 'cost': 6, 'returnType': 'Dict' }, // 3FW
+                        'copy-trade/position/switchPositionMode': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
                         'changeCrossUserLeverage': { 'cost': 4, 'returnType': 'Dict' },
-                        'withdrawals': 4,
-                        'sub/api-key': 4,
-                        'sub/api-key/update': 4,
+                        'withdrawals': { 'cost': 4, 'returnType': 'Dict' },
+                        'sub/api-key': { 'cost': 4, 'returnType': 'Dict' },
+                        'sub/api-key/update': { 'cost': 4, 'returnType': 'Dict' },
                         'position/changeMarginMode': { 'cost': 4, 'returnType': 'Dict' },
-                        'position/switchPositionMode': 4,
+                        'position/switchPositionMode': { 'cost': 4, 'returnType': 'Dict' },
                         // ws
                         'bullet-private': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
                     },
                     'delete': {
-                        'orders/{orderId}': 2, // 1FW
-                        'orders/client-order/{clientOid}': 2, // 1FW
+                        'orders/{orderId}': { 'cost': 2, 'returnType': 'Dict' }, // 1FW
+                        'orders/client-order/{clientOid}': { 'cost': 2, 'returnType': 'Dict' }, // 1FW
                         'orders': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
                         'stopOrders': { 'cost': 30, 'returnType': 'Dict' }, // 15FW
-                        'copy-trade/futures/orders': 1.5, // 1FW
-                        'copy-trade/futures/orders/client-order': 1.5, // 1FW
+                        'copy-trade/futures/orders': { 'cost': 1.5, 'returnType': 'Dict' }, // 1FW
+                        'copy-trade/futures/orders/client-order': { 'cost': 1.5, 'returnType': 'Dict' }, // 1FW
                         'orders/multi-cancel': { 'cost': 40, 'returnType': 'Dict' }, // 20FW
-                        'withdrawals/{withdrawalId}': 10,
-                        'cancel/transfer-out': 10,
-                        'sub/api-key': 10,
+                        'withdrawals/{withdrawalId}': { 'cost': 10, 'returnType': 'Dict' },
+                        'cancel/transfer-out': { 'cost': 10, 'returnType': 'Dict' },
+                        'sub/api-key': { 'cost': 10, 'returnType': 'Dict' },
                     },
                 },
                 'webExchange': {
                     'get': {
-                        'currency/currency/chain-info': 1, // this is temporary from webApi
-                        'contract/{symbol}/funding-rates': 2,
+                        'currency/currency/chain-info': { 'cost': 1, 'returnType': 'Dict' }, // this is temporary from webApi
+                        'contract/{symbol}/funding-rates': { 'cost': 2, 'returnType': 'Dict' },
                     },
                 },
                 'broker': {
                     'get': {
-                        'broker/nd/info': 4,
-                        'broker/nd/account': 4,
-                        'broker/nd/account/apikey': 4,
+                        'broker/nd/info': { 'cost': 4, 'returnType': 'Dict' },
+                        'broker/nd/account': { 'cost': 4, 'returnType': 'Dict' },
+                        'broker/nd/account/apikey': { 'cost': 4, 'returnType': 'Dict' },
                         'broker/nd/rebase/download': 4,
-                        'asset/ndbroker/deposit/list': 2,
-                        'broker/nd/transfer/detail': 2,
-                        'broker/nd/deposit/detail': 2,
-                        'broker/nd/withdraw/detail': 2,
+                        'asset/ndbroker/deposit/list': { 'cost': 2, 'returnType': 'Dict' },
+                        'broker/nd/transfer/detail': { 'cost': 2, 'returnType': 'Dict' },
+                        'broker/nd/deposit/detail': { 'cost': 2, 'returnType': 'Dict' },
+                        'broker/nd/withdraw/detail': { 'cost': 2, 'returnType': 'Dict' },
                     },
                     'post': {
-                        'broker/nd/transfer': 2,
-                        'broker/nd/account': 6,
-                        'broker/nd/account/apikey': 6,
-                        'broker/nd/account/update-apikey': 6,
+                        'broker/nd/transfer': { 'cost': 2, 'returnType': 'Dict' },
+                        'broker/nd/account': { 'cost': 6, 'returnType': 'Dict' },
+                        'broker/nd/account/apikey': { 'cost': 6, 'returnType': 'Dict' },
+                        'broker/nd/account/update-apikey': { 'cost': 6, 'returnType': 'Dict' },
                     },
                     'delete': {
-                        'broker/nd/account/apikey': 6,
+                        'broker/nd/account/apikey': { 'cost': 6, 'returnType': 'Dict' },
                     },
                 },
                 'earn': {
                     'get': {
-                        'otc-loan/discount-rate-configs': 20,
-                        'otc-loan/loan': 2,
-                        'otc-loan/accounts': 2,
-                        'earn/redeem-preview': 10, // 5EW
-                        'earn/saving/products': 10, // 5EW
-                        'earn/hold-assets': 10, // 5EW
-                        'earn/promotion/products': 10, // 5EW
-                        'earn/kcs-staking/products': 10, // 5EW
-                        'earn/staking/products': 10, // 5EW
-                        'earn/eth-staking/products': 10, // 5EW
-                        'struct-earn/dual/products': 6,
-                        'struct-earn/orders': 10,
+                        'otc-loan/discount-rate-configs': { 'cost': 20, 'returnType': 'Dict' },
+                        'otc-loan/loan': { 'cost': 2, 'returnType': 'Dict' },
+                        'otc-loan/accounts': { 'cost': 2, 'returnType': 'Dict' },
+                        'earn/redeem-preview': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
+                        'earn/saving/products': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
+                        'earn/hold-assets': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
+                        'earn/promotion/products': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
+                        'earn/kcs-staking/products': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
+                        'earn/staking/products': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
+                        'earn/eth-staking/products': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
+                        'struct-earn/dual/products': { 'cost': 6, 'returnType': 'Dict' },
+                        'struct-earn/orders': { 'cost': 10, 'returnType': 'Dict' },
                     },
                     'post': {
-                        'earn/orders': 10, // 5EW
-                        'struct-earn/orders': 10,
+                        'earn/orders': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
+                        'struct-earn/orders': { 'cost': 10, 'returnType': 'Dict' },
                     },
                     'delete': {
-                        'earn/orders': 10, // 5EW
+                        'earn/orders': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
                     },
                 },
                 'uta': {
                     'get': {
-                        'market/announcement': 40,
-                        'market/currency': 6,
+                        'market/announcement': { 'cost': 40, 'returnType': 'Dict' },
+                        'market/currency': { 'cost': 6, 'returnType': 'Dict' },
                         'asset/currencies': { 'cost': 6, 'returnType': 'Dict' },
-                        'market/instrument': 8,
+                        'market/instrument': { 'cost': 8, 'returnType': 'Dict' },
                         'market/ticker': { 'cost': 30, 'returnType': 'Dict' },
                         'market/trade': { 'cost': 6, 'returnType': 'Dict' },
                         'market/kline': { 'cost': 6, 'returnType': 'Dict' },
                         'market/funding-rate': { 'cost': 4, 'returnType': 'Dict' },
                         'market/funding-rate-history': { 'cost': 10, 'returnType': 'Dict' },
-                        'market/cross-config': 50,
-                        'market/collateral-discount-ratio': 20,
-                        'market/index-price': 20,
+                        'market/cross-config': { 'cost': 50, 'returnType': 'Dict' },
+                        'market/collateral-discount-ratio': { 'cost': 20, 'returnType': 'Dict' },
+                        'market/index-price': { 'cost': 20, 'returnType': 'Dict' },
                         'market/position-tiers': { 'cost': 40, 'returnType': 'Dict' },
                         'market/open-interest': { 'cost': 20, 'returnType': 'Dict' },
                         'server/status': { 'cost': 6, 'returnType': 'Dict' },
-                        'market/borrowable-currency': 30,
-                        'user/my-ip': 20,
-                        'market/fiat-price': 6,
+                        'market/borrowable-currency': { 'cost': 30, 'returnType': 'Dict' },
+                        'user/my-ip': { 'cost': 20, 'returnType': 'Dict' },
+                        'market/fiat-price': { 'cost': 6, 'returnType': 'Dict' },
                     },
                 },
                 'utaPrivate': {
                     'get': {
                         'market/orderbook': { 'cost': 6, 'returnType': 'Dict' },
                         'account/balance': { 'cost': 10, 'returnType': 'Dict' },
-                        'account/transfer-quota': 40,
+                        'account/transfer-quota': { 'cost': 40, 'returnType': 'Dict' },
                         'account/mode': { 'cost': 60, 'returnType': 'Dict' },
                         'account/ledger': { 'cost': 4, 'returnType': 'Dict' },
-                        'account/interest-history': 30,
+                        'account/interest-history': { 'cost': 30, 'returnType': 'Dict' },
                         'asset/deposit/address': { 'cost': 10, 'returnType': 'Dict' },
-                        'account/deposit/address': 5,
+                        'account/deposit/address': { 'cost': 5, 'returnType': 'Dict' },
                         '{accountMode}/account/balance': { 'cost': 10, 'returnType': 'Dict' },
                         '{accountMode}/account/overview': { 'cost': 10, 'returnType': 'Dict' },
                         '{accountMode}/order/detail': { 'cost': 8, 'returnType': 'Dict' },
@@ -574,28 +574,28 @@ export default class kucoin extends Exchange {
                         '{accountMode}/order/history': { 'cost': 8, 'returnType': 'Dict' },
                         '{accountMode}/order/execution': { 'cost': 8, 'returnType': 'Dict' },
                         '{accountMode}/position/open-list': { 'cost': 6, 'returnType': 'Dict' },
-                        '{accountMode}/position/history': 4,
+                        '{accountMode}/position/history': { 'cost': 4, 'returnType': 'Dict' },
                         'position/history': { 'cost': 4, 'returnType': 'Dict' },
-                        '{accountMode}/position/tiers': 40,
-                        'sub-account/balance': 10,
+                        '{accountMode}/position/tiers': { 'cost': 40, 'returnType': 'Dict' },
+                        'sub-account/balance': { 'cost': 10, 'returnType': 'Dict' },
                         'user/fee-rate': { 'cost': 6, 'returnType': 'Dict' },
-                        'dcp/query': 4,
-                        'unified/account/leverage': 20, // returns {"code":"404","msg":"Not Found","retry":false,"success":false}
+                        'dcp/query': { 'cost': 4, 'returnType': 'Dict' },
+                        'unified/account/leverage': { 'cost': 20, 'returnType': 'Dict' }, // returns {"code":"404","msg":"Not Found","retry":false,"success":false}
                         'position/funding-history': { 'cost': 30, 'returnType': 'Dict' },
                         'account/interest-limits': { 'cost': 20, 'returnType': 'Dict' },
                     },
                     'post': {
                         'account/transfer': { 'cost': 8, 'returnType': 'Dict' },
-                        'account/mode': 60,
+                        'account/mode': { 'cost': 60, 'returnType': 'Dict' },
                         '{accountMode}/account/modify-leverage': { 'cost': 40, 'returnType': 'Dict' },
                         '{accountMode}/order/place': { 'cost': 2, 'returnType': 'Dict' },
-                        '{accountMode}/order/place-batch': 8,
+                        '{accountMode}/order/place-batch': { 'cost': 8, 'returnType': 'Dict' },
                         '{accountMode}/order/cancel': { 'cost': 2, 'returnType': 'Dict' },
                         '{accountMode}/order/cancel-batch': { 'cost': 8, 'returnType': 'Dict' },
                         '{accountMode}/order/cancel-all': { 'cost': 40, 'returnType': 'Dict' },
-                        'sub-account/canTransferOut': 10,
-                        'dcp/set': 4,
-                        '{accountMode}/account/modify-leverage-margin-cross': 40,
+                        'sub-account/canTransferOut': { 'cost': 10, 'returnType': 'Dict' },
+                        'dcp/set': { 'cost': 4, 'returnType': 'Dict' },
+                        '{accountMode}/account/modify-leverage-margin-cross': { 'cost': 40, 'returnType': 'Dict' },
                     },
                 },
             },

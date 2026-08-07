@@ -142,7 +142,7 @@ export default class zebpay extends Exchange {
                         },
                         'delete': {
                             'v2/ex/order': { 'cost': 10, 'returnType': 'Dict' },
-                            'v2/ex/orders': 10,
+                            'v2/ex/orders': { 'cost': 10, 'returnType': 'Dict' },
                             'v2/ex/orders/cancelAll': { 'cost': 10, 'returnType': 'Dict' },
                         },
                     },
@@ -162,7 +162,7 @@ export default class zebpay extends Exchange {
                             'v1/trade/addMargin': { 'cost': 10, 'returnType': 'Dict' },
                             'v1/trade/reduceMargin': { 'cost': 10, 'returnType': 'Dict' },
                             'v1/trade/position/close': { 'cost': 10, 'returnType': 'Dict' },
-                            'v1/trade/update/userLeverage': 10,
+                            'v1/trade/update/userLeverage': { 'cost': 10, 'returnType': 'Dict' },
                         },
                         'delete': {
                             'v1/trade/order': { 'cost': 10, 'returnType': 'Dict' },

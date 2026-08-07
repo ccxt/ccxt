@@ -68,8 +68,8 @@ export default class paymium extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'countries': 1,
-                        'currencies': 1,
+                        'countries': { 'cost': 1, 'returnType': 'List' },
+                        'currencies': { 'cost': 1, 'returnType': 'List' },
                         'data/{currency}/ticker': { 'cost': 1, 'returnType': 'Dict' },
                         'data/{currency}/trades': { 'cost': 1, 'returnType': 'List' },
                         'data/{currency}/depth': { 'cost': 1, 'returnType': 'Dict' },
@@ -82,19 +82,19 @@ export default class paymium extends Exchange {
                         'user': { 'cost': 1, 'returnType': 'Dict' },
                         'user/addresses': { 'cost': 1, 'returnType': 'List' },
                         'user/addresses/{address}': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/orders': 1,
-                        'user/orders/{uuid}': 1,
+                        'user/orders': { 'cost': 1, 'returnType': 'List' },
+                        'user/orders/{uuid}': { 'cost': 1, 'returnType': 'Dict' },
                         'user/price_alerts': 1,
-                        'merchant/get_payment/{uuid}': 1,
+                        'merchant/get_payment/{uuid}': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         'user/addresses': { 'cost': 1, 'returnType': 'Dict' },
                         'user/orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/withdrawals': 1,
+                        'user/withdrawals': { 'cost': 1, 'returnType': 'Dict' },
                         'user/email_transfers': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/payment_requests': 1,
+                        'user/payment_requests': { 'cost': 1, 'returnType': 'List' },
                         'user/price_alerts': 1,
-                        'merchant/create_payment': 1,
+                        'merchant/create_payment': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'delete': [
                         'user/orders/{uuid}',
