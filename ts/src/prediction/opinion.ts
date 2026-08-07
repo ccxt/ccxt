@@ -1730,18 +1730,18 @@ export default class opinion extends Exchange {
         const future = this.watch (url, messageHash, subscribeMsg, subscriptionKey);
         if (isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
-            client.resolve (this.orderbooks[sym], messageHash);
+            client.resolve (this.safeValue (this.orderbooks, sym), messageHash);
         }
         const orderbook = await future;
         return orderbook.limit ();
     }
 
-    async seedOrderBook (outcome: string, sym: string, limit: Int = undefined) {
+    async seedOrderBook (outcome: Str, sym: Str, limit: Int = undefined) {
         // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
         const snapshot = await this.fetchOrderBook (outcome, limit);
         const orderbook = this.orderBook ({});
         orderbook.reset (snapshot);
-        this.orderbooks[sym] = orderbook;
+        this.orderbooks[sym as string] = orderbook;
     }
 
     handleOrderBook (client: any, message: any) {
