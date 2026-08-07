@@ -360,12 +360,26 @@ function pythonUsedAliases (exchange: string): string[] {
     return used;
 }
 
+// whether any endpoint on this exchange needs a multi-member return (Union[...])
+function pythonNeedsUnion (exchange: string): boolean {
+    const methods = storedCamelCaseMethods[exchange] || [];
+    for (const method of methods) {
+        if (returnTypeMembers (exchange, method).length > 1) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // storedPyMethods[exchange][1] is the alias block, left empty by createPyHeader
 // for the same reason the TypeScript import line is: the set of shapes an
-// exchange answers with is only known after generateImplicitMethodNames ran
+// exchange answers with is only known after generateImplicitMethodNames ran.
+// Import only the typing names the aliases/unions actually reference — ruff F401
+// fails the Python qa gate on unused List/Union when a module is Dict-only.
 function finalizePythonAliases (exchange: string) {
     const aliases = pythonUsedAliases (exchange);
-    if (!aliases.length) {
+    const needsUnion = pythonNeedsUnion (exchange);
+    if (!aliases.length && !needsUnion) {
         storedPyMethods[exchange][1] = '';
         return;
     }
@@ -374,7 +388,19 @@ function finalizePythonAliases (exchange: string) {
         '_List': 'List[PythonAny]',
         '_Any': 'PythonAny',
     };
-    const lines = [ 'from typing import Any as PythonAny, Dict, List, Union', '' ];
+    // build the import from the names that appear in the alias RHS or in
+    // Entry[Union[...]] constructions; never import a name that is not used
+    const typingNames: string[] = [ 'Any as PythonAny' ];
+    if (aliases.includes ('_Dict')) {
+        typingNames.push ('Dict');
+    }
+    if (aliases.includes ('_List')) {
+        typingNames.push ('List');
+    }
+    if (needsUnion) {
+        typingNames.push ('Union');
+    }
+    const lines = [ 'from typing import ' + typingNames.join (', '), '' ];
     for (const alias of aliases) {
         lines.push (alias + ' = ' + spelled[alias]);
     }
