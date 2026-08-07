@@ -1017,11 +1017,17 @@ export default class bithumb extends Exchange {
                 if ((maxMarketIdsPerRequest === undefined) || (maxMarketIdsPerRequest < 1)) {
                     maxMarketIdsPerRequest = 300;
                 }
-                for (let i = 0; i < marketIdsLength; i += maxMarketIdsPerRequest) {
-                    const chunk = this.arraySlice (marketIds, i, this.sum (i, maxMarketIdsPerRequest));
-                    marketIdsChunks.push (chunk);
-                    request['markets'] = chunk.join (',');
-                    promises.push (this.publicGetV1Ticker (this.extend (request, params)));
+                let marketIdsChunk: string[] = [];
+                for (let i = 0; i < marketIdsLength; i++) {
+                    marketIdsChunk.push (marketIds[i]);
+                    const marketIdsChunkLength = marketIdsChunk.length;
+                    const isLastMarketId = (i === (marketIdsLength - 1));
+                    if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
+                        marketIdsChunks.push (marketIdsChunk);
+                        request['markets'] = marketIdsChunk.join (',');
+                        promises.push (this.publicGetV1Ticker (this.extend (request, params)));
+                        marketIdsChunk = [];
+                    }
                 }
             }
             //
