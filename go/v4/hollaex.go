@@ -124,43 +124,101 @@ func (this *HollaexCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"health":        1,
-					"constants":     1,
-					"kit":           1,
-					"tiers":         1,
-					"ticker":        1,
-					"tickers":       1,
-					"orderbook":     1,
-					"orderbooks":    1,
-					"trades":        1,
-					"chart":         1,
-					"charts":        1,
-					"minicharts":    1,
-					"oracle/prices": 1,
-					"quick-trade":   1,
-					"udf/config":    1,
-					"udf/history":   1,
-					"udf/symbols":   1,
+					"health": map[string]any{
+						"cost": 1,
+					},
+					"constants": map[string]any{
+						"cost": 1,
+					},
+					"kit": map[string]any{
+						"cost": 1,
+					},
+					"tiers": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"orderbook": map[string]any{
+						"cost": 1,
+					},
+					"orderbooks": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"chart": map[string]any{
+						"cost": 1,
+					},
+					"charts": map[string]any{
+						"cost": 1,
+					},
+					"minicharts": map[string]any{
+						"cost": 1,
+					},
+					"oracle/prices": map[string]any{
+						"cost": 1,
+					},
+					"quick-trade": map[string]any{
+						"cost": 1,
+					},
+					"udf/config": map[string]any{
+						"cost": 1,
+					},
+					"udf/history": map[string]any{
+						"cost": 1,
+					},
+					"udf/symbols": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"user":                1,
-					"user/balance":        1,
-					"user/deposits":       1,
-					"user/withdrawals":    1,
-					"user/withdrawal/fee": 1,
-					"user/trades":         1,
-					"orders":              1,
-					"order":               1,
+					"user": map[string]any{
+						"cost": 1,
+					},
+					"user/balance": map[string]any{
+						"cost": 1,
+					},
+					"user/deposits": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawal/fee": map[string]any{
+						"cost": 1,
+					},
+					"user/trades": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"user/withdrawal": 1,
-					"order":           1,
+					"user/withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"order/all": 1,
-					"order":     1,
+					"order/all": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -608,10 +666,10 @@ func (this *HollaexCore) FetchOrderBooks(optionalArgs ...any) <-chan any {
 		var marketIds any = ObjectKeys(response)
 		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 			var marketId any = GetValue(marketIds, i)
-			var orderbook any = GetValue(response, marketId)
+			var orderbook any = this.SafeDict(response, marketId, map[string]any{})
 			var symbol any = this.SafeSymbol(marketId, nil, "-")
 			var timestamp any = this.Parse8601(this.SafeString(orderbook, "timestamp"))
-			AddElementToObject(result, symbol, this.ParseOrderBook(GetValue(response, marketId), symbol, timestamp))
+			AddElementToObject(result, symbol, this.ParseOrderBook(orderbook, symbol, timestamp))
 		}
 
 		ch <- result
@@ -1123,7 +1181,7 @@ func (this *HollaexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		//         },
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()

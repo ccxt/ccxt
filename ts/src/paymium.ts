@@ -6,7 +6,7 @@ import Exchange from './abstract/paymium.js';
 import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress, NullableDict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress, NullableDict, Endpoint, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -67,40 +67,40 @@ export default class paymium extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'countries',
-                        'currencies',
-                        'data/{currency}/ticker',
-                        'data/{currency}/trades',
-                        'data/{currency}/depth',
-                        'bitcoin_charts/{id}/trades',
-                        'bitcoin_charts/{id}/depth',
-                    ],
+                    'get': {
+                        'countries': { 'cost': 1 } as Endpoint<List>,
+                        'currencies': { 'cost': 1 } as Endpoint<List>,
+                        'data/{currency}/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'data/{currency}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'data/{currency}/depth': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoin_charts/{id}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'bitcoin_charts/{id}/depth': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'user/addresses',
-                        'user/addresses/{address}',
-                        'user/orders',
-                        'user/orders/{uuid}',
-                        'user/price_alerts',
-                        'merchant/get_payment/{uuid}',
-                    ],
-                    'post': [
-                        'user/addresses',
-                        'user/orders',
-                        'user/withdrawals',
-                        'user/email_transfers',
-                        'user/payment_requests',
-                        'user/price_alerts',
-                        'merchant/create_payment',
-                    ],
-                    'delete': [
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
-                    ],
+                    'get': {
+                        'user': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/addresses': { 'cost': 1 } as Endpoint<List>,
+                        'user/addresses/{address}': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/orders': { 'cost': 1 } as Endpoint<List>,
+                        'user/orders/{uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/price_alerts': { 'cost': 1 } as Endpoint<List>,
+                        'merchant/get_payment/{uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'user/addresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/email_transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/payment_requests': { 'cost': 1 } as Endpoint<List>,
+                        'user/price_alerts': { 'cost': 1 } as Endpoint<Dict>,
+                        'merchant/create_payment': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'user/orders/{uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/orders/{uuid}/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/price_alerts/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'markets': {
@@ -481,7 +481,7 @@ export default class paymium extends Exchange {
         const response = await this.privatePostUserOrders (this.extend (request, params));
         return this.safeOrder ({
             'info': response,
-            'id': response['uuid'],
+            'id': this.safeString (response, 'uuid'),
         }, market);
     }
 

@@ -5380,10 +5380,10 @@ export class BaseExchange {
     }
     parsePositions(positions, symbols = undefined, params = {}) {
         symbols = this.marketSymbols(symbols);
-        positions = this.toArray(positions);
+        const positionsArray = this.toArray(positions);
         const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            const position = this.extend(this.parsePosition(positions[i]), params);
+        for (let i = 0; i < positionsArray.length; i++) {
+            const position = this.extend(this.parsePosition(positionsArray[i]), params);
             result.push(position);
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
@@ -5396,33 +5396,33 @@ export class BaseExchange {
     }
     parseADLRanks(ranks, symbols = undefined, params = {}) {
         symbols = this.marketSymbols(symbols);
-        ranks = this.toArray(ranks);
+        const ranksArray = this.toArray(ranks);
         const result = [];
-        for (let i = 0; i < ranks.length; i++) {
-            const rank = this.extend(this.parseADLRank(ranks[i]), params);
+        for (let i = 0; i < ranksArray.length; i++) {
+            const rank = this.extend(this.parseADLRank(ranksArray[i]), params);
             result.push(rank);
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parseAccounts(accounts, params = {}) {
-        accounts = this.toArray(accounts);
+        const accountsArray = this.toArray(accounts);
         const result = [];
-        for (let i = 0; i < accounts.length; i++) {
-            const account = this.extend(this.parseAccount(accounts[i]), params);
+        for (let i = 0; i < accountsArray.length; i++) {
+            const account = this.extend(this.parseAccount(accountsArray[i]), params);
             result.push(account);
         }
         return result;
     }
     parseTradesHelper(isWs, trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        trades = this.toArray(trades);
+        const tradesArray = this.toArray(trades);
         let result = [];
-        for (let i = 0; i < trades.length; i++) {
+        for (let i = 0; i < tradesArray.length; i++) {
             let parsed = undefined;
             if (isWs) {
-                parsed = this.parseWsTrade(trades[i], market);
+                parsed = this.parseWsTrade(tradesArray[i], market);
             }
             else {
-                parsed = this.parseTrade(trades[i], market);
+                parsed = this.parseTrade(tradesArray[i], market);
             }
             const trade = this.extend(parsed, params);
             result.push(trade);
@@ -5438,10 +5438,10 @@ export class BaseExchange {
         return this.parseTradesHelper(true, trades, market, since, limit, params);
     }
     parseTransactions(transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
-        transactions = this.toArray(transactions);
+        const transactionsArray = this.toArray(transactions);
         let result = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = this.extend(this.parseTransaction(transactions[i], currency), params);
+        for (let i = 0; i < transactionsArray.length; i++) {
+            const transaction = this.extend(this.parseTransaction(transactionsArray[i], currency), params);
             result.push(transaction);
         }
         result = this.sortBy(result, 'timestamp');
@@ -5449,10 +5449,10 @@ export class BaseExchange {
         return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     parseTransfers(transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
-        transfers = this.toArray(transfers);
+        const transfersArray = this.toArray(transfers);
         let result = [];
-        for (let i = 0; i < transfers.length; i++) {
-            const transfer = this.extend(this.parseTransfer(transfers[i], currency), params);
+        for (let i = 0; i < transfersArray.length; i++) {
+            const transfer = this.extend(this.parseTransfer(transfersArray[i], currency), params);
             result.push(transfer);
         }
         result = this.sortBy(result, 'timestamp');
@@ -7554,6 +7554,8 @@ export class BaseExchange {
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
         return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }
+    // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
+    // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
     async fetchPaginatedCallCursor(method, symbol = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined) {
         let maxCalls = 10;
         [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', maxCalls);
@@ -7582,7 +7584,8 @@ export class BaseExchange {
                     response = await this[method](symbol, params);
                 }
                 else if (method === 'fetchOpenInterestHistory') {
-                    if (symbol === undefined) {
+                    if (typeof symbol !== 'string') {
+                        // fetchOpenInterestHistory takes a single symbol, never a list
                         throw new ArgumentsRequired(this.id + ' fetchPaginatedCallCursor() requires a symbol argument');
                     }
                     if (timeframe === undefined) {
@@ -7874,12 +7877,12 @@ export class BaseExchange {
         throw new NotSupported(this.id + ' parseLeverage () is not supported yet');
     }
     parseConversions(conversions, code = undefined, fromCurrencyKey = undefined, toCurrencyKey = undefined, since = undefined, limit = undefined, params = {}) {
-        conversions = this.toArray(conversions);
+        const conversionsArray = this.toArray(conversions);
         const result = [];
         let fromCurrency = undefined;
         let toCurrency = undefined;
-        for (let i = 0; i < conversions.length; i++) {
-            const entry = conversions[i];
+        for (let i = 0; i < conversionsArray.length; i++) {
+            const entry = conversionsArray[i];
             const fromId = (fromCurrencyKey === undefined) ? undefined : this.safeString(entry, fromCurrencyKey);
             const toId = (toCurrencyKey === undefined) ? undefined : this.safeString(entry, toCurrencyKey);
             if (fromId !== undefined) {

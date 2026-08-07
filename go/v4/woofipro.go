@@ -163,133 +163,363 @@ func (this *WoofiproCore) Describe() any {
 			"v1": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"public/volume/stats":             1,
-						"public/broker/name":              1,
-						"public/chain_info/{broker_id}":   1,
-						"public/system_info":              1,
-						"public/vault_balance":            1,
-						"public/insurancefund":            1,
-						"public/chain_info":               1,
-						"faucet/usdc":                     1,
-						"public/account":                  1,
-						"get_account":                     1,
-						"registration_nonce":              1,
-						"get_orderly_key":                 1,
-						"public/liquidation":              1,
-						"public/liquidated_positions":     1,
-						"public/config":                   1,
-						"public/campaign/ranking":         10,
-						"public/campaign/stats":           10,
-						"public/campaign/user":            10,
-						"public/campaign/stats/details":   10,
-						"public/campaigns":                10,
-						"public/points/leaderboard":       1,
-						"client/points":                   1,
-						"public/points/epoch":             1,
-						"public/points/epoch_dates":       1,
-						"public/referral/check_ref_code":  1,
-						"public/referral/verify_ref_code": 1,
-						"referral/admin_info":             1,
-						"referral/info":                   1,
-						"referral/referee_info":           1,
-						"referral/referee_rebate_summary": 1,
-						"referral/referee_history":        1,
-						"referral/referral_history":       1,
-						"referral/rebate_summary":         1,
-						"client/distribution_history":     1,
-						"tv/config":                       1,
-						"tv/history":                      1,
-						"tv/symbol_info":                  1,
-						"public/funding_rate_history":     1,
-						"public/funding_rate/{symbol}":    0.33,
-						"public/funding_rates":            1,
-						"public/info":                     1,
-						"public/info/{symbol}":            1,
-						"public/market_trades":            1,
-						"public/token":                    1,
-						"public/futures":                  1,
-						"public/futures/{symbol}":         1,
+						"public/volume/stats": map[string]any{
+							"cost": 1,
+						},
+						"public/broker/name": map[string]any{
+							"cost": 1,
+						},
+						"public/chain_info/{broker_id}": map[string]any{
+							"cost": 1,
+						},
+						"public/system_info": map[string]any{
+							"cost": 1,
+						},
+						"public/vault_balance": map[string]any{
+							"cost": 1,
+						},
+						"public/insurancefund": map[string]any{
+							"cost": 1,
+						},
+						"public/chain_info": map[string]any{
+							"cost": 1,
+						},
+						"faucet/usdc": map[string]any{
+							"cost": 1,
+						},
+						"public/account": map[string]any{
+							"cost": 1,
+						},
+						"get_account": map[string]any{
+							"cost": 1,
+						},
+						"registration_nonce": map[string]any{
+							"cost": 1,
+						},
+						"get_orderly_key": map[string]any{
+							"cost": 1,
+						},
+						"public/liquidation": map[string]any{
+							"cost": 1,
+						},
+						"public/liquidated_positions": map[string]any{
+							"cost": 1,
+						},
+						"public/config": map[string]any{
+							"cost": 1,
+						},
+						"public/campaign/ranking": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/stats": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/user": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/stats/details": map[string]any{
+							"cost": 10,
+						},
+						"public/campaigns": map[string]any{
+							"cost": 10,
+						},
+						"public/points/leaderboard": map[string]any{
+							"cost": 1,
+						},
+						"client/points": map[string]any{
+							"cost": 1,
+						},
+						"public/points/epoch": map[string]any{
+							"cost": 1,
+						},
+						"public/points/epoch_dates": map[string]any{
+							"cost": 1,
+						},
+						"public/referral/check_ref_code": map[string]any{
+							"cost": 1,
+						},
+						"public/referral/verify_ref_code": map[string]any{
+							"cost": 1,
+						},
+						"referral/admin_info": map[string]any{
+							"cost": 1,
+						},
+						"referral/info": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_info": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_rebate_summary": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_history": map[string]any{
+							"cost": 1,
+						},
+						"referral/referral_history": map[string]any{
+							"cost": 1,
+						},
+						"referral/rebate_summary": map[string]any{
+							"cost": 1,
+						},
+						"client/distribution_history": map[string]any{
+							"cost": 1,
+						},
+						"tv/config": map[string]any{
+							"cost": 1,
+						},
+						"tv/history": map[string]any{
+							"cost": 1,
+						},
+						"tv/symbol_info": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate_history": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate/{symbol}": map[string]any{
+							"cost": 0.33,
+						},
+						"public/funding_rates": map[string]any{
+							"cost": 1,
+						},
+						"public/info": map[string]any{
+							"cost": 1,
+						},
+						"public/info/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"public/market_trades": map[string]any{
+							"cost": 1,
+						},
+						"public/token": map[string]any{
+							"cost": 1,
+						},
+						"public/futures": map[string]any{
+							"cost": 1,
+						},
+						"public/futures/{symbol}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"register_account": 1,
+						"register_account": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"client/key_info":                     6,
-						"client/orderly_key_ip_restriction":   6,
-						"order/{oid}":                         1,
-						"client/order/{client_order_id}":      1,
-						"algo/order/{oid}":                    1,
-						"algo/client/order/{client_order_id}": 1,
-						"orders":                              1,
-						"algo/orders":                         1,
-						"trade/{tid}":                         1,
-						"trades":                              1,
-						"order/{oid}/trades":                  1,
-						"client/liquidator_liquidations":      1,
-						"liquidations":                        1,
-						"asset/history":                       60,
-						"client/holding":                      1,
-						"withdraw_nonce":                      1,
-						"settle_nonce":                        1,
-						"pnl_settlement/history":              1,
-						"volume/user/daily":                   60,
-						"volume/user/stats":                   60,
-						"client/statistics":                   60,
-						"client/info":                         60,
-						"client/statistics/daily":             60,
-						"positions":                           3.33,
-						"position/{symbol}":                   3.33,
-						"funding_fee/history":                 30,
-						"notification/inbox/notifications":    60,
-						"notification/inbox/unread":           60,
-						"volume/broker/daily":                 60,
-						"broker/fee_rate/default":             10,
-						"broker/user_info":                    10,
-						"orderbook/{symbol}":                  1,
-						"kline":                               1,
+						"client/key_info": map[string]any{
+							"cost": 6,
+						},
+						"client/orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"algo/order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"algo/client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/{tid}": map[string]any{
+							"cost": 1,
+						},
+						"trades": map[string]any{
+							"cost": 1,
+						},
+						"order/{oid}/trades": map[string]any{
+							"cost": 1,
+						},
+						"client/liquidator_liquidations": map[string]any{
+							"cost": 1,
+						},
+						"liquidations": map[string]any{
+							"cost": 1,
+						},
+						"asset/history": map[string]any{
+							"cost": 60,
+						},
+						"client/holding": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_nonce": map[string]any{
+							"cost": 1,
+						},
+						"settle_nonce": map[string]any{
+							"cost": 1,
+						},
+						"pnl_settlement/history": map[string]any{
+							"cost": 1,
+						},
+						"volume/user/daily": map[string]any{
+							"cost": 60,
+						},
+						"volume/user/stats": map[string]any{
+							"cost": 60,
+						},
+						"client/statistics": map[string]any{
+							"cost": 60,
+						},
+						"client/info": map[string]any{
+							"cost": 60,
+						},
+						"client/statistics/daily": map[string]any{
+							"cost": 60,
+						},
+						"positions": map[string]any{
+							"cost": 3.33,
+						},
+						"position/{symbol}": map[string]any{
+							"cost": 3.33,
+						},
+						"funding_fee/history": map[string]any{
+							"cost": 30,
+						},
+						"notification/inbox/notifications": map[string]any{
+							"cost": 60,
+						},
+						"notification/inbox/unread": map[string]any{
+							"cost": 60,
+						},
+						"volume/broker/daily": map[string]any{
+							"cost": 60,
+						},
+						"broker/fee_rate/default": map[string]any{
+							"cost": 10,
+						},
+						"broker/user_info": map[string]any{
+							"cost": 10,
+						},
+						"orderbook/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"orderly_key":                             1,
-						"client/set_orderly_key_ip_restriction":   6,
-						"client/reset_orderly_key_ip_restriction": 6,
-						"order":                            1,
-						"batch-order":                      10,
-						"algo/order":                       1,
-						"liquidation":                      1,
-						"claim_insurance_fund":             1,
-						"withdraw_request":                 1,
-						"settle_pnl":                       1,
-						"notification/inbox/mark_read":     60,
-						"notification/inbox/mark_read_all": 60,
-						"client/leverage":                  120,
-						"client/maintenance_config":        60,
-						"delegate_signer":                  10,
-						"delegate_orderly_key":             10,
-						"delegate_settle_pnl":              10,
-						"delegate_withdraw_request":        10,
-						"broker/fee_rate/set":              10,
-						"broker/fee_rate/set_default":      10,
-						"broker/fee_rate/default":          10,
-						"referral/create":                  10,
-						"referral/update":                  10,
-						"referral/bind":                    10,
-						"referral/edit_split":              10,
+						"orderly_key": map[string]any{
+							"cost": 1,
+						},
+						"client/set_orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"client/reset_orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 10,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
+						"liquidation": map[string]any{
+							"cost": 1,
+						},
+						"claim_insurance_fund": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_request": map[string]any{
+							"cost": 1,
+						},
+						"settle_pnl": map[string]any{
+							"cost": 1,
+						},
+						"notification/inbox/mark_read": map[string]any{
+							"cost": 60,
+						},
+						"notification/inbox/mark_read_all": map[string]any{
+							"cost": 60,
+						},
+						"client/leverage": map[string]any{
+							"cost": 120,
+						},
+						"client/maintenance_config": map[string]any{
+							"cost": 60,
+						},
+						"delegate_signer": map[string]any{
+							"cost": 10,
+						},
+						"delegate_orderly_key": map[string]any{
+							"cost": 10,
+						},
+						"delegate_settle_pnl": map[string]any{
+							"cost": 10,
+						},
+						"delegate_withdraw_request": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/set": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/set_default": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/default": map[string]any{
+							"cost": 10,
+						},
+						"referral/create": map[string]any{
+							"cost": 10,
+						},
+						"referral/update": map[string]any{
+							"cost": 10,
+						},
+						"referral/bind": map[string]any{
+							"cost": 10,
+						},
+						"referral/edit_split": map[string]any{
+							"cost": 10,
+						},
 					},
 					"put": map[string]any{
-						"order":      1,
-						"algo/order": 1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"order":              1,
-						"algo/order":         1,
-						"client/order":       1,
-						"algo/client/order":  1,
-						"algo/orders":        1,
-						"orders":             1,
-						"batch-order":        1,
-						"client/batch-order": 1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
+						"client/order": map[string]any{
+							"cost": 1,
+						},
+						"algo/client/order": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 1,
+						},
+						"client/batch-order": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},

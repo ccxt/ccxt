@@ -1,26 +1,26 @@
-import { implicitReturnType } from '../../base/types.js';
+import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 interface Exchange {
-    sapiPrivateGetCategoryList(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetMarketList(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetMarketSearch(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetMarketDetail(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetOrderBook(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetOrderBookLastTradePrice(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetWalletList(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetBalancePaymentOptions(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetQuotaLimitStatus(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetPnlPortfolio(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetPnlQuery(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetPositionList(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetPositionFilter(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetPositionToken(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetPositionSettledHistory(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetOrderList(params?: {}): Promise<implicitReturnType>;
-    sapiPrivateGetOrderHistory(params?: {}): Promise<implicitReturnType>;
-    sapiPrivatePostTradeGetQuote(params?: {}): Promise<implicitReturnType>;
-    sapiPrivatePostTradePlaceOrderBundle(params?: {}): Promise<implicitReturnType>;
-    sapiPrivatePostTradeBatchCancel(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetCategoryList(params?: {}): Promise<Dict>;
+    sapiPrivateGetMarketList(params?: {}): Promise<Dict>;
+    sapiPrivateGetMarketSearch(params?: {}): Promise<List>;
+    sapiPrivateGetMarketDetail(params?: {}): Promise<Dict>;
+    sapiPrivateGetOrderBook(params?: {}): Promise<Dict>;
+    sapiPrivateGetOrderBookLastTradePrice(params?: {}): Promise<Dict>;
+    sapiPrivateGetWalletList(params?: {}): Promise<Dict>;
+    sapiPrivateGetBalancePaymentOptions(params?: {}): Promise<Dict>;
+    sapiPrivateGetQuotaLimitStatus(params?: {}): Promise<Dict>;
+    sapiPrivateGetPnlPortfolio(params?: {}): Promise<Dict>;
+    sapiPrivateGetPnlQuery(params?: {}): Promise<Dict>;
+    sapiPrivateGetPositionList(params?: {}): Promise<Dict>;
+    sapiPrivateGetPositionFilter(params?: {}): Promise<Dict>;
+    sapiPrivateGetPositionToken(params?: {}): Promise<Dict>;
+    sapiPrivateGetPositionSettledHistory(params?: {}): Promise<Dict>;
+    sapiPrivateGetOrderList(params?: {}): Promise<Dict>;
+    sapiPrivateGetOrderHistory(params?: {}): Promise<Dict>;
+    sapiPrivatePostTradeGetQuote(params?: {}): Promise<Dict>;
+    sapiPrivatePostTradePlaceOrderBundle(params?: {}): Promise<Dict>;
+    sapiPrivatePostTradeBatchCancel(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

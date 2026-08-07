@@ -4055,11 +4055,11 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         symbols = this.marketSymbols(symbols);
-        positions = this.toArray(positions);
+        object positionsArray = this.toArray(positions);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(positionsArray)); postFixIncrement(ref i))
         {
-            object position = this.extend(this.parsePosition(getValue(positions, i)), parameters);
+            object position = this.extend(this.parsePosition(getValue(positionsArray, i)), parameters);
             ((IList<object>)result).Add(position);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -4078,11 +4078,11 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         symbols = this.marketSymbols(symbols);
-        ranks = this.toArray(ranks);
+        object ranksArray = this.toArray(ranks);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ranks)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(ranksArray)); postFixIncrement(ref i))
         {
-            object rank = this.extend(this.parseADLRank(getValue(ranks, i)), parameters);
+            object rank = this.extend(this.parseADLRank(getValue(ranksArray, i)), parameters);
             ((IList<object>)result).Add(rank);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -4091,11 +4091,11 @@ public partial class BaseExchange
     public virtual object parseAccounts(object accounts, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        accounts = this.toArray(accounts);
+        object accountsArray = this.toArray(accounts);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(accountsArray)); postFixIncrement(ref i))
         {
-            object account = this.extend(this.parseAccount(getValue(accounts, i)), parameters);
+            object account = this.extend(this.parseAccount(getValue(accountsArray, i)), parameters);
             ((IList<object>)result).Add(account);
         }
         return result;
@@ -4104,17 +4104,17 @@ public partial class BaseExchange
     public virtual object parseTradesHelper(object isWs, object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        trades = this.toArray(trades);
+        object tradesArray = this.toArray(trades);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(tradesArray)); postFixIncrement(ref i))
         {
             object parsed = null;
             if (isTrue(isWs))
             {
-                parsed = this.parseWsTrade(getValue(trades, i), market);
+                parsed = this.parseWsTrade(getValue(tradesArray, i), market);
             } else
             {
-                parsed = this.parseTrade(getValue(trades, i), market);
+                parsed = this.parseTrade(getValue(tradesArray, i), market);
             }
             object trade = this.extend(parsed, parameters);
             ((IList<object>)result).Add(trade);
@@ -4139,11 +4139,11 @@ public partial class BaseExchange
     public virtual object parseTransactions(object transactions, object currency = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        transactions = this.toArray(transactions);
+        object transactionsArray = this.toArray(transactions);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(transactionsArray)); postFixIncrement(ref i))
         {
-            object transaction = this.extend(this.parseTransaction(getValue(transactions, i), currency), parameters);
+            object transaction = this.extend(this.parseTransaction(getValue(transactionsArray, i), currency), parameters);
             ((IList<object>)result).Add(transaction);
         }
         result = this.sortBy(result, "timestamp");
@@ -4154,11 +4154,11 @@ public partial class BaseExchange
     public virtual object parseTransfers(object transfers, object currency = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        transfers = this.toArray(transfers);
+        object transfersArray = this.toArray(transfers);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(transfersArray)); postFixIncrement(ref i))
         {
-            object transfer = this.extend(this.parseTransfer(getValue(transfers, i), currency), parameters);
+            object transfer = this.extend(this.parseTransfer(getValue(transfersArray, i), currency), parameters);
             ((IList<object>)result).Add(transfer);
         }
         result = this.sortBy(result, "timestamp");
@@ -7018,6 +7018,8 @@ public partial class BaseExchange
         return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }
 
+    // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
+    // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
     public async virtual Task<object> fetchPaginatedCallCursor(object method, object symbol = null, object since = null, object limit = null, object parameters = null, object cursorReceived = null, object cursorSent = null, object cursorIncrement = null, object maxEntriesPerRequest = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -7059,7 +7061,7 @@ public partial class BaseExchange
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, parameters }));
                 } else if (isTrue(isEqual(method, "fetchOpenInterestHistory")))
                 {
-                    if (isTrue(isEqual(symbol, null)))
+                    if (isTrue(!(symbol is string)))
                     {
                         throw new ArgumentsRequired ((string)add(this.id, " fetchPaginatedCallCursor() requires a symbol argument")) ;
                     }
@@ -7440,13 +7442,13 @@ public partial class BaseExchange
     public virtual object parseConversions(object conversions, object code = null, object fromCurrencyKey = null, object toCurrencyKey = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        conversions = this.toArray(conversions);
+        object conversionsArray = this.toArray(conversions);
         object result = new List<object>() {};
         object fromCurrency = null;
         object toCurrency = null;
-        for (object i = 0; isLessThan(i, getArrayLength(conversions)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(conversionsArray)); postFixIncrement(ref i))
         {
-            object entry = getValue(conversions, i);
+            object entry = getValue(conversionsArray, i);
             object fromId = ((bool) isTrue((isEqual(fromCurrencyKey, null)))) ? null : this.safeString(entry, fromCurrencyKey);
             object toId = ((bool) isTrue((isEqual(toCurrencyKey, null)))) ? null : this.safeString(entry, toCurrencyKey);
             if (isTrue(!isEqual(fromId, null)))

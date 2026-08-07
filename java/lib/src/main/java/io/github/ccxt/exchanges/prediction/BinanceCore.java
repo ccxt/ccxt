@@ -66,28 +66,68 @@ public class BinanceCore extends BinanceApi
                 put( "sapi", new java.util.HashMap<String, Object>() {{
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "category/list", 200 );
-                            put( "market/list", 200 );
-                            put( "market/search", 200 );
-                            put( "market/detail", 200 );
-                            put( "order-book", 200 );
-                            put( "order-book/last-trade-price", 200 );
-                            put( "wallet/list", 200 );
-                            put( "balance/payment-options", 200 );
-                            put( "quota/limit/status", 200 );
-                            put( "pnl/portfolio", 200 );
-                            put( "pnl/query", 200 );
-                            put( "position/list", 200 );
-                            put( "position/filter", 200 );
-                            put( "position/token", 200 );
-                            put( "position/settled-history", 200 );
-                            put( "order/list", 200 );
-                            put( "order/history", 200 );
+                            put( "category/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "market/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "market/search", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "market/detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "order-book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "order-book/last-trade-price", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "wallet/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "balance/payment-options", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "quota/limit/status", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "pnl/portfolio", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "pnl/query", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "position/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "position/filter", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "position/token", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "position/settled-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "order/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "order/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "trade/get-quote", 200 );
-                            put( "trade/place-order-bundle", 200 );
-                            put( "trade/batch-cancel", 200 );
+                            put( "trade/get-quote", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "trade/place-order-bundle", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
+                            put( "trade/batch-cancel", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 200 );
+                            }} );
                         }} );
                     }} );
                 }} );

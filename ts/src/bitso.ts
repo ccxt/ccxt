@@ -6,7 +6,7 @@ import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, Currencies, int, LedgerEntry, DepositAddress, List, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, Currencies, int, LedgerEntry, DepositAddress, List, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -166,56 +166,56 @@ export default class bitso extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'available_books',
-                        'catalogues',
-                        'ticker',
-                        'order_book',
-                        'trades',
-                        'ohlc',
-                    ],
+                    'get': {
+                        'available_books': { 'cost': 1 } as Endpoint<Dict>,
+                        'catalogues': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_book': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'ohlc': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account_status',
-                        'balance',
-                        'fees',
-                        'fundings',
-                        'fundings/{fid}',
-                        'funding_destination',
-                        'kyc_documents',
-                        'ledger',
-                        'ledger/trades',
-                        'ledger/fees',
-                        'ledger/fundings',
-                        'ledger/withdrawals',
-                        'mx_bank_codes',
-                        'open_orders',
-                        'order_trades/{oid}',
-                        'orders/{oid}',
-                        'user_trades',
-                        'user_trades/{tid}',
-                        'withdrawals/',
-                        'withdrawals/{wid}',
-                    ],
-                    'post': [
-                        'bitcoin_withdrawal',
-                        'debit_card_withdrawal',
-                        'ether_withdrawal',
-                        'orders',
-                        'phone_number',
-                        'phone_verification',
-                        'phone_withdrawal',
-                        'spei_withdrawal',
-                        'ripple_withdrawal',
-                        'bcash_withdrawal',
-                        'litecoin_withdrawal',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/{oid}',
-                        'orders/all',
-                    ],
+                    'get': {
+                        'account_status': { 'cost': 1 } as Endpoint<Dict>,
+                        'balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'fundings': { 'cost': 1 } as Endpoint<Dict>,
+                        'fundings/{fid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding_destination': { 'cost': 1 } as Endpoint<Dict>,
+                        'kyc_documents': { 'cost': 1 } as Endpoint<Dict>,
+                        'ledger': { 'cost': 1 } as Endpoint<Dict>,
+                        'ledger/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'ledger/fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'ledger/fundings': { 'cost': 1 } as Endpoint<Dict>,
+                        'ledger/withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'mx_bank_codes': { 'cost': 1 } as Endpoint<Dict>,
+                        'open_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_trades/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'user_trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'user_trades/{tid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals/': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals/{wid}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'bitcoin_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'debit_card_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'ether_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'phone_number': { 'cost': 1 } as Endpoint<Dict>,
+                        'phone_verification': { 'cost': 1 } as Endpoint<Dict>,
+                        'phone_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'spei_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'ripple_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'bcash_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'litecoin_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/all': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'features': {
@@ -1036,7 +1036,8 @@ export default class bitso extends Exchange {
             'book': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response['payload'], market, since, limit);
+        const payload = this.safeList (response, 'payload', []);
+        return this.parseTrades (payload, market, since, limit);
     }
 
     /**
@@ -1153,7 +1154,8 @@ export default class bitso extends Exchange {
             // 'marker': id, // integer id to start from
         };
         const response = await this.privateGetUserTrades (this.extend (request, params));
-        return this.parseTrades (response['payload'], market, since, limit);
+        const payload = this.safeList (response, 'payload', []);
+        return this.parseTrades (payload, market, since, limit);
     }
 
     /**
@@ -1184,7 +1186,8 @@ export default class bitso extends Exchange {
             request['price'] = this.priceToPrecision (market['symbol'], price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        const id = this.safeString (response['payload'], 'oid');
+        const payload = this.safeDict (response, 'payload', {});
+        const id = this.safeString (payload, 'oid');
         return this.safeOrder ({
             'info': response,
             'id': id,
@@ -1386,7 +1389,8 @@ export default class bitso extends Exchange {
             // 'marker': id, // integer id to start from
         };
         const response = await this.privateGetOpenOrders (this.extend (request, params));
-        const orders = this.parseOrders (response['payload'], market, since, limit);
+        const payload = this.safeList (response, 'payload', []);
+        const orders = this.parseOrders (payload, market, since, limit);
         return orders;
     }
 
@@ -1409,7 +1413,7 @@ export default class bitso extends Exchange {
         });
         const payload = this.safeValue (response, 'payload');
         if (Array.isArray (payload)) {
-            const numOrders = response['payload'].length;
+            const numOrders = payload.length;
             if (numOrders === 1) {
                 return this.parseOrder (payload[0]);
             }
@@ -1438,7 +1442,8 @@ export default class bitso extends Exchange {
             'oid': id,
         };
         const response = await this.privateGetOrderTradesOid (this.extend (request, params));
-        return this.parseTrades (response['payload'], market);
+        const payload = this.safeList (response, 'payload', []);
+        return this.parseTrades (payload, market);
     }
 
     /**
@@ -1551,7 +1556,8 @@ export default class bitso extends Exchange {
             'fund_currency': currency['id'],
         };
         const response = await this.privateGetFundingDestination (this.extend (request, params));
-        let address = this.safeString (response['payload'], 'account_identifier');
+        const payload = this.safeDict (response, 'payload', {});
+        let address = this.safeString (payload, 'account_identifier');
         let tag: Str = undefined;
         if ((address as string).indexOf ('?dt=') >= 0) {
             const parts = (address as string).split ('?dt=');

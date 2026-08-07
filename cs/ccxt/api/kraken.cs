@@ -11,14 +11,14 @@ public partial class kraken : Exchange
 {
     public kraken (object args = null): base(args) {}
 
-    public async Task<object> zendeskGet360000292886 (object parameters = null)
-    {
-        return await this.callAsync ("zendeskGet360000292886",parameters);
-    }
-
     public async Task<object> zendeskGet201893608 (object parameters = null)
     {
         return await this.callAsync ("zendeskGet201893608",parameters);
+    }
+
+    public async Task<object> zendeskGet360000292886 (object parameters = null)
+    {
+        return await this.callAsync ("zendeskGet360000292886",parameters);
     }
 
     public async Task<object> publicGetTime (object parameters = null)

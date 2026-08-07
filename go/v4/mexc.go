@@ -166,290 +166,766 @@ func (this *MexcCore) Describe() any {
 			"spot": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"announcements":     8,
-						"ping":              1,
-						"time":              1,
-						"defaultSymbols":    1,
-						"symbol/offline":    10,
-						"exchangeInfo":      25,
-						"depth":             3,
-						"trades":            5,
-						"historicalTrades":  1,
-						"aggTrades":         1,
-						"klines":            1,
-						"avgPrice":          1,
-						"ticker/24hr":       25,
-						"ticker/price":      10,
-						"ticker/bookTicker": 10,
-						"etf/info":          1,
+						"announcements": map[string]any{
+							"cost": 8,
+						},
+						"ping": map[string]any{
+							"cost": 1,
+						},
+						"time": map[string]any{
+							"cost": 1,
+						},
+						"defaultSymbols": map[string]any{
+							"cost": 1,
+						},
+						"symbol/offline": map[string]any{
+							"cost": 10,
+						},
+						"exchangeInfo": map[string]any{
+							"cost": 25,
+						},
+						"depth": map[string]any{
+							"cost": 3,
+						},
+						"trades": map[string]any{
+							"cost": 5,
+						},
+						"historicalTrades": map[string]any{
+							"cost": 1,
+						},
+						"aggTrades": map[string]any{
+							"cost": 1,
+						},
+						"klines": map[string]any{
+							"cost": 1,
+						},
+						"avgPrice": map[string]any{
+							"cost": 1,
+						},
+						"ticker/24hr": map[string]any{
+							"cost": 25,
+						},
+						"ticker/price": map[string]any{
+							"cost": 10,
+						},
+						"ticker/bookTicker": map[string]any{
+							"cost": 10,
+						},
+						"etf/info": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"kyc/status":                            1,
-						"uid":                                   1,
-						"order":                                 2,
-						"openOrders":                            3,
-						"allOrders":                             10,
-						"account":                               10,
-						"myTrades":                              10,
-						"strategy/group":                        20,
-						"strategy/group/uid":                    20,
-						"tradeFee":                              20,
-						"sub-account/list":                      1,
-						"sub-account/apiKey":                    1,
-						"sub-account/asset":                     1,
-						"capital/config/getall":                 10,
-						"capital/deposit/hisrec":                10,
-						"capital/withdraw/history":              1,
-						"capital/withdraw/address":              10,
-						"capital/deposit/address":               10,
-						"capital/transfer":                      1,
-						"capital/transfer/tranId":               1,
-						"capital/transfer/internal":             1,
-						"capital/sub-account/universalTransfer": 1,
-						"capital/convert":                       1,
-						"capital/convert/list":                  1,
-						"margin/loan":                           1,
-						"margin/allOrders":                      1,
-						"margin/myTrades":                       1,
-						"margin/openOrders":                     1,
-						"margin/maxTransferable":                1,
-						"margin/priceIndex":                     1,
-						"margin/order":                          1,
-						"margin/isolated/account":               1,
-						"margin/maxBorrowable":                  1,
-						"margin/repay":                          1,
-						"margin/isolated/pair":                  1,
-						"margin/forceLiquidationRec":            1,
-						"margin/isolatedMarginData":             1,
-						"margin/isolatedMarginTier":             1,
-						"rebate/taxQuery":                       1,
-						"rebate/detail":                         1,
-						"rebate/detail/kickback":                1,
-						"rebate/referCode":                      1,
-						"rebate/affiliate/commission":           1,
-						"rebate/affiliate/withdraw":             1,
-						"rebate/affiliate/commission/detail":    1,
-						"rebate/affiliate/campaign":             1,
-						"rebate/affiliate/referral":             1,
-						"rebate/affiliate/subaffiliates":        1,
-						"rebate/affiliate/list":                 1,
-						"mxDeduct/enable":                       1,
-						"userDataStream":                        1,
-						"selfSymbols":                           1,
-						"asset/internal/transfer/record":        10,
+						"kyc/status": map[string]any{
+							"cost": 1,
+						},
+						"uid": map[string]any{
+							"cost": 1,
+						},
+						"order": map[string]any{
+							"cost": 2,
+						},
+						"openOrders": map[string]any{
+							"cost": 3,
+						},
+						"allOrders": map[string]any{
+							"cost": 10,
+						},
+						"account": map[string]any{
+							"cost": 10,
+						},
+						"myTrades": map[string]any{
+							"cost": 10,
+						},
+						"strategy/group": map[string]any{
+							"cost": 20,
+						},
+						"strategy/group/uid": map[string]any{
+							"cost": 20,
+						},
+						"tradeFee": map[string]any{
+							"cost": 20,
+						},
+						"sub-account/list": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/apiKey": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/asset": map[string]any{
+							"cost": 1,
+						},
+						"capital/config/getall": map[string]any{
+							"cost": 10,
+						},
+						"capital/deposit/hisrec": map[string]any{
+							"cost": 10,
+						},
+						"capital/withdraw/history": map[string]any{
+							"cost": 1,
+						},
+						"capital/withdraw/address": map[string]any{
+							"cost": 10,
+						},
+						"capital/deposit/address": map[string]any{
+							"cost": 10,
+						},
+						"capital/transfer": map[string]any{
+							"cost": 1,
+						},
+						"capital/transfer/tranId": map[string]any{
+							"cost": 1,
+						},
+						"capital/transfer/internal": map[string]any{
+							"cost": 1,
+						},
+						"capital/sub-account/universalTransfer": map[string]any{
+							"cost": 1,
+						},
+						"capital/convert": map[string]any{
+							"cost": 1,
+						},
+						"capital/convert/list": map[string]any{
+							"cost": 1,
+						},
+						"margin/loan": map[string]any{
+							"cost": 1,
+						},
+						"margin/allOrders": map[string]any{
+							"cost": 1,
+						},
+						"margin/myTrades": map[string]any{
+							"cost": 1,
+						},
+						"margin/openOrders": map[string]any{
+							"cost": 1,
+						},
+						"margin/maxTransferable": map[string]any{
+							"cost": 1,
+						},
+						"margin/priceIndex": map[string]any{
+							"cost": 1,
+						},
+						"margin/order": map[string]any{
+							"cost": 1,
+						},
+						"margin/isolated/account": map[string]any{
+							"cost": 1,
+						},
+						"margin/maxBorrowable": map[string]any{
+							"cost": 1,
+						},
+						"margin/repay": map[string]any{
+							"cost": 1,
+						},
+						"margin/isolated/pair": map[string]any{
+							"cost": 1,
+						},
+						"margin/forceLiquidationRec": map[string]any{
+							"cost": 1,
+						},
+						"margin/isolatedMarginData": map[string]any{
+							"cost": 1,
+						},
+						"margin/isolatedMarginTier": map[string]any{
+							"cost": 1,
+						},
+						"rebate/taxQuery": map[string]any{
+							"cost": 1,
+						},
+						"rebate/detail": map[string]any{
+							"cost": 1,
+						},
+						"rebate/detail/kickback": map[string]any{
+							"cost": 1,
+						},
+						"rebate/referCode": map[string]any{
+							"cost": 1,
+						},
+						"rebate/affiliate/commission": map[string]any{
+							"cost": 1,
+						},
+						"rebate/affiliate/withdraw": map[string]any{
+							"cost": 1,
+						},
+						"rebate/affiliate/commission/detail": map[string]any{
+							"cost": 1,
+						},
+						"rebate/affiliate/campaign": map[string]any{
+							"cost": 1,
+						},
+						"rebate/affiliate/referral": map[string]any{
+							"cost": 1,
+						},
+						"rebate/affiliate/subaffiliates": map[string]any{
+							"cost": 1,
+						},
+						"rebate/affiliate/list": map[string]any{
+							"cost": 1,
+						},
+						"mxDeduct/enable": map[string]any{
+							"cost": 1,
+						},
+						"userDataStream": map[string]any{
+							"cost": 1,
+						},
+						"selfSymbols": map[string]any{
+							"cost": 1,
+						},
+						"asset/internal/transfer/record": map[string]any{
+							"cost": 10,
+						},
 					},
 					"post": map[string]any{
-						"order":                                 1,
-						"order/test":                            1,
-						"apiKeyInfo":                            1,
-						"sub-account/virtualSubAccount":         1,
-						"sub-account/apiKey":                    1,
-						"sub-account/futures":                   1,
-						"sub-account/margin":                    1,
-						"batchOrders":                           10,
-						"strategy/group":                        20,
-						"capital/withdraw/apply":                1,
-						"capital/withdraw":                      1,
-						"capital/transfer":                      50,
-						"capital/transfer/internal":             1,
-						"capital/deposit/address":               1,
-						"capital/sub-account/universalTransfer": 1,
-						"capital/convert":                       10,
-						"mxDeduct/enable":                       1,
-						"userDataStream":                        1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"order/test": map[string]any{
+							"cost": 1,
+						},
+						"apiKeyInfo": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/virtualSubAccount": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/apiKey": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/futures": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/margin": map[string]any{
+							"cost": 1,
+						},
+						"batchOrders": map[string]any{
+							"cost": 10,
+						},
+						"strategy/group": map[string]any{
+							"cost": 20,
+						},
+						"capital/withdraw/apply": map[string]any{
+							"cost": 1,
+						},
+						"capital/withdraw": map[string]any{
+							"cost": 1,
+						},
+						"capital/transfer": map[string]any{
+							"cost": 50,
+						},
+						"capital/transfer/internal": map[string]any{
+							"cost": 1,
+						},
+						"capital/deposit/address": map[string]any{
+							"cost": 1,
+						},
+						"capital/sub-account/universalTransfer": map[string]any{
+							"cost": 1,
+						},
+						"capital/convert": map[string]any{
+							"cost": 10,
+						},
+						"mxDeduct/enable": map[string]any{
+							"cost": 1,
+						},
+						"userDataStream": map[string]any{
+							"cost": 1,
+						},
 					},
 					"put": map[string]any{
-						"userDataStream": 1,
+						"userDataStream": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"order":              1,
-						"openOrders":         1,
-						"order/all":          1,
-						"sub-account/apiKey": 1,
-						"strategy/group":     1,
-						"strategy/group/uid": 1,
-						"margin/order":       1,
-						"margin/openOrders":  1,
-						"userDataStream":     1,
-						"capital/withdraw":   1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"openOrders": map[string]any{
+							"cost": 1,
+						},
+						"order/all": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/apiKey": map[string]any{
+							"cost": 1,
+						},
+						"strategy/group": map[string]any{
+							"cost": 1,
+						},
+						"strategy/group/uid": map[string]any{
+							"cost": 1,
+						},
+						"margin/order": map[string]any{
+							"cost": 1,
+						},
+						"margin/openOrders": map[string]any{
+							"cost": 1,
+						},
+						"userDataStream": map[string]any{
+							"cost": 1,
+						},
+						"capital/withdraw": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"contract": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"ping":                           2,
-						"detail":                         100,
-						"support_currencies":             2,
-						"depth/{symbol}":                 2,
-						"depth_commits/{symbol}/{limit}": 2,
-						"index_price/{symbol}":           2,
-						"fair_price/{symbol}":            2,
-						"funding_rate/{symbol}":          2,
-						"kline/{symbol}":                 2,
-						"kline/index_price/{symbol}":     2,
-						"kline/fair_price/{symbol}":      2,
-						"deals/{symbol}":                 2,
-						"ticker":                         2,
-						"risk_reverse":                   2,
-						"risk_reverse/history":           2,
-						"funding_rate/history":           2,
+						"ping": map[string]any{
+							"cost": 2,
+						},
+						"detail": map[string]any{
+							"cost": 100,
+						},
+						"support_currencies": map[string]any{
+							"cost": 2,
+						},
+						"depth/{symbol}": map[string]any{
+							"cost": 2,
+						},
+						"depth_commits/{symbol}/{limit}": map[string]any{
+							"cost": 2,
+						},
+						"index_price/{symbol}": map[string]any{
+							"cost": 2,
+						},
+						"fair_price/{symbol}": map[string]any{
+							"cost": 2,
+						},
+						"funding_rate/{symbol}": map[string]any{
+							"cost": 2,
+						},
+						"kline/{symbol}": map[string]any{
+							"cost": 2,
+						},
+						"kline/index_price/{symbol}": map[string]any{
+							"cost": 2,
+						},
+						"kline/fair_price/{symbol}": map[string]any{
+							"cost": 2,
+						},
+						"deals/{symbol}": map[string]any{
+							"cost": 2,
+						},
+						"ticker": map[string]any{
+							"cost": 2,
+						},
+						"risk_reverse": map[string]any{
+							"cost": 2,
+						},
+						"risk_reverse/history": map[string]any{
+							"cost": 2,
+						},
+						"funding_rate/history": map[string]any{
+							"cost": 2,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"account/assets":                           2,
-						"account/asset/{currency}":                 2,
-						"account/transfer_record":                  2,
-						"account/profit_rate/{type}":               2,
-						"account/asset/analysis/{type}":            2,
-						"account/feeDeductConfigs":                 2,
-						"account/asset/analysis/yesterday_pnl":     2,
-						"account/asset/analysis/today_pnl":         2,
-						"account/config/contractFeeDiscountConfig": 2,
-						"order/fee_details":                        2,
-						"account/discountType":                     2,
-						"account/asset/analysis/export":            2,
-						"account/asset_book/order_deal_fee/total":  2,
-						"account/contract/fee_rate":                2,
-						"account/contract/zero_fee_rate":           2,
-						"position/list/history_positions":          2,
-						"position/open_positions":                  2,
-						"position/funding_records":                 2,
-						"position/position_mode":                   2,
-						"order/list/open_orders/{symbol}":          2,
-						"order/list/open_orders":                   2,
-						"order/list/history_orders":                2,
-						"order/list/order_deals/v3":                2,
-						"order/external/{symbol}/{external_oid}":   2,
-						"order/get/{order_id}":                     2,
-						"order/batch_query":                        8,
-						"order/deal_details/{order_id}":            2,
-						"order/list/order_deals":                   2,
-						"order/list/close_orders":                  2,
-						"planorder/list/orders":                    2,
-						"stoporder/list/orders":                    2,
-						"stoporder/open_orders":                    2,
-						"stoporder/order_details/{stop_order_id}":  2,
-						"account/risk_limit":                       2,
-						"account/tiered_fee_rate":                  2,
-						"position/leverage":                        2,
-						"account/tiered_fee_rate/v2":               2,
-						"trackorder/list/orders":                   2,
-						"market_maker/self_trade/blacklist":        2,
-						"market_maker/self_trade/blacklist/search": 2,
+						"account/assets": map[string]any{
+							"cost": 2,
+						},
+						"account/asset/{currency}": map[string]any{
+							"cost": 2,
+						},
+						"account/transfer_record": map[string]any{
+							"cost": 2,
+						},
+						"account/profit_rate/{type}": map[string]any{
+							"cost": 2,
+						},
+						"account/asset/analysis/{type}": map[string]any{
+							"cost": 2,
+						},
+						"account/feeDeductConfigs": map[string]any{
+							"cost": 2,
+						},
+						"account/asset/analysis/yesterday_pnl": map[string]any{
+							"cost": 2,
+						},
+						"account/asset/analysis/today_pnl": map[string]any{
+							"cost": 2,
+						},
+						"account/config/contractFeeDiscountConfig": map[string]any{
+							"cost": 2,
+						},
+						"order/fee_details": map[string]any{
+							"cost": 2,
+						},
+						"account/discountType": map[string]any{
+							"cost": 2,
+						},
+						"account/asset/analysis/export": map[string]any{
+							"cost": 2,
+						},
+						"account/asset_book/order_deal_fee/total": map[string]any{
+							"cost": 2,
+						},
+						"account/contract/fee_rate": map[string]any{
+							"cost": 2,
+						},
+						"account/contract/zero_fee_rate": map[string]any{
+							"cost": 2,
+						},
+						"position/list/history_positions": map[string]any{
+							"cost": 2,
+						},
+						"position/open_positions": map[string]any{
+							"cost": 2,
+						},
+						"position/funding_records": map[string]any{
+							"cost": 2,
+						},
+						"position/position_mode": map[string]any{
+							"cost": 2,
+						},
+						"order/list/open_orders/{symbol}": map[string]any{
+							"cost": 2,
+						},
+						"order/list/open_orders": map[string]any{
+							"cost": 2,
+						},
+						"order/list/history_orders": map[string]any{
+							"cost": 2,
+						},
+						"order/list/order_deals/v3": map[string]any{
+							"cost": 2,
+						},
+						"order/external/{symbol}/{external_oid}": map[string]any{
+							"cost": 2,
+						},
+						"order/get/{order_id}": map[string]any{
+							"cost": 2,
+						},
+						"order/batch_query": map[string]any{
+							"cost": 8,
+						},
+						"order/deal_details/{order_id}": map[string]any{
+							"cost": 2,
+						},
+						"order/list/order_deals": map[string]any{
+							"cost": 2,
+						},
+						"order/list/close_orders": map[string]any{
+							"cost": 2,
+						},
+						"planorder/list/orders": map[string]any{
+							"cost": 2,
+						},
+						"stoporder/list/orders": map[string]any{
+							"cost": 2,
+						},
+						"stoporder/open_orders": map[string]any{
+							"cost": 2,
+						},
+						"stoporder/order_details/{stop_order_id}": map[string]any{
+							"cost": 2,
+						},
+						"account/risk_limit": map[string]any{
+							"cost": 2,
+						},
+						"account/tiered_fee_rate": map[string]any{
+							"cost": 2,
+						},
+						"position/leverage": map[string]any{
+							"cost": 2,
+						},
+						"account/tiered_fee_rate/v2": map[string]any{
+							"cost": 2,
+						},
+						"trackorder/list/orders": map[string]any{
+							"cost": 2,
+						},
+						"market_maker/self_trade/blacklist": map[string]any{
+							"cost": 2,
+						},
+						"market_maker/self_trade/blacklist/search": map[string]any{
+							"cost": 2,
+						},
 					},
 					"post": map[string]any{
-						"account/asset/analysis/v3":                  2,
-						"account/asset/analysis/calendar/daily/v3":   2,
-						"account/asset/analysis/calendar/monthly/v3": 2,
-						"account/asset/analysis/recent/v3":           2,
-						"position/change_margin":                     2,
-						"position/change_auto_add_im":                2,
-						"position/change_leverage":                   2,
-						"position/change_position_mode":              2,
-						"position/reverse":                           2,
-						"position/close_all":                         10,
-						"order/create":                               2,
-						"order/submit":                               2,
-						"order/submit_batch":                         40,
-						"order/chase_limit_order":                    40,
-						"order/change_limit_order":                   40,
-						"order/cancel":                               2,
-						"order/batch_cancel_with_external":           2,
-						"order/cancel_with_external":                 2,
-						"order/cancel_all":                           2,
-						"order/open_order_total_count":               2,
-						"order/batch_query_with_external":            2,
-						"account/change_risk_level":                  2,
-						"planorder/place":                            2,
-						"planorder/place/v2":                         2,
-						"planorder/cancel":                           2,
-						"planorder/cancel_all":                       2,
-						"planorder/change_stop_order":                2,
-						"stoporder/place":                            2,
-						"stoporder/cancel":                           2,
-						"stoporder/cancel_all":                       2,
-						"stoporder/change_price":                     2,
-						"stoporder/change_plan_price":                2,
-						"trackorder/place":                           2,
-						"trackorder/cancel":                          2,
-						"trackorder/change_order":                    2,
-						"market_maker/self_trade/blacklist/create":   2,
-						"market_maker/self_trade/blacklist/update":   2,
-						"market_maker/self_trade/blacklist/delete":   2,
+						"account/asset/analysis/v3": map[string]any{
+							"cost": 2,
+						},
+						"account/asset/analysis/calendar/daily/v3": map[string]any{
+							"cost": 2,
+						},
+						"account/asset/analysis/calendar/monthly/v3": map[string]any{
+							"cost": 2,
+						},
+						"account/asset/analysis/recent/v3": map[string]any{
+							"cost": 2,
+						},
+						"position/change_margin": map[string]any{
+							"cost": 2,
+						},
+						"position/change_auto_add_im": map[string]any{
+							"cost": 2,
+						},
+						"position/change_leverage": map[string]any{
+							"cost": 2,
+						},
+						"position/change_position_mode": map[string]any{
+							"cost": 2,
+						},
+						"position/reverse": map[string]any{
+							"cost": 2,
+						},
+						"position/close_all": map[string]any{
+							"cost": 10,
+						},
+						"order/create": map[string]any{
+							"cost": 2,
+						},
+						"order/submit": map[string]any{
+							"cost": 2,
+						},
+						"order/submit_batch": map[string]any{
+							"cost": 40,
+						},
+						"order/chase_limit_order": map[string]any{
+							"cost": 40,
+						},
+						"order/change_limit_order": map[string]any{
+							"cost": 40,
+						},
+						"order/cancel": map[string]any{
+							"cost": 2,
+						},
+						"order/batch_cancel_with_external": map[string]any{
+							"cost": 2,
+						},
+						"order/cancel_with_external": map[string]any{
+							"cost": 2,
+						},
+						"order/cancel_all": map[string]any{
+							"cost": 2,
+						},
+						"order/open_order_total_count": map[string]any{
+							"cost": 2,
+						},
+						"order/batch_query_with_external": map[string]any{
+							"cost": 2,
+						},
+						"account/change_risk_level": map[string]any{
+							"cost": 2,
+						},
+						"planorder/place": map[string]any{
+							"cost": 2,
+						},
+						"planorder/place/v2": map[string]any{
+							"cost": 2,
+						},
+						"planorder/cancel": map[string]any{
+							"cost": 2,
+						},
+						"planorder/cancel_all": map[string]any{
+							"cost": 2,
+						},
+						"planorder/change_stop_order": map[string]any{
+							"cost": 2,
+						},
+						"stoporder/place": map[string]any{
+							"cost": 2,
+						},
+						"stoporder/cancel": map[string]any{
+							"cost": 2,
+						},
+						"stoporder/cancel_all": map[string]any{
+							"cost": 2,
+						},
+						"stoporder/change_price": map[string]any{
+							"cost": 2,
+						},
+						"stoporder/change_plan_price": map[string]any{
+							"cost": 2,
+						},
+						"trackorder/place": map[string]any{
+							"cost": 2,
+						},
+						"trackorder/cancel": map[string]any{
+							"cost": 2,
+						},
+						"trackorder/change_order": map[string]any{
+							"cost": 2,
+						},
+						"market_maker/self_trade/blacklist/create": map[string]any{
+							"cost": 2,
+						},
+						"market_maker/self_trade/blacklist/update": map[string]any{
+							"cost": 2,
+						},
+						"market_maker/self_trade/blacklist/delete": map[string]any{
+							"cost": 2,
+						},
 					},
 				},
 			},
 			"spot2": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"market/symbols":             1,
-						"market/coin/list":           2,
-						"common/timestamp":           1,
-						"common/ping":                2,
-						"market/ticker":              1,
-						"market/depth":               1,
-						"market/deals":               1,
-						"market/kline":               1,
-						"market/api_default_symbols": 2,
+						"market/symbols": map[string]any{
+							"cost": 1,
+						},
+						"market/coin/list": map[string]any{
+							"cost": 2,
+						},
+						"common/timestamp": map[string]any{
+							"cost": 1,
+						},
+						"common/ping": map[string]any{
+							"cost": 2,
+						},
+						"market/ticker": map[string]any{
+							"cost": 1,
+						},
+						"market/depth": map[string]any{
+							"cost": 1,
+						},
+						"market/deals": map[string]any{
+							"cost": 1,
+						},
+						"market/kline": map[string]any{
+							"cost": 1,
+						},
+						"market/api_default_symbols": map[string]any{
+							"cost": 2,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"account/info":                   1,
-						"order/open_orders":              1,
-						"order/list":                     1,
-						"order/query":                    1,
-						"order/deals":                    1,
-						"order/deal_detail":              1,
-						"asset/deposit/address/list":     2,
-						"asset/deposit/list":             2,
-						"asset/address/list":             2,
-						"asset/withdraw/list":            2,
-						"asset/internal/transfer/record": 10,
-						"account/balance":                10,
-						"asset/internal/transfer/info":   10,
-						"market/api_symbols":             2,
+						"account/info": map[string]any{
+							"cost": 1,
+						},
+						"order/open_orders": map[string]any{
+							"cost": 1,
+						},
+						"order/list": map[string]any{
+							"cost": 1,
+						},
+						"order/query": map[string]any{
+							"cost": 1,
+						},
+						"order/deals": map[string]any{
+							"cost": 1,
+						},
+						"order/deal_detail": map[string]any{
+							"cost": 1,
+						},
+						"asset/deposit/address/list": map[string]any{
+							"cost": 2,
+						},
+						"asset/deposit/list": map[string]any{
+							"cost": 2,
+						},
+						"asset/address/list": map[string]any{
+							"cost": 2,
+						},
+						"asset/withdraw/list": map[string]any{
+							"cost": 2,
+						},
+						"asset/internal/transfer/record": map[string]any{
+							"cost": 10,
+						},
+						"account/balance": map[string]any{
+							"cost": 10,
+						},
+						"asset/internal/transfer/info": map[string]any{
+							"cost": 10,
+						},
+						"market/api_symbols": map[string]any{
+							"cost": 2,
+						},
 					},
 					"post": map[string]any{
-						"order/place":                1,
-						"order/place_batch":          1,
-						"order/advanced/place_batch": 1,
-						"asset/withdraw":             2,
-						"asset/internal/transfer":    10,
+						"order/place": map[string]any{
+							"cost": 1,
+						},
+						"order/place_batch": map[string]any{
+							"cost": 1,
+						},
+						"order/advanced/place_batch": map[string]any{
+							"cost": 1,
+						},
+						"asset/withdraw": map[string]any{
+							"cost": 2,
+						},
+						"asset/internal/transfer": map[string]any{
+							"cost": 10,
+						},
 					},
 					"delete": map[string]any{
-						"order/cancel":           1,
-						"order/cancel_by_symbol": 1,
-						"asset/withdraw":         2,
+						"order/cancel": map[string]any{
+							"cost": 1,
+						},
+						"order/cancel_by_symbol": map[string]any{
+							"cost": 1,
+						},
+						"asset/withdraw": map[string]any{
+							"cost": 2,
+						},
 					},
 				},
 			},
 			"broker": map[string]any{
 				"private": map[string]any{
 					"get": map[string]any{
-						"sub-account/universalTransfer":    1,
-						"sub-account/list":                 1,
-						"sub-account/status":               1,
-						"sub-account/apiKey":               1,
-						"capital/deposit/subAddress":       1,
-						"capital/deposit/subHisrec":        1,
-						"capital/deposit/subHisrec/getall": 1,
-						"rebate/taxQuery":                  1,
+						"sub-account/universalTransfer": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/list": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/status": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/apiKey": map[string]any{
+							"cost": 1,
+						},
+						"capital/deposit/subAddress": map[string]any{
+							"cost": 1,
+						},
+						"capital/deposit/subHisrec": map[string]any{
+							"cost": 1,
+						},
+						"capital/deposit/subHisrec/getall": map[string]any{
+							"cost": 1,
+						},
+						"rebate/taxQuery": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"sub-account/virtualSubAccount": 1,
-						"sub-account/apiKey":            1,
-						"capital/deposit/subAddress":    1,
-						"capital/withdraw/apply":        1,
-						"sub-account/universalTransfer": 1,
-						"sub-account/futures":           1,
+						"sub-account/virtualSubAccount": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/apiKey": map[string]any{
+							"cost": 1,
+						},
+						"capital/deposit/subAddress": map[string]any{
+							"cost": 1,
+						},
+						"capital/withdraw/apply": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/universalTransfer": map[string]any{
+							"cost": 1,
+						},
+						"sub-account/futures": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"sub-account/apiKey": 1,
+						"sub-account/apiKey": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -1856,7 +2332,7 @@ func (this *MexcCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			//       ],
 			//     ]
 			//
-			candles = response
+			candles = this.ToArray(response)
 		} else if IsTrue(GetValue(market, "swap")) {
 			if IsTrue(!IsEqual(since, nil)) {
 				AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
@@ -6926,7 +7402,7 @@ func (this *MexcCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		//        ]
 		//    }
 		//
-		var data any = this.SafeList(response, "data")
+		var data any = this.SafeList(response, "data", []any{})
 		var positions any = this.ParsePositions(data, symbols, params)
 
 		ch <- this.FilterBySinceLimit(positions, since, limit)
@@ -6993,7 +7469,7 @@ func (this *MexcCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan 
 		//
 		// { success: true, code: '0' }
 		//
-		ch <- this.ParseLeverage(response, market) // tmp revert type
+		ch <- this.ParseLeverage(response, market) // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
 		return nil
 
 	}()

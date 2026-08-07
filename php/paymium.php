@@ -62,38 +62,38 @@ class paymium extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'countries',
-                        'currencies',
-                        'data/{currency}/ticker',
-                        'data/{currency}/trades',
-                        'data/{currency}/depth',
-                        'bitcoin_charts/{id}/trades',
-                        'bitcoin_charts/{id}/depth',
+                        'countries' => array( 'cost' => 1 ),
+                        'currencies' => array( 'cost' => 1 ),
+                        'data/{currency}/ticker' => array( 'cost' => 1 ),
+                        'data/{currency}/trades' => array( 'cost' => 1 ),
+                        'data/{currency}/depth' => array( 'cost' => 1 ),
+                        'bitcoin_charts/{id}/trades' => array( 'cost' => 1 ),
+                        'bitcoin_charts/{id}/depth' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'user',
-                        'user/addresses',
-                        'user/addresses/{address}',
-                        'user/orders',
-                        'user/orders/{uuid}',
-                        'user/price_alerts',
-                        'merchant/get_payment/{uuid}',
+                        'user' => array( 'cost' => 1 ),
+                        'user/addresses' => array( 'cost' => 1 ),
+                        'user/addresses/{address}' => array( 'cost' => 1 ),
+                        'user/orders' => array( 'cost' => 1 ),
+                        'user/orders/{uuid}' => array( 'cost' => 1 ),
+                        'user/price_alerts' => array( 'cost' => 1 ),
+                        'merchant/get_payment/{uuid}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'user/addresses',
-                        'user/orders',
-                        'user/withdrawals',
-                        'user/email_transfers',
-                        'user/payment_requests',
-                        'user/price_alerts',
-                        'merchant/create_payment',
+                        'user/addresses' => array( 'cost' => 1 ),
+                        'user/orders' => array( 'cost' => 1 ),
+                        'user/withdrawals' => array( 'cost' => 1 ),
+                        'user/email_transfers' => array( 'cost' => 1 ),
+                        'user/payment_requests' => array( 'cost' => 1 ),
+                        'user/price_alerts' => array( 'cost' => 1 ),
+                        'merchant/create_payment' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
+                        'user/orders/{uuid}' => array( 'cost' => 1 ),
+                        'user/orders/{uuid}/cancel' => array( 'cost' => 1 ),
+                        'user/price_alerts/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -475,7 +475,7 @@ class paymium extends Exchange {
         $response = $this->privatePostUserOrders($this->extend($request, $params));
         return $this->safe_order(array(
             'info' => $response,
-            'id' => $response['uuid'],
+            'id' => $this->safe_string($response, 'uuid'),
         ), $market);
     }
 

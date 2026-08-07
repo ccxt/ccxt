@@ -804,7 +804,7 @@ export default class binance extends Exchange {
     fetchTransactionFees(codes?: Strings, params?: {}): Promise<{
         withdraw: Dict;
         deposit: {};
-        info: any;
+        info: List;
     }>;
     /**
      * @method
@@ -1288,7 +1288,7 @@ export default class binance extends Exchange {
      * @returns {object} The gift code id, code, currency and amount
      */
     createGiftCode(code: string, amount: any, params?: {}): Promise<{
-        info: any;
+        info: Dict;
         id: Str;
         code: Str;
         currency: string;
@@ -1303,7 +1303,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    redeemGiftCode(giftcardCode: any, params?: {}): Promise<any>;
+    redeemGiftCode(giftcardCode: any, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name binance#verifyGiftCode
@@ -1313,7 +1313,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    verifyGiftCode(id: string, params?: {}): Promise<any>;
+    verifyGiftCode(id: string, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name binance#fetchBorrowInterest

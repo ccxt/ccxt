@@ -167,7 +167,6 @@ const SCALARS: Record<string, Resolved> = {
     'Bool': { 't': 'bool' },
     'boolean': { 't': 'bool' },
     'any': { 't': 'any' },
-    'implicitReturnType': { 't': 'any' },
     'OrderSide': { 't': 'str' },
     'OrderType': { 't': 'str' },
     'MarketType': { 't': 'str' },

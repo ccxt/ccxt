@@ -7,12 +7,12 @@
 
 package ccxt
 
-func (this *KrakenCore) ZendeskGet360000292886(args ...any) <-chan any {
-	return this.callEndpointAsync("zendeskGet360000292886", args...)
-}
-
 func (this *KrakenCore) ZendeskGet201893608(args ...any) <-chan any {
 	return this.callEndpointAsync("zendeskGet201893608", args...)
+}
+
+func (this *KrakenCore) ZendeskGet360000292886(args ...any) <-chan any {
+	return this.callEndpointAsync("zendeskGet360000292886", args...)
 }
 
 func (this *KrakenCore) PublicGetTime(args ...any) <-chan any {

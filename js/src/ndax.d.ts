@@ -23,7 +23,7 @@ export default class ndax extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    signIn(params?: {}): Promise<any>;
+    signIn(params?: {}): Promise<Dict>;
     /**
      * @method
      * @name ndax#fetchCurrencies

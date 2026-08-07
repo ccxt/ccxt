@@ -135,69 +135,69 @@ class luno extends Exchange {
             'api' => array(
                 'exchange' => array(
                     'get' => array(
-                        'markets' => 1,
+                        'markets' => array( 'cost' => 1 ),
                     ),
                 ),
                 'exchangePrivate' => array(
                     'get' => array(
-                        'candles' => 1,
-                        'move' => 1,
-                        'move/list_moves' => 1,
-                        'transfers' => 1,
+                        'candles' => array( 'cost' => 1 ),
+                        'move' => array( 'cost' => 1 ),
+                        'move/list_moves' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'convert' => 1,
-                        'move' => 1,
+                        'convert' => array( 'cost' => 1 ),
+                        'move' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'orderbook' => 1,
-                        'orderbook_top' => 1,
-                        'ticker' => 1,
-                        'tickers' => 1,
-                        'trades' => 1,
+                        'orderbook' => array( 'cost' => 1 ),
+                        'orderbook_top' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts/{id}/pending' => 1,
-                        'accounts/{id}/transactions' => 1,
-                        'balance' => 1,
-                        'beneficiaries' => 1,
-                        'send/networks' => 1,
-                        'fee_info' => 1,
-                        'funding_address' => 1,
-                        'listorders' => 1,
-                        'listtrades' => 1,
-                        'send_fee' => 1,
-                        'orders/{id}' => 1,
-                        'withdrawals' => 1,
-                        'withdrawals/{id}' => 1,
-                        'transfers' => 1, // not found in current docs, use GET /api/exchange/1/transfers
-                        'users/linked' => 1,
+                        'accounts/{id}/pending' => array( 'cost' => 1 ),
+                        'accounts/{id}/transactions' => array( 'cost' => 1 ),
+                        'balance' => array( 'cost' => 1 ),
+                        'beneficiaries' => array( 'cost' => 1 ),
+                        'send/networks' => array( 'cost' => 1 ),
+                        'fee_info' => array( 'cost' => 1 ),
+                        'funding_address' => array( 'cost' => 1 ),
+                        'listorders' => array( 'cost' => 1 ),
+                        'listtrades' => array( 'cost' => 1 ),
+                        'send_fee' => array( 'cost' => 1 ),
+                        'orders/{id}' => array( 'cost' => 1 ),
+                        'withdrawals' => array( 'cost' => 1 ),
+                        'withdrawals/{id}' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ), // not found in current docs, use GET /api/exchange/1/transfers
+                        'users/linked' => array( 'cost' => 1 ),
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
                     ),
                     'post' => array(
-                        'accounts' => 1,
-                        'address/validate' => 1,
-                        'postorder' => 1,
-                        'marketorder' => 1,
-                        'stoporder' => 1,
-                        'funding_address' => 1,
-                        'withdrawals' => 1,
-                        'send' => 1,
-                        'oauth2/grant' => 1, // deprecated for new applications
-                        'beneficiaries' => 1,
+                        'accounts' => array( 'cost' => 1 ),
+                        'address/validate' => array( 'cost' => 1 ),
+                        'postorder' => array( 'cost' => 1 ),
+                        'marketorder' => array( 'cost' => 1 ),
+                        'stoporder' => array( 'cost' => 1 ),
+                        'funding_address' => array( 'cost' => 1 ),
+                        'withdrawals' => array( 'cost' => 1 ),
+                        'send' => array( 'cost' => 1 ),
+                        'oauth2/grant' => array( 'cost' => 1 ), // deprecated for new applications
+                        'beneficiaries' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'accounts/{id}/name' => 1,
+                        'accounts/{id}/name' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'withdrawals/{id}' => 1,
-                        'beneficiaries/{id}' => 1,
+                        'withdrawals/{id}' => array( 'cost' => 1 ),
+                        'beneficiaries/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -914,7 +914,8 @@ class luno extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetTickers($params);
-        $tickers = $this->index_by($response['tickers'], 'pair');
+        $rawTickers = $this->safe_list($response, 'tickers', array());
+        $tickers = $this->index_by($rawTickers, 'pair');
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {

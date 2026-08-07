@@ -1362,12 +1362,12 @@ func (this *Pacifica) FetchApiKeys(params ...any) (map[string]any, error) {
 	}
 	return res.(map[string]any), nil
 }
-func (this *Pacifica) FetchBuilderApprovals(address string) (map[string]any, error) {
+func (this *Pacifica) FetchBuilderApprovals(address string) ([]map[string]any, error) {
 	res := <-this.Core.FetchBuilderApprovals(address)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 // missing typed methods from base

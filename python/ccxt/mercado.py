@@ -145,41 +145,41 @@ class mercado(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'coins',
-                        '{coin}/orderbook/',  # last slash critical
-                        '{coin}/ticker/',
-                        '{coin}/trades/',
-                        '{coin}/trades/{from}/',
-                        '{coin}/trades/{from}/{to}',
-                        '{coin}/day-summary/{year}/{month}/{day}/',
-                    ],
+                    'get': {
+                        'coins': {'cost': 1},
+                        '{coin}/orderbook/': {'cost': 1},
+                        '{coin}/ticker/': {'cost': 1},
+                        '{coin}/trades/': {'cost': 1},
+                        '{coin}/trades/{from}/': {'cost': 1},
+                        '{coin}/trades/{from}/{to}': {'cost': 1},
+                        '{coin}/day-summary/{year}/{month}/{day}/': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'cancel_order',
-                        'get_account_info',
-                        'get_order',
-                        'get_withdrawal',
-                        'list_system_messages',
-                        'list_orders',
-                        'list_orderbook',
-                        'place_buy_order',
-                        'place_sell_order',
-                        'place_market_buy_order',
-                        'place_market_sell_order',
-                        'withdraw_coin',
-                    ],
+                    'post': {
+                        'cancel_order': {'cost': 1},
+                        'get_account_info': {'cost': 1},
+                        'get_order': {'cost': 1},
+                        'get_withdrawal': {'cost': 1},
+                        'list_system_messages': {'cost': 1},
+                        'list_orders': {'cost': 1},
+                        'list_orderbook': {'cost': 1},
+                        'place_buy_order': {'cost': 1},
+                        'place_sell_order': {'cost': 1},
+                        'place_market_buy_order': {'cost': 1},
+                        'place_market_sell_order': {'cost': 1},
+                        'withdraw_coin': {'cost': 1},
+                    },
                 },
                 'v4Public': {
-                    'get': [
-                        '{coin}/candle/',
-                    ],
+                    'get': {
+                        '{coin}/candle/': {'cost': 1},
+                    },
                 },
                 'v4PublicNet': {
-                    'get': [
-                        'candles',
-                    ],
+                    'get': {
+                        'candles': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -299,8 +299,9 @@ class mercado(Exchange, ImplicitAPI):
         #
         result = []
         amountLimits = self.safe_value(self.options, 'limits', {})
-        for i in range(0, len(response)):
-            coin = response[i]
+        coins = self.to_array(response)
+        for i in range(0, len(coins)):
+            coin = coins[i]
             baseId = coin
             quoteId = 'BRL'
             base = self.safe_currency_code(baseId)
@@ -848,8 +849,9 @@ class mercado(Exchange, ImplicitAPI):
             request['to'] = self.seconds()
             request['from'] = request['to'] - (limit * self.parse_timeframe(timeframe))
         response = self.v4PublicNetGetCandles(self.extend(request, params))
-        candles = self.convert_trading_view_to_ohlcv(response, 't', 'o', 'h', 'l', 'c', 'v')
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        # parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
+        # then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
+        return self.parse_trading_view_ohlcv(response, market, timeframe, since, limit)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

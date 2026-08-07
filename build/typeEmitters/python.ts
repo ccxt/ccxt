@@ -34,11 +34,11 @@ const HAND_MAINTAINED: string[] = [ 'Balances', 'MarketMarginModes' ];
 
 // Exported by the TS but intentionally not part of the Python surface. `Dict`, `List`,
 // `NullableDict` and `NullableList` would shadow typing.Dict / typing.List; `int`,
-// `implicitReturnType`, `Dictionary` and `NestedDictionary` have no Python analogue; the
+// `Dictionary` and `NestedDictionary` have no Python analogue; the
 // rest are simply not re-exported by the Python port today.
 const NOT_PORTED: string[] = [
     'int', 'Dictionary', 'NestedDictionary', 'Dict', 'NullableDict', 'List', 'NullableList',
-    'implicitReturnType', 'OHLCV', 'OHLCVC',
+    'OHLCV', 'OHLCVC',
     // the Python port predates these and does not expose them yet — appending new names
     // would change the public surface, so that is an editorial decision, not generation
     'PartialBalances', 'WithdrawalResponse', 'DepositWithdrawFeeNetwork', 'DepositWithdrawFee',

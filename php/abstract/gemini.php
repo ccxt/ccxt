@@ -8,10 +8,10 @@ namespace ccxt\abstract;
 
 abstract class gemini extends \ccxt\Exchange {
     public function webexchange_get($params = array()) {
-        return $this->request('', 'webExchange', 'GET', $params, null, null, array());
+        return $this->request('', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
     }
     public function web_get_rest_api($params = array()) {
-        return $this->request('rest-api', 'web', 'GET', $params, null, null, array());
+        return $this->request('rest-api', 'web', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_v1_symbols($params = array()) {
         return $this->request('v1/symbols', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -254,10 +254,10 @@ abstract class gemini extends \ccxt\Exchange {
         return $this->request('v1/positions', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function webExchangeGet($params = array()) {
-        return $this->request('', 'webExchange', 'GET', $params, null, null, array());
+        return $this->request('', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
     }
     public function webGetRestApi($params = array()) {
-        return $this->request('rest-api', 'web', 'GET', $params, null, null, array());
+        return $this->request('rest-api', 'web', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetV1Symbols($params = array()) {
         return $this->request('v1/symbols', 'public', 'GET', $params, null, null, array("cost" => 5));

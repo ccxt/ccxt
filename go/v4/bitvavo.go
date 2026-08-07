@@ -164,68 +164,140 @@ func (this *BitvavoCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"{market}/book":          1,
-					"report/{market}/book":   1,
-					"{market}/trades":        5,
-					"report/{market}/trades": 5,
-					"ticker/price":           1,
-					"ticker/book":            1,
-					"{market}/candles":       1,
+					"{market}/book": map[string]any{
+						"cost": 1,
+					},
+					"report/{market}/book": map[string]any{
+						"cost": 1,
+					},
+					"{market}/trades": map[string]any{
+						"cost": 5,
+					},
+					"report/{market}/trades": map[string]any{
+						"cost": 5,
+					},
+					"ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"ticker/book": map[string]any{
+						"cost": 1,
+					},
+					"{market}/candles": map[string]any{
+						"cost": 1,
+					},
 					"ticker/24h": map[string]any{
 						"cost":     1,
 						"noMarket": 25,
 					},
-					"time":    1,
-					"markets": 1,
-					"assets":  1,
+					"time": map[string]any{
+						"cost": 1,
+					},
+					"markets": map[string]any{
+						"cost": 1,
+					},
+					"assets": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"order": 1,
+					"order": map[string]any{
+						"cost": 1,
+					},
 					"ordersOpen": map[string]any{
 						"cost":     5,
 						"noMarket": 100,
 					},
-					"trades":                             5,
-					"orders":                             5,
-					"deposit":                            1,
-					"depositHistory":                     5,
-					"withdrawalHistory":                  5,
-					"account":                            1,
-					"balance":                            5,
-					"stakingBalance":                     1,
-					"account/fees":                       1,
-					"account/history":                    1,
-					"subaccounts":                        5,
-					"subaccounts/transfers":              5,
-					"subaccounts/transfers/{transferId}": 5,
-					"institutional/subaccounts/balance":  5,
-					"institutional/subaccounts/history":  5,
+					"trades": map[string]any{
+						"cost": 5,
+					},
+					"orders": map[string]any{
+						"cost": 5,
+					},
+					"deposit": map[string]any{
+						"cost": 1,
+					},
+					"depositHistory": map[string]any{
+						"cost": 5,
+					},
+					"withdrawalHistory": map[string]any{
+						"cost": 5,
+					},
+					"account": map[string]any{
+						"cost": 1,
+					},
+					"balance": map[string]any{
+						"cost": 5,
+					},
+					"stakingBalance": map[string]any{
+						"cost": 1,
+					},
+					"account/fees": map[string]any{
+						"cost": 1,
+					},
+					"account/history": map[string]any{
+						"cost": 1,
+					},
+					"subaccounts": map[string]any{
+						"cost": 5,
+					},
+					"subaccounts/transfers": map[string]any{
+						"cost": 5,
+					},
+					"subaccounts/transfers/{transferId}": map[string]any{
+						"cost": 5,
+					},
+					"institutional/subaccounts/balance": map[string]any{
+						"cost": 5,
+					},
+					"institutional/subaccounts/history": map[string]any{
+						"cost": 5,
+					},
 					"institutional/subaccounts/orders/open": map[string]any{
 						"cost":     5,
 						"noMarket": 100,
 					},
 				},
 				"post": map[string]any{
-					"order":                 1,
-					"cancelOrdersAfter":     5,
-					"withdrawal":            1,
-					"crypto/withdrawal":     25,
-					"subaccounts":           5,
-					"subaccounts/transfers": 5,
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"cancelOrdersAfter": map[string]any{
+						"cost": 5,
+					},
+					"withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"crypto/withdrawal": map[string]any{
+						"cost": 25,
+					},
+					"subaccounts": map[string]any{
+						"cost": 5,
+					},
+					"subaccounts/transfers": map[string]any{
+						"cost": 5,
+					},
 				},
 				"put": map[string]any{
-					"order": 1,
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"order": 1,
+					"order": map[string]any{
+						"cost": 1,
+					},
 					"orders": map[string]any{
 						"cost":     25,
 						"noMarket": 100,
 					},
-					"atomic/orders":                   100,
-					"institutional/subaccounts/order": 1,
+					"atomic/orders": map[string]any{
+						"cost": 100,
+					},
+					"institutional/subaccounts/order": map[string]any{
+						"cost": 1,
+					},
 					"institutional/subaccounts/orders": map[string]any{
 						"cost":     25,
 						"noMarket": 100,
@@ -1329,7 +1401,7 @@ func (this *BitvavoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		//         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()

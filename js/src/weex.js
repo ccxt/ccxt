@@ -206,103 +206,103 @@ export default class weex extends Exchange {
                 'public': {
                     // multiply public endpoints weight by 5
                     'get': {
-                        'api/v3/time': 5, // done
-                        'api/v3/coins': 25, // done
-                        'api/v3/exchangeInfo': 100, // done
-                        'api/v3/ping': 5, // done
-                        'api/v3/apiTradingSymbols': 25, // not unified
-                        'api/v3/market/ticker/price': 20, // not unified
-                        'api/v3/market/ticker/24hr': 10, // done
-                        'api/v3/market/trades': 125, // done
-                        'api/v3/market/klines': 10, // done
-                        'api/v3/market/depth': 25, // done
-                        'api/v3/market/ticker/bookTicker': 20, // done
+                        'api/v3/time': { 'cost': 5 }, // done
+                        'api/v3/coins': { 'cost': 25 }, // done
+                        'api/v3/exchangeInfo': { 'cost': 100 }, // done
+                        'api/v3/ping': { 'cost': 5 }, // done
+                        'api/v3/apiTradingSymbols': { 'cost': 25 }, // not unified
+                        'api/v3/market/ticker/price': { 'cost': 20 }, // not unified
+                        'api/v3/market/ticker/24hr': { 'cost': 10 }, // done
+                        'api/v3/market/trades': { 'cost': 125 }, // done
+                        'api/v3/market/klines': { 'cost': 10 }, // done
+                        'api/v3/market/depth': { 'cost': 25 }, // done
+                        'api/v3/market/ticker/bookTicker': { 'cost': 20 }, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v3/account/': 5, // done
-                        'api/v3/account/transferRecords': 3, // done
-                        'api/v3/order': 2, // done
-                        'api/v3/openOrders': 3, // done
-                        'api/v3/allOrders': 10, // done
-                        'api/v3/myTrades': 5, // done
-                        'api/v3/rebate/affiliate/getAffiliateUIDs': 20, // not unified
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': 20, // not unified
-                        'api/v3/rebate/affiliate/getAffiliateCommission': 20, // not unified
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': 100, // not unified
-                        'api/v3/rebate/affiliate/querySubChannelTransactions': 10, // not unified
-                        'api/v3/agency/verifyReferrals': 20, // not unified
-                        'api/v3/agency/getAssert': 20, // not unified
-                        'api/v3/agency/getDealData': 20, // not unified
+                        'api/v3/account/': { 'cost': 5 }, // done
+                        'api/v3/account/transferRecords': { 'cost': 3 }, // done
+                        'api/v3/order': { 'cost': 2 }, // done
+                        'api/v3/openOrders': { 'cost': 3 }, // done
+                        'api/v3/allOrders': { 'cost': 10 }, // done
+                        'api/v3/myTrades': { 'cost': 5 }, // done
+                        'api/v3/rebate/affiliate/getAffiliateUIDs': { 'cost': 20 }, // not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': { 'cost': 20 }, // not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission': { 'cost': 20 }, // not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': { 'cost': 100 }, // not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions': { 'cost': 10 }, // not unified
+                        'api/v3/agency/verifyReferrals': { 'cost': 20 }, // not unified
+                        'api/v3/agency/getAssert': { 'cost': 20 }, // not unified
+                        'api/v3/agency/getDealData': { 'cost': 20 }, // not unified
                     },
                     'post': {
-                        'api/v3/account/bills': 5, // done
-                        'api/v3/account/fundingBills': 5, // done
-                        'api/v3/order': 5, // done
-                        'api/v3/order/batch': 50, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
-                        'api/v3/rebate/affiliate/internalWithdrawal': 100, // not unified
+                        'api/v3/account/bills': { 'cost': 5 }, // done
+                        'api/v3/account/fundingBills': { 'cost': 5 }, // done
+                        'api/v3/order': { 'cost': 5 }, // done
+                        'api/v3/order/batch': { 'cost': 50 }, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'api/v3/rebate/affiliate/internalWithdrawal': { 'cost': 100 }, // not unified
                     },
                     'delete': {
-                        'api/v3/order': 1, // done
-                        'api/v3/openOrders': 1, // done
-                        'api/v3/order/batch': 10, // done
+                        'api/v3/order': { 'cost': 1 }, // done
+                        'api/v3/openOrders': { 'cost': 1 }, // done
+                        'api/v3/order/batch': { 'cost': 10 }, // done
                     },
                 },
                 'contract': {
                     // multiply public endpoints weight by 5
                     'get': {
-                        'capi/v3/market/time': 5, // done
-                        'capi/v3/market/exchangeInfo': 5, // done
-                        'capi/v3/market/depth': 5, // done
-                        'capi/v3/market/ticker/24hr': 200, // done
-                        'capi/v3/market/ticker/bookTicker': 5, // done
-                        'capi/v3/market/trades': 25, // done
-                        'capi/v3/market/klines': 5, // done
-                        'capi/v3/market/indexPriceKlines': 5, // done
-                        'capi/v3/market/markPriceKlines': 5, // done
-                        'capi/v3/market/historyKlines': 25, // done
-                        'capi/v3/market/symbolPrice': 5, // not unified
-                        'capi/v3/market/openInterest': 10, // done
-                        'capi/v3/market/premiumIndex': 5, // done
-                        'capi/v3/market/fundingRate': 25, // done
-                        'capi/v3/market/apiTradingSymbols': 25, // not unified
+                        'capi/v3/market/time': { 'cost': 5 }, // done
+                        'capi/v3/market/exchangeInfo': { 'cost': 5 }, // done
+                        'capi/v3/market/depth': { 'cost': 5 }, // done
+                        'capi/v3/market/ticker/24hr': { 'cost': 200 }, // done
+                        'capi/v3/market/ticker/bookTicker': { 'cost': 5 }, // done
+                        'capi/v3/market/trades': { 'cost': 25 }, // done
+                        'capi/v3/market/klines': { 'cost': 5 }, // done
+                        'capi/v3/market/indexPriceKlines': { 'cost': 5 }, // done
+                        'capi/v3/market/markPriceKlines': { 'cost': 5 }, // done
+                        'capi/v3/market/historyKlines': { 'cost': 25 }, // done
+                        'capi/v3/market/symbolPrice': { 'cost': 5 }, // not unified
+                        'capi/v3/market/openInterest': { 'cost': 10 }, // done
+                        'capi/v3/market/premiumIndex': { 'cost': 5 }, // done
+                        'capi/v3/market/fundingRate': { 'cost': 25 }, // done
+                        'capi/v3/market/apiTradingSymbols': { 'cost': 25 }, // not unified
                     },
                 },
                 'contractPrivate': {
                     'get': {
-                        'capi/v3/account/balance': 10, // done
-                        'capi/v3/account/commissionRate': 10, // done
-                        'capi/v3/account/accountConfig': 10, // not unified
-                        'capi/v3/account/symbolConfig': 10, // done
-                        'capi/v3/account/position/allPosition': 15, // done
-                        'capi/v3/account/position/singlePosition': 3, // done
-                        'capi/v3/order': 3, // done
-                        'capi/v3/openOrders': 5, // done
-                        'capi/v3/order/history': 10, // done
-                        'capi/v3/userTrades': 5, // done
-                        'capi/v3/openAlgoOrders': 3, // done
-                        'capi/v3/allAlgoOrders': 10, // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/account/balance': { 'cost': 10 }, // done
+                        'capi/v3/account/commissionRate': { 'cost': 10 }, // done
+                        'capi/v3/account/accountConfig': { 'cost': 10 }, // not unified
+                        'capi/v3/account/symbolConfig': { 'cost': 10 }, // done
+                        'capi/v3/account/position/allPosition': { 'cost': 15 }, // done
+                        'capi/v3/account/position/singlePosition': { 'cost': 3 }, // done
+                        'capi/v3/order': { 'cost': 3 }, // done
+                        'capi/v3/openOrders': { 'cost': 5 }, // done
+                        'capi/v3/order/history': { 'cost': 10 }, // done
+                        'capi/v3/userTrades': { 'cost': 5 }, // done
+                        'capi/v3/openAlgoOrders': { 'cost': 3 }, // done
+                        'capi/v3/allAlgoOrders': { 'cost': 10 }, // not unified - capi/v3/order/history returns both regular and algo orders
                     },
                     'post': {
-                        'capi/v3/account/income': 5, // done
-                        'capi/v3/account/marginType': 50, // done
-                        'capi/v3/account/leverage': 20, // done
-                        'capi/v3/account/positionMargin': 30, // done
-                        'capi/v3/account/modifyAutoAppendMargin': 30, // not unified
-                        'capi/v3/order': 5, // done
-                        'capi/v3/batchOrders': 10, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
-                        'capi/v3/closePositions': 50, // done
-                        'capi/v3/algoOrder': 5, // done
-                        'capi/v3/placeTpSlOrder': 5, // not unified
-                        'capi/v3/modifyTpSlOrder': 5, // not unified
+                        'capi/v3/account/income': { 'cost': 5 }, // done
+                        'capi/v3/account/marginType': { 'cost': 50 }, // done
+                        'capi/v3/account/leverage': { 'cost': 20 }, // done
+                        'capi/v3/account/positionMargin': { 'cost': 30 }, // done
+                        'capi/v3/account/modifyAutoAppendMargin': { 'cost': 30 }, // not unified
+                        'capi/v3/order': { 'cost': 5 }, // done
+                        'capi/v3/batchOrders': { 'cost': 10 }, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'capi/v3/closePositions': { 'cost': 50 }, // done
+                        'capi/v3/algoOrder': { 'cost': 5 }, // done
+                        'capi/v3/placeTpSlOrder': { 'cost': 5 }, // not unified
+                        'capi/v3/modifyTpSlOrder': { 'cost': 5 }, // not unified
                     },
                     'delete': {
-                        'capi/v3/order': 3, // done
-                        'capi/v3/batchOrders': 10, // done
-                        'capi/v3/allOpenOrders': 10, // done
-                        'capi/v3/algoOrder': 3, // done
-                        'capi/v3/algoOpenOrders': 10, // done
+                        'capi/v3/order': { 'cost': 3 }, // done
+                        'capi/v3/batchOrders': { 'cost': 10 }, // done
+                        'capi/v3/allOpenOrders': { 'cost': 10 }, // done
+                        'capi/v3/algoOrder': { 'cost': 3 }, // done
+                        'capi/v3/algoOpenOrders': { 'cost': 10 }, // done
                     },
                 },
             },
@@ -1379,7 +1379,7 @@ export default class weex extends Exchange {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const response = await this.publicGetApiV3MarketKlines(this.extend(request, params));
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     /**
      * @method
@@ -1470,7 +1470,7 @@ export default class weex extends Exchange {
                 response = await this.contractGetCapiV3MarketKlines(this.extend(request, params));
             }
         }
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         return [
@@ -3195,7 +3195,8 @@ export default class weex extends Exchange {
                 request['limit'] = limit;
             }
             [request, params] = this.handleUntilOption('before', request, params);
-            items = await this.privatePostApiV3AccountBills(this.extend(request, params));
+            const billsResponse = await this.privatePostApiV3AccountBills(this.extend(request, params));
+            items = this.toArray(billsResponse);
         }
         return this.parseLedger(items, currency, since, limit);
     }
@@ -3616,7 +3617,7 @@ export default class weex extends Exchange {
         }
         symbols = this.marketSymbols(symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig(params);
-        return this.parseMarginModes(response, symbols, 'symbol', 'swap');
+        return this.parseMarginModes(this.toArray(response), symbols, 'symbol', 'swap');
     }
     parseMarginMode(marginMode, market = undefined) {
         const marketId = this.safeString(marginMode, 'symbol');
@@ -3705,7 +3706,7 @@ export default class weex extends Exchange {
         }
         symbols = this.marketSymbols(symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig(params);
-        return this.parseLeverages(response, symbols, 'symbol', 'swap');
+        return this.parseLeverages(this.toArray(response), symbols, 'symbol', 'swap');
     }
     parseLeverage(leverage, market = undefined) {
         const marketId = this.safeString(leverage, 'symbol');
