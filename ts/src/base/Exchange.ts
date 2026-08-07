@@ -1767,7 +1767,6 @@ export class BaseExchange {
             throw new ArgumentsRequired (this.id + ' watchMultiple() requires a url argument');
         }
         const client = this.client (url) as WsClient;
-        const backoffDelay = this.calculateWsBackoffDelay (url);
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1796,6 +1795,12 @@ export class BaseExchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
+        let backoffDelay = 0;
+        if (!client.startedConnecting) {
+            // count real dials only - re-entrant watch calls for live or in-flight
+            // connections must not touch the backoff state, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay (url);
+        }
         const connected = client.connect (backoffDelay);
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
@@ -1865,7 +1870,6 @@ export class BaseExchange {
             throw new ArgumentsRequired (this.id + ' watch() requires a messageHash argument');
         }
         const client = this.client (url) as WsClient;
-        const backoffDelay = this.calculateWsBackoffDelay (url);
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1891,6 +1895,12 @@ export class BaseExchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
+        let backoffDelay = 0;
+        if (!client.startedConnecting) {
+            // count real dials only - re-entrant watch calls for live or in-flight
+            // connections must not touch the backoff state, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay (url);
+        }
         const connected = client.connect (backoffDelay);
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
