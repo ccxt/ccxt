@@ -55,7 +55,7 @@ interface Exchange {
     privateGetUserCheckReferralCode (params?: {}): Promise<implicitReturnType>;
     privateGetUserCommission (params?: {}): Promise<implicitReturnType>;
     privateGetUserCsa (params?: {}): Promise<implicitReturnType>;
-    privateGetUserDepositAddress (params?: {}): Promise<implicitReturnType>;
+    privateGetUserDepositAddress (params?: {}): Promise<string>;
     privateGetUserExecutionHistory (params?: {}): Promise<implicitReturnType>;
     privateGetUserGetWalletTransferAccounts (params?: {}): Promise<implicitReturnType>;
     privateGetUserMargin (params?: {}): Promise<implicitReturnType>;

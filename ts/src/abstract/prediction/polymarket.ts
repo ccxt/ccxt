@@ -9,7 +9,7 @@ import { implicitReturnType } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
-    gammaPublicGetStatus (params?: {}): Promise<implicitReturnType>;
+    gammaPublicGetStatus (params?: {}): Promise<string>;
     gammaPublicGetComments (params?: {}): Promise<implicitReturnType>;
     gammaPublicGetCommentsId (params?: {}): Promise<implicitReturnType>;
     gammaPublicGetCommentsUserAddressUserAddress (params?: {}): Promise<implicitReturnType>;

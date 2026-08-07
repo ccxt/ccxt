@@ -13,6 +13,89 @@ const GO_PATH = './go/v4/'
 const JAVA_PATH = './java/lib/src/main/java/io/github/ccxt/api/'
 const IDEN = '    ';
 
+// -------------------------------------------------------------------------
+// Per-endpoint TypeScript return types.
+//
+// The generated abstract methods return `Promise<implicitReturnType>`, and
+// implicitReturnType is `Dict | List` — a JSON object or a JSON array, which is
+// what practically every exchange endpoint answers with. A few endpoints answer
+// with something else (a bare JSON string, an empty body, a plain "OK"), and
+// those are declared here one by one instead of widening the union for all of
+// the ~40k generated methods, which would push the burden of narrowing onto
+// every unrelated call site.
+//
+// Keys are `<exchange id>` then `<camelCase method name>`; the value is the TS
+// type written inside `Promise<...>`. Any of `Dict`, `List` and
+// `implicitReturnType` may be referenced — the imports are derived from the
+// table (see typescriptImportedTypes).
+//
+// Prediction-market exchanges live in their own namespace but reuse exchange
+// ids, so they are keyed separately under PREDICTION_RETURN_TYPE_OVERRIDES.
+
+const RETURN_TYPE_OVERRIDES: { [exchangeId: string]: { [method: string]: string } } = {
+    'bitmex': {
+        // answers with a bare quoted JSON string, e.g. '"bc1qmex3puy..."'
+        'privateGetUserDepositAddress': 'string',
+    },
+    'bitget': {
+        // candle endpoints answer with an empty string body when the symbol was
+        // listed after the requested window — see bitget#fetchOHLCV
+        'publicSpotGetV2SpotMarketCandles': 'implicitReturnType | string',
+        'publicSpotGetV2SpotMarketHistoryCandles': 'implicitReturnType | string',
+        'publicMixGetV2MixMarketCandles': 'implicitReturnType | string',
+        'publicMixGetV2MixMarketHistoryCandles': 'implicitReturnType | string',
+        'publicMixGetV2MixMarketHistoryIndexCandles': 'implicitReturnType | string',
+        'publicMixGetV2MixMarketHistoryMarkCandles': 'implicitReturnType | string',
+        'publicUtaGetV3MarketCandles': 'implicitReturnType | string',
+        'publicUtaGetV3MarketHistoryCandles': 'implicitReturnType | string',
+    },
+    'hyperliquid': {
+        // multiplexed endpoint: the response shape is selected by the "type"
+        // field of the request body and includes bare strings such as
+        // '"unifiedAccount"' (type: userAbstraction)
+        'publicPostInfo': 'implicitReturnType | string',
+    },
+};
+
+const PREDICTION_RETURN_TYPE_OVERRIDES: { [exchangeId: string]: { [method: string]: string } } = {
+    'polymarket': {
+        // health probe, answers with the plain text 'OK'
+        'gammaPublicGetStatus': 'string',
+    },
+    'hyperliquid': {
+        'publicPostInfo': 'implicitReturnType | string',
+    },
+};
+
+function returnTypeOverrides (exchange: string): { [method: string]: string } {
+    const table = isPrediction ? PREDICTION_RETURN_TYPE_OVERRIDES : RETURN_TYPE_OVERRIDES;
+    const overrides = table[exchange];
+    return (overrides === undefined) ? {} : overrides;
+}
+
+// the TS type to write inside Promise<...> for one generated method
+function typescriptReturnType (exchange: string, method: string): string {
+    const overrides = returnTypeOverrides (exchange);
+    const override = overrides[method];
+    return (override === undefined) ? 'implicitReturnType' : override;
+}
+
+// the named types the generated abstract file has to import from base/types.js
+function typescriptImportedTypes (exchange: string): string[] {
+    const imported = [ 'implicitReturnType' ];
+    const overrides = returnTypeOverrides (exchange);
+    for (const method of Object.keys (overrides)) {
+        for (const name of overrides[method].split (/[^A-Za-z]+/)) {
+            if ((name === 'Dict') || (name === 'List')) {
+                if (!imported.includes (name)) {
+                    imported.push (name);
+                }
+            }
+        }
+    }
+    return imported;
+}
+
 let storedCamelCaseMethods: Dict = {};
 let storedUnderscoreMethods: Dict = {};
 let storedTypeScriptMethods: Dict = {};
@@ -171,7 +254,7 @@ function createImplicitMethodsPhp(){
         const underscoreMethods = storedUnderscoreMethods[exchange]
 
         const typeScriptMethods = camelCaseMethods.map (method => {
-            return `${IDEN}${method} (params?: {}): Promise<implicitReturnType>;`
+            return `${IDEN}${method} (params?: {}): Promise<${typescriptReturnType (exchange, method)}>;`
         });
         const phpMethods = underscoreMethods.concat (camelCaseMethods).map ((method, idx) => {
             const i = idx % underscoreMethods.length
@@ -198,7 +281,7 @@ function createImplicitMethodsTs(){
         const camelCaseMethods = storedCamelCaseMethods[exchange];
 
         const typeScriptMethods = camelCaseMethods.map (method => {
-            return `${IDEN}${method} (params?: {}): Promise<implicitReturnType>;`
+            return `${IDEN}${method} (params?: {}): Promise<${typescriptReturnType (exchange, method)}>;`
         });
         typeScriptMethods.push ('}')
         const footer = storedTypeScriptMethods[exchange].pop ()
@@ -367,7 +450,7 @@ async function editAPIFilesJava(subdir = ''){
 function createTypescriptHeader(instance: Exchange, parent: string){
     const exchange = instance.id;
     const basePath = isPrediction ? '../../' : '../';
-    const importType = `import { implicitReturnType } from '${basePath}base/types.js';`
+    const importType = `import { ${typescriptImportedTypes (exchange).join (', ')} } from '${basePath}base/types.js';`
     let importParent: string;
     if (parent === 'Exchange') {
         // prediction-market exchanges extend PredictionExchange (which itself extends Exchange);

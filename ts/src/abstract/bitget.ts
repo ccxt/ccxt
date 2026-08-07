@@ -33,8 +33,8 @@ interface Exchange {
     publicSpotGetV2SpotMarketTickers (params?: {}): Promise<implicitReturnType>;
     publicSpotGetV2SpotMarketMergeDepth (params?: {}): Promise<implicitReturnType>;
     publicSpotGetV2SpotMarketOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2SpotMarketCandles (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2SpotMarketHistoryCandles (params?: {}): Promise<implicitReturnType>;
+    publicSpotGetV2SpotMarketCandles (params?: {}): Promise<implicitReturnType | string>;
+    publicSpotGetV2SpotMarketHistoryCandles (params?: {}): Promise<implicitReturnType | string>;
     publicSpotGetV2SpotMarketFills (params?: {}): Promise<implicitReturnType>;
     publicSpotGetV2SpotMarketFillsHistory (params?: {}): Promise<implicitReturnType>;
     publicMixGetMixV1MarketContracts (params?: {}): Promise<implicitReturnType>;
@@ -67,10 +67,10 @@ interface Exchange {
     publicMixGetV2MixMarketTickers (params?: {}): Promise<implicitReturnType>;
     publicMixGetV2MixMarketFills (params?: {}): Promise<implicitReturnType>;
     publicMixGetV2MixMarketFillsHistory (params?: {}): Promise<implicitReturnType>;
-    publicMixGetV2MixMarketCandles (params?: {}): Promise<implicitReturnType>;
-    publicMixGetV2MixMarketHistoryCandles (params?: {}): Promise<implicitReturnType>;
-    publicMixGetV2MixMarketHistoryIndexCandles (params?: {}): Promise<implicitReturnType>;
-    publicMixGetV2MixMarketHistoryMarkCandles (params?: {}): Promise<implicitReturnType>;
+    publicMixGetV2MixMarketCandles (params?: {}): Promise<implicitReturnType | string>;
+    publicMixGetV2MixMarketHistoryCandles (params?: {}): Promise<implicitReturnType | string>;
+    publicMixGetV2MixMarketHistoryIndexCandles (params?: {}): Promise<implicitReturnType | string>;
+    publicMixGetV2MixMarketHistoryMarkCandles (params?: {}): Promise<implicitReturnType | string>;
     publicMixGetV2MixMarketOpenInterest (params?: {}): Promise<implicitReturnType>;
     publicMixGetV2MixMarketFundingTime (params?: {}): Promise<implicitReturnType>;
     publicMixGetV2MixMarketSymbolPrice (params?: {}): Promise<implicitReturnType>;
@@ -95,8 +95,8 @@ interface Exchange {
     publicUtaGetV3MarketFills (params?: {}): Promise<implicitReturnType>;
     publicUtaGetV3MarketProofOfReserves (params?: {}): Promise<implicitReturnType>;
     publicUtaGetV3MarketOpenInterest (params?: {}): Promise<implicitReturnType>;
-    publicUtaGetV3MarketCandles (params?: {}): Promise<implicitReturnType>;
-    publicUtaGetV3MarketHistoryCandles (params?: {}): Promise<implicitReturnType>;
+    publicUtaGetV3MarketCandles (params?: {}): Promise<implicitReturnType | string>;
+    publicUtaGetV3MarketHistoryCandles (params?: {}): Promise<implicitReturnType | string>;
     publicUtaGetV3MarketCurrentFundRate (params?: {}): Promise<implicitReturnType>;
     publicUtaGetV3MarketHistoryFundRate (params?: {}): Promise<implicitReturnType>;
     publicUtaGetV3MarketRiskReserve (params?: {}): Promise<implicitReturnType>;

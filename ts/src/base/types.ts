@@ -960,7 +960,28 @@ export type OHLCV = [Num, Num, Num, Num, Num, Num];
 /** [ timestamp, open, high, low, close, volume, count ] */
 export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
 
-export type implicitReturnType = any;
+/**
+ * Return type of the generated implicit API methods in ts/src/abstract/*.ts.
+ *
+ * Practically every exchange endpoint answers with a JSON object or a JSON
+ * array, so the honest default is the union of the two. The handful of
+ * endpoints that answer with a bare string ('', 'OK', a quoted address) are
+ * type-hinted one by one through the override table in
+ * build/generateImplicitAPI.ts, so that this union stays tight for the ~40k
+ * generated methods that do not need it.
+ */
+export type implicitReturnType = Dict | List;
+
+/**
+ * Input type of the safe* accessors in base/functions/type.ts.
+ *
+ * They read a key out of *any* bag: raw endpoint payloads, already parsed
+ * structures, markets, currencies, options, nested fragments, tuples. That is a
+ * genuine external boundary, so the parameter stays `any`. It is a named alias
+ * rather than a bare `any` so it can never be confused with
+ * implicitReturnType, which describes the opposite direction of data flow.
+ */
+export type safeInputType = any;
 
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;

@@ -213,6 +213,7 @@ interface bybit {
     privateGetV5AffiliateAffUserList (params?: {}): Promise<implicitReturnType>;
     privateGetV5AffiliateAffiliateSubList (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotLeverTokenOrderRecord (params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotMarginTradeFlexibleAvailableInventory (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeInterestRateHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeState (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeMaxBorrowable (params?: {}): Promise<implicitReturnType>;
