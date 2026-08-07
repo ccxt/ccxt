@@ -2,6 +2,7 @@ import ccxt, { Dict, Exchange } from '../ts/ccxt.js';
 import fs from 'fs';
 import { writeFile, unlink } from 'fs/promises';
 import log from 'ololog'
+import { buildTagFor } from './goBuildTags.js';
 
 // const JS_PATH = './js/src/abstract/';
 const TS_PATH = './ts/src/abstract/';
@@ -405,7 +406,7 @@ function createCSharpHeader(exchange: Exchange, parent: string){
 
 function createGoHeader(exchange: Exchange, parent: string){
     const namespace = isPrediction ? 'package ccxtprediction' : 'package ccxt'
-    storedGoMethods[exchange.id] = [ getPreamble(), namespace, ''];
+    storedGoMethods[exchange.id] = [buildTagFor(exchange.id), '', getPreamble(), namespace, ''];
 }
 
 // -------------------------------------------------------------------------
