@@ -507,11 +507,14 @@ export default class bithumb extends bithumbRest {
                 asks.store (askPrice, askSize);
             }
         }
-        const gen2TimestampStr = this.safeString (message, 'timestamp') as string;
-        if (gen2TimestampStr === undefined) {
-            return;
+        const gen2TimestampStr = this.safeString2 (message, 'timestamp', 'datetime') as string;
+        let timestamp = undefined;
+        if (gen2TimestampStr !== undefined) {
+            timestamp = this.parseToInt (gen2TimestampStr.slice (0, 13));
         }
-        const timestamp = this.parseToInt (gen2TimestampStr.slice (0, 13));
+        if (timestamp === undefined) {
+            timestamp = this.milliseconds ();
+        }
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         const messageHash = 'orderbook' + ':' + symbol;
