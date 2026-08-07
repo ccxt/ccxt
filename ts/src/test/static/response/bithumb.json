@@ -37,7 +37,7 @@
                         "inverse": null,
                         "contractSize": null,
                         "expiry": null,
-                        "expiryDateTime": null,
+                        "expiryDatetime": null,
                         "strike": null,
                         "optionType": null,
                         "precision": {
@@ -57,7 +57,10 @@
                                 "min": null,
                                 "max": null
                             },
-                            "cost": {}
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
                         },
                         "created": null,
                         "info": {
