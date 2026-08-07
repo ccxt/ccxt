@@ -691,6 +691,23 @@
                 ]
             }
         ],
+        "withdraw": [
+            {
+                "description": "generation 2 withdraw",
+                "method": "withdraw",
+                "url": "https://api.bithumb.com/v1/withdraws/coin",
+                "input": [
+                    "BTC",
+                    0.001,
+                    "1BoatSLRHtKNngkdXEeobR76b53LETtpyT",
+                    null,
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "output": "{\"address\":\"1BoatSLRHtKNngkdXEeobR76b53LETtpyT\",\"currency\":\"BTC\",\"net_type\":\"BTC\",\"amount\":\"0.001\"}"
+            }
+        ],
         "fetchWithdrawals": [
             {
                 "description": "generation 2 fetchWithdrawals",

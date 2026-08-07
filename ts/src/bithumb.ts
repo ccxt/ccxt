@@ -478,7 +478,7 @@ export default class bithumb extends Exchange {
                     'inverse': undefined,
                     'contractSize': undefined,
                     'expiry': undefined,
-                    'expiryDateTime': undefined,
+                    'expiryDatetime': undefined,
                     'strike': undefined,
                     'optionType': undefined,
                     'precision': {
@@ -498,7 +498,10 @@ export default class bithumb extends Exchange {
                             'min': undefined,
                             'max': undefined,
                         },
-                        'cost': {},
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
                     'created': undefined,
                     'info': entry,
@@ -590,7 +593,7 @@ export default class bithumb extends Exchange {
                         'inverse': undefined,
                         'contractSize': undefined,
                         'expiry': undefined,
-                        'expiryDateTime': undefined,
+                        'expiryDatetime': undefined,
                         'strike': undefined,
                         'optionType': undefined,
                         'precision': {
@@ -1476,7 +1479,7 @@ export default class bithumb extends Exchange {
             amountString = this.fixCommaNumber (this.safeString2 (trade, 'units_traded', 'units'));
         }
         const costString = this.safeString (trade, 'total');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
