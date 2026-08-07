@@ -147,8 +147,7 @@
     "bequant": {
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194",
-                "swap": "bequant sets has.swap=false but the static test fixture (ts/src/test/static/markets/bequant.json) includes markets with type=swap (e.g. ETH/USDT:USDT, BTC/USDT:USDT)"
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
             },
             "fetchCurrencies": {
                 "fee": "not provided",
@@ -1138,7 +1137,7 @@
                 "precision": "not provided",
                 "withdraw": "not provided",
                 "deposit": "not provided",
-                "networks": "empty",
+                "networks":"empty",
                 "type": "not provided",
                 "activeMajorCurrencies": "todo"
             },
@@ -1561,16 +1560,8 @@
         "until": "2026-12-31",
         "preferredEventQuery": "trump",
         "preferredEventScopes": [
-            {
-                "tags": [
-                    "BTC"
-                ],
-                "limit": 3
-            },
-            {
-                "category": "Crypto",
-                "limit": 3
-            }
+            { "tags": [ "BTC" ], "limit": 3 },
+            { "category": "Crypto", "limit": 3 }
         ],
         "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
@@ -1835,7 +1826,7 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
+                "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
                 "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664"
             },
             "fetchTickers": {
@@ -1990,7 +1981,9 @@
     },
     "okxus": {
         "skipCSharp": true,
-        "loadMarkets": {},
+        "loadMarkets": {
+
+        },
         "skipMethods": {
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -2449,7 +2442,7 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
-                "precision": "is undefined"
+                "precision":"is undefined"
             },
             "ticker": {
                 "maxIncrease": "listed joke tokens (TEST etc) have abnormal price swings"
