@@ -1,8 +1,10 @@
-package ccxt
+package main
 
 import (
 	"sync"
 	"testing"
+
+	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
 // ---------------------------------------------------------------------------
@@ -13,7 +15,7 @@ import (
 // ---------------------------------------------------------------------------
 
 func TestArrayCacheByTimestampConcurrentReadWrite(t *testing.T) {
-	cache := NewArrayCacheByTimestamp(nil)
+	cache := ccxt.NewArrayCacheByTimestamp(nil)
 
 	makeCandle := func(ts int64, close float64) []any {
 		return []any{ts, 100.0, 200.0, 50.0, close, 1000.0}
@@ -67,7 +69,7 @@ func TestArrayCacheByTimestampConcurrentReadWrite(t *testing.T) {
 // WS-handler goroutine. Without locking, GetLimit's unguarded map write/reads
 // are a fatal concurrent map access.
 func TestArrayCacheGetLimitConcurrentWithAppend(t *testing.T) {
-	cache := NewArrayCacheBySymbolById()
+	cache := ccxt.NewArrayCacheBySymbolById()
 
 	var wg sync.WaitGroup
 	stop := make(chan struct{})
@@ -89,7 +91,7 @@ func TestArrayCacheGetLimitConcurrentWithAppend(t *testing.T) {
 	for i := 1; i <= 10000; i++ {
 		cache.Append(map[string]any{
 			"symbol": "ETH/USDT",
-			"id":     ToString(i),
+			"id":     ccxt.ToString(i),
 			"status": "open",
 		})
 	}
@@ -98,7 +100,7 @@ func TestArrayCacheGetLimitConcurrentWithAppend(t *testing.T) {
 }
 
 func TestArrayCacheByTimestampGetLimitConcurrentWithAppend(t *testing.T) {
-	cache := NewArrayCacheByTimestamp(nil)
+	cache := ccxt.NewArrayCacheByTimestamp(nil)
 
 	var wg sync.WaitGroup
 	stop := make(chan struct{})
@@ -126,7 +128,7 @@ func TestArrayCacheByTimestampGetLimitConcurrentWithAppend(t *testing.T) {
 // The old in-place merge also panicked with an index-out-of-range when the
 // incoming candle had fewer elements than the stored one.
 func TestArrayCacheByTimestampShorterUpdateDoesNotPanic(t *testing.T) {
-	cache := NewArrayCacheByTimestamp(nil)
+	cache := ccxt.NewArrayCacheByTimestamp(nil)
 
 	cache.Append([]any{int64(1700000000000), 100.0, 200.0, 50.0, 150.0, 1000.0})
 	cache.Append([]any{int64(1700000000000), 101.0})
