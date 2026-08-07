@@ -1670,7 +1670,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            trades = self.safe_value(response, 'data')
+            trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -3988,7 +3988,7 @@ class mexc(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        trades: dict | List
+        trades = []
         if marketType == 'spot':
             if since is not None:
                 request['startTime'] = since
@@ -4052,7 +4052,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            trades = self.safe_value(response, 'data')
+            trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4076,7 +4076,7 @@ class mexc(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
-        trades: dict | List
+        trades = []
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
@@ -4130,7 +4130,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            trades = self.safe_value(response, 'data')
+            trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit, query)
 
     def modify_margin_helper(self, symbol: str, amount: Any, addOrReduce: Any, params={}):

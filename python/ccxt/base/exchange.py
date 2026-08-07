@@ -5440,7 +5440,7 @@ class BaseExchange(object):
             position['contractSize'] = contractSize
         return position
 
-    def parse_positions(self, positions: dict | List, symbols: Strings = None, params={}):
+    def parse_positions(self, positions: List[Any], symbols: Strings = None, params={}):
         symbols = self.market_symbols(symbols)
         positionsArray = self.to_array(positions)
         result = []
@@ -5454,7 +5454,7 @@ class BaseExchange(object):
             raise NotSupported(self.id + ' parseADLRank() is not supported yet')
         raise NotSupported(self.id + ' parseADLRank() is not supported yet')
 
-    def parse_adl_ranks(self, ranks: dict | List, symbols: Strings = None, params={}):
+    def parse_adl_ranks(self, ranks: List[Any], symbols: Strings = None, params={}):
         symbols = self.market_symbols(symbols)
         ranksArray = self.to_array(ranks)
         result = []
@@ -5463,7 +5463,7 @@ class BaseExchange(object):
             result.append(rank)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_accounts(self, accounts: dict | List, params={}):
+    def parse_accounts(self, accounts: List[Any], params={}):
         accountsArray = self.to_array(accounts)
         result = []
         for i in range(0, len(accountsArray)):
@@ -5471,7 +5471,7 @@ class BaseExchange(object):
             result.append(account)
         return result
 
-    def parse_trades_helper(self, isWs: bool, trades: dict | List, market: Market = None, since: Int = None, limit: Int = None, params={}):
+    def parse_trades_helper(self, isWs: bool, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
         tradesArray = self.to_array(trades)
         result = []
         for i in range(0, len(tradesArray)):
@@ -5486,13 +5486,13 @@ class BaseExchange(object):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def parse_trades(self, trades: dict | List, market: Market = None, since: Int = None, limit: Int = None, params={}):
+    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
         return self.parse_trades_helper(False, trades, market, since, limit, params)
 
-    def parse_ws_trades(self, trades: dict | List, market: Market = None, since: Int = None, limit: Int = None, params={}):
+    def parse_ws_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
         return self.parse_trades_helper(True, trades, market, since, limit, params)
 
-    def parse_transactions(self, transactions: dict | List, currency: Currency = None, since: Int = None, limit: Int = None, params={}):
+    def parse_transactions(self, transactions: List[Any], currency: Currency = None, since: Int = None, limit: Int = None, params={}):
         transactionsArray = self.to_array(transactions)
         result = []
         for i in range(0, len(transactionsArray)):
@@ -5502,7 +5502,7 @@ class BaseExchange(object):
         code = currency['code'] if (currency is not None) else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def parse_transfers(self, transfers: dict | List, currency: Currency = None, since: Int = None, limit: Int = None, params={}):
+    def parse_transfers(self, transfers: List[Any], currency: Currency = None, since: Int = None, limit: Int = None, params={}):
         transfersArray = self.to_array(transfers)
         result = []
         for i in range(0, len(transfersArray)):
@@ -7526,7 +7526,7 @@ class BaseExchange(object):
     def parse_leverage(self, leverage: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
-    def parse_conversions(self, conversions: dict | List, code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
+    def parse_conversions(self, conversions: List[Any], code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
         conversionsArray = self.to_array(conversions)
         result = []
         fromCurrency = None

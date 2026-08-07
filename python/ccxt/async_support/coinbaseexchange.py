@@ -736,7 +736,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_accounts(response, params)
+        accounts = self.to_array(response)
+        return self.parse_accounts(accounts, params)
 
     def parse_account(self, account: Any):
         #

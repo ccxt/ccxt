@@ -632,7 +632,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def parse_ws_trades(self, trades: dict | List, market: Market = None, since: Int = None, limit: Int = None, params={}):
+    def parse_ws_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
         tradesArray = self.to_array(trades)
         result = []
         for i in range(0, len(tradesArray)):

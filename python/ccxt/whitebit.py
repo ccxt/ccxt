@@ -2643,7 +2643,8 @@ class whitebit(Exchange, ImplicitAPI):
         #         {...}                                 # More transactions(deposits and withdrawals)
         #     ]
         #
-        return self.parse_transactions(response, currency, since, limit)
+        records = self.safe_list(response, 'records', [])
+        return self.parse_transactions(records, currency, since, limit)
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """

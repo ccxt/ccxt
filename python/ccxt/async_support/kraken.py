@@ -2475,7 +2475,8 @@ class kraken(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        return self.parse_trades(trades, market, since, limit)
+        tradesList = self.to_array(trades)
+        return self.parse_trades(tradesList, market, since, limit)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """

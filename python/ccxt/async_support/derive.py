@@ -964,7 +964,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'trades', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trades(self, trades: dict | List, market: Market = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         tradesArray = self.to_array(trades)
         result = []
         for i in range(0, len(tradesArray)):

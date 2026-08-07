@@ -3502,7 +3502,7 @@ class gate(Exchange, ImplicitAPI):
             request['limit'] = min(limit, 1000)  # default 100, max 1000
         if since is not None and (market['contract']):
             request['from'] = self.parse_to_int(since / 1000)
-        response: dict | List
+        response: List
         if market['type'] == 'spot' or market['type'] == 'margin':
             response = self.publicSpotGetTrades(self.extend(request, query))
         elif market['swap']:
@@ -3653,7 +3653,7 @@ class gate(Exchange, ImplicitAPI):
             request['from'] = self.parse_to_int(since / 1000)
         if until is not None:
             request['to'] = self.parse_to_int(until / 1000)
-        response: dict | List
+        response: List
         if type == 'spot' or type == 'margin':
             response = self.privateSpotGetMyTrades(self.extend(request, params))
         elif type == 'swap':
@@ -6146,7 +6146,7 @@ class gate(Exchange, ImplicitAPI):
         #
         responseList = []
         if response is not None:
-            responseList = response
+            responseList = self.to_array(response)
         return self.parse_positions(responseList, symbols)
 
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
@@ -8104,7 +8104,7 @@ class gate(Exchange, ImplicitAPI):
             request['from'] = self.parse_to_int(since / 1000)
         if until is not None:
             request['to'] = self.parse_to_int(until / 1000)
-        response: dict | List
+        response: List
         if marketType == 'swap':
             response = self.privateFuturesGetSettlePositionClose(self.extend(request, params))
         elif marketType == 'future':
@@ -8133,7 +8133,7 @@ class gate(Exchange, ImplicitAPI):
         #
         responseList = []
         if response is not None:
-            responseList = response
+            responseList = self.to_array(response)
         return self.parse_positions(responseList, symbols, params)
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):

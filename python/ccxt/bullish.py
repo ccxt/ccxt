@@ -1018,7 +1018,7 @@ class bullish(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        response: dict | List
+        response: List
         if clientOrderId is not None:
             response = self.privateGetV1TradesClientOrderIdClientOrderId(self.extend(request, params))
         else:

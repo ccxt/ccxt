@@ -5255,7 +5255,7 @@ class binance(Exchange, ImplicitAPI):
         #
         responseList = []
         if response is not None:
-            responseList = response
+            responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}):
@@ -8114,7 +8114,7 @@ class binance(Exchange, ImplicitAPI):
         #
         responseList = []
         if response is not None:
-            responseList = response
+            responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     def fetch_my_dust_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -14097,7 +14097,7 @@ class binance(Exchange, ImplicitAPI):
         #
         responseList = []
         if response is not None:
-            responseList = response
+            responseList = self.to_array(response)
         return self.parse_adl_ranks(responseList, symbols)
 
     def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:

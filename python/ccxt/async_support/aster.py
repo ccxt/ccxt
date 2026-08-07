@@ -1315,7 +1315,7 @@ class aster(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        response: dict | List
+        response: List
         sinceDefined = since is not None
         untilDefined = ('until' in params)
         if sinceDefined:
@@ -1391,7 +1391,7 @@ class aster(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 1000)
         request, params = self.handle_until_option('endTime', request, params)
-        response: dict | List
+        response: List
         if marketType == 'swap':
             response = await self.fapiPrivateGetV3UserTrades(self.extend(request, params))
         else:

@@ -1489,7 +1489,7 @@ class weex(Exchange, ImplicitAPI):
         #
         responseList = []
         if response is not None:
-            responseList = response
+            responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -2922,7 +2922,7 @@ class weex(Exchange, ImplicitAPI):
             response = await self.contractPrivateGetCapiV3UserTrades(self.extend(request, params))
         responseList = []
         if response is not None:
-            responseList = response
+            responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
