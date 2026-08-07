@@ -9,8 +9,8 @@ import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    webExchangeGet (params?: {}): Promise<Dict | List>;
-    webGetRestApi (params?: {}): Promise<Dict | List>;
+    webExchangeGet (params?: {}): Promise<string>;
+    webGetRestApi (params?: {}): Promise<Dict>;
     publicGetV1Symbols (params?: {}): Promise<List>;
     publicGetV1SymbolsDetailsSymbol (params?: {}): Promise<Dict>;
     publicGetV1NetworkToken (params?: {}): Promise<Dict>;
@@ -20,8 +20,8 @@ interface Exchange {
     publicGetV2TickerSymbol (params?: {}): Promise<Dict>;
     publicGetV2CandlesSymbolTimeframe (params?: {}): Promise<List>;
     publicGetV1TradesSymbol (params?: {}): Promise<List>;
-    publicGetV1AuctionSymbol (params?: {}): Promise<Dict | List>;
-    publicGetV1AuctionSymbolHistory (params?: {}): Promise<Dict | List>;
+    publicGetV1AuctionSymbol (params?: {}): Promise<Dict>;
+    publicGetV1AuctionSymbolHistory (params?: {}): Promise<List>;
     publicGetV1Pricefeed (params?: {}): Promise<List>;
     publicGetV1FundingamountSymbol (params?: {}): Promise<Dict>;
     publicGetV1FundingamountreportRecordsXlsx (params?: {}): Promise<string>;
@@ -60,7 +60,7 @@ interface Exchange {
     privatePostV1AccountTransferCurrency (params?: {}): Promise<Dict>;
     privatePostV1PaymentsAddbank (params?: {}): Promise<Dict>;
     privatePostV1PaymentsMethods (params?: {}): Promise<Dict>;
-    privatePostV1PaymentsSenWithdraw (params?: {}): Promise<Dict | List>;
+    privatePostV1PaymentsSenWithdraw (params?: {}): Promise<Dict>;
     privatePostV1BalancesEarn (params?: {}): Promise<Dict>;
     privatePostV1EarnInterest (params?: {}): Promise<Dict>;
     privatePostV1EarnHistory (params?: {}): Promise<List>;

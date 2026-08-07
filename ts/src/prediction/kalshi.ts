@@ -116,7 +116,7 @@ export default class kalshi extends Exchange {
                             'historical/markets': { 'cost': 1, 'returnType': 'Dict' },
                             'historical/markets/{ticker}/candlesticks': { 'cost': 1, 'returnType': 'Dict' },
                             'historical/trades': { 'cost': 1, 'returnType': 'Dict' },
-                            'historical/cutoff_timestamps': 1,
+                            'historical/cutoff_timestamps': { 'cost': 1, 'returnType': 'Dict' },
                             'multivariate_event_collections': { 'cost': 1, 'returnType': 'Dict' },
                             'multivariate_event_collections/{collection_ticker}': { 'cost': 1, 'returnType': 'Dict' },
                             'multivariate_event_collections/{collection_ticker}/lookup': { 'cost': 1, 'returnType': 'Dict' },
@@ -159,7 +159,7 @@ export default class kalshi extends Exchange {
                             'portfolio/order_groups/{order_group_id}/reset': { 'cost': 1, 'returnType': 'Dict' },
                             'portfolio/order_groups/{order_group_id}/trigger': { 'cost': 1, 'returnType': 'Dict' },
                             'portfolio/order_groups/{order_group_id}/limit': { 'cost': 1, 'returnType': 'Dict' },
-                            'portfolio/subaccounts/netting': 1,
+                            'portfolio/subaccounts/netting': { 'cost': 1, 'returnType': 'Dict' },
                             'multivariate_event_collections/{collection_ticker}/lookup': { 'cost': 1, 'returnType': 'Dict' },
                         },
                         'delete': {

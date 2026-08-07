@@ -231,9 +231,9 @@ interface Exchange {
     privatePostLdoWithdrawal (params?: {}): Promise<Dict>;
     privatePostLdoAddress (params?: {}): Promise<Dict>;
     privatePostTravelRuleContacts (params?: {}): Promise<Dict>;
-    privatePostEarnSubscribe (params?: {}): Promise<Dict | List>;
+    privatePostEarnSubscribe (params?: {}): Promise<Dict>;
     privatePostEarnSubscriptionsSetting (params?: {}): Promise<Dict>;
-    privatePostEarnUnsubscribe (params?: {}): Promise<Dict | List>;
+    privatePostEarnUnsubscribe (params?: {}): Promise<Dict>;
     privatePostWecanWithdrawal (params?: {}): Promise<Dict>;
     privatePostWecanAddress (params?: {}): Promise<Dict>;
     privatePostTracWithdrawal (params?: {}): Promise<Dict>;

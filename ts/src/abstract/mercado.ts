@@ -28,7 +28,7 @@ interface Exchange {
     privatePostPlaceMarketBuyOrder (params?: {}): Promise<Dict>;
     privatePostPlaceMarketSellOrder (params?: {}): Promise<Dict>;
     privatePostWithdrawCoin (params?: {}): Promise<Dict>;
-    v4PublicGetCoinCandle (params?: {}): Promise<Dict | List>;
+    v4PublicGetCoinCandle (params?: {}): Promise<Dict>;
     v4PublicNetGetCandles (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}

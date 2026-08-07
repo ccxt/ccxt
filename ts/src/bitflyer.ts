@@ -124,7 +124,7 @@ export default class bitflyer extends Exchange {
                         'gettradingcommission': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
-                        'sendcoin': 1,
+                        'sendcoin': { 'cost': 1, 'returnType': 'Dict' },
                         'withdraw': { 'cost': 1, 'returnType': 'Dict' },
                         'sendchildorder': { 'cost': 1, 'returnType': 'Dict' },
                         'cancelchildorder': { 'cost': 1, 'returnType': 'Dict' },

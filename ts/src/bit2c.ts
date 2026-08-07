@@ -150,8 +150,8 @@ export default class bit2c extends Exchange {
                         'Order/CancelOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'Order/AddCoinFundsRequest': { 'cost': 1, 'returnType': 'Dict' },
                         'Order/AddStopOrder': { 'cost': 1, 'returnType': 'Dict' },
-                        'Payment/GetMyId': 1,
-                        'Payment/Send': 1,
+                        'Payment/GetMyId': { 'cost': 1, 'returnType': 'Dict' },
+                        'Payment/Send': { 'cost': 1, 'returnType': 'Dict' },
                         'Payment/Pay': { 'cost': 1, 'returnType': 'string' },
                     },
                     'get': {

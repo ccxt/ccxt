@@ -21,7 +21,7 @@ interface Exchange {
     spotPublicGetKlines (params?: {}): Promise<Dict>;
     spotPublicGetAvgPrice (params?: {}): Promise<Dict>;
     spotPublicGetTicker24hr (params?: {}): Promise<List>;
-    spotPublicGetTickerPrice (params?: {}): Promise<Dict | List>;
+    spotPublicGetTickerPrice (params?: {}): Promise<Dict>;
     spotPublicGetTickerBookTicker (params?: {}): Promise<List>;
     spotPublicGetEtfInfo (params?: {}): Promise<Dict>;
     spotPrivateGetKycStatus (params?: {}): Promise<Dict>;

@@ -35,7 +35,7 @@ interface Exchange {
     privatePostGetFiatBankAccounts (params?: {}): Promise<List>;
     privatePostGetDigitalCurrencyDepositAddress (params?: {}): Promise<Dict>;
     privatePostGetDigitalCurrencyDepositAddress2 (params?: {}): Promise<List>;
-    privatePostGetDigitalCurrencyDepositAddresses (params?: {}): Promise<Dict | List>;
+    privatePostGetDigitalCurrencyDepositAddresses (params?: {}): Promise<Dict>;
     privatePostGetDigitalCurrencyDepositAddresses2 (params?: {}): Promise<Dict>;
     privatePostGetTrades (params?: {}): Promise<Dict>;
     privatePostGetBrokerageFees (params?: {}): Promise<List>;
@@ -44,7 +44,7 @@ interface Exchange {
     privatePostPlaceMarketOrder (params?: {}): Promise<Dict>;
     privatePostCancelOrder (params?: {}): Promise<Dict>;
     privatePostSynchDigitalCurrencyDepositAddressWithBlockchain (params?: {}): Promise<Dict>;
-    privatePostRequestFiatWithdrawal (params?: {}): Promise<Dict | List>;
+    privatePostRequestFiatWithdrawal (params?: {}): Promise<Dict>;
     privatePostWithdrawFiatCurrency (params?: {}): Promise<Dict>;
     privatePostWithdrawDigitalCurrency (params?: {}): Promise<Dict>;
     privatePostWithdrawCrypto (params?: {}): Promise<Dict>;

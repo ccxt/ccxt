@@ -157,12 +157,10 @@ export default class kraken extends Exchange {
             'handleContentTypeApplicationZip': true,
             'api': {
                 'zendesk': {
-                    'get': [
-                        // we should really refrain from putting fixed fee numbers and stop hardcoding
-                        // we will be using their web APIs to scrape all numbers from these articles
-                        '360000292886', // -What-are-the-deposit-fees-
-                        '201893608', // -What-are-the-withdrawal-fees-
-                    ],
+                    'get': {
+                        '360000292886': { 'cost': 1, 'returnType': 'Dict' },
+                        '201893608': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'public': {
                     'get': {

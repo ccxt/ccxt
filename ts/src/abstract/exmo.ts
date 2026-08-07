@@ -10,7 +10,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     webGetCtrlFeesAndLimits (params?: {}): Promise<Dict>;
-    webGetEnDocsFees (params?: {}): Promise<Dict | List>;
+    webGetEnDocsFees (params?: {}): Promise<Dict>;
     publicGetCurrency (params?: {}): Promise<List>;
     publicGetCurrencyListExtended (params?: {}): Promise<List>;
     publicGetOrderBook (params?: {}): Promise<Dict>;

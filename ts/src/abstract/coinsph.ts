@@ -12,9 +12,9 @@ interface Exchange {
     publicGetOpenapiV1Ping (params?: {}): Promise<Dict>;
     publicGetOpenapiV1Time (params?: {}): Promise<Dict>;
     publicGetOpenapiV1UserIp (params?: {}): Promise<Dict>;
-    publicGetOpenapiQuoteV1Ticker24hr (params?: {}): Promise<Dict | List>;
-    publicGetOpenapiQuoteV1TickerPrice (params?: {}): Promise<Dict | List>;
-    publicGetOpenapiQuoteV1TickerBookTicker (params?: {}): Promise<Dict | List>;
+    publicGetOpenapiQuoteV1Ticker24hr (params?: {}): Promise<List>;
+    publicGetOpenapiQuoteV1TickerPrice (params?: {}): Promise<Dict>;
+    publicGetOpenapiQuoteV1TickerBookTicker (params?: {}): Promise<List>;
     publicGetOpenapiV1ExchangeInfo (params?: {}): Promise<Dict>;
     publicGetOpenapiQuoteV1Depth (params?: {}): Promise<Dict>;
     publicGetOpenapiQuoteV1Klines (params?: {}): Promise<List>;
@@ -54,10 +54,10 @@ interface Exchange {
     privatePostOpenapiV1Order (params?: {}): Promise<Dict>;
     privatePostOpenapiV1OrderCancelReplace (params?: {}): Promise<Dict>;
     privatePostOpenapiV1CapitalWithdrawApply (params?: {}): Promise<Dict>;
-    privatePostOpenapiV1CapitalDepositApply (params?: {}): Promise<Dict | List>;
+    privatePostOpenapiV1CapitalDepositApply (params?: {}): Promise<Dict>;
     privatePostOpenapiV3PaymentRequestPaymentRequests (params?: {}): Promise<Dict>;
     privatePostOpenapiV3PaymentRequestDeletePaymentRequest (params?: {}): Promise<Dict>;
-    privatePostOpenapiV3PaymentRequestPaymentRequestReminder (params?: {}): Promise<Dict | List>;
+    privatePostOpenapiV3PaymentRequestPaymentRequestReminder (params?: {}): Promise<string>;
     privatePostOpenapiV1UserDataStream (params?: {}): Promise<Dict>;
     privatePostMerchantApiV1Invoices (params?: {}): Promise<Dict>;
     privatePostMerchantApiV1InvoicesCancel (params?: {}): Promise<Dict>;
@@ -74,7 +74,7 @@ interface Exchange {
     privatePostOpenapiFiatV1CashOut (params?: {}): Promise<Dict>;
     privatePostOpenapiFiatV1History (params?: {}): Promise<Dict>;
     privatePostOpenapiMigrationV4Sellorder (params?: {}): Promise<Dict>;
-    privatePostOpenapiMigrationV4ValidateField (params?: {}): Promise<Dict | List>;
+    privatePostOpenapiMigrationV4ValidateField (params?: {}): Promise<Dict>;
     privatePostOpenapiTransferV3Transfers (params?: {}): Promise<Dict>;
     privatePostOpenapiTransferV4Transfers (params?: {}): Promise<Dict>;
     privatePostOpenapiV1SubAccountCreate (params?: {}): Promise<Dict>;

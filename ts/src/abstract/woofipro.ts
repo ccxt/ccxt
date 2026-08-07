@@ -11,12 +11,12 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     v1PublicGetPublicVolumeStats (params?: {}): Promise<Dict>;
     v1PublicGetPublicBrokerName (params?: {}): Promise<Dict>;
-    v1PublicGetPublicChainInfoBrokerId (params?: {}): Promise<Dict | List>;
+    v1PublicGetPublicChainInfoBrokerId (params?: {}): Promise<Dict>;
     v1PublicGetPublicSystemInfo (params?: {}): Promise<Dict>;
     v1PublicGetPublicVaultBalance (params?: {}): Promise<Dict>;
     v1PublicGetPublicInsurancefund (params?: {}): Promise<Dict>;
     v1PublicGetPublicChainInfo (params?: {}): Promise<Dict>;
-    v1PublicGetFaucetUsdc (params?: {}): Promise<Dict | List>;
+    v1PublicGetFaucetUsdc (params?: {}): Promise<Dict>;
     v1PublicGetPublicAccount (params?: {}): Promise<Dict>;
     v1PublicGetGetAccount (params?: {}): Promise<Dict>;
     v1PublicGetRegistrationNonce (params?: {}): Promise<Dict>;
@@ -32,7 +32,7 @@ interface Exchange {
     v1PublicGetPublicPointsLeaderboard (params?: {}): Promise<Dict>;
     v1PublicGetClientPoints (params?: {}): Promise<Dict>;
     v1PublicGetPublicPointsEpoch (params?: {}): Promise<Dict>;
-    v1PublicGetPublicPointsEpochDates (params?: {}): Promise<Dict | List>;
+    v1PublicGetPublicPointsEpochDates (params?: {}): Promise<Dict>;
     v1PublicGetPublicReferralCheckRefCode (params?: {}): Promise<Dict>;
     v1PublicGetPublicReferralVerifyRefCode (params?: {}): Promise<Dict>;
     v1PublicGetReferralAdminInfo (params?: {}): Promise<Dict>;
@@ -101,7 +101,7 @@ interface Exchange {
     v1PrivatePostSettlePnl (params?: {}): Promise<Dict>;
     v1PrivatePostNotificationInboxMarkRead (params?: {}): Promise<Dict>;
     v1PrivatePostNotificationInboxMarkReadAll (params?: {}): Promise<Dict>;
-    v1PrivatePostClientLeverage (params?: {}): Promise<Dict | List>;
+    v1PrivatePostClientLeverage (params?: {}): Promise<Dict>;
     v1PrivatePostClientMaintenanceConfig (params?: {}): Promise<Dict>;
     v1PrivatePostDelegateSigner (params?: {}): Promise<Dict>;
     v1PrivatePostDelegateOrderlyKey (params?: {}): Promise<Dict>;

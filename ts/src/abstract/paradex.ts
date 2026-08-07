@@ -23,7 +23,7 @@ interface Exchange {
     publicGetInsurance (params?: {}): Promise<Dict>;
     publicGetJwksJson (params?: {}): Promise<Dict>;
     publicGetOnboarding (params?: {}): Promise<Dict>;
-    publicGetReferralsConfig (params?: {}): Promise<Dict | List>;
+    publicGetReferralsConfig (params?: {}): Promise<Dict>;
     publicGetStakingConfig (params?: {}): Promise<Dict>;
     publicGetSystemAnnouncements (params?: {}): Promise<Dict>;
     publicGetSystemConfig (params?: {}): Promise<Dict>;
@@ -113,7 +113,7 @@ interface Exchange {
     privatePutOrdersOrderId (params?: {}): Promise<Dict>;
     privateDeleteAccountKeysSubkeysPublicKey (params?: {}): Promise<Dict>;
     privateDeleteAccountTokensLookupId (params?: {}): Promise<Dict>;
-    privateDeleteAlgoOrdersAlgoId (params?: {}): Promise<Dict | List>;
+    privateDeleteAlgoOrdersAlgoId (params?: {}): Promise<Dict>;
     privateDeleteBlockTradesBlockTradeId (params?: {}): Promise<Dict>;
     privateDeleteBlockTradesBlockTradeIdOffersOfferId (params?: {}): Promise<Dict>;
     privateDeleteOrders (params?: {}): Promise<Dict>;

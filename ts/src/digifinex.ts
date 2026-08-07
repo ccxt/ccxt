@@ -196,7 +196,7 @@ export default class digifinex extends Exchange {
                             'spot/order/new': { 'cost': 1, 'returnType': 'Dict' },
                             'transfer': { 'cost': 1, 'returnType': 'Dict' },
                             'withdraw/new': { 'cost': 1, 'returnType': 'Dict' },
-                            'withdraw/cancel': 1,
+                            'withdraw/cancel': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                     'swap': {

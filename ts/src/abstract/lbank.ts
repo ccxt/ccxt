@@ -5,46 +5,46 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     spotPublicGetCurrencyPairs (params?: {}): Promise<Dict>;
     spotPublicGetAccuracy (params?: {}): Promise<Dict>;
-    spotPublicGetUsdToCny (params?: {}): Promise<Dict | List>;
+    spotPublicGetUsdToCny (params?: {}): Promise<Dict>;
     spotPublicGetAssetConfigs (params?: {}): Promise<Dict>;
     spotPublicGetWithdrawConfigs (params?: {}): Promise<Dict>;
     spotPublicGetTimestamp (params?: {}): Promise<Dict>;
     spotPublicGetTicker24hr (params?: {}): Promise<Dict>;
-    spotPublicGetTicker (params?: {}): Promise<Dict | List>;
+    spotPublicGetTicker (params?: {}): Promise<Dict>;
     spotPublicGetDepth (params?: {}): Promise<Dict>;
-    spotPublicGetIncrDepth (params?: {}): Promise<Dict | List>;
+    spotPublicGetIncrDepth (params?: {}): Promise<Dict>;
     spotPublicGetTrades (params?: {}): Promise<Dict>;
     spotPublicGetKline (params?: {}): Promise<Dict>;
     spotPublicGetSupplementSystemPing (params?: {}): Promise<Dict>;
-    spotPublicGetSupplementIncrDepth (params?: {}): Promise<Dict | List>;
+    spotPublicGetSupplementIncrDepth (params?: {}): Promise<Dict>;
     spotPublicGetSupplementTrades (params?: {}): Promise<Dict>;
     spotPublicGetSupplementTickerPrice (params?: {}): Promise<Dict>;
     spotPublicGetSupplementTickerBookTicker (params?: {}): Promise<Dict>;
     spotPublicPostSupplementSystemStatus (params?: {}): Promise<Dict>;
-    spotPrivatePostUserInfo (params?: {}): Promise<Dict | List>;
+    spotPrivatePostUserInfo (params?: {}): Promise<Dict>;
     spotPrivatePostSubscribeGetKey (params?: {}): Promise<Dict>;
     spotPrivatePostSubscribeRefreshKey (params?: {}): Promise<Dict>;
     spotPrivatePostSubscribeDestroyKey (params?: {}): Promise<Dict>;
     spotPrivatePostGetDepositAddress (params?: {}): Promise<Dict>;
-    spotPrivatePostDepositHistory (params?: {}): Promise<Dict | List>;
+    spotPrivatePostDepositHistory (params?: {}): Promise<Dict>;
     spotPrivatePostCreateOrder (params?: {}): Promise<Dict>;
-    spotPrivatePostBatchCreateOrder (params?: {}): Promise<Dict | List>;
-    spotPrivatePostCancelOrder (params?: {}): Promise<Dict | List>;
-    spotPrivatePostCancelClientOrders (params?: {}): Promise<Dict | List>;
+    spotPrivatePostBatchCreateOrder (params?: {}): Promise<Dict>;
+    spotPrivatePostCancelOrder (params?: {}): Promise<Dict>;
+    spotPrivatePostCancelClientOrders (params?: {}): Promise<Dict>;
     spotPrivatePostOrdersInfo (params?: {}): Promise<Dict>;
-    spotPrivatePostOrdersInfoHistory (params?: {}): Promise<Dict | List>;
-    spotPrivatePostOrderTransactionDetail (params?: {}): Promise<Dict | List>;
+    spotPrivatePostOrdersInfoHistory (params?: {}): Promise<Dict>;
+    spotPrivatePostOrderTransactionDetail (params?: {}): Promise<Dict>;
     spotPrivatePostTransactionHistory (params?: {}): Promise<Dict>;
     spotPrivatePostOrdersInfoNoDeal (params?: {}): Promise<Dict>;
-    spotPrivatePostWithdraw (params?: {}): Promise<Dict | List>;
-    spotPrivatePostWithdrawCancel (params?: {}): Promise<Dict | List>;
-    spotPrivatePostWithdraws (params?: {}): Promise<Dict | List>;
+    spotPrivatePostWithdraw (params?: {}): Promise<Dict>;
+    spotPrivatePostWithdrawCancel (params?: {}): Promise<Dict>;
+    spotPrivatePostWithdraws (params?: {}): Promise<Dict>;
     spotPrivatePostSupplementUserInfo (params?: {}): Promise<Dict>;
     spotPrivatePostSupplementWithdraw (params?: {}): Promise<Dict>;
     spotPrivatePostSupplementDepositHistory (params?: {}): Promise<Dict>;

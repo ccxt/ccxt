@@ -153,7 +153,7 @@ export default class btcmarkets extends Exchange {
                         'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
                         'batchorders/{ids}': { 'cost': 1, 'returnType': 'Dict' },
                         'trades': { 'cost': 1, 'returnType': 'List' },
-                        'trades/{id}': 1,
+                        'trades/{id}': { 'cost': 1, 'returnType': 'Dict' },
                         'withdrawals': { 'cost': 1, 'returnType': 'List' },
                         'withdrawals/{id}': { 'cost': 1, 'returnType': 'Dict' },
                         'deposits': { 'cost': 1, 'returnType': 'List' },

@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -29,16 +29,16 @@ interface Exchange {
     v2PrivateGetAlgoOrdersOpening (params?: {}): Promise<Dict>;
     v2PrivateGetAlgoOrdersHistory (params?: {}): Promise<Dict>;
     v2PrivateGetAlgoOrdersSpecific (params?: {}): Promise<Dict>;
-    v2PrivateGetC2cOffers (params?: {}): Promise<Dict | List>;
-    v2PrivateGetC2cOffer (params?: {}): Promise<Dict | List>;
-    v2PrivateGetC2cTransactions (params?: {}): Promise<Dict | List>;
-    v2PrivateGetC2cRepayment (params?: {}): Promise<Dict | List>;
-    v2PrivateGetC2cAccount (params?: {}): Promise<Dict | List>;
-    v2PrivateGetEtpReference (params?: {}): Promise<Dict | List>;
-    v2PrivateGetEtpTransactions (params?: {}): Promise<Dict | List>;
-    v2PrivateGetEtpTransaction (params?: {}): Promise<Dict | List>;
+    v2PrivateGetC2cOffers (params?: {}): Promise<Dict>;
+    v2PrivateGetC2cOffer (params?: {}): Promise<Dict>;
+    v2PrivateGetC2cTransactions (params?: {}): Promise<Dict>;
+    v2PrivateGetC2cRepayment (params?: {}): Promise<Dict>;
+    v2PrivateGetC2cAccount (params?: {}): Promise<Dict>;
+    v2PrivateGetEtpReference (params?: {}): Promise<Dict>;
+    v2PrivateGetEtpTransactions (params?: {}): Promise<Dict>;
+    v2PrivateGetEtpTransaction (params?: {}): Promise<Dict>;
     v2PrivateGetEtpRebalance (params?: {}): Promise<Dict>;
-    v2PrivateGetEtpLimit (params?: {}): Promise<Dict | List>;
+    v2PrivateGetEtpLimit (params?: {}): Promise<Dict>;
     v2PrivatePostAccountTransfer (params?: {}): Promise<Dict>;
     v2PrivatePostAccountRepayment (params?: {}): Promise<Dict>;
     v2PrivatePostPointTransfer (params?: {}): Promise<Dict>;
@@ -53,15 +53,15 @@ interface Exchange {
     v2PrivatePostAlgoOrders (params?: {}): Promise<Dict>;
     v2PrivatePostAlgoOrdersCancelAllAfter (params?: {}): Promise<Dict>;
     v2PrivatePostAlgoOrdersCancellation (params?: {}): Promise<Dict>;
-    v2PrivatePostC2cOffer (params?: {}): Promise<Dict | List>;
-    v2PrivatePostC2cCancellation (params?: {}): Promise<Dict | List>;
-    v2PrivatePostC2cCancelAll (params?: {}): Promise<Dict | List>;
-    v2PrivatePostC2cRepayment (params?: {}): Promise<Dict | List>;
-    v2PrivatePostC2cTransfer (params?: {}): Promise<Dict | List>;
-    v2PrivatePostEtpCreation (params?: {}): Promise<Dict | List>;
-    v2PrivatePostEtpRedemption (params?: {}): Promise<Dict | List>;
-    v2PrivatePostEtpTransactIdCancel (params?: {}): Promise<Dict | List>;
-    v2PrivatePostEtpBatchCancel (params?: {}): Promise<Dict | List>;
+    v2PrivatePostC2cOffer (params?: {}): Promise<Dict>;
+    v2PrivatePostC2cCancellation (params?: {}): Promise<Dict>;
+    v2PrivatePostC2cCancelAll (params?: {}): Promise<Dict>;
+    v2PrivatePostC2cRepayment (params?: {}): Promise<Dict>;
+    v2PrivatePostC2cTransfer (params?: {}): Promise<Dict>;
+    v2PrivatePostEtpCreation (params?: {}): Promise<Dict>;
+    v2PrivatePostEtpRedemption (params?: {}): Promise<Dict>;
+    v2PrivatePostEtpTransactIdCancel (params?: {}): Promise<Dict>;
+    v2PrivatePostEtpBatchCancel (params?: {}): Promise<Dict>;
     marketGetHistoryKline (params?: {}): Promise<Dict>;
     marketGetDetailMerged (params?: {}): Promise<Dict>;
     marketGetDepth (params?: {}): Promise<Dict>;
@@ -81,7 +81,7 @@ interface Exchange {
     privateGetAccountHistory (params?: {}): Promise<Dict>;
     privateGetCrossMarginLoanInfo (params?: {}): Promise<Dict>;
     privateGetMarginLoanInfo (params?: {}): Promise<Dict>;
-    privateGetFeeFeeRateGet (params?: {}): Promise<Dict | List>;
+    privateGetFeeFeeRateGet (params?: {}): Promise<Dict>;
     privateGetOrderOpenOrders (params?: {}): Promise<Dict>;
     privateGetOrderOrders (params?: {}): Promise<Dict>;
     privateGetOrderOrdersId (params?: {}): Promise<Dict>;
@@ -94,11 +94,11 @@ interface Exchange {
     privateGetMarginAccountsBalance (params?: {}): Promise<Dict>;
     privateGetCrossMarginLoanOrders (params?: {}): Promise<Dict>;
     privateGetCrossMarginAccountsBalance (params?: {}): Promise<Dict>;
-    privateGetPointsActions (params?: {}): Promise<Dict | List>;
-    privateGetPointsOrders (params?: {}): Promise<Dict | List>;
+    privateGetPointsActions (params?: {}): Promise<Dict>;
+    privateGetPointsOrders (params?: {}): Promise<Dict>;
     privateGetSubuserAggregateBalance (params?: {}): Promise<Dict>;
-    privateGetStableCoinExchangeRate (params?: {}): Promise<Dict | List>;
-    privateGetStableCoinQuote (params?: {}): Promise<Dict | List>;
+    privateGetStableCoinExchangeRate (params?: {}): Promise<Dict>;
+    privateGetStableCoinQuote (params?: {}): Promise<Dict>;
     privatePostAccountTransfer (params?: {}): Promise<Dict>;
     privatePostFuturesTransfer (params?: {}): Promise<Dict>;
     privatePostOrderBatchOrders (params?: {}): Promise<Dict>;
@@ -117,7 +117,7 @@ interface Exchange {
     privatePostCrossMarginTransferOut (params?: {}): Promise<Dict>;
     privatePostCrossMarginOrders (params?: {}): Promise<Dict>;
     privatePostCrossMarginOrdersIdRepay (params?: {}): Promise<Dict>;
-    privatePostStableCoinExchange (params?: {}): Promise<Dict | List>;
+    privatePostStableCoinExchange (params?: {}): Promise<Dict>;
     privatePostSubuserTransfer (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}

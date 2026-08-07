@@ -368,7 +368,7 @@ export default class binance extends Exchange {
                         'convert/limit/queryOpenOrders': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'account/status': { 'cost': 0.1, 'returnType': 'Dict' },
                         'account/apiTradingStatus': { 'cost': 0.1, 'returnType': 'Dict' },
-                        'account/apiRestrictions/ipRestriction': 0.1,
+                        'account/apiRestrictions/ipRestriction': { 'cost': 0.1, 'returnType': 'Dict' },
                         'bnbBurn': { 'cost': 0.1, 'returnType': 'Dict' },
                         'sub-account/futures/account': { 'cost': 1, 'returnType': 'Dict' },
                         'sub-account/futures/accountSummary': { 'cost': 0.1, 'returnType': 'Dict' },
@@ -400,8 +400,8 @@ export default class binance extends Exchange {
                         'lending/daily/userRedemptionQuota': { 'cost': 0.1, 'returnType': 'Dict' },
                         'lending/daily/token/position': { 'cost': 0.1, 'returnType': 'List' },
                         'lending/union/account': { 'cost': 0.1, 'returnType': 'Dict' },
-                        'lending/union/purchaseRecord': 0.1,
-                        'lending/union/redemptionRecord': 0.1,
+                        'lending/union/purchaseRecord': { 'cost': 0.1, 'returnType': 'List' },
+                        'lending/union/redemptionRecord': { 'cost': 0.1, 'returnType': 'Dict' },
                         'lending/union/interestHistory': { 'cost': 0.1, 'returnType': 'List' },
                         'lending/project/list': { 'cost': 0.1, 'returnType': 'List' },
                         'lending/project/position/list': { 'cost': 0.1, 'returnType': 'List' },
@@ -451,9 +451,9 @@ export default class binance extends Exchange {
                         'apiReferral/customization': { 'cost': 1, 'returnType': 'List' },
                         'apiReferral/userCustomization': { 'cost': 1, 'returnType': 'Dict' },
                         'apiReferral/rebate/recentRecord': { 'cost': 1, 'returnType': 'List' },
-                        'apiReferral/rebate/historicalRecord': 1,
+                        'apiReferral/rebate/historicalRecord': { 'cost': 1, 'returnType': 'List' },
                         'apiReferral/kickback/recentRecord': { 'cost': 1, 'returnType': 'List' },
-                        'apiReferral/kickback/historicalRecord': 1,
+                        'apiReferral/kickback/historicalRecord': { 'cost': 1, 'returnType': 'List' },
                         // brokerage API TODO https://binance-docs.github.io/Brokerage-API/General/ does not state ratelimits
                         'broker/subAccountApi': { 'cost': 1, 'returnType': 'List' },
                         'broker/subAccount': { 'cost': 1, 'returnType': 'List' },
@@ -463,7 +463,7 @@ export default class binance extends Exchange {
                         'broker/transfer': { 'cost': 1, 'returnType': 'List' },
                         'broker/transfer/futures': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/rebate/recentRecord': { 'cost': 1, 'returnType': 'List' },
-                        'broker/rebate/historicalRecord': 1,
+                        'broker/rebate/historicalRecord': { 'cost': 1, 'returnType': 'List' },
                         'broker/subAccount/bnbBurn/status': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/depositHist': { 'cost': 1, 'returnType': 'List' },
                         'broker/subAccount/spotSummary': { 'cost': 1, 'returnType': 'Dict' },
@@ -500,7 +500,7 @@ export default class binance extends Exchange {
                         'portfolio/repay-futures-switch': { 'cost': 3, 'returnType': 'Dict' }, // Weight(IP): 30 => cost = 0.1 * 30 = 3
                         'portfolio/margin-asset-leverage': { 'cost': 5, 'returnType': 'List' }, // Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance': { 'cost': 2, 'returnType': 'List' },
-                        'portfolio/negative-balance-exchange-record': 2,
+                        'portfolio/negative-balance-exchange-record': { 'cost': 2, 'returnType': 'List' },
                         'portfolio/pmloan-history': { 'cost': 5, 'returnType': 'Dict' },
                         'portfolio/earn-asset-balance': { 'cost': 150, 'returnType': 'Dict' }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode': { 'cost': 150, 'returnType': 'Dict' }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
@@ -544,9 +544,9 @@ export default class binance extends Exchange {
                         'dci/product/positions': { 'cost': 0.1, 'returnType': 'Dict' },
                         'dci/product/accounts': { 'cost': 0.1, 'returnType': 'Dict' },
                         // Discount Buy
-                        'accumulator/product/list': 0.1,
-                        'accumulator/product/position/list': 0.1,
-                        'accumulator/product/sum-holding': 0.1,
+                        'accumulator/product/list': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'accumulator/product/position/list': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'accumulator/product/sum-holding': { 'cost': 0.1, 'returnType': 'Dict' },
                     },
                     'post': {
                         'asset/dust': { 'cost': 0.06667, 'returnType': 'Dict' }, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
@@ -583,7 +583,7 @@ export default class binance extends Exchange {
                         'sub-account/transfer/subToSub': { 'cost': 0.1, 'returnType': 'Dict' },
                         'sub-account/transfer/subToMaster': { 'cost': 0.1, 'returnType': 'Dict' },
                         'sub-account/universalTransfer': { 'cost': 0.1, 'returnType': 'Dict' },
-                        'sub-account/options/enable': 0.1,
+                        'sub-account/options/enable': { 'cost': 0.1, 'returnType': 'Dict' },
                         'managed-subaccount/deposit': { 'cost': 0.1, 'returnType': 'Dict' },
                         'managed-subaccount/withdraw': { 'cost': 0.1, 'returnType': 'Dict' },
                         'userDataStream': { 'cost': 0.1, 'returnType': 'Dict' },
@@ -605,8 +605,8 @@ export default class binance extends Exchange {
                         // brokerage API TODO: NO MENTION OF RATELIMITS IN BROKERAGE DOCS
                         'apiReferral/customization': { 'cost': 1, 'returnType': 'Dict' },
                         'apiReferral/userCustomization': { 'cost': 1, 'returnType': 'Dict' },
-                        'apiReferral/rebate/historicalRecord': 1,
-                        'apiReferral/kickback/historicalRecord': 1,
+                        'apiReferral/rebate/historicalRecord': { 'cost': 1, 'returnType': 'List' },
+                        'apiReferral/kickback/historicalRecord': { 'cost': 1, 'returnType': 'List' },
                         'broker/subAccount': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/margin': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/futures': { 'cost': 1, 'returnType': 'Dict' },
@@ -617,7 +617,7 @@ export default class binance extends Exchange {
                         'broker/subAccountApi/commission/coinFutures': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/transfer': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/transfer/futures': { 'cost': 1, 'returnType': 'Dict' },
-                        'broker/rebate/historicalRecord': 1,
+                        'broker/rebate/historicalRecord': { 'cost': 1, 'returnType': 'List' },
                         'broker/subAccount/bnbBurn/spot': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/bnbBurn/marginInterest': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/blvt': { 'cost': 1, 'returnType': 'Dict' },
@@ -684,9 +684,9 @@ export default class binance extends Exchange {
                         'simple-earn/locked/setRedeemOption': { 'cost': 5, 'returnType': 'Dict' },
                         // convert
                         'dci/product/subscribe': { 'cost': 0.1, 'returnType': 'Dict' },
-                        'dci/product/auto_compound/edit': 0.1,
+                        'dci/product/auto_compound/edit': { 'cost': 0.1, 'returnType': 'Dict' },
                         // discount buy
-                        'accumulator/product/subscribe': 0.1,
+                        'accumulator/product/subscribe': { 'cost': 0.1, 'returnType': 'Dict' },
                     },
                     'put': {
                         'userDataStream': { 'cost': 0.1, 'returnType': 'Dict' },
@@ -863,7 +863,7 @@ export default class binance extends Exchange {
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10, 'returnType': 'Dict' },
                         'lvtKlines': { 'cost': 1, 'returnType': 'List' },
                         'convert/exchangeInfo': { 'cost': 4, 'returnType': 'List' },
-                        'insuranceBalance': 1,
+                        'insuranceBalance': { 'cost': 1, 'returnType': 'List' },
                         'symbolAdlRisk': { 'cost': 1, 'returnType': 'Dict' },
                         'tradingSchedule': { 'cost': 5, 'returnType': 'Dict' },
                     },
@@ -886,11 +886,11 @@ export default class binance extends Exchange {
                         'openOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'openOrders': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
                         'order': { 'cost': 1, 'returnType': 'Dict' },
-                        'account': 5,
-                        'balance': 5,
+                        'account': { 'cost': 5, 'returnType': 'Dict' },
+                        'balance': { 'cost': 5, 'returnType': 'List' },
                         'leverageBracket': { 'cost': 1, 'returnType': 'List' },
                         'positionMargin/history': { 'cost': 1, 'returnType': 'List' },
-                        'positionRisk': 5,
+                        'positionRisk': { 'cost': 5, 'returnType': 'List' },
                         'positionSide/dual': { 'cost': 30, 'returnType': 'Dict' },
                         'userTrades': { 'cost': 5, 'returnType': 'List' },
                         'income': { 'cost': 30, 'returnType': 'List' },
@@ -924,7 +924,7 @@ export default class binance extends Exchange {
                         'algoOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'openAlgoOrders': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
                         'allAlgoOrders': { 'cost': 5, 'returnType': 'List' },
-                        'stock/contract': 50,
+                        'stock/contract': { 'cost': 50, 'returnType': 'Dict' },
                     },
                     'post': {
                         'batchOrders': { 'cost': 5, 'returnType': 'List' },
@@ -1018,7 +1018,7 @@ export default class binance extends Exchange {
                         'block/order/execute': { 'cost': 5, 'returnType': 'Dict' },
                         'block/user-trades': { 'cost': 5, 'returnType': 'List' },
                         'blockTrades': { 'cost': 5, 'returnType': 'List' },
-                        'comission': 5,
+                        'comission': { 'cost': 5, 'returnType': 'Dict' },
                     },
                     'post': {
                         'order': { 'cost': 1, 'returnType': 'Dict' },
@@ -1178,8 +1178,8 @@ export default class binance extends Exchange {
                         'um/feeBurn': { 'cost': 30, 'returnType': 'Dict' },
                         'um/accountConfig': { 'cost': 1, 'returnType': 'Dict' },
                         'um/symbolConfig': { 'cost': 1, 'returnType': 'List' },
-                        'cm/accountConfig': 1,
-                        'cm/symbolConfig': 1,
+                        'cm/accountConfig': { 'cost': 1, 'returnType': 'Dict' },
+                        'cm/symbolConfig': { 'cost': 1, 'returnType': 'Dict' },
                         'rateLimit/order': { 'cost': 1, 'returnType': 'List' },
                     },
                     'post': {

@@ -10,7 +10,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetCfgV2Products (params?: {}): Promise<Dict>;
-    publicGetCfgFundingRates (params?: {}): Promise<Dict | List>;
+    publicGetCfgFundingRates (params?: {}): Promise<List>;
     publicGetProducts (params?: {}): Promise<Dict>;
     publicGetNomicsTrades (params?: {}): Promise<Dict>;
     publicGetMdKline (params?: {}): Promise<Dict>;

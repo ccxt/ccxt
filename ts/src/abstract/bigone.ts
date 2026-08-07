@@ -44,11 +44,11 @@ interface Exchange {
     contractPrivateGetTrades (params?: {}): Promise<List>;
     contractPrivateGetTradesCount (params?: {}): Promise<Dict>;
     contractPrivatePostOrders (params?: {}): Promise<Dict>;
-    contractPrivatePostOrdersBatch (params?: {}): Promise<Dict | List>;
+    contractPrivatePostOrdersBatch (params?: {}): Promise<Dict>;
     contractPrivatePutPositionsSymbolMargin (params?: {}): Promise<Dict>;
     contractPrivatePutPositionsSymbolRiskLimit (params?: {}): Promise<Dict>;
-    contractPrivateDeleteOrdersId (params?: {}): Promise<Dict | List>;
-    contractPrivateDeleteOrdersBatch (params?: {}): Promise<Dict | List>;
+    contractPrivateDeleteOrdersId (params?: {}): Promise<Dict>;
+    contractPrivateDeleteOrdersBatch (params?: {}): Promise<Dict>;
     webExchangeGetV3Assets (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}

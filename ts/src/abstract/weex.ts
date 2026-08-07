@@ -14,7 +14,7 @@ interface Exchange {
     publicGetApiV3ExchangeInfo (params?: {}): Promise<Dict>;
     publicGetApiV3Ping (params?: {}): Promise<Dict>;
     publicGetApiV3ApiTradingSymbols (params?: {}): Promise<List>;
-    publicGetApiV3MarketTickerPrice (params?: {}): Promise<Dict | List>;
+    publicGetApiV3MarketTickerPrice (params?: {}): Promise<List>;
     publicGetApiV3MarketTicker24hr (params?: {}): Promise<List>;
     publicGetApiV3MarketTrades (params?: {}): Promise<List>;
     publicGetApiV3MarketKlines (params?: {}): Promise<List>;

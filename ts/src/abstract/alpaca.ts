@@ -43,8 +43,8 @@ interface Exchange {
     traderPrivateDeleteV2OrdersOrderId (params?: {}): Promise<Dict>;
     traderPrivateDeleteV2Positions (params?: {}): Promise<List>;
     traderPrivateDeleteV2PositionsSymbolOrAssetId (params?: {}): Promise<Dict>;
-    traderPrivateDeleteV2WatchlistsWatchlistId (params?: {}): Promise<Dict | List>;
-    traderPrivateDeleteV2WatchlistsByName (params?: {}): Promise<Dict | List>;
+    traderPrivateDeleteV2WatchlistsWatchlistId (params?: {}): Promise<Dict>;
+    traderPrivateDeleteV2WatchlistsByName (params?: {}): Promise<Dict>;
     traderPrivateDeleteV2WatchlistsWatchlistIdSymbol (params?: {}): Promise<Dict>;
     marketPublicGetV1beta3CryptoLocBars (params?: {}): Promise<Dict>;
     marketPublicGetV1beta3CryptoLocLatestBars (params?: {}): Promise<Dict>;

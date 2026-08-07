@@ -63,7 +63,7 @@ interface Exchange {
     privateGetUserQuoteValueRatio (params?: {}): Promise<Dict>;
     privateGetUserStaking (params?: {}): Promise<List>;
     privateGetUserStakingInstruments (params?: {}): Promise<List>;
-    privateGetUserStakingTiers (params?: {}): Promise<Dict | List>;
+    privateGetUserStakingTiers (params?: {}): Promise<Dict>;
     privateGetUserTradingVolume (params?: {}): Promise<List>;
     privateGetUserUnstakingRequests (params?: {}): Promise<List>;
     privateGetUserWallet (params?: {}): Promise<Dict>;

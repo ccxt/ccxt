@@ -243,7 +243,7 @@ export default class polymarket extends Exchange {
                             'revisions': { 'cost': 1, 'returnType': 'List' },
                             'traded': { 'cost': 1, 'returnType': 'Dict' },
                             'trades': { 'cost': 1, 'returnType': 'Dict' },
-                            'v1/accounting/snapshot': 1,
+                            'v1/accounting/snapshot': { 'cost': 1, 'returnType': 'Dict' },
                             'v1/activity/combos': { 'cost': 1, 'returnType': 'Dict' },
                             'v1/builders/leaderboard': { 'cost': 1, 'returnType': 'List' },
                             'v1/builders/volume': { 'cost': 1, 'returnType': 'List' },

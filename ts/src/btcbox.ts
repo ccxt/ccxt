@@ -145,9 +145,9 @@ export default class btcbox extends Exchange {
                     },
                 },
                 'webApi': {
-                    'get': [
-                        'ajax/coin/coinInfo',
-                    ],
+                    'get': {
+                        'ajax/coin/coinInfo': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
             },
             'options': {

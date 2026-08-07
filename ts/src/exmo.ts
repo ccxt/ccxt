@@ -124,7 +124,7 @@ export default class exmo extends Exchange {
                 'web': {
                     'get': {
                         'ctrl/feesAndLimits': { 'cost': 1, 'returnType': 'Dict' },
-                        'en/docs/fees': 1,
+                        'en/docs/fees': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'public': {

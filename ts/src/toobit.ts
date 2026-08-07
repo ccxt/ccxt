@@ -115,7 +115,7 @@ export default class toobit extends Exchange {
                         'quote/v1/index/klines': { 'cost': 1, 'returnType': 'List' },
                         'quote/v1/indexPriceComponents': { 'cost': 1, 'returnType': 'Dict' },
                         'quote/v1/markPrice/klines': { 'cost': 1, 'returnType': 'List' },
-                        'quote/v1/markPrice': { 'cost': 10, 'returnType': 'Dict | List' }, // 5 requests per second
+                        'quote/v1/markPrice': { 'cost': 10, 'returnType': 'Dict' }, // 5 requests per second
                         'quote/v1/index': { 'cost': 1, 'returnType': 'Dict' },
                         'quote/v1/ticker/24hr': { 'cost': 40, 'returnType': 'List' }, // todo: 1-40 depending noSymbol
                         'quote/v1/contract/ticker/24hr': { 'cost': 40, 'returnType': 'List' }, // todo: 1-40 depending noSymbol

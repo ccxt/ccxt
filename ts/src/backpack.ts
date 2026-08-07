@@ -223,7 +223,7 @@ export default class backpack extends Exchange {
                         'api/v1/orders': { 'cost': 1, 'returnType': 'List' }, // done
                     },
                     'patch': {
-                        'api/v1/account': 1,
+                        'api/v1/account': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },

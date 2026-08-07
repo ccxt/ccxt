@@ -9,7 +9,7 @@ import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    webGetV1Healthcheck (params?: {}): Promise<Dict | List>;
+    webGetV1Healthcheck (params?: {}): Promise<Dict>;
     v1PublicGetMarkets (params?: {}): Promise<Dict>;
     v1PublicGetTickers (params?: {}): Promise<Dict>;
     v1PublicGetTicker (params?: {}): Promise<Dict>;

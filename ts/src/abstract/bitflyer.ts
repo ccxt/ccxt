@@ -37,7 +37,7 @@ interface Exchange {
     privateGetGetexecutions (params?: {}): Promise<List>;
     privateGetGetpositions (params?: {}): Promise<List>;
     privateGetGettradingcommission (params?: {}): Promise<Dict>;
-    privatePostSendcoin (params?: {}): Promise<Dict | List>;
+    privatePostSendcoin (params?: {}): Promise<Dict>;
     privatePostWithdraw (params?: {}): Promise<Dict>;
     privatePostSendchildorder (params?: {}): Promise<Dict>;
     privatePostCancelchildorder (params?: {}): Promise<Dict>;

@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -67,7 +67,7 @@ interface Exchange {
     privateSpotPostSpotOrderNew (params?: {}): Promise<Dict>;
     privateSpotPostTransfer (params?: {}): Promise<Dict>;
     privateSpotPostWithdrawNew (params?: {}): Promise<Dict>;
-    privateSpotPostWithdrawCancel (params?: {}): Promise<Dict | List>;
+    privateSpotPostWithdrawCancel (params?: {}): Promise<Dict>;
     privateSwapGetAccountBalance (params?: {}): Promise<Dict>;
     privateSwapGetAccountPositions (params?: {}): Promise<Dict>;
     privateSwapGetAccountFinanceRecord (params?: {}): Promise<Dict>;

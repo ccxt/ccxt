@@ -175,16 +175,16 @@ export default class bigone extends Exchange {
                     },
                     'post': {
                         'orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders/batch': 1,
+                        'orders/batch': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'put': {
                         'positions/{symbol}/margin': { 'cost': 1, 'returnType': 'Dict' },
                         'positions/{symbol}/risk-limit': { 'cost': 1, 'returnType': 'Dict' },
                     },
-                    'delete': [
-                        'orders/{id}',
-                        'orders/batch',
-                    ],
+                    'delete': {
+                        'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders/batch': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'webExchange': {
                     'get': {

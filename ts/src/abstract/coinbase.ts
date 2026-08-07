@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -52,8 +52,8 @@ interface Exchange {
     v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit (params?: {}): Promise<Dict>;
     v2PrivatePutAccountsAccountId (params?: {}): Promise<Dict>;
     v2PrivatePutUser (params?: {}): Promise<Dict>;
-    v2PrivateDeleteAccountsId (params?: {}): Promise<Dict | List>;
-    v2PrivateDeleteAccountsAccountIdTransactionsTransactionId (params?: {}): Promise<Dict | List>;
+    v2PrivateDeleteAccountsId (params?: {}): Promise<Dict>;
+    v2PrivateDeleteAccountsAccountIdTransactionsTransactionId (params?: {}): Promise<Dict>;
     v3PublicGetBrokerageTime (params?: {}): Promise<Dict>;
     v3PublicGetBrokerageMarketProductBook (params?: {}): Promise<Dict>;
     v3PublicGetBrokerageMarketProducts (params?: {}): Promise<Dict>;

@@ -185,7 +185,7 @@ export default class mexc extends Exchange {
                             'klines': { 'cost': 1, 'returnType': 'Dict' },
                             'avgPrice': { 'cost': 1, 'returnType': 'Dict' },
                             'ticker/24hr': { 'cost': 25, 'returnType': 'List' },
-                            'ticker/price': 10,
+                            'ticker/price': { 'cost': 10, 'returnType': 'Dict' },
                             'ticker/bookTicker': { 'cost': 10, 'returnType': 'List' },
                             'etf/info': { 'cost': 1, 'returnType': 'Dict' },
                         },

@@ -23,8 +23,8 @@ interface Exchange {
     privatePostOrderCancelOrder (params?: {}): Promise<Dict>;
     privatePostOrderAddCoinFundsRequest (params?: {}): Promise<Dict>;
     privatePostOrderAddStopOrder (params?: {}): Promise<Dict>;
-    privatePostPaymentGetMyId (params?: {}): Promise<Dict | List>;
-    privatePostPaymentSend (params?: {}): Promise<Dict | List>;
+    privatePostPaymentGetMyId (params?: {}): Promise<Dict>;
+    privatePostPaymentSend (params?: {}): Promise<Dict>;
     privatePostPaymentPay (params?: {}): Promise<string>;
     privateGetAccountBalance (params?: {}): Promise<Dict>;
     privateGetAccountBalanceV2 (params?: {}): Promise<Dict>;

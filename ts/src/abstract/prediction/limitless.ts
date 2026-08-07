@@ -43,7 +43,7 @@ interface Exchange {
     limitlessPrivateGetProfilesAccount (params?: {}): Promise<Dict>;
     limitlessPrivateGetPortfolioPnlChart (params?: {}): Promise<Dict>;
     limitlessPrivateGetPortfolioHistory (params?: {}): Promise<Dict>;
-    limitlessPrivateGetPortfolioPoints (params?: {}): Promise<Dict | List>;
+    limitlessPrivateGetPortfolioPoints (params?: {}): Promise<Dict>;
     limitlessPrivateGetPortfolioTradingAllowance (params?: {}): Promise<Dict>;
     limitlessPrivateGetAuthApiTokensCapabilities (params?: {}): Promise<Dict>;
     limitlessPrivateGetAuthApiTokens (params?: {}): Promise<List>;
@@ -56,8 +56,8 @@ interface Exchange {
     limitlessPrivatePostOrdersCancelBatch (params?: {}): Promise<Dict>;
     limitlessPrivatePostOrdersBatchCancel (params?: {}): Promise<Dict>;
     limitlessPrivatePostOrdersStatusBatch (params?: {}): Promise<Dict>;
-    limitlessPrivatePostPortfolioRedeem (params?: {}): Promise<Dict | List>;
-    limitlessPrivatePostPortfolioWithdraw (params?: {}): Promise<Dict | List>;
+    limitlessPrivatePostPortfolioRedeem (params?: {}): Promise<Dict>;
+    limitlessPrivatePostPortfolioWithdraw (params?: {}): Promise<Dict>;
     limitlessPrivatePostPortfolioWithdrawalAddresses (params?: {}): Promise<Dict>;
     limitlessPrivatePostAuthApiTokensDerive (params?: {}): Promise<Dict>;
     limitlessPrivatePostProfilesPartnerAccounts (params?: {}): Promise<Dict>;
@@ -66,7 +66,7 @@ interface Exchange {
     limitlessPrivateDeleteOrdersOrderId (params?: {}): Promise<Dict>;
     limitlessPrivateDeleteOrdersAllSlug (params?: {}): Promise<Dict>;
     limitlessPrivateDeleteAuthApiTokensTokenId (params?: {}): Promise<Dict>;
-    limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (params?: {}): Promise<Dict | List>;
+    limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

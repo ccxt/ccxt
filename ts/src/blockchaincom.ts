@@ -125,7 +125,7 @@ export default class blockchaincom extends Exchange {
                         'withdrawals': { 'cost': 1, 'returnType': 'Dict' }, // withdraw
                     },
                     'delete': {
-                        'orders': 1, // cancelOrders
+                        'orders': { 'cost': 1, 'returnType': 'Dict' }, // cancelOrders
                         'orders/{orderId}': { 'cost': 1, 'returnType': 'Dict' }, // cancelOrder
                     },
                 },

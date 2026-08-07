@@ -256,8 +256,8 @@ export default class coinbase extends Exchange {
                             'user': { 'cost': 10.6, 'returnType': 'Dict' },
                         },
                         'delete': {
-                            'accounts/{id}': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
+                            'accounts/{id}': { 'cost': 10.6, 'returnType': 'Dict' },
+                            'accounts/{account_id}/transactions/{transaction_id}': { 'cost': 10.6, 'returnType': 'Dict' },
                         },
                     },
                 },

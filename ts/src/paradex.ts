@@ -163,7 +163,7 @@ export default class paradex extends Exchange {
                         'insurance': { 'cost': 1, 'returnType': 'Dict' },
                         'jwks.json': { 'cost': 1, 'returnType': 'Dict' },
                         'onboarding': { 'cost': 1, 'returnType': 'Dict' },
-                        'referrals/config': 1,
+                        'referrals/config': { 'cost': 1, 'returnType': 'Dict' },
                         'staking/config': { 'cost': 1, 'returnType': 'Dict' },
                         'system/announcements': { 'cost': 1, 'returnType': 'Dict' },
                         'system/config': { 'cost': 1, 'returnType': 'Dict' },
@@ -265,7 +265,7 @@ export default class paradex extends Exchange {
                     'delete': {
                         'account/keys/subkeys/{public_key}': { 'cost': 1, 'returnType': 'Dict' },
                         'account/tokens/{lookup_id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'algo/orders/{algo_id}': 1,
+                        'algo/orders/{algo_id}': { 'cost': 1, 'returnType': 'Dict' },
                         'block-trades/{block_trade_id}': { 'cost': 1, 'returnType': 'Dict' },
                         'block-trades/{block_trade_id}/offers/{offer_id}': { 'cost': 1, 'returnType': 'Dict' },
                         'orders': { 'cost': 1, 'returnType': 'Dict' },

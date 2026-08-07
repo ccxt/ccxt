@@ -31,7 +31,7 @@ interface Exchange {
     privatePostOrders (params?: {}): Promise<Dict>;
     privatePostDepositsCurrency (params?: {}): Promise<Dict>;
     privatePostWithdrawals (params?: {}): Promise<Dict>;
-    privateDeleteOrders (params?: {}): Promise<Dict | List>;
+    privateDeleteOrders (params?: {}): Promise<Dict>;
     privateDeleteOrdersOrderId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}

@@ -126,16 +126,16 @@ export default class bittrade extends Exchange {
                         'algo-orders/opening': { 'cost': 1, 'returnType': 'Dict' }, // 查询未触发OPEN策略委托
                         'algo-orders/history': { 'cost': 1, 'returnType': 'Dict' }, // 查询策略委托历史
                         'algo-orders/specific': { 'cost': 1, 'returnType': 'Dict' }, // 查询特定策略委托
-                        'c2c/offers': 1, // 查询借入借出订单
-                        'c2c/offer': 1, // 查询特定借入借出订单及其交易记录
-                        'c2c/transactions': 1, // 查询借入借出交易记录
-                        'c2c/repayment': 1, // 查询还币交易记录
-                        'c2c/account': 1, // 查询账户余额
-                        'etp/reference': 1, // 基础参考信息
-                        'etp/transactions': 5, // 获取杠杆ETP申赎记录
-                        'etp/transaction': 5, // 获取特定杠杆ETP申赎记录
+                        'c2c/offers': { 'cost': 1, 'returnType': 'Dict' }, // 查询借入借出订单
+                        'c2c/offer': { 'cost': 1, 'returnType': 'Dict' }, // 查询特定借入借出订单及其交易记录
+                        'c2c/transactions': { 'cost': 1, 'returnType': 'Dict' }, // 查询借入借出交易记录
+                        'c2c/repayment': { 'cost': 1, 'returnType': 'Dict' }, // 查询还币交易记录
+                        'c2c/account': { 'cost': 1, 'returnType': 'Dict' }, // 查询账户余额
+                        'etp/reference': { 'cost': 1, 'returnType': 'Dict' }, // 基础参考信息
+                        'etp/transactions': { 'cost': 5, 'returnType': 'Dict' }, // 获取杠杆ETP申赎记录
+                        'etp/transaction': { 'cost': 5, 'returnType': 'Dict' }, // 获取特定杠杆ETP申赎记录
                         'etp/rebalance': { 'cost': 1, 'returnType': 'Dict' }, // 获取杠杆ETP调仓记录
-                        'etp/limit': 1, // 获取ETP持仓限额
+                        'etp/limit': { 'cost': 1, 'returnType': 'Dict' }, // 获取ETP持仓限额
                     },
                     'post': {
                         'account/transfer': { 'cost': 1, 'returnType': 'Dict' },
@@ -152,15 +152,15 @@ export default class bittrade extends Exchange {
                         'algo-orders': { 'cost': 1, 'returnType': 'Dict' }, // 策略委托下单
                         'algo-orders/cancel-all-after': { 'cost': 1, 'returnType': 'Dict' }, // 自动撤销订单
                         'algo-orders/cancellation': { 'cost': 1, 'returnType': 'Dict' }, // 策略委托（触发前）撤单
-                        'c2c/offer': 1, // 借入借出下单
-                        'c2c/cancellation': 1, // 借入借出撤单
-                        'c2c/cancel-all': 1, // 撤销所有借入借出订单
-                        'c2c/repayment': 1, // 还币
-                        'c2c/transfer': 1, // 资产划转
-                        'etp/creation': 5, // 杠杆ETP换入
-                        'etp/redemption': 5, // 杠杆ETP换出
-                        'etp/{transactId}/cancel': 10, // 杠杆ETP单个撤单
-                        'etp/batch-cancel': 50, // 杠杆ETP批量撤单
+                        'c2c/offer': { 'cost': 1, 'returnType': 'Dict' }, // 借入借出下单
+                        'c2c/cancellation': { 'cost': 1, 'returnType': 'Dict' }, // 借入借出撤单
+                        'c2c/cancel-all': { 'cost': 1, 'returnType': 'Dict' }, // 撤销所有借入借出订单
+                        'c2c/repayment': { 'cost': 1, 'returnType': 'Dict' }, // 还币
+                        'c2c/transfer': { 'cost': 1, 'returnType': 'Dict' }, // 资产划转
+                        'etp/creation': { 'cost': 5, 'returnType': 'Dict' }, // 杠杆ETP换入
+                        'etp/redemption': { 'cost': 5, 'returnType': 'Dict' }, // 杠杆ETP换出
+                        'etp/{transactId}/cancel': { 'cost': 10, 'returnType': 'Dict' }, // 杠杆ETP单个撤单
+                        'etp/batch-cancel': { 'cost': 50, 'returnType': 'Dict' }, // 杠杆ETP批量撤单
                     },
                 },
                 'market': {
@@ -192,7 +192,7 @@ export default class bittrade extends Exchange {
                         'account/history': { 'cost': 4, 'returnType': 'Dict' },
                         'cross-margin/loan-info': { 'cost': 1, 'returnType': 'Dict' },
                         'margin/loan-info': { 'cost': 1, 'returnType': 'Dict' }, // 查询借币币息率及额度
-                        'fee/fee-rate/get': 1,
+                        'fee/fee-rate/get': { 'cost': 1, 'returnType': 'Dict' },
                         'order/openOrders': { 'cost': 0.4, 'returnType': 'Dict' },
                         'order/orders': { 'cost': 0.4, 'returnType': 'Dict' },
                         'order/orders/{id}': { 'cost': 0.4, 'returnType': 'Dict' }, // 查询某个订单详情
@@ -207,11 +207,11 @@ export default class bittrade extends Exchange {
                         'margin/accounts/balance': { 'cost': 0.2, 'returnType': 'Dict' }, // 借贷账户详情
                         'cross-margin/loan-orders': { 'cost': 1, 'returnType': 'Dict' }, // 查询借币订单
                         'cross-margin/accounts/balance': { 'cost': 1, 'returnType': 'Dict' }, // 借币账户详情
-                        'points/actions': 1,
-                        'points/orders': 1,
+                        'points/actions': { 'cost': 1, 'returnType': 'Dict' },
+                        'points/orders': { 'cost': 1, 'returnType': 'Dict' },
                         'subuser/aggregate-balance': { 'cost': 10, 'returnType': 'Dict' },
-                        'stable-coin/exchange_rate': 1,
-                        'stable-coin/quote': 1,
+                        'stable-coin/exchange_rate': { 'cost': 1, 'returnType': 'Dict' },
+                        'stable-coin/quote': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         'account/transfer': { 'cost': 1, 'returnType': 'Dict' }, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
@@ -237,7 +237,7 @@ export default class bittrade extends Exchange {
                         'cross-margin/transfer-out': { 'cost': 1, 'returnType': 'Dict' }, // 资产划转
                         'cross-margin/orders': { 'cost': 1, 'returnType': 'Dict' }, // 申请借币
                         'cross-margin/orders/{id}/repay': { 'cost': 1, 'returnType': 'Dict' }, // 归还借币
-                        'stable-coin/exchange': 1,
+                        'stable-coin/exchange': { 'cost': 1, 'returnType': 'Dict' },
                         'subuser/transfer': { 'cost': 10, 'returnType': 'Dict' },
                     },
                 },

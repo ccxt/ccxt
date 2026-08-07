@@ -19,7 +19,7 @@ interface Exchange {
     privatePostTradeList (params?: {}): Promise<List>;
     privatePostTradeView (params?: {}): Promise<Dict>;
     privatePostWallet (params?: {}): Promise<Dict>;
-    webApiGetAjaxCoinCoinInfo (params?: {}): Promise<Dict | List>;
+    webApiGetAjaxCoinCoinInfo (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

@@ -215,7 +215,7 @@ export default class bitmex extends Exchange {
                         'user/quoteValueRatio': { 'cost': 5, 'returnType': 'Dict' },
                         'user/staking': { 'cost': 5, 'returnType': 'List' },
                         'user/staking/instruments': { 'cost': 5, 'returnType': 'List' },
-                        'user/staking/tiers': 5,
+                        'user/staking/tiers': { 'cost': 5, 'returnType': 'Dict' },
                         'user/tradingVolume': { 'cost': 5, 'returnType': 'List' },
                         'user/unstakingRequests': { 'cost': 5, 'returnType': 'List' },
                         'user/wallet': { 'cost': 5, 'returnType': 'Dict' },

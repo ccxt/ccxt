@@ -194,7 +194,7 @@ export default class bullish extends Exchange {
                         'v1/trades/client-order-id/{clientOrderId}': { 'cost': 1, 'returnType': 'List' },
                         'v1/accounts/asset': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/accounts/asset/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
-                        'v1/users/logout': 1,
+                        'v1/users/logout': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/users/hmac/login': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/accounts/trading-accounts': { 'cost': 1, 'returnType': 'List' },
                         'v1/accounts/trading-accounts/{tradingAccountId}': { 'cost': 1, 'returnType': 'Dict' },

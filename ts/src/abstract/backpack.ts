@@ -64,7 +64,7 @@ interface Exchange {
     privatePostApiV1RfqQuote (params?: {}): Promise<Dict>;
     privateDeleteApiV1Order (params?: {}): Promise<Dict>;
     privateDeleteApiV1Orders (params?: {}): Promise<List>;
-    privatePatchApiV1Account (params?: {}): Promise<Dict | List>;
+    privatePatchApiV1Account (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

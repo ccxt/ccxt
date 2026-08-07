@@ -194,7 +194,7 @@ export default class luno extends Exchange {
                         'funding_address': { 'cost': 1, 'returnType': 'Dict' },
                         'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
                         'send': { 'cost': 1, 'returnType': 'Dict' },
-                        'oauth2/grant': 1, // deprecated for new applications
+                        'oauth2/grant': { 'cost': 1, 'returnType': 'Dict' }, // deprecated for new applications
                         'beneficiaries': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'put': {
@@ -202,7 +202,7 @@ export default class luno extends Exchange {
                     },
                     'delete': {
                         'withdrawals/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'beneficiaries/{id}': 1,
+                        'beneficiaries/{id}': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },

@@ -325,7 +325,7 @@ export default class gate extends Exchange {
                             'transfers': { 'cost': 2.5, 'returnType': 'Dict' }, // 8r/s cost = 20 / 8 = 2.5
                             'sub_account_transfers': { 'cost': 2.5, 'returnType': 'Dict' },
                             'sub_account_to_sub_account': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'small_balance': 1,
+                            'small_balance': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                     'subAccounts': {
@@ -338,14 +338,14 @@ export default class gate extends Exchange {
                         'post': {
                             'sub_accounts': { 'cost': 2.5, 'returnType': 'Dict' },
                             'sub_accounts/{user_id}/keys': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'sub_accounts/{user_id}/lock': 2.5,
-                            'sub_accounts/{user_id}/unlock': 2.5,
+                            'sub_accounts/{user_id}/lock': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'sub_accounts/{user_id}/unlock': { 'cost': 2.5, 'returnType': 'Dict' },
                         },
                         'put': {
-                            'sub_accounts/{user_id}/keys/{key}': 2.5,
+                            'sub_accounts/{user_id}/keys/{key}': { 'cost': 2.5, 'returnType': 'Dict' },
                         },
                         'delete': {
-                            'sub_accounts/{user_id}/keys/{key}': 2.5,
+                            'sub_accounts/{user_id}/keys/{key}': { 'cost': 2.5, 'returnType': 'Dict' },
                         },
                     },
                     'unified': {
@@ -365,17 +365,17 @@ export default class gate extends Exchange {
                             'loan_margin_tiers': { 'cost': 20 / 15, 'returnType': 'List' },
                             'leverage/user_currency_config': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'leverage/user_currency_setting': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'account_mode': 20 / 15, // deprecated
+                            'account_mode': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                         },
                         'post': {
                             'loans': { 'cost': 200 / 15, 'returnType': 'Dict' }, // 15r/10s cost = 20 / 1.5 = 13.33
                             'portfolio_calculator': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'leverage/user_currency_setting': 20 / 15,
+                            'leverage/user_currency_setting': { 'cost': 20 / 15, 'returnType': 'List' },
                             'collateral_currencies': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'account_mode': 20 / 15, // deprecated
+                            'account_mode': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                         },
                         'put': {
-                            'unified_mode': 20 / 15,
+                            'unified_mode': { 'cost': 20 / 15, 'returnType': 'Dict' },
                         },
                     },
                     'spot': {
@@ -444,7 +444,7 @@ export default class gate extends Exchange {
                         'post': {
                             'auto_repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'uni/loans': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'leverage/user_market_setting': 20 / 15,
+                            'leverage/user_market_setting': { 'cost': 20 / 15, 'returnType': 'List' },
                             'loans': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                             'merged_loans': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                             'loans/{loan_id}/repayment': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
@@ -512,7 +512,7 @@ export default class gate extends Exchange {
                         },
                         'put': {
                             '{settle}/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/price_orders/{order_id}': 1,
+                            '{settle}/price_orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
                         },
                         'delete': {
                             '{settle}/orders': { 'cost': 20 / 75, 'returnType': 'List' },
@@ -595,17 +595,17 @@ export default class gate extends Exchange {
                             'uni/currencies/{currency}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                         },
                         'post': {
-                            'uni/lends': 20 / 15,
-                            'staking/eth2/swap': 20 / 15,
+                            'uni/lends': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'staking/eth2/swap': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'dual/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'structured/orders': 20 / 15,
+                            'structured/orders': { 'cost': 20 / 15, 'returnType': 'List' },
                             'staking/swap': { 'cost': 20 / 15, 'returnType': 'Dict' },
                         },
                         'put': {
-                            'uni/interest_reinvest': 20 / 15, // deprecated
+                            'uni/interest_reinvest': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
                         },
                         'patch': {
-                            'uni/lends': 20 / 15,
+                            'uni/lends': { 'cost': 20 / 15, 'returnType': 'List' },
                         },
                     },
                     'loan': {
@@ -630,7 +630,7 @@ export default class gate extends Exchange {
                         'post': {
                             'collateral/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'collateral/repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'collateral/collaterals': 20 / 15,
+                            'collateral/collaterals': { 'cost': 20 / 15, 'returnType': 'List' },
                             'multi_collateral/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'multi_collateral/repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'multi_collateral/mortgage': { 'cost': 20 / 15, 'returnType': 'Dict' },
@@ -643,13 +643,13 @@ export default class gate extends Exchange {
                             'rate_limit': { 'cost': 20 / 15, 'returnType': 'List' },
                             'stp_groups': { 'cost': 20 / 15, 'returnType': 'List' },
                             'stp_groups/{stp_id}/users': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'stp_groups/debit_fee': 20 / 15,
+                            'stp_groups/debit_fee': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'debit_fee': { 'cost': 20 / 15, 'returnType': 'Dict' },
                         },
                         'post': {
                             'stp_groups': { 'cost': 20 / 15, 'returnType': 'Dict' },
                             'stp_groups/{stp_id}/users': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'debit_fee': 20 / 15,
+                            'debit_fee': { 'cost': 20 / 15, 'returnType': 'Dict' },
                         },
                         'delete': {
                             'stp_groups/{stp_id}/users': { 'cost': 20 / 15, 'returnType': 'List' },
@@ -670,7 +670,7 @@ export default class gate extends Exchange {
                     },
                     'otc': {
                         'get': {
-                            'get_user_def_bank': 1,
+                            'get_user_def_bank': { 'cost': 1, 'returnType': 'Dict' },
                             'order/list': { 'cost': 1, 'returnType': 'Dict' },
                             'stable_coin/order/list': { 'cost': 1, 'returnType': 'Dict' },
                             'order/detail': { 'cost': 1, 'returnType': 'Dict' },

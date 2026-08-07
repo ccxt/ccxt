@@ -14,9 +14,9 @@ interface Exchange {
     publicGetMarketTrades (params?: {}): Promise<List>;
     publicGetReportMarketTrades (params?: {}): Promise<List>;
     publicGetTickerPrice (params?: {}): Promise<List>;
-    publicGetTickerBook (params?: {}): Promise<Dict | List>;
+    publicGetTickerBook (params?: {}): Promise<List>;
     publicGetMarketCandles (params?: {}): Promise<List>;
-    publicGetTicker24h (params?: {}): Promise<Dict | List>;
+    publicGetTicker24h (params?: {}): Promise<List>;
     publicGetTime (params?: {}): Promise<Dict>;
     publicGetMarkets (params?: {}): Promise<List>;
     publicGetAssets (params?: {}): Promise<List>;
@@ -48,7 +48,7 @@ interface Exchange {
     privateDeleteOrder (params?: {}): Promise<Dict>;
     privateDeleteOrders (params?: {}): Promise<List>;
     privateDeleteAtomicOrders (params?: {}): Promise<List>;
-    privateDeleteInstitutionalSubaccountsOrder (params?: {}): Promise<Dict | List>;
+    privateDeleteInstitutionalSubaccountsOrder (params?: {}): Promise<Dict>;
     privateDeleteInstitutionalSubaccountsOrders (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}

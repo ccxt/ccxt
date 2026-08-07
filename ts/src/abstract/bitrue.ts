@@ -75,8 +75,8 @@ interface Exchange {
     dapiV2PrivatePostAllOpenOrders (params?: {}): Promise<Dict>;
     dapiV2PrivatePostFuturesTransfer (params?: {}): Promise<Dict>;
     openV1PrivatePostPoseidonApiV1ListenKey (params?: {}): Promise<Dict>;
-    openV1PrivatePutPoseidonApiV1ListenKeyListenKey (params?: {}): Promise<Dict | List>;
-    openV1PrivateDeletePoseidonApiV1ListenKeyListenKey (params?: {}): Promise<Dict | List>;
+    openV1PrivatePutPoseidonApiV1ListenKeyListenKey (params?: {}): Promise<Dict>;
+    openV1PrivateDeletePoseidonApiV1ListenKeyListenKey (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

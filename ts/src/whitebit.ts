@@ -146,9 +146,9 @@ export default class whitebit extends Exchange {
             },
             'api': {
                 'web': {
-                    'get': [
-                        'v1/healthcheck',
-                    ],
+                    'get': {
+                        'v1/healthcheck': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'v1': {
                     'public': {

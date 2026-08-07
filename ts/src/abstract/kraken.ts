@@ -5,12 +5,12 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    zendeskGet360000292886 (params?: {}): Promise<Dict | List>;
-    zendeskGet201893608 (params?: {}): Promise<Dict | List>;
+    zendeskGet201893608 (params?: {}): Promise<Dict>;
+    zendeskGet360000292886 (params?: {}): Promise<Dict>;
     publicGetTime (params?: {}): Promise<Dict>;
     publicGetSystemStatus (params?: {}): Promise<Dict>;
     publicGetAssets (params?: {}): Promise<Dict>;

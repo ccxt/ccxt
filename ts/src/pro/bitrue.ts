@@ -40,10 +40,10 @@ export default class bitrue extends bitrueRest {
                                 'poseidon/api/v1/listenKey': { 'cost': 1, 'returnType': 'Dict' },
                             },
                             'put': {
-                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                                'poseidon/api/v1/listenKey/{listenKey}': { 'cost': 1, 'returnType': 'Dict' },
                             },
                             'delete': {
-                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                                'poseidon/api/v1/listenKey/{listenKey}': { 'cost': 1, 'returnType': 'Dict' },
                             },
                         },
                     },

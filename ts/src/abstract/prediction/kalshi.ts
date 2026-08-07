@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../../base/types.js';
+import { Dict } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
@@ -41,7 +41,7 @@ interface Exchange {
     kalshiPublicGetHistoricalMarkets (params?: {}): Promise<Dict>;
     kalshiPublicGetHistoricalMarketsTickerCandlesticks (params?: {}): Promise<Dict>;
     kalshiPublicGetHistoricalTrades (params?: {}): Promise<Dict>;
-    kalshiPublicGetHistoricalCutoffTimestamps (params?: {}): Promise<Dict | List>;
+    kalshiPublicGetHistoricalCutoffTimestamps (params?: {}): Promise<Dict>;
     kalshiPublicGetMultivariateEventCollections (params?: {}): Promise<Dict>;
     kalshiPublicGetMultivariateEventCollectionsCollectionTicker (params?: {}): Promise<Dict>;
     kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (params?: {}): Promise<Dict>;
@@ -76,7 +76,7 @@ interface Exchange {
     kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset (params?: {}): Promise<Dict>;
     kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (params?: {}): Promise<Dict>;
     kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (params?: {}): Promise<Dict>;
-    kalshiPrivatePutPortfolioSubaccountsNetting (params?: {}): Promise<Dict | List>;
+    kalshiPrivatePutPortfolioSubaccountsNetting (params?: {}): Promise<Dict>;
     kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (params?: {}): Promise<Dict>;
     kalshiPrivateDeletePortfolioOrdersOrderId (params?: {}): Promise<Dict>;
     kalshiPrivateDeletePortfolioOrdersBatched (params?: {}): Promise<Dict>;

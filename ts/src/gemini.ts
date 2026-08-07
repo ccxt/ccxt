@@ -121,14 +121,14 @@ export default class gemini extends Exchange {
             },
             'api': {
                 'webExchange': {
-                    'get': [
-                        '',
-                    ],
+                    'get': {
+                        '': { 'cost': 1, 'returnType': 'string' },
+                    },
                 },
                 'web': {
-                    'get': [
-                        'rest-api',
-                    ],
+                    'get': {
+                        'rest-api': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'public': {
                     'get': {
@@ -141,8 +141,8 @@ export default class gemini extends Exchange {
                         'v2/ticker/{symbol}': { 'cost': 5, 'returnType': 'Dict' },
                         'v2/candles/{symbol}/{timeframe}': { 'cost': 5, 'returnType': 'List' },
                         'v1/trades/{symbol}': { 'cost': 5, 'returnType': 'List' },
-                        'v1/auction/{symbol}': 5,
-                        'v1/auction/{symbol}/history': 5,
+                        'v1/auction/{symbol}': { 'cost': 5, 'returnType': 'Dict' },
+                        'v1/auction/{symbol}/history': { 'cost': 5, 'returnType': 'List' },
                         'v1/pricefeed': { 'cost': 5, 'returnType': 'List' },
                         'v1/fundingamount/{symbol}': { 'cost': 5, 'returnType': 'Dict' },
                         'v1/fundingamountreport/records.xlsx': { 'cost': 5, 'returnType': 'string' },
@@ -187,7 +187,7 @@ export default class gemini extends Exchange {
                         'v1/account/transfer/{currency}': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/payments/addbank': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/payments/methods': { 'cost': 1, 'returnType': 'Dict' },
-                        'v1/payments/sen/withdraw': 1,
+                        'v1/payments/sen/withdraw': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/balances/earn': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/earn/interest': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/earn/history': { 'cost': 1, 'returnType': 'List' },

@@ -45,7 +45,7 @@ interface Exchange {
     privateGetV1TradesClientOrderIdClientOrderId (params?: {}): Promise<List>;
     privateGetV1AccountsAsset (params?: {}): Promise<Dict>;
     privateGetV1AccountsAssetSymbol (params?: {}): Promise<Dict>;
-    privateGetV1UsersLogout (params?: {}): Promise<Dict | List>;
+    privateGetV1UsersLogout (params?: {}): Promise<Dict>;
     privateGetV1UsersHmacLogin (params?: {}): Promise<Dict>;
     privateGetV1AccountsTradingAccounts (params?: {}): Promise<List>;
     privateGetV1AccountsTradingAccountsTradingAccountId (params?: {}): Promise<Dict>;

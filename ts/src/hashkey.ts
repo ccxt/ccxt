@@ -262,7 +262,7 @@ export default class hashkey extends Exchange {
                     },
                     'delete': {
                         'api/v1/spot/order': { 'cost': 1, 'returnType': 'Dict' },
-                        'api/v1/spot/openOrders': 5,
+                        'api/v1/spot/openOrders': { 'cost': 5, 'returnType': 'List' },
                         'api/v1/spot/cancelOrderByIds': { 'cost': 5, 'returnType': 'Dict' },
                         'api/v1/futures/order': { 'cost': 1, 'returnType': 'Dict' },
                         'api/v1/futures/batchOrders': { 'cost': 1, 'returnType': 'Dict' },

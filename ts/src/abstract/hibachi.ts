@@ -24,19 +24,19 @@ interface Exchange {
     privateGetCapitalDepositInfo (params?: {}): Promise<Dict>;
     privateGetTradeAccountInfo (params?: {}): Promise<Dict>;
     privateGetTradeAccountTrades (params?: {}): Promise<Dict>;
-    privateGetTradeAccountTradingHistory (params?: {}): Promise<Dict | List>;
+    privateGetTradeAccountTradingHistory (params?: {}): Promise<Dict>;
     privateGetTradeAccountSettlementsHistory (params?: {}): Promise<Dict>;
     privateGetTradeOrders (params?: {}): Promise<List>;
     privateGetTradeOrder (params?: {}): Promise<Dict>;
     privateGetTradeOrdersHistory (params?: {}): Promise<Dict>;
     privatePutTradeOrder (params?: {}): Promise<Dict>;
-    privateDeleteTradeOrder (params?: {}): Promise<Dict | List>;
+    privateDeleteTradeOrder (params?: {}): Promise<Dict>;
     privateDeleteTradeOrders (params?: {}): Promise<Dict>;
     privatePostTradeOrder (params?: {}): Promise<Dict>;
     privatePostTradeOrders (params?: {}): Promise<Dict>;
     privatePostCapitalWithdraw (params?: {}): Promise<Dict>;
     privatePostCapitalTransfer (params?: {}): Promise<Dict>;
-    privatePostTradeAccountLeverage (params?: {}): Promise<Dict | List>;
+    privatePostTradeAccountLeverage (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

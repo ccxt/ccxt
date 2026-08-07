@@ -106,7 +106,7 @@ interface binance {
     sapiGetConvertLimitQueryOpenOrders (params?: {}): Promise<Dict>;
     sapiGetAccountStatus (params?: {}): Promise<Dict>;
     sapiGetAccountApiTradingStatus (params?: {}): Promise<Dict>;
-    sapiGetAccountApiRestrictionsIpRestriction (params?: {}): Promise<Dict | List>;
+    sapiGetAccountApiRestrictionsIpRestriction (params?: {}): Promise<Dict>;
     sapiGetBnbBurn (params?: {}): Promise<Dict>;
     sapiGetSubAccountFuturesAccount (params?: {}): Promise<Dict>;
     sapiGetSubAccountFuturesAccountSummary (params?: {}): Promise<Dict>;
@@ -137,8 +137,8 @@ interface binance {
     sapiGetLendingDailyUserRedemptionQuota (params?: {}): Promise<Dict>;
     sapiGetLendingDailyTokenPosition (params?: {}): Promise<List>;
     sapiGetLendingUnionAccount (params?: {}): Promise<Dict>;
-    sapiGetLendingUnionPurchaseRecord (params?: {}): Promise<Dict | List>;
-    sapiGetLendingUnionRedemptionRecord (params?: {}): Promise<Dict | List>;
+    sapiGetLendingUnionPurchaseRecord (params?: {}): Promise<List>;
+    sapiGetLendingUnionRedemptionRecord (params?: {}): Promise<Dict>;
     sapiGetLendingUnionInterestHistory (params?: {}): Promise<List>;
     sapiGetLendingProjectList (params?: {}): Promise<List>;
     sapiGetLendingProjectPositionList (params?: {}): Promise<List>;
@@ -183,9 +183,9 @@ interface binance {
     sapiGetApiReferralCustomization (params?: {}): Promise<List>;
     sapiGetApiReferralUserCustomization (params?: {}): Promise<Dict>;
     sapiGetApiReferralRebateRecentRecord (params?: {}): Promise<List>;
-    sapiGetApiReferralRebateHistoricalRecord (params?: {}): Promise<Dict | List>;
+    sapiGetApiReferralRebateHistoricalRecord (params?: {}): Promise<List>;
     sapiGetApiReferralKickbackRecentRecord (params?: {}): Promise<List>;
-    sapiGetApiReferralKickbackHistoricalRecord (params?: {}): Promise<Dict | List>;
+    sapiGetApiReferralKickbackHistoricalRecord (params?: {}): Promise<List>;
     sapiGetBrokerSubAccountApi (params?: {}): Promise<List>;
     sapiGetBrokerSubAccount (params?: {}): Promise<List>;
     sapiGetBrokerSubAccountApiCommissionFutures (params?: {}): Promise<List>;
@@ -194,7 +194,7 @@ interface binance {
     sapiGetBrokerTransfer (params?: {}): Promise<List>;
     sapiGetBrokerTransferFutures (params?: {}): Promise<Dict>;
     sapiGetBrokerRebateRecentRecord (params?: {}): Promise<List>;
-    sapiGetBrokerRebateHistoricalRecord (params?: {}): Promise<Dict | List>;
+    sapiGetBrokerRebateHistoricalRecord (params?: {}): Promise<List>;
     sapiGetBrokerSubAccountBnbBurnStatus (params?: {}): Promise<Dict>;
     sapiGetBrokerSubAccountDepositHist (params?: {}): Promise<List>;
     sapiGetBrokerSubAccountSpotSummary (params?: {}): Promise<Dict>;
@@ -227,7 +227,7 @@ interface binance {
     sapiGetPortfolioRepayFuturesSwitch (params?: {}): Promise<Dict>;
     sapiGetPortfolioMarginAssetLeverage (params?: {}): Promise<List>;
     sapiGetPortfolioBalance (params?: {}): Promise<List>;
-    sapiGetPortfolioNegativeBalanceExchangeRecord (params?: {}): Promise<Dict | List>;
+    sapiGetPortfolioNegativeBalanceExchangeRecord (params?: {}): Promise<List>;
     sapiGetPortfolioPmloanHistory (params?: {}): Promise<Dict>;
     sapiGetPortfolioEarnAssetBalance (params?: {}): Promise<Dict>;
     sapiGetPortfolioDeltaMode (params?: {}): Promise<Dict>;
@@ -267,9 +267,9 @@ interface binance {
     sapiGetDciProductList (params?: {}): Promise<Dict>;
     sapiGetDciProductPositions (params?: {}): Promise<Dict>;
     sapiGetDciProductAccounts (params?: {}): Promise<Dict>;
-    sapiGetAccumulatorProductList (params?: {}): Promise<Dict | List>;
-    sapiGetAccumulatorProductPositionList (params?: {}): Promise<Dict | List>;
-    sapiGetAccumulatorProductSumHolding (params?: {}): Promise<Dict | List>;
+    sapiGetAccumulatorProductList (params?: {}): Promise<Dict>;
+    sapiGetAccumulatorProductPositionList (params?: {}): Promise<Dict>;
+    sapiGetAccumulatorProductSumHolding (params?: {}): Promise<Dict>;
     sapiPostAssetDust (params?: {}): Promise<Dict>;
     sapiPostAssetDustBtc (params?: {}): Promise<Dict>;
     sapiPostAssetTransfer (params?: {}): Promise<Dict>;
@@ -301,7 +301,7 @@ interface binance {
     sapiPostSubAccountTransferSubToSub (params?: {}): Promise<Dict>;
     sapiPostSubAccountTransferSubToMaster (params?: {}): Promise<Dict>;
     sapiPostSubAccountUniversalTransfer (params?: {}): Promise<Dict>;
-    sapiPostSubAccountOptionsEnable (params?: {}): Promise<Dict | List>;
+    sapiPostSubAccountOptionsEnable (params?: {}): Promise<Dict>;
     sapiPostManagedSubaccountDeposit (params?: {}): Promise<Dict>;
     sapiPostManagedSubaccountWithdraw (params?: {}): Promise<Dict>;
     sapiPostUserDataStream (params?: {}): Promise<Dict>;
@@ -319,8 +319,8 @@ interface binance {
     sapiPostBlvtRedeem (params?: {}): Promise<Dict>;
     sapiPostApiReferralCustomization (params?: {}): Promise<Dict>;
     sapiPostApiReferralUserCustomization (params?: {}): Promise<Dict>;
-    sapiPostApiReferralRebateHistoricalRecord (params?: {}): Promise<Dict | List>;
-    sapiPostApiReferralKickbackHistoricalRecord (params?: {}): Promise<Dict | List>;
+    sapiPostApiReferralRebateHistoricalRecord (params?: {}): Promise<List>;
+    sapiPostApiReferralKickbackHistoricalRecord (params?: {}): Promise<List>;
     sapiPostBrokerSubAccount (params?: {}): Promise<Dict>;
     sapiPostBrokerSubAccountMargin (params?: {}): Promise<Dict>;
     sapiPostBrokerSubAccountFutures (params?: {}): Promise<Dict>;
@@ -331,7 +331,7 @@ interface binance {
     sapiPostBrokerSubAccountApiCommissionCoinFutures (params?: {}): Promise<Dict>;
     sapiPostBrokerTransfer (params?: {}): Promise<Dict>;
     sapiPostBrokerTransferFutures (params?: {}): Promise<Dict>;
-    sapiPostBrokerRebateHistoricalRecord (params?: {}): Promise<Dict | List>;
+    sapiPostBrokerRebateHistoricalRecord (params?: {}): Promise<List>;
     sapiPostBrokerSubAccountBnbBurnSpot (params?: {}): Promise<Dict>;
     sapiPostBrokerSubAccountBnbBurnMarginInterest (params?: {}): Promise<Dict>;
     sapiPostBrokerSubAccountBlvt (params?: {}): Promise<Dict>;
@@ -392,8 +392,8 @@ interface binance {
     sapiPostSimpleEarnLockedSetAutoSubscribe (params?: {}): Promise<Dict>;
     sapiPostSimpleEarnLockedSetRedeemOption (params?: {}): Promise<Dict>;
     sapiPostDciProductSubscribe (params?: {}): Promise<Dict>;
-    sapiPostDciProductAutoCompoundEdit (params?: {}): Promise<Dict | List>;
-    sapiPostAccumulatorProductSubscribe (params?: {}): Promise<Dict | List>;
+    sapiPostDciProductAutoCompoundEdit (params?: {}): Promise<Dict>;
+    sapiPostAccumulatorProductSubscribe (params?: {}): Promise<Dict>;
     sapiPutUserDataStream (params?: {}): Promise<Dict>;
     sapiPutUserDataStreamIsolated (params?: {}): Promise<Dict>;
     sapiDeleteMarginOpenOrders (params?: {}): Promise<List>;
@@ -522,7 +522,7 @@ interface binance {
     fapiPublicGetApiTradingStatus (params?: {}): Promise<Dict>;
     fapiPublicGetLvtKlines (params?: {}): Promise<List>;
     fapiPublicGetConvertExchangeInfo (params?: {}): Promise<List>;
-    fapiPublicGetInsuranceBalance (params?: {}): Promise<Dict | List>;
+    fapiPublicGetInsuranceBalance (params?: {}): Promise<List>;
     fapiPublicGetSymbolAdlRisk (params?: {}): Promise<Dict>;
     fapiPublicGetTradingSchedule (params?: {}): Promise<Dict>;
     fapiDataGetDeliveryPrice (params?: {}): Promise<List>;
@@ -537,11 +537,11 @@ interface binance {
     fapiPrivateGetOpenOrder (params?: {}): Promise<Dict>;
     fapiPrivateGetOpenOrders (params?: {}): Promise<List>;
     fapiPrivateGetOrder (params?: {}): Promise<Dict>;
-    fapiPrivateGetAccount (params?: {}): Promise<Dict | List>;
-    fapiPrivateGetBalance (params?: {}): Promise<Dict | List>;
+    fapiPrivateGetAccount (params?: {}): Promise<Dict>;
+    fapiPrivateGetBalance (params?: {}): Promise<List>;
     fapiPrivateGetLeverageBracket (params?: {}): Promise<List>;
     fapiPrivateGetPositionMarginHistory (params?: {}): Promise<List>;
-    fapiPrivateGetPositionRisk (params?: {}): Promise<Dict | List>;
+    fapiPrivateGetPositionRisk (params?: {}): Promise<List>;
     fapiPrivateGetPositionSideDual (params?: {}): Promise<Dict>;
     fapiPrivateGetUserTrades (params?: {}): Promise<List>;
     fapiPrivateGetIncome (params?: {}): Promise<List>;
@@ -573,7 +573,7 @@ interface binance {
     fapiPrivateGetAlgoOrder (params?: {}): Promise<Dict>;
     fapiPrivateGetOpenAlgoOrders (params?: {}): Promise<List>;
     fapiPrivateGetAllAlgoOrders (params?: {}): Promise<List>;
-    fapiPrivateGetStockContract (params?: {}): Promise<Dict | List>;
+    fapiPrivateGetStockContract (params?: {}): Promise<Dict>;
     fapiPrivatePostBatchOrders (params?: {}): Promise<List>;
     fapiPrivatePostPositionSideDual (params?: {}): Promise<Dict>;
     fapiPrivatePostPositionMargin (params?: {}): Promise<Dict>;
@@ -635,7 +635,7 @@ interface binance {
     eapiPrivateGetBlockOrderExecute (params?: {}): Promise<Dict>;
     eapiPrivateGetBlockUserTrades (params?: {}): Promise<List>;
     eapiPrivateGetBlockTrades (params?: {}): Promise<List>;
-    eapiPrivateGetComission (params?: {}): Promise<Dict | List>;
+    eapiPrivateGetComission (params?: {}): Promise<Dict>;
     eapiPrivatePostOrder (params?: {}): Promise<Dict>;
     eapiPrivatePostBatchOrders (params?: {}): Promise<List>;
     eapiPrivatePostListenKey (params?: {}): Promise<Dict>;
@@ -761,8 +761,8 @@ interface binance {
     papiGetUmFeeBurn (params?: {}): Promise<Dict>;
     papiGetUmAccountConfig (params?: {}): Promise<Dict>;
     papiGetUmSymbolConfig (params?: {}): Promise<List>;
-    papiGetCmAccountConfig (params?: {}): Promise<Dict | List>;
-    papiGetCmSymbolConfig (params?: {}): Promise<Dict | List>;
+    papiGetCmAccountConfig (params?: {}): Promise<Dict>;
+    papiGetCmSymbolConfig (params?: {}): Promise<Dict>;
     papiGetRateLimitOrder (params?: {}): Promise<List>;
     papiPostUmOrder (params?: {}): Promise<Dict>;
     papiPostUmConditionalOrder (params?: {}): Promise<Dict>;

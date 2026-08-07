@@ -170,9 +170,9 @@ export default class mercado extends Exchange {
                     },
                 },
                 'v4Public': {
-                    'get': [
-                        '{coin}/candle/',
-                    ],
+                    'get': {
+                        '{coin}/candle/': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'v4PublicNet': {
                     'get': {

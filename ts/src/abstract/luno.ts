@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -44,11 +44,11 @@ interface Exchange {
     privatePostFundingAddress (params?: {}): Promise<Dict>;
     privatePostWithdrawals (params?: {}): Promise<Dict>;
     privatePostSend (params?: {}): Promise<Dict>;
-    privatePostOauth2Grant (params?: {}): Promise<Dict | List>;
+    privatePostOauth2Grant (params?: {}): Promise<Dict>;
     privatePostBeneficiaries (params?: {}): Promise<Dict>;
     privatePutAccountsIdName (params?: {}): Promise<Dict>;
     privateDeleteWithdrawalsId (params?: {}): Promise<Dict>;
-    privateDeleteBeneficiariesId (params?: {}): Promise<Dict | List>;
+    privateDeleteBeneficiariesId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

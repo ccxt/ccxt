@@ -21,18 +21,18 @@ interface Exchange {
     privateGetUserAddressesAddress (params?: {}): Promise<Dict>;
     privateGetUserOrders (params?: {}): Promise<List>;
     privateGetUserOrdersUuid (params?: {}): Promise<Dict>;
-    privateGetUserPriceAlerts (params?: {}): Promise<Dict | List>;
+    privateGetUserPriceAlerts (params?: {}): Promise<List>;
     privateGetMerchantGetPaymentUuid (params?: {}): Promise<Dict>;
     privatePostUserAddresses (params?: {}): Promise<Dict>;
     privatePostUserOrders (params?: {}): Promise<Dict>;
     privatePostUserWithdrawals (params?: {}): Promise<Dict>;
     privatePostUserEmailTransfers (params?: {}): Promise<Dict>;
     privatePostUserPaymentRequests (params?: {}): Promise<List>;
-    privatePostUserPriceAlerts (params?: {}): Promise<Dict | List>;
+    privatePostUserPriceAlerts (params?: {}): Promise<Dict>;
     privatePostMerchantCreatePayment (params?: {}): Promise<Dict>;
-    privateDeleteUserOrdersUuid (params?: {}): Promise<Dict | List>;
-    privateDeleteUserOrdersUuidCancel (params?: {}): Promise<Dict | List>;
-    privateDeleteUserPriceAlertsId (params?: {}): Promise<Dict | List>;
+    privateDeleteUserOrdersUuid (params?: {}): Promise<Dict>;
+    privateDeleteUserOrdersUuidCancel (params?: {}): Promise<Dict>;
+    privateDeleteUserPriceAlertsId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

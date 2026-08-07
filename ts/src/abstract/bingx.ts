@@ -166,8 +166,8 @@ interface Exchange {
     accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins (params?: {}): Promise<Dict>;
     accountTransferV1PrivatePostSubAccountTransferAsset (params?: {}): Promise<Dict>;
     userAuthPrivatePostUserDataStream (params?: {}): Promise<Dict>;
-    userAuthPrivatePutUserDataStream (params?: {}): Promise<Dict | List>;
-    userAuthPrivateDeleteUserDataStream (params?: {}): Promise<Dict | List>;
+    userAuthPrivatePutUserDataStream (params?: {}): Promise<Dict>;
+    userAuthPrivateDeleteUserDataStream (params?: {}): Promise<Dict>;
     copyTradingV1PrivateGetSwapTraceCurrentTrack (params?: {}): Promise<Dict>;
     copyTradingV1PrivateGetPFuturesTraderDetail (params?: {}): Promise<Dict>;
     copyTradingV1PrivateGetPFuturesProfitHistorySummarys (params?: {}): Promise<Dict>;

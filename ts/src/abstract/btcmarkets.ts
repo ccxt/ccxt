@@ -21,7 +21,7 @@ interface Exchange {
     privateGetOrdersId (params?: {}): Promise<Dict>;
     privateGetBatchordersIds (params?: {}): Promise<Dict>;
     privateGetTrades (params?: {}): Promise<List>;
-    privateGetTradesId (params?: {}): Promise<Dict | List>;
+    privateGetTradesId (params?: {}): Promise<Dict>;
     privateGetWithdrawals (params?: {}): Promise<List>;
     privateGetWithdrawalsId (params?: {}): Promise<Dict>;
     privateGetDeposits (params?: {}): Promise<List>;

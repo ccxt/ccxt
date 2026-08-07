@@ -58,9 +58,9 @@ interface Exchange {
     privatePostOrdersStopCancel (params?: {}): Promise<Dict>;
     privatePostOrdersEdit (params?: {}): Promise<Dict>;
     privatePostOrdersBatch (params?: {}): Promise<Dict>;
-    privatePostAccountBuilderCodesApprove (params?: {}): Promise<Dict | List>;
-    privatePostAccountBuilderCodesRevoke (params?: {}): Promise<Dict | List>;
-    privatePostAgentBind (params?: {}): Promise<Dict | List>;
+    privatePostAccountBuilderCodesApprove (params?: {}): Promise<Dict>;
+    privatePostAccountBuilderCodesRevoke (params?: {}): Promise<Dict>;
+    privatePostAgentBind (params?: {}): Promise<Dict>;
     privatePostAccountApiKeysCreate (params?: {}): Promise<Dict>;
     privatePostAccountApiKeysRevoke (params?: {}): Promise<Dict>;
     privatePostAccountApiKeys (params?: {}): Promise<Dict>;

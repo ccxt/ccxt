@@ -140,7 +140,7 @@ export default class grvt extends Exchange {
                         'full/v1/funding_payment_history': { 'cost': rlOthers, 'returnType': 'Dict' },
                         'full/v1/get_sub_accounts': { 'cost': rlOthers, 'returnType': 'Dict' },
                         'full/v1/account_summary': { 'cost': rlOthers, 'returnType': 'Dict' },
-                        'full/v1/account_history': rlOthers,
+                        'full/v1/account_history': { 'cost': rlOthers, 'returnType': 'Dict' },
                         'full/v1/aggregated_account_summary': { 'cost': rlOthers, 'returnType': 'Dict' },
                         'full/v1/funding_account_summary': { 'cost': rlOthers, 'returnType': 'Dict' },
                         'full/v1/transfer': { 'cost': 100, 'returnType': 'Dict' },

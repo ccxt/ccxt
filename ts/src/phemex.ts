@@ -156,7 +156,7 @@ export default class phemex extends Exchange {
                 'public': {
                     'get': {
                         'cfg/v2/products': { 'cost': 5, 'returnType': 'Dict' }, // spot + contracts
-                        'cfg/fundingRates': 5,
+                        'cfg/fundingRates': { 'cost': 5, 'returnType': 'List' },
                         'products': { 'cost': 5, 'returnType': 'Dict' }, // contracts only
                         'nomics/trades': { 'cost': 5, 'returnType': 'Dict' }, // ?market=<symbol>&since=<since>
                         'md/kline': { 'cost': 5, 'returnType': 'Dict' }, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935

@@ -159,7 +159,7 @@ export default class hibachi extends Exchange {
                         'capital/deposit-info': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/account/info': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/account/trades': { 'cost': 1, 'returnType': 'Dict' },
-                        'trade/account/trading_history': 1, // not in current docs, used by fetchLedger
+                        'trade/account/trading_history': { 'cost': 1, 'returnType': 'Dict' }, // not in current docs, used by fetchLedger
                         'trade/account/settlements_history': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/orders': { 'cost': 1, 'returnType': 'List' },
                         'trade/order': { 'cost': 1, 'returnType': 'Dict' },
@@ -169,7 +169,7 @@ export default class hibachi extends Exchange {
                         'trade/order': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'delete': {
-                        'trade/order': 1,
+                        'trade/order': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/orders': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
@@ -177,7 +177,7 @@ export default class hibachi extends Exchange {
                         'trade/orders': { 'cost': 1, 'returnType': 'Dict' },
                         'capital/withdraw': { 'cost': 1, 'returnType': 'Dict' },
                         'capital/transfer': { 'cost': 1, 'returnType': 'Dict' },
-                        'trade/account/leverage': 1,
+                        'trade/account/leverage': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },

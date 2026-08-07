@@ -20,7 +20,7 @@ interface Exchange {
     privateGetNotifications (params?: {}): Promise<Dict>;
     privateGetAccounts (params?: {}): Promise<Dict>;
     privateGetOpenorders (params?: {}): Promise<Dict>;
-    privateGetRecentorders (params?: {}): Promise<Dict | List>;
+    privateGetRecentorders (params?: {}): Promise<Dict>;
     privateGetFills (params?: {}): Promise<Dict>;
     privateGetTransfers (params?: {}): Promise<Dict>;
     privateGetLeveragepreferences (params?: {}): Promise<Dict>;
@@ -44,7 +44,7 @@ interface Exchange {
     historyGetOrders (params?: {}): Promise<Dict>;
     historyGetExecutions (params?: {}): Promise<Dict>;
     historyGetTriggers (params?: {}): Promise<Dict>;
-    historyGetAccountlogcsv (params?: {}): Promise<Dict | List>;
+    historyGetAccountlogcsv (params?: {}): Promise<string>;
     historyGetAccountLog (params?: {}): Promise<Dict>;
     historyGetMarketSymbolOrders (params?: {}): Promise<Dict>;
     historyGetMarketSymbolExecutions (params?: {}): Promise<Dict>;

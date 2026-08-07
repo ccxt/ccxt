@@ -84,7 +84,7 @@ export default class paymium extends Exchange {
                         'user/addresses/{address}': { 'cost': 1, 'returnType': 'Dict' },
                         'user/orders': { 'cost': 1, 'returnType': 'List' },
                         'user/orders/{uuid}': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/price_alerts': 1,
+                        'user/price_alerts': { 'cost': 1, 'returnType': 'List' },
                         'merchant/get_payment/{uuid}': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
@@ -93,14 +93,14 @@ export default class paymium extends Exchange {
                         'user/withdrawals': { 'cost': 1, 'returnType': 'Dict' },
                         'user/email_transfers': { 'cost': 1, 'returnType': 'Dict' },
                         'user/payment_requests': { 'cost': 1, 'returnType': 'List' },
-                        'user/price_alerts': 1,
+                        'user/price_alerts': { 'cost': 1, 'returnType': 'Dict' },
                         'merchant/create_payment': { 'cost': 1, 'returnType': 'Dict' },
                     },
-                    'delete': [
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
-                    ],
+                    'delete': {
+                        'user/orders/{uuid}': { 'cost': 1, 'returnType': 'Dict' },
+                        'user/orders/{uuid}/cancel': { 'cost': 1, 'returnType': 'Dict' },
+                        'user/price_alerts/{id}': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
             },
             'markets': {

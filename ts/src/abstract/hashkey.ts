@@ -70,7 +70,7 @@ interface Exchange {
     privatePostApiV1AccountWithdraw (params?: {}): Promise<Dict>;
     privatePutApiV1UserDataStream (params?: {}): Promise<Dict>;
     privateDeleteApiV1SpotOrder (params?: {}): Promise<Dict>;
-    privateDeleteApiV1SpotOpenOrders (params?: {}): Promise<Dict | List>;
+    privateDeleteApiV1SpotOpenOrders (params?: {}): Promise<List>;
     privateDeleteApiV1SpotCancelOrderByIds (params?: {}): Promise<Dict>;
     privateDeleteApiV1FuturesOrder (params?: {}): Promise<Dict>;
     privateDeleteApiV1FuturesBatchOrders (params?: {}): Promise<Dict>;

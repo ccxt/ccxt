@@ -475,10 +475,10 @@ export default class bingx extends Exchange {
                                 'userDataStream': { 'cost': 2, 'returnType': 'Dict' },
                             },
                             'put': {
-                                'userDataStream': 2,
+                                'userDataStream': { 'cost': 2, 'returnType': 'Dict' },
                             },
                             'delete': {
-                                'userDataStream': 2,
+                                'userDataStream': { 'cost': 2, 'returnType': 'Dict' },
                             },
                         },
                     },
