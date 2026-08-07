@@ -171,6 +171,7 @@ public class MexcCore extends MexcApi
                 put( "spot", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
+                            put( "announcements", 8 );
                             put( "ping", 1 );
                             put( "time", 1 );
                             put( "defaultSymbols", 1 );

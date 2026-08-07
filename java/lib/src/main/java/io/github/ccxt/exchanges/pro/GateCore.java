@@ -1916,6 +1916,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
      * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
+     * @param {boolean} [params.trigger] set to true to watch trigger orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202
+     * @param {boolean} [params.stop] alias of params.trigger
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
@@ -1950,8 +1952,23 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 put( "swap", "futures" );
                 put( "option", "options" );
             }});
-            Object channel = Helpers.add(typeId, ".orders");
-            Object messageHash = "orders";
+            Object isTrigger = false;
+            var isTriggerqueryVariable = this.handleParamBool2(query, "trigger", "stop", false);
+            isTrigger = ((java.util.List<Object>) isTriggerqueryVariable).get(0);
+            query = ((java.util.List<Object>) isTriggerqueryVariable).get(1);
+            if (Helpers.isTrue(Helpers.isTrue(isTrigger) && Helpers.isTrue((Helpers.isEqual(typeId, "options")))))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202")) ;
+            }
+            // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
+            // see https://github.com/ccxt/ccxt/issues/27202
+            Object suffix = ".orders";
+            if (Helpers.isTrue(isTrigger))
+            {
+                suffix = ((Helpers.isTrue((Helpers.isEqual(typeId, "spot"))))) ? ".priceorders" : ".autoorders";
+            }
+            Object channel = Helpers.add(typeId, suffix);
+            Object messageHash = ((Helpers.isTrue(isTrigger))) ? "triggerOrders" : "orders";
             Object payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.add("!", "all")));
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
@@ -2025,12 +2042,16 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         //     }
         //
         Object orders = this.safeValue(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object channel = this.safeString(message, "channel", "");
+        Object isTrigger = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "autoorders"), 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "priceorders"), 0)));
+        Object hashPrefix = ((Helpers.isTrue(isTrigger))) ? "triggerOrders" : "orders";
         Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+            this.triggerOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object stored = this.orders;
+        Object stored = ((Helpers.isTrue(isTrigger))) ? this.triggerOrders : this.orders;
         Object marketIds = new java.util.HashMap<String, Object>() {{}};
         Object parsedOrders = this.parseOrders(orders);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedOrders)); i++)
@@ -2062,10 +2083,10 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         Object keys = Helpers.objectKeys(marketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
-            Object messageHash = Helpers.add("orders:", Helpers.GetValue(keys, i));
-            client.resolve(this.orders, messageHash);
+            Object messageHash = Helpers.add(Helpers.add(hashPrefix, ":"), Helpers.GetValue(keys, i));
+            client.resolve(stored, messageHash);
         }
-        client.resolve(this.orders, "orders");
+        client.resolve(stored, hashPrefix);
     }
 
     /**
@@ -2591,6 +2612,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             put( "usertrades", "handleMyTrades");
             put( "candlesticks", "handleOHLCV");
             put( "orders", "handleOrder");
+            put( "autoorders", "handleOrder");
+            put( "priceorders", "handleOrder");
             put( "positions", "handlePositions");
             put( "tickers", "handleTicker");
             put( "book_ticker", "handleBidAsk");
