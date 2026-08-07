@@ -3130,7 +3130,7 @@ public partial class bingx : Exchange
             }
             if (isTrue(!isEqual(triggerPrice, null)))
             {
-                if (isTrue(isTrue(isMarketOrder) && isTrue(isEqual(this.safeString(request, "quoteOrderQty"), null))))
+                if (isTrue(isTrue(isTrue(isMarketOrder) && isTrue((isEqual(side, "buy")))) && isTrue(isEqual(this.safeString(request, "quoteOrderQty"), null))))
                 {
                     throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")) ;
                 }
