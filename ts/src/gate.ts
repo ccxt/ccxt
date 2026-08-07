@@ -5,7 +5,7 @@ import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, NullResponse } from './base/errors.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, EndpointSpec } from './base/types.js';
 
 /**
  * @class gate
@@ -186,107 +186,107 @@ export default class gate extends Exchange {
                     // all public endpoints 200r/10s per endpoint
                     'wallet': {
                         'get': {
-                            'currency_chains': { 'cost': 1, 'returnType': 'List' },
+                            'currency_chains': { 'cost': 1 } as EndpointSpec<List>,
                         },
                     },
                     'unified': {
                         'get': {
-                            'currencies': { 'cost': 1, 'returnType': 'List' },
-                            'history_loan_rate': { 'cost': 1, 'returnType': 'Dict' },
+                            'currencies': { 'cost': 1 } as EndpointSpec<List>,
+                            'history_loan_rate': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                     'spot': {
                         'get': {
-                            'currencies': { 'cost': 1, 'returnType': 'List' },
-                            'currencies/{currency}': { 'cost': 1, 'returnType': 'Dict' },
-                            'currency_pairs': { 'cost': 1, 'returnType': 'List' },
-                            'currency_pairs/{currency_pair}': { 'cost': 1, 'returnType': 'Dict' },
-                            'tickers': { 'cost': 1, 'returnType': 'List' },
-                            'order_book': { 'cost': 1, 'returnType': 'Dict' },
-                            'trades': { 'cost': 1, 'returnType': 'List' },
-                            'candlesticks': { 'cost': 1, 'returnType': 'List' },
-                            'time': { 'cost': 1, 'returnType': 'Dict' },
-                            'insurance_history': { 'cost': 1, 'returnType': 'List' },
+                            'currencies': { 'cost': 1 } as EndpointSpec<List>,
+                            'currencies/{currency}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'currency_pairs': { 'cost': 1 } as EndpointSpec<List>,
+                            'currency_pairs/{currency_pair}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'tickers': { 'cost': 1 } as EndpointSpec<List>,
+                            'order_book': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'trades': { 'cost': 1 } as EndpointSpec<List>,
+                            'candlesticks': { 'cost': 1 } as EndpointSpec<List>,
+                            'time': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'insurance_history': { 'cost': 1 } as EndpointSpec<List>,
                         },
                     },
                     'margin': {
                         'get': {
-                            'uni/currency_pairs': { 'cost': 1, 'returnType': 'List' },
-                            'uni/currency_pairs/{currency_pair}': { 'cost': 1, 'returnType': 'Dict' },
-                            'loan_margin_tiers': { 'cost': 1, 'returnType': 'List' },
-                            'currency_pairs': { 'cost': 1, 'returnType': 'List' }, // deprecated
-                            'currency_pairs/{currency_pair}': { 'cost': 1, 'returnType': 'Dict' }, // deprecated
-                            'funding_book': { 'cost': 1, 'returnType': 'List' }, // deprecated
-                            'cross/currencies': { 'cost': 1, 'returnType': 'List' }, // deprecated
-                            'cross/currencies/{currency}': { 'cost': 1, 'returnType': 'Dict' }, // deprecated
+                            'uni/currency_pairs': { 'cost': 1 } as EndpointSpec<List>,
+                            'uni/currency_pairs/{currency_pair}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'loan_margin_tiers': { 'cost': 1 } as EndpointSpec<List>,
+                            'currency_pairs': { 'cost': 1 } as EndpointSpec<List>, // deprecated
+                            'currency_pairs/{currency_pair}': { 'cost': 1 } as EndpointSpec<Dict>, // deprecated
+                            'funding_book': { 'cost': 1 } as EndpointSpec<List>, // deprecated
+                            'cross/currencies': { 'cost': 1 } as EndpointSpec<List>, // deprecated
+                            'cross/currencies/{currency}': { 'cost': 1 } as EndpointSpec<Dict>, // deprecated
                         },
                     },
                     'flash_swap': {
                         'get': {
-                            'currency_pairs': { 'cost': 1, 'returnType': 'List' },
-                            'currencies': { 'cost': 1, 'returnType': 'List' }, // deprecated
+                            'currency_pairs': { 'cost': 1 } as EndpointSpec<List>,
+                            'currencies': { 'cost': 1 } as EndpointSpec<List>, // deprecated
                         },
                     },
                     'futures': {
                         'get': {
-                            '{settle}/contracts': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/contracts/{contract}': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/order_book': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/trades': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/candlesticks': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/premium_index': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/tickers': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/funding_rate': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/insurance': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/contract_stats': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/index_constituents/{index}': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/liq_orders': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/risk_limit_tiers': { 'cost': 1, 'returnType': 'List' },
+                            '{settle}/contracts': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/contracts/{contract}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/order_book': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/trades': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/candlesticks': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/premium_index': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/tickers': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/funding_rate': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/insurance': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/contract_stats': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/index_constituents/{index}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/liq_orders': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/risk_limit_tiers': { 'cost': 1 } as EndpointSpec<List>,
                         },
                     },
                     'delivery': {
                         'get': {
-                            '{settle}/contracts': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/contracts/{contract}': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/order_book': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/trades': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/candlesticks': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/tickers': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/insurance': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/risk_limit_tiers': { 'cost': 1, 'returnType': 'List' },
+                            '{settle}/contracts': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/contracts/{contract}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/order_book': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/trades': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/candlesticks': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/tickers': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/insurance': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/risk_limit_tiers': { 'cost': 1 } as EndpointSpec<List>,
                         },
                     },
                     'options': {
                         'get': {
-                            'underlyings': { 'cost': 1, 'returnType': 'List' },
-                            'expirations': { 'cost': 1, 'returnType': 'List' },
-                            'contracts': { 'cost': 1, 'returnType': 'List' },
-                            'contracts/{contract}': { 'cost': 1, 'returnType': 'Dict' },
-                            'settlements': { 'cost': 1, 'returnType': 'List' },
-                            'settlements/{contract}': { 'cost': 1, 'returnType': 'Dict' },
-                            'order_book': { 'cost': 1, 'returnType': 'Dict' },
-                            'tickers': { 'cost': 1, 'returnType': 'List' },
-                            'underlying/tickers/{underlying}': { 'cost': 1, 'returnType': 'Dict' },
-                            'candlesticks': { 'cost': 1, 'returnType': 'List' },
-                            'underlying/candlesticks': { 'cost': 1, 'returnType': 'List' },
-                            'trades': { 'cost': 1, 'returnType': 'List' },
+                            'underlyings': { 'cost': 1 } as EndpointSpec<List>,
+                            'expirations': { 'cost': 1 } as EndpointSpec<List>,
+                            'contracts': { 'cost': 1 } as EndpointSpec<List>,
+                            'contracts/{contract}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'settlements': { 'cost': 1 } as EndpointSpec<List>,
+                            'settlements/{contract}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'order_book': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'tickers': { 'cost': 1 } as EndpointSpec<List>,
+                            'underlying/tickers/{underlying}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'candlesticks': { 'cost': 1 } as EndpointSpec<List>,
+                            'underlying/candlesticks': { 'cost': 1 } as EndpointSpec<List>,
+                            'trades': { 'cost': 1 } as EndpointSpec<List>,
                         },
                     },
                     'earn': {
                         'get': {
-                            'uni/currencies': { 'cost': 1, 'returnType': 'List' },
-                            'uni/currencies/{currency}': { 'cost': 1, 'returnType': 'Dict' },
-                            'dual/investment_plan': { 'cost': 1, 'returnType': 'List' },
-                            'structured/products': { 'cost': 1, 'returnType': 'List' },
+                            'uni/currencies': { 'cost': 1 } as EndpointSpec<List>,
+                            'uni/currencies/{currency}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'dual/investment_plan': { 'cost': 1 } as EndpointSpec<List>,
+                            'structured/products': { 'cost': 1 } as EndpointSpec<List>,
                         },
                     },
                     'loan': {
                         'get': {
-                            'collateral/currencies': { 'cost': 1, 'returnType': 'List' },
-                            'multi_collateral/currencies': { 'cost': 1, 'returnType': 'Dict' },
-                            'multi_collateral/ltv': { 'cost': 1, 'returnType': 'Dict' },
-                            'multi_collateral/fixed_rate': { 'cost': 1, 'returnType': 'List' },
-                            'multi_collateral/current_rate': { 'cost': 1, 'returnType': 'List' },
+                            'collateral/currencies': { 'cost': 1 } as EndpointSpec<List>,
+                            'multi_collateral/currencies': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'multi_collateral/ltv': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'multi_collateral/fixed_rate': { 'cost': 1 } as EndpointSpec<List>,
+                            'multi_collateral/current_rate': { 'cost': 1 } as EndpointSpec<List>,
                         },
                     },
                 },
@@ -294,393 +294,393 @@ export default class gate extends Exchange {
                     // private endpoints default is 150r/10s per endpoint
                     'withdrawals': {
                         'post': {
-                            'withdrawals': { 'cost': 20, 'returnType': 'Dict' }, // 1r/s cost = 20 / 1 = 20
-                            'push': { 'cost': 1, 'returnType': 'Dict' },
+                            'withdrawals': { 'cost': 20 } as EndpointSpec<Dict>, // 1r/s cost = 20 / 1 = 20
+                            'push': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                         'delete': {
-                            'withdrawals/{withdrawal_id}': { 'cost': 1, 'returnType': 'Dict' },
+                            'withdrawals/{withdrawal_id}': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                     'wallet': {
                         'get': {
-                            'deposit_address': { 'cost': 1, 'returnType': 'Dict' },
-                            'withdrawals': { 'cost': 1, 'returnType': 'List' },
-                            'deposits': { 'cost': 1, 'returnType': 'List' },
-                            'sub_account_transfers': { 'cost': 1, 'returnType': 'List' },
-                            'order_status': { 'cost': 1, 'returnType': 'Dict' },
-                            'withdraw_status': { 'cost': 1, 'returnType': 'List' },
-                            'sub_account_balances': { 'cost': 2.5, 'returnType': 'List' },
-                            'sub_account_margin_balances': { 'cost': 2.5, 'returnType': 'List' },
-                            'sub_account_futures_balances': { 'cost': 2.5, 'returnType': 'List' },
-                            'sub_account_cross_margin_balances': { 'cost': 2.5, 'returnType': 'List' },
-                            'saved_address': { 'cost': 1, 'returnType': 'List' },
-                            'fee': { 'cost': 1, 'returnType': 'Dict' },
-                            'total_balance': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'small_balance': { 'cost': 1, 'returnType': 'List' },
-                            'small_balance_history': { 'cost': 1, 'returnType': 'List' },
-                            'push': { 'cost': 1, 'returnType': 'List' },
-                            'getLowCapExchangeList': { 'cost': 1, 'returnType': 'List' },
+                            'deposit_address': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'withdrawals': { 'cost': 1 } as EndpointSpec<List>,
+                            'deposits': { 'cost': 1 } as EndpointSpec<List>,
+                            'sub_account_transfers': { 'cost': 1 } as EndpointSpec<List>,
+                            'order_status': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'withdraw_status': { 'cost': 1 } as EndpointSpec<List>,
+                            'sub_account_balances': { 'cost': 2.5 } as EndpointSpec<List>,
+                            'sub_account_margin_balances': { 'cost': 2.5 } as EndpointSpec<List>,
+                            'sub_account_futures_balances': { 'cost': 2.5 } as EndpointSpec<List>,
+                            'sub_account_cross_margin_balances': { 'cost': 2.5 } as EndpointSpec<List>,
+                            'saved_address': { 'cost': 1 } as EndpointSpec<List>,
+                            'fee': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'total_balance': { 'cost': 2.5 } as EndpointSpec<Dict>,
+                            'small_balance': { 'cost': 1 } as EndpointSpec<List>,
+                            'small_balance_history': { 'cost': 1 } as EndpointSpec<List>,
+                            'push': { 'cost': 1 } as EndpointSpec<List>,
+                            'getLowCapExchangeList': { 'cost': 1 } as EndpointSpec<List>,
                         },
                         'post': {
-                            'transfers': { 'cost': 2.5, 'returnType': 'Dict' }, // 8r/s cost = 20 / 8 = 2.5
-                            'sub_account_transfers': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'sub_account_to_sub_account': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'small_balance': { 'cost': 1, 'returnType': 'Dict' },
+                            'transfers': { 'cost': 2.5 } as EndpointSpec<Dict>, // 8r/s cost = 20 / 8 = 2.5
+                            'sub_account_transfers': { 'cost': 2.5 } as EndpointSpec<Dict>,
+                            'sub_account_to_sub_account': { 'cost': 2.5 } as EndpointSpec<Dict>,
+                            'small_balance': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                     'subAccounts': {
                         'get': {
-                            'sub_accounts': { 'cost': 2.5, 'returnType': 'List' },
-                            'sub_accounts/{user_id}': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'sub_accounts/{user_id}/keys': { 'cost': 2.5, 'returnType': 'List' },
-                            'sub_accounts/{user_id}/keys/{key}': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'sub_accounts': { 'cost': 2.5 } as EndpointSpec<List>,
+                            'sub_accounts/{user_id}': { 'cost': 2.5 } as EndpointSpec<Dict>,
+                            'sub_accounts/{user_id}/keys': { 'cost': 2.5 } as EndpointSpec<List>,
+                            'sub_accounts/{user_id}/keys/{key}': { 'cost': 2.5 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'sub_accounts': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'sub_accounts/{user_id}/keys': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'sub_accounts/{user_id}/lock': { 'cost': 2.5, 'returnType': 'Dict' },
-                            'sub_accounts/{user_id}/unlock': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'sub_accounts': { 'cost': 2.5 } as EndpointSpec<Dict>,
+                            'sub_accounts/{user_id}/keys': { 'cost': 2.5 } as EndpointSpec<Dict>,
+                            'sub_accounts/{user_id}/lock': { 'cost': 2.5 } as EndpointSpec<Dict>,
+                            'sub_accounts/{user_id}/unlock': { 'cost': 2.5 } as EndpointSpec<Dict>,
                         },
                         'put': {
-                            'sub_accounts/{user_id}/keys/{key}': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'sub_accounts/{user_id}/keys/{key}': { 'cost': 2.5 } as EndpointSpec<Dict>,
                         },
                         'delete': {
-                            'sub_accounts/{user_id}/keys/{key}': { 'cost': 2.5, 'returnType': 'Dict' },
+                            'sub_accounts/{user_id}/keys/{key}': { 'cost': 2.5 } as EndpointSpec<Dict>,
                         },
                     },
                     'unified': {
                         'get': {
-                            'accounts': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'borrowable': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'transferable': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'transferables': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'batch_borrowable': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'loans': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'loan_records': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'interest_records': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'risk_units': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'unified_mode': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'estimate_rate': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'currency_discount_tiers': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'loan_margin_tiers': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'leverage/user_currency_config': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'leverage/user_currency_setting': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'account_mode': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'accounts': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'borrowable': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'transferable': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'transferables': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'batch_borrowable': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'loans': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'loan_records': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'interest_records': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'risk_units': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'unified_mode': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'estimate_rate': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'currency_discount_tiers': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'loan_margin_tiers': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'leverage/user_currency_config': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'leverage/user_currency_setting': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'account_mode': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
                         },
                         'post': {
-                            'loans': { 'cost': 200 / 15, 'returnType': 'Dict' }, // 15r/10s cost = 20 / 1.5 = 13.33
-                            'portfolio_calculator': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'leverage/user_currency_setting': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'collateral_currencies': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'account_mode': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'loans': { 'cost': 200 / 15 } as EndpointSpec<Dict>, // 15r/10s cost = 20 / 1.5 = 13.33
+                            'portfolio_calculator': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'leverage/user_currency_setting': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'collateral_currencies': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'account_mode': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
                         },
                         'put': {
-                            'unified_mode': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'unified_mode': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                     },
                     'spot': {
                         // default is 200r/10s
                         'get': {
-                            'fee': { 'cost': 1, 'returnType': 'Dict' },
-                            'batch_fee': { 'cost': 1, 'returnType': 'Dict' },
-                            'accounts': { 'cost': 1, 'returnType': 'List' },
-                            'account_book': { 'cost': 1, 'returnType': 'List' },
-                            'open_orders': { 'cost': 1, 'returnType': 'List' },
-                            'orders': { 'cost': 1, 'returnType': 'List' },
-                            'orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
-                            'my_trades': { 'cost': 1, 'returnType': 'List' },
-                            'price_orders': { 'cost': 1, 'returnType': 'List' },
-                            'price_orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
+                            'fee': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'batch_fee': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'accounts': { 'cost': 1 } as EndpointSpec<List>,
+                            'account_book': { 'cost': 1 } as EndpointSpec<List>,
+                            'open_orders': { 'cost': 1 } as EndpointSpec<List>,
+                            'orders': { 'cost': 1 } as EndpointSpec<List>,
+                            'orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'my_trades': { 'cost': 1 } as EndpointSpec<List>,
+                            'price_orders': { 'cost': 1 } as EndpointSpec<List>,
+                            'price_orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'batch_orders': { 'cost': 0.4, 'returnType': 'List' },
-                            'cross_liquidate_orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'orders': { 'cost': 0.4, 'returnType': 'Dict' },
-                            'cancel_batch_orders': { 'cost': 20 / 75, 'returnType': 'List' },
-                            'countdown_cancel_all': { 'cost': 20 / 75, 'returnType': 'Dict' },
-                            'amend_batch_orders': { 'cost': 0.4, 'returnType': 'List' },
-                            'price_orders': { 'cost': 0.4, 'returnType': 'Dict' },
+                            'batch_orders': { 'cost': 0.4 } as EndpointSpec<List>,
+                            'cross_liquidate_orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'orders': { 'cost': 0.4 } as EndpointSpec<Dict>,
+                            'cancel_batch_orders': { 'cost': 20 / 75 } as EndpointSpec<List>,
+                            'countdown_cancel_all': { 'cost': 20 / 75 } as EndpointSpec<Dict>,
+                            'amend_batch_orders': { 'cost': 0.4 } as EndpointSpec<List>,
+                            'price_orders': { 'cost': 0.4 } as EndpointSpec<Dict>,
                         },
                         'delete': {
-                            'orders': { 'cost': 20 / 75, 'returnType': 'List' },
-                            'orders/{order_id}': { 'cost': 20 / 75, 'returnType': 'Dict' },
-                            'price_orders': { 'cost': 20 / 75, 'returnType': 'List' },
-                            'price_orders/{order_id}': { 'cost': 20 / 75, 'returnType': 'Dict' },
+                            'orders': { 'cost': 20 / 75 } as EndpointSpec<List>,
+                            'orders/{order_id}': { 'cost': 20 / 75 } as EndpointSpec<Dict>,
+                            'price_orders': { 'cost': 20 / 75 } as EndpointSpec<List>,
+                            'price_orders/{order_id}': { 'cost': 20 / 75 } as EndpointSpec<Dict>,
                         },
                         'patch': {
-                            'orders/{order_id}': { 'cost': 0.4, 'returnType': 'Dict' },
+                            'orders/{order_id}': { 'cost': 0.4 } as EndpointSpec<Dict>,
                         },
                     },
                     'margin': {
                         'get': {
-                            'accounts': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'account_book': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'funding_accounts': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'auto_repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'transferable': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'uni/estimate_rate': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'uni/loans': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'uni/loan_records': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'uni/interest_records': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'uni/borrowable': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'user/loan_margin_tiers': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'user/account': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'loans': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'loans/{loan_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'loans/{loan_id}/repayment': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'loan_records': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'loan_records/{loan_record_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'borrowable': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'cross/accounts': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'cross/account_book': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'cross/loans': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'cross/loans/{loan_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'cross/repayments': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'cross/interest_records': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'cross/transferable': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'cross/estimate_rate': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'cross/borrowable': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'accounts': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'account_book': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'funding_accounts': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'auto_repay': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'transferable': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'uni/estimate_rate': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'uni/loans': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'uni/loan_records': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'uni/interest_records': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'uni/borrowable': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'user/loan_margin_tiers': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'user/account': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'loans': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
+                            'loans/{loan_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'loans/{loan_id}/repayment': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
+                            'loan_records': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
+                            'loan_records/{loan_record_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'borrowable': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'cross/accounts': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'cross/account_book': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
+                            'cross/loans': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
+                            'cross/loans/{loan_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'cross/repayments': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
+                            'cross/interest_records': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
+                            'cross/transferable': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'cross/estimate_rate': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'cross/borrowable': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
                         },
                         'post': {
-                            'auto_repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'uni/loans': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'leverage/user_market_setting': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'loans': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'merged_loans': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'loans/{loan_id}/repayment': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'cross/loans': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'cross/repayments': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
+                            'auto_repay': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'uni/loans': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'leverage/user_market_setting': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'loans': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'merged_loans': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'loans/{loan_id}/repayment': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'cross/loans': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'cross/repayments': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
                         },
                         'patch': {
-                            'loans/{loan_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'loan_records/{loan_record_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'loans/{loan_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'loan_records/{loan_record_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
                         },
                         'delete': {
-                            'loans/{loan_id}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'loans/{loan_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
                         },
                     },
                     'flash_swap': {
                         'get': {
-                            'orders': { 'cost': 1, 'returnType': 'List' },
-                            'orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
+                            'orders': { 'cost': 1 } as EndpointSpec<List>,
+                            'orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'orders/preview': { 'cost': 1, 'returnType': 'Dict' },
+                            'orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'orders/preview': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                     'futures': {
                         'get': {
-                            '{settle}/accounts': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/account_book': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/positions': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/positions/{contract}': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/get_leverage/{contract}': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/dual_comp/positions/{contract}': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/orders': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/orders_timerange': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/my_trades': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/my_trades_timerange': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/position_close': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/liquidates': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/auto_deleverages': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/fee': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/risk_limit_table': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/price_orders': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/price_orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
+                            '{settle}/accounts': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/account_book': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/positions': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/positions/{contract}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/get_leverage/{contract}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/dual_comp/positions/{contract}': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/orders': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/orders_timerange': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/my_trades': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/my_trades_timerange': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/position_close': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/liquidates': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/auto_deleverages': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/fee': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/risk_limit_table': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/price_orders': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/price_orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            '{settle}/positions/{contract}/margin': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/positions/{contract}/leverage': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/positions/{contract}/set_leverage': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/positions/{contract}/risk_limit': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/positions/cross_mode': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/dual_comp/positions/cross_mode': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/dual_mode': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/set_position_mode': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/dual_comp/positions/{contract}/margin': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/dual_comp/positions/{contract}/leverage': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/dual_comp/positions/{contract}/risk_limit': { 'cost': 1, 'returnType': 'List' },
-                            '{settle}/orders': { 'cost': 0.4, 'returnType': 'Dict' },
-                            '{settle}/batch_orders': { 'cost': 0.4, 'returnType': 'List' },
-                            '{settle}/countdown_cancel_all': { 'cost': 0.4, 'returnType': 'Dict' },
-                            '{settle}/batch_cancel_orders': { 'cost': 0.4, 'returnType': 'List' },
-                            '{settle}/batch_amend_orders': { 'cost': 0.4, 'returnType': 'List' },
-                            '{settle}/bbo_orders': { 'cost': 0.4, 'returnType': 'Dict' },
-                            '{settle}/price_orders': { 'cost': 0.4, 'returnType': 'Dict' },
+                            '{settle}/positions/{contract}/margin': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/positions/{contract}/leverage': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/positions/{contract}/set_leverage': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/positions/{contract}/risk_limit': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/positions/cross_mode': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/dual_comp/positions/cross_mode': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/dual_mode': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/set_position_mode': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/dual_comp/positions/{contract}/margin': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/dual_comp/positions/{contract}/leverage': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/dual_comp/positions/{contract}/risk_limit': { 'cost': 1 } as EndpointSpec<List>,
+                            '{settle}/orders': { 'cost': 0.4 } as EndpointSpec<Dict>,
+                            '{settle}/batch_orders': { 'cost': 0.4 } as EndpointSpec<List>,
+                            '{settle}/countdown_cancel_all': { 'cost': 0.4 } as EndpointSpec<Dict>,
+                            '{settle}/batch_cancel_orders': { 'cost': 0.4 } as EndpointSpec<List>,
+                            '{settle}/batch_amend_orders': { 'cost': 0.4 } as EndpointSpec<List>,
+                            '{settle}/bbo_orders': { 'cost': 0.4 } as EndpointSpec<Dict>,
+                            '{settle}/price_orders': { 'cost': 0.4 } as EndpointSpec<Dict>,
                         },
                         'put': {
-                            '{settle}/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
-                            '{settle}/price_orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
+                            '{settle}/orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            '{settle}/price_orders/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                         'delete': {
-                            '{settle}/orders': { 'cost': 20 / 75, 'returnType': 'List' },
-                            '{settle}/orders/{order_id}': { 'cost': 20 / 75, 'returnType': 'Dict' },
-                            '{settle}/price_orders': { 'cost': 20 / 75, 'returnType': 'List' },
-                            '{settle}/price_orders/{order_id}': { 'cost': 20 / 75, 'returnType': 'Dict' },
+                            '{settle}/orders': { 'cost': 20 / 75 } as EndpointSpec<List>,
+                            '{settle}/orders/{order_id}': { 'cost': 20 / 75 } as EndpointSpec<Dict>,
+                            '{settle}/price_orders': { 'cost': 20 / 75 } as EndpointSpec<List>,
+                            '{settle}/price_orders/{order_id}': { 'cost': 20 / 75 } as EndpointSpec<Dict>,
                         },
                     },
                     'delivery': {
                         'get': {
-                            '{settle}/accounts': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            '{settle}/account_book': { 'cost': 20 / 15, 'returnType': 'List' },
-                            '{settle}/positions': { 'cost': 20 / 15, 'returnType': 'List' },
-                            '{settle}/positions/{contract}': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            '{settle}/orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            '{settle}/orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            '{settle}/my_trades': { 'cost': 20 / 15, 'returnType': 'List' },
-                            '{settle}/position_close': { 'cost': 20 / 15, 'returnType': 'List' },
-                            '{settle}/liquidates': { 'cost': 20 / 15, 'returnType': 'List' },
-                            '{settle}/settlements': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            '{settle}/price_orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            '{settle}/price_orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            '{settle}/accounts': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            '{settle}/account_book': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            '{settle}/positions': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            '{settle}/positions/{contract}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            '{settle}/orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            '{settle}/orders/{order_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            '{settle}/my_trades': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            '{settle}/position_close': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            '{settle}/liquidates': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            '{settle}/settlements': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            '{settle}/price_orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            '{settle}/price_orders/{order_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            '{settle}/positions/{contract}/margin': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            '{settle}/positions/{contract}/leverage': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            '{settle}/positions/{contract}/risk_limit': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            '{settle}/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            '{settle}/price_orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            '{settle}/positions/{contract}/margin': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            '{settle}/positions/{contract}/leverage': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            '{settle}/positions/{contract}/risk_limit': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            '{settle}/orders': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            '{settle}/price_orders': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                         'delete': {
-                            '{settle}/orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            '{settle}/orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            '{settle}/price_orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            '{settle}/price_orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            '{settle}/orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            '{settle}/orders/{order_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            '{settle}/price_orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            '{settle}/price_orders/{order_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                     },
                     'options': {
                         'get': {
-                            'my_settlements': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'accounts': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'account_book': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'positions': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'positions/{contract}': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'position_close': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'my_trades': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'mmp': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'my_settlements': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'accounts': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'account_book': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'positions': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'positions/{contract}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'position_close': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'orders/{order_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'my_trades': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'mmp': { 'cost': 20 / 15 } as EndpointSpec<List>,
                         },
                         'post': {
-                            'orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'countdown_cancel_all': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'mmp': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'mmp/reset': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'orders': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'countdown_cancel_all': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'mmp': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'mmp/reset': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                         'delete': {
-                            'orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'orders/{order_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                     },
                     'earn': {
                         'get': {
-                            'uni/lends': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'uni/lend_records': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'uni/interests/{currency}': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'uni/interest_records': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'uni/interest_status/{currency}': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'uni/chart': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'uni/rate': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'staking/eth2/rate_records': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'dual/orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'dual/balance': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'structured/orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'staking/coins': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'staking/order_list': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'staking/award_list': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'staking/assets': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'uni/currencies': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'uni/currencies/{currency}': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'uni/lends': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'uni/lend_records': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'uni/interests/{currency}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'uni/interest_records': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'uni/interest_status/{currency}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'uni/chart': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'uni/rate': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'staking/eth2/rate_records': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'dual/orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'dual/balance': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'structured/orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'staking/coins': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'staking/order_list': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'staking/award_list': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'staking/assets': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'uni/currencies': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
+                            'uni/currencies/{currency}': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
                         },
                         'post': {
-                            'uni/lends': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'staking/eth2/swap': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'dual/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'structured/orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'staking/swap': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'uni/lends': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'staking/eth2/swap': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'dual/orders': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'structured/orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'staking/swap': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                         'put': {
-                            'uni/interest_reinvest': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
+                            'uni/interest_reinvest': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
                         },
                         'patch': {
-                            'uni/lends': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'uni/lends': { 'cost': 20 / 15 } as EndpointSpec<List>,
                         },
                     },
                     'loan': {
                         'get': {
-                            'collateral/orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'collateral/orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'collateral/repay_records': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'collateral/collaterals': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'collateral/total_amount': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'collateral/ltv': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'multi_collateral/orders': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'multi_collateral/orders/{order_id}': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'multi_collateral/repay': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'multi_collateral/mortgage': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'multi_collateral/currency_quota': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'collateral/currencies': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'multi_collateral/currencies': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'multi_collateral/ltv': { 'cost': 20 / 15, 'returnType': 'Dict' }, // deprecated
-                            'multi_collateral/fixed_rate': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
-                            'multi_collateral/current_rate': { 'cost': 20 / 15, 'returnType': 'List' }, // deprecated
+                            'collateral/orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'collateral/orders/{order_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'collateral/repay_records': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'collateral/collaterals': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'collateral/total_amount': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'collateral/ltv': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'multi_collateral/orders': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'multi_collateral/orders/{order_id}': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'multi_collateral/repay': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'multi_collateral/mortgage': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'multi_collateral/currency_quota': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'collateral/currencies': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
+                            'multi_collateral/currencies': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'multi_collateral/ltv': { 'cost': 20 / 15 } as EndpointSpec<Dict>, // deprecated
+                            'multi_collateral/fixed_rate': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
+                            'multi_collateral/current_rate': { 'cost': 20 / 15 } as EndpointSpec<List>, // deprecated
                         },
                         'post': {
-                            'collateral/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'collateral/repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'collateral/collaterals': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'multi_collateral/orders': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'multi_collateral/repay': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'multi_collateral/mortgage': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'collateral/orders': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'collateral/repay': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'collateral/collaterals': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'multi_collateral/orders': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'multi_collateral/repay': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'multi_collateral/mortgage': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                     },
                     'account': {
                         'get': {
-                            'detail': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'main_keys': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'rate_limit': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'stp_groups': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'stp_groups/{stp_id}/users': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'stp_groups/debit_fee': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'debit_fee': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'detail': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'main_keys': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'rate_limit': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'stp_groups': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'stp_groups/{stp_id}/users': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'stp_groups/debit_fee': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'debit_fee': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'stp_groups': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'stp_groups/{stp_id}/users': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'debit_fee': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'stp_groups': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'stp_groups/{stp_id}/users': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'debit_fee': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                         'delete': {
-                            'stp_groups/{stp_id}/users': { 'cost': 20 / 15, 'returnType': 'List' },
+                            'stp_groups/{stp_id}/users': { 'cost': 20 / 15 } as EndpointSpec<List>,
                         },
                     },
                     'rebate': {
                         'get': {
-                            'agency/transaction_history': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'agency/commission_history': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'partner/transaction_history': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'partner/commission_history': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'partner/sub_list': { 'cost': 20 / 15, 'returnType': 'Dict' },
-                            'broker/commission_history': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'broker/transaction_history': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'user/info': { 'cost': 20 / 15, 'returnType': 'List' },
-                            'user/sub_relation': { 'cost': 20 / 15, 'returnType': 'Dict' },
+                            'agency/transaction_history': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'agency/commission_history': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'partner/transaction_history': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'partner/commission_history': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'partner/sub_list': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
+                            'broker/commission_history': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'broker/transaction_history': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'user/info': { 'cost': 20 / 15 } as EndpointSpec<List>,
+                            'user/sub_relation': { 'cost': 20 / 15 } as EndpointSpec<Dict>,
                         },
                     },
                     'otc': {
                         'get': {
-                            'get_user_def_bank': { 'cost': 1, 'returnType': 'Dict' },
-                            'order/list': { 'cost': 1, 'returnType': 'Dict' },
-                            'stable_coin/order/list': { 'cost': 1, 'returnType': 'Dict' },
-                            'order/detail': { 'cost': 1, 'returnType': 'Dict' },
+                            'get_user_def_bank': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'order/list': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'stable_coin/order/list': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'order/detail': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'quote': { 'cost': 1, 'returnType': 'Dict' },
-                            'order/create': { 'cost': 1, 'returnType': 'Dict' },
-                            'stable_coin/order/create': { 'cost': 1, 'returnType': 'Dict' },
-                            'order/paid': { 'cost': 1, 'returnType': 'Dict' },
-                            'order/cancel': { 'cost': 1, 'returnType': 'Dict' },
+                            'quote': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'order/create': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'stable_coin/order/create': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'order/paid': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'order/cancel': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                 },

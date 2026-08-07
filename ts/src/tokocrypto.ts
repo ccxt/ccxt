@@ -5,7 +5,7 @@ import Exchange from './abstract/tokocrypto.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -173,56 +173,56 @@ export default class tokocrypto extends Exchange {
             'api': {
                 'binance': {
                     'get': {
-                        'ping': { 'cost': 1, 'returnType': 'Dict' },
-                        'time': { 'cost': 1, 'returnType': 'Dict' },
-                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ], 'returnType': 'Dict' },
-                        'trades': { 'cost': 1, 'returnType': 'List' },
-                        'aggTrades': { 'cost': 1, 'returnType': 'List' },
-                        'historicalTrades': { 'cost': 5, 'returnType': 'List' },
-                        'klines': { 'cost': 1, 'returnType': 'Dict' },
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40, 'returnType': 'List' },
-                        'ticker/price': { 'cost': 1, 'noSymbol': 2, 'returnType': 'Dict' },
-                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2, 'returnType': 'List' },
-                        'exchangeInfo': { 'cost': 10, 'returnType': 'Dict' },
+                        'ping': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'time': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] } as EndpointSpec<Dict>,
+                        'trades': { 'cost': 1 } as EndpointSpec<List>,
+                        'aggTrades': { 'cost': 1 } as EndpointSpec<List>,
+                        'historicalTrades': { 'cost': 5 } as EndpointSpec<List>,
+                        'klines': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as EndpointSpec<List>,
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 } as EndpointSpec<Dict>,
+                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as EndpointSpec<List>,
+                        'exchangeInfo': { 'cost': 10 } as EndpointSpec<Dict>,
                     },
                     'put': {
-                        'userDataStream': { 'cost': 1, 'returnType': 'Dict' },
+                        'userDataStream': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'userDataStream': { 'cost': 1, 'returnType': 'Dict' },
+                        'userDataStream': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'delete': {
-                        'userDataStream': { 'cost': 1, 'returnType': 'Dict' },
+                        'userDataStream': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'public': {
                     'get': {
-                        'open/v1/common/time': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/common/symbols': { 'cost': 1, 'returnType': 'Dict' },
+                        'open/v1/common/time': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/common/symbols': { 'cost': 1 } as EndpointSpec<Dict>,
                         // all the actual symbols are type 1
-                        'open/v1/market/depth': { 'cost': 1, 'returnType': 'Dict' }, // when symbol type is not 1
-                        'open/v1/market/trades': { 'cost': 1, 'returnType': 'Dict' }, // when symbol type is not 1
-                        'open/v1/market/agg-trades': { 'cost': 1, 'returnType': 'Dict' }, // when symbol type is not 1
-                        'open/v1/market/klines': { 'cost': 1, 'returnType': 'Dict' }, // when symbol type is not 1
+                        'open/v1/market/depth': { 'cost': 1 } as EndpointSpec<Dict>, // when symbol type is not 1
+                        'open/v1/market/trades': { 'cost': 1 } as EndpointSpec<Dict>, // when symbol type is not 1
+                        'open/v1/market/agg-trades': { 'cost': 1 } as EndpointSpec<Dict>, // when symbol type is not 1
+                        'open/v1/market/klines': { 'cost': 1 } as EndpointSpec<Dict>, // when symbol type is not 1
                     },
                 },
                 'private': {
                     'get': {
-                        'open/v1/orders/detail': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/account/spot': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/account/spot/asset': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/orders/trades': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/withdraws': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/deposits': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/deposits/address': { 'cost': 1, 'returnType': 'Dict' },
+                        'open/v1/orders/detail': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/account/spot': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/account/spot/asset': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/orders/trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/withdraws': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/deposits': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/deposits/address': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'open/v1/orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/orders/cancel': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/orders/oco': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/withdraws': { 'cost': 1, 'returnType': 'Dict' },
-                        'open/v1/user-data-stream': { 'cost': 1, 'returnType': 'Dict' },
+                        'open/v1/orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/orders/cancel': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/orders/oco': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/withdraws': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'open/v1/user-data-stream': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

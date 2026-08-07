@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status, EndpointSpec, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -139,42 +139,42 @@ export default class foxbit extends Exchange {
                 'v3': {
                     'public': {
                         'get': {
-                            'currencies': { 'cost': 5, 'returnType': 'Dict' }, // 6 requests per second
-                            'markets': { 'cost': 5, 'returnType': 'Dict' }, // 6 requests per second
-                            'markets/ticker/24hr': { 'cost': 60, 'returnType': 'Dict' }, // 1 request per 2 seconds
-                            'markets/{market}/orderbook': { 'cost': 6, 'returnType': 'Dict' }, // 10 requests per 2 seconds
-                            'markets/{market}/candlesticks': { 'cost': 12, 'returnType': 'List' }, // 5 requests per 2 seconds
-                            'markets/{market}/trades/history': { 'cost': 12, 'returnType': 'Dict' }, // 5 requests per 2 seconds
-                            'markets/{market}/ticker/24hr': { 'cost': 15, 'returnType': 'Dict' }, // 4 requests per 2 seconds
+                            'currencies': { 'cost': 5 } as EndpointSpec<Dict>, // 6 requests per second
+                            'markets': { 'cost': 5 } as EndpointSpec<Dict>, // 6 requests per second
+                            'markets/ticker/24hr': { 'cost': 60 } as EndpointSpec<Dict>, // 1 request per 2 seconds
+                            'markets/{market}/orderbook': { 'cost': 6 } as EndpointSpec<Dict>, // 10 requests per 2 seconds
+                            'markets/{market}/candlesticks': { 'cost': 12 } as EndpointSpec<List>, // 5 requests per 2 seconds
+                            'markets/{market}/trades/history': { 'cost': 12 } as EndpointSpec<Dict>, // 5 requests per 2 seconds
+                            'markets/{market}/ticker/24hr': { 'cost': 15 } as EndpointSpec<Dict>, // 4 requests per 2 seconds
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': { 'cost': 2, 'returnType': 'Dict' }, // 15 requests per second
-                            'accounts/{symbol}/transactions': { 'cost': 60, 'returnType': 'Dict' }, // 1 requests per 2 seconds
-                            'orders': { 'cost': 2, 'returnType': 'Dict' }, // 30 requests per 2 seconds
-                            'orders/by-order-id/{id}': { 'cost': 2, 'returnType': 'Dict' }, // 30 requests per 2 seconds
-                            'trades': { 'cost': 6, 'returnType': 'Dict' }, // 5 orders per second
-                            'deposits/address': { 'cost': 10, 'returnType': 'Dict' }, // 3 requests per second
-                            'deposits': { 'cost': 10, 'returnType': 'Dict' }, // 3 requests per second
-                            'withdrawals': { 'cost': 10, 'returnType': 'Dict' }, // 3 requests per second
-                            'me/fees/trading': { 'cost': 60, 'returnType': 'Dict' }, // 1 requests per 2 seconds
+                            'accounts': { 'cost': 2 } as EndpointSpec<Dict>, // 15 requests per second
+                            'accounts/{symbol}/transactions': { 'cost': 60 } as EndpointSpec<Dict>, // 1 requests per 2 seconds
+                            'orders': { 'cost': 2 } as EndpointSpec<Dict>, // 30 requests per 2 seconds
+                            'orders/by-order-id/{id}': { 'cost': 2 } as EndpointSpec<Dict>, // 30 requests per 2 seconds
+                            'trades': { 'cost': 6 } as EndpointSpec<Dict>, // 5 orders per second
+                            'deposits/address': { 'cost': 10 } as EndpointSpec<Dict>, // 3 requests per second
+                            'deposits': { 'cost': 10 } as EndpointSpec<Dict>, // 3 requests per second
+                            'withdrawals': { 'cost': 10 } as EndpointSpec<Dict>, // 3 requests per second
+                            'me/fees/trading': { 'cost': 60 } as EndpointSpec<Dict>, // 1 requests per 2 seconds
                         },
                         'post': {
-                            'orders': { 'cost': 2, 'returnType': 'Dict' }, // 30 requests per 2 seconds
-                            'orders/batch': { 'cost': 7.5, 'returnType': 'Dict' }, // 8 requests per 2 seconds
-                            'orders/cancel-replace': { 'cost': 3, 'returnType': 'Dict' }, // 20 requests per 2 seconds
-                            'withdrawals': { 'cost': 10, 'returnType': 'Dict' }, // 3 requests per second
+                            'orders': { 'cost': 2 } as EndpointSpec<Dict>, // 30 requests per 2 seconds
+                            'orders/batch': { 'cost': 7.5 } as EndpointSpec<Dict>, // 8 requests per 2 seconds
+                            'orders/cancel-replace': { 'cost': 3 } as EndpointSpec<Dict>, // 20 requests per 2 seconds
+                            'withdrawals': { 'cost': 10 } as EndpointSpec<Dict>, // 3 requests per second
                         },
                         'put': {
-                            'orders/cancel': { 'cost': 2, 'returnType': 'Dict' }, // 30 requests per 2 seconds
+                            'orders/cancel': { 'cost': 2 } as EndpointSpec<Dict>, // 30 requests per 2 seconds
                         },
                     },
                 },
                 'status': {
                     'public': {
                         'get': {
-                            'status': { 'cost': 30, 'returnType': 'Dict' }, // 1 request per second
+                            'status': { 'cost': 30 } as EndpointSpec<Dict>, // 1 request per second
                         },
                     },
                 },

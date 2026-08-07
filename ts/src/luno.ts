@@ -5,7 +5,7 @@ import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountNotEnabled, BadRequest, BadSymbol, OperationRejected, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, DuplicateOrderId, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, RequestTimeout, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -140,69 +140,69 @@ export default class luno extends Exchange {
             'api': {
                 'exchange': {
                     'get': {
-                        'markets': { 'cost': 1, 'returnType': 'Dict' },
+                        'markets': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'exchangePrivate': {
                     'get': {
-                        'candles': { 'cost': 1, 'returnType': 'Dict' },
-                        'move': { 'cost': 1, 'returnType': 'Dict' },
-                        'move/list_moves': { 'cost': 1, 'returnType': 'Dict' },
-                        'transfers': { 'cost': 1, 'returnType': 'Dict' },
+                        'candles': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'move': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'move/list_moves': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'transfers': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'convert': { 'cost': 1, 'returnType': 'Dict' },
-                        'move': { 'cost': 1, 'returnType': 'Dict' },
+                        'convert': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'move': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'public': {
                     'get': {
-                        'orderbook': { 'cost': 1, 'returnType': 'Dict' },
-                        'orderbook_top': { 'cost': 1, 'returnType': 'Dict' },
-                        'ticker': { 'cost': 1, 'returnType': 'Dict' },
-                        'tickers': { 'cost': 1, 'returnType': 'Dict' },
-                        'trades': { 'cost': 1, 'returnType': 'Dict' },
+                        'orderbook': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orderbook_top': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'tickers': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trades': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/{id}/pending': { 'cost': 1, 'returnType': 'Dict' },
-                        'accounts/{id}/transactions': { 'cost': 1, 'returnType': 'Dict' },
-                        'balance': { 'cost': 1, 'returnType': 'Dict' },
-                        'beneficiaries': { 'cost': 1, 'returnType': 'Dict' },
-                        'send/networks': { 'cost': 1, 'returnType': 'Dict' },
-                        'fee_info': { 'cost': 1, 'returnType': 'Dict' },
-                        'funding_address': { 'cost': 1, 'returnType': 'Dict' },
-                        'listorders': { 'cost': 1, 'returnType': 'Dict' },
-                        'listtrades': { 'cost': 1, 'returnType': 'Dict' },
-                        'send_fee': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
-                        'withdrawals/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'transfers': { 'cost': 1, 'returnType': 'Dict' }, // not found in current docs, use GET /api/exchange/1/transfers
-                        'users/linked': { 'cost': 1, 'returnType': 'Dict' },
+                        'accounts/{id}/pending': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'accounts/{id}/transactions': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'balance': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'beneficiaries': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'send/networks': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'fee_info': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'funding_address': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'listorders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'listtrades': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'send_fee': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'withdrawals': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'withdrawals/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'transfers': { 'cost': 1 } as EndpointSpec<Dict>, // not found in current docs, use GET /api/exchange/1/transfers
+                        'users/linked': { 'cost': 1 } as EndpointSpec<Dict>,
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
                     },
                     'post': {
-                        'accounts': { 'cost': 1, 'returnType': 'Dict' },
-                        'address/validate': { 'cost': 1, 'returnType': 'Dict' },
-                        'postorder': { 'cost': 1, 'returnType': 'Dict' },
-                        'marketorder': { 'cost': 1, 'returnType': 'Dict' },
-                        'stoporder': { 'cost': 1, 'returnType': 'Dict' },
-                        'funding_address': { 'cost': 1, 'returnType': 'Dict' },
-                        'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
-                        'send': { 'cost': 1, 'returnType': 'Dict' },
-                        'oauth2/grant': { 'cost': 1, 'returnType': 'Dict' }, // deprecated for new applications
-                        'beneficiaries': { 'cost': 1, 'returnType': 'Dict' },
+                        'accounts': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'address/validate': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'postorder': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'marketorder': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'stoporder': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'funding_address': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'withdrawals': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'send': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'oauth2/grant': { 'cost': 1 } as EndpointSpec<Dict>, // deprecated for new applications
+                        'beneficiaries': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'put': {
-                        'accounts/{id}/name': { 'cost': 1, 'returnType': 'Dict' },
+                        'accounts/{id}/name': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'delete': {
-                        'withdrawals/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'beneficiaries/{id}': { 'cost': 1, 'returnType': 'Dict' },
+                        'withdrawals/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'beneficiaries/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

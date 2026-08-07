@@ -2,6 +2,7 @@ import ccxt, { Dict, Exchange } from '../ts/ccxt.js';
 import fs from 'fs';
 import { writeFile, unlink } from 'fs/promises';
 import log from 'ololog'
+import { returnTypesOfFiles, importsRestTwin } from './apiReturnTypes.js';
 
 // const JS_PATH = './js/src/abstract/';
 const TS_PATH = './ts/src/abstract/';
@@ -21,22 +22,29 @@ const IDEN = '    ';
 // as the single shape its endpoint actually answers with, rather than one
 // blanket union for all ~14k of them.
 //
-// The shape of an endpoint is declared next to its rate limit cost, in the api
-// tree of that exchange's describe(), which is the single source of truth:
+// The shape of an endpoint is declared as a real TypeScript type on the api
+// leaf that already carries its rate limit cost, in that exchange's describe(),
+// which is the single source of truth:
 //
-//     'klines': { 'cost': 1, 'returnType': 'List' },
+//     'klines': { 'cost': 1 } as EndpointSpec<List>,
 //
-// A bare number leaf ('klines': 1) is still the cost-only form and carries no
-// verdict; those endpoints fall back to DEFAULT_RETURN_TYPE, which stays
+// `EndpointSpec<Returns>` is a phantom type (ts/src/base/types.ts): the
+// assertion is erased at compile time, so the leaf the rate limiter sees is
+// still exactly `{ 'cost': 1 }` — no key was added to it, in any language. The
+// declaration is read here from the TypeScript source with the compiler API
+// (build/apiReturnTypes.ts), never from the running object, so the shape is a
+// checked type reference rather than a string tag: `List` is the same `List`
+// the generated abstract file imports from base/types.js.
+//
+// A leaf with no assertion ('klines': 1, or a plain object leaf) declares no
+// shape; those endpoints fall back to DEFAULT_RETURN_TYPE, which stays
 // permissive for external callers without asserting a shape nobody proved.
-// Only 'cost' reaches the rate limiter — 'returnType' is metadata this
-// generator reads, ignored by fetch2/throttle in every language.
 //
 // Verdicts were established from each exchange's official documentation
 // (describe()['urls']['doc']) plus the call sites in ts/src/**; regenerate the
 // abstract files after editing an api tree with:
 //
-//     npm run export-exchanges  (or: npx tsx build/generateImplicitAPI.ts --ts)
+//     npm run emitAPITs  (or: npx tsx build/generateImplicitAPI.ts --ts)
 
 // what an endpoint returns when its api leaf declares no returnType
 const DEFAULT_RETURN_TYPE = 'Dict | List';
@@ -84,8 +92,8 @@ let storedUnderscoreMethods: Dict = {};
 let storedTypeScriptMethods: Dict = {};
 let storedCSharpMethods: Dict = {};
 let storedContext: Dict = {};
-// exchange id -> camelCase method name -> the TS type declared for that
-// endpoint by the 'returnType' key of its api leaf in describe()
+// exchange id -> camelCase method name -> the TypeScript type declared for that
+// endpoint by the `as EndpointSpec<...>` assertion on its api leaf in describe()
 let storedReturnTypes: Dict = {};
 let storedPhpMethods: Dict = {};
 let storedPyMethods: Dict = {};
@@ -129,6 +137,68 @@ const langKeys = {
 
 function isHttpMethod(method: string): boolean {
     return ['get', 'post', 'put', 'delete', 'patch'].includes (method);
+}
+
+// -------------------------------------------------------------------------
+// The source files whose describe() built the api tree of one instance, in the
+// order deepExtend applied them (root first, so a derived exchange overrides
+// its parent). Resolved from the live prototype chain rather than from the
+// exchange id, because the two do not always agree: pro/kucoinfutures extends
+// pro/kucoin, so ts/src/kucoinfutures.ts never contributes to it, while
+// pro/binanceus extends pro/binance yet still merges ts/src/binanceus.ts by
+// constructing its rest twin. Guessing either way from the name alone would
+// read a file the runtime never merged, or miss one it did.
+function describeSourceFiles (instance: any, restContainer: Dict, proContainer: Dict): string[] {
+    const restDir = isPrediction ? 'ts/src/prediction/' : 'ts/src/';
+    const proDir = isPrediction ? 'ts/src/pro/prediction/' : 'ts/src/pro/';
+    // the chain child-first, each link tagged with the namespace it came from
+    const chain: { 'id': string; 'pro': boolean }[] = [];
+    let ctor = instance.constructor;
+    while (ctor !== undefined && ctor !== null && ctor.name && ctor.name !== 'Exchange' && ctor.name !== 'BaseExchange' && ctor.name !== 'PredictionExchange') {
+        const id = ctor.name;
+        chain.push ({ 'id': id, 'pro': proContainer[id] === ctor });
+        ctor = Object.getPrototypeOf (ctor);
+    }
+    const files: string[] = [];
+    for (let i = chain.length - 1; i >= 0; i--) {
+        const link = chain[i];
+        if (!link['pro']) {
+            files.push (restDir + link['id'] + '.ts');
+            continue;
+        }
+        const proFile = proDir + link['id'] + '.ts';
+        // a pro class that merges its rest twin without extending it brings that
+        // twin's whole rest chain in ahead of the ws describes, exactly as its
+        // deepExtend (restDescribe, parentWsDescribe) does
+        const twin = restContainer[link['id']];
+        const inChain = chain.some ((other) => !other['pro'] && other['id'] === link['id']);
+        if (twin !== undefined && !inChain && importsRestTwin (proFile, link['id'])) {
+            const twinFiles: string[] = [];
+            let twinCtor = twin;
+            while (twinCtor !== undefined && twinCtor !== null && twinCtor.name && twinCtor.name !== 'Exchange' && twinCtor.name !== 'BaseExchange' && twinCtor.name !== 'PredictionExchange') {
+                twinFiles.unshift (restDir + twinCtor.name + '.ts');
+                twinCtor = Object.getPrototypeOf (twinCtor);
+            }
+            for (const file of twinFiles) {
+                if (!files.includes (file)) {
+                    files.splice (firstProIndex (files, proDir), 0, file);
+                }
+            }
+        }
+        files.push (proFile);
+    }
+    return files;
+}
+
+// where the ws describes start, so a rest chain merged by a pro class is
+// inserted ahead of all of them and behind every rest file already collected
+function firstProIndex (files: string[], proDir: string): number {
+    for (let i = 0; i < files.length; i++) {
+        if (files[i].startsWith (proDir)) {
+            return i;
+        }
+    }
+    return files.length;
 }
 //-------------------------------------------------------------------------
 
@@ -195,15 +265,12 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                         config = { 'cost': config }
                     }
                 }
-                // 'returnType' is a build-time annotation read only here; the
-                // request path must keep seeing the cost-carrying keys alone,
-                // so it is stripped before the config is emitted to any language
-                const declaredReturnType = config['returnType']
-                if (declaredReturnType !== undefined) {
-                    storedReturnTypes[id][camelCasePath] = declaredReturnType
-                    config = Object.assign ({}, config)
-                    delete config['returnType']
-                }
+                // Nothing has to be stripped from the config here: the response
+                // shape is declared as an erased type assertion on the api leaf
+                // (`{ 'cost': 1 } as EndpointSpec<List>`), so it never becomes a
+                // key of the runtime object and cannot reach the rate limiter in
+                // any language. It is read straight from the TypeScript source
+                // by populateImplicitMethods, into storedReturnTypes.
                 const pyConfig = JSON.stringify (config).replace (/:/g, ': ').replace (/"/g, "'").replace (/,/g, ', ')
                 const phpConfig = JSON.stringify (config).replace (/{/g, 'array(').replace (/:/g, ' => ').replace (/}/g, ')').replace (/,/g, ', ')
                 storedContext[id].push ({
@@ -549,9 +616,11 @@ function populateImplicitMethods(exchanges: string[]) {
         const exchangeClass = container[exchange]
         const instance = new exchangeClass();
         let api = instance.api
+        let describing: any = instance;
         if (exchange in proContainer) {
             const proInstance = new proContainer[exchange] ()
             api = proInstance.api
+            describing = proInstance;
         }
         const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
         createTypescriptHeader(instance, parent);
@@ -565,7 +634,12 @@ function populateImplicitMethods(exchanges: string[]) {
         storedCamelCaseMethods[exchange] = []
         storedUnderscoreMethods[exchange] = []
         storedContext[exchange] = []
-        storedReturnTypes[exchange] = {}
+        // The api tree this instance exposes is the deep merge of describe()
+        // along its prototype chain, so the declared shapes are merged the same
+        // way — over the same files, in the same order — read from the
+        // TypeScript sources those describe()s live in, because a type
+        // assertion leaves no runtime trace to read off the object.
+        storedReturnTypes[exchange] = returnTypesOfFiles (describeSourceFiles (describing, container, proContainer))
 
         generateImplicitMethodNames (exchange, api)
     }

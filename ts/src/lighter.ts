@@ -5,7 +5,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status, EndpointSpec } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------
@@ -167,81 +167,81 @@ export default class lighter extends Exchange {
                 'root': {
                     'get': {
                         // root
-                        '': { 'cost': 1, 'returnType': 'Dict' }, // status
-                        'info': { 'cost': 1, 'returnType': 'Dict' },
+                        '': { 'cost': 1 } as EndpointSpec<Dict>, // status
+                        'info': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'public': {
                     'get': {
                         // account
-                        'account': { 'cost': 1, 'returnType': 'Dict' },
-                        'accountsByL1Address': { 'cost': 1, 'returnType': 'Dict' },
-                        'apikeys': { 'cost': 1, 'returnType': 'Dict' },
+                        'account': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'accountsByL1Address': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'apikeys': { 'cost': 1 } as EndpointSpec<Dict>,
                         // order
-                        'exchangeStats': { 'cost': 1, 'returnType': 'Dict' },
-                        'assetDetails': { 'cost': 1, 'returnType': 'Dict' },
-                        'orderBookDetails': { 'cost': 1, 'returnType': 'Dict' },
-                        'orderBookOrders': { 'cost': 1, 'returnType': 'Dict' },
-                        'orderBooks': { 'cost': 1, 'returnType': 'Dict' },
-                        'recentTrades': { 'cost': 1, 'returnType': 'Dict' },
+                        'exchangeStats': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'assetDetails': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orderBookDetails': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orderBookOrders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orderBooks': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'recentTrades': { 'cost': 1 } as EndpointSpec<Dict>,
                         // transaction
-                        'blockTxs': { 'cost': 1, 'returnType': 'Dict' },
-                        'nextNonce': { 'cost': 1, 'returnType': 'Dict' },
-                        'tx': { 'cost': 1, 'returnType': 'Dict' },
-                        'txFromL1TxHash': { 'cost': 1, 'returnType': 'Dict' },
-                        'txs': { 'cost': 1, 'returnType': 'Dict' },
+                        'blockTxs': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'nextNonce': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'tx': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'txFromL1TxHash': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'txs': { 'cost': 1 } as EndpointSpec<Dict>,
                         // announcement
-                        'announcement': { 'cost': 1, 'returnType': 'Dict' },
+                        'announcement': { 'cost': 1 } as EndpointSpec<Dict>,
                         // block
-                        'block': { 'cost': 1, 'returnType': 'Dict' },
-                        'blocks': { 'cost': 1, 'returnType': 'List' },
-                        'currentHeight': { 'cost': 1, 'returnType': 'Dict' },
+                        'block': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'blocks': { 'cost': 1 } as EndpointSpec<List>,
+                        'currentHeight': { 'cost': 1 } as EndpointSpec<Dict>,
                         // candlestick
-                        'candles': { 'cost': 1, 'returnType': 'Dict' },
-                        'fundings': { 'cost': 1, 'returnType': 'Dict' },
+                        'candles': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'fundings': { 'cost': 1 } as EndpointSpec<Dict>,
                         // bridge
-                        'fastbridge/info': { 'cost': 1, 'returnType': 'Dict' },
+                        'fastbridge/info': { 'cost': 1 } as EndpointSpec<Dict>,
                         // funding
-                        'funding-rates': { 'cost': 1, 'returnType': 'Dict' },
+                        'funding-rates': { 'cost': 1 } as EndpointSpec<Dict>,
                         // info
-                        'withdrawalDelay': { 'cost': 1, 'returnType': 'Dict' },
+                        'withdrawalDelay': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
                         // transaction
-                        'sendTx': { 'cost': 1, 'returnType': 'Dict' },
-                        'sendTxBatch': { 'cost': 1, 'returnType': 'Dict' },
+                        'sendTx': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'sendTxBatch': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'accountLimits': { 'cost': 1, 'returnType': 'Dict' },
-                        'accountMetadata': { 'cost': 1, 'returnType': 'Dict' },
-                        'pnl': { 'cost': 1, 'returnType': 'Dict' },
-                        'l1Metadata': { 'cost': 1, 'returnType': 'Dict' },
-                        'liquidations': { 'cost': 1, 'returnType': 'Dict' },
-                        'positionFunding': { 'cost': 1, 'returnType': 'Dict' },
-                        'publicPoolsMetadata': { 'cost': 1, 'returnType': 'Dict' },
+                        'accountLimits': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'accountMetadata': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'pnl': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'l1Metadata': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'liquidations': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'positionFunding': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'publicPoolsMetadata': { 'cost': 1 } as EndpointSpec<Dict>,
                         // order
-                        'accountActiveOrders': { 'cost': 1, 'returnType': 'Dict' },
-                        'accountInactiveOrders': { 'cost': 1, 'returnType': 'Dict' },
-                        'export': { 'cost': 1, 'returnType': 'Dict' },
-                        'trades': { 'cost': 1, 'returnType': 'Dict' },
+                        'accountActiveOrders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'accountInactiveOrders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'export': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trades': { 'cost': 1 } as EndpointSpec<Dict>,
                         // transaction
-                        'accountTxs': { 'cost': 1, 'returnType': 'Dict' },
-                        'deposit/history': { 'cost': 1, 'returnType': 'Dict' },
-                        'transfer/history': { 'cost': 1, 'returnType': 'Dict' },
-                        'withdraw/history': { 'cost': 1, 'returnType': 'Dict' },
+                        'accountTxs': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'deposit/history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'transfer/history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'withdraw/history': { 'cost': 1 } as EndpointSpec<Dict>,
                         // referral
-                        'referral/points': { 'cost': 1, 'returnType': 'Dict' },
+                        'referral/points': { 'cost': 1 } as EndpointSpec<Dict>,
                         // info
-                        'transferFeeInfo': { 'cost': 1, 'returnType': 'Dict' },
+                        'transferFeeInfo': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
                         // account
-                        'changeAccountTier': { 'cost': 1, 'returnType': 'Dict' },
+                        'changeAccountTier': { 'cost': 1 } as EndpointSpec<Dict>,
                         // notification
-                        'notification/ack': { 'cost': 1, 'returnType': 'Dict' },
+                        'notification/ack': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

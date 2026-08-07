@@ -6,7 +6,7 @@ import Exchange from './abstract/bitrue.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, Int, List, MarginModification, Market, MarketType, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool, DepositWithdrawFees, Status } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, Int, List, MarginModification, Market, MarketType, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool, DepositWithdrawFees, Status, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -172,51 +172,51 @@ export default class bitrue extends Exchange {
                     'kline': {
                         'public': {
                             'get': {
-                                'public.json': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'public{currency}.json': { 'cost': 0.24, 'returnType': 'Dict' },
+                                'public.json': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'public{currency}.json': { 'cost': 0.24 } as EndpointSpec<Dict>,
                             },
                         },
                     },
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'time': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'exchangeInfo': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'depth': { 'cost': 1, 'byLimit': [ [ 100, 0.24 ], [ 500, 1.2 ], [ 1000, 2.4 ] ], 'returnType': 'Dict' },
-                                'trades': { 'cost': 0.24, 'returnType': 'List' },
-                                'historicalTrades': { 'cost': 1.2, 'returnType': 'List' },
-                                'aggTrades': { 'cost': 0.24, 'returnType': 'List' },
-                                'ticker/24hr': { 'cost': 0.24, 'noSymbol': 9.6, 'returnType': 'List' },
-                                'ticker/price': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'ticker/bookTicker': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'market/kline': { 'cost': 0.24, 'returnType': 'Dict' },
+                                'ping': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'time': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'exchangeInfo': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'depth': { 'cost': 1, 'byLimit': [ [ 100, 0.24 ], [ 500, 1.2 ], [ 1000, 2.4 ] ] } as EndpointSpec<Dict>,
+                                'trades': { 'cost': 0.24 } as EndpointSpec<List>,
+                                'historicalTrades': { 'cost': 1.2 } as EndpointSpec<List>,
+                                'aggTrades': { 'cost': 0.24 } as EndpointSpec<List>,
+                                'ticker/24hr': { 'cost': 0.24, 'noSymbol': 9.6 } as EndpointSpec<List>,
+                                'ticker/price': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'ticker/bookTicker': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'market/kline': { 'cost': 0.24 } as EndpointSpec<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'order': { 'cost': 5, 'returnType': 'Dict' },
-                                'openOrders': { 'cost': 5, 'returnType': 'Dict' },
-                                'allOrders': { 'cost': 25, 'returnType': 'List' },
-                                'account': { 'cost': 25, 'returnType': 'Dict' },
-                                'myTrades': { 'cost': 25, 'returnType': 'List' },
-                                'etf/net-value/{symbol}': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'withdraw/history': { 'cost': 120, 'returnType': 'Dict' },
-                                'deposit/history': { 'cost': 120, 'returnType': 'Dict' },
+                                'order': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'openOrders': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'allOrders': { 'cost': 25 } as EndpointSpec<List>,
+                                'account': { 'cost': 25 } as EndpointSpec<Dict>,
+                                'myTrades': { 'cost': 25 } as EndpointSpec<List>,
+                                'etf/net-value/{symbol}': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'withdraw/history': { 'cost': 120 } as EndpointSpec<Dict>,
+                                'deposit/history': { 'cost': 120 } as EndpointSpec<Dict>,
                             },
                             'post': {
-                                'order': { 'cost': 5, 'returnType': 'Dict' },
-                                'withdraw/commit': { 'cost': 120, 'returnType': 'Dict' },
+                                'order': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'withdraw/commit': { 'cost': 120 } as EndpointSpec<Dict>,
                             },
                             'delete': {
-                                'order': { 'cost': 5, 'returnType': 'Dict' },
+                                'order': { 'cost': 5 } as EndpointSpec<Dict>,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': { 'cost': 1.2, 'returnType': 'Dict' },
+                                'myTrades': { 'cost': 1.2 } as EndpointSpec<Dict>,
                             },
                         },
                     },
@@ -225,34 +225,34 @@ export default class bitrue extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'time': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'contracts': { 'cost': 0.24, 'returnType': 'List' },
-                                'depth': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'ticker': { 'cost': 0.24, 'returnType': 'List' },
-                                'klines': { 'cost': 0.24, 'returnType': 'Dict' },
+                                'ping': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'time': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'contracts': { 'cost': 0.24 } as EndpointSpec<List>,
+                                'depth': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'ticker': { 'cost': 0.24 } as EndpointSpec<List>,
+                                'klines': { 'cost': 0.24 } as EndpointSpec<Dict>,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': { 'cost': 5, 'returnType': 'Dict' },
-                                'openOrders': { 'cost': 5, 'returnType': 'Dict' },
-                                'order': { 'cost': 5, 'returnType': 'Dict' },
-                                'account': { 'cost': 5, 'returnType': 'Dict' },
-                                'leverageBracket': { 'cost': 5, 'returnType': 'Dict' },
-                                'commissionRate': { 'cost': 5, 'returnType': 'Dict' },
-                                'futures_transfer_history': { 'cost': 5, 'returnType': 'Dict' },
-                                'forceOrdersHistory': { 'cost': 5, 'returnType': 'Dict' },
+                                'myTrades': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'openOrders': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'order': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'account': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'leverageBracket': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'commissionRate': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'futures_transfer_history': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'forceOrdersHistory': { 'cost': 5 } as EndpointSpec<Dict>,
                             },
                             'post': {
-                                'positionMargin': { 'cost': 5, 'returnType': 'Dict' },
-                                'level_edit': { 'cost': 5, 'returnType': 'Dict' },
-                                'cancel': { 'cost': 5, 'returnType': 'Dict' },
-                                'order': { 'cost': 25, 'returnType': 'Dict' },
-                                'allOpenOrders': { 'cost': 5, 'returnType': 'Dict' },
-                                'futures_transfer': { 'cost': 5, 'returnType': 'Dict' },
+                                'positionMargin': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'level_edit': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'cancel': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'order': { 'cost': 25 } as EndpointSpec<Dict>,
+                                'allOpenOrders': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'futures_transfer': { 'cost': 5 } as EndpointSpec<Dict>,
                             },
                         },
                     },
@@ -261,34 +261,34 @@ export default class bitrue extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'time': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'contracts': { 'cost': 0.24, 'returnType': 'List' },
-                                'depth': { 'cost': 0.24, 'returnType': 'Dict' },
-                                'ticker': { 'cost': 0.24, 'returnType': 'List' },
-                                'klines': { 'cost': 0.24, 'returnType': 'Dict' },
+                                'ping': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'time': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'contracts': { 'cost': 0.24 } as EndpointSpec<List>,
+                                'depth': { 'cost': 0.24 } as EndpointSpec<Dict>,
+                                'ticker': { 'cost': 0.24 } as EndpointSpec<List>,
+                                'klines': { 'cost': 0.24 } as EndpointSpec<Dict>,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': { 'cost': 5, 'returnType': 'Dict' },
-                                'openOrders': { 'cost': 5, 'returnType': 'Dict' },
-                                'order': { 'cost': 5, 'returnType': 'Dict' },
-                                'account': { 'cost': 5, 'returnType': 'Dict' },
-                                'leverageBracket': { 'cost': 5, 'returnType': 'Dict' },
-                                'commissionRate': { 'cost': 5, 'returnType': 'Dict' },
-                                'futures_transfer_history': { 'cost': 5, 'returnType': 'Dict' },
-                                'forceOrdersHistory': { 'cost': 5, 'returnType': 'Dict' },
+                                'myTrades': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'openOrders': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'order': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'account': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'leverageBracket': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'commissionRate': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'futures_transfer_history': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'forceOrdersHistory': { 'cost': 5 } as EndpointSpec<Dict>,
                             },
                             'post': {
-                                'positionMargin': { 'cost': 5, 'returnType': 'Dict' },
-                                'level_edit': { 'cost': 5, 'returnType': 'Dict' },
-                                'cancel': { 'cost': 5, 'returnType': 'Dict' },
-                                'order': { 'cost': 5, 'returnType': 'Dict' },
-                                'allOpenOrders': { 'cost': 5, 'returnType': 'Dict' },
-                                'futures_transfer': { 'cost': 5, 'returnType': 'Dict' },
+                                'positionMargin': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'level_edit': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'cancel': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'order': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'allOpenOrders': { 'cost': 5 } as EndpointSpec<Dict>,
+                                'futures_transfer': { 'cost': 5 } as EndpointSpec<Dict>,
                             },
                         },
                     },

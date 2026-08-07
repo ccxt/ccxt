@@ -6,7 +6,7 @@ import Exchange from './abstract/bitget.js';
 import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Bool, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, SubType, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, NullableList, List, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, Fee, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees, MarginLoan } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Bool, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, SubType, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, NullableList, List, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, Fee, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees, MarginLoan, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -198,731 +198,731 @@ export default class bitget extends Exchange {
                 'public': {
                     'common': {
                         'get': {
-                            'v2/public/annoucements': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/public/time': { 'cost': 1, 'returnType': 'Dict' },
+                            'v2/public/annoucements': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/public/time': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                     'spot': {
                         'get': {
-                            'spot/v1/notice/queryAllNotices': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (IP) => 20/20 = 1
-                            'spot/v1/public/time': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/public/currencies': { 'cost': 6.6667, 'returnType': 'Dict' }, // 3 times/1s (IP) => 20/3 = 6.6667
-                            'spot/v1/public/products': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/public/product': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/market/ticker': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/market/tickers': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/market/fills': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'spot/v1/market/fills-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/market/candles': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/market/depth': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/market/spot-vip-level': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/market/merge-depth': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/market/history-candles': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/public/loan/coinInfos': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'spot/v1/public/loan/hour-interest': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'v2/spot/public/coins': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v2/spot/public/symbols': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/market/vip-fee-rate': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/market/tickers': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/market/merge-depth': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/market/orderbook': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/market/candles': { 'cost': 1, 'returnType': 'Dict | List | string' },
-                            'v2/spot/market/history-candles': { 'cost': 1, 'returnType': 'Dict | List | string' },
-                            'v2/spot/market/fills': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/market/fills-history': { 'cost': 2, 'returnType': 'Dict' },
+                            'spot/v1/notice/queryAllNotices': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (IP) => 20/20 = 1
+                            'spot/v1/public/time': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/public/currencies': { 'cost': 6.6667 } as EndpointSpec<Dict>, // 3 times/1s (IP) => 20/3 = 6.6667
+                            'spot/v1/public/products': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/public/product': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/market/ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/market/tickers': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/market/fills': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/market/fills-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/market/candles': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/market/depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/market/spot-vip-level': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/market/merge-depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/market/history-candles': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/public/loan/coinInfos': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/public/loan/hour-interest': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'v2/spot/public/coins': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v2/spot/public/symbols': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/market/vip-fee-rate': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/market/tickers': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/market/merge-depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/market/orderbook': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/market/candles': { 'cost': 1 } as EndpointSpec<Dict | List | string>,
+                            'v2/spot/market/history-candles': { 'cost': 1 } as EndpointSpec<Dict | List | string>,
+                            'v2/spot/market/fills': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/market/fills-history': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                     'mix': {
                         'get': {
-                            'mix/v1/market/contracts': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/depth': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/ticker': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/tickers': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/contract-vip-level': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/market/fills': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/fills-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/market/candles': { 'cost': 1, 'returnType': 'List' },
-                            'mix/v1/market/index': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/funding-time': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/history-fundRate': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/current-fundRate': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/open-interest': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/mark-price': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/symbol-leverage': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/queryPositionLever': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/open-limit': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/market/history-candles': { 'cost': 1, 'returnType': 'List' },
-                            'mix/v1/market/history-index-candles': { 'cost': 1, 'returnType': 'List' },
-                            'mix/v1/market/history-mark-candles': { 'cost': 1, 'returnType': 'List' },
-                            'mix/v1/market/merge-depth': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/vip-fee-rate': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/market/union-interest-rate-history': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/market/exchange-rate': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/market/discount-rate': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/market/merge-depth': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/ticker': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/tickers': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/fills': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/fills-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/market/candles': { 'cost': 1, 'returnType': 'Dict | List | string' },
-                            'v2/mix/market/history-candles': { 'cost': 1, 'returnType': 'Dict | List | string' },
-                            'v2/mix/market/history-index-candles': { 'cost': 1, 'returnType': 'Dict | List | string' },
-                            'v2/mix/market/history-mark-candles': { 'cost': 1, 'returnType': 'Dict | List | string' },
-                            'v2/mix/market/open-interest': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/funding-time': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/symbol-price': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/history-fund-rate': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/current-fund-rate': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/oi-limit': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/market/contracts': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/market/query-position-lever': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/market/account-long-short': { 'cost': 20, 'returnType': 'Dict' },
+                            'mix/v1/market/contracts': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/tickers': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/contract-vip-level': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/market/fills': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/fills-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/market/candles': { 'cost': 1 } as EndpointSpec<List>,
+                            'mix/v1/market/index': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/funding-time': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/history-fundRate': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/current-fundRate': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/open-interest': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/mark-price': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/symbol-leverage': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/queryPositionLever': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/open-limit': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/market/history-candles': { 'cost': 1 } as EndpointSpec<List>,
+                            'mix/v1/market/history-index-candles': { 'cost': 1 } as EndpointSpec<List>,
+                            'mix/v1/market/history-mark-candles': { 'cost': 1 } as EndpointSpec<List>,
+                            'mix/v1/market/merge-depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/vip-fee-rate': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/market/union-interest-rate-history': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/market/exchange-rate': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/market/discount-rate': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/market/merge-depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/tickers': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/fills': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/fills-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/market/candles': { 'cost': 1 } as EndpointSpec<Dict | List | string>,
+                            'v2/mix/market/history-candles': { 'cost': 1 } as EndpointSpec<Dict | List | string>,
+                            'v2/mix/market/history-index-candles': { 'cost': 1 } as EndpointSpec<Dict | List | string>,
+                            'v2/mix/market/history-mark-candles': { 'cost': 1 } as EndpointSpec<Dict | List | string>,
+                            'v2/mix/market/open-interest': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/funding-time': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/symbol-price': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/history-fund-rate': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/current-fund-rate': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/oi-limit': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/market/contracts': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/market/query-position-lever': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/market/account-long-short': { 'cost': 20 } as EndpointSpec<Dict>,
                         },
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/public/interestRateAndLimit': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/public/interestRateAndLimit': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/cross/public/tierData': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/public/tierData': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/public/currencies': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (IP) => 20/20 = 1
-                            'v2/margin/currencies': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/market/long-short-ratio': { 'cost': 20, 'returnType': 'Dict' },
+                            'margin/v1/cross/public/interestRateAndLimit': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/interestRateAndLimit': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/cross/public/tierData': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/tierData': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/public/currencies': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (IP) => 20/20 = 1
+                            'v2/margin/currencies': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/market/long-short-ratio': { 'cost': 20 } as EndpointSpec<Dict>,
                         },
                     },
                     'earn': {
                         'get': {
-                            'v2/earn/loan/public/coinInfos': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/loan/public/hour-interest': { 'cost': 2, 'returnType': 'Dict' },
+                            'v2/earn/loan/public/coinInfos': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/loan/public/hour-interest': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                     'uta': {
                         'get': {
-                            'v3/market/instruments': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/tickers': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/orderbook': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/fills': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/proof-of-reserves': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/open-interest': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/candles': { 'cost': 1, 'returnType': 'Dict | List | string' },
-                            'v3/market/history-candles': { 'cost': 1, 'returnType': 'Dict | List | string' },
-                            'v3/market/current-fund-rate': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/history-fund-rate': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/risk-reserve': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/discount-rate': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/margin-loans': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/position-tier': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/market/oi-limit': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/market/index-components': { 'cost': 2, 'returnType': 'Dict' },
+                            'v3/market/instruments': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/tickers': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/orderbook': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/fills': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/proof-of-reserves': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/open-interest': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/candles': { 'cost': 1 } as EndpointSpec<Dict | List | string>,
+                            'v3/market/history-candles': { 'cost': 1 } as EndpointSpec<Dict | List | string>,
+                            'v3/market/current-fund-rate': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/history-fund-rate': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/risk-reserve': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/discount-rate': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/margin-loans': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/position-tier': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/market/oi-limit': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/market/index-components': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'spot/v1/wallet/deposit-address': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/wallet/withdrawal-list': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/wallet/deposit-list': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/account/getInfo': { 'cost': 20, 'returnType': 'Dict' },
-                            'spot/v1/account/assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/account/assets-lite': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/account/transferRecords': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (UID) => 20/20 = 1
-                            'spot/v1/convert/currencies': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/convert/convert-record': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/loan/ongoing-orders': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/repay-history': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/revise-history': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/borrow-history': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/debts': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/spot/trade/orderInfo': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/trade/unfilled-orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/trade/history-orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/trade/fills': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/trade/current-plan-order': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/trade/history-plan-order': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/account/info': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/spot/account/assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/account/subaccount-assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/account/bills': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/account/transferRecords': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/account/funding-assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/account/bot-assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/account/all-account-balance': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/spot/wallet/deposit-address': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/wallet/deposit-records': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/wallet/withdrawal-records': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/account/upgrade-status': { 'cost': 20, 'returnType': 'Dict' },
+                            'spot/v1/wallet/deposit-address': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/wallet/withdrawal-list': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/wallet/deposit-list': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/account/getInfo': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'spot/v1/account/assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/account/assets-lite': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/account/transferRecords': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'spot/v1/convert/currencies': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/convert/convert-record': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/loan/ongoing-orders': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay-history': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-history': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/borrow-history': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/debts': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/spot/trade/orderInfo': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/unfilled-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/history-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/fills': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/current-plan-order': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/history-plan-order': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/account/info': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/spot/account/assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/account/subaccount-assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/account/bills': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/account/transferRecords': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/account/funding-assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/account/bot-assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/account/all-account-balance': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/spot/wallet/deposit-address': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/wallet/deposit-records': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/wallet/withdrawal-records': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/account/upgrade-status': { 'cost': 20 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'spot/v1/wallet/transfer': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/wallet/transfer-v2': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/wallet/subTransfer': { 'cost': 10, 'returnType': 'Dict' },
-                            'spot/v1/wallet/withdrawal': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/wallet/withdrawal-v2': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/wallet/withdrawal-inner': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/wallet/withdrawal-inner-v2': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/account/sub-account-spot-assets': { 'cost': 200, 'returnType': 'Dict' },
-                            'spot/v1/account/bills': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/trade/orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/trade/batch-orders': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/trade/cancel-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/trade/cancel-order-v2': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/trade/cancel-symbol-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/trade/cancel-batch-orders': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/trade/cancel-batch-orders-v2': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/trade/orderInfo': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/trade/open-orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/trade/history': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/trade/fills': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/plan/placePlan': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/plan/modifyPlan': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/plan/cancelPlan': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/plan/currentPlan': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/plan/historyPlan': { 'cost': 1, 'returnType': 'Dict' },
-                            'spot/v1/plan/batchCancelPlan': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/convert/quoted-price': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/convert/trade': { 'cost': 4, 'returnType': 'Dict' },
-                            'spot/v1/loan/borrow': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/repay': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/revise-pledge': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderCurrentList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderHistoryList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/closeTrackingOrder': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/updateTpsl': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/followerEndOrder': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/spotInfoList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/getTraderSettings': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/getFollowerSettings': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/myTraders': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/setFollowerConfig': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/myFollowers': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/setProductCode': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/removeTrader': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/getRemovableFollower': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/trace/user/removeFollower': { 'cost': 2, 'returnType': 'Dict' },
-                            'spot/v1/trace/profit/totalProfitInfo': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/totalProfitList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisDetailList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/waitProfitDetailList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/getTraderInfo': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/spot/trade/place-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/trade/cancel-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/trade/batch-orders': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/spot/trade/batch-cancel-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/trade/cancel-symbol-order': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/spot/trade/place-plan-order': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/trade/modify-plan-order': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/trade/cancel-plan-order': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/spot/trade/cancel-replace-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/trade/batch-cancel-plan-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/wallet/transfer': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/wallet/subaccount-transfer': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/wallet/withdrawal': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/wallet/cancel-withdrawal': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/wallet/modify-deposit-account': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/spot/account/upgrade': { 'cost': 20, 'returnType': 'Dict' },
+                            'spot/v1/wallet/transfer': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/wallet/transfer-v2': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/wallet/subTransfer': { 'cost': 10 } as EndpointSpec<Dict>,
+                            'spot/v1/wallet/withdrawal': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/wallet/withdrawal-v2': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/wallet/withdrawal-inner': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/wallet/withdrawal-inner-v2': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/account/sub-account-spot-assets': { 'cost': 200 } as EndpointSpec<Dict>,
+                            'spot/v1/account/bills': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/batch-orders': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/cancel-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/cancel-order-v2': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/cancel-symbol-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/cancel-batch-orders': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/cancel-batch-orders-v2': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/orderInfo': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/open-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/history': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/trade/fills': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/plan/placePlan': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/plan/modifyPlan': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/plan/cancelPlan': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/plan/currentPlan': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/plan/historyPlan': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'spot/v1/plan/batchCancelPlan': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/convert/quoted-price': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/convert/trade': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'spot/v1/loan/borrow': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-pledge': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderCurrentList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderHistoryList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/closeTrackingOrder': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/updateTpsl': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/followerEndOrder': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/spotInfoList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getTraderSettings': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getFollowerSettings': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myTraders': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setFollowerConfig': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myFollowers': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setProductCode': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/removeTrader': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/getRemovableFollower': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/trace/user/removeFollower': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'spot/v1/trace/profit/totalProfitInfo': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/totalProfitList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisDetailList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/waitProfitDetailList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/getTraderInfo': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/spot/trade/place-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/cancel-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/batch-orders': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/batch-cancel-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/cancel-symbol-order': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/place-plan-order': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/modify-plan-order': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/cancel-plan-order': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/cancel-replace-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/trade/batch-cancel-plan-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/wallet/transfer': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/wallet/subaccount-transfer': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/wallet/withdrawal': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/wallet/cancel-withdrawal': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/wallet/modify-deposit-account': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/spot/account/upgrade': { 'cost': 20 } as EndpointSpec<Dict>,
                         },
                     },
                     'mix': {
                         'get': {
-                            'mix/v1/account/account': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/account/accounts': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/position/singlePosition': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/position/singlePosition-v2': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/position/allPosition': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/position/allPosition-v2': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/position/history-position': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/account/accountBill': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/account/accountBusinessBill': { 'cost': 4, 'returnType': 'Dict' },
-                            'mix/v1/order/current': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/order/marginCoinCurrent': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/order/history': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/order/historyProductType': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/order/detail': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/order/fills': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/order/allFills': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/plan/currentPlan': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/plan/historyPlan': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/currentTrack': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/followerOrder': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/followerHistoryOrders': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/historyTrack': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/summary': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/profitSettleTokenIdGroup': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/profitDateGroupList': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trade/profitDateList': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/waitProfitDateList': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/traderSymbols': { 'cost': 1, 'returnType': 'Dict' }, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/traderList': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/traderDetail': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/queryTraceConfig': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/account/account': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/account/accounts': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/account/sub-account-assets': { 'cost': 200, 'returnType': 'Dict' },
-                            'v2/mix/account/interest-history': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/account/max-open': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/account/liq-price': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/account/open-count': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/account/bill': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/account/transfer-limits': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/mix/account/union-config': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/mix/account/switch-union-usdt': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/mix/account/isolated-symbols': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/market/query-position-lever': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/position/single-position': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/position/all-position': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/position/adlRank': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/position/history-position': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/mix/order/detail': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/fills': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/fill-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/orders-pending': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/orders-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/plan-sub-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/orders-plan-pending': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/orders-plan-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/market/position-long-short': { 'cost': 20, 'returnType': 'Dict' },
+                            'mix/v1/account/account': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/account/accounts': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/position/singlePosition': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/position/singlePosition-v2': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/position/allPosition': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/position/allPosition-v2': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/position/history-position': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/account/accountBill': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/account/accountBusinessBill': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'mix/v1/order/current': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/order/marginCoinCurrent': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/order/history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/order/historyProductType': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/order/detail': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/order/fills': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/order/allFills': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/currentPlan': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/plan/historyPlan': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/currentTrack': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/followerOrder': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/followerHistoryOrders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/historyTrack': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/summary': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitSettleTokenIdGroup': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitDateGroupList': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trade/profitDateList': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/waitProfitDateList': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/traderSymbols': { 'cost': 1 } as EndpointSpec<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/traderList': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/traderDetail': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/queryTraceConfig': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/account/account': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/account/accounts': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/account/sub-account-assets': { 'cost': 200 } as EndpointSpec<Dict>,
+                            'v2/mix/account/interest-history': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/account/max-open': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/account/liq-price': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/account/open-count': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/account/bill': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/account/transfer-limits': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/mix/account/union-config': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/mix/account/switch-union-usdt': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/mix/account/isolated-symbols': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/market/query-position-lever': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/position/single-position': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/position/all-position': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/position/adlRank': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/position/history-position': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/mix/order/detail': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/fills': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/fill-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/orders-pending': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/orders-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/plan-sub-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/orders-plan-pending': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/orders-plan-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/market/position-long-short': { 'cost': 20 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'mix/v1/account/sub-account-contract-assets': { 'cost': 200, 'returnType': 'Dict' }, // 0.1 times/1s (UID) => 20/0.1 = 200
-                            'mix/v1/account/open-count': { 'cost': 1, 'returnType': 'Dict' },
-                            'mix/v1/account/setLeverage': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setMargin': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setMarginMode': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setPositionMode': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/order/placeOrder': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/order/batch-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/order/cancel-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/order/cancel-batch-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/order/modifyOrder': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/order/cancel-symbol-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/order/cancel-all-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/order/close-all-positions': { 'cost': 20, 'returnType': 'Dict' },
-                            'mix/v1/plan/placePlan': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/plan/modifyPlan': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/plan/modifyPlanPreset': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/plan/placeTPSL': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/plan/placeTrailStop': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/plan/placePositionsTPSL': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/plan/modifyTPSLPlan': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/plan/cancelPlan': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/plan/cancelSymbolPlan': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/plan/cancelAllPlan': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/closeTrackOrder': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/modifyTPSL': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/closeTrackOrderBySymbol': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/setUpCopySymbols': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/followerSetBatchTraceConfig': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/followerCloseByTrackingNo': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/followerCloseByAll': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/followerSetTpsl': { 'cost': 2, 'returnType': 'Dict' },
-                            'mix/v1/trace/cancelCopyTrader': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/trace/traderUpdateConfig': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/myTraderList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/myFollowerList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/removeFollower': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/public/getFollowerConfig': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/report/order/historyList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'mix/v1/trace/report/order/currentList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'mix/v1/trace/queryTraderTpslRatioConfig': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/traderUpdateTpslRatioConfig': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/mix/account/set-auto-margin': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/account/set-leverage': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/account/set-all-leverage': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/account/set-margin': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/account/set-asset-mode': { 'cost': 10, 'returnType': 'Dict' },
-                            'v2/mix/account/set-margin-mode': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/account/union-convert': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/mix/account/set-position-mode': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/mix/order/place-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/click-backhand': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/mix/order/batch-place-order': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/mix/order/modify-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/cancel-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/batch-cancel-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/close-positions': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/mix/order/cancel-all-orders': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/mix/order/place-tpsl-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/place-pos-tpsl': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/place-plan-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/modify-tpsl-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/modify-plan-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/mix/order/cancel-plan-order': { 'cost': 2, 'returnType': 'Dict' },
+                            'mix/v1/account/sub-account-contract-assets': { 'cost': 200 } as EndpointSpec<Dict>, // 0.1 times/1s (UID) => 20/0.1 = 200
+                            'mix/v1/account/open-count': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'mix/v1/account/setLeverage': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMargin': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMarginMode': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setPositionMode': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/order/placeOrder': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/order/batch-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/order/cancel-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/order/cancel-batch-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/order/modifyOrder': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/order/cancel-symbol-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/order/cancel-all-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/order/close-all-positions': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/placePlan': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/modifyPlan': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/modifyPlanPreset': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/placeTPSL': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/placeTrailStop': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/placePositionsTPSL': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/modifyTPSLPlan': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/cancelPlan': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/cancelSymbolPlan': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/plan/cancelAllPlan': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/closeTrackOrder': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/modifyTPSL': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/closeTrackOrderBySymbol': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/setUpCopySymbols': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/followerSetBatchTraceConfig': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/followerCloseByTrackingNo': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/followerCloseByAll': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/followerSetTpsl': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'mix/v1/trace/cancelCopyTrader': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/trace/traderUpdateConfig': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myTraderList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myFollowerList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/removeFollower': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/public/getFollowerConfig': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/report/order/historyList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/report/order/currentList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/queryTraderTpslRatioConfig': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/traderUpdateTpslRatioConfig': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/mix/account/set-auto-margin': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/account/set-leverage': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/account/set-all-leverage': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/account/set-margin': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/account/set-asset-mode': { 'cost': 10 } as EndpointSpec<Dict>,
+                            'v2/mix/account/set-margin-mode': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/account/union-convert': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/mix/account/set-position-mode': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/mix/order/place-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/click-backhand': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/mix/order/batch-place-order': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/mix/order/modify-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/cancel-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/batch-cancel-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/close-positions': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/mix/order/cancel-all-orders': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/mix/order/place-tpsl-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/place-pos-tpsl': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/place-plan-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/modify-tpsl-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/modify-plan-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/mix/order/cancel-plan-order': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                     'user': {
                         'get': {
-                            'user/v1/fee/query': { 'cost': 2, 'returnType': 'Dict' },
-                            'user/v1/sub/virtual-list': { 'cost': 2, 'returnType': 'Dict' },
-                            'user/v1/sub/virtual-api-list': { 'cost': 2, 'returnType': 'Dict' },
-                            'user/v1/tax/spot-record': { 'cost': 1, 'returnType': 'Dict' },
-                            'user/v1/tax/future-record': { 'cost': 1, 'returnType': 'Dict' },
-                            'user/v1/tax/margin-record': { 'cost': 1, 'returnType': 'Dict' },
-                            'user/v1/tax/p2p-record': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/user/virtual-subaccount-list': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/user/virtual-subaccount-apikey-list': { 'cost': 2, 'returnType': 'Dict' },
+                            'user/v1/fee/query': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'user/v1/sub/virtual-list': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'user/v1/sub/virtual-api-list': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'user/v1/tax/spot-record': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'user/v1/tax/future-record': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'user/v1/tax/margin-record': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'user/v1/tax/p2p-record': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/user/virtual-subaccount-list': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/user/virtual-subaccount-apikey-list': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'user/v1/sub/virtual-create': { 'cost': 4, 'returnType': 'Dict' },
-                            'user/v1/sub/virtual-modify': { 'cost': 4, 'returnType': 'Dict' },
-                            'user/v1/sub/virtual-api-batch-create': { 'cost': 20, 'returnType': 'Dict' }, // 1 times/1s (UID) => 20/1 = 20
-                            'user/v1/sub/virtual-api-create': { 'cost': 4, 'returnType': 'Dict' },
-                            'user/v1/sub/virtual-api-modify': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/user/create-virtual-subaccount': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/user/modify-virtual-subaccount': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/user/batch-create-subaccount-and-apikey': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/user/create-virtual-subaccount-apikey': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/user/modify-virtual-subaccount-apikey': { 'cost': 4, 'returnType': 'Dict' },
+                            'user/v1/sub/virtual-create': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'user/v1/sub/virtual-modify': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'user/v1/sub/virtual-api-batch-create': { 'cost': 20 } as EndpointSpec<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'user/v1/sub/virtual-api-create': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'user/v1/sub/virtual-api-modify': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/user/create-virtual-subaccount': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/user/modify-virtual-subaccount': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/user/batch-create-subaccount-and-apikey': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/user/create-virtual-subaccount-apikey': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/user/modify-virtual-subaccount-apikey': { 'cost': 4 } as EndpointSpec<Dict>,
                         },
                     },
                     'p2p': {
                         'get': {
-                            'p2p/v1/merchant/merchantList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/merchantInfo': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/advList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/orderList': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/p2p/merchantList': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/p2p/merchantInfo': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/p2p/orderList': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/p2p/advList': { 'cost': 2, 'returnType': 'Dict' },
+                            'p2p/v1/merchant/merchantList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/merchantInfo': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/advList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/orderList': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/p2p/merchantList': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/p2p/merchantInfo': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/p2p/orderList': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/p2p/advList': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                     'broker': {
                         'get': {
-                            'broker/v1/account/info': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-list': { 'cost': 20, 'returnType': 'Dict' }, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-email': { 'cost': 20, 'returnType': 'Dict' }, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-spot-assets': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-future-assets': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/subaccount-transfer': { 'cost': 1, 'returnType': 'Dict' }, // unknown
-                            'broker/v1/account/subaccount-deposit': { 'cost': 1, 'returnType': 'Dict' }, // unknown
-                            'broker/v1/account/subaccount-withdrawal': { 'cost': 1, 'returnType': 'Dict' }, // unknown
-                            'broker/v1/account/sub-api-list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/broker/account/info': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/broker/account/subaccount-list': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/broker/account/subaccount-email': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/broker/account/subaccount-spot-assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/broker/account/subaccount-future-assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/broker/manage/subaccount-apikey-list': { 'cost': 2, 'returnType': 'Dict' },
+                            'broker/v1/account/info': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-list': { 'cost': 20 } as EndpointSpec<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-email': { 'cost': 20 } as EndpointSpec<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-spot-assets': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-future-assets': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/subaccount-transfer': { 'cost': 1 } as EndpointSpec<Dict>, // unknown
+                            'broker/v1/account/subaccount-deposit': { 'cost': 1 } as EndpointSpec<Dict>, // unknown
+                            'broker/v1/account/subaccount-withdrawal': { 'cost': 1 } as EndpointSpec<Dict>, // unknown
+                            'broker/v1/account/sub-api-list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/broker/account/info': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/broker/account/subaccount-list': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/broker/account/subaccount-email': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/broker/account/subaccount-spot-assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/broker/account/subaccount-future-assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/broker/manage/subaccount-apikey-list': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'broker/v1/account/sub-create': { 'cost': 20, 'returnType': 'Dict' }, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify': { 'cost': 20, 'returnType': 'Dict' }, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify-email': { 'cost': 20, 'returnType': 'Dict' }, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-address': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-withdrawal': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-auto-transfer': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'broker/v1/account/sub-api-create': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-api-modify': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/broker/account/modify-subaccount-email': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/broker/account/create-subaccount': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/broker/account/modify-subaccount': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/broker/account/subaccount-address': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/broker/account/subaccount-withdrawal': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/broker/account/set-subaccount-autotransfer': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/broker/manage/create-subaccount-apikey': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/broker/manage/modify-subaccount-apikey': { 'cost': 2, 'returnType': 'Dict' },
+                            'broker/v1/account/sub-create': { 'cost': 20 } as EndpointSpec<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify': { 'cost': 20 } as EndpointSpec<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify-email': { 'cost': 20 } as EndpointSpec<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-address': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-withdrawal': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-auto-transfer': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'broker/v1/account/sub-api-create': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-api-modify': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/broker/account/modify-subaccount-email': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/broker/account/create-subaccount': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/broker/account/modify-subaccount': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/broker/account/subaccount-address': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/broker/account/subaccount-withdrawal': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/broker/account/set-subaccount-autotransfer': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/broker/manage/create-subaccount-apikey': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/broker/manage/modify-subaccount-apikey': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/account/riskRate': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxTransferOutAmount': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxTransferOutAmount': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/openOrders': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/history': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/fills': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/loan/list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/repay/list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/interest/list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/liquidation/list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/fin/list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/openOrders': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/history': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/fills': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/loan/list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/repay/list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/interest/list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/liquidation/list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/fin/list': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/assets': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/account/assets': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (IP) => 20/10 = 2
-                            'v2/margin/crossed/borrow-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/repay-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/interest-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/liquidation-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/financial-records': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/account/assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/account/risk-rate': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/account/max-borrowable-amount': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/account/max-transfer-out-amount': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/interest-rate-and-limit': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/tier-data': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/open-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/history-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/fills': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/borrow-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/repay-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/interest-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/liquidation-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/financial-records': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/account/assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/account/risk-rate': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/account/max-borrowable-amount': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/account/max-transfer-out-amount': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/interest-rate-and-limit': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/tier-data': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/open-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/history-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/fills': { 'cost': 2, 'returnType': 'Dict' },
+                            'margin/v1/cross/account/riskRate': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxTransferOutAmount': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxTransferOutAmount': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/openOrders': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/history': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/fills': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/loan/list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/repay/list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/interest/list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/liquidation/list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/fin/list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/openOrders': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/history': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/fills': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/loan/list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/repay/list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/interest/list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/liquidation/list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/fin/list': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/assets': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/account/assets': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'v2/margin/crossed/borrow-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/repay-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/interest-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/liquidation-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/financial-records': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/account/assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/account/risk-rate': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/account/max-borrowable-amount': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/account/max-transfer-out-amount': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/interest-rate-and-limit': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/tier-data': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/open-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/history-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/fills': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/borrow-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/repay-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/interest-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/liquidation-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/financial-records': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/account/assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/account/risk-rate': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/account/max-borrowable-amount': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/account/max-transfer-out-amount': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/interest-rate-and-limit': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/tier-data': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/open-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/history-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/fills': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'margin/v1/cross/account/borrow': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/borrow': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/repay': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/repay': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/riskRate': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxBorrowableAmount': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxBorrowableAmount': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/flashRepay': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/queryFlashRepayStatus': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/flashRepay': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/queryFlashRepayStatus': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/placeOrder': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'margin/v1/isolated/order/batchPlaceOrder': { 'cost': 4, 'returnType': 'Dict' }, // 5 times/1s (UID) => 20/5 = 4
-                            'margin/v1/isolated/order/cancelOrder': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/batchCancelOrder': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/placeOrder': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchPlaceOrder': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/cancelOrder': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchCancelOrder': { 'cost': 2, 'returnType': 'Dict' }, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/margin/crossed/account/borrow': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/account/repay': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/account/flash-repay': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/account/query-flash-repay-status': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/place-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/batch-place-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/cancel-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/crossed/batch-cancel-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/account/borrow': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/account/repay': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/account/flash-repay': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/account/query-flash-repay-status': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/place-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/batch-place-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/cancel-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/margin/isolated/batch-cancel-order': { 'cost': 2, 'returnType': 'Dict' },
+                            'margin/v1/cross/account/borrow': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/borrow': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/repay': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/repay': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/riskRate': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxBorrowableAmount': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxBorrowableAmount': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/flashRepay': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/queryFlashRepayStatus': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/flashRepay': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/queryFlashRepayStatus': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/placeOrder': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/batchPlaceOrder': { 'cost': 4 } as EndpointSpec<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/cancelOrder': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/batchCancelOrder': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/placeOrder': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchPlaceOrder': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/cancelOrder': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchCancelOrder': { 'cost': 2 } as EndpointSpec<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/margin/crossed/account/borrow': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/account/repay': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/account/flash-repay': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/account/query-flash-repay-status': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/place-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/batch-place-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/cancel-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/crossed/batch-cancel-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/account/borrow': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/account/repay': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/account/flash-repay': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/account/query-flash-repay-status': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/place-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/batch-place-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/cancel-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/margin/isolated/batch-cancel-order': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                     'copy': {
                         'get': {
-                            'v2/copy/mix-trader/order-current-track': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/order-history-track': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/order-total-detail': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/profit-history-summarys': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/profit-history-details': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/profit-details': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/profits-group-coin-date': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/config-query-symbols': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/config-query-followers': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-follower/query-current-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-follower/query-history-orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/copy/mix-follower/query-settings': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-follower/query-traders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-follower/query-quantity-limit': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-broker/query-traders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-broker/query-history-traces': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-broker/query-current-traces': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/profit-summarys': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/profit-history-details': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/profit-details': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/order-total-detail': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/order-history-track': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/order-current-track': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/config-query-settings': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/config-query-followers': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-follower/query-traders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-follower/query-trader-symbols': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-follower/query-settings': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-follower/query-history-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-follower/query-current-orders': { 'cost': 2, 'returnType': 'Dict' },
+                            'v2/copy/mix-trader/order-current-track': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/order-history-track': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/order-total-detail': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/profit-history-summarys': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/profit-history-details': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/profit-details': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/profits-group-coin-date': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/config-query-symbols': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/config-query-followers': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-follower/query-current-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-follower/query-history-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-follower/query-settings': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-follower/query-traders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-follower/query-quantity-limit': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-broker/query-traders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-broker/query-history-traces': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-broker/query-current-traces': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/profit-summarys': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/profit-history-details': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/profit-details': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/order-total-detail': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/order-history-track': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/order-current-track': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/config-query-settings': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/config-query-followers': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-follower/query-traders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-follower/query-trader-symbols': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-follower/query-settings': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-follower/query-history-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-follower/query-current-orders': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'v2/copy/mix-trader/order-modify-tpsl': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/order-close-positions': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/config-setting-symbols': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/config-setting-base': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-trader/config-remove-follower': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-follower/setting-tpsl': { 'cost': 1, 'returnType': 'Dict' },
-                            'v2/copy/mix-follower/settings': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-follower/close-positions': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/mix-follower/cancel-trader': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/order-modify-tpsl': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/order-close-tracking': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/config-setting-symbols': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-trader/config-remove-follower': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-follower/stop-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-follower/settings': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-follower/setting-tpsl': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-follower/order-close-tracking': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/copy/spot-follower/cancel-trader': { 'cost': 2, 'returnType': 'Dict' },
+                            'v2/copy/mix-trader/order-modify-tpsl': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/order-close-positions': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/config-setting-symbols': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/config-setting-base': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-trader/config-remove-follower': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-follower/setting-tpsl': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-follower/settings': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-follower/close-positions': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/mix-follower/cancel-trader': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/order-modify-tpsl': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/order-close-tracking': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/config-setting-symbols': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-trader/config-remove-follower': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-follower/stop-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-follower/settings': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-follower/setting-tpsl': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-follower/order-close-tracking': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/copy/spot-follower/cancel-trader': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                     'tax': {
                         'get': {
-                            'v2/tax/spot-record': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/tax/future-record': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/tax/margin-record': { 'cost': 20, 'returnType': 'Dict' },
-                            'v2/tax/p2p-record': { 'cost': 20, 'returnType': 'Dict' },
+                            'v2/tax/spot-record': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/tax/future-record': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/tax/margin-record': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v2/tax/p2p-record': { 'cost': 20 } as EndpointSpec<Dict>,
                         },
                     },
                     'convert': {
                         'get': {
-                            'v2/convert/currencies': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/convert/quoted-price': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/convert/convert-record': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/convert/bgb-convert-coin-list': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/convert/bgb-convert-records': { 'cost': 2, 'returnType': 'Dict' },
+                            'v2/convert/currencies': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/convert/quoted-price': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/convert/convert-record': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/convert/bgb-convert-coin-list': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/convert/bgb-convert-records': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'v2/convert/trade': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/convert/bgb-convert': { 'cost': 2, 'returnType': 'Dict' },
+                            'v2/convert/trade': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/convert/bgb-convert': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                     'earn': {
                         'get': {
-                            'v2/earn/savings/product': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/savings/account': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/savings/assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/savings/records': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/savings/subscribe-info': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/savings/subscribe-result': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/savings/redeem-result': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/sharkfin/product': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/sharkfin/account': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/sharkfin/assets': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/sharkfin/records': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/sharkfin/subscribe-info': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/sharkfin/subscribe-result': { 'cost': 4, 'returnType': 'Dict' },
-                            'v2/earn/loan/ongoing-orders': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/loan/repay-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/loan/revise-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/loan/borrow-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/loan/debts': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/loan/reduces': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/account/assets': { 'cost': 2, 'returnType': 'Dict' },
+                            'v2/earn/savings/product': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/savings/account': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/savings/assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/savings/records': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/savings/subscribe-info': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/savings/subscribe-result': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/savings/redeem-result': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/sharkfin/product': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/sharkfin/account': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/sharkfin/assets': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/sharkfin/records': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/sharkfin/subscribe-info': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/sharkfin/subscribe-result': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v2/earn/loan/ongoing-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/loan/repay-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/loan/revise-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/loan/borrow-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/loan/debts': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/loan/reduces': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/account/assets': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'v2/earn/savings/subscribe': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/savings/redeem': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/sharkfin/subscribe': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/loan/borrow': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/loan/repay': { 'cost': 2, 'returnType': 'Dict' },
-                            'v2/earn/loan/revise-pledge': { 'cost': 2, 'returnType': 'Dict' },
+                            'v2/earn/savings/subscribe': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/savings/redeem': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/sharkfin/subscribe': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/loan/borrow': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/loan/repay': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v2/earn/loan/revise-pledge': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                     'common': {
                         'get': {
-                            'v2/common/trade-rate': { 'cost': 2, 'returnType': 'Dict' },
+                            'v2/common/trade-rate': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                     'uta': {
                         'get': {
-                            'v3/account/assets': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/account/funding-assets': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/account/settings': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/account/financial-records': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/account/repayable-coins': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/account/payment-coins': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/account/convert-records': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/account/deduct-info': { 'cost': 20, 'returnType': 'Dict' },
-                            'v3/account/fee-rate': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/account/switch-status': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/account/max-transferable': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/account/open-interest-limit': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/account/sub-unified-assets': { 'cost': 20, 'returnType': 'Dict' },
-                            'v3/account/transferable-coins': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/account/sub-transfer-record': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/account/deposit-address': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/account/sub-deposit-address': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/account/deposit-records': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/account/sub-deposit-records': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/account/withdrawal-records': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/broker/sub-list': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/broker/all-sub-deposit-withdrawal': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/broker/commission': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/broker/query-sub-apikey': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/ins-loan/transfered': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/ins-loan/symbols': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/ins-loan/risk-unit': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/ins-loan/repaid-history': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/ins-loan/product-infos': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/ins-loan/loan-order': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/ins-loan/ltv-convert': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/ins-loan/ensure-coins-convert': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/loan/coins': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/loan/interest': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/loan/borrow-ongoing': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/loan/borrow-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/loan/repay-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/loan/pledge-rate-history': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/loan/debts': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/loan/reduces': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/position/current-position': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/position/history-position': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/position/adlRank': { 'cost': 20, 'returnType': 'Dict' },
-                            'v3/tax/records': { 'cost': 20, 'returnType': 'Dict' },
-                            'v3/trade/order-info': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/trade/unfilled-orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/trade/unfilled-strategy-orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/trade/history-orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/trade/history-strategy-orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/trade/fills': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/user/sub-list': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/user/sub-api-list': { 'cost': 2, 'returnType': 'Dict' },
+                            'v3/account/assets': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/account/funding-assets': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/account/settings': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/account/financial-records': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/account/repayable-coins': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/account/payment-coins': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/account/convert-records': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/account/deduct-info': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v3/account/fee-rate': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/account/switch-status': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/account/max-transferable': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/account/open-interest-limit': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/account/sub-unified-assets': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v3/account/transferable-coins': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/account/sub-transfer-record': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/account/deposit-address': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/account/sub-deposit-address': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/account/deposit-records': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/account/sub-deposit-records': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/account/withdrawal-records': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/broker/sub-list': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/broker/all-sub-deposit-withdrawal': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/broker/commission': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/broker/query-sub-apikey': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/ins-loan/transfered': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/ins-loan/symbols': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/ins-loan/risk-unit': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/ins-loan/repaid-history': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/ins-loan/product-infos': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/ins-loan/loan-order': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/ins-loan/ltv-convert': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/ins-loan/ensure-coins-convert': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/loan/coins': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/loan/interest': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/loan/borrow-ongoing': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/loan/borrow-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/loan/repay-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/loan/pledge-rate-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/loan/debts': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/loan/reduces': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/position/current-position': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/position/history-position': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/position/adlRank': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v3/tax/records': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v3/trade/order-info': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/trade/unfilled-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/trade/unfilled-strategy-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/trade/history-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/trade/history-strategy-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/trade/fills': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/user/sub-list': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/user/sub-api-list': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'v3/account/set-leverage': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/account/set-hold-mode': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/account/repay': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/account/switch-deduct': { 'cost': 20, 'returnType': 'Dict' },
-                            'v3/account/deposit-account': { 'cost': 20, 'returnType': 'Dict' },
-                            'v3/account/switch': { 'cost': 20, 'returnType': 'Dict' },
-                            'v3/account/adjust-account-mode': { 'cost': 20, 'returnType': 'Dict' },
-                            'v3/account/transfer': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/account/sub-transfer': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/account/sub-master-transfer': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/account/max-open-available': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/account/withdrawal': { 'cost': 20, 'returnType': 'Dict' },
-                            'v3/broker/create-sub': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/broker/modify-sub': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/broker/sub-withdrawal': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/broker/sub-deposit-address': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/broker/create-sub-apikey': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/broker/modify-sub-apikey': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/broker/delete-sub-apikey': { 'cost': 1, 'returnType': 'Dict' },
-                            'v3/ins-loan/bind-uid': { 'cost': 6.6667, 'returnType': 'Dict' },
-                            'v3/loan/borrow': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/loan/repay': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/loan/revise-pledge': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/trade/place-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/trade/place-strategy-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/trade/modify-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/trade/modify-strategy-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/trade/cancel-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/trade/cancel-strategy-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/trade/place-batch': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/trade/batch-modify-order': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/trade/cancel-batch': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/trade/cancel-symbol-order': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/trade/close-positions': { 'cost': 4, 'returnType': 'Dict' },
-                            'v3/trade/countdown-cancel-all': { 'cost': 20, 'returnType': 'Dict' },
-                            'v3/user/create-sub': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/user/freeze-sub': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/user/create-sub-api': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/user/update-sub-api': { 'cost': 2, 'returnType': 'Dict' },
-                            'v3/user/delete-sub-api': { 'cost': 2, 'returnType': 'Dict' },
+                            'v3/account/set-leverage': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/account/set-hold-mode': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/account/repay': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/account/switch-deduct': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v3/account/deposit-account': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v3/account/switch': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v3/account/adjust-account-mode': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v3/account/transfer': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/account/sub-transfer': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/account/sub-master-transfer': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/account/max-open-available': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/account/withdrawal': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v3/broker/create-sub': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/broker/modify-sub': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/broker/sub-withdrawal': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/broker/sub-deposit-address': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/broker/create-sub-apikey': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/broker/modify-sub-apikey': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/broker/delete-sub-apikey': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'v3/ins-loan/bind-uid': { 'cost': 6.6667 } as EndpointSpec<Dict>,
+                            'v3/loan/borrow': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/loan/repay': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/loan/revise-pledge': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/trade/place-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/trade/place-strategy-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/trade/modify-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/trade/modify-strategy-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/trade/cancel-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/trade/cancel-strategy-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/trade/place-batch': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/trade/batch-modify-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/trade/cancel-batch': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/trade/cancel-symbol-order': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/trade/close-positions': { 'cost': 4 } as EndpointSpec<Dict>,
+                            'v3/trade/countdown-cancel-all': { 'cost': 20 } as EndpointSpec<Dict>,
+                            'v3/user/create-sub': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/user/freeze-sub': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/user/create-sub-api': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/user/update-sub-api': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'v3/user/delete-sub-api': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                     },
                 },

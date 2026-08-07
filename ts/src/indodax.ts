@@ -6,7 +6,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee } from './base/types.js';
+import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -150,32 +150,32 @@ export default class indodax extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/server_time': { 'cost': 5, 'returnType': 'Dict' },
-                        'api/pairs': { 'cost': 5, 'returnType': 'List' },
-                        'api/price_increments': { 'cost': 5, 'returnType': 'Dict' },
-                        'api/summaries': { 'cost': 5, 'returnType': 'Dict' },
-                        'api/ticker/{pair}': { 'cost': 5, 'returnType': 'Dict' },
-                        'api/ticker_all': { 'cost': 5, 'returnType': 'Dict' },
-                        'api/trades/{pair}': { 'cost': 5, 'returnType': 'List' },
-                        'api/depth/{pair}': { 'cost': 5, 'returnType': 'Dict' },
-                        'tradingview/history_v2': { 'cost': 5, 'returnType': 'List' },
+                        'api/server_time': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'api/pairs': { 'cost': 5 } as EndpointSpec<List>,
+                        'api/price_increments': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'api/summaries': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'api/ticker/{pair}': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'api/ticker_all': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'api/trades/{pair}': { 'cost': 5 } as EndpointSpec<List>,
+                        'api/depth/{pair}': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'tradingview/history_v2': { 'cost': 5 } as EndpointSpec<List>,
                     },
                 },
                 'private': {
                     'post': {
-                        'getInfo': { 'cost': 4, 'returnType': 'Dict' },
-                        'transHistory': { 'cost': 4, 'returnType': 'Dict' },
-                        'trade': { 'cost': 1, 'returnType': 'Dict' },
-                        'tradeHistory': { 'cost': 4, 'returnType': 'Dict' }, // TODO add fetchMyTrades
-                        'openOrders': { 'cost': 4, 'returnType': 'Dict' },
-                        'orderHistory': { 'cost': 4, 'returnType': 'Dict' },
-                        'getOrder': { 'cost': 4, 'returnType': 'Dict' },
-                        'cancelOrder': { 'cost': 4, 'returnType': 'Dict' },
-                        'withdrawFee': { 'cost': 4, 'returnType': 'Dict' },
-                        'withdrawCoin': { 'cost': 4, 'returnType': 'Dict' },
-                        'listDownline': { 'cost': 4, 'returnType': 'Dict' },
-                        'checkDownline': { 'cost': 4, 'returnType': 'Dict' },
-                        'createVoucher': { 'cost': 4, 'returnType': 'Dict' }, // partner only
+                        'getInfo': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'transHistory': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'trade': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'tradeHistory': { 'cost': 4 } as EndpointSpec<Dict>, // TODO add fetchMyTrades
+                        'openOrders': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'orderHistory': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'getOrder': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'cancelOrder': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'withdrawFee': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'withdrawCoin': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'listDownline': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'checkDownline': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'createVoucher': { 'cost': 4 } as EndpointSpec<Dict>, // partner only
                     },
                 },
             },

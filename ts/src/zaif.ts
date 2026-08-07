@@ -6,7 +6,7 @@ import Exchange from './abstract/zaif.js';
 import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -107,56 +107,56 @@ export default class zaif extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'depth/{pair}': { 'cost': 1, 'returnType': 'Dict' },
-                        'currencies/{pair}': { 'cost': 1, 'returnType': 'List' },
-                        'currencies/all': { 'cost': 1, 'returnType': 'List' },
-                        'currency_pairs/{pair}': { 'cost': 1, 'returnType': 'List' },
-                        'currency_pairs/all': { 'cost': 1, 'returnType': 'List' },
-                        'last_price/{pair}': { 'cost': 1, 'returnType': 'Dict' },
-                        'ticker/{pair}': { 'cost': 1, 'returnType': 'Dict' },
-                        'trades/{pair}': { 'cost': 1, 'returnType': 'List' },
+                        'depth/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'currencies/{pair}': { 'cost': 1 } as EndpointSpec<List>,
+                        'currencies/all': { 'cost': 1 } as EndpointSpec<List>,
+                        'currency_pairs/{pair}': { 'cost': 1 } as EndpointSpec<List>,
+                        'currency_pairs/all': { 'cost': 1 } as EndpointSpec<List>,
+                        'last_price/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'ticker/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trades/{pair}': { 'cost': 1 } as EndpointSpec<List>,
                     },
                 },
                 'private': {
                     'post': {
-                        'active_orders': { 'cost': 5, 'returnType': 'Dict' }, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
-                        'cancel_order': { 'cost': 5, 'returnType': 'Dict' },
-                        'deposit_history': { 'cost': 5, 'returnType': 'Dict' },
-                        'get_id_info': { 'cost': 5, 'returnType': 'Dict' },
-                        'get_info': { 'cost': 10, 'returnType': 'Dict' }, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
-                        'get_info2': { 'cost': 5, 'returnType': 'Dict' }, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
-                        'get_personal_info': { 'cost': 5, 'returnType': 'Dict' },
-                        'trade': { 'cost': 5, 'returnType': 'Dict' },
-                        'trade_history': { 'cost': 50, 'returnType': 'Dict' }, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
-                        'withdraw': { 'cost': 5, 'returnType': 'Dict' },
-                        'withdraw_history': { 'cost': 5, 'returnType': 'Dict' },
+                        'active_orders': { 'cost': 5 } as EndpointSpec<Dict>, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'deposit_history': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'get_id_info': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'get_info': { 'cost': 10 } as EndpointSpec<Dict>, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2': { 'cost': 5 } as EndpointSpec<Dict>, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'trade': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'trade_history': { 'cost': 50 } as EndpointSpec<Dict>, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'withdraw_history': { 'cost': 5 } as EndpointSpec<Dict>,
                     },
                 },
                 'ecapi': {
                     'post': {
-                        'createInvoice': { 'cost': 1, 'returnType': 'Dict' }, // unverified
-                        'getInvoice': { 'cost': 1, 'returnType': 'Dict' },
-                        'getInvoiceIdsByOrderNumber': { 'cost': 1, 'returnType': 'Dict' },
-                        'cancelInvoice': { 'cost': 1, 'returnType': 'Dict' },
+                        'createInvoice': { 'cost': 1 } as EndpointSpec<Dict>, // unverified
+                        'getInvoice': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'getInvoiceIdsByOrderNumber': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'cancelInvoice': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'tlapi': {
                     'post': {
-                        'get_positions': { 'cost': 66, 'returnType': 'Dict' }, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
-                        'position_history': { 'cost': 66, 'returnType': 'Dict' }, // 10 in 60 seconds
-                        'active_positions': { 'cost': 5, 'returnType': 'Dict' }, // 20 in 10 seconds
-                        'create_position': { 'cost': 33, 'returnType': 'Dict' }, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
-                        'change_position': { 'cost': 33, 'returnType': 'Dict' }, // 3 in 10 seconds
-                        'cancel_position': { 'cost': 33, 'returnType': 'Dict' }, // 3 in 10 seconds
+                        'get_positions': { 'cost': 66 } as EndpointSpec<Dict>, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': { 'cost': 66 } as EndpointSpec<Dict>, // 10 in 60 seconds
+                        'active_positions': { 'cost': 5 } as EndpointSpec<Dict>, // 20 in 10 seconds
+                        'create_position': { 'cost': 33 } as EndpointSpec<Dict>, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': { 'cost': 33 } as EndpointSpec<Dict>, // 3 in 10 seconds
+                        'cancel_position': { 'cost': 33 } as EndpointSpec<Dict>, // 3 in 10 seconds
                     },
                 },
                 'fapi': {
                     'get': {
-                        'groups/{group_id}': { 'cost': 1, 'returnType': 'List' }, // testing
-                        'last_price/{group_id}/{pair}': { 'cost': 1, 'returnType': 'Dict' },
-                        'ticker/{group_id}/{pair}': { 'cost': 1, 'returnType': 'Dict' },
-                        'trades/{group_id}/{pair}': { 'cost': 1, 'returnType': 'List' },
-                        'depth/{group_id}/{pair}': { 'cost': 1, 'returnType': 'Dict' },
+                        'groups/{group_id}': { 'cost': 1 } as EndpointSpec<List>, // testing
+                        'last_price/{group_id}/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'ticker/{group_id}/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trades/{group_id}/{pair}': { 'cost': 1 } as EndpointSpec<List>,
+                        'depth/{group_id}/{pair}': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

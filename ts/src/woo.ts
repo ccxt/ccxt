@@ -6,7 +6,7 @@ import Exchange from './abstract/woo.js';
 import { AccountSuspended, AuthenticationError, BadSymbol, DuplicateOrderId, InsufficientFunds, OrderNotFound, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, Status, MarginLoan } from './base/types.js';
+import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, Status, MarginLoan, EndpointSpec, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -160,174 +160,174 @@ export default class woo extends Exchange {
                 'v1': {
                     'pub': {
                         'get': {
-                            'hist/kline': { 'cost': 10, 'returnType': 'Dict' },
-                            'hist/trades': { 'cost': 10, 'returnType': 'Dict' },
+                            'hist/kline': { 'cost': 10 } as EndpointSpec<Dict>,
+                            'hist/trades': { 'cost': 10 } as EndpointSpec<Dict>,
                         },
                     },
                     'public': {
                         'get': {
-                            'info': { 'cost': 1, 'returnType': 'Dict' },
-                            'info/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
-                            'system_info': { 'cost': 1, 'returnType': 'Dict' },
-                            'market_trades': { 'cost': 1, 'returnType': 'Dict' },
-                            'token': { 'cost': 1, 'returnType': 'Dict' },
-                            'token_network': { 'cost': 1, 'returnType': 'Dict' },
-                            'funding_rates': { 'cost': 1, 'returnType': 'Dict' },
-                            'funding_rate/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
-                            'funding_rate_history': { 'cost': 1, 'returnType': 'Dict' },
-                            'futures': { 'cost': 1, 'returnType': 'Dict' },
-                            'futures/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
-                            'orderbook/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
-                            'kline': { 'cost': 1, 'returnType': 'Dict' },
+                            'info': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'info/{symbol}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'system_info': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'market_trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'token': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'token_network': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'funding_rates': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'funding_rate/{symbol}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'funding_rate_history': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'futures': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'futures/{symbol}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'orderbook/{symbol}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'kline': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'client/token': { 'cost': 1, 'returnType': 'Dict' },
-                            'order/{oid}': { 'cost': 1, 'returnType': 'Dict' },
-                            'client/order/{client_order_id}': { 'cost': 1, 'returnType': 'Dict' },
-                            'orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'client/trade/{tid}': { 'cost': 1, 'returnType': 'Dict' },
-                            'order/{oid}/trades': { 'cost': 1, 'returnType': 'Dict' },
-                            'client/trades': { 'cost': 1, 'returnType': 'Dict' },
-                            'client/hist_trades': { 'cost': 1, 'returnType': 'Dict' },
-                            'staking/yield_history': { 'cost': 1, 'returnType': 'Dict' },
-                            'client/holding': { 'cost': 1, 'returnType': 'Dict' },
-                            'asset/deposit': { 'cost': 10, 'returnType': 'Dict' },
-                            'asset/history': { 'cost': 60, 'returnType': 'Dict' },
-                            'sub_account/all': { 'cost': 60, 'returnType': 'Dict' },
-                            'sub_account/assets': { 'cost': 60, 'returnType': 'Dict' },
-                            'sub_account/asset_detail': { 'cost': 60, 'returnType': 'Dict' },
-                            'sub_account/ip_restriction': { 'cost': 10, 'returnType': 'Dict' },
-                            'asset/main_sub_transfer_history': { 'cost': 30, 'returnType': 'Dict' },
-                            'token_interest': { 'cost': 60, 'returnType': 'Dict' },
-                            'token_interest/{token}': { 'cost': 60, 'returnType': 'Dict' },
-                            'interest/history': { 'cost': 60, 'returnType': 'Dict' },
-                            'interest/repay': { 'cost': 60, 'returnType': 'Dict' },
-                            'funding_fee/history': { 'cost': 30, 'returnType': 'Dict' },
-                            'positions': { 'cost': 3.33, 'returnType': 'Dict' }, // 30 requests per 10 seconds
-                            'position/{symbol}': { 'cost': 3.33, 'returnType': 'Dict' },
-                            'client/transaction_history': { 'cost': 60, 'returnType': 'Dict' },
-                            'client/futures_leverage': { 'cost': 60, 'returnType': 'Dict' },
+                            'client/token': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'order/{oid}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'client/order/{client_order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'client/trade/{tid}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'order/{oid}/trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'client/trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'client/hist_trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'staking/yield_history': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'client/holding': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'asset/deposit': { 'cost': 10 } as EndpointSpec<Dict>,
+                            'asset/history': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'sub_account/all': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'sub_account/assets': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'sub_account/asset_detail': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'sub_account/ip_restriction': { 'cost': 10 } as EndpointSpec<Dict>,
+                            'asset/main_sub_transfer_history': { 'cost': 30 } as EndpointSpec<Dict>,
+                            'token_interest': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'token_interest/{token}': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'interest/history': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'interest/repay': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'funding_fee/history': { 'cost': 30 } as EndpointSpec<Dict>,
+                            'positions': { 'cost': 3.33 } as EndpointSpec<Dict>, // 30 requests per 10 seconds
+                            'position/{symbol}': { 'cost': 3.33 } as EndpointSpec<Dict>,
+                            'client/transaction_history': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'client/futures_leverage': { 'cost': 60 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'order': { 'cost': 1, 'returnType': 'Dict' }, // 10 requests per 1 second per symbol
-                            'order/cancel_all_after': { 'cost': 1, 'returnType': 'Dict' },
-                            'asset/ltv': { 'cost': 30, 'returnType': 'Dict' },
-                            'asset/internal_withdraw': { 'cost': 30, 'returnType': 'Dict' },
-                            'interest/repay': { 'cost': 60, 'returnType': 'Dict' },
-                            'client/account_mode': { 'cost': 120, 'returnType': 'Dict' },
-                            'client/position_mode': { 'cost': 5, 'returnType': 'Dict' },
-                            'client/leverage': { 'cost': 120, 'returnType': 'Dict' },
-                            'client/futures_leverage': { 'cost': 30, 'returnType': 'Dict' },
-                            'client/isolated_margin': { 'cost': 30, 'returnType': 'Dict' },
+                            'order': { 'cost': 1 } as EndpointSpec<Dict>, // 10 requests per 1 second per symbol
+                            'order/cancel_all_after': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'asset/ltv': { 'cost': 30 } as EndpointSpec<Dict>,
+                            'asset/internal_withdraw': { 'cost': 30 } as EndpointSpec<Dict>,
+                            'interest/repay': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'client/account_mode': { 'cost': 120 } as EndpointSpec<Dict>,
+                            'client/position_mode': { 'cost': 5 } as EndpointSpec<Dict>,
+                            'client/leverage': { 'cost': 120 } as EndpointSpec<Dict>,
+                            'client/futures_leverage': { 'cost': 30 } as EndpointSpec<Dict>,
+                            'client/isolated_margin': { 'cost': 30 } as EndpointSpec<Dict>,
                         },
                         'delete': {
-                            'order': { 'cost': 1, 'returnType': 'Dict' },
-                            'client/order': { 'cost': 1, 'returnType': 'Dict' },
-                            'orders': { 'cost': 1, 'returnType': 'List' },
-                            'asset/withdraw': { 'cost': 120, 'returnType': 'Dict' },  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
+                            'order': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'client/order': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'orders': { 'cost': 1 } as EndpointSpec<List>,
+                            'asset/withdraw': { 'cost': 120 } as EndpointSpec<Dict>,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
                 'v2': {
                     'private': {
                         'get': {
-                            'client/holding': { 'cost': 1, 'returnType': 'Dict' },
+                            'client/holding': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                 },
                 'v3': {
                     'public': {
                         'get': {
-                            'systemInfo': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'instruments': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'token': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'tokenNetwork': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'tokenInfo': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'marketTrades': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'marketTradesHistory': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'orderbook': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'kline': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'klineHistory': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'futures': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'fundingRate': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'fundingRateHistory': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'insuranceFund': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
+                            'systemInfo': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'instruments': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'token': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'tokenNetwork': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'tokenInfo': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'marketTrades': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'marketTradesHistory': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'orderbook': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'kline': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'klineHistory': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'futures': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'fundingRate': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'fundingRateHistory': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'insuranceFund': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
                         },
                     },
                     'private': {
                         'get': {
-                            'trade/order': { 'cost': 2, 'returnType': 'Dict' }, // 5/1s
-                            'trade/orders': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'trade/algoOrder': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'trade/algoOrders': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'trade/transaction': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'trade/transactionHistory': { 'cost': 5, 'returnType': 'Dict' }, // 2/1s
-                            'trade/tradingFee': { 'cost': 5, 'returnType': 'Dict' }, // 2/1s
-                            'account/info': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'account/tokenConfig': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'account/symbolConfig': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'account/subAccounts/all': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'account/referral/summary': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'account/referral/rewardHistory': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'account/credentials': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'asset/balances': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'asset/token/history': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'asset/transfer/history': { 'cost': 30, 'returnType': 'Dict' }, // 20/60s
-                            'asset/wallet/history': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'asset/wallet/deposit': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'asset/staking/yieldHistory': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'futures/positions': { 'cost': 3.33, 'returnType': 'Dict' }, // 30/10s
-                            'futures/leverage': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'futures/defaultMarginMode': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'futures/fundingFee/history': { 'cost': 30, 'returnType': 'Dict' }, // 20/60s
-                            'spotMargin/interestRate': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'spotMargin/interestHistory': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'spotMargin/maxMargin': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'algo/order/{oid}': { 'cost': 1, 'returnType': 'Dict' },
-                            'algo/orders': { 'cost': 1, 'returnType': 'Dict' },
-                            'positions': { 'cost': 3.33, 'returnType': 'Dict' },
-                            'buypower': { 'cost': 1, 'returnType': 'Dict' },
-                            'convert/exchangeInfo': { 'cost': 1, 'returnType': 'Dict' },
-                            'convert/assetInfo': { 'cost': 1, 'returnType': 'Dict' },
-                            'convert/rfq': { 'cost': 60, 'returnType': 'Dict' },
-                            'convert/trade': { 'cost': 1, 'returnType': 'Dict' },
-                            'convert/trades': { 'cost': 1, 'returnType': 'Dict' },
+                            'trade/order': { 'cost': 2 } as EndpointSpec<Dict>, // 5/1s
+                            'trade/orders': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'trade/algoOrder': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'trade/algoOrders': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'trade/transaction': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'trade/transactionHistory': { 'cost': 5 } as EndpointSpec<Dict>, // 2/1s
+                            'trade/tradingFee': { 'cost': 5 } as EndpointSpec<Dict>, // 2/1s
+                            'account/info': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'account/tokenConfig': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'account/symbolConfig': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'account/subAccounts/all': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'account/referral/summary': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'account/referral/rewardHistory': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'account/credentials': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'asset/balances': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'asset/token/history': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'asset/transfer/history': { 'cost': 30 } as EndpointSpec<Dict>, // 20/60s
+                            'asset/wallet/history': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'asset/wallet/deposit': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'asset/staking/yieldHistory': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'futures/positions': { 'cost': 3.33 } as EndpointSpec<Dict>, // 30/10s
+                            'futures/leverage': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'futures/defaultMarginMode': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'futures/fundingFee/history': { 'cost': 30 } as EndpointSpec<Dict>, // 20/60s
+                            'spotMargin/interestRate': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'spotMargin/interestHistory': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'spotMargin/maxMargin': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'algo/order/{oid}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'algo/orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'positions': { 'cost': 3.33 } as EndpointSpec<Dict>,
+                            'buypower': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'convert/exchangeInfo': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'convert/assetInfo': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'convert/rfq': { 'cost': 60 } as EndpointSpec<Dict>,
+                            'convert/trade': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'convert/trades': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'trade/order': { 'cost': 2, 'returnType': 'Dict' }, // 5/1s
-                            'trade/algoOrder': { 'cost': 5, 'returnType': 'Dict' }, // 2/1s
-                            'trade/cancelAllAfter': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'account/tradingMode': { 'cost': 120, 'returnType': 'Dict' }, // 5/60s
-                            'account/listenKey': { 'cost': 20, 'returnType': 'Dict' }, // 5/10s
-                            'asset/transfer': { 'cost': 30, 'returnType': 'Dict' }, // 20/60s
-                            'asset/wallet/withdraw': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'spotMargin/leverage': { 'cost': 120, 'returnType': 'Dict' }, // 5/60s
-                            'spotMargin/interestRepay': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'algo/order': { 'cost': 5, 'returnType': 'Dict' },
-                            'convert/rft': { 'cost': 60, 'returnType': 'Dict' },
+                            'trade/order': { 'cost': 2 } as EndpointSpec<Dict>, // 5/1s
+                            'trade/algoOrder': { 'cost': 5 } as EndpointSpec<Dict>, // 2/1s
+                            'trade/cancelAllAfter': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'account/tradingMode': { 'cost': 120 } as EndpointSpec<Dict>, // 5/60s
+                            'account/listenKey': { 'cost': 20 } as EndpointSpec<Dict>, // 5/10s
+                            'asset/transfer': { 'cost': 30 } as EndpointSpec<Dict>, // 20/60s
+                            'asset/wallet/withdraw': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'spotMargin/leverage': { 'cost': 120 } as EndpointSpec<Dict>, // 5/60s
+                            'spotMargin/interestRepay': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'algo/order': { 'cost': 5 } as EndpointSpec<Dict>,
+                            'convert/rft': { 'cost': 60 } as EndpointSpec<Dict>,
                         },
                         'put': {
-                            'trade/order': { 'cost': 2, 'returnType': 'Dict' }, // 5/1s
-                            'trade/algoOrder': { 'cost': 2, 'returnType': 'Dict' }, // 5/1s
-                            'futures/leverage': { 'cost': 60, 'returnType': 'Dict' }, // 10/60s
-                            'futures/positionMode': { 'cost': 120, 'returnType': 'Dict' }, // 5/60s
-                            'order/{oid}': { 'cost': 2, 'returnType': 'Dict' },
-                            'order/client/{client_order_id}': { 'cost': 2, 'returnType': 'Dict' },
-                            'algo/order/{oid}': { 'cost': 2, 'returnType': 'Dict' },
-                            'algo/order/client/{client_order_id}': { 'cost': 2, 'returnType': 'Dict' },
+                            'trade/order': { 'cost': 2 } as EndpointSpec<Dict>, // 5/1s
+                            'trade/algoOrder': { 'cost': 2 } as EndpointSpec<Dict>, // 5/1s
+                            'futures/leverage': { 'cost': 60 } as EndpointSpec<Dict>, // 10/60s
+                            'futures/positionMode': { 'cost': 120 } as EndpointSpec<Dict>, // 5/60s
+                            'order/{oid}': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'order/client/{client_order_id}': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'algo/order/{oid}': { 'cost': 2 } as EndpointSpec<Dict>,
+                            'algo/order/client/{client_order_id}': { 'cost': 2 } as EndpointSpec<Dict>,
                         },
                         'delete': {
-                            'trade/order': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'trade/orders': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'trade/algoOrder': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'trade/algoOrders': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'trade/allOrders': { 'cost': 1, 'returnType': 'Dict' }, // 10/1s
-                            'algo/order/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
-                            'algo/orders/pending': { 'cost': 1, 'returnType': 'Dict' },
-                            'algo/orders/pending/{symbol}': { 'cost': 1, 'returnType': 'Dict' },
-                            'orders/pending': { 'cost': 1, 'returnType': 'Dict' },
+                            'trade/order': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'trade/orders': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'trade/algoOrder': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'trade/algoOrders': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'trade/allOrders': { 'cost': 1 } as EndpointSpec<Dict>, // 10/1s
+                            'algo/order/{order_id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'algo/orders/pending': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'algo/orders/pending/{symbol}': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'orders/pending': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                 },

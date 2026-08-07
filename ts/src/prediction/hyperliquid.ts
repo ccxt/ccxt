@@ -8,7 +8,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Balances, fetchEventsParams,
     Strings,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List} from '../base/types.js';
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, EndpointSpec} from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -96,13 +96,12 @@ export default class hyperliquid extends Exchange {
                                 'candleSnapshot': 4,
                                 'orderStatus': 2,
                             },
-                            'returnType': 'Dict | List | string',
-                        },
+                        } as EndpointSpec<Dict | List | string>,
                     },
                 },
                 'private': {
                     'post': {
-                        'exchange': { 'cost': 1, 'returnType': 'Dict' },
+                        'exchange': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

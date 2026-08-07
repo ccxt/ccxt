@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotF
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface, Status } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface, Status, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -168,13 +168,12 @@ export default class hyperliquid extends Exchange {
                                 'exchangeStatus': 2,
                                 'candleSnapshot': 4,
                             },
-                            'returnType': 'Dict | List | string',
-                        },
+                        } as EndpointSpec<Dict | List | string>,
                     },
                 },
                 'private': {
                     'post': {
-                        'exchange': { 'cost': 1, 'returnType': 'Dict' },
+                        'exchange': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

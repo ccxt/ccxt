@@ -6,7 +6,7 @@ import Exchange from './abstract/bittrade.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, EndpointSpec } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -102,143 +102,143 @@ export default class bittrade extends Exchange {
             'api': {
                 'v2Public': {
                     'get': {
-                        'reference/currencies': { 'cost': 1, 'returnType': 'Dict' }, // 币链参考信息
-                        'market-status': { 'cost': 1, 'returnType': 'Dict' }, // 获取当前市场状态
+                        'reference/currencies': { 'cost': 1 } as EndpointSpec<Dict>, // 币链参考信息
+                        'market-status': { 'cost': 1 } as EndpointSpec<Dict>, // 获取当前市场状态
                     },
                 },
                 'v2Private': {
                     'get': {
-                        'account/ledger': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/withdraw/quota': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/withdraw/address': { 'cost': 1, 'returnType': 'Dict' }, // 提币地址查询(限母用户可用)
-                        'account/deposit/address': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/repayment': { 'cost': 5, 'returnType': 'Dict' }, // 还币交易记录查询
-                        'reference/transact-fee-rate': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/asset-valuation': { 'cost': 0.2, 'returnType': 'Dict' }, // 获取账户资产估值
-                        'point/account': { 'cost': 5, 'returnType': 'Dict' }, // 点卡余额查询
-                        'sub-user/user-list': { 'cost': 1, 'returnType': 'Dict' }, // 获取子用户列表
-                        'sub-user/user-state': { 'cost': 1, 'returnType': 'Dict' }, // 获取特定子用户的用户状态
-                        'sub-user/account-list': { 'cost': 1, 'returnType': 'Dict' }, // 获取特定子用户的账户列表
-                        'sub-user/deposit-address': { 'cost': 1, 'returnType': 'Dict' }, // 子用户充币地址查询
-                        'sub-user/query-deposit': { 'cost': 1, 'returnType': 'Dict' }, // 子用户充币记录查询
-                        'user/api-key': { 'cost': 1, 'returnType': 'Dict' }, // 母子用户API key信息查询
-                        'user/uid': { 'cost': 1, 'returnType': 'Dict' }, // 母子用户获取用户UID
-                        'algo-orders/opening': { 'cost': 1, 'returnType': 'Dict' }, // 查询未触发OPEN策略委托
-                        'algo-orders/history': { 'cost': 1, 'returnType': 'Dict' }, // 查询策略委托历史
-                        'algo-orders/specific': { 'cost': 1, 'returnType': 'Dict' }, // 查询特定策略委托
-                        'c2c/offers': { 'cost': 1, 'returnType': 'Dict' }, // 查询借入借出订单
-                        'c2c/offer': { 'cost': 1, 'returnType': 'Dict' }, // 查询特定借入借出订单及其交易记录
-                        'c2c/transactions': { 'cost': 1, 'returnType': 'Dict' }, // 查询借入借出交易记录
-                        'c2c/repayment': { 'cost': 1, 'returnType': 'Dict' }, // 查询还币交易记录
-                        'c2c/account': { 'cost': 1, 'returnType': 'Dict' }, // 查询账户余额
-                        'etp/reference': { 'cost': 1, 'returnType': 'Dict' }, // 基础参考信息
-                        'etp/transactions': { 'cost': 5, 'returnType': 'Dict' }, // 获取杠杆ETP申赎记录
-                        'etp/transaction': { 'cost': 5, 'returnType': 'Dict' }, // 获取特定杠杆ETP申赎记录
-                        'etp/rebalance': { 'cost': 1, 'returnType': 'Dict' }, // 获取杠杆ETP调仓记录
-                        'etp/limit': { 'cost': 1, 'returnType': 'Dict' }, // 获取ETP持仓限额
+                        'account/ledger': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/withdraw/quota': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/withdraw/address': { 'cost': 1 } as EndpointSpec<Dict>, // 提币地址查询(限母用户可用)
+                        'account/deposit/address': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/repayment': { 'cost': 5 } as EndpointSpec<Dict>, // 还币交易记录查询
+                        'reference/transact-fee-rate': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/asset-valuation': { 'cost': 0.2 } as EndpointSpec<Dict>, // 获取账户资产估值
+                        'point/account': { 'cost': 5 } as EndpointSpec<Dict>, // 点卡余额查询
+                        'sub-user/user-list': { 'cost': 1 } as EndpointSpec<Dict>, // 获取子用户列表
+                        'sub-user/user-state': { 'cost': 1 } as EndpointSpec<Dict>, // 获取特定子用户的用户状态
+                        'sub-user/account-list': { 'cost': 1 } as EndpointSpec<Dict>, // 获取特定子用户的账户列表
+                        'sub-user/deposit-address': { 'cost': 1 } as EndpointSpec<Dict>, // 子用户充币地址查询
+                        'sub-user/query-deposit': { 'cost': 1 } as EndpointSpec<Dict>, // 子用户充币记录查询
+                        'user/api-key': { 'cost': 1 } as EndpointSpec<Dict>, // 母子用户API key信息查询
+                        'user/uid': { 'cost': 1 } as EndpointSpec<Dict>, // 母子用户获取用户UID
+                        'algo-orders/opening': { 'cost': 1 } as EndpointSpec<Dict>, // 查询未触发OPEN策略委托
+                        'algo-orders/history': { 'cost': 1 } as EndpointSpec<Dict>, // 查询策略委托历史
+                        'algo-orders/specific': { 'cost': 1 } as EndpointSpec<Dict>, // 查询特定策略委托
+                        'c2c/offers': { 'cost': 1 } as EndpointSpec<Dict>, // 查询借入借出订单
+                        'c2c/offer': { 'cost': 1 } as EndpointSpec<Dict>, // 查询特定借入借出订单及其交易记录
+                        'c2c/transactions': { 'cost': 1 } as EndpointSpec<Dict>, // 查询借入借出交易记录
+                        'c2c/repayment': { 'cost': 1 } as EndpointSpec<Dict>, // 查询还币交易记录
+                        'c2c/account': { 'cost': 1 } as EndpointSpec<Dict>, // 查询账户余额
+                        'etp/reference': { 'cost': 1 } as EndpointSpec<Dict>, // 基础参考信息
+                        'etp/transactions': { 'cost': 5 } as EndpointSpec<Dict>, // 获取杠杆ETP申赎记录
+                        'etp/transaction': { 'cost': 5 } as EndpointSpec<Dict>, // 获取特定杠杆ETP申赎记录
+                        'etp/rebalance': { 'cost': 1 } as EndpointSpec<Dict>, // 获取杠杆ETP调仓记录
+                        'etp/limit': { 'cost': 1 } as EndpointSpec<Dict>, // 获取ETP持仓限额
                     },
                     'post': {
-                        'account/transfer': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/repayment': { 'cost': 5, 'returnType': 'Dict' }, // 归还借币（全仓逐仓通用）
-                        'point/transfer': { 'cost': 5, 'returnType': 'Dict' }, // 点卡划转
-                        'sub-user/management': { 'cost': 1, 'returnType': 'Dict' }, // 冻结/解冻子用户
-                        'sub-user/creation': { 'cost': 1, 'returnType': 'Dict' }, // 子用户创建
-                        'sub-user/tradable-market': { 'cost': 1, 'returnType': 'Dict' }, // 设置子用户交易权限
-                        'sub-user/transferability': { 'cost': 1, 'returnType': 'Dict' }, // 设置子用户资产转出权限
-                        'sub-user/api-key-generation': { 'cost': 1, 'returnType': 'Dict' }, // 子用户API key创建
-                        'sub-user/api-key-modification': { 'cost': 1, 'returnType': 'Dict' }, // 修改子用户API key
-                        'sub-user/api-key-deletion': { 'cost': 1, 'returnType': 'Dict' }, // 删除子用户API key
-                        'sub-user/deduct-mode': { 'cost': 1, 'returnType': 'Dict' }, // 设置子用户手续费抵扣模式
-                        'algo-orders': { 'cost': 1, 'returnType': 'Dict' }, // 策略委托下单
-                        'algo-orders/cancel-all-after': { 'cost': 1, 'returnType': 'Dict' }, // 自动撤销订单
-                        'algo-orders/cancellation': { 'cost': 1, 'returnType': 'Dict' }, // 策略委托（触发前）撤单
-                        'c2c/offer': { 'cost': 1, 'returnType': 'Dict' }, // 借入借出下单
-                        'c2c/cancellation': { 'cost': 1, 'returnType': 'Dict' }, // 借入借出撤单
-                        'c2c/cancel-all': { 'cost': 1, 'returnType': 'Dict' }, // 撤销所有借入借出订单
-                        'c2c/repayment': { 'cost': 1, 'returnType': 'Dict' }, // 还币
-                        'c2c/transfer': { 'cost': 1, 'returnType': 'Dict' }, // 资产划转
-                        'etp/creation': { 'cost': 5, 'returnType': 'Dict' }, // 杠杆ETP换入
-                        'etp/redemption': { 'cost': 5, 'returnType': 'Dict' }, // 杠杆ETP换出
-                        'etp/{transactId}/cancel': { 'cost': 10, 'returnType': 'Dict' }, // 杠杆ETP单个撤单
-                        'etp/batch-cancel': { 'cost': 50, 'returnType': 'Dict' }, // 杠杆ETP批量撤单
+                        'account/transfer': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/repayment': { 'cost': 5 } as EndpointSpec<Dict>, // 归还借币（全仓逐仓通用）
+                        'point/transfer': { 'cost': 5 } as EndpointSpec<Dict>, // 点卡划转
+                        'sub-user/management': { 'cost': 1 } as EndpointSpec<Dict>, // 冻结/解冻子用户
+                        'sub-user/creation': { 'cost': 1 } as EndpointSpec<Dict>, // 子用户创建
+                        'sub-user/tradable-market': { 'cost': 1 } as EndpointSpec<Dict>, // 设置子用户交易权限
+                        'sub-user/transferability': { 'cost': 1 } as EndpointSpec<Dict>, // 设置子用户资产转出权限
+                        'sub-user/api-key-generation': { 'cost': 1 } as EndpointSpec<Dict>, // 子用户API key创建
+                        'sub-user/api-key-modification': { 'cost': 1 } as EndpointSpec<Dict>, // 修改子用户API key
+                        'sub-user/api-key-deletion': { 'cost': 1 } as EndpointSpec<Dict>, // 删除子用户API key
+                        'sub-user/deduct-mode': { 'cost': 1 } as EndpointSpec<Dict>, // 设置子用户手续费抵扣模式
+                        'algo-orders': { 'cost': 1 } as EndpointSpec<Dict>, // 策略委托下单
+                        'algo-orders/cancel-all-after': { 'cost': 1 } as EndpointSpec<Dict>, // 自动撤销订单
+                        'algo-orders/cancellation': { 'cost': 1 } as EndpointSpec<Dict>, // 策略委托（触发前）撤单
+                        'c2c/offer': { 'cost': 1 } as EndpointSpec<Dict>, // 借入借出下单
+                        'c2c/cancellation': { 'cost': 1 } as EndpointSpec<Dict>, // 借入借出撤单
+                        'c2c/cancel-all': { 'cost': 1 } as EndpointSpec<Dict>, // 撤销所有借入借出订单
+                        'c2c/repayment': { 'cost': 1 } as EndpointSpec<Dict>, // 还币
+                        'c2c/transfer': { 'cost': 1 } as EndpointSpec<Dict>, // 资产划转
+                        'etp/creation': { 'cost': 5 } as EndpointSpec<Dict>, // 杠杆ETP换入
+                        'etp/redemption': { 'cost': 5 } as EndpointSpec<Dict>, // 杠杆ETP换出
+                        'etp/{transactId}/cancel': { 'cost': 10 } as EndpointSpec<Dict>, // 杠杆ETP单个撤单
+                        'etp/batch-cancel': { 'cost': 50 } as EndpointSpec<Dict>, // 杠杆ETP批量撤单
                     },
                 },
                 'market': {
                     'get': {
-                        'history/kline': { 'cost': 1, 'returnType': 'Dict' }, // 获取K线数据
-                        'detail/merged': { 'cost': 1, 'returnType': 'Dict' }, // 获取聚合行情(Ticker)
-                        'depth': { 'cost': 1, 'returnType': 'Dict' }, // 获取 Market Depth 数据
-                        'trade': { 'cost': 1, 'returnType': 'Dict' }, // 获取 Trade Detail 数据
-                        'history/trade': { 'cost': 1, 'returnType': 'Dict' }, // 批量获取最近的交易记录
-                        'detail': { 'cost': 1, 'returnType': 'Dict' }, // 获取 Market Detail 24小时成交量数据
-                        'tickers': { 'cost': 1, 'returnType': 'Dict' },
-                        'etp': { 'cost': 1, 'returnType': 'Dict' }, // 获取杠杆ETP实时净值
+                        'history/kline': { 'cost': 1 } as EndpointSpec<Dict>, // 获取K线数据
+                        'detail/merged': { 'cost': 1 } as EndpointSpec<Dict>, // 获取聚合行情(Ticker)
+                        'depth': { 'cost': 1 } as EndpointSpec<Dict>, // 获取 Market Depth 数据
+                        'trade': { 'cost': 1 } as EndpointSpec<Dict>, // 获取 Trade Detail 数据
+                        'history/trade': { 'cost': 1 } as EndpointSpec<Dict>, // 批量获取最近的交易记录
+                        'detail': { 'cost': 1 } as EndpointSpec<Dict>, // 获取 Market Detail 24小时成交量数据
+                        'tickers': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'etp': { 'cost': 1 } as EndpointSpec<Dict>, // 获取杠杆ETP实时净值
                     },
                 },
                 'public': {
                     'get': {
-                        'common/symbols': { 'cost': 1, 'returnType': 'Dict' }, // 查询系统支持的所有交易对
-                        'common/currencys': { 'cost': 1, 'returnType': 'Dict' }, // 查询系统支持的所有币种
-                        'common/timestamp': { 'cost': 1, 'returnType': 'Dict' }, // 查询系统当前时间
-                        'common/exchange': { 'cost': 1, 'returnType': 'Dict' }, // order limits
-                        'settings/currencys': { 'cost': 1, 'returnType': 'Dict' }, // ?language=en-US
+                        'common/symbols': { 'cost': 1 } as EndpointSpec<Dict>, // 查询系统支持的所有交易对
+                        'common/currencys': { 'cost': 1 } as EndpointSpec<Dict>, // 查询系统支持的所有币种
+                        'common/timestamp': { 'cost': 1 } as EndpointSpec<Dict>, // 查询系统当前时间
+                        'common/exchange': { 'cost': 1 } as EndpointSpec<Dict>, // order limits
+                        'settings/currencys': { 'cost': 1 } as EndpointSpec<Dict>, // ?language=en-US
                     },
                 },
                 'private': {
                     'get': {
-                        'account/accounts': { 'cost': 0.2, 'returnType': 'Dict' }, // 查询当前用户的所有账户(即account-id)
-                        'account/accounts/{id}/balance': { 'cost': 0.2, 'returnType': 'Dict' }, // 查询指定账户的余额
-                        'account/accounts/{sub-uid}': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/history': { 'cost': 4, 'returnType': 'Dict' },
-                        'cross-margin/loan-info': { 'cost': 1, 'returnType': 'Dict' },
-                        'margin/loan-info': { 'cost': 1, 'returnType': 'Dict' }, // 查询借币币息率及额度
-                        'fee/fee-rate/get': { 'cost': 1, 'returnType': 'Dict' },
-                        'order/openOrders': { 'cost': 0.4, 'returnType': 'Dict' },
-                        'order/orders': { 'cost': 0.4, 'returnType': 'Dict' },
-                        'order/orders/{id}': { 'cost': 0.4, 'returnType': 'Dict' }, // 查询某个订单详情
-                        'order/orders/{id}/matchresults': { 'cost': 0.4, 'returnType': 'Dict' }, // 查询某个订单的成交明细
-                        'order/orders/getClientOrder': { 'cost': 0.4, 'returnType': 'Dict' },
-                        'order/history': { 'cost': 1, 'returnType': 'Dict' }, // 查询当前委托、历史委托
-                        'order/matchresults': { 'cost': 1, 'returnType': 'Dict' }, // 查询当前成交、历史成交
+                        'account/accounts': { 'cost': 0.2 } as EndpointSpec<Dict>, // 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance': { 'cost': 0.2 } as EndpointSpec<Dict>, // 查询指定账户的余额
+                        'account/accounts/{sub-uid}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/history': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'cross-margin/loan-info': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'margin/loan-info': { 'cost': 1 } as EndpointSpec<Dict>, // 查询借币币息率及额度
+                        'fee/fee-rate/get': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'order/openOrders': { 'cost': 0.4 } as EndpointSpec<Dict>,
+                        'order/orders': { 'cost': 0.4 } as EndpointSpec<Dict>,
+                        'order/orders/{id}': { 'cost': 0.4 } as EndpointSpec<Dict>, // 查询某个订单详情
+                        'order/orders/{id}/matchresults': { 'cost': 0.4 } as EndpointSpec<Dict>, // 查询某个订单的成交明细
+                        'order/orders/getClientOrder': { 'cost': 0.4 } as EndpointSpec<Dict>,
+                        'order/history': { 'cost': 1 } as EndpointSpec<Dict>, // 查询当前委托、历史委托
+                        'order/matchresults': { 'cost': 1 } as EndpointSpec<Dict>, // 查询当前成交、历史成交
                         // 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
-                        'query/deposit-withdraw': { 'cost': 1, 'returnType': 'Dict' },
+                        'query/deposit-withdraw': { 'cost': 1 } as EndpointSpec<Dict>,
                         // 'margin/loan-info', // duplicate
-                        'margin/loan-orders': { 'cost': 0.2, 'returnType': 'Dict' }, // 借贷订单
-                        'margin/accounts/balance': { 'cost': 0.2, 'returnType': 'Dict' }, // 借贷账户详情
-                        'cross-margin/loan-orders': { 'cost': 1, 'returnType': 'Dict' }, // 查询借币订单
-                        'cross-margin/accounts/balance': { 'cost': 1, 'returnType': 'Dict' }, // 借币账户详情
-                        'points/actions': { 'cost': 1, 'returnType': 'Dict' },
-                        'points/orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'subuser/aggregate-balance': { 'cost': 10, 'returnType': 'Dict' },
-                        'stable-coin/exchange_rate': { 'cost': 1, 'returnType': 'Dict' },
-                        'stable-coin/quote': { 'cost': 1, 'returnType': 'Dict' },
+                        'margin/loan-orders': { 'cost': 0.2 } as EndpointSpec<Dict>, // 借贷订单
+                        'margin/accounts/balance': { 'cost': 0.2 } as EndpointSpec<Dict>, // 借贷账户详情
+                        'cross-margin/loan-orders': { 'cost': 1 } as EndpointSpec<Dict>, // 查询借币订单
+                        'cross-margin/accounts/balance': { 'cost': 1 } as EndpointSpec<Dict>, // 借币账户详情
+                        'points/actions': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'points/orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'subuser/aggregate-balance': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'stable-coin/exchange_rate': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'stable-coin/quote': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'account/transfer': { 'cost': 1, 'returnType': 'Dict' }, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
-                        'futures/transfer': { 'cost': 1, 'returnType': 'Dict' },
-                        'order/batch-orders': { 'cost': 0.4, 'returnType': 'Dict' },
-                        'order/orders/place': { 'cost': 0.2, 'returnType': 'Dict' }, // 创建并执行一个新订单 (一步下单， 推荐使用)
-                        'order/orders/submitCancelClientOrder': { 'cost': 0.2, 'returnType': 'Dict' },
-                        'order/orders/batchCancelOpenOrders': { 'cost': 0.4, 'returnType': 'Dict' },
+                        'account/transfer': { 'cost': 1 } as EndpointSpec<Dict>, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
+                        'futures/transfer': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'order/batch-orders': { 'cost': 0.4 } as EndpointSpec<Dict>,
+                        'order/orders/place': { 'cost': 0.2 } as EndpointSpec<Dict>, // 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders/submitCancelClientOrder': { 'cost': 0.2 } as EndpointSpec<Dict>,
+                        'order/orders/batchCancelOpenOrders': { 'cost': 0.4 } as EndpointSpec<Dict>,
                         // 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         // 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel': { 'cost': 0.2, 'returnType': 'Dict' }, // 申请撤销一个订单请求
-                        'order/orders/batchcancel': { 'cost': 0.4, 'returnType': 'Dict' }, // 批量撤销订单
+                        'order/orders/{id}/submitcancel': { 'cost': 0.2 } as EndpointSpec<Dict>, // 申请撤销一个订单请求
+                        'order/orders/batchcancel': { 'cost': 0.4 } as EndpointSpec<Dict>, // 批量撤销订单
                         // 'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create': { 'cost': 1, 'returnType': 'Dict' }, // 申请提现虚拟币
+                        'dw/withdraw/api/create': { 'cost': 1 } as EndpointSpec<Dict>, // 申请提现虚拟币
                         // 'dw/withdraw-virtual/create', // 申请提现虚拟币
                         // 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
-                        'dw/withdraw-virtual/{id}/cancel': { 'cost': 1, 'returnType': 'Dict' }, // 申请取消提现虚拟币
-                        'dw/transfer-in/margin': { 'cost': 10, 'returnType': 'Dict' }, // 现货账户划入至借贷账户
-                        'dw/transfer-out/margin': { 'cost': 10, 'returnType': 'Dict' }, // 借贷账户划出至现货账户
-                        'margin/orders': { 'cost': 10, 'returnType': 'Dict' }, // 申请借贷
-                        'margin/orders/{id}/repay': { 'cost': 10, 'returnType': 'Dict' }, // 归还借贷
-                        'cross-margin/transfer-in': { 'cost': 1, 'returnType': 'Dict' }, // 资产划转
-                        'cross-margin/transfer-out': { 'cost': 1, 'returnType': 'Dict' }, // 资产划转
-                        'cross-margin/orders': { 'cost': 1, 'returnType': 'Dict' }, // 申请借币
-                        'cross-margin/orders/{id}/repay': { 'cost': 1, 'returnType': 'Dict' }, // 归还借币
-                        'stable-coin/exchange': { 'cost': 1, 'returnType': 'Dict' },
-                        'subuser/transfer': { 'cost': 10, 'returnType': 'Dict' },
+                        'dw/withdraw-virtual/{id}/cancel': { 'cost': 1 } as EndpointSpec<Dict>, // 申请取消提现虚拟币
+                        'dw/transfer-in/margin': { 'cost': 10 } as EndpointSpec<Dict>, // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin': { 'cost': 10 } as EndpointSpec<Dict>, // 借贷账户划出至现货账户
+                        'margin/orders': { 'cost': 10 } as EndpointSpec<Dict>, // 申请借贷
+                        'margin/orders/{id}/repay': { 'cost': 10 } as EndpointSpec<Dict>, // 归还借贷
+                        'cross-margin/transfer-in': { 'cost': 1 } as EndpointSpec<Dict>, // 资产划转
+                        'cross-margin/transfer-out': { 'cost': 1 } as EndpointSpec<Dict>, // 资产划转
+                        'cross-margin/orders': { 'cost': 1 } as EndpointSpec<Dict>, // 申请借币
+                        'cross-margin/orders/{id}/repay': { 'cost': 1 } as EndpointSpec<Dict>, // 归还借币
+                        'stable-coin/exchange': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'subuser/transfer': { 'cost': 10 } as EndpointSpec<Dict>,
                     },
                 },
             },

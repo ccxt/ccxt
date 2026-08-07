@@ -6,7 +6,7 @@ import Exchange from './abstract/kucoin.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FeeStringInterface, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, List, MarginMode, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FeeStringInterface, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, List, MarginMode, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -162,440 +162,440 @@ export default class kucoin extends Exchange {
                 'public': {
                     'get': {
                         // spot trading
-                        'currencies': { 'cost': 3, 'returnType': 'Dict' },
-                        'currencies/{currency}': { 'cost': 3, 'returnType': 'Dict' },
-                        'symbols': { 'cost': 4, 'returnType': 'Dict' },
-                        'market/orderbook/level1': { 'cost': 2, 'returnType': 'Dict' },
-                        'market/allTickers': { 'cost': 15, 'returnType': 'Dict' },
-                        'market/stats': { 'cost': 15, 'returnType': 'Dict' },
-                        'markets': { 'cost': 3, 'returnType': 'Dict' },
-                        'market/orderbook/level{level}_{limit}': { 'cost': 4, 'returnType': 'Dict' },
-                        'market/orderbook/level2_20': { 'cost': 2, 'returnType': 'Dict' },
-                        'market/orderbook/level2_100': { 'cost': 4, 'returnType': 'Dict' },
-                        'market/histories': { 'cost': 3, 'returnType': 'Dict' },
-                        'market/candles': { 'cost': 3, 'returnType': 'Dict' },
-                        'prices': { 'cost': 3, 'returnType': 'Dict' },
-                        'timestamp': { 'cost': 3, 'returnType': 'Dict' },
-                        'status': { 'cost': 3, 'returnType': 'Dict' },
+                        'currencies': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'currencies/{currency}': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'symbols': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'market/orderbook/level1': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'market/allTickers': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'market/stats': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'markets': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'market/orderbook/level{level}_{limit}': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'market/orderbook/level2_20': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'market/orderbook/level2_100': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'market/histories': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'market/candles': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'prices': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'timestamp': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'status': { 'cost': 3 } as EndpointSpec<Dict>,
                         // margin trading
-                        'mark-price/{symbol}/current': { 'cost': 2, 'returnType': 'Dict' },
-                        'mark-price/all-symbols': { 'cost': 10, 'returnType': 'Dict' },
-                        'margin/config': { 'cost': 25, 'returnType': 'Dict' },
-                        'announcements': { 'cost': 20, 'returnType': 'Dict' },
-                        'margin/collateralRatio': { 'cost': 10, 'returnType': 'Dict' },
+                        'mark-price/{symbol}/current': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'mark-price/all-symbols': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'margin/config': { 'cost': 25 } as EndpointSpec<Dict>,
+                        'announcements': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'margin/collateralRatio': { 'cost': 10 } as EndpointSpec<Dict>,
                         // convert
-                        'convert/symbol': { 'cost': 5, 'returnType': 'Dict' },
-                        'convert/currencies': { 'cost': 5, 'returnType': 'Dict' },
+                        'convert/symbol': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'convert/currencies': { 'cost': 5 } as EndpointSpec<Dict>,
                     },
                     'post': {
                         // ws
-                        'bullet-public': { 'cost': 10, 'returnType': 'Dict' },
+                        'bullet-public': { 'cost': 10 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'user-info': { 'cost': 20, 'returnType': 'Dict' },
-                        'user/api-key': { 'cost': 20, 'returnType': 'Dict' },
-                        'accounts': { 'cost': 5, 'returnType': 'Dict' },
-                        'accounts/{accountId}': { 'cost': 5, 'returnType': 'Dict' },
-                        'accounts/ledgers': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/accounts/ledgers': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/margin/account/ledgers': { 'cost': 2, 'returnType': 'Dict' },
-                        'transaction-history': { 'cost': 2, 'returnType': 'Dict' },
-                        'sub/user': { 'cost': 20, 'returnType': 'Dict' },
-                        'sub-accounts/{subUserId}': { 'cost': 15, 'returnType': 'Dict' },
-                        'sub-accounts': { 'cost': 20, 'returnType': 'Dict' },
-                        'sub/api-key': { 'cost': 20, 'returnType': 'Dict' },
+                        'user-info': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'user/api-key': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'accounts': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'accounts/{accountId}': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'accounts/ledgers': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/accounts/ledgers': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/margin/account/ledgers': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'transaction-history': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'sub/user': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'sub-accounts/{subUserId}': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'sub-accounts': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'sub/api-key': { 'cost': 20 } as EndpointSpec<Dict>,
                         // funding
-                        'margin/account': { 'cost': 40, 'returnType': 'Dict' },
-                        'margin/accounts': { 'cost': 15, 'returnType': 'Dict' },
-                        'isolated/accounts': { 'cost': 15, 'returnType': 'Dict' },
-                        'deposit-addresses': { 'cost': 5, 'returnType': 'Dict' },
-                        'deposits': { 'cost': 5, 'returnType': 'Dict' },
-                        'hist-deposits': { 'cost': 5, 'returnType': 'Dict' },
-                        'withdrawals': { 'cost': 20, 'returnType': 'Dict' },
-                        'hist-withdrawals': { 'cost': 20, 'returnType': 'Dict' },
-                        'withdrawals/quotas': { 'cost': 20, 'returnType': 'Dict' },
-                        'accounts/transferable': { 'cost': 20, 'returnType': 'Dict' },
-                        'transfer-list': { 'cost': 20, 'returnType': 'Dict' },
-                        'base-fee': { 'cost': 3, 'returnType': 'Dict' },
-                        'trade-fees': { 'cost': 3, 'returnType': 'Dict' },
+                        'margin/account': { 'cost': 40 } as EndpointSpec<Dict>,
+                        'margin/accounts': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'isolated/accounts': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'deposit-addresses': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'deposits': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'hist-deposits': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'withdrawals': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'hist-withdrawals': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'withdrawals/quotas': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'accounts/transferable': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'transfer-list': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'base-fee': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'trade-fees': { 'cost': 3 } as EndpointSpec<Dict>,
                         // spot trading
-                        'market/orderbook/level{level}': { 'cost': 3, 'returnType': 'Dict' },
-                        'market/orderbook/level2': { 'cost': 3, 'returnType': 'Dict' },
-                        'market/orderbook/level3': { 'cost': 3, 'returnType': 'Dict' },
-                        'hf/accounts/opened': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/orders/active': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/orders/active/symbols': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/margin/order/active/symbols': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/orders/done': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/orders/{orderId}': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/orders/client-order/{clientOid}': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/orders/dead-cancel-all/query': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/fills': { 'cost': 2, 'returnType': 'Dict' },
-                        'orders': { 'cost': 2, 'returnType': 'Dict' },
-                        'limit/orders': { 'cost': 3, 'returnType': 'Dict' },
-                        'orders/{orderId}': { 'cost': 2, 'returnType': 'Dict' },
-                        'order/client-order/{clientOid}': { 'cost': 2, 'returnType': 'Dict' },
-                        'fills': { 'cost': 10, 'returnType': 'Dict' },
-                        'limit/fills': { 'cost': 20, 'returnType': 'Dict' },
-                        'stop-order': { 'cost': 8, 'returnType': 'Dict' },
-                        'stop-order/{orderId}': { 'cost': 3, 'returnType': 'Dict' },
-                        'stop-order/queryOrderByClientOid': { 'cost': 3, 'returnType': 'Dict' },
-                        'oco/order/{orderId}': { 'cost': 2, 'returnType': 'Dict' },
-                        'oco/order/details/{orderId}': { 'cost': 2, 'returnType': 'Dict' },
-                        'oco/client-order/{clientOid}': { 'cost': 2, 'returnType': 'Dict' },
-                        'oco/orders': { 'cost': 2, 'returnType': 'Dict' },
+                        'market/orderbook/level{level}': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'market/orderbook/level2': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'market/orderbook/level3': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'hf/accounts/opened': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/orders/active': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/orders/active/symbols': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/margin/order/active/symbols': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/orders/done': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/orders/{orderId}': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/orders/client-order/{clientOid}': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/orders/dead-cancel-all/query': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/fills': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'limit/orders': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'orders/{orderId}': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'order/client-order/{clientOid}': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'fills': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'limit/fills': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'stop-order': { 'cost': 8 } as EndpointSpec<Dict>,
+                        'stop-order/{orderId}': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'stop-order/queryOrderByClientOid': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'oco/order/{orderId}': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'oco/order/details/{orderId}': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'oco/client-order/{clientOid}': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'oco/orders': { 'cost': 2 } as EndpointSpec<Dict>,
                         // margin trading
-                        'hf/margin/orders/active': { 'cost': 4, 'returnType': 'Dict' },
-                        'hf/margin/orders/done': { 'cost': 10, 'returnType': 'Dict' },
-                        'hf/margin/orders/{orderId}': { 'cost': 4, 'returnType': 'Dict' },
-                        'hf/margin/orders/client-order/{clientOid}': { 'cost': 5, 'returnType': 'Dict' },
-                        'hf/margin/fills': { 'cost': 5, 'returnType': 'Dict' },
-                        'hf/margin/stop-orders': { 'cost': 8, 'returnType': 'Dict' },
-                        'hf/margin/stop-order/orderId': { 'cost': 3, 'returnType': 'Dict' },
-                        'hf/margin/stop-order/clientOid': { 'cost': 3, 'returnType': 'Dict' },
-                        'hf/margin/oco-order/orderId': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/margin/oco-order/clientOid': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/margin/oco-order/detail/orderId': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/margin/oco-orders': { 'cost': 2, 'returnType': 'Dict' },
-                        'etf/info': { 'cost': 25, 'returnType': 'Dict' },
-                        'margin/currencies': { 'cost': 20, 'returnType': 'Dict' },
-                        'risk/limit/strategy': { 'cost': 20, 'returnType': 'Dict' }, // Deprecate
-                        'isolated/symbols': { 'cost': 3, 'returnType': 'Dict' },
-                        'margin/symbols': { 'cost': 3, 'returnType': 'Dict' },
-                        'isolated/account/{symbol}': { 'cost': 50, 'returnType': 'Dict' },
-                        'margin/borrow': { 'cost': 15, 'returnType': 'Dict' },
-                        'margin/repay': { 'cost': 15, 'returnType': 'Dict' },
-                        'margin/interest': { 'cost': 20, 'returnType': 'Dict' },
-                        'project/list': { 'cost': 10, 'returnType': 'Dict' },
-                        'project/marketInterestRate': { 'cost': 5, 'returnType': 'Dict' },
-                        'redeem/orders': { 'cost': 10, 'returnType': 'Dict' },
-                        'purchase/orders': { 'cost': 10, 'returnType': 'Dict' },
+                        'hf/margin/orders/active': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'hf/margin/orders/done': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'hf/margin/orders/{orderId}': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'hf/margin/orders/client-order/{clientOid}': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'hf/margin/fills': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'hf/margin/stop-orders': { 'cost': 8 } as EndpointSpec<Dict>,
+                        'hf/margin/stop-order/orderId': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'hf/margin/stop-order/clientOid': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'hf/margin/oco-order/orderId': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/margin/oco-order/clientOid': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/margin/oco-order/detail/orderId': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/margin/oco-orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'etf/info': { 'cost': 25 } as EndpointSpec<Dict>,
+                        'margin/currencies': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'risk/limit/strategy': { 'cost': 20 } as EndpointSpec<Dict>, // Deprecate
+                        'isolated/symbols': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'margin/symbols': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'isolated/account/{symbol}': { 'cost': 50 } as EndpointSpec<Dict>,
+                        'margin/borrow': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'margin/repay': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'margin/interest': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'project/list': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'project/marketInterestRate': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'redeem/orders': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'purchase/orders': { 'cost': 10 } as EndpointSpec<Dict>,
                         // broker
-                        'broker/api/rebase/download': { 'cost': 3, 'returnType': 'Dict' },
-                        'broker/queryMyCommission': { 'cost': 3, 'returnType': 'Dict' },
-                        'broker/queryUser': { 'cost': 3, 'returnType': 'Dict' },
-                        'broker/queryDetailByUid': { 'cost': 3, 'returnType': 'Dict' },
-                        'migrate/user/account/status': { 'cost': 3, 'returnType': 'Dict' },
+                        'broker/api/rebase/download': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'broker/queryMyCommission': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'broker/queryUser': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'broker/queryDetailByUid': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'migrate/user/account/status': { 'cost': 3 } as EndpointSpec<Dict>,
                         // convert
-                        'convert/quote': { 'cost': 20, 'returnType': 'Dict' },
-                        'convert/order/detail': { 'cost': 5, 'returnType': 'Dict' },
-                        'convert/order/history': { 'cost': 5, 'returnType': 'Dict' },
-                        'convert/limit/quote': { 'cost': 20, 'returnType': 'Dict' },
-                        'convert/limit/order/detail': { 'cost': 5, 'returnType': 'Dict' },
-                        'convert/limit/orders': { 'cost': 5, 'returnType': 'Dict' },
+                        'convert/quote': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'convert/order/detail': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'convert/order/history': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'convert/limit/quote': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'convert/limit/order/detail': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'convert/limit/orders': { 'cost': 5 } as EndpointSpec<Dict>,
                         // affiliate
-                        'affiliate/inviter/statistics': { 'cost': 30, 'returnType': 'Dict' },
+                        'affiliate/inviter/statistics': { 'cost': 30 } as EndpointSpec<Dict>,
                     },
                     'post': {
                         // account
-                        'sub/user/created': { 'cost': 15, 'returnType': 'Dict' },
-                        'sub/api-key': { 'cost': 20, 'returnType': 'Dict' },
-                        'sub/api-key/update': { 'cost': 30, 'returnType': 'Dict' },
+                        'sub/user/created': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'sub/api-key': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'sub/api-key/update': { 'cost': 30 } as EndpointSpec<Dict>,
                         // funding
-                        'deposit-addresses': { 'cost': 20, 'returnType': 'Dict' },
-                        'withdrawals': { 'cost': 5, 'returnType': 'Dict' },
-                        'accounts/universal-transfer': { 'cost': 4, 'returnType': 'Dict' },
-                        'accounts/sub-transfer': { 'cost': 30, 'returnType': 'Dict' },
-                        'accounts/inner-transfer': { 'cost': 15, 'returnType': 'Dict' },
-                        'transfer-out': { 'cost': 20, 'returnType': 'Dict' },
-                        'transfer-in': { 'cost': 20, 'returnType': 'Dict' },
+                        'deposit-addresses': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'withdrawals': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'accounts/universal-transfer': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'accounts/sub-transfer': { 'cost': 30 } as EndpointSpec<Dict>,
+                        'accounts/inner-transfer': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'transfer-out': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'transfer-in': { 'cost': 20 } as EndpointSpec<Dict>,
                         // spot trading
-                        'hf/orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/test': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/sync': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/multi': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/multi/sync': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/alter': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/dead-cancel-all': { 'cost': 2, 'returnType': 'Dict' },
-                        'orders': { 'cost': 2, 'returnType': 'Dict' },
-                        'orders/test': { 'cost': 2, 'returnType': 'Dict' },
-                        'orders/multi': { 'cost': 3, 'returnType': 'Dict' },
-                        'stop-order': { 'cost': 2, 'returnType': 'Dict' },
-                        'oco/order': { 'cost': 2, 'returnType': 'Dict' },
+                        'hf/orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders/test': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders/sync': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders/multi': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders/multi/sync': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders/alter': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders/dead-cancel-all': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'orders/test': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'orders/multi': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'stop-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'oco/order': { 'cost': 2 } as EndpointSpec<Dict>,
                         // margin trading
-                        'hf/margin/order': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/margin/order/test': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/margin/stop-order': { 'cost': 3, 'returnType': 'Dict' },
-                        'margin/order': { 'cost': 5, 'returnType': 'Dict' },
-                        'margin/order/test': { 'cost': 5, 'returnType': 'Dict' },
-                        'hf/margin/oco-order': { 'cost': 2, 'returnType': 'Dict' },
-                        'margin/borrow': { 'cost': 15, 'returnType': 'Dict' },
-                        'margin/repay': { 'cost': 10, 'returnType': 'Dict' },
-                        'purchase': { 'cost': 15, 'returnType': 'Dict' },
-                        'redeem': { 'cost': 15, 'returnType': 'Dict' },
-                        'lend/purchase/update': { 'cost': 10, 'returnType': 'Dict' },
+                        'hf/margin/order': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/margin/order/test': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/margin/stop-order': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'margin/order': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'margin/order/test': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'hf/margin/oco-order': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'margin/borrow': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'margin/repay': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'purchase': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'redeem': { 'cost': 15 } as EndpointSpec<Dict>,
+                        'lend/purchase/update': { 'cost': 10 } as EndpointSpec<Dict>,
                         // convert
-                        'convert/order': { 'cost': 20, 'returnType': 'Dict' },
-                        'convert/limit/order': { 'cost': 20, 'returnType': 'Dict' },
+                        'convert/order': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'convert/limit/order': { 'cost': 20 } as EndpointSpec<Dict>,
                         // ws
-                        'bullet-private': { 'cost': 10, 'returnType': 'Dict' },
-                        'position/update-user-leverage': { 'cost': 5, 'returnType': 'Dict' },
-                        'deposit-address/create': { 'cost': 20, 'returnType': 'Dict' },
+                        'bullet-private': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'position/update-user-leverage': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'deposit-address/create': { 'cost': 20 } as EndpointSpec<Dict>,
                     },
                     'delete': {
                         // account
-                        'sub/api-key': { 'cost': 30, 'returnType': 'Dict' },
+                        'sub/api-key': { 'cost': 30 } as EndpointSpec<Dict>,
                         // funding
-                        'withdrawals/{withdrawalId}': { 'cost': 20, 'returnType': 'Dict' },
+                        'withdrawals/{withdrawalId}': { 'cost': 20 } as EndpointSpec<Dict>,
                         // spot trading
-                        'hf/orders/{orderId}': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/sync/{orderId}': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/client-order/{clientOid}': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/sync/client-order/{clientOid}': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders/cancel/{orderId}': { 'cost': 1, 'returnType': 'Dict' },
-                        'hf/orders': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/orders/cancelAll': { 'cost': 30, 'returnType': 'Dict' },
-                        'orders/{orderId}': { 'cost': 3, 'returnType': 'Dict' },
-                        'order/client-order/{clientOid}': { 'cost': 5, 'returnType': 'Dict' },
-                        'orders': { 'cost': 20, 'returnType': 'Dict' },
-                        'stop-order/{orderId}': { 'cost': 3, 'returnType': 'Dict' },
-                        'stop-order/cancelOrderByClientOid': { 'cost': 5, 'returnType': 'Dict' },
-                        'stop-order/cancel': { 'cost': 3, 'returnType': 'Dict' },
-                        'oco/order/{orderId}': { 'cost': 3, 'returnType': 'Dict' },
-                        'oco/client-order/{clientOid}': { 'cost': 3, 'returnType': 'Dict' },
-                        'oco/orders': { 'cost': 3, 'returnType': 'Dict' },
+                        'hf/orders/{orderId}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders/sync/{orderId}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders/client-order/{clientOid}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders/sync/client-order/{clientOid}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders/cancel/{orderId}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'hf/orders': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/orders/cancelAll': { 'cost': 30 } as EndpointSpec<Dict>,
+                        'orders/{orderId}': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'order/client-order/{clientOid}': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'orders': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'stop-order/{orderId}': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'stop-order/cancelOrderByClientOid': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'stop-order/cancel': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'oco/order/{orderId}': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'oco/client-order/{clientOid}': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'oco/orders': { 'cost': 3 } as EndpointSpec<Dict>,
                         // margin trading
-                        'hf/margin/orders/{orderId}': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/margin/orders/client-order/{clientOid}': { 'cost': 2, 'returnType': 'Dict' },
-                        'hf/margin/orders': { 'cost': 5, 'returnType': 'Dict' },
-                        'hf/margin/stop-order/cancel-by-id': { 'cost': 3, 'returnType': 'Dict' },
-                        'hf/margin/stop-order/cancel-by-clientOid': { 'cost': 5, 'returnType': 'Dict' },
-                        'hf/margin/stop-order/cancel': { 'cost': 3, 'returnType': 'Dict' },
-                        'hf/margin/oco-order/cancel-by-id': { 'cost': 3, 'returnType': 'Dict' },
-                        'hf/margin/oco-order/cancel-by-clientOid': { 'cost': 3, 'returnType': 'Dict' },
-                        'hf/margin/oco-order/cancel': { 'cost': 3, 'returnType': 'Dict' },
+                        'hf/margin/orders/{orderId}': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/margin/orders/client-order/{clientOid}': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'hf/margin/orders': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'hf/margin/stop-order/cancel-by-id': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'hf/margin/stop-order/cancel-by-clientOid': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'hf/margin/stop-order/cancel': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'hf/margin/oco-order/cancel-by-id': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'hf/margin/oco-order/cancel-by-clientOid': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'hf/margin/oco-order/cancel': { 'cost': 3 } as EndpointSpec<Dict>,
                         // convert
-                        'convert/limit/order/cancel': { 'cost': 5, 'returnType': 'Dict' },
+                        'convert/limit/order/cancel': { 'cost': 5 } as EndpointSpec<Dict>,
                     },
                 },
                 'futuresPublic': {
                     'get': {
-                        'contracts/active': { 'cost': 6, 'returnType': 'Dict' },
-                        'contracts/{symbol}': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
-                        'ticker': { 'cost': 4, 'returnType': 'Dict' }, // 2PW
-                        'allTickers': { 'cost': 10, 'returnType': 'Dict' }, // 5PW
-                        'level2/snapshot': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
-                        'level2/depth20': { 'cost': 10, 'returnType': 'Dict' }, // 5PW
-                        'level2/depth100': { 'cost': 20, 'returnType': 'Dict' }, // 10PW
-                        'trade/history': { 'cost': 10, 'returnType': 'Dict' }, // 5PW
-                        'kline/query': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
-                        'interest/query': { 'cost': 10, 'returnType': 'Dict' }, // 5PW
-                        'index/query': { 'cost': 4, 'returnType': 'Dict' }, // 2PW
-                        'mark-price/{symbol}/current': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
-                        'premium/query': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
-                        'trade-statistics': { 'cost': 6, 'returnType': 'Dict' }, // 3PW
-                        'funding-rate/{symbol}/current': { 'cost': 4, 'returnType': 'Dict' }, // 2PW
-                        'contract/funding-rates': { 'cost': 10, 'returnType': 'Dict' }, // 5PW
-                        'timestamp': { 'cost': 4, 'returnType': 'Dict' }, // 2PW
-                        'status': { 'cost': 8, 'returnType': 'Dict' }, // 4PW
+                        'contracts/active': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'contracts/{symbol}': { 'cost': 6 } as EndpointSpec<Dict>, // 3PW
+                        'ticker': { 'cost': 4 } as EndpointSpec<Dict>, // 2PW
+                        'allTickers': { 'cost': 10 } as EndpointSpec<Dict>, // 5PW
+                        'level2/snapshot': { 'cost': 6 } as EndpointSpec<Dict>, // 3PW
+                        'level2/depth20': { 'cost': 10 } as EndpointSpec<Dict>, // 5PW
+                        'level2/depth100': { 'cost': 20 } as EndpointSpec<Dict>, // 10PW
+                        'trade/history': { 'cost': 10 } as EndpointSpec<Dict>, // 5PW
+                        'kline/query': { 'cost': 6 } as EndpointSpec<Dict>, // 3PW
+                        'interest/query': { 'cost': 10 } as EndpointSpec<Dict>, // 5PW
+                        'index/query': { 'cost': 4 } as EndpointSpec<Dict>, // 2PW
+                        'mark-price/{symbol}/current': { 'cost': 6 } as EndpointSpec<Dict>, // 3PW
+                        'premium/query': { 'cost': 6 } as EndpointSpec<Dict>, // 3PW
+                        'trade-statistics': { 'cost': 6 } as EndpointSpec<Dict>, // 3PW
+                        'funding-rate/{symbol}/current': { 'cost': 4 } as EndpointSpec<Dict>, // 2PW
+                        'contract/funding-rates': { 'cost': 10 } as EndpointSpec<Dict>, // 5PW
+                        'timestamp': { 'cost': 4 } as EndpointSpec<Dict>, // 2PW
+                        'status': { 'cost': 8 } as EndpointSpec<Dict>, // 4PW
                         // ?
-                        'level2/message/query': { 'cost': 1.3953, 'returnType': 'Dict' },
-                        'contracts/risk-limit/{symbol}': { 'cost': 3, 'returnType': 'Dict' },
-                        'level3/message/query': { 'cost': 3, 'returnType': 'Dict' }, // deprecated，level3/snapshot is suggested
-                        'level3/snapshot': { 'cost': 3, 'returnType': 'Dict' }, // v2
+                        'level2/message/query': { 'cost': 1.3953 } as EndpointSpec<Dict>,
+                        'contracts/risk-limit/{symbol}': { 'cost': 3 } as EndpointSpec<Dict>,
+                        'level3/message/query': { 'cost': 3 } as EndpointSpec<Dict>, // deprecated，level3/snapshot is suggested
+                        'level3/snapshot': { 'cost': 3 } as EndpointSpec<Dict>, // v2
                     },
                     'post': {
                         // ws
-                        'bullet-public': { 'cost': 20, 'returnType': 'Dict' }, // 10PW
+                        'bullet-public': { 'cost': 20 } as EndpointSpec<Dict>, // 10PW
                     },
                 },
                 'futuresPrivate': {
                     'get': {
                         // account
-                        'transaction-history': { 'cost': 4, 'returnType': 'Dict' }, // 2MW
+                        'transaction-history': { 'cost': 4 } as EndpointSpec<Dict>, // 2MW
                         // funding
-                        'account-overview': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
-                        'account-overview-all': { 'cost': 12, 'returnType': 'Dict' }, // 6FW
-                        'transfer-list': { 'cost': 20, 'returnType': 'Dict' },
+                        'account-overview': { 'cost': 10 } as EndpointSpec<Dict>, // 5FW
+                        'account-overview-all': { 'cost': 12 } as EndpointSpec<Dict>, // 6FW
+                        'transfer-list': { 'cost': 20 } as EndpointSpec<Dict>,
                         // futures
-                        'orders': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'stopOrders': { 'cost': 12, 'returnType': 'Dict' }, // 6FW
-                        'recentDoneOrders': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
-                        'orders/{orderId}': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
-                        'orders/byClientOid': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
-                        'fills': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
-                        'recentFills': { 'cost': 6, 'returnType': 'Dict' }, // 3FW
-                        'trade-fees': { 'cost': 6, 'returnType': 'Dict' },
-                        'openOrderStatistics': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
-                        'position': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'positions': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'margin/maxWithdrawMargin': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
-                        'contracts/risk-limit/{symbol}': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
-                        'funding-history': { 'cost': 10, 'returnType': 'Dict' }, // 5FW
-                        'copy-trade/futures/get-max-open-size': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
-                        'copy-trade/futures/position/margin/max-withdraw-margin': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
-                        'history-positions': { 'cost': 4, 'returnType': 'Dict' },
-                        'position/getMarginMode': { 'cost': 4, 'returnType': 'Dict' },
-                        'position/getPositionMode': { 'cost': 4, 'returnType': 'Dict' },
-                        'deposit-address': { 'cost': 4, 'returnType': 'Dict' },
-                        'deposit-list': { 'cost': 4, 'returnType': 'Dict' },
-                        'withdrawals/quotas': { 'cost': 4, 'returnType': 'Dict' },
-                        'withdrawal-list': { 'cost': 4, 'returnType': 'Dict' },
-                        'sub/api-key': { 'cost': 4, 'returnType': 'Dict' },
-                        'trade-statistics': { 'cost': 4, 'returnType': 'Dict' },
-                        'getMaxOpenSize': { 'cost': 4, 'returnType': 'Dict' },
-                        'getCrossUserLeverage': { 'cost': 4, 'returnType': 'Dict' },
+                        'orders': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'stopOrders': { 'cost': 12 } as EndpointSpec<Dict>, // 6FW
+                        'recentDoneOrders': { 'cost': 10 } as EndpointSpec<Dict>, // 5FW
+                        'orders/{orderId}': { 'cost': 10 } as EndpointSpec<Dict>, // 5FW
+                        'orders/byClientOid': { 'cost': 10 } as EndpointSpec<Dict>, // 5FW
+                        'fills': { 'cost': 10 } as EndpointSpec<Dict>, // 5FW
+                        'recentFills': { 'cost': 6 } as EndpointSpec<Dict>, // 3FW
+                        'trade-fees': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'openOrderStatistics': { 'cost': 20 } as EndpointSpec<Dict>, // 10FW
+                        'position': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'positions': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'margin/maxWithdrawMargin': { 'cost': 20 } as EndpointSpec<Dict>, // 10FW
+                        'contracts/risk-limit/{symbol}': { 'cost': 10 } as EndpointSpec<Dict>, // 5FW
+                        'funding-history': { 'cost': 10 } as EndpointSpec<Dict>, // 5FW
+                        'copy-trade/futures/get-max-open-size': { 'cost': 8 } as EndpointSpec<Dict>, // 4FW
+                        'copy-trade/futures/position/margin/max-withdraw-margin': { 'cost': 20 } as EndpointSpec<Dict>, // 10FW
+                        'history-positions': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'position/getMarginMode': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'position/getPositionMode': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'deposit-address': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'deposit-list': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'withdrawals/quotas': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'withdrawal-list': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'sub/api-key': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'trade-statistics': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'getMaxOpenSize': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'getCrossUserLeverage': { 'cost': 4 } as EndpointSpec<Dict>,
                     },
                     'post': {
                         // funding
-                        'transfer-out': { 'cost': 20, 'returnType': 'Dict' },
-                        'transfer-in': { 'cost': 20, 'returnType': 'Dict' },
+                        'transfer-out': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'transfer-in': { 'cost': 20 } as EndpointSpec<Dict>,
                         // futures
-                        'orders': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'st-orders': { 'cost': 4, 'returnType': 'Dict' },
-                        'orders/test': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'orders/multi': { 'cost': 6, 'returnType': 'Dict' }, // 3FW
-                        'position/margin/auto-deposit-status': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
-                        'margin/withdrawMargin': { 'cost': 10, 'returnType': 'Dict' }, // 10FW
-                        'position/margin/deposit-margin': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
-                        'position/risk-limit-level/change': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
-                        'copy-trade/futures/orders': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'copy-trade/futures/orders/test': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'copy-trade/futures/st-orders': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'copy-trade/futures/position/margin/deposit-margin': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
-                        'copy-trade/futures/position/margin/withdraw-margin': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
-                        'copy-trade/futures/position/risk-limit-level/change': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'copy-trade/futures/position/margin/auto-deposit-status': { 'cost': 8, 'returnType': 'Dict' }, // 4FW
-                        'copy-trade/futures/position/changeMarginMode': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'copy-trade/futures/position/changeCrossUserLeverage': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'copy-trade/getCrossModeMarginRequirement': { 'cost': 6, 'returnType': 'Dict' }, // 3FW
-                        'copy-trade/position/switchPositionMode': { 'cost': 4, 'returnType': 'Dict' }, // 2FW
-                        'changeCrossUserLeverage': { 'cost': 4, 'returnType': 'Dict' },
-                        'withdrawals': { 'cost': 4, 'returnType': 'Dict' },
-                        'sub/api-key': { 'cost': 4, 'returnType': 'Dict' },
-                        'sub/api-key/update': { 'cost': 4, 'returnType': 'Dict' },
-                        'position/changeMarginMode': { 'cost': 4, 'returnType': 'Dict' },
-                        'position/switchPositionMode': { 'cost': 4, 'returnType': 'Dict' },
+                        'orders': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'st-orders': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'orders/test': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'orders/multi': { 'cost': 6 } as EndpointSpec<Dict>, // 3FW
+                        'position/margin/auto-deposit-status': { 'cost': 8 } as EndpointSpec<Dict>, // 4FW
+                        'margin/withdrawMargin': { 'cost': 10 } as EndpointSpec<Dict>, // 10FW
+                        'position/margin/deposit-margin': { 'cost': 8 } as EndpointSpec<Dict>, // 4FW
+                        'position/risk-limit-level/change': { 'cost': 8 } as EndpointSpec<Dict>, // 4FW
+                        'copy-trade/futures/orders': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'copy-trade/futures/orders/test': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'copy-trade/futures/st-orders': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'copy-trade/futures/position/margin/deposit-margin': { 'cost': 8 } as EndpointSpec<Dict>, // 4FW
+                        'copy-trade/futures/position/margin/withdraw-margin': { 'cost': 20 } as EndpointSpec<Dict>, // 10FW
+                        'copy-trade/futures/position/risk-limit-level/change': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'copy-trade/futures/position/margin/auto-deposit-status': { 'cost': 8 } as EndpointSpec<Dict>, // 4FW
+                        'copy-trade/futures/position/changeMarginMode': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'copy-trade/futures/position/changeCrossUserLeverage': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'copy-trade/getCrossModeMarginRequirement': { 'cost': 6 } as EndpointSpec<Dict>, // 3FW
+                        'copy-trade/position/switchPositionMode': { 'cost': 4 } as EndpointSpec<Dict>, // 2FW
+                        'changeCrossUserLeverage': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'withdrawals': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'sub/api-key': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'sub/api-key/update': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'position/changeMarginMode': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'position/switchPositionMode': { 'cost': 4 } as EndpointSpec<Dict>,
                         // ws
-                        'bullet-private': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
+                        'bullet-private': { 'cost': 20 } as EndpointSpec<Dict>, // 10FW
                     },
                     'delete': {
-                        'orders/{orderId}': { 'cost': 2, 'returnType': 'Dict' }, // 1FW
-                        'orders/client-order/{clientOid}': { 'cost': 2, 'returnType': 'Dict' }, // 1FW
-                        'orders': { 'cost': 20, 'returnType': 'Dict' }, // 10FW
-                        'stopOrders': { 'cost': 30, 'returnType': 'Dict' }, // 15FW
-                        'copy-trade/futures/orders': { 'cost': 1.5, 'returnType': 'Dict' }, // 1FW
-                        'copy-trade/futures/orders/client-order': { 'cost': 1.5, 'returnType': 'Dict' }, // 1FW
-                        'orders/multi-cancel': { 'cost': 40, 'returnType': 'Dict' }, // 20FW
-                        'withdrawals/{withdrawalId}': { 'cost': 10, 'returnType': 'Dict' },
-                        'cancel/transfer-out': { 'cost': 10, 'returnType': 'Dict' },
-                        'sub/api-key': { 'cost': 10, 'returnType': 'Dict' },
+                        'orders/{orderId}': { 'cost': 2 } as EndpointSpec<Dict>, // 1FW
+                        'orders/client-order/{clientOid}': { 'cost': 2 } as EndpointSpec<Dict>, // 1FW
+                        'orders': { 'cost': 20 } as EndpointSpec<Dict>, // 10FW
+                        'stopOrders': { 'cost': 30 } as EndpointSpec<Dict>, // 15FW
+                        'copy-trade/futures/orders': { 'cost': 1.5 } as EndpointSpec<Dict>, // 1FW
+                        'copy-trade/futures/orders/client-order': { 'cost': 1.5 } as EndpointSpec<Dict>, // 1FW
+                        'orders/multi-cancel': { 'cost': 40 } as EndpointSpec<Dict>, // 20FW
+                        'withdrawals/{withdrawalId}': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'cancel/transfer-out': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'sub/api-key': { 'cost': 10 } as EndpointSpec<Dict>,
                     },
                 },
                 'webExchange': {
                     'get': {
-                        'currency/currency/chain-info': { 'cost': 1, 'returnType': 'Dict' }, // this is temporary from webApi
-                        'contract/{symbol}/funding-rates': { 'cost': 2, 'returnType': 'Dict' },
+                        'currency/currency/chain-info': { 'cost': 1 } as EndpointSpec<Dict>, // this is temporary from webApi
+                        'contract/{symbol}/funding-rates': { 'cost': 2 } as EndpointSpec<Dict>,
                     },
                 },
                 'broker': {
                     'get': {
-                        'broker/nd/info': { 'cost': 4, 'returnType': 'Dict' },
-                        'broker/nd/account': { 'cost': 4, 'returnType': 'Dict' },
-                        'broker/nd/account/apikey': { 'cost': 4, 'returnType': 'Dict' },
-                        'broker/nd/rebase/download': { 'cost': 4, 'returnType': 'Dict' },
-                        'asset/ndbroker/deposit/list': { 'cost': 2, 'returnType': 'Dict' },
-                        'broker/nd/transfer/detail': { 'cost': 2, 'returnType': 'Dict' },
-                        'broker/nd/deposit/detail': { 'cost': 2, 'returnType': 'Dict' },
-                        'broker/nd/withdraw/detail': { 'cost': 2, 'returnType': 'Dict' },
+                        'broker/nd/info': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'broker/nd/account': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'broker/nd/account/apikey': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'broker/nd/rebase/download': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'asset/ndbroker/deposit/list': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'broker/nd/transfer/detail': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'broker/nd/deposit/detail': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'broker/nd/withdraw/detail': { 'cost': 2 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'broker/nd/transfer': { 'cost': 2, 'returnType': 'Dict' },
-                        'broker/nd/account': { 'cost': 6, 'returnType': 'Dict' },
-                        'broker/nd/account/apikey': { 'cost': 6, 'returnType': 'Dict' },
-                        'broker/nd/account/update-apikey': { 'cost': 6, 'returnType': 'Dict' },
+                        'broker/nd/transfer': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'broker/nd/account': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'broker/nd/account/apikey': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'broker/nd/account/update-apikey': { 'cost': 6 } as EndpointSpec<Dict>,
                     },
                     'delete': {
-                        'broker/nd/account/apikey': { 'cost': 6, 'returnType': 'Dict' },
+                        'broker/nd/account/apikey': { 'cost': 6 } as EndpointSpec<Dict>,
                     },
                 },
                 'earn': {
                     'get': {
-                        'otc-loan/discount-rate-configs': { 'cost': 20, 'returnType': 'Dict' },
-                        'otc-loan/loan': { 'cost': 2, 'returnType': 'Dict' },
-                        'otc-loan/accounts': { 'cost': 2, 'returnType': 'Dict' },
-                        'earn/redeem-preview': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
-                        'earn/saving/products': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
-                        'earn/hold-assets': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
-                        'earn/promotion/products': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
-                        'earn/kcs-staking/products': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
-                        'earn/staking/products': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
-                        'earn/eth-staking/products': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
-                        'struct-earn/dual/products': { 'cost': 6, 'returnType': 'Dict' },
-                        'struct-earn/orders': { 'cost': 10, 'returnType': 'Dict' },
+                        'otc-loan/discount-rate-configs': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'otc-loan/loan': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'otc-loan/accounts': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'earn/redeem-preview': { 'cost': 10 } as EndpointSpec<Dict>, // 5EW
+                        'earn/saving/products': { 'cost': 10 } as EndpointSpec<Dict>, // 5EW
+                        'earn/hold-assets': { 'cost': 10 } as EndpointSpec<Dict>, // 5EW
+                        'earn/promotion/products': { 'cost': 10 } as EndpointSpec<Dict>, // 5EW
+                        'earn/kcs-staking/products': { 'cost': 10 } as EndpointSpec<Dict>, // 5EW
+                        'earn/staking/products': { 'cost': 10 } as EndpointSpec<Dict>, // 5EW
+                        'earn/eth-staking/products': { 'cost': 10 } as EndpointSpec<Dict>, // 5EW
+                        'struct-earn/dual/products': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'struct-earn/orders': { 'cost': 10 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'earn/orders': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
-                        'struct-earn/orders': { 'cost': 10, 'returnType': 'Dict' },
+                        'earn/orders': { 'cost': 10 } as EndpointSpec<Dict>, // 5EW
+                        'struct-earn/orders': { 'cost': 10 } as EndpointSpec<Dict>,
                     },
                     'delete': {
-                        'earn/orders': { 'cost': 10, 'returnType': 'Dict' }, // 5EW
+                        'earn/orders': { 'cost': 10 } as EndpointSpec<Dict>, // 5EW
                     },
                 },
                 'uta': {
                     'get': {
-                        'market/announcement': { 'cost': 40, 'returnType': 'Dict' },
-                        'market/currency': { 'cost': 6, 'returnType': 'Dict' },
-                        'asset/currencies': { 'cost': 6, 'returnType': 'Dict' },
-                        'market/instrument': { 'cost': 8, 'returnType': 'Dict' },
-                        'market/ticker': { 'cost': 30, 'returnType': 'Dict' },
-                        'market/trade': { 'cost': 6, 'returnType': 'Dict' },
-                        'market/kline': { 'cost': 6, 'returnType': 'Dict' },
-                        'market/funding-rate': { 'cost': 4, 'returnType': 'Dict' },
-                        'market/funding-rate-history': { 'cost': 10, 'returnType': 'Dict' },
-                        'market/cross-config': { 'cost': 50, 'returnType': 'Dict' },
-                        'market/collateral-discount-ratio': { 'cost': 20, 'returnType': 'Dict' },
-                        'market/index-price': { 'cost': 20, 'returnType': 'Dict' },
-                        'market/position-tiers': { 'cost': 40, 'returnType': 'Dict' },
-                        'market/open-interest': { 'cost': 20, 'returnType': 'Dict' },
-                        'server/status': { 'cost': 6, 'returnType': 'Dict' },
-                        'market/borrowable-currency': { 'cost': 30, 'returnType': 'Dict' },
-                        'user/my-ip': { 'cost': 20, 'returnType': 'Dict' },
-                        'market/fiat-price': { 'cost': 6, 'returnType': 'Dict' },
+                        'market/announcement': { 'cost': 40 } as EndpointSpec<Dict>,
+                        'market/currency': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'asset/currencies': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'market/instrument': { 'cost': 8 } as EndpointSpec<Dict>,
+                        'market/ticker': { 'cost': 30 } as EndpointSpec<Dict>,
+                        'market/trade': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'market/kline': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'market/funding-rate': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'market/funding-rate-history': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'market/cross-config': { 'cost': 50 } as EndpointSpec<Dict>,
+                        'market/collateral-discount-ratio': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'market/index-price': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'market/position-tiers': { 'cost': 40 } as EndpointSpec<Dict>,
+                        'market/open-interest': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'server/status': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'market/borrowable-currency': { 'cost': 30 } as EndpointSpec<Dict>,
+                        'user/my-ip': { 'cost': 20 } as EndpointSpec<Dict>,
+                        'market/fiat-price': { 'cost': 6 } as EndpointSpec<Dict>,
                     },
                 },
                 'utaPrivate': {
                     'get': {
-                        'market/orderbook': { 'cost': 6, 'returnType': 'Dict' },
-                        'account/balance': { 'cost': 10, 'returnType': 'Dict' },
-                        'account/transfer-quota': { 'cost': 40, 'returnType': 'Dict' },
-                        'account/mode': { 'cost': 60, 'returnType': 'Dict' },
-                        'account/ledger': { 'cost': 4, 'returnType': 'Dict' },
-                        'account/interest-history': { 'cost': 30, 'returnType': 'Dict' },
-                        'asset/deposit/address': { 'cost': 10, 'returnType': 'Dict' },
-                        'account/deposit/address': { 'cost': 5, 'returnType': 'Dict' },
-                        '{accountMode}/account/balance': { 'cost': 10, 'returnType': 'Dict' },
-                        '{accountMode}/account/overview': { 'cost': 10, 'returnType': 'Dict' },
-                        '{accountMode}/order/detail': { 'cost': 8, 'returnType': 'Dict' },
-                        '{accountMode}/order/open-list': { 'cost': 8, 'returnType': 'Dict' },
-                        '{accountMode}/order/history': { 'cost': 8, 'returnType': 'Dict' },
-                        '{accountMode}/order/execution': { 'cost': 8, 'returnType': 'Dict' },
-                        '{accountMode}/position/open-list': { 'cost': 6, 'returnType': 'Dict' },
-                        '{accountMode}/position/history': { 'cost': 4, 'returnType': 'Dict' },
-                        'position/history': { 'cost': 4, 'returnType': 'Dict' },
-                        '{accountMode}/position/tiers': { 'cost': 40, 'returnType': 'Dict' },
-                        'sub-account/balance': { 'cost': 10, 'returnType': 'Dict' },
-                        'user/fee-rate': { 'cost': 6, 'returnType': 'Dict' },
-                        'dcp/query': { 'cost': 4, 'returnType': 'Dict' },
-                        'unified/account/leverage': { 'cost': 20, 'returnType': 'Dict' }, // returns {"code":"404","msg":"Not Found","retry":false,"success":false}
-                        'position/funding-history': { 'cost': 30, 'returnType': 'Dict' },
-                        'account/interest-limits': { 'cost': 20, 'returnType': 'Dict' },
+                        'market/orderbook': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'account/balance': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'account/transfer-quota': { 'cost': 40 } as EndpointSpec<Dict>,
+                        'account/mode': { 'cost': 60 } as EndpointSpec<Dict>,
+                        'account/ledger': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'account/interest-history': { 'cost': 30 } as EndpointSpec<Dict>,
+                        'asset/deposit/address': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'account/deposit/address': { 'cost': 5 } as EndpointSpec<Dict>,
+                        '{accountMode}/account/balance': { 'cost': 10 } as EndpointSpec<Dict>,
+                        '{accountMode}/account/overview': { 'cost': 10 } as EndpointSpec<Dict>,
+                        '{accountMode}/order/detail': { 'cost': 8 } as EndpointSpec<Dict>,
+                        '{accountMode}/order/open-list': { 'cost': 8 } as EndpointSpec<Dict>,
+                        '{accountMode}/order/history': { 'cost': 8 } as EndpointSpec<Dict>,
+                        '{accountMode}/order/execution': { 'cost': 8 } as EndpointSpec<Dict>,
+                        '{accountMode}/position/open-list': { 'cost': 6 } as EndpointSpec<Dict>,
+                        '{accountMode}/position/history': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'position/history': { 'cost': 4 } as EndpointSpec<Dict>,
+                        '{accountMode}/position/tiers': { 'cost': 40 } as EndpointSpec<Dict>,
+                        'sub-account/balance': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'user/fee-rate': { 'cost': 6 } as EndpointSpec<Dict>,
+                        'dcp/query': { 'cost': 4 } as EndpointSpec<Dict>,
+                        'unified/account/leverage': { 'cost': 20 } as EndpointSpec<Dict>, // returns {"code":"404","msg":"Not Found","retry":false,"success":false}
+                        'position/funding-history': { 'cost': 30 } as EndpointSpec<Dict>,
+                        'account/interest-limits': { 'cost': 20 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'account/transfer': { 'cost': 8, 'returnType': 'Dict' },
-                        'account/mode': { 'cost': 60, 'returnType': 'Dict' },
-                        '{accountMode}/account/modify-leverage': { 'cost': 40, 'returnType': 'Dict' },
-                        '{accountMode}/order/place': { 'cost': 2, 'returnType': 'Dict' },
-                        '{accountMode}/order/place-batch': { 'cost': 8, 'returnType': 'Dict' },
-                        '{accountMode}/order/cancel': { 'cost': 2, 'returnType': 'Dict' },
-                        '{accountMode}/order/cancel-batch': { 'cost': 8, 'returnType': 'Dict' },
-                        '{accountMode}/order/cancel-all': { 'cost': 40, 'returnType': 'Dict' },
-                        'sub-account/canTransferOut': { 'cost': 10, 'returnType': 'Dict' },
-                        'dcp/set': { 'cost': 4, 'returnType': 'Dict' },
-                        '{accountMode}/account/modify-leverage-margin-cross': { 'cost': 40, 'returnType': 'Dict' },
+                        'account/transfer': { 'cost': 8 } as EndpointSpec<Dict>,
+                        'account/mode': { 'cost': 60 } as EndpointSpec<Dict>,
+                        '{accountMode}/account/modify-leverage': { 'cost': 40 } as EndpointSpec<Dict>,
+                        '{accountMode}/order/place': { 'cost': 2 } as EndpointSpec<Dict>,
+                        '{accountMode}/order/place-batch': { 'cost': 8 } as EndpointSpec<Dict>,
+                        '{accountMode}/order/cancel': { 'cost': 2 } as EndpointSpec<Dict>,
+                        '{accountMode}/order/cancel-batch': { 'cost': 8 } as EndpointSpec<Dict>,
+                        '{accountMode}/order/cancel-all': { 'cost': 40 } as EndpointSpec<Dict>,
+                        'sub-account/canTransferOut': { 'cost': 10 } as EndpointSpec<Dict>,
+                        'dcp/set': { 'cost': 4 } as EndpointSpec<Dict>,
+                        '{accountMode}/account/modify-leverage-margin-cross': { 'cost': 40 } as EndpointSpec<Dict>,
                     },
                 },
             },

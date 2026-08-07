@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, List, Market, NullableDict, FeeString, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, List, Market, NullableDict, FeeString, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -205,103 +205,103 @@ export default class weex extends Exchange {
                 'public': {
                     // multiply public endpoints weight by 5
                     'get': {
-                        'api/v3/time': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'api/v3/coins': { 'cost': 25, 'returnType': 'List' }, // done
-                        'api/v3/exchangeInfo': { 'cost': 100, 'returnType': 'Dict' }, // done
-                        'api/v3/ping': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'api/v3/apiTradingSymbols': { 'cost': 25, 'returnType': 'List' }, // not unified
-                        'api/v3/market/ticker/price': { 'cost': 20, 'returnType': 'List' }, // not unified
-                        'api/v3/market/ticker/24hr': { 'cost': 10, 'returnType': 'List' }, // done
-                        'api/v3/market/trades': { 'cost': 125, 'returnType': 'List' }, // done
-                        'api/v3/market/klines': { 'cost': 10, 'returnType': 'List' }, // done
-                        'api/v3/market/depth': { 'cost': 25, 'returnType': 'Dict' }, // done
-                        'api/v3/market/ticker/bookTicker': { 'cost': 20, 'returnType': 'List' }, // done
+                        'api/v3/time': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'api/v3/coins': { 'cost': 25 } as EndpointSpec<List>, // done
+                        'api/v3/exchangeInfo': { 'cost': 100 } as EndpointSpec<Dict>, // done
+                        'api/v3/ping': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'api/v3/apiTradingSymbols': { 'cost': 25 } as EndpointSpec<List>, // not unified
+                        'api/v3/market/ticker/price': { 'cost': 20 } as EndpointSpec<List>, // not unified
+                        'api/v3/market/ticker/24hr': { 'cost': 10 } as EndpointSpec<List>, // done
+                        'api/v3/market/trades': { 'cost': 125 } as EndpointSpec<List>, // done
+                        'api/v3/market/klines': { 'cost': 10 } as EndpointSpec<List>, // done
+                        'api/v3/market/depth': { 'cost': 25 } as EndpointSpec<Dict>, // done
+                        'api/v3/market/ticker/bookTicker': { 'cost': 20 } as EndpointSpec<List>, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v3/account/': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'api/v3/account/transferRecords': { 'cost': 3, 'returnType': 'List' }, // done
-                        'api/v3/order': { 'cost': 2, 'returnType': 'Dict' }, // done
-                        'api/v3/openOrders': { 'cost': 3, 'returnType': 'List' }, // done
-                        'api/v3/allOrders': { 'cost': 10, 'returnType': 'List' }, // done
-                        'api/v3/myTrades': { 'cost': 5, 'returnType': 'List' }, // done
-                        'api/v3/rebate/affiliate/getAffiliateUIDs': { 'cost': 20, 'returnType': 'Dict' }, // not unified
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': { 'cost': 20, 'returnType': 'Dict' }, // not unified
-                        'api/v3/rebate/affiliate/getAffiliateCommission': { 'cost': 20, 'returnType': 'Dict' }, // not unified
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': { 'cost': 100, 'returnType': 'Dict' }, // not unified
-                        'api/v3/rebate/affiliate/querySubChannelTransactions': { 'cost': 10, 'returnType': 'Dict' }, // not unified
-                        'api/v3/agency/verifyReferrals': { 'cost': 20, 'returnType': 'List' }, // not unified
-                        'api/v3/agency/getAssert': { 'cost': 20, 'returnType': 'Dict' }, // not unified
-                        'api/v3/agency/getDealData': { 'cost': 20, 'returnType': 'Dict' }, // not unified
+                        'api/v3/account/': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'api/v3/account/transferRecords': { 'cost': 3 } as EndpointSpec<List>, // done
+                        'api/v3/order': { 'cost': 2 } as EndpointSpec<Dict>, // done
+                        'api/v3/openOrders': { 'cost': 3 } as EndpointSpec<List>, // done
+                        'api/v3/allOrders': { 'cost': 10 } as EndpointSpec<List>, // done
+                        'api/v3/myTrades': { 'cost': 5 } as EndpointSpec<List>, // done
+                        'api/v3/rebate/affiliate/getAffiliateUIDs': { 'cost': 20 } as EndpointSpec<Dict>, // not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': { 'cost': 20 } as EndpointSpec<Dict>, // not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission': { 'cost': 20 } as EndpointSpec<Dict>, // not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': { 'cost': 100 } as EndpointSpec<Dict>, // not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions': { 'cost': 10 } as EndpointSpec<Dict>, // not unified
+                        'api/v3/agency/verifyReferrals': { 'cost': 20 } as EndpointSpec<List>, // not unified
+                        'api/v3/agency/getAssert': { 'cost': 20 } as EndpointSpec<Dict>, // not unified
+                        'api/v3/agency/getDealData': { 'cost': 20 } as EndpointSpec<Dict>, // not unified
                     },
                     'post': {
-                        'api/v3/account/bills': { 'cost': 5, 'returnType': 'List' }, // done
-                        'api/v3/account/fundingBills': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'api/v3/order': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'api/v3/order/batch': { 'cost': 50, 'returnType': 'Dict' }, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
-                        'api/v3/rebate/affiliate/internalWithdrawal': { 'cost': 100, 'returnType': 'string' }, // not unified
+                        'api/v3/account/bills': { 'cost': 5 } as EndpointSpec<List>, // done
+                        'api/v3/account/fundingBills': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'api/v3/order': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'api/v3/order/batch': { 'cost': 50 } as EndpointSpec<Dict>, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'api/v3/rebate/affiliate/internalWithdrawal': { 'cost': 100 } as EndpointSpec<string>, // not unified
                     },
                     'delete': {
-                        'api/v3/order': { 'cost': 1, 'returnType': 'Dict' }, // done
-                        'api/v3/openOrders': { 'cost': 1, 'returnType': 'List' }, // done
-                        'api/v3/order/batch': { 'cost': 10, 'returnType': 'Dict' }, // done
+                        'api/v3/order': { 'cost': 1 } as EndpointSpec<Dict>, // done
+                        'api/v3/openOrders': { 'cost': 1 } as EndpointSpec<List>, // done
+                        'api/v3/order/batch': { 'cost': 10 } as EndpointSpec<Dict>, // done
                     },
                 },
                 'contract': {
                     // multiply public endpoints weight by 5
                     'get': {
-                        'capi/v3/market/time': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'capi/v3/market/exchangeInfo': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'capi/v3/market/depth': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'capi/v3/market/ticker/24hr': { 'cost': 200, 'returnType': 'List' }, // done
-                        'capi/v3/market/ticker/bookTicker': { 'cost': 5, 'returnType': 'List' }, // done
-                        'capi/v3/market/trades': { 'cost': 25, 'returnType': 'List' }, // done
-                        'capi/v3/market/klines': { 'cost': 5, 'returnType': 'List' }, // done
-                        'capi/v3/market/indexPriceKlines': { 'cost': 5, 'returnType': 'List' }, // done
-                        'capi/v3/market/markPriceKlines': { 'cost': 5, 'returnType': 'List' }, // done
-                        'capi/v3/market/historyKlines': { 'cost': 25, 'returnType': 'List' }, // done
-                        'capi/v3/market/symbolPrice': { 'cost': 5, 'returnType': 'Dict' }, // not unified
-                        'capi/v3/market/openInterest': { 'cost': 10, 'returnType': 'Dict' }, // done
-                        'capi/v3/market/premiumIndex': { 'cost': 5, 'returnType': 'List' }, // done
-                        'capi/v3/market/fundingRate': { 'cost': 25, 'returnType': 'List' }, // done
-                        'capi/v3/market/apiTradingSymbols': { 'cost': 25, 'returnType': 'List' }, // not unified
+                        'capi/v3/market/time': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'capi/v3/market/exchangeInfo': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'capi/v3/market/depth': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'capi/v3/market/ticker/24hr': { 'cost': 200 } as EndpointSpec<List>, // done
+                        'capi/v3/market/ticker/bookTicker': { 'cost': 5 } as EndpointSpec<List>, // done
+                        'capi/v3/market/trades': { 'cost': 25 } as EndpointSpec<List>, // done
+                        'capi/v3/market/klines': { 'cost': 5 } as EndpointSpec<List>, // done
+                        'capi/v3/market/indexPriceKlines': { 'cost': 5 } as EndpointSpec<List>, // done
+                        'capi/v3/market/markPriceKlines': { 'cost': 5 } as EndpointSpec<List>, // done
+                        'capi/v3/market/historyKlines': { 'cost': 25 } as EndpointSpec<List>, // done
+                        'capi/v3/market/symbolPrice': { 'cost': 5 } as EndpointSpec<Dict>, // not unified
+                        'capi/v3/market/openInterest': { 'cost': 10 } as EndpointSpec<Dict>, // done
+                        'capi/v3/market/premiumIndex': { 'cost': 5 } as EndpointSpec<List>, // done
+                        'capi/v3/market/fundingRate': { 'cost': 25 } as EndpointSpec<List>, // done
+                        'capi/v3/market/apiTradingSymbols': { 'cost': 25 } as EndpointSpec<List>, // not unified
                     },
                 },
                 'contractPrivate': {
                     'get': {
-                        'capi/v3/account/balance': { 'cost': 10, 'returnType': 'Dict' }, // done
-                        'capi/v3/account/commissionRate': { 'cost': 10, 'returnType': 'Dict' }, // done
-                        'capi/v3/account/accountConfig': { 'cost': 10, 'returnType': 'Dict' }, // not unified
-                        'capi/v3/account/symbolConfig': { 'cost': 10, 'returnType': 'List' }, // done
-                        'capi/v3/account/position/allPosition': { 'cost': 15, 'returnType': 'List' }, // done
-                        'capi/v3/account/position/singlePosition': { 'cost': 3, 'returnType': 'List' }, // done
-                        'capi/v3/order': { 'cost': 3, 'returnType': 'Dict' }, // done
-                        'capi/v3/openOrders': { 'cost': 5, 'returnType': 'List' }, // done
-                        'capi/v3/order/history': { 'cost': 10, 'returnType': 'List' }, // done
-                        'capi/v3/userTrades': { 'cost': 5, 'returnType': 'List' }, // done
-                        'capi/v3/openAlgoOrders': { 'cost': 3, 'returnType': 'List' }, // done
-                        'capi/v3/allAlgoOrders': { 'cost': 10, 'returnType': 'Dict' }, // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/account/balance': { 'cost': 10 } as EndpointSpec<Dict>, // done
+                        'capi/v3/account/commissionRate': { 'cost': 10 } as EndpointSpec<Dict>, // done
+                        'capi/v3/account/accountConfig': { 'cost': 10 } as EndpointSpec<Dict>, // not unified
+                        'capi/v3/account/symbolConfig': { 'cost': 10 } as EndpointSpec<List>, // done
+                        'capi/v3/account/position/allPosition': { 'cost': 15 } as EndpointSpec<List>, // done
+                        'capi/v3/account/position/singlePosition': { 'cost': 3 } as EndpointSpec<List>, // done
+                        'capi/v3/order': { 'cost': 3 } as EndpointSpec<Dict>, // done
+                        'capi/v3/openOrders': { 'cost': 5 } as EndpointSpec<List>, // done
+                        'capi/v3/order/history': { 'cost': 10 } as EndpointSpec<List>, // done
+                        'capi/v3/userTrades': { 'cost': 5 } as EndpointSpec<List>, // done
+                        'capi/v3/openAlgoOrders': { 'cost': 3 } as EndpointSpec<List>, // done
+                        'capi/v3/allAlgoOrders': { 'cost': 10 } as EndpointSpec<Dict>, // not unified - capi/v3/order/history returns both regular and algo orders
                     },
                     'post': {
-                        'capi/v3/account/income': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'capi/v3/account/marginType': { 'cost': 50, 'returnType': 'Dict' }, // done
-                        'capi/v3/account/leverage': { 'cost': 20, 'returnType': 'Dict' }, // done
-                        'capi/v3/account/positionMargin': { 'cost': 30, 'returnType': 'Dict' }, // done
-                        'capi/v3/account/modifyAutoAppendMargin': { 'cost': 30, 'returnType': 'Dict' }, // not unified
-                        'capi/v3/order': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'capi/v3/batchOrders': { 'cost': 10, 'returnType': 'List' }, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
-                        'capi/v3/closePositions': { 'cost': 50, 'returnType': 'List' }, // done
-                        'capi/v3/algoOrder': { 'cost': 5, 'returnType': 'Dict' }, // done
-                        'capi/v3/placeTpSlOrder': { 'cost': 5, 'returnType': 'List' }, // not unified
-                        'capi/v3/modifyTpSlOrder': { 'cost': 5, 'returnType': 'Dict' }, // not unified
+                        'capi/v3/account/income': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'capi/v3/account/marginType': { 'cost': 50 } as EndpointSpec<Dict>, // done
+                        'capi/v3/account/leverage': { 'cost': 20 } as EndpointSpec<Dict>, // done
+                        'capi/v3/account/positionMargin': { 'cost': 30 } as EndpointSpec<Dict>, // done
+                        'capi/v3/account/modifyAutoAppendMargin': { 'cost': 30 } as EndpointSpec<Dict>, // not unified
+                        'capi/v3/order': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'capi/v3/batchOrders': { 'cost': 10 } as EndpointSpec<List>, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'capi/v3/closePositions': { 'cost': 50 } as EndpointSpec<List>, // done
+                        'capi/v3/algoOrder': { 'cost': 5 } as EndpointSpec<Dict>, // done
+                        'capi/v3/placeTpSlOrder': { 'cost': 5 } as EndpointSpec<List>, // not unified
+                        'capi/v3/modifyTpSlOrder': { 'cost': 5 } as EndpointSpec<Dict>, // not unified
                     },
                     'delete': {
-                        'capi/v3/order': { 'cost': 3, 'returnType': 'Dict' }, // done
-                        'capi/v3/batchOrders': { 'cost': 10, 'returnType': 'Dict' }, // done
-                        'capi/v3/allOpenOrders': { 'cost': 10, 'returnType': 'List' }, // done
-                        'capi/v3/algoOrder': { 'cost': 3, 'returnType': 'Dict' }, // done
-                        'capi/v3/algoOpenOrders': { 'cost': 10, 'returnType': 'List' }, // done
+                        'capi/v3/order': { 'cost': 3 } as EndpointSpec<Dict>, // done
+                        'capi/v3/batchOrders': { 'cost': 10 } as EndpointSpec<Dict>, // done
+                        'capi/v3/allOpenOrders': { 'cost': 10 } as EndpointSpec<List>, // done
+                        'capi/v3/algoOrder': { 'cost': 3 } as EndpointSpec<Dict>, // done
+                        'capi/v3/algoOpenOrders': { 'cost': 10 } as EndpointSpec<List>, // done
                     },
                 },
             },

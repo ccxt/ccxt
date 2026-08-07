@@ -6,7 +6,7 @@ import Exchange from './abstract/paymium.js';
 import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress, NullableDict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress, NullableDict, EndpointSpec, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -68,38 +68,38 @@ export default class paymium extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'countries': { 'cost': 1, 'returnType': 'List' },
-                        'currencies': { 'cost': 1, 'returnType': 'List' },
-                        'data/{currency}/ticker': { 'cost': 1, 'returnType': 'Dict' },
-                        'data/{currency}/trades': { 'cost': 1, 'returnType': 'List' },
-                        'data/{currency}/depth': { 'cost': 1, 'returnType': 'Dict' },
-                        'bitcoin_charts/{id}/trades': { 'cost': 1, 'returnType': 'List' },
-                        'bitcoin_charts/{id}/depth': { 'cost': 1, 'returnType': 'Dict' },
+                        'countries': { 'cost': 1 } as EndpointSpec<List>,
+                        'currencies': { 'cost': 1 } as EndpointSpec<List>,
+                        'data/{currency}/ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'data/{currency}/trades': { 'cost': 1 } as EndpointSpec<List>,
+                        'data/{currency}/depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'bitcoin_charts/{id}/trades': { 'cost': 1 } as EndpointSpec<List>,
+                        'bitcoin_charts/{id}/depth': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'user': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/addresses': { 'cost': 1, 'returnType': 'List' },
-                        'user/addresses/{address}': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/orders': { 'cost': 1, 'returnType': 'List' },
-                        'user/orders/{uuid}': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/price_alerts': { 'cost': 1, 'returnType': 'List' },
-                        'merchant/get_payment/{uuid}': { 'cost': 1, 'returnType': 'Dict' },
+                        'user': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/addresses': { 'cost': 1 } as EndpointSpec<List>,
+                        'user/addresses/{address}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/orders': { 'cost': 1 } as EndpointSpec<List>,
+                        'user/orders/{uuid}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/price_alerts': { 'cost': 1 } as EndpointSpec<List>,
+                        'merchant/get_payment/{uuid}': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'user/addresses': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/withdrawals': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/email_transfers': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/payment_requests': { 'cost': 1, 'returnType': 'List' },
-                        'user/price_alerts': { 'cost': 1, 'returnType': 'Dict' },
-                        'merchant/create_payment': { 'cost': 1, 'returnType': 'Dict' },
+                        'user/addresses': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/withdrawals': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/email_transfers': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/payment_requests': { 'cost': 1 } as EndpointSpec<List>,
+                        'user/price_alerts': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'merchant/create_payment': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'delete': {
-                        'user/orders/{uuid}': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/orders/{uuid}/cancel': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/price_alerts/{id}': { 'cost': 1, 'returnType': 'Dict' },
+                        'user/orders/{uuid}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/orders/{uuid}/cancel': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/price_alerts/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, EndpointSpec, List } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -144,39 +144,39 @@ export default class mercado extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'coins': { 'cost': 1, 'returnType': 'List' },
-                        '{coin}/orderbook/': { 'cost': 1, 'returnType': 'Dict' },
-                        '{coin}/ticker/': { 'cost': 1, 'returnType': 'Dict' },
-                        '{coin}/trades/': { 'cost': 1, 'returnType': 'List' },
-                        '{coin}/trades/{from}/': { 'cost': 1, 'returnType': 'List' },
-                        '{coin}/trades/{from}/{to}': { 'cost': 1, 'returnType': 'List' },
-                        '{coin}/day-summary/{year}/{month}/{day}/': { 'cost': 1, 'returnType': 'Dict' },
+                        'coins': { 'cost': 1 } as EndpointSpec<List>,
+                        '{coin}/orderbook/': { 'cost': 1 } as EndpointSpec<Dict>,
+                        '{coin}/ticker/': { 'cost': 1 } as EndpointSpec<Dict>,
+                        '{coin}/trades/': { 'cost': 1 } as EndpointSpec<List>,
+                        '{coin}/trades/{from}/': { 'cost': 1 } as EndpointSpec<List>,
+                        '{coin}/trades/{from}/{to}': { 'cost': 1 } as EndpointSpec<List>,
+                        '{coin}/day-summary/{year}/{month}/{day}/': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'post': {
-                        'cancel_order': { 'cost': 1, 'returnType': 'Dict' },
-                        'get_account_info': { 'cost': 1, 'returnType': 'Dict' },
-                        'get_order': { 'cost': 1, 'returnType': 'Dict' },
-                        'get_withdrawal': { 'cost': 1, 'returnType': 'Dict' },
-                        'list_system_messages': { 'cost': 1, 'returnType': 'Dict' },
-                        'list_orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'list_orderbook': { 'cost': 1, 'returnType': 'Dict' },
-                        'place_buy_order': { 'cost': 1, 'returnType': 'Dict' },
-                        'place_sell_order': { 'cost': 1, 'returnType': 'Dict' },
-                        'place_market_buy_order': { 'cost': 1, 'returnType': 'Dict' },
-                        'place_market_sell_order': { 'cost': 1, 'returnType': 'Dict' },
-                        'withdraw_coin': { 'cost': 1, 'returnType': 'Dict' },
+                        'cancel_order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'get_account_info': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'get_order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'get_withdrawal': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'list_system_messages': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'list_orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'list_orderbook': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'place_buy_order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'place_sell_order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'place_market_buy_order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'place_market_sell_order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'withdraw_coin': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'v4Public': {
                     'get': {
-                        '{coin}/candle/': { 'cost': 1, 'returnType': 'Dict' },
+                        '{coin}/candle/': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'v4PublicNet': {
                     'get': {
-                        'candles': { 'cost': 1, 'returnType': 'Dict' },
+                        'candles': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

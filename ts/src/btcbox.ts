@@ -7,7 +7,7 @@ import Exchange from './abstract/btcbox.js';
 import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Dict, Int, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, EndpointSpec, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -128,25 +128,25 @@ export default class btcbox extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'depth': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders': { 'cost': 1, 'returnType': 'List' },
-                        'ticker': { 'cost': 1, 'returnType': 'Dict' },
-                        'tickers': { 'cost': 1, 'returnType': 'Dict' },
+                        'depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders': { 'cost': 1 } as EndpointSpec<List>,
+                        'ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'tickers': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'post': {
-                        'balance': { 'cost': 1, 'returnType': 'Dict' },
-                        'trade_add': { 'cost': 1, 'returnType': 'Dict' },
-                        'trade_cancel': { 'cost': 1, 'returnType': 'Dict' },
-                        'trade_list': { 'cost': 1, 'returnType': 'List' },
-                        'trade_view': { 'cost': 1, 'returnType': 'Dict' },
-                        'wallet': { 'cost': 1, 'returnType': 'Dict' },
+                        'balance': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trade_add': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trade_cancel': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trade_list': { 'cost': 1 } as EndpointSpec<List>,
+                        'trade_view': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'wallet': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'webApi': {
                     'get': {
-                        'ajax/coin/coinInfo': { 'cost': 1, 'returnType': 'Dict' },
+                        'ajax/coin/coinInfo': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

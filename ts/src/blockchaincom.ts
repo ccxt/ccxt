@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, EndpointSpec } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -95,38 +95,38 @@ export default class blockchaincom extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'tickers': { 'cost': 1, 'returnType': 'List' }, // fetchTickers
-                        'tickers/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchTicker
-                        'symbols': { 'cost': 1, 'returnType': 'Dict' }, // fetchMarkets
-                        'symbols/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchMarket
-                        'l2/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchL2OrderBook
-                        'l3/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchL3OrderBook
+                        'tickers': { 'cost': 1 } as EndpointSpec<List>, // fetchTickers
+                        'tickers/{symbol}': { 'cost': 1 } as EndpointSpec<Dict>, // fetchTicker
+                        'symbols': { 'cost': 1 } as EndpointSpec<Dict>, // fetchMarkets
+                        'symbols/{symbol}': { 'cost': 1 } as EndpointSpec<Dict>, // fetchMarket
+                        'l2/{symbol}': { 'cost': 1 } as EndpointSpec<Dict>, // fetchL2OrderBook
+                        'l3/{symbol}': { 'cost': 1 } as EndpointSpec<Dict>, // fetchL3OrderBook
                     },
                 },
                 'private': {
                     'get': {
-                        'fees': { 'cost': 1, 'returnType': 'Dict' }, // fetchFees
-                        'orders': { 'cost': 1, 'returnType': 'List' }, // fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}': { 'cost': 1, 'returnType': 'Dict' }, // fetchOrder(id)
-                        'trades': { 'cost': 1, 'returnType': 'List' },
-                        'fills': { 'cost': 1, 'returnType': 'List' }, // fetchMyTrades
-                        'deposits': { 'cost': 1, 'returnType': 'List' }, // fetchDeposits
-                        'deposits/{depositId}': { 'cost': 1, 'returnType': 'Dict' }, // fetchDeposit
-                        'accounts': { 'cost': 1, 'returnType': 'Dict' }, // fetchBalance
-                        'accounts/{account}/{currency}': { 'cost': 1, 'returnType': 'Dict' },
-                        'whitelist': { 'cost': 1, 'returnType': 'List' }, // fetchWithdrawalWhitelist
-                        'whitelist/{currency}': { 'cost': 1, 'returnType': 'List' }, // fetchWithdrawalWhitelistByCurrency
-                        'withdrawals': { 'cost': 1, 'returnType': 'List' }, // fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}': { 'cost': 1, 'returnType': 'Dict' }, // fetchWithdrawalById
+                        'fees': { 'cost': 1 } as EndpointSpec<Dict>, // fetchFees
+                        'orders': { 'cost': 1 } as EndpointSpec<List>, // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': { 'cost': 1 } as EndpointSpec<Dict>, // fetchOrder(id)
+                        'trades': { 'cost': 1 } as EndpointSpec<List>,
+                        'fills': { 'cost': 1 } as EndpointSpec<List>, // fetchMyTrades
+                        'deposits': { 'cost': 1 } as EndpointSpec<List>, // fetchDeposits
+                        'deposits/{depositId}': { 'cost': 1 } as EndpointSpec<Dict>, // fetchDeposit
+                        'accounts': { 'cost': 1 } as EndpointSpec<Dict>, // fetchBalance
+                        'accounts/{account}/{currency}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'whitelist': { 'cost': 1 } as EndpointSpec<List>, // fetchWithdrawalWhitelist
+                        'whitelist/{currency}': { 'cost': 1 } as EndpointSpec<List>, // fetchWithdrawalWhitelistByCurrency
+                        'withdrawals': { 'cost': 1 } as EndpointSpec<List>, // fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}': { 'cost': 1 } as EndpointSpec<Dict>, // fetchWithdrawalById
                     },
                     'post': {
-                        'orders': { 'cost': 1, 'returnType': 'Dict' }, // createOrder
-                        'deposits/{currency}': { 'cost': 1, 'returnType': 'Dict' }, // fetchDepositAddress by currency (only crypto supported)
-                        'withdrawals': { 'cost': 1, 'returnType': 'Dict' }, // withdraw
+                        'orders': { 'cost': 1 } as EndpointSpec<Dict>, // createOrder
+                        'deposits/{currency}': { 'cost': 1 } as EndpointSpec<Dict>, // fetchDepositAddress by currency (only crypto supported)
+                        'withdrawals': { 'cost': 1 } as EndpointSpec<Dict>, // withdraw
                     },
                     'delete': {
-                        'orders': { 'cost': 1, 'returnType': 'Dict' }, // cancelOrders
-                        'orders/{orderId}': { 'cost': 1, 'returnType': 'Dict' }, // cancelOrder
+                        'orders': { 'cost': 1 } as EndpointSpec<Dict>, // cancelOrders
+                        'orders/{orderId}': { 'cost': 1 } as EndpointSpec<Dict>, // cancelOrder
                     },
                 },
             },

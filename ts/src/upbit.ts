@@ -7,7 +7,7 @@ import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, Insuffici
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, NullableDict, FeeString, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, FeeString, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -109,67 +109,67 @@ export default class upbit extends Exchange {
                 // cost = 1000 / (rateLimit * RPS)
                 'public': {
                     'get': {
-                        'market/all': { 'cost': 2, 'returnType': 'List' }, // RPS: 10
-                        'candles/{timeframe}': { 'cost': 2, 'returnType': 'List' },
-                        'candles/{timeframe}/{unit}': { 'cost': 2, 'returnType': 'List' },
-                        'candles/seconds': { 'cost': 2, 'returnType': 'List' },
-                        'candles/minutes/{unit}': { 'cost': 2, 'returnType': 'List' },
-                        'candles/minutes/1': { 'cost': 2, 'returnType': 'List' },
-                        'candles/minutes/3': { 'cost': 2, 'returnType': 'List' },
-                        'candles/minutes/5': { 'cost': 2, 'returnType': 'List' },
-                        'candles/minutes/10': { 'cost': 2, 'returnType': 'List' },
-                        'candles/minutes/15': { 'cost': 2, 'returnType': 'List' },
-                        'candles/minutes/30': { 'cost': 2, 'returnType': 'List' },
-                        'candles/minutes/60': { 'cost': 2, 'returnType': 'List' },
-                        'candles/minutes/240': { 'cost': 2, 'returnType': 'List' },
-                        'candles/days': { 'cost': 2, 'returnType': 'List' },
-                        'candles/weeks': { 'cost': 2, 'returnType': 'List' },
-                        'candles/months': { 'cost': 2, 'returnType': 'List' },
-                        'candles/years': { 'cost': 2, 'returnType': 'List' },
-                        'trades/ticks': { 'cost': 2, 'returnType': 'List' },
-                        'ticker': { 'cost': 2, 'returnType': 'List' },
-                        'ticker/all': { 'cost': 2, 'returnType': 'Dict' },
-                        'orderbook': { 'cost': 2, 'returnType': 'List' },
-                        'orderbook/instruments': { 'cost': 2, 'returnType': 'List' },
+                        'market/all': { 'cost': 2 } as EndpointSpec<List>, // RPS: 10
+                        'candles/{timeframe}': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/{timeframe}/{unit}': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/seconds': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/minutes/{unit}': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/minutes/1': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/minutes/3': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/minutes/5': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/minutes/10': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/minutes/15': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/minutes/30': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/minutes/60': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/minutes/240': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/days': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/weeks': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/months': { 'cost': 2 } as EndpointSpec<List>,
+                        'candles/years': { 'cost': 2 } as EndpointSpec<List>,
+                        'trades/ticks': { 'cost': 2 } as EndpointSpec<List>,
+                        'ticker': { 'cost': 2 } as EndpointSpec<List>,
+                        'ticker/all': { 'cost': 2 } as EndpointSpec<Dict>,
+                        'orderbook': { 'cost': 2 } as EndpointSpec<List>,
+                        'orderbook/instruments': { 'cost': 2 } as EndpointSpec<List>,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': { 'cost': 0.67, 'returnType': 'Dict' }, // RPS: 30
-                        'orders/chance': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'order': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'orders/closed': { 'cost': 0.67, 'returnType': 'List' },
-                        'orders/open': { 'cost': 0.67, 'returnType': 'List' },
-                        'orders/uuids': { 'cost': 0.67, 'returnType': 'List' },
-                        'withdraws': { 'cost': 0.67, 'returnType': 'List' },
-                        'withdraw': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'withdraws/chance': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'withdraws/coin_addresses': { 'cost': 0.67, 'returnType': 'List' },
-                        'deposits': { 'cost': 0.67, 'returnType': 'List' },
-                        'deposits/chance/coin': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'deposit': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'deposits/coin_addresses': { 'cost': 0.67, 'returnType': 'List' },
-                        'deposits/coin_address': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'travel_rule/vasps': { 'cost': 0.67, 'returnType': 'List' },
-                        'status/wallet': { 'cost': 0.67, 'returnType': 'List' },
-                        'api_keys': { 'cost': 0.67, 'returnType': 'List' }, // Upbit KR only
+                        'accounts': { 'cost': 0.67 } as EndpointSpec<Dict>, // RPS: 30
+                        'orders/chance': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'order': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'orders/closed': { 'cost': 0.67 } as EndpointSpec<List>,
+                        'orders/open': { 'cost': 0.67 } as EndpointSpec<List>,
+                        'orders/uuids': { 'cost': 0.67 } as EndpointSpec<List>,
+                        'withdraws': { 'cost': 0.67 } as EndpointSpec<List>,
+                        'withdraw': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'withdraws/chance': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'withdraws/coin_addresses': { 'cost': 0.67 } as EndpointSpec<List>,
+                        'deposits': { 'cost': 0.67 } as EndpointSpec<List>,
+                        'deposits/chance/coin': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'deposit': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'deposits/coin_addresses': { 'cost': 0.67 } as EndpointSpec<List>,
+                        'deposits/coin_address': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'travel_rule/vasps': { 'cost': 0.67 } as EndpointSpec<List>,
+                        'status/wallet': { 'cost': 0.67 } as EndpointSpec<List>,
+                        'api_keys': { 'cost': 0.67 } as EndpointSpec<List>, // Upbit KR only
                     },
                     'post': {
-                        'orders': { 'cost': 2.5, 'returnType': 'Dict' }, // RPS: 8
-                        'orders/test': { 'cost': 2.5, 'returnType': 'Dict' }, // RPS: 8
-                        'orders/cancel_and_new': { 'cost': 2.5, 'returnType': 'Dict' }, // RPS: 8
-                        'withdraws/coin': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'withdraws/krw': { 'cost': 0.67, 'returnType': 'Dict' }, // Upbit KR only.
-                        'deposits/krw': { 'cost': 0.67, 'returnType': 'Dict' }, // Upbit KR only.
-                        'deposits/generate_coin_address': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'travel_rule/deposit/uuid': { 'cost': 0.67, 'returnType': 'Dict' }, // RPS: 30, but each deposit can only be queried once every 10 minutes
-                        'travel_rule/deposit/txid': { 'cost': 0.67, 'returnType': 'Dict' }, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'orders': { 'cost': 2.5 } as EndpointSpec<Dict>, // RPS: 8
+                        'orders/test': { 'cost': 2.5 } as EndpointSpec<Dict>, // RPS: 8
+                        'orders/cancel_and_new': { 'cost': 2.5 } as EndpointSpec<Dict>, // RPS: 8
+                        'withdraws/coin': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'withdraws/krw': { 'cost': 0.67 } as EndpointSpec<Dict>, // Upbit KR only.
+                        'deposits/krw': { 'cost': 0.67 } as EndpointSpec<Dict>, // Upbit KR only.
+                        'deposits/generate_coin_address': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'travel_rule/deposit/uuid': { 'cost': 0.67 } as EndpointSpec<Dict>, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'travel_rule/deposit/txid': { 'cost': 0.67 } as EndpointSpec<Dict>, // RPS: 30, but each deposit can only be queried once every 10 minutes
                     },
                     'delete': {
-                        'order': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'orders/open': { 'cost': 40, 'returnType': 'Dict' }, // RPS: 0.5
-                        'orders/uuids': { 'cost': 0.67, 'returnType': 'Dict' },
-                        'withdraws/coin': { 'cost': 0.67, 'returnType': 'Dict' },
+                        'order': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'orders/open': { 'cost': 40 } as EndpointSpec<Dict>, // RPS: 0.5
+                        'orders/uuids': { 'cost': 0.67 } as EndpointSpec<Dict>,
+                        'withdraws/coin': { 'cost': 0.67 } as EndpointSpec<Dict>,
                     },
                 },
             },

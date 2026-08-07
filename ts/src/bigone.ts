@@ -6,7 +6,7 @@ import Exchange from './abstract/bigone.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, Bool, NullableDict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, Bool, NullableDict, EndpointSpec, List } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -124,71 +124,71 @@ export default class bigone extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'ping': { 'cost': 1, 'returnType': 'Dict' },
-                        'asset_pairs': { 'cost': 1, 'returnType': 'Dict' },
-                        'asset_pairs/{asset_pair_name}/depth': { 'cost': 1, 'returnType': 'Dict' },
-                        'asset_pairs/{asset_pair_name}/trades': { 'cost': 1, 'returnType': 'Dict' },
-                        'asset_pairs/{asset_pair_name}/ticker': { 'cost': 1, 'returnType': 'Dict' },
-                        'asset_pairs/{asset_pair_name}/candles': { 'cost': 1, 'returnType': 'Dict' },
-                        'asset_pairs/tickers': { 'cost': 1, 'returnType': 'Dict' },
+                        'ping': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'asset_pairs': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'asset_pairs/{asset_pair_name}/depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'asset_pairs/{asset_pair_name}/trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'asset_pairs/{asset_pair_name}/ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'asset_pairs/{asset_pair_name}/candles': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'asset_pairs/tickers': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': { 'cost': 1, 'returnType': 'Dict' },
-                        'fund/accounts': { 'cost': 1, 'returnType': 'Dict' },
-                        'assets/{asset_symbol}/address': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders/multi': { 'cost': 1, 'returnType': 'Dict' },
-                        'trades': { 'cost': 1, 'returnType': 'Dict' },
-                        'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
-                        'deposits': { 'cost': 1, 'returnType': 'Dict' },
+                        'accounts': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'fund/accounts': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'assets/{asset_symbol}/address': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders/multi': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'withdrawals': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'deposits': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders/{id}/cancel': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders/cancel': { 'cost': 1, 'returnType': 'Dict' },
-                        'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
-                        'transfer': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders/{id}/cancel': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders/cancel': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'withdrawals': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'transfer': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'contractPublic': {
                     'get': {
-                        'symbols': { 'cost': 1, 'returnType': 'List' },
-                        'instruments': { 'cost': 1, 'returnType': 'List' },
-                        'depth@{symbol}/snapshot': { 'cost': 1, 'returnType': 'Dict' },
-                        'instruments/difference': { 'cost': 1, 'returnType': 'Dict' },
-                        'instruments/prices': { 'cost': 1, 'returnType': 'Dict' },
+                        'symbols': { 'cost': 1 } as EndpointSpec<List>,
+                        'instruments': { 'cost': 1 } as EndpointSpec<List>,
+                        'depth@{symbol}/snapshot': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'instruments/difference': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'instruments/prices': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'contractPrivate': {
                     'get': {
-                        'accounts': { 'cost': 1, 'returnType': 'List' },
-                        'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders': { 'cost': 1, 'returnType': 'List' },
-                        'orders/opening': { 'cost': 1, 'returnType': 'List' },
-                        'orders/count': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders/opening/count': { 'cost': 1, 'returnType': 'Dict' },
-                        'trades': { 'cost': 1, 'returnType': 'List' },
-                        'trades/count': { 'cost': 1, 'returnType': 'Dict' },
+                        'accounts': { 'cost': 1 } as EndpointSpec<List>,
+                        'orders/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders': { 'cost': 1 } as EndpointSpec<List>,
+                        'orders/opening': { 'cost': 1 } as EndpointSpec<List>,
+                        'orders/count': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders/opening/count': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trades': { 'cost': 1 } as EndpointSpec<List>,
+                        'trades/count': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders/batch': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders/batch': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'put': {
-                        'positions/{symbol}/margin': { 'cost': 1, 'returnType': 'Dict' },
-                        'positions/{symbol}/risk-limit': { 'cost': 1, 'returnType': 'Dict' },
+                        'positions/{symbol}/margin': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'positions/{symbol}/risk-limit': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'delete': {
-                        'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders/batch': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders/{id}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders/batch': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'webExchange': {
                     'get': {
-                        'v3/assets': { 'cost': 1, 'returnType': 'Dict' },
+                        'v3/assets': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

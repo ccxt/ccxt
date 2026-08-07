@@ -6,7 +6,7 @@ import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -127,44 +127,44 @@ export default class hollaex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'health': { 'cost': 1, 'returnType': 'Dict' },
-                        'constants': { 'cost': 1, 'returnType': 'Dict' },
-                        'kit': { 'cost': 1, 'returnType': 'Dict' },
-                        'tiers': { 'cost': 1, 'returnType': 'Dict' },
-                        'ticker': { 'cost': 1, 'returnType': 'Dict' },
-                        'tickers': { 'cost': 1, 'returnType': 'List' },
-                        'orderbook': { 'cost': 1, 'returnType': 'Dict' },
-                        'orderbooks': { 'cost': 1, 'returnType': 'Dict' },
-                        'trades': { 'cost': 1, 'returnType': 'Dict' },
-                        'chart': { 'cost': 1, 'returnType': 'List' },
-                        'charts': { 'cost': 1, 'returnType': 'Dict' },
-                        'minicharts': { 'cost': 1, 'returnType': 'Dict' },
-                        'oracle/prices': { 'cost': 1, 'returnType': 'Dict' },
-                        'quick-trade': { 'cost': 1, 'returnType': 'Dict' },
+                        'health': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'constants': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'kit': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'tiers': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'tickers': { 'cost': 1 } as EndpointSpec<List>,
+                        'orderbook': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orderbooks': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'chart': { 'cost': 1 } as EndpointSpec<List>,
+                        'charts': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'minicharts': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'oracle/prices': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'quick-trade': { 'cost': 1 } as EndpointSpec<Dict>,
                         // TradingView
-                        'udf/config': { 'cost': 1, 'returnType': 'Dict' },
-                        'udf/history': { 'cost': 1, 'returnType': 'Dict' },
-                        'udf/symbols': { 'cost': 1, 'returnType': 'Dict' },
+                        'udf/config': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'udf/history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'udf/symbols': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'user': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/balance': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/deposits': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/withdrawals': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/withdrawal/fee': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/trades': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'order': { 'cost': 1, 'returnType': 'Dict' },
+                        'user': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/balance': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/deposits': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/withdrawals': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/withdrawal/fee': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'order': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'user/withdrawal': { 'cost': 1, 'returnType': 'Dict' },
-                        'order': { 'cost': 1, 'returnType': 'Dict' },
+                        'user/withdrawal': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'order': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'delete': {
-                        'order/all': { 'cost': 1, 'returnType': 'List' },
-                        'order': { 'cost': 1, 'returnType': 'Dict' },
+                        'order/all': { 'cost': 1 } as EndpointSpec<List>,
+                        'order': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

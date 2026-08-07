@@ -3,7 +3,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict, EndpointSpec } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
@@ -159,39 +159,39 @@ export default class apex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v3/symbols': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/history-funding': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/ticker': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/klines': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/trades': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/depth': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/time': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/data/all-ticker-info': { 'cost': 1, 'returnType': 'Dict' },
+                        'v3/symbols': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/history-funding': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/klines': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/trades': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/time': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/data/all-ticker-info': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'v3/account': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/account-balance': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/fills': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/order-fills': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/order': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/history-orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/order-by-client-order-id': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/funding': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/historical-pnl': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/open-orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/transfers': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/transfer': { 'cost': 1, 'returnType': 'Dict' },
+                        'v3/account': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/account-balance': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/fills': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/order-fills': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/history-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/order-by-client-order-id': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/funding': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/historical-pnl': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/open-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/transfers': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/transfer': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'v3/delete-open-orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/delete-client-order-id': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/delete-order': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/order': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/set-initial-margin-rate': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/transfer-out': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/contract-transfer-out': { 'cost': 1, 'returnType': 'Dict' },
+                        'v3/delete-open-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/delete-client-order-id': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/delete-order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/set-initial-margin-rate': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/transfer-out': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'v3/contract-transfer-out': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

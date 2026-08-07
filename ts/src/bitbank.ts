@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitbank.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int, DepositAddress, EndpointSpec } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -141,44 +141,44 @@ export default class bitbank extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        '{pair}/ticker': { 'cost': 1, 'returnType': 'Dict' },
-                        'tickers': { 'cost': 1, 'returnType': 'Dict' },
-                        'tickers_jpy': { 'cost': 1, 'returnType': 'Dict' },
-                        '{pair}/depth': { 'cost': 1, 'returnType': 'Dict' },
-                        '{pair}/transactions': { 'cost': 1, 'returnType': 'Dict' },
-                        '{pair}/transactions/{yyyymmdd}': { 'cost': 1, 'returnType': 'Dict' },
-                        '{pair}/candlestick/{candletype}/{yyyymmdd}': { 'cost': 1, 'returnType': 'Dict' },
-                        '{pair}/circuit_break_info': { 'cost': 1, 'returnType': 'Dict' },
+                        '{pair}/ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'tickers': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'tickers_jpy': { 'cost': 1 } as EndpointSpec<Dict>,
+                        '{pair}/depth': { 'cost': 1 } as EndpointSpec<Dict>,
+                        '{pair}/transactions': { 'cost': 1 } as EndpointSpec<Dict>,
+                        '{pair}/transactions/{yyyymmdd}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}': { 'cost': 1 } as EndpointSpec<Dict>,
+                        '{pair}/circuit_break_info': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'user/assets': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/spot/order': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/spot/active_orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/margin/positions': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/spot/trade_history': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/deposit_history': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/unconfirmed_deposits': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/deposit_originators': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/withdrawal_account': { 'cost': 1, 'returnType': 'Dict' },
-                        'user/withdrawal_history': { 'cost': 1, 'returnType': 'Dict' },
-                        'spot/status': { 'cost': 1, 'returnType': 'Dict' },
-                        'spot/pairs': { 'cost': 1, 'returnType': 'Dict' },
+                        'user/assets': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/spot/order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/spot/active_orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/margin/positions': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/spot/trade_history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/deposit_history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/unconfirmed_deposits': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/deposit_originators': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/withdrawal_account': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'user/withdrawal_history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'spot/status': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'spot/pairs': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                     'post': {
-                        'user/spot/order': { 'cost': 1.66, 'returnType': 'Dict' },
-                        'user/spot/cancel_order': { 'cost': 1.66, 'returnType': 'Dict' },
-                        'user/spot/cancel_orders': { 'cost': 1.66, 'returnType': 'Dict' },
-                        'user/spot/orders_info': { 'cost': 1.66, 'returnType': 'Dict' },  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits': { 'cost': 1.66, 'returnType': 'Dict' },  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits_all': { 'cost': 1.66, 'returnType': 'Dict' },  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/request_withdrawal': { 'cost': 1.66, 'returnType': 'Dict' },
+                        'user/spot/order': { 'cost': 1.66 } as EndpointSpec<Dict>,
+                        'user/spot/cancel_order': { 'cost': 1.66 } as EndpointSpec<Dict>,
+                        'user/spot/cancel_orders': { 'cost': 1.66 } as EndpointSpec<Dict>,
+                        'user/spot/orders_info': { 'cost': 1.66 } as EndpointSpec<Dict>,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits': { 'cost': 1.66 } as EndpointSpec<Dict>,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits_all': { 'cost': 1.66 } as EndpointSpec<Dict>,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/request_withdrawal': { 'cost': 1.66 } as EndpointSpec<Dict>,
                     },
                 },
                 'markets': {
                     'get': {
-                        'spot/pairs': { 'cost': 1, 'returnType': 'Dict' },
+                        'spot/pairs': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

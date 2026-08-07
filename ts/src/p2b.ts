@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market, NullableDict } from './base/types.js';
+import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market, NullableDict, EndpointSpec } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -158,28 +158,28 @@ export default class p2b extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'markets': { 'cost': 1, 'returnType': 'Dict' },
-                        'market': { 'cost': 1, 'returnType': 'Dict' },
-                        'tickers': { 'cost': 1, 'returnType': 'Dict' },
-                        'ticker': { 'cost': 1, 'returnType': 'Dict' },
-                        'book': { 'cost': 1, 'returnType': 'Dict' },
-                        'history': { 'cost': 1, 'returnType': 'Dict' },
-                        'depth/result': { 'cost': 1, 'returnType': 'Dict' },
-                        'market/kline': { 'cost': 1, 'returnType': 'Dict' },
+                        'markets': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'market': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'tickers': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'ticker': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'book': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'depth/result': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'market/kline': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'post': {
-                        'account/balances': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/balance': { 'cost': 1, 'returnType': 'Dict' },
-                        'order/new': { 'cost': 1, 'returnType': 'Dict' },
-                        'order/cancel': { 'cost': 1, 'returnType': 'Dict' },
-                        'orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/market_order_history': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/market_deal_history': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/order': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/order_history': { 'cost': 1, 'returnType': 'Dict' },
-                        'account/executed_history': { 'cost': 1, 'returnType': 'Dict' },
+                        'account/balances': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/balance': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'order/new': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'order/cancel': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/market_order_history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/market_deal_history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/order': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/order_history': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'account/executed_history': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
             },

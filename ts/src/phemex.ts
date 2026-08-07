@@ -6,7 +6,7 @@ import Exchange from './abstract/phemex.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Fee, FeeString, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Fee, FeeString, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL, EndpointSpec } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -155,154 +155,154 @@ export default class phemex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'cfg/v2/products': { 'cost': 5, 'returnType': 'Dict' }, // spot + contracts
-                        'cfg/fundingRates': { 'cost': 5, 'returnType': 'List' },
-                        'products': { 'cost': 5, 'returnType': 'Dict' }, // contracts only
-                        'nomics/trades': { 'cost': 5, 'returnType': 'Dict' }, // ?market=<symbol>&since=<since>
-                        'md/kline': { 'cost': 5, 'returnType': 'Dict' }, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
-                        'md/v2/kline/list': { 'cost': 5, 'returnType': 'Dict' }, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
-                        'md/v2/kline': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/v2/kline/last': { 'cost': 5, 'returnType': 'Dict' }, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/orderbook': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'md/trade': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'md/spot/ticker/24hr': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'exchange/public/cfg/chain-settings': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>
+                        'cfg/v2/products': { 'cost': 5 } as EndpointSpec<Dict>, // spot + contracts
+                        'cfg/fundingRates': { 'cost': 5 } as EndpointSpec<List>,
+                        'products': { 'cost': 5 } as EndpointSpec<Dict>, // contracts only
+                        'nomics/trades': { 'cost': 5 } as EndpointSpec<Dict>, // ?market=<symbol>&since=<since>
+                        'md/kline': { 'cost': 5 } as EndpointSpec<Dict>, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list': { 'cost': 5 } as EndpointSpec<Dict>, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/v2/kline/last': { 'cost': 5 } as EndpointSpec<Dict>, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/orderbook': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'md/trade': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'md/spot/ticker/24hr': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'exchange/public/cfg/chain-settings': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>
                     },
                 },
                 'v1': {
                     'get': {
-                        'md/fullbook': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'md/orderbook': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'md/trade': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr/all': { 'cost': 5, 'returnType': 'Dict' }, // ?id=<id>
-                        'md/spot/ticker/24hr': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&id=<id>
-                        'md/spot/ticker/24hr/all': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&id=<id>
-                        'exchange/public/products': { 'cost': 5, 'returnType': 'Dict' }, // contracts only
-                        'api-data/public/data/funding-rate-history': { 'cost': 5, 'returnType': 'Dict' },
+                        'md/fullbook': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'md/orderbook': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'md/trade': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr/all': { 'cost': 5 } as EndpointSpec<Dict>, // ?id=<id>
+                        'md/spot/ticker/24hr': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&id=<id>
+                        'md/spot/ticker/24hr/all': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&id=<id>
+                        'exchange/public/products': { 'cost': 5 } as EndpointSpec<Dict>, // contracts only
+                        'api-data/public/data/funding-rate-history': { 'cost': 5 } as EndpointSpec<Dict>,
                     },
                 },
                 'v2': {
                     'get': {
-                        'public/products': { 'cost': 5, 'returnType': 'Dict' },
-                        'public/products-plus': { 'cost': 5, 'returnType': 'Dict' },
-                        'md/v2/orderbook': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&id=<id>
-                        'md/v2/trade': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr/all': { 'cost': 5, 'returnType': 'Dict' }, // ?id=<id>
-                        'api-data/public/data/funding-rate-history': { 'cost': 5, 'returnType': 'Dict' },
+                        'public/products': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'public/products-plus': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'md/v2/orderbook': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all': { 'cost': 5 } as EndpointSpec<Dict>, // ?id=<id>
+                        'api-data/public/data/funding-rate-history': { 'cost': 5 } as EndpointSpec<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         // spot
-                        'spot/orders/active': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/active': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>&orderID=<orderID>
                         // 'spot/orders/active': 5, // ?symbol=<symbol>&clOrDID=<clOrdID>
-                        'spot/orders': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'spot/wallets': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>
-                        'exchange/spot/order': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/spot/order/trades': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/order/v2/orderList': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
-                        'exchange/order/v2/tradingList': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'spot/orders': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'spot/wallets': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>
+                        'exchange/spot/order': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/spot/order/trades': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/order/v2/orderList': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
+                        'exchange/order/v2/tradingList': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         // swap
-                        'accounts/accountPositions': { 'cost': 1, 'returnType': 'Dict' }, // ?currency=<currency>
-                        'g-accounts/accountPositions': { 'cost': 1, 'returnType': 'Dict' }, // ?currency=<currency>
-                        'g-accounts/positions': { 'cost': 25, 'returnType': 'Dict' }, // ?currency=<currency>
-                        'g-accounts/risk-unit': { 'cost': 1, 'returnType': 'Dict' },
-                        'api-data/futures/funding-fees': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'api-data/g-futures/funding-fees': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'api-data/futures/orders': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
-                        'api-data/g-futures/orders': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
-                        'api-data/futures/orders/by-order-id': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
-                        'api-data/g-futures/orders/by-order-id': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'api-data/futures/trades': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
-                        'api-data/g-futures/trades': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
-                        'api-data/futures/trading-fees': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
-                        'api-data/g-futures/trading-fees': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
-                        'api-data/futures/v2/tradeAccountDetail': { 'cost': 5, 'returnType': 'List' }, // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
-                        'api-data/g-futures/closedPosition': { 'cost': 5, 'returnType': 'Dict' },
-                        'g-orders/activeList': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'orders/activeList': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'exchange/order/list': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
-                        'exchange/order': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
+                        'accounts/accountPositions': { 'cost': 1 } as EndpointSpec<Dict>, // ?currency=<currency>
+                        'g-accounts/accountPositions': { 'cost': 1 } as EndpointSpec<Dict>, // ?currency=<currency>
+                        'g-accounts/positions': { 'cost': 25 } as EndpointSpec<Dict>, // ?currency=<currency>
+                        'g-accounts/risk-unit': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'api-data/futures/funding-fees': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'api-data/g-futures/funding-fees': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'api-data/futures/orders': { 'cost': 5 } as EndpointSpec<List>, // ?symbol=<symbol>
+                        'api-data/g-futures/orders': { 'cost': 5 } as EndpointSpec<List>, // ?symbol=<symbol>
+                        'api-data/futures/orders/by-order-id': { 'cost': 5 } as EndpointSpec<List>, // ?symbol=<symbol>
+                        'api-data/g-futures/orders/by-order-id': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'api-data/futures/trades': { 'cost': 5 } as EndpointSpec<List>, // ?symbol=<symbol>
+                        'api-data/g-futures/trades': { 'cost': 5 } as EndpointSpec<List>, // ?symbol=<symbol>
+                        'api-data/futures/trading-fees': { 'cost': 5 } as EndpointSpec<List>, // ?symbol=<symbol>
+                        'api-data/g-futures/trading-fees': { 'cost': 5 } as EndpointSpec<List>, // ?symbol=<symbol>
+                        'api-data/futures/v2/tradeAccountDetail': { 'cost': 5 } as EndpointSpec<List>, // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/g-futures/closedPosition': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'g-orders/activeList': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'orders/activeList': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'exchange/order/list': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
+                        'exchange/order': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
                         // 'exchange/order': 5, // ?symbol=<symbol>&clOrdID=<clOrdID5,clOrdID2>
-                        'exchange/order/trade': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'phemex-user/users/children': { 'cost': 5, 'returnType': 'Dict' }, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-user/wallets/v2/depositAddress': { 'cost': 5, 'returnType': 'Dict' }, // ?_t=1592722635531&currency=USDT
-                        'phemex-user/wallets/tradeAccountDetail': { 'cost': 5, 'returnType': 'Dict' }, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
-                        'phemex-deposit/wallets/api/depositAddress': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&chainName=<chainName>
-                        'phemex-deposit/wallets/api/depositHist': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-deposit/wallets/api/chainCfg': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>
-                        'phemex-withdraw/wallets/api/withdrawHist': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-withdraw/wallets/api/asset/info': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&amount=<amount>
-                        'phemex-user/order/closedPositionList': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
-                        'exchange/margins/transfer': { 'cost': 5, 'returnType': 'Dict' }, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'exchange/wallets/confirm/withdraw': { 'cost': 5, 'returnType': 'Dict' }, // ?code=<withdrawConfirmCode>
-                        'exchange/wallets/withdrawList': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'exchange/wallets/depositList': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&offset=<offset>&limit=<limit>
-                        'exchange/wallets/v2/depositAddress': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>
-                        'api-data/spots/funds': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'api-data/spots/orders': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>
-                        'api-data/spots/orders/by-order-id': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
-                        'api-data/spots/pnls': { 'cost': 5, 'returnType': 'List' },
-                        'api-data/spots/trades': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>
-                        'api-data/spots/trades/by-order-id': { 'cost': 5, 'returnType': 'List' }, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
-                        'assets/convert': { 'cost': 5, 'returnType': 'Dict' }, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
+                        'exchange/order/trade': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'phemex-user/users/children': { 'cost': 5 } as EndpointSpec<Dict>, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-user/wallets/v2/depositAddress': { 'cost': 5 } as EndpointSpec<Dict>, // ?_t=1592722635531&currency=USDT
+                        'phemex-user/wallets/tradeAccountDetail': { 'cost': 5 } as EndpointSpec<Dict>, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-deposit/wallets/api/depositAddress': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>&chainName=<chainName>
+                        'phemex-deposit/wallets/api/depositHist': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-deposit/wallets/api/chainCfg': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>
+                        'phemex-withdraw/wallets/api/withdrawHist': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-withdraw/wallets/api/asset/info': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>&amount=<amount>
+                        'phemex-user/order/closedPositionList': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
+                        'exchange/margins/transfer': { 'cost': 5 } as EndpointSpec<Dict>, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'exchange/wallets/confirm/withdraw': { 'cost': 5 } as EndpointSpec<Dict>, // ?code=<withdrawConfirmCode>
+                        'exchange/wallets/withdrawList': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'exchange/wallets/depositList': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>&offset=<offset>&limit=<limit>
+                        'exchange/wallets/v2/depositAddress': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>
+                        'api-data/spots/funds': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'api-data/spots/orders': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>
+                        'api-data/spots/orders/by-order-id': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'api-data/spots/pnls': { 'cost': 5 } as EndpointSpec<List>,
+                        'api-data/spots/trades': { 'cost': 5 } as EndpointSpec<List>, // ?symbol=<symbol>
+                        'api-data/spots/trades/by-order-id': { 'cost': 5 } as EndpointSpec<List>, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'assets/convert': { 'cost': 5 } as EndpointSpec<Dict>, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         // transfer
-                        'assets/transfer': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/spots/sub-accounts/transfer': { 'cost': 5, 'returnType': 'List' }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/futures/sub-accounts/transfer': { 'cost': 5, 'returnType': 'List' }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/quote': { 'cost': 5, 'returnType': 'Dict' }, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        'assets/transfer': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer': { 'cost': 5 } as EndpointSpec<List>, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer': { 'cost': 5 } as EndpointSpec<List>, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/quote': { 'cost': 5 } as EndpointSpec<Dict>, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
                     },
                     'post': {
                         // spot
-                        'spot/orders': { 'cost': 1, 'returnType': 'Dict' },
+                        'spot/orders': { 'cost': 1 } as EndpointSpec<Dict>,
                         // swap
-                        'orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'g-orders': { 'cost': 1, 'returnType': 'Dict' },
-                        'positions/assign': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
-                        'exchange/wallets/transferOut': { 'cost': 5, 'returnType': 'Dict' },
-                        'exchange/wallets/transferIn': { 'cost': 5, 'returnType': 'Dict' },
-                        'exchange/margins': { 'cost': 5, 'returnType': 'Dict' },
-                        'exchange/wallets/createWithdraw': { 'cost': 5, 'returnType': 'Dict' }, // ?otpCode=<otpCode>
-                        'exchange/wallets/cancelWithdraw': { 'cost': 5, 'returnType': 'Dict' },
-                        'exchange/wallets/createWithdrawAddress': { 'cost': 5, 'returnType': 'Dict' }, // ?otpCode={optCode}
+                        'orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'g-orders': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'positions/assign': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
+                        'exchange/wallets/transferOut': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'exchange/wallets/transferIn': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'exchange/margins': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'exchange/wallets/createWithdraw': { 'cost': 5 } as EndpointSpec<Dict>, // ?otpCode=<otpCode>
+                        'exchange/wallets/cancelWithdraw': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'exchange/wallets/createWithdrawAddress': { 'cost': 5 } as EndpointSpec<Dict>, // ?otpCode={optCode}
                         // transfer
-                        'assets/transfer': { 'cost': 5, 'returnType': 'Dict' },
-                        'assets/spots/sub-accounts/transfer': { 'cost': 5, 'returnType': 'Dict' }, // for sub-account only
-                        'assets/futures/sub-accounts/transfer': { 'cost': 5, 'returnType': 'Dict' }, // for sub-account only
-                        'assets/universal-transfer': { 'cost': 5, 'returnType': 'Dict' }, // for Main account only
-                        'assets/convert': { 'cost': 5, 'returnType': 'Dict' },
+                        'assets/transfer': { 'cost': 5 } as EndpointSpec<Dict>,
+                        'assets/spots/sub-accounts/transfer': { 'cost': 5 } as EndpointSpec<Dict>, // for sub-account only
+                        'assets/futures/sub-accounts/transfer': { 'cost': 5 } as EndpointSpec<Dict>, // for sub-account only
+                        'assets/universal-transfer': { 'cost': 5 } as EndpointSpec<Dict>, // for Main account only
+                        'assets/convert': { 'cost': 5 } as EndpointSpec<Dict>,
                         // withdraw
-                        'phemex-withdraw/wallets/api/createWithdraw': { 'cost': 5, 'returnType': 'Dict' }, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
-                        'phemex-withdraw/wallets/api/cancelWithdraw': { 'cost': 5, 'returnType': 'Dict' }, // ?id=<id>
+                        'phemex-withdraw/wallets/api/createWithdraw': { 'cost': 5 } as EndpointSpec<Dict>, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
+                        'phemex-withdraw/wallets/api/cancelWithdraw': { 'cost': 5 } as EndpointSpec<Dict>, // ?id=<id>
                     },
                     'put': {
                         // spot
-                        'spot/orders/create': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
-                        'spot/orders': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
+                        'spot/orders/create': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
+                        'spot/orders': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
-                        'orders/replace': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/replace': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/create': { 'cost': 1, 'returnType': 'Dict' },
-                        'positions/leverage': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/leverage': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/switch-pos-mode-sync': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
-                        'positions/riskLimit': { 'cost': 5, 'returnType': 'Dict' }, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                        'orders/replace': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/create': { 'cost': 1 } as EndpointSpec<Dict>,
+                        'positions/leverage': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/leverage': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/switch-pos-mode-sync': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
+                        'positions/riskLimit': { 'cost': 5 } as EndpointSpec<Dict>, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
                     },
                     'delete': {
                         // spot
-                        'spot/orders': { 'cost': 2, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>
-                        'spot/orders/all': { 'cost': 2, 'returnType': 'Dict' }, // ?symbol=<symbol>&untriggered=<untriggered>
+                        'spot/orders': { 'cost': 2 } as EndpointSpec<Dict>, // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all': { 'cost': 2 } as EndpointSpec<Dict>, // ?symbol=<symbol>&untriggered=<untriggered>
                         // 'spot/orders': 5, // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
-                        'orders/cancel': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>
-                        'orders': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'orders/all': { 'cost': 3, 'returnType': 'Dict' }, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        'g-orders/cancel': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders': { 'cost': 1, 'returnType': 'Dict' }, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all': { 'cost': 3, 'returnType': 'Dict' }, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'orders/cancel': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>&orderID=<orderID>
+                        'orders': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'orders/all': { 'cost': 3 } as EndpointSpec<Dict>, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders': { 'cost': 1 } as EndpointSpec<Dict>, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all': { 'cost': 3 } as EndpointSpec<Dict>, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     },
                 },
             },

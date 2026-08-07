@@ -29,6 +29,26 @@ export type NullableDict = Dict | undefined;
 export type List = Array<any>;
 export type NullableList = List | undefined;
 
+// One endpoint leaf of an exchange's describe()['api'] tree. `Returns` is a
+// phantom type parameter: it carries the TypeScript type that endpoint answers
+// with, without adding any runtime value to the leaf, so the object the rate
+// limiter sees is still exactly the cost-carrying keys it always was.
+//
+//     'klines': { 'cost': 1 } as EndpointSpec<List>,
+//
+// build/generateImplicitAPI.ts resolves that type argument from the source with
+// the TypeScript compiler API and emits `Promise<List>` for the corresponding
+// generated method. A leaf with no assertion declares no shape and falls back
+// to the generator's permissive default. `Returns` is constrained to the three
+// shapes a decoded JSON body can take, so a type argument the generated file
+// could not import fails here, where it is written, rather than as a dangling
+// reference in a generated one.
+export interface EndpointSpec<Returns extends Dict | List | string> {
+    cost?: number;
+    // never read at runtime — only the declared type of this member matters
+    returns?: Returns;
+}
+
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
 

@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
-import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, EndpointSpec, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -89,48 +89,48 @@ export default class nado extends Exchange {
                 'gateway': {
                     'public': {
                         'get': {
-                            'symbols': { 'cost': 2, 'returnType': 'List' },
-                            'query': { 'cost': 1, 'returnType': 'Dict' },
-                            'edge/query': { 'cost': 1, 'returnType': 'Dict' },
+                            'symbols': { 'cost': 2 } as EndpointSpec<List>,
+                            'query': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'edge/query': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                         'post': {
-                            'query': { 'cost': 1, 'returnType': 'Dict' },
+                            'query': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                     'private': {
                         'post': {
-                            'execute': { 'cost': 1, 'returnType': 'Dict' },
+                            'execute': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                 },
                 'gatewayV2': {
                     'public': {
                         'get': {
-                            'assets': { 'cost': 2, 'returnType': 'List' },
-                            'pairs': { 'cost': 1, 'returnType': 'List' },
-                            'orderbook': { 'cost': 1, 'returnType': 'Dict' },
+                            'assets': { 'cost': 2 } as EndpointSpec<List>,
+                            'pairs': { 'cost': 1 } as EndpointSpec<List>,
+                            'orderbook': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': { 'cost': 1, 'returnType': 'Dict' },
+                        '': { 'cost': 1 } as EndpointSpec<Dict>,
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': { 'cost': 1, 'returnType': 'List' },
-                            'contracts': { 'cost': 1, 'returnType': 'Dict' },
-                            'trades': { 'cost': 1, 'returnType': 'List' },
+                            'tickers': { 'cost': 1 } as EndpointSpec<List>,
+                            'contracts': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'trades': { 'cost': 1 } as EndpointSpec<List>,
                         },
                     },
                 },
                 'trigger': {
                     'private': {
                         'post': {
-                            'execute': { 'cost': 1, 'returnType': 'Dict' },
-                            'query': { 'cost': 1, 'returnType': 'Dict' },
+                            'execute': { 'cost': 1 } as EndpointSpec<Dict>,
+                            'query': { 'cost': 1 } as EndpointSpec<Dict>,
                         },
                     },
                 },
