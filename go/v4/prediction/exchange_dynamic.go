@@ -7,6 +7,10 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (ccxt.ICoreExchange, bool) {
 	switch exchangeId {
+	case "binance":
+		binanceItf := NewBinanceCore()
+		binanceItf.Init(exchangeArgs)
+		return binanceItf, true
 	case "hyperliquid":
 		hyperliquidItf := NewHyperliquidCore()
 		hyperliquidItf.Init(exchangeArgs)

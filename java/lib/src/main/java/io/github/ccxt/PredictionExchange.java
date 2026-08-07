@@ -2465,6 +2465,30 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
 
 
 
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            /**
+            * @method
+            * @name createMarketOrderWithCost
+            * @description create a market order by providing the symbol, side and cost
+            * @param {string} symbol unified symbol of the market to create an order in
+            * @param {string} side 'buy' or 'sell'
+            * @param {float} cost how much you want to trade in units of the quote currency
+            * @param {object} [params] extra parameters specific to the exchange API endpoint
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+            */
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.has, "createMarketOrderWithCost")) || Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost")) && Helpers.isTrue(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"))))))
+            {
+                return (this.createOrder(symbol, "market", side, cost, 1, parameters)).join();
+            }
+            throw new NotSupported((String)Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
+        });
+
+    }
 
 
 
