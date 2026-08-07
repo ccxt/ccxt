@@ -277,35 +277,6 @@ export default class weex extends Exchange {
                 },
                 'contractPrivate': {
                     'get': {
-                        'capi/v3/account/balance': 10, // done
-                        'capi/v3/account/commissionRate': 10, // done
-                        'capi/v3/account/accountConfig': 10, // not unified
-                        'capi/v3/account/symbolConfig': 10, // done
-                        'capi/v3/account/position/allPosition': 15, // done
-                        'capi/v3/account/position/singlePosition': 3, // done
-                        'capi/v3/order': 3, // done
-                        'capi/v3/openOrders': 5, // done
-                        'capi/v3/order/history': 10, // done
-                        'capi/v3/userTrades': 5, // done
-                        'capi/v3/openAlgoOrders': 3, // done
-                        'capi/v3/allAlgoOrders': 10, // not unified - capi/v3/order/history returns both regular and algo orders
-                        'capi/v3/sim/balance': 10, // done - demo trading variant of capi/v3/account/balance
-                        'capi/v3/sim/position/allPosition': 15, // done - demo trading variant of capi/v3/account/position/allPosition
-                        'capi/v3/sim/order/history': 10, // done - demo trading variant of capi/v3/order/history
-                    },
-                    'post': {
-                        'capi/v3/account/income': 5, // done
-                        'capi/v3/account/marginType': 50, // done
-                        'capi/v3/account/leverage': 20, // done
-                        'capi/v3/account/positionMargin': 30, // done
-                        'capi/v3/account/modifyAutoAppendMargin': 30, // not unified
-                        'capi/v3/order': 5, // done
-                        'capi/v3/batchOrders': 10, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
-                        'capi/v3/closePositions': 50, // done
-                        'capi/v3/algoOrder': 5, // done
-                        'capi/v3/placeTpSlOrder': 5, // not unified
-                        'capi/v3/modifyTpSlOrder': 5, // not unified
-                        'capi/v3/sim/order': 5, // done - demo trading variant of capi/v3/order
                         'capi/v3/account/balance': { 'cost': 10 } as Endpoint<Dict>, // done
                         'capi/v3/account/commissionRate': { 'cost': 10 } as Endpoint<Dict>, // done
                         'capi/v3/account/accountConfig': { 'cost': 10 } as Endpoint<Dict>, // not unified
@@ -318,6 +289,9 @@ export default class weex extends Exchange {
                         'capi/v3/userTrades': { 'cost': 5 } as Endpoint<List>, // done
                         'capi/v3/openAlgoOrders': { 'cost': 3 } as Endpoint<List>, // done
                         'capi/v3/allAlgoOrders': { 'cost': 10 } as Endpoint<Dict>, // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/sim/balance': { 'cost': 10 } as Endpoint<List>, // done - demo trading variant of capi/v3/account/balance
+                        'capi/v3/sim/position/allPosition': { 'cost': 15 } as Endpoint<List>, // done - demo trading variant of capi/v3/account/position/allPosition
+                        'capi/v3/sim/order/history': { 'cost': 10 } as Endpoint<List>, // done - demo trading variant of capi/v3/order/history
                     },
                     'post': {
                         'capi/v3/account/income': { 'cost': 5 } as Endpoint<Dict>, // done
@@ -331,6 +305,7 @@ export default class weex extends Exchange {
                         'capi/v3/algoOrder': { 'cost': 5 } as Endpoint<Dict>, // done
                         'capi/v3/placeTpSlOrder': { 'cost': 5 } as Endpoint<List>, // not unified
                         'capi/v3/modifyTpSlOrder': { 'cost': 5 } as Endpoint<Dict>, // not unified
+                        'capi/v3/sim/order': { 'cost': 5 } as Endpoint<Dict>, // done - demo trading variant of capi/v3/order
                     },
                     'delete': {
                         'capi/v3/order': { 'cost': 3 } as Endpoint<Dict>, // done
