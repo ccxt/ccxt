@@ -2453,7 +2453,7 @@ export default class toobit extends Exchange {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let response: Dict | List = [];
+        let response: List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
             //
@@ -2766,7 +2766,7 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: Dict | List = [];
+        let response: List = [];
         if (type === 'deposits') {
             response = await this.privateGetApiV1AccountDepositOrders (this.extend (request, params));
             //

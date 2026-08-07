@@ -981,7 +981,7 @@ export default class derive extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    override parseTrades (trades: Dict | List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    override parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         const tradesArray = this.toArray (trades);
         let result: Trade[] = [];
         for (let i = 0; i < tradesArray.length; i++) {

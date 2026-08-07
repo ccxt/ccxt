@@ -395,6 +395,71 @@ public partial class BaseExchange
         throw new Exception("Endpoint not found!");
     }
 
+    /// <summary>
+    /// Calls one implicit API endpoint by its generated name.
+    /// </summary>
+    /// <remarks>
+    /// The type argument is the shape the endpoint's api leaf declares in the
+    /// TypeScript source (<c>{ 'cost': 1 } as Endpoint&lt;List&gt;</c>), which
+    /// build/generateImplicitAPI.ts writes onto every generated ccxt.api
+    /// method. JsonHelper.Deserialize builds Dictionary&lt;string, object&gt;
+    /// for a JSON object and List&lt;object&gt; for a JSON array.
+    /// When the declared shape and the body disagree (mis-declared leaf, or a
+    /// static fixture whose container kind differs), the raw body is still
+    /// returned rather than default(T): silent nulls emptied parseBalance /
+    /// parseTicker results in STATIC_RESPONSE. Unparseable error pages arrive
+    /// as string and become default(T) so transport stays non-throwing.
+    /// </remarks>
+    public async virtual Task<T> callAsync<T>(object implicitEndpoint2, object parameters = null)
+    {
+        var res = await this.callAsync(implicitEndpoint2, parameters);
+        if (res is T typed)
+        {
+            return typed;
+        }
+        if (res == null || res is string)
+        {
+            return default(T);
+        }
+        // Coerce the common JSON containers when the concrete runtime type is a
+        // sibling IDictionary/IList rather than exactly Dictionary/List<object>.
+        var target = typeof(T);
+        if ((target == typeof(Dictionary<string, object>) || target == typeof(IDictionary<string, object>)) && res is System.Collections.IDictionary idict)
+        {
+            var d = new Dictionary<string, object>();
+            foreach (System.Collections.DictionaryEntry entry in idict)
+            {
+                d[Convert.ToString(entry.Key)] = entry.Value;
+            }
+            return (T)(object)d;
+        }
+        if (target == typeof(List<object>) && res is System.Collections.IList ilist)
+        {
+            var list = new List<object>();
+            foreach (var item in ilist)
+            {
+                list.Add(item);
+            }
+            return (T)(object)list;
+        }
+        // Declared shape wrong but body is still useful to parse* — hand it
+        // through when T is a reference type the runtime value already is.
+        if (res is T retry)
+        {
+            return retry;
+        }
+        // Last resort: keep the payload for object-typed callers / dynamic use.
+        // Prefer a wrong-shape body over default(T) null (which erases balances).
+        try
+        {
+            return (T)res;
+        }
+        catch (InvalidCastException)
+        {
+            return default(T);
+        }
+    }
+
     public async virtual Task<object> callAsync(object implicitEndpoint2, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1090,9 +1155,13 @@ public partial class BaseExchange
             try
             {
                 var invokedAction = DynamicInvoker.InvokeMethod(action, args);
-                if (invokedAction is Task<object>)
+                // Task<T> is invariant, so a narrowed implicit API method
+                // (Task<Dictionary<string, object>>) is not a Task<object> —
+                // normalize before testing, or its result never resolves.
+                var invokedTask = Exchange.AsTaskOfObject(invokedAction);
+                if (invokedTask != null)
                 {
-                    var res = (Task<object>)invokedAction;
+                    var res = invokedTask;
                     res.Wait();
                     future.resolve(res.Result);
                     return;

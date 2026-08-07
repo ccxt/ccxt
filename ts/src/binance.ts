@@ -5410,9 +5410,9 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        let responseList: Dict | List = [];
+        let responseList: List = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray (response);
         }
         return this.parseTrades (responseList, market, since, limit);
     }
@@ -8536,9 +8536,9 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        let responseList: Dict | List = [];
+        let responseList: List = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray (response);
         }
         return this.parseTrades (responseList, market, since, limit);
     }
@@ -15065,9 +15065,9 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        let responseList: Dict | List = [];
+        let responseList: List = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray (response);
         }
         return this.parseADLRanks (responseList, symbols);
     }

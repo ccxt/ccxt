@@ -6031,7 +6031,7 @@ export class BaseExchange {
         return position as Position;
     }
 
-    parsePositions (positions: Dict | List, symbols: Strings = undefined, params = {}): Position[] {
+    parsePositions (positions: List, symbols: Strings = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         const positionsArray = this.toArray (positions);
         const result: Position[] = [];
@@ -6049,7 +6049,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseADLRank() is not supported yet');
     }
 
-    parseADLRanks (ranks: Dict | List, symbols: Strings = undefined, params = {}): ADL[] {
+    parseADLRanks (ranks: List, symbols: Strings = undefined, params = {}): ADL[] {
         symbols = this.marketSymbols (symbols);
         const ranksArray = this.toArray (ranks);
         const result: ADL[] = [];
@@ -6060,7 +6060,7 @@ export class BaseExchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseAccounts (accounts: Dict | List, params = {}): Account[] {
+    parseAccounts (accounts: List, params = {}): Account[] {
         const accountsArray = this.toArray (accounts);
         const result: Account[] = [];
         for (let i = 0; i < accountsArray.length; i++) {
@@ -6070,7 +6070,7 @@ export class BaseExchange {
         return result;
     }
 
-    parseTradesHelper (isWs: boolean, trades: Dict | List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTradesHelper (isWs: boolean, trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         const tradesArray = this.toArray (trades);
         let result: Trade[] = [];
         for (let i = 0; i < tradesArray.length; i++) {
@@ -6088,15 +6088,15 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTrades (trades: Dict | List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         return this.parseTradesHelper (false, trades, market, since, limit, params);
     }
 
-    parseWsTrades (trades: Dict | List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseWsTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         return this.parseTradesHelper (true, trades, market, since, limit, params);
     }
 
-    parseTransactions (transactions: Dict | List, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+    parseTransactions (transactions: List, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         const transactionsArray = this.toArray (transactions);
         let result: Transaction[] = [];
         for (let i = 0; i < transactionsArray.length; i++) {
@@ -6108,7 +6108,7 @@ export class BaseExchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers: Dict | List, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntry[] {
+    parseTransfers (transfers: List, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntry[] {
         const transfersArray = this.toArray (transfers);
         let result: TransferEntry[] = [];
         for (let i = 0; i < transfersArray.length; i++) {
@@ -8686,7 +8686,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseLeverage () is not supported yet');
     }
 
-    parseConversions (conversions: Dict | List, code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
+    parseConversions (conversions: List, code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
         const conversionsArray = this.toArray (conversions);
         const result: Dict[] = [];
         let fromCurrency: Currency = undefined;

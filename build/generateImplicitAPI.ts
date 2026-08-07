@@ -286,6 +286,204 @@ function typescriptImportedTypes (exchange: string): string[] {
     return imported;
 }
 
+// -------------------------------------------------------------------------
+// The same per-endpoint shape, spelled for the other ports.
+//
+// A declared shape is a fact about the decoded JSON body, so it is worth the
+// same in every language — but not every language can carry it in the same
+// place. PHP, Python, C# and Java can express it where a caller and a type
+// checker will both see it; Go cannot narrow its generated signature without
+// dropping the panic-string-on-channel error multiplexing, so there the shape
+// is documented rather than declared. Each mapping is derived from the one
+// storedReturnTypes map, so all six languages stay in step with the api leaf
+// by construction.
+// -------------------------------------------------------------------------
+
+// the members a declared shape can be built out of, per language
+const PHPDOC_RETURN_TYPES: Dict = {
+    'Dict': 'array<string, mixed>',
+    'List': 'list<mixed>',
+    'string': 'string',
+};
+const PYTHON_RETURN_ALIASES: Dict = {
+    'Dict': '_Dict',
+    'List': '_List',
+    'string': 'str',
+};
+// C# and Java get the concrete runtime types their JSON decoders actually
+// produce, so the declared type is castable rather than merely descriptive:
+// JsonHelper.Deserialize builds Dictionary<string, object> / List<object>
+// (Exchange.JSONHelper.cs), and Jackson's Object binding builds
+// LinkedHashMap / ArrayList, which satisfy Map<String, Object> / List<Object>.
+const CSHARP_RETURN_TYPES: Dict = {
+    'Dict': 'Dictionary<string, object>',
+    'List': 'List<object>',
+    'string': 'string',
+};
+const JAVA_RETURN_TYPES: Dict = {
+    'Dict': 'java.util.Map<String, Object>',
+    'List': 'java.util.List<Object>',
+    'string': 'String',
+};
+const PROSE_RETURN_SHAPES: Dict = {
+    'Dict': 'a JSON object',
+    'List': 'a JSON array',
+    'string': 'a JSON scalar',
+};
+
+// split a declared type into its union members ('Dict | List' -> [Dict, List])
+function returnTypeMembers (exchange: string, method: string): string[] {
+    return typescriptReturnType (exchange, method).split ('|').map ((name) => name.trim ());
+}
+
+// the PHPDoc type for one generated method. PHP has one `array` for both an
+// object and a list, so a native `: array` throws the Dict/List distinction
+// away; the PHPStan/Psalm array shapes keep it next to the coarse native
+// return type (see phpNativeReturnType).
+function phpdocReturnType (exchange: string, method: string): string {
+    const members = returnTypeMembers (exchange, method).map ((name) => PHPDOC_RETURN_TYPES[name] || 'mixed');
+    return members.join ('|');
+}
+
+// native PHP return type for the *sync* abstract only. Dict and List both
+// collapse to `array`; string stays `string`; multi-shape unions become
+// `array|string` (PHP 8). Empty string means "no native hint" (unknown
+// member). Async abstracts strip this suffix when derived — their request()
+// returns a Promise, not the decoded body.
+function phpNativeReturnType (exchange: string, method: string): string {
+    const members = returnTypeMembers (exchange, method);
+    const native: string[] = [];
+    for (const name of members) {
+        let part = '';
+        if ((name === 'Dict') || (name === 'List')) {
+            part = 'array';
+        } else if (name === 'string') {
+            part = 'string';
+        } else {
+            return '';
+        }
+        if (!native.includes (part)) {
+            native.push (part);
+        }
+    }
+    return native.join ('|');
+}
+
+// the Python type argument for one generated method, as an alias declared in
+// the generated module's header (see createPyHeader): subscripting the alias
+// once per module is what keeps the ~14k Entry constructions cheap.
+function pythonReturnType (exchange: string, method: string): string {
+    const members = returnTypeMembers (exchange, method);
+    const mapped = members.map ((name) => PYTHON_RETURN_ALIASES[name] || '_Any');
+    if (mapped.length === 1) {
+        return mapped[0];
+    }
+    return 'Union[' + mapped.join (', ') + ']';
+}
+
+// the Python aliases one generated module actually uses, so a module that only
+// answers with objects does not declare a list alias it never mentions
+function pythonUsedAliases (exchange: string): string[] {
+    const used: string[] = [];
+    const methods = storedCamelCaseMethods[exchange] || [];
+    for (const method of methods) {
+        for (const name of returnTypeMembers (exchange, method)) {
+            const alias = PYTHON_RETURN_ALIASES[name] || '_Any';
+            if ((alias[0] === '_') && !used.includes (alias)) {
+                used.push (alias);
+            }
+        }
+    }
+    return used;
+}
+
+// whether any endpoint on this exchange needs a multi-member return (Union[...])
+function pythonNeedsUnion (exchange: string): boolean {
+    const methods = storedCamelCaseMethods[exchange] || [];
+    for (const method of methods) {
+        if (returnTypeMembers (exchange, method).length > 1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// storedPyMethods[exchange][1] is the alias block, left empty by createPyHeader
+// for the same reason the TypeScript import line is: the set of shapes an
+// exchange answers with is only known after generateImplicitMethodNames ran.
+// Import only the typing names the aliases/unions actually reference — ruff F401
+// fails the Python qa gate on unused List/Union when a module is Dict-only.
+function finalizePythonAliases (exchange: string) {
+    const aliases = pythonUsedAliases (exchange);
+    const needsUnion = pythonNeedsUnion (exchange);
+    if (!aliases.length && !needsUnion) {
+        storedPyMethods[exchange][1] = '';
+        return;
+    }
+    const spelled: Dict = {
+        '_Dict': 'Dict[str, PythonAny]',
+        '_List': 'List[PythonAny]',
+        '_Any': 'PythonAny',
+    };
+    // build the import from the names that appear in the alias RHS or in
+    // Entry[Union[...]] constructions; never import a name that is not used
+    const typingNames: string[] = [ 'Any as PythonAny' ];
+    if (aliases.includes ('_Dict')) {
+        typingNames.push ('Dict');
+    }
+    if (aliases.includes ('_List')) {
+        typingNames.push ('List');
+    }
+    if (needsUnion) {
+        typingNames.push ('Union');
+    }
+    const lines = [ 'from typing import ' + typingNames.join (', '), '' ];
+    for (const alias of aliases) {
+        lines.push (alias + ' = ' + spelled[alias]);
+    }
+    storedPyMethods[exchange][1] = lines.join ('\n');
+}
+
+// a one-line prose description of the decoded body, for the languages whose
+// generated signature cannot be narrowed (see createImplicitMethodsGo for why)
+function proseReturnShape (exchange: string, method: string): string {
+    const members = returnTypeMembers (exchange, method).map ((name) => PROSE_RETURN_SHAPES[name]);
+    if (members.includes (undefined)) {
+        return 'a decoded JSON value';
+    }
+    if (members.length === 1) {
+        return members[0];
+    }
+    return members.slice (0, -1).join (', ') + ' or ' + members[members.length - 1];
+}
+
+// The C#/Java type argument for one generated method. Both languages have an
+// invariant generic return (Task<T>, CompletableFuture<T>) and no union type,
+// so a multi-member shape has no honest narrowing: the least upper bound of
+// Dict/List/string is the root type itself. Those endpoints keep the widest
+// type and say why in the doc comment rather than pretending to a shape the
+// caller would have to re-test anyway.
+function narrowedReturnType (exchange: string, method: string, spelling: Dict, widest: string): string {
+    const members = returnTypeMembers (exchange, method);
+    if (members.length !== 1) {
+        return widest;
+    }
+    return spelling[members[0]] || widest;
+}
+
+function csharpReturnType (exchange: string, method: string): string {
+    return narrowedReturnType (exchange, method, CSHARP_RETURN_TYPES, 'object');
+}
+
+function javaReturnType (exchange: string, method: string): string {
+    return narrowedReturnType (exchange, method, JAVA_RETURN_TYPES, 'Object');
+}
+
+// whether a generated method kept the widest type because its shape is a union
+function isUnionShape (exchange: string, method: string): boolean {
+    return returnTypeMembers (exchange, method).length !== 1;
+}
+
 // storedTypeScriptMethods[exchange][1] is the `import { ... } from base/types.js`
 // line, left empty by createTypescriptHeader because the set of types an
 // exchange needs is only known after generateImplicitMethodNames has filled
@@ -511,9 +709,10 @@ function createImplicitMethodsPython(){
             const i = idx % underscoreMethods.length
             const camelCaseMethod = camelCaseMethods[i]
             const context = storedContext[exchange][i]
-            return `${IDEN}${method} = ${camelCaseMethod} = Entry('${context.endpoint}', ${context.pyPath}, '${context.method}', ${context.pyConfig})`
+            return `${IDEN}${method} = ${camelCaseMethod} = Entry[${pythonReturnType (exchange, camelCaseMethod)}]('${context.endpoint}', ${context.pyPath}, '${context.method}', ${context.pyConfig})`
         })
         storedPyMethods[exchange] = storedPyMethods[exchange].concat (pythonMethods)
+        finalizePythonAliases (exchange)
     }
 }
 
@@ -532,7 +731,27 @@ function createImplicitMethodsPhp(){
         const phpMethods = underscoreMethods.concat (camelCaseMethods).map ((method, idx) => {
             const i = idx % underscoreMethods.length
             const context = storedContext[exchange][i]
-            return `${IDEN}public function ${method}($params = array()) {
+            // storedReturnTypes is keyed by the camelCase name, and the two name
+            // arrays are filled in lockstep by generateImplicitMethodNames, so
+            // index i is the same endpoint in both halves of this concat
+            const bodyShape = phpdocReturnType (exchange, camelCaseMethods[i])
+            // prediction abstracts are async-only (PredictionExchange); normal
+            // REST is written as sync first and rewritten for php/async/abstract
+            if (isPrediction) {
+                return `${IDEN}/**
+${IDEN} * @return \\React\\Promise\\PromiseInterface<${bodyShape}>
+${IDEN} */
+${IDEN}public function ${method}($params = array()): \\React\\Promise\\PromiseInterface {
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
+${IDEN}}`
+            }
+            // Sync REST: shape stays in @return only. A native `: array` TypeErrors when
+            // the transport hands back a raw string (error page / some STATIC_RESPONSE
+            // fixtures), which is a real runtime path handleRestResponse already allows.
+            return `${IDEN}/**
+${IDEN} * @return ${bodyShape}
+${IDEN} */
+${IDEN}public function ${method}($params = array()) {
 ${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
 ${IDEN}}`
         })
@@ -573,7 +792,18 @@ function createImplicitMethodsCSharp(){
         const methodNames = storedCamelCaseMethods[exchange];
 
         const methods =  methodNames.map(method=> {
+            // Signature stays Task<object>: Task<T> is reified/invariant, and a
+            // hard is-T filter in callAsync silently dropped real JSON bodies
+            // whenever the declared leaf shape disagreed with the fixture
+            // (STATIC_RESPONSE emptied balances/tickers). Shape is documented
+            // on <returns>; callers that want Task<T> can call callAsync<T>
+            // directly. (Java keeps a typed Future via erasure — different.)
+            const shape = isUnionShape (exchange, method)
+                ? `${proseReturnShape (exchange, method)}, so this endpoint keeps object`
+                : proseReturnShape (exchange, method);
             return [
+                `${IDEN}/// <summary>Calls the ${method} endpoint.</summary>`,
+                `${IDEN}/// <returns>${shape} (runtime type: ${csharpReturnType (exchange, method)})</returns>`,
                 `${IDEN}public async Task<object> ${method} (object parameters = null)`,
                 `${IDEN}{`,
                 `${IDEN}${IDEN}return await this.callAsync ("${method}",parameters);`,
@@ -595,8 +825,21 @@ function createImplicitMethodsJava(){
         const methodNames = storedCamelCaseMethods[exchange];
 
         const methods =  methodNames.map(method=> {
+            // callAsync is generic, so the declared shape lands on the
+            // signature itself. The types are fully qualified because the
+            // generated api classes import nothing but io.github.ccxt.Exchange.
+            const returns = javaReturnType (exchange, method);
+            const shape = isUnionShape (exchange, method)
+                ? `${proseReturnShape (exchange, method)}, so this endpoint keeps Object`
+                : proseReturnShape (exchange, method);
             return [
-                `${IDEN}public java.util.concurrent.CompletableFuture<Object>  ${method} (Object... optionalArgs)`,
+                `${IDEN}/**`,
+                `${IDEN} * Calls the ${method} endpoint.`,
+                `${IDEN} *`,
+                `${IDEN} * @param optionalArgs the request parameters`,
+                `${IDEN} * @return ${shape}`,
+                `${IDEN} */`,
+                `${IDEN}public java.util.concurrent.CompletableFuture<${returns}>  ${method} (Object... optionalArgs)`,
                 `${IDEN}{`,
                 `${IDEN}${IDEN}return this.callAsync ("${method}", optionalArgs);`,
                 `${IDEN}}`,
@@ -655,6 +898,7 @@ function createImplicitMethodsGo(){
         const ownMethodNames = methodNames.filter (method => !(capitalize(method) in inherited));
         const methods = ownMethodNames.map(method=> {
             return [
+                `// ${capitalize(method)} returns a channel that yields ${proseReturnShape (exchange, method)}.`,
                 `func (this *${capitalize(exchange)}Core) ${capitalize(method)}(args ...any) <-chan any {`,
                 `\treturn this.${callEndpoint}("${method}", args...)`,
                 `}`,
@@ -898,6 +1142,16 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
             Object.values (storedPhpMethods).forEach (x => {
                 x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
                 x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
+                // async Exchange::request() returns a Promise of the body, not
+                // the body. PHP has no runtime generics, so the native return
+                // is bare PromiseInterface (same as transpiled unified methods);
+                // the shape lives in @return PromiseInterface<array|list|…>
+                // for Psalm/PHPStan — parallel to TS Promise<Dict|List>.
+                for (let i = 3; i < x.length; i++) {
+                    x[i] = x[i].replace (/^(\s*) \* @return (.+)$/m, '$1 * @return \\React\\Promise\\PromiseInterface<$2>')
+                    // methods with no prior native type still get the Promise return
+                    x[i] = x[i].replace (/(public function \w+\(\$params = array\(\)) \{/g, '$1: \\React\\Promise\\PromiseInterface {')
+                }
             })
             await editFiles (ASYNC_PHP_PATH + subdir, storedPhpMethods, '.php');
             log.bright.cyan ('PHP async implicit api methods completed!')

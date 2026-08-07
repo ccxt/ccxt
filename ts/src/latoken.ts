@@ -1028,7 +1028,7 @@ export default class latoken extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response: Dict | List = [];
+        let response: List = [];
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency'] = market['baseId'];

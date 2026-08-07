@@ -2330,7 +2330,23 @@ public class BaseExchange {
         }
     }
 
-    public CompletableFuture<Object> callAsync(Object implicitEndpoint2, Object... args) {
+    /**
+     * Calls one implicit API endpoint by its generated name.
+     *
+     * <p>The type argument is the shape the endpoint's api leaf declares in the
+     * TypeScript source (`{ 'cost': 1 } as Endpoint&lt;List&gt;`), which
+     * build/generateImplicitAPI.ts writes onto every generated
+     * io.github.ccxt.api method. It is a claim about the decoded JSON body, so
+     * it is unchecked here for the same reason the rest of this class casts
+     * unchecked: erasure means nothing is verified until a caller assigns the
+     * value to a typed local, and the generated callers all widen to Object.
+     *
+     * <p>A response body that fails to parse as JSON is handed back as the raw
+     * String (see handleRestResponse), so a T of Map/List is the documented
+     * happy path rather than a runtime guarantee.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> CompletableFuture<T> callAsync(Object implicitEndpoint2, Object... args) {
         // First optional arg is "parameters"
         Object parameters = (args != null && args.length > 0) ? args[0] : null;
 
@@ -2358,7 +2374,7 @@ public class BaseExchange {
 
             // body = null here, same as in your C# comment
             // try {
-            return this.fetch2(path, api, method, parameters, emptyMap, null, costMap);
+            return (CompletableFuture<T>) this.fetch2(path, api, method, parameters, emptyMap, null, costMap);
                 // return CompletableFuture.completedFuture(res);
             // } catch (Exception e) {
             //     // throw e;
@@ -2366,7 +2382,7 @@ public class BaseExchange {
 
         }
 
-        CompletableFuture<Object> failed = new CompletableFuture<>();
+        CompletableFuture<T> failed = new CompletableFuture<>();
         failed.completeExceptionally(new RuntimeException("Endpoint not found!"));
         return failed;
     }

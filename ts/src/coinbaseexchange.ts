@@ -739,7 +739,8 @@ export default class coinbaseexchange extends Exchange {
         //         },
         //     ]
         //
-        return this.parseAccounts (response, params);
+        const accounts = this.toArray (response);
+        return this.parseAccounts (accounts, params);
     }
 
     override parseAccount (account: any) {
