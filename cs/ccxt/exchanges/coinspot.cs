@@ -114,17 +114,228 @@ public partial class coinspot : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"latest"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "latest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"orders", "orders/history", "my/coin/deposit", "my/coin/send", "quote/buy", "quote/sell", "my/balances", "my/orders", "my/buy", "my/sell", "my/buy/cancel", "my/sell/cancel", "ro/my/balances", "ro/my/balances/{cointype}", "ro/my/deposits", "ro/my/withdrawals", "ro/my/transactions", "ro/my/transactions/{cointype}", "ro/my/transactions/open", "ro/my/transactions/{cointype}/open", "ro/my/sendreceive", "ro/my/affiliatepayments", "ro/my/referralpayments"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/coin/deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/coin/send", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/buy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/sell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/buy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/sell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/buy/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/sell/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/balances/{cointype}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/transactions/{cointype}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/transactions/open", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/transactions/{cointype}/open", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/sendreceive", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/affiliatepayments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/referralpayments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"latest", "latest/{cointype}", "latest/{cointype}/{markettype}", "buyprice/{cointype}", "buyprice/{cointype}/{markettype}", "sellprice/{cointype}", "sellprice/{cointype}/{markettype}", "orders/open/{cointype}", "orders/open/{cointype}/{markettype}", "orders/completed/{cointype}", "orders/completed/{cointype}/{markettype}", "orders/summary/completed/{cointype}", "orders/summary/completed/{cointype}/{markettype}"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "latest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "latest/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "latest/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "buyprice/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "buyprice/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sellprice/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sellprice/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/open/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/open/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/completed/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/completed/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/summary/completed/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/summary/completed/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "post", new List<object>() {"status", "my/coin/deposit", "quote/buy/now", "quote/sell/now", "quote/swap/now", "my/buy", "my/buy/edit", "my/sell", "my/sell/edit", "my/buy/now", "my/sell/now", "my/swap/now", "my/buy/cancel", "my/buy/cancel/all", "my/sell/cancel", "my/sell/cancel/all", "my/coin/withdraw/senddetails", "my/coin/withdraw/send", "ro/status", "ro/orders/market/open", "ro/orders/market/completed", "ro/my/balances", "ro/my/balance/{cointype}", "ro/my/orders/market/open", "ro/my/orders/limit/open", "ro/my/orders/completed", "ro/my/orders/market/completed", "ro/my/sendreceive", "ro/my/deposits", "ro/my/withdrawals", "ro/my/affiliatepayments", "ro/my/referralpayments"} },
+                        { "post", new Dictionary<string, object>() {
+                            { "status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/coin/deposit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "quote/buy/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "quote/sell/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "quote/swap/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/buy", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/buy/edit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell/edit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/buy/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/swap/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/buy/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/buy/cancel/all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell/cancel/all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/coin/withdraw/senddetails", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/coin/withdraw/send", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/orders/market/open", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/orders/market/completed", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/balances", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/balance/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/orders/market/open", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/orders/limit/open", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/orders/completed", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/orders/market/completed", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/sendreceive", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/deposits", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/withdrawals", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/affiliatepayments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/referralpayments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
             } },

@@ -157,64 +157,156 @@ public partial class lighter : Exchange
             { "api", new Dictionary<string, object>() {
                 { "root", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "", 1 },
-                        { "info", 1 },
+                        { "", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "account", 1 },
-                        { "accountsByL1Address", 1 },
-                        { "apikeys", 1 },
-                        { "exchangeStats", 1 },
-                        { "assetDetails", 1 },
-                        { "orderBookDetails", 1 },
-                        { "orderBookOrders", 1 },
-                        { "orderBooks", 1 },
-                        { "recentTrades", 1 },
-                        { "blockTxs", 1 },
-                        { "nextNonce", 1 },
-                        { "tx", 1 },
-                        { "txFromL1TxHash", 1 },
-                        { "txs", 1 },
-                        { "announcement", 1 },
-                        { "block", 1 },
-                        { "blocks", 1 },
-                        { "currentHeight", 1 },
-                        { "candles", 1 },
-                        { "fundings", 1 },
-                        { "fastbridge/info", 1 },
-                        { "funding-rates", 1 },
-                        { "withdrawalDelay", 1 },
+                        { "account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountsByL1Address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "apikeys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchangeStats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetDetails", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderBookDetails", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderBookOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderBooks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "recentTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "blockTxs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "nextNonce", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tx", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "txFromL1TxHash", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "txs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "announcement", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "blocks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currentHeight", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fundings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fastbridge/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding-rates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawalDelay", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "sendTx", 1 },
-                        { "sendTxBatch", 1 },
+                        { "sendTx", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sendTxBatch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "accountLimits", 1 },
-                        { "accountMetadata", 1 },
-                        { "pnl", 1 },
-                        { "l1Metadata", 1 },
-                        { "liquidations", 1 },
-                        { "positionFunding", 1 },
-                        { "publicPoolsMetadata", 1 },
-                        { "accountActiveOrders", 1 },
-                        { "accountInactiveOrders", 1 },
-                        { "export", 1 },
-                        { "trades", 1 },
-                        { "accountTxs", 1 },
-                        { "deposit/history", 1 },
-                        { "transfer/history", 1 },
-                        { "withdraw/history", 1 },
-                        { "referral/points", 1 },
-                        { "transferFeeInfo", 1 },
+                        { "accountLimits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountMetadata", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pnl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "l1Metadata", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "liquidations", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positionFunding", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "publicPoolsMetadata", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountActiveOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountInactiveOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "export", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountTxs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposit/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "referral/points", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transferFeeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "changeAccountTier", 1 },
-                        { "notification/ack", 1 },
+                        { "changeAccountTier", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "notification/ack", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
