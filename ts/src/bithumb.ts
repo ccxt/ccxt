@@ -364,6 +364,9 @@ export default class bithumb extends Exchange {
             },
             'options': {
                 'generation': 2, // either API generation 1 or 2
+                // Bithumb v2 ticker endpoint returns HTTP 414 when the `markets` query string is too long.
+                // Keep this conservative to reduce requests while staying below URL-length limits.
+                'fetchTickersGeneration2MaxMarketIdsPerRequest': 300,
                 'createMarketBuyOrderRequiresPrice': true,
                 'quoteCurrencies': {
                     'KRW': {
@@ -991,22 +994,26 @@ export default class bithumb extends Exchange {
         const result: Dict = {};
         if (generation === 2) {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
-            // so we aggregate one market per request only when symbols are not provided.
+            // so we aggregate 300 markets per request only when symbols are not provided.
             const marketIds = [];
             const symbolsForMarketIds = (symbols === undefined) ? this.symbols : symbols;
             for (let i = 0; i < symbolsForMarketIds.length; i++) {
                 const market = this.market (symbolsForMarketIds[i]);
                 marketIds.push (this.getGen2MarketId (market));
             }
-            if (symbols !== undefined) {
-                request['markets'] = marketIds.join (',');
+            if (marketIds.length === 0) {
+                return result;
             }
+            let maxMarketIdsPerRequest = this.safeInteger (this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
+            if ((maxMarketIdsPerRequest === undefined) || (maxMarketIdsPerRequest < 1)) {
+                maxMarketIdsPerRequest = 300;
+            }
+            const marketIdsChunks: string[][] = [];
             const promises = [];
-            if (symbols === undefined) {
-                for (let i = 0; i < marketIds.length; i++) {
-                    promises.push (this.publicGetV1Ticker (this.extend ({ 'markets': marketIds[i] }, params)));
-                }
-            } else {
+            for (let i = 0; i < marketIds.length; i += maxMarketIdsPerRequest) {
+                const chunk = marketIds.slice (i, i + maxMarketIdsPerRequest);
+                marketIdsChunks.push (chunk);
+                request['markets'] = chunk.join (',');
                 promises.push (this.publicGetV1Ticker (this.extend (request, params)));
             }
             //
@@ -1048,8 +1055,9 @@ export default class bithumb extends Exchange {
                     response = response['data'];
                 }
                 let expectedMarketId = undefined;
-                if (symbols === undefined) {
-                    expectedMarketId = marketIds[i];
+                const marketIdsChunk = this.safeList (marketIdsChunks, i, []);
+                if (marketIdsChunk.length === 1) {
+                    expectedMarketId = this.safeString (marketIdsChunk, 0);
                 }
                 let tickers = [];
                 if (Array.isArray (response)) {
