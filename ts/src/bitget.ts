@@ -4454,8 +4454,13 @@ export default class bitget extends Exchange {
             return []; // happens when a new token is listed
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-        const data = this.safeList (response, 'data', response);
-        return this.parseOHLCVs (data as object[], market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        } else {
+            candles = this.safeList (response, 'data', []);
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     /**

@@ -587,7 +587,7 @@ export default class hyperliquid extends Exchange {
         const perpDexesOffset: Dict = {};
         for (let i = 1; i < fetchDexes.length; i++) {
             // builder-deployed perp dexs start at 110000
-            const dex = fetchDexes[i];
+            const dex = this.safeDict (fetchDexes, i, {});
             const secondPart = (i - 1) * 10000;
             const offset = this.sum (110000, secondPart);
             perpDexesOffset[dex['name']] = offset;
@@ -1538,7 +1538,11 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, originalSince, limit, useTail);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs (candles, market, timeframe, originalSince, limit, useTail);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1627,7 +1631,11 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        let fills: List = [];
+        if (Array.isArray (response)) {
+            fills = response;
+        }
+        return this.parseTrades (fills, market, since, limit);
     }
 
     override amountToPrecision (symbol: Str, amount: any) {
@@ -1939,7 +1947,10 @@ export default class hyperliquid extends Exchange {
             };
             let response: Str = undefined;
             try {
-                response = await this.publicPostInfo (this.extend (request, params));
+                const rawResponse = await this.publicPostInfo (this.extend (request, params));
+                if (typeof rawResponse === 'string') {
+                    response = rawResponse;
+                }
             } catch (e) {
                 if (e instanceof InvalidProxySettings) {
                     throw e; // rethrow this error since it means the user has a problem with their proxy settings that needs to be fixed
@@ -3066,8 +3077,12 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const result: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        let fundings: List = [];
+        if (Array.isArray (response)) {
+            fundings = response;
+        }
+        for (let i = 0; i < fundings.length; i++) {
+            const entry = fundings[i];
             const timestamp = this.safeInteger (entry, 'time');
             result.push ({
                 'info': entry,
@@ -3142,8 +3157,12 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const orderWithStatus: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const order = response[i];
+        let rawOrders: List = [];
+        if (Array.isArray (response)) {
+            rawOrders = response;
+        }
+        for (let i = 0; i < rawOrders.length; i++) {
+            const order = rawOrders[i];
             const extendOrder: Dict = {};
             if (this.safeString (order, 'status') === undefined) {
                 extendOrder['ccxtStatus'] = 'open';
@@ -3267,8 +3286,12 @@ export default class hyperliquid extends Exchange {
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         const deduplicatedByOid: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const rawOrder = response[i];
+        let historicalOrders: List = [];
+        if (Array.isArray (response)) {
+            historicalOrders = response;
+        }
+        for (let i = 0; i < historicalOrders.length; i++) {
+            const rawOrder = historicalOrders[i];
             let entry = this.safeDict (rawOrder, 'order');
             if (entry === undefined) {
                 entry = rawOrder;
@@ -3623,7 +3646,11 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        let myFills: List = [];
+        if (Array.isArray (response)) {
+            myFills = response;
+        }
+        return this.parseTrades (myFills, market, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -4153,7 +4180,7 @@ export default class hyperliquid extends Exchange {
                 'nonce': nonce,
                 'signature': transferSig,
             };
-            const transferResponse = await this.privatePostExchange (transferRequest);
+            const transferResponse: Dict = await this.privatePostExchange (transferRequest);
             return transferResponse;
         }
         // transfer between main account and subaccount
@@ -4619,7 +4646,11 @@ export default class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        const records = this.extractTypeFromDelta (response);
+        let depositLedger: List = [];
+        if (Array.isArray (response)) {
+            depositLedger = response;
+        }
+        const records = this.extractTypeFromDelta (depositLedger);
         let vaultAddress: Str = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
@@ -4685,7 +4716,11 @@ export default class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        const records = this.extractTypeFromDelta (response);
+        let withdrawalLedger: List = [];
+        if (Array.isArray (response)) {
+            withdrawalLedger = response;
+        }
+        const records = this.extractTypeFromDelta (withdrawalLedger);
         let vaultAddress: Str = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
@@ -4921,7 +4956,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    extractTypeFromDelta (data = []) {
+    extractTypeFromDelta (data: List = []) {
         const records: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const record = data[i];

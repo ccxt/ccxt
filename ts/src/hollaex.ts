@@ -574,10 +574,10 @@ export default class hollaex extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const orderbook = response[marketId];
+            const orderbook = this.safeDict (response, marketId, {});
             const symbol = this.safeSymbol (marketId, undefined, '-');
             const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
-            result[symbol] = this.parseOrderBook (response[marketId], symbol, timestamp);
+            result[symbol] = this.parseOrderBook (orderbook, symbol, timestamp);
         }
         return result as Dictionary<OrderBook>;
     }
@@ -973,7 +973,7 @@ export default class hollaex extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {

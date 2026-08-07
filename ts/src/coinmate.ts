@@ -495,7 +495,7 @@ export default class coinmate extends Exchange {
             'groupByPriceLimit': 'False',
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const orderbook = response['data'];
+        const orderbook = this.safeDict (response, 'data', {});
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -653,7 +653,7 @@ export default class coinmate extends Exchange {
             request['currency'] = currency['id'];
         }
         const response = await this.privatePostTransferHistory (this.extend (request, params));
-        const items = response['data'];
+        const items = this.safeList (response, 'data', []);
         return this.parseTransactions (items, undefined, since, limit);
     }
 
@@ -996,7 +996,8 @@ export default class coinmate extends Exchange {
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const response = await this.privatePostOpenOrders (this.extend ({}, params));
         const extension: Dict = { 'status': 'open' };
-        return this.parseOrders (response['data'], undefined, since, limit, extension);
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, undefined, since, limit, extension);
     }
 
     /**
@@ -1026,7 +1027,8 @@ export default class coinmate extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
-        return this.parseOrders (response['data'], market, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     parseOrderStatus (status: Str) {

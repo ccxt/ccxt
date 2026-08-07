@@ -1204,10 +1204,7 @@ export default class tokocrypto extends Exchange {
         //         }
         //     ]
         //
-        let responseList: Dict[] = [];
-        if (response !== undefined) {
-            responseList = response;
-        }
+        const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
 
@@ -1463,7 +1460,12 @@ export default class tokocrypto extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        const data = this.safeList (response, 'data', response);
+        let data: List = [];
+        if (Array.isArray (response)) {
+            data = response;
+        } else {
+            data = this.safeList (response, 'data', []);
+        }
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 

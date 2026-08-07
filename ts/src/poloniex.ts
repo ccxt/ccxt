@@ -708,7 +708,11 @@ export default class poloniex extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     override async loadMarkets (reload = false, params = {}) {
@@ -1839,7 +1843,7 @@ export default class poloniex extends Exchange {
         }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        let response: List = [];
+        let response: Dict | List = [];
         if (marketType !== 'spot') {
             const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, params));
             //
@@ -2249,7 +2253,7 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        let response: List = [];
+        let response: Dict | List = [];
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
@@ -3006,8 +3010,12 @@ export default class poloniex extends Exchange {
         //     ]
         //
         const data: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        let entries: List = [];
+        if (Array.isArray (response)) {
+            entries = response;
+        }
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
             const currencies = Object.keys (entry);
             const currencyId = this.safeString (currencies, 0);
             data[currencyId as string] = entry[currencyId as string];

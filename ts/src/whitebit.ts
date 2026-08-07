@@ -764,7 +764,7 @@ export default class whitebit extends Exchange {
         const depositFees: Dict = {};
         for (let i = 0; i < currenciesIds.length; i++) {
             const currency = currenciesIds[i];
-            const data = response[currency];
+            const data = this.safeDict (response, currency, {});
             const code = this.safeCurrencyCode (currency);
             const withdraw = this.safeValue (data, 'withdraw', {});
             if (code !== undefined) {
@@ -1198,7 +1198,7 @@ export default class whitebit extends Exchange {
             const feeKeys = Object.keys (feesData);
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
-                const fee = feesData[feeKey];
+                const fee = this.safeDict (feesData, feeKey);
                 if (fee && fee['ticker'] === code) {
                     feeData = fee;
                     break;
@@ -1447,8 +1447,9 @@ export default class whitebit extends Exchange {
             try {
                 const response = await this.v4PrivatePostOrders (this.extend (request, params));
                 // Search for order in active orders response (array format)
-                for (let i = 0; i < response.length; i++) {
-                    const order = response[i];
+                const orders = this.toArray (response);
+                for (let i = 0; i < orders.length; i++) {
+                    const order = orders[i];
                     const orderId = this.safeString (order, 'orderId');
                     if (orderId === id) {
                         const marketId = this.safeString (order, 'market');
@@ -1471,9 +1472,9 @@ export default class whitebit extends Exchange {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketNew = this.safeMarket (marketId, undefined, '_');
-                    const orders = response[marketId];
-                    for (let j = 0; j < orders.length; j++) {
-                        const order = orders[j];
+                    const marketOrders = this.safeList (response, marketId, []);
+                    for (let j = 0; j < marketOrders.length; j++) {
+                        const order = marketOrders[j];
                         const orderId = this.safeString (order, 'id');
                         if (orderId === id) {
                             return this.parseOrder (order, marketNew);
@@ -2507,7 +2508,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketNew = this.safeMarket (marketId, undefined, '_');
-            const orders = response[marketId];
+            const orders = this.safeList (response, marketId, []);
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder (orders[j], marketNew);
                 results.push (this.extend (order, { 'status': 'closed' }));

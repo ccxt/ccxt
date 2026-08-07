@@ -286,8 +286,9 @@ export default class bitbns extends Exchange {
         //     ]
         //
         const result: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray (response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');

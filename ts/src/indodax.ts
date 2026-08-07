@@ -368,8 +368,9 @@ export default class indodax extends Exchange {
         //     ]
         //
         const result: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray (response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'traded_currency');
             const quoteId = this.safeString (market, 'base_currency');
@@ -757,7 +758,7 @@ export default class indodax extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     parseOrderStatus (status: Str) {
@@ -892,7 +893,7 @@ export default class indodax extends Exchange {
             'order_id': id,
         };
         const response = await this.privatePostGetOrder (this.extend (request, params));
-        const orders = response['return'];
+        const orders = this.safeDict (response, 'return', {});
         const order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
         order['info'] = response;
         return order;
@@ -920,7 +921,8 @@ export default class indodax extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostOpenOrders (this.extend (request, params));
-        const rawOrders = response['return']['orders'];
+        const openOrdersResult = this.safeDict (response, 'return', {});
+        const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
         if (!rawOrders) {
             return [];
@@ -965,7 +967,8 @@ export default class indodax extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privatePostOrderHistory (this.extend (request, params));
-        let orders = this.parseOrders (response['return']['orders'], market);
+        const historyResult = this.safeDict (response, 'return', {});
+        let orders = this.parseOrders (historyResult['orders'], market);
         orders = this.filterBy (orders, 'status', 'closed') as Order[];
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
     }

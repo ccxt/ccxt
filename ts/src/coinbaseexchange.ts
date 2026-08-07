@@ -642,8 +642,9 @@ export default class coinbaseexchange extends Exchange {
         //     ]
         //
         const result: Market[] = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray (response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString (market, 'id');
             const [ baseId, quoteId ] = (id as string).split ('-');
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
@@ -1287,7 +1288,7 @@ export default class coinbaseexchange extends Exchange {
         //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     /**
@@ -1865,10 +1866,11 @@ export default class coinbaseexchange extends Exchange {
             request['end_date'] = this.iso8601 (until);
         }
         const response = await this.privateGetAccountsIdLedger (this.extend (request, params));
-        for (let i = 0; i < response.length; i++) {
-            response[i]['currency'] = code;
+        const entries = this.toArray (response);
+        for (let i = 0; i < entries.length; i++) {
+            entries[i]['currency'] = code;
         }
-        return this.parseLedger (response, currency, since, limit);
+        return this.parseLedger (entries, currency, since, limit);
     }
 
     /**
@@ -1911,7 +1913,7 @@ export default class coinbaseexchange extends Exchange {
         }
         let response: List;
         if (id === undefined) {
-            response = await this.privateGetTransfers (this.extend (request, params));
+            const transfers = await this.privateGetTransfers (this.extend (request, params));
             //
             //    [
             //        {
@@ -1940,6 +1942,7 @@ export default class coinbaseexchange extends Exchange {
             //        }
             //    ]
             //
+            response = this.toArray (transfers);
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
                 const account = this.safeValue (this.accountsById, account_id);
@@ -1947,7 +1950,7 @@ export default class coinbaseexchange extends Exchange {
                 response[i]['currency'] = codeInner;
             }
         } else {
-            response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
+            const accountTransfers = await this.privateGetAccountsIdTransfers (this.extend (request, params));
             //
             //    [
             //        {
@@ -1974,6 +1977,7 @@ export default class coinbaseexchange extends Exchange {
             //        }
             //    ]
             //
+            response = this.toArray (accountTransfers);
             for (let i = 0; i < response.length; i++) {
                 response[i]['currency'] = code;
             }

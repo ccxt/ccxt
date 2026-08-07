@@ -1224,7 +1224,8 @@ export default class exmo extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const symbol = this.safeSymbol (marketId);
-            result[symbol] = this.parseOrderBook (response[marketId], symbol, undefined, 'bid', 'ask');
+            const rawOrderBook = this.safeDict (response, marketId, {});
+            result[symbol] = this.parseOrderBook (rawOrderBook, symbol, undefined, 'bid', 'ask');
         }
         return result as Dictionary<OrderBook>;
     }
@@ -2604,7 +2605,8 @@ export default class exmo extends Exchange {
         //       ],
         //     }
         //
-        return this.parseTransactions (response['history'], currency, since, limit);
+        const history = this.safeList (response, 'history', []);
+        return this.parseTransactions (history, currency, since, limit);
     }
 
     /**

@@ -670,9 +670,13 @@ export default class gemini extends Exchange {
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
         const marketIds: List = [];
-        for (let i = 0; i < marketIdsRaw.length; i++) {
-            if (!this.inArray (marketIdsRaw[i], brokenPairs)) {
-                marketIds.push (marketIdsRaw[i]);
+        let allMarketIds: List = [];
+        if (Array.isArray (marketIdsRaw)) {
+            allMarketIds = marketIdsRaw;
+        }
+        for (let i = 0; i < allMarketIds.length; i++) {
+            if (!this.inArray (allMarketIds[i], brokenPairs)) {
+                marketIds.push (allMarketIds[i]);
             }
         }
         if (this.safeBool (options, 'fetchDetailsForAllSymbols', false)) {
@@ -2101,7 +2105,11 @@ export default class gemini extends Exchange {
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     /**

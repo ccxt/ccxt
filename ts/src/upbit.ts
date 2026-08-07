@@ -692,8 +692,9 @@ export default class upbit extends Exchange {
         //                               "bid_size": 0.4650305 }    ] }   ]
         //
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const orderbook = response[i];
+        const orderbooks = this.toArray (response);
+        for (let i = 0; i < orderbooks.length; i++) {
+            const orderbook = orderbooks[i];
             const marketId = this.safeString (orderbook, 'market');
             const symbol = this.safeSymbol (marketId, undefined, '-');
             const timestamp = this.safeInteger (orderbook, 'timestamp');
@@ -1149,7 +1150,7 @@ export default class upbit extends Exchange {
             'timeframe': timeframeValue,
             'count': limit,
         };
-        let response: List;
+        let response: Dict | List;
         if (since !== undefined) {
             // convert `since` to `to` value
             request['to'] = this.iso8601 (this.sum (since, timeframePeriod * limit * 1000));
@@ -1191,7 +1192,8 @@ export default class upbit extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     calcOrderPrice (symbol: string, amount: Num, price: Num = undefined, params = {}): Str {

@@ -7932,7 +7932,8 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const responseData = response['data']['items'];
+        const data = this.safeDict (response, 'data', {});
+        const responseData = this.safeList (data, 'items', []);
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -8087,7 +8088,8 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const responseData = response['data']['items'];
+        const data = this.safeDict (response, 'data', {});
+        const responseData = this.safeList (data, 'items', []);
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 

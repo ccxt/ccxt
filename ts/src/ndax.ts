@@ -7,7 +7,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, Order
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, CurrencyInterface, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict, Status } from './base/types.js';
+import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict, Status } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -1010,7 +1010,11 @@ export default class ndax extends Exchange {
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {

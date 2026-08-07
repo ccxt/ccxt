@@ -294,8 +294,8 @@ export default class bitflyer extends Exchange {
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let markets = this.arrayConcat (jp_markets, us_markets);
-        markets = this.arrayConcat (markets, eu_markets);
+        let markets = this.arrayConcat (this.toArray (jp_markets), this.toArray (us_markets));
+        markets = this.arrayConcat (markets, this.toArray (eu_markets));
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -959,7 +959,7 @@ export default class bitflyer extends Exchange {
         //     ]
         //
         // todo unify parsePosition/parsePositions
-        return response;
+        return response as Position[];
     }
 
     /**

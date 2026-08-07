@@ -1140,7 +1140,7 @@ export default class kraken extends Exchange {
             request['pair'] = marketIds.join (',');
         }
         const response = await this.publicGetTicker (this.extend (request, params));
-        const tickers = response['result'];
+        const tickers = this.safeDict (response, 'result', {});
         const ids = Object.keys (tickers);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
@@ -1171,7 +1171,8 @@ export default class kraken extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = this.safeValue (response['result'], market['id']);
+        const tickerResult = this.safeDict (response, 'result', {});
+        const ticker = this.safeValue (tickerResult, market['id']);
         return this.parseTicker (ticker, market);
     }
 
@@ -1398,7 +1399,7 @@ export default class kraken extends Exchange {
         //                                       "amount": "-0.2805800000",
         //                                          "fee": "0.0050000000",
         //                                      "balance": "0.0000051000"           } } }
-        const result = response['result'];
+        const result = this.safeDict (response, 'result', {});
         const keys = Object.keys (result);
         const items: List = [];
         for (let i = 0; i < keys.length; i++) {
@@ -1606,7 +1607,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = response['result'];
+        const result = this.safeDict (response, 'result', {});
         const trades = this.safeValue (result, id);
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
@@ -2620,7 +2621,8 @@ export default class kraken extends Exchange {
         //         },
         //     }
         //
-        const trades = response['result']['trades'];
+        const tradesResult = this.safeDict (response, 'result', {});
+        const trades = this.safeDict (tradesResult, 'trades', {});
         const ids = Object.keys (trades);
         for (let i = 0; i < ids.length; i++) {
             trades[ids[i]]['id'] = ids[i];
@@ -3140,7 +3142,8 @@ export default class kraken extends Exchange {
         //                       "time":  1529223212,
         //                     "status": "Success"                                                       } ] }
         //
-        return this.parseTransactionsByType ('deposit', response['result'], code, since, limit);
+        const depositResult = this.safeList (response, 'result', []);
+        return this.parseTransactionsByType ('deposit', depositResult, code, since, limit);
     }
 
     /**

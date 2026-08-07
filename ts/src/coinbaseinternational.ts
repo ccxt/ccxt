@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, List, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -952,7 +952,8 @@ export default class coinbaseinternational extends Exchange {
             'portfolio': portfolio,
             'margin_override': amount,
         };
-        return await this.v1PrivatePostPortfoliosMargin (this.extend (request, params));
+        const response: Dict = await this.v1PrivatePostPortfoliosMargin (this.extend (request, params));
+        return response as MarginModification;
     }
 
     /**
@@ -1572,8 +1573,12 @@ export default class coinbaseinternational extends Exchange {
         symbols = this.marketSymbols (symbols);
         const instruments = await this.v1PublicGetInstruments (params);
         const tickers: Dict = {};
-        for (let i = 0; i < instruments.length; i++) {
-            const instrument = instruments[i];
+        let rows: List = [];
+        if (Array.isArray (instruments)) {
+            rows = instruments;
+        }
+        for (let i = 0; i < rows.length; i++) {
+            const instrument = rows[i];
             const marketId = this.safeString (instrument, 'symbol');
             const symbol = this.safeSymbol (marketId);
             const quote = this.safeDict (instrument, 'quote', {});

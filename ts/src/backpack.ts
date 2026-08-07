@@ -994,7 +994,8 @@ export default class backpack extends Exchange {
             params = this.omit (params, 'price');
         }
         const response = await this.publicGetApiV1Klines (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1168,8 +1169,9 @@ export default class backpack extends Exchange {
         //     ]
         //
         const rates: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const rate = response[i];
+        const rawRates = this.toArray (response);
+        for (let i = 0; i < rawRates.length; i++) {
+            const rate = rawRates[i];
             const datetime = this.safeString (rate, 'intervalEndTimestamp');
             const timestamp = this.parse8601 (datetime);
             rates.push ({
@@ -1215,10 +1217,7 @@ export default class backpack extends Exchange {
         } else {
             response = await this.publicGetApiV1Trades (this.extend (request, params));
         }
-        let responseList: Dict[] = [];
-        if (response !== undefined) {
-            responseList = response;
-        }
+        const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
 
@@ -1261,10 +1260,7 @@ export default class backpack extends Exchange {
             request['fillType'] = 'User'; // default
         }
         const response = await this.privateGetWapiV1HistoryFills (this.extend (request, params));
-        let responseList: Dict[] = [];
-        if (response !== undefined) {
-            responseList = response;
-        }
+        const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
 

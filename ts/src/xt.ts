@@ -2616,7 +2616,7 @@ export default class xt extends Exchange {
             const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
             request['positionSide'] = requestType;
         }
-        let response = undefined;
+        let response: Dict = {};
         const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');

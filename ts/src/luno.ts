@@ -919,7 +919,8 @@ export default class luno extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
-        const tickers = this.indexBy (response['tickers'], 'pair');
+        const rawTickers = this.safeList (response, 'tickers', []);
+        const tickers = this.indexBy (rawTickers, 'pair');
         const ids = Object.keys (tickers);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {

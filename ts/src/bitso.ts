@@ -1036,7 +1036,8 @@ export default class bitso extends Exchange {
             'book': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response['payload'], market, since, limit);
+        const payload = this.safeList (response, 'payload', []);
+        return this.parseTrades (payload, market, since, limit);
     }
 
     /**
@@ -1153,7 +1154,8 @@ export default class bitso extends Exchange {
             // 'marker': id, // integer id to start from
         };
         const response = await this.privateGetUserTrades (this.extend (request, params));
-        return this.parseTrades (response['payload'], market, since, limit);
+        const payload = this.safeList (response, 'payload', []);
+        return this.parseTrades (payload, market, since, limit);
     }
 
     /**
@@ -1184,7 +1186,8 @@ export default class bitso extends Exchange {
             request['price'] = this.priceToPrecision (market['symbol'], price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        const id = this.safeString (response['payload'], 'oid');
+        const payload = this.safeDict (response, 'payload', {});
+        const id = this.safeString (payload, 'oid');
         return this.safeOrder ({
             'info': response,
             'id': id,
@@ -1386,7 +1389,8 @@ export default class bitso extends Exchange {
             // 'marker': id, // integer id to start from
         };
         const response = await this.privateGetOpenOrders (this.extend (request, params));
-        const orders = this.parseOrders (response['payload'], market, since, limit);
+        const payload = this.safeList (response, 'payload', []);
+        const orders = this.parseOrders (payload, market, since, limit);
         return orders;
     }
 
@@ -1409,7 +1413,7 @@ export default class bitso extends Exchange {
         });
         const payload = this.safeValue (response, 'payload');
         if (Array.isArray (payload)) {
-            const numOrders = response['payload'].length;
+            const numOrders = payload.length;
             if (numOrders === 1) {
                 return this.parseOrder (payload[0]);
             }
@@ -1438,7 +1442,8 @@ export default class bitso extends Exchange {
             'oid': id,
         };
         const response = await this.privateGetOrderTradesOid (this.extend (request, params));
-        return this.parseTrades (response['payload'], market);
+        const payload = this.safeList (response, 'payload', []);
+        return this.parseTrades (payload, market);
     }
 
     /**
@@ -1551,7 +1556,8 @@ export default class bitso extends Exchange {
             'fund_currency': currency['id'],
         };
         const response = await this.privateGetFundingDestination (this.extend (request, params));
-        let address = this.safeString (response['payload'], 'account_identifier');
+        const payload = this.safeDict (response, 'payload', {});
+        let address = this.safeString (payload, 'account_identifier');
         let tag: Str = undefined;
         if ((address as string).indexOf ('?dt=') >= 0) {
             const parts = (address as string).split ('?dt=');

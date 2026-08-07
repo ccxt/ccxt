@@ -902,7 +902,8 @@ export default class coinbase extends Exchange {
         }
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const sells = await this.v2PrivateGetAccountsAccountIdSells (this.extend (request, query));
-        return this.parseTrades (sells['data'], undefined, since, limit);
+        const sellsData = this.safeList (sells, 'data', []);
+        return this.parseTrades (sellsData, undefined, since, limit);
     }
 
     /**
@@ -925,7 +926,8 @@ export default class coinbase extends Exchange {
         }
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const buys = await this.v2PrivateGetAccountsAccountIdBuys (this.extend (request, query));
-        return this.parseTrades (buys['data'], undefined, since, limit);
+        const buysData = this.safeList (buys, 'data', []);
+        return this.parseTrades (buysData, undefined, since, limit);
     }
 
     async fetchTransactionsWithMethod (method: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2622,7 +2624,8 @@ export default class coinbase extends Exchange {
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_http_response -> pagination.next_starting_after
         const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, params));
-        const ledger = this.parseLedger (response['data'], currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        const ledger = this.parseLedger (data, currency, since, limit);
         const length = ledger.length;
         if (length === 0) {
             return ledger;

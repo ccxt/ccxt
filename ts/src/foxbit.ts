@@ -814,7 +814,7 @@ export default class foxbit extends Exchange {
         //         "15466.34096391" // taker buy quote volume
         //     ]
         // ]
-        return this.parseOHLCVs (response, market, interval, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, interval, since, limit);
     }
 
     /**
@@ -1575,7 +1575,8 @@ export default class foxbit extends Exchange {
         //         "client_order_id": "451637946501"
         //     }
         // }
-        return this.parseOrder (response['create'], market);
+        const created = this.safeDict (response, 'create', {});
+        return this.parseOrder (created, market);
     }
 
     /**

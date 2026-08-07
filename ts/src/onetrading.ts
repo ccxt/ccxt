@@ -910,8 +910,9 @@ export default class onetrading extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
+        const rawTickers: List = this.toArray (response);
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = this.parseTicker (rawTickers[i]);
             const symbol = ticker['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = ticker;

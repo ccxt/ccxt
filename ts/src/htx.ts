@@ -2844,7 +2844,8 @@ export default class htx extends Exchange {
             'order-id': id,
         };
         const response = await this.spotPrivateGetV1OrderOrdersOrderIdMatchresults (this.extend (request, params));
-        return this.parseTrades (response['data'], undefined, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, undefined, since, limit);
     }
 
     /**
@@ -6728,7 +6729,8 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (response['data'], currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     /**
@@ -6789,7 +6791,8 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (response['data'], currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

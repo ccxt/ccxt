@@ -300,8 +300,9 @@ export default class mercado extends Exchange {
         //
         const result: Market[] = [];
         const amountLimits = this.safeValue (this.options, 'limits', {});
-        for (let i = 0; i < response.length; i++) {
-            const coin = response[i];
+        const coins = this.toArray (response);
+        for (let i = 0; i < coins.length; i++) {
+            const coin = coins[i];
             const baseId = coin;
             const quoteId = 'BRL';
             const base = this.safeCurrencyCode (baseId);
@@ -914,8 +915,9 @@ export default class mercado extends Exchange {
             request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
         }
         const response = await this.v4PublicNetGetCandles (this.extend (request, params));
-        const candles = this.convertTradingViewToOHLCV (response, 't', 'o', 'h', 'l', 'c', 'v');
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
+        // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
+        return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
     /**

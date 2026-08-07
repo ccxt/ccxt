@@ -582,7 +582,7 @@ export default class polymarket extends Exchange {
         let firstPageRequest: Dict = { 'offset': 0 };
         firstPageRequest = this.extend (firstPageRequest, baseRequest);
         const firstPageResponse = await this.gammaPublicGetEvents (firstPageRequest);
-        const firstPage = (firstPageResponse !== undefined) ? firstPageResponse : [];
+        const firstPage = (Array.isArray (firstPageResponse)) ? firstPageResponse : [];
         const firstPageLength = firstPage.length;
         const allRawEvents: any[] = [];
         for (let fi = 0; fi < firstPageLength; fi++) {
@@ -1079,9 +1079,11 @@ export default class polymarket extends Exchange {
                 this.clobPublicPostLastTradesPrices (bookParams),
             ];
             const responses = await Promise.all (promises);
-            const books = responses[0];
+            const booksResponse = responses[0];
             const midpoints = responses[1];
-            const lastTrades = responses[2];
+            const lastTradesResponse = responses[2];
+            const books = (Array.isArray (booksResponse)) ? booksResponse : [];
+            const lastTrades = (Array.isArray (lastTradesResponse)) ? lastTradesResponse : [];
             const lastTradesByTokenId: Dict = {};
             const lastTradesLength = lastTrades.length;
             for (let li = 0; li < lastTradesLength; li++) {
@@ -2440,7 +2442,7 @@ export default class polymarket extends Exchange {
                 lookup['slug'] = requestedSlug;
             }
             const response = await this.gammaPublicGetEvents (lookup);
-            rawEvents = (response !== undefined) ? response : [];
+            rawEvents = (Array.isArray (response)) ? response : [];
         } else if (queriesLength > 0) {
             rawEvents = await this.fetchRawEventsBySearch (queries, rest);
         } else {

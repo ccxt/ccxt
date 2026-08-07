@@ -1231,7 +1231,7 @@ export default class hitbtc extends Exchange {
             const marketId = keys[i];
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            const entry = response[marketId];
+            const entry = this.safeDict (response, marketId, {});
             result[symbol] = this.parseTicker (entry, market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
@@ -1316,7 +1316,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketInner = this.market (marketId);
-            const rawTrades = response[marketId];
+            const rawTrades = this.safeList (response, marketId, []);
             const parsed = this.parseTrades (rawTrades, marketInner);
             trades = this.arrayConcat (trades, parsed);
         }
@@ -1356,7 +1356,7 @@ export default class hitbtc extends Exchange {
         }
         let marketType: Str = undefined;
         let marginMode: Str = undefined;
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -1706,10 +1706,10 @@ export default class hitbtc extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const orderbook = response[marketId];
+            const orderbook = this.safeDict (response, marketId, {});
             const symbol = this.safeSymbol (marketId);
             const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
-            result[symbol] = this.parseOrderBook (response[marketId], symbol, timestamp, 'bid', 'ask');
+            result[symbol] = this.parseOrderBook (orderbook, symbol, timestamp, 'bid', 'ask');
         }
         return result as Dictionary<OrderBook>;
     }
@@ -1879,7 +1879,7 @@ export default class hitbtc extends Exchange {
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (price === 'mark') {
             response = await this.publicGetPublicFuturesCandlesMarkPriceSymbol (this.extend (request, params));
         } else if (price === 'index') {
@@ -1916,7 +1916,8 @@ export default class hitbtc extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -2106,7 +2107,7 @@ export default class hitbtc extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrderTrades', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (marginMode !== undefined) {
             response = await this.privateGetMarginHistoryTrade (this.extend (request, params));
         } else {
@@ -2997,7 +2998,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
             const marketInner = this.safeMarket (marketId);
-            const fundingRateData = response[marketId];
+            const fundingRateData = this.safeList (response, marketId, []);
             for (let j = 0; j < fundingRateData.length; j++) {
                 const entry = fundingRateData[j];
                 const symbolInner = this.safeSymbol (marketInner['symbol']);
@@ -3322,7 +3323,8 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const marketId = markets[i];
             const marketInner = this.safeMarket (marketId);
-            results.push (this.parseOpenInterest (response[marketId], marketInner));
+            const openInterest = this.safeDict (response, marketId, {});
+            results.push (this.parseOpenInterest (openInterest, marketInner));
         }
         return this.filterByArray (results, 'symbol', symbols) as OpenInterests;
     }

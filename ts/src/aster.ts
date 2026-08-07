@@ -6,7 +6,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -848,7 +848,7 @@ export default class aster extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        const promises = [
+        const promises: Promise<any>[] = [
             this.sapiPublicGetV3ExchangeInfo (params),
             this.fapiPublicGetV3ExchangeInfo (params),
         ];
@@ -1159,7 +1159,7 @@ export default class aster extends Exchange {
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
         params = this.omit (params, 'price');
-        let response: List;
+        let response: Dict | List;
         if (isMark) {
             request['symbol'] = market['id'];
             response = await this.fapiPublicGetV3MarkPriceKlines (this.extend (request, params));
@@ -1194,7 +1194,7 @@ export default class aster extends Exchange {
             //  ]
             //
         }
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1318,7 +1318,7 @@ export default class aster extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        let response: List;
+        let response: Dict | List;
         const sinceDefined = since !== undefined;
         const untilDefined = ('until' in params);
         if (sinceDefined) {
@@ -1403,7 +1403,7 @@ export default class aster extends Exchange {
             request['limit'] = Math.min (limit, 1000);
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let response: List;
+        let response: Dict | List;
         if (marketType === 'swap') {
             response = await this.fapiPrivateGetV3UserTrades (this.extend (request, params));
         } else {
@@ -1705,7 +1705,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
-        let response: NullableList = undefined;
+        let response: Dict | List | undefined = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3TickerPrice (params);
         } else if (marketType === 'spot') {
@@ -1726,11 +1726,12 @@ export default class aster extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' fetchLastPrices() returned empty response');
         }
+        const rows = this.toArray (response);
         const results: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString (response[i], 'symbol');
+        for (let i = 0; i < rows.length; i++) {
+            const marketId = this.safeString (rows[i], 'symbol');
             const safeMarket = this.safeMarket (marketId, undefined, undefined, marketType);
-            const priceData = this.extend (this.parseLastPrice (response[i], safeMarket), params);
+            const priceData = this.extend (this.parseLastPrice (rows[i], safeMarket), params);
             results.push (priceData);
         }
         symbols = this.marketSymbols (symbols);
@@ -2032,7 +2033,7 @@ export default class aster extends Exchange {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let response: NullableDict = undefined;
-        let data: NullableList = undefined;
+        let data: Dict | List | undefined = undefined;
         if (marketType === 'swap') {
             data = await this.fapiPrivateGetV3Balance (params);
             //
@@ -3125,7 +3126,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        return this.parseLeverages (response, symbols, 'symbol');
+        return this.parseLeverages (this.toArray (response), symbols, 'symbol');
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
@@ -3206,7 +3207,7 @@ export default class aster extends Exchange {
         //     ]
         //
         //
-        return this.parseMarginModes (response, symbols, 'symbol', 'swap');
+        return this.parseMarginModes (this.toArray (response), symbols, 'symbol', 'swap');
     }
 
     override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
@@ -3287,7 +3288,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        const modifications = this.parseMarginModifications (response);
+        const modifications = this.parseMarginModifications (this.toArray (response));
         return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
     }
 
@@ -3756,12 +3757,13 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
+        const rawPositions = this.toArray (response);
         const result: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const rawPosition = response[i];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
             const entryPriceString = this.safeString (rawPosition, 'entryPrice');
             if (Precise.stringGt (entryPriceString, '0')) {
-                result.push (this.parsePositionRisk (response[i]));
+                result.push (this.parsePositionRisk (rawPosition));
             }
         }
         symbols = this.marketSymbols (symbols);
@@ -4064,8 +4066,9 @@ export default class aster extends Exchange {
             //                ...
             //
             this.options['leverageBrackets'] = this.createSafeDictionary ();
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
+            const entries = this.toArray (response);
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
                 const brackets = this.safeList (entry, 'brackets', []);

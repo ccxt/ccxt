@@ -337,12 +337,14 @@ export default class independentreserve extends Exchange {
         //     }
         //
         const result: List = [];
-        for (let i = 0; i < baseCurrencies.length; i++) {
-            const baseId = baseCurrencies[i];
+        const baseCurrencyIds: List = this.toArray (baseCurrencies);
+        const quoteCurrencyIds: List = this.toArray (quoteCurrencies);
+        for (let i = 0; i < baseCurrencyIds.length; i++) {
+            const baseId = baseCurrencyIds[i];
             const base = this.safeCurrencyCode (baseId);
             const minAmount = this.safeNumber (limits, baseId);
-            for (let j = 0; j < quoteCurrencies.length; j++) {
-                const quoteId = quoteCurrencies[j];
+            for (let j = 0; j < quoteCurrencyIds.length; j++) {
+                const quoteId = quoteCurrencyIds[j];
                 const quote = this.safeCurrencyCode (quoteId);
                 const id = baseId + '/' + quoteId;
                 result.push ({
@@ -785,7 +787,8 @@ export default class independentreserve extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        return this.parseTrades (response['Data'], market, since, limit);
+        const data = this.safeList (response, 'Data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -850,7 +853,8 @@ export default class independentreserve extends Exchange {
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
         const response = await this.publicGetGetRecentTrades (this.extend (request, params));
-        return this.parseTrades (response['Trades'], market, since, limit);
+        const trades = this.safeList (response, 'Trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     /**
@@ -875,8 +879,9 @@ export default class independentreserve extends Exchange {
         //     ]
         //
         const fees: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = response[i];
+        const rows: List = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const fee = rows[i];
             const currencyId = this.safeString (fee, 'CurrencyCode');
             const code = this.safeCurrencyCode (currencyId);
             const tradingFee = this.safeNumber (fee, 'Fee');

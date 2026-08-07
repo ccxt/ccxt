@@ -808,7 +808,8 @@ export default class bittrade extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.parseTicker (response['tick'], market);
+        const tick = this.safeDict (response, 'tick', {});
+        const ticker = this.parseTicker (tick, market);
         const timestamp = this.safeInteger (response, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
@@ -946,7 +947,8 @@ export default class bittrade extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersIdMatchresults (this.extend (request, params));
-        return this.parseTrades (response['data'], undefined, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, undefined, since, limit);
     }
 
     /**
@@ -977,7 +979,8 @@ export default class bittrade extends Exchange {
             // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
         const response = await this.privateGetOrderMatchresults (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     /**
@@ -1114,7 +1117,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.privateGetAccountAccounts (params);
-        return response['data'];
+        return this.safeList (response, 'data', []);
     }
 
     /**
@@ -1876,7 +1879,8 @@ export default class bittrade extends Exchange {
         }
         const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
-        return this.parseTransactions (response['data'], currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     /**
@@ -1912,7 +1916,8 @@ export default class bittrade extends Exchange {
         }
         const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
-        return this.parseTransactions (response['data'], currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

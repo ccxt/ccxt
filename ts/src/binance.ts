@@ -4914,7 +4914,7 @@ export default class binance extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let response: NullableList = undefined;
+        let response: NullableDict | NullableList = undefined;
         if (market['option']) {
             response = await this.eapiPublicGetKlines (this.extend (request, params));
         } else if (price === 'mark') {
@@ -4968,7 +4968,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        const candles = this.parseOHLCVs (response, market, timeframe, since, limit);
+        const candles = this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
         return candles;
     }
 
@@ -5318,7 +5318,7 @@ export default class binance extends Exchange {
                 method = 'publicGetAggTrades';
             }
         }
-        let response: NullableList = undefined;
+        let response: NullableDict | NullableList = undefined;
         if (method === 'publicGetAggTrades') {
             response = await this.publicGetAggTrades (this.extend (request, params));
         } else if (method === 'publicGetTrades') {
@@ -5410,7 +5410,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        let responseList: Dict[] = [];
+        let responseList: Dict | List = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -8372,7 +8372,7 @@ export default class binance extends Exchange {
             }
             request['limit'] = limit;
         }
-        let response: NullableList = undefined;
+        let response: NullableDict | NullableList = undefined;
         if (type === 'option') {
             response = await this.eapiPrivateGetUserTrades (this.extend (request, params));
         } else {
@@ -8536,7 +8536,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        let responseList: Dict[] = [];
+        let responseList: Dict | List = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -8716,7 +8716,7 @@ export default class binance extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
         let currency: Currency = undefined;
-        let response: NullableList = undefined;
+        let response: NullableDict | NullableList = undefined;
         const request: Dict = {};
         const legalMoney = this.safeDict (this.options, 'legalMoney', {});
         const fiatOnly = this.safeBool (params, 'fiat', false);
@@ -8803,12 +8803,12 @@ export default class binance extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' method() returned empty response');
         }
-        for (let i = 0; i < response.length; i++) {
-            response[i]['type'] = 'deposit';
-        }
-        let responseList: Dict[] = [];
+        let responseList: List = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray (response);
+        }
+        for (let i = 0; i < responseList.length; i++) {
+            responseList[i]['type'] = 'deposit';
         }
         return this.parseTransactions (responseList, currency, since, limit);
     }
@@ -8846,7 +8846,7 @@ export default class binance extends Exchange {
             params = this.omit (params, 'until');
             request['endTime'] = until;
         }
-        let response: NullableList = undefined;
+        let response: NullableDict | NullableList = undefined;
         let currency: Currency = undefined;
         if (fiatOnly || ((code !== undefined) && (code in legalMoney))) {
             if (code !== undefined) {
@@ -8948,9 +8948,9 @@ export default class binance extends Exchange {
         if (typeof response === 'string') {
             response = this.parseJson (response);
         }
-        let responseList: Dict[] = [];
+        let responseList: List = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray (response);
         }
         for (let i = 0; i < responseList.length; i++) {
             responseList[i]['type'] = 'withdrawal';
@@ -9688,8 +9688,9 @@ export default class binance extends Exchange {
         //  ]
         //
         const withdrawFees: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        const coins = this.toArray (response);
+        for (let i = 0; i < coins.length; i++) {
+            const entry = coins[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const networkList = this.safeList (entry, 'networkList', []);
@@ -10011,7 +10012,7 @@ export default class binance extends Exchange {
         const isSpotOrMargin = (type === 'spot') || (type === 'margin');
         const isLinear = this.isLinear (type, subType);
         const isInverse = this.isInverse (type, subType);
-        let response: NullableList = undefined;
+        let response: NullableDict | NullableList = undefined;
         if (isSpotOrMargin) {
             response = await this.sapiGetAssetTradeFee (params);
         } else if (isLinear) {
@@ -10086,8 +10087,9 @@ export default class binance extends Exchange {
             if (response === undefined) {
                 throw new NullResponse (this.id + ' method() returned empty response');
             }
-            for (let i = 0; i < response.length; i++) {
-                const fee = this.parseTradingFee (response[i]);
+            const fees = this.toArray (response);
+            for (let i = 0; i < fees.length; i++) {
+                const fee = this.parseTradingFee (fees[i]);
                 const symbol = fee['symbol'];
                 if (symbol !== undefined) {
                     result[symbol] = fee;
@@ -10987,7 +10989,7 @@ export default class binance extends Exchange {
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
             let isPortfolioMargin: Bool = undefined;
             [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
-            let response: NullableList = undefined;
+            let response: NullableDict | NullableList = undefined;
             if (this.isLinear (type, subType)) {
                 if (isPortfolioMargin) {
                     response = await this.papiGetUmLeverageBracket (query);
@@ -11007,8 +11009,9 @@ export default class binance extends Exchange {
             if (response === undefined) {
                 throw new NullResponse (this.id + ' loadLeverageBrackets() returned empty response');
             }
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
+            const entries = this.toArray (response);
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
                 const brackets = this.safeList (entry, 'brackets', []);
@@ -11193,7 +11196,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOptionPosition (response[0], market);
+        return this.parseOptionPosition (this.safeDict (response, 0, {}), market);
     }
 
     /**
@@ -11251,8 +11254,9 @@ export default class binance extends Exchange {
         //     ]
         //
         const result: List = [];
-        for (let i = 0; i < response.length; i++) {
-            result.push (this.parseOptionPosition (response[i], market));
+        const positions = this.toArray (response);
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parseOptionPosition (positions[i], market));
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
@@ -11522,7 +11526,7 @@ export default class binance extends Exchange {
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', false);
         params = this.omit (params, 'type');
-        let response: NullableList = undefined;
+        let response: NullableDict | NullableList = undefined;
         if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmPositionRisk (this.extend (request, params));
@@ -11656,11 +11660,12 @@ export default class binance extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' method() returned empty response');
         }
-        for (let i = 0; i < response.length; i++) {
-            const rawPosition = response[i];
+        const positions = this.toArray (response);
+        for (let i = 0; i < positions.length; i++) {
+            const rawPosition = positions[i];
             const entryPriceString = this.safeString (rawPosition, 'entryPrice');
             if (Precise.stringGt (entryPriceString, '0')) {
-                result.push (this.parsePositionRisk (response[i]));
+                result.push (this.parsePositionRisk (rawPosition));
             }
         }
         symbols = this.marketSymbols (symbols);
@@ -13924,7 +13929,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parseGreeks (response[0], market);
+        return this.parseGreeks (this.safeDict (response, 0, {}), market);
     }
 
     /**
@@ -14363,7 +14368,7 @@ export default class binance extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let response: NullableList = undefined;
+        let response: NullableDict | NullableList = undefined;
         if (market['linear']) {
             response = await this.fapiPrivateGetPositionMarginHistory (this.extend (request, params));
         } else if (market['inverse']) {
@@ -14389,7 +14394,7 @@ export default class binance extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' parseMarginModifications() returned empty response');
         }
-        const modifications = this.parseMarginModifications (response);
+        const modifications = this.parseMarginModifications (this.toArray (response));
         return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
     }
 
@@ -14415,8 +14420,9 @@ export default class binance extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        const assets = this.toArray (response);
+        for (let i = 0; i < assets.length; i++) {
+            const entry = assets[i];
             const id = this.safeString (entry, 'asset');
             const code = this.safeCurrencyCode (id);
             if (code !== undefined) {
@@ -15031,7 +15037,7 @@ export default class binance extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', false);
-        let response: NullableList = undefined;
+        let response: NullableDict | NullableList = undefined;
         if (subType === 'linear') {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmAdlQuantile (params);
@@ -15059,7 +15065,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        let responseList: Dict[] = [];
+        let responseList: Dict | List = [];
         if (response !== undefined) {
             responseList = response;
         }

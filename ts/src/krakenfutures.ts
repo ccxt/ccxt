@@ -587,8 +587,9 @@ export default class krakenfutures extends Exchange {
         //        },
         //    }
         //
-        const timestamp = this.parse8601 (response['serverTime']);
-        return this.parseOrderBook (response['orderBook'], symbol, timestamp);
+        const timestamp = this.parse8601 (this.safeString (response, 'serverTime'));
+        const orderBook = this.safeDict (response, 'orderBook', {});
+        return this.parseOrderBook (orderBook, symbol, timestamp);
     }
 
     /**
@@ -1326,9 +1327,10 @@ export default class krakenfutures extends Exchange {
             request['limitPrice'] = price;
         }
         const response = await this.privatePostEditorder (this.extend (request, params));
-        const status = this.safeString (response['editStatus'], 'status');
+        const editStatus = this.safeDict (response, 'editStatus', {});
+        const status = this.safeString (editStatus, 'status');
         this.verifyOrderActionSuccess (status, 'editOrder', [ 'filled' ]);
-        const order = this.parseOrder (response['editStatus']);
+        const order = this.parseOrder (editStatus);
         order['info'] = response;
         return order;
     }
@@ -2320,7 +2322,8 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        return this.parseTrades (response['fills'], market, since, limit);
+        const fills = this.safeList (response, 'fills', []);
+        return this.parseTrades (fills, market, since, limit);
     }
 
     /**

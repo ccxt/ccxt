@@ -1749,8 +1749,9 @@ export default class nado extends Exchange {
     override async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.gatewayV2PublicGetAssets (params);
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+        const assets = this.toArray (response);
+        for (let i = 0; i < assets.length; i++) {
+            const currency = assets[i];
             const parsed = this.parseCurrency (currency);
             const code = this.safeString (parsed, 'code');
             if (code === undefined) {
@@ -1971,7 +1972,7 @@ export default class nado extends Exchange {
         const rates: Dict[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            rates.push (response[ticker]);
+            rates.push (this.safeDict (response, ticker, {}));
         }
         return this.parseFundingRates (rates, symbols);
     }
@@ -2062,7 +2063,7 @@ export default class nado extends Exchange {
         const interests: Dict[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            interests.push (response[ticker]);
+            interests.push (this.safeDict (response, ticker, {}));
         }
         return this.parseOpenInterests (interests, symbols);
     }

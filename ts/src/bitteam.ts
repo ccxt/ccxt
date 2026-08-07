@@ -1427,7 +1427,7 @@ export default class bitteam extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let response = await this.publicGetTradeApiCmcSummary ();
+        const response = await this.publicGetTradeApiCmcSummary ();
         //
         //     [
         //         {
@@ -1460,11 +1460,12 @@ export default class bitteam extends Exchange {
         //     ]
         //
         const tickers: List = [];
-        if (!Array.isArray (response)) {
-            response = [];
+        let rawTickers: List = [];
+        if (Array.isArray (response)) {
+            rawTickers = response;
         }
-        for (let i = 0; i < response.length; i++) {
-            const rawTicker = response[i];
+        for (let i = 0; i < rawTickers.length; i++) {
+            const rawTicker = rawTickers[i];
             const ticker = this.parseTicker (rawTicker);
             tickers.push (ticker);
         }

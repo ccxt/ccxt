@@ -1193,10 +1193,12 @@ export default class mudrex extends Exchange {
                 request['limit_price'] = lp;
             }
             params = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
-            return await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, params));
+            const partialResponse: Dict = await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, params));
+            return partialResponse as Order;
         }
         params = this.omit (params, [ 'position_id' ]);
-        return await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, params));
+        const response: Dict = await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, params));
+        return response as Order;
     }
 
     /**
@@ -1233,7 +1235,8 @@ export default class mudrex extends Exchange {
             'margin': this.costToPrecision (symbol, amount),
         };
         params = this.omit (params, [ 'position_id' ]);
-        return await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, params));
+        const response: Dict = await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, params));
+        return response as MarginModification;
     }
 
     /**

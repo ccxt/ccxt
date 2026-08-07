@@ -1332,7 +1332,7 @@ export default class paradex extends Exchange {
         // }
         //
         this.options['systemConfig'] = response;
-        return response;
+        return this.safeDict (this.options, 'systemConfig', {});
     }
 
     async prepareParadexDomain (l1 = false) {

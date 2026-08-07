@@ -6,7 +6,7 @@ import Exchange from './abstract/zaif.js';
 import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, NullableDict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -522,7 +522,7 @@ export default class zaif extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response = await this.publicGetTradesPair (this.extend (request, params));
+        const response = await this.publicGetTradesPair (this.extend (request, params));
         //
         //      [
         //          {
@@ -535,14 +535,15 @@ export default class zaif extends Exchange {
         //          }, ...
         //      ]
         //
-        const numTrades = response.length;
+        let trades: List = this.toArray (response);
+        const numTrades = trades.length;
         if (numTrades === 1) {
-            const firstTrade = response[0];
+            const firstTrade = this.safeDict (trades, 0, {});
             if (!Object.keys (firstTrade).length) {
-                response = [];
+                trades = [];
             }
         }
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     /**
@@ -573,9 +574,10 @@ export default class zaif extends Exchange {
             'price': price,
         };
         const response = await this.privatePostTrade (this.extend (request, params));
+        const data = this.safeDict (response, 'return', {});
         return this.safeOrder ({
             'info': response,
-            'id': response['return']['order_id'].toString (),
+            'id': data['order_id'].toString (),
         }, market);
     }
 
@@ -693,7 +695,8 @@ export default class zaif extends Exchange {
             request['currency_pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
-        return this.parseOrders (response['return'], market, since, limit);
+        const data = this.safeDict (response, 'return', {});
+        return this.parseOrders (data, market, since, limit);
     }
 
     /**
@@ -727,7 +730,8 @@ export default class zaif extends Exchange {
             request['currency_pair'] = market['id'];
         }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
-        return this.parseOrders (response['return'], market, since, limit);
+        const data = this.safeDict (response, 'return', {});
+        return this.parseOrders (data, market, since, limit);
     }
 
     /**

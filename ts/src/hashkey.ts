@@ -6,7 +6,7 @@ import Exchange from './abstract/hashkey.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, NullableDict, NullableList, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int, Status } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, NullableDict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int, Status } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1362,7 +1362,7 @@ export default class hashkey extends Exchange {
         }
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
-        let response: NullableList = undefined;
+        let response: Dict | List | undefined = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
@@ -1601,7 +1601,8 @@ export default class hashkey extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs: List = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -3973,8 +3974,9 @@ export default class hashkey extends Exchange {
         //     ]
         //
         const rates: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        const rows: List = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const entry = rows[i];
             const timestamp = this.safeInteger (entry, 'settleTime');
             rates.push ({
                 'info': entry,
@@ -4437,7 +4439,7 @@ export default class hashkey extends Exchange {
         }
         const market = this.market (symbol);
         const methodName = 'fetchTradingFee';
-        let response: TradingFees | undefined = undefined;
+        let response: Dict | List | undefined = undefined;
         if (market['spot']) {
             response = await this.fetchTradingFees (params);
             return this.safeDict (response, symbol) as TradingFeeInterface;

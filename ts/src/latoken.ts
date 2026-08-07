@@ -409,8 +409,9 @@ export default class latoken extends Exchange {
         const currencies = this.safeDict (this.options, 'cachedCurrencies', {});
         const currenciesById = this.indexBy (currencies, 'id');
         const result: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray (response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString (market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString (market, 'baseCurrency');
@@ -1027,7 +1028,7 @@ export default class latoken extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response: List;
+        let response: Dict | List = [];
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency'] = market['baseId'];

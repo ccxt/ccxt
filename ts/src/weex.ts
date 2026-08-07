@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, NullableDict, FeeString, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, List, Market, NullableDict, FeeString, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1384,7 +1384,7 @@ export default class weex extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const response = await this.publicGetApiV3MarketKlines (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     /**
@@ -1471,7 +1471,7 @@ export default class weex extends Exchange {
                 response = await this.contractGetCapiV3MarketKlines (this.extend (request, params));
             }
         }
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1527,7 +1527,7 @@ export default class weex extends Exchange {
         //         }
         //     ]
         //
-        let responseList: Dict[] = [];
+        let responseList: Dict | List = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -3120,7 +3120,7 @@ export default class weex extends Exchange {
             //
             response = await this.contractPrivateGetCapiV3UserTrades (this.extend (request, params));
         }
-        let responseList: Dict[] = [];
+        let responseList: Dict | List = [];
         if (response !== undefined) {
             responseList = response;
         }
@@ -3197,7 +3197,8 @@ export default class weex extends Exchange {
                 request['limit'] = limit;
             }
             [ request, params ] = this.handleUntilOption ('before', request, params);
-            items = await this.privatePostApiV3AccountBills (this.extend (request, params));
+            const billsResponse = await this.privatePostApiV3AccountBills (this.extend (request, params));
+            items = this.toArray (billsResponse);
         }
         return this.parseLedger (items, currency, since, limit);
     }
@@ -3629,7 +3630,7 @@ export default class weex extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (params);
-        return this.parseMarginModes (response, symbols, 'symbol', 'swap');
+        return this.parseMarginModes (this.toArray (response), symbols, 'symbol', 'swap');
     }
 
     override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
@@ -3724,7 +3725,7 @@ export default class weex extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (params);
-        return this.parseLeverages (response, symbols, 'symbol', 'swap');
+        return this.parseLeverages (this.toArray (response), symbols, 'symbol', 'swap');
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {

@@ -6,7 +6,7 @@ import Exchange from './abstract/bitrue.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, Int, List, MarginModification, Market, MarketType, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool, DepositWithdrawFees, Status } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, Int, List, MarginModification, Market, MarketType, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool, DepositWithdrawFees, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1661,7 +1661,7 @@ export default class bitrue extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        let response: NullableList = undefined;
+        let response: Dict | List = [];
         let data: Dict[] = [];
         const request: Dict = {};
         let type: Str = undefined;
@@ -1672,7 +1672,7 @@ export default class bitrue extends Exchange {
                 throw new NotSupported (this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } else if (market['spot']) {
                 response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
-                data = response as Dict[];
+                data = this.toArray (response);
             } else {
                 throw new NotSupported (this.id + ' fetchTickers only support spot & swap markets');
             }
@@ -1682,7 +1682,7 @@ export default class bitrue extends Exchange {
                 throw new NotSupported (this.id + ' fetchTickers only support spot when symbols are not proved');
             }
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
-            data = response as Dict[];
+            data = this.toArray (response);
         }
         //
         // spot
@@ -1850,7 +1850,7 @@ export default class bitrue extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (market['spot']) {
             const request: Dict = {
                 'symbol': market['id'],

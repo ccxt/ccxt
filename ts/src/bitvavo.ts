@@ -1172,7 +1172,7 @@ export default class bitvavo extends Exchange {
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     override parseBalance (response: any): Balances {

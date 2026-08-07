@@ -1093,8 +1093,9 @@ export default class bitmex extends Exchange {
             'datetime': undefined,
             'nonce': undefined,
         };
-        for (let i = 0; i < response.length; i++) {
-            const order = response[i];
+        const orders = this.toArray (response);
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
             const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
             const amount = this.convertFromRawQuantity (symbol, this.safeString (order, 'size'));
             const price = this.safeNumber (order, 'price');
@@ -1657,8 +1658,9 @@ export default class bitmex extends Exchange {
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         // same response as under "fetchMarkets"
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
+        const rawTickers = this.toArray (response);
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = this.parseTicker (rawTickers[i]);
             const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
@@ -1799,7 +1801,7 @@ export default class bitmex extends Exchange {
         //         {"timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0}
         //     ]
         //
-        const result = this.parseOHLCVs (response, market, timeframe, since, limit);
+        const result = this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
         if (useOpenTimestamp) {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
@@ -2800,8 +2802,9 @@ export default class bitmex extends Exchange {
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         // same response as under "fetchMarkets"
         const filteredResponse: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
+        const rawItems = this.toArray (response);
+        for (let i = 0; i < rawItems.length; i++) {
+            const item = rawItems[i];
             const marketId = this.safeString (item, 'symbol');
             const market = this.safeMarket (marketId);
             const swap = this.safeBool (market, 'swap', false);
@@ -3273,7 +3276,7 @@ export default class bitmex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseLiquidations (response, market, since, limit);
+        return this.parseLiquidations (this.toArray (response), market, since, limit);
     }
 
     override parseLiquidation (liquidation: any, market: Market = undefined) {

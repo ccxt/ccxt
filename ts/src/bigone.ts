@@ -733,8 +733,9 @@ export default class bigone extends Exchange {
                 'info': market,
             }));
         }
-        for (let i = 0; i < contractResponse.length; i++) {
-            const market = contractResponse[i];
+        const contractMarkets = this.toArray (contractResponse);
+        for (let i = 0; i < contractMarkets.length; i++) {
+            const market = contractMarkets[i];
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
             const settleId = this.safeString (market, 'settleCurrency');
@@ -978,7 +979,8 @@ export default class bigone extends Exchange {
             //
             data = this.safeList (response, 'data', []);
         } else {
-            data = await this.contractPublicGetInstruments (params);
+            const instruments = await this.contractPublicGetInstruments (params);
+            data = this.toArray (instruments);
             //
             //    [
             //        {

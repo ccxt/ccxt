@@ -481,7 +481,7 @@ export default class paymium extends Exchange {
         const response = await this.privatePostUserOrders (this.extend (request, params));
         return this.safeOrder ({
             'info': response,
-            'id': response['uuid'],
+            'id': this.safeString (response, 'uuid'),
         }, market);
     }
 

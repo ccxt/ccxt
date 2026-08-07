@@ -6,7 +6,7 @@ import Exchange from './abstract/mexc.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ExchangeNotAvailable, RequestTimeout, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, NullableList, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1609,7 +1609,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let trades: Trade[] = [];
+        let trades: Dict | List = [];
         if (market['spot']) {
             const until = this.safeInteger2 (params, 'endTime', 'until');
             if (since !== undefined) {
@@ -1910,7 +1910,7 @@ export default class mexc extends Exchange {
             //       ],
             //     ]
             //
-            candles = response;
+            candles = this.toArray (response);
         } else if (market['swap']) {
             if (since !== undefined) {
                 request['start'] = this.parseToInt (since / 1000);
@@ -1989,7 +1989,7 @@ export default class mexc extends Exchange {
             market = this.market (firstSymbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let tickers: NullableList = undefined;
+        let tickers: Dict | List | undefined = undefined;
         if (isSingularMarket) {
             request['symbol'] = this.safeString (market, 'id');
         }
@@ -2073,7 +2073,7 @@ export default class mexc extends Exchange {
         }
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
-        let ticker: Ticker | undefined = undefined;
+        let ticker: Dict | List | undefined = undefined;
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -2272,7 +2272,7 @@ export default class mexc extends Exchange {
             market = this.market (symbols[0]);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let tickers: NullableList = undefined;
+        let tickers: Dict | List | undefined = undefined;
         if (marketType === 'spot') {
             tickers = await this.spotPublicGetTickerBookTicker (query);
             //
@@ -4188,7 +4188,7 @@ export default class mexc extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let trades: Trade[];
+        let trades: Dict | List;
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -4286,7 +4286,7 @@ export default class mexc extends Exchange {
             market = this.market (symbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
-        let trades: Trade[];
+        let trades: Dict | List;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
@@ -4365,7 +4365,7 @@ export default class mexc extends Exchange {
         //         "success": true,
         //         "code": 0
         //     }
-        return response;
+        return response as MarginModification;
     }
 
     /**

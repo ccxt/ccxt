@@ -20,7 +20,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import Exchange from '../abstract/prediction/limitless.js';
 import type {
     int,
-    Int, Str, Num, Dict,
+    Int, Str, Num, Dict, List,
     Strings,
     Market, PredictionOrderBook, OHLCV,
     Bool,
@@ -281,7 +281,11 @@ export default class limitless extends Exchange {
                     page = this.sum (page, 1);
                     request['page'] = page;
                     const response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
-                    const rawPageMarkets = this.safeList (response, 'data', response);
+                    let responseRows: List = [];
+                    if (Array.isArray (response)) {
+                        responseRows = response;
+                    }
+                    const rawPageMarkets = this.safeList (response, 'data', responseRows);
                     const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
                     const pageMarketsLength = page_markets.length;
                     if (!page_markets || pageMarketsLength === 0) {
@@ -1399,7 +1403,11 @@ export default class limitless extends Exchange {
         //         }
         //     ]
         //
-        const rawHistoryList = this.safeList (response, 'data', this.safeList (response, 'prices', response));
+        let responseRows: List = [];
+        if (Array.isArray (response)) {
+            responseRows = response;
+        }
+        const rawHistoryList = this.safeList (response, 'data', this.safeList (response, 'prices', responseRows));
         const rawHistory = (rawHistoryList !== undefined) ? rawHistoryList : [];
         let history: any[] = rawHistory;
         const rawHistoryLength = rawHistory.length;
@@ -1526,7 +1534,7 @@ export default class limitless extends Exchange {
         // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-        return this.parsePredictionOrders (response, undefined, since, limit);
+        return this.parsePredictionOrders (this.toArray (response), undefined, since, limit);
     }
 
     /**
@@ -3056,7 +3064,10 @@ export default class limitless extends Exchange {
      */
     async fetchRawMarketsByTags (tags: string[], params = {}): Promise<any[]> {
         const categoriesResponse = await this.limitlessPublicGetCategories ();
-        const categories = (categoriesResponse !== undefined) ? categoriesResponse : [];
+        let categories: List = [];
+        if (Array.isArray (categoriesResponse)) {
+            categories = categoriesResponse;
+        }
         const wanted: string[] = [];
         for (let i = 0; i < tags.length; i++) {
             wanted.push (tags[i].toLowerCase ());

@@ -5,7 +5,7 @@ import Exchange from './abstract/toobit.js';
 import { OperationFailed, ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol, NotSupported, PermissionDenied, RateLimitExceeded, OperationRejected, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int, Status } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int, Status } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1252,7 +1252,7 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         let endpoint: Str = undefined;
         [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
@@ -1323,7 +1323,11 @@ export default class toobit extends Exchange {
             //        ...
             //
         }
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -2244,7 +2248,7 @@ export default class toobit extends Exchange {
         }
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, params));
             //
@@ -2310,7 +2314,7 @@ export default class toobit extends Exchange {
         }
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotTradeOrders (request);
             //
@@ -2374,7 +2378,7 @@ export default class toobit extends Exchange {
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
         } else {
@@ -2407,8 +2411,12 @@ export default class toobit extends Exchange {
             //
         }
         const ordersList: Dict[] = [];
-        for (let i = 0; i < response.length; i++) {
-            ordersList.push ({ 'result': response[i] });
+        let responseList: List = [];
+        if (Array.isArray (response)) {
+            responseList = response;
+        }
+        for (let i = 0; i < responseList.length; i++) {
+            ordersList.push ({ 'result': responseList[i] });
         }
         return this.parseOrders (ordersList, market, since, limit);
     }
@@ -2445,7 +2453,7 @@ export default class toobit extends Exchange {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
             //
@@ -2758,7 +2766,7 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (type === 'deposits') {
             response = await this.privateGetApiV1AccountDepositOrders (this.extend (request, params));
             //

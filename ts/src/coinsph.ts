@@ -904,7 +904,7 @@ export default class coinsph extends Exchange {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeDict (this.options, 'fetchTickers', {});
         const method = this.safeString (options, 'method', defaultMethod);
-        let tickers: Dict[] = [];
+        let tickers: Dict | List = [];
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
             tickers = await this.publicGetOpenapiQuoteV1TickerPrice (this.extend (request, params));
         } else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
@@ -1131,7 +1131,8 @@ export default class coinsph extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1886,8 +1887,9 @@ export default class coinsph extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = this.parseTradingFee (response[i]);
+        const fees = this.toArray (response);
+        for (let i = 0; i < fees.length; i++) {
+            const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = fee;

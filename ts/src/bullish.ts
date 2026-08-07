@@ -1019,7 +1019,7 @@ export default class bullish extends Exchange {
             request['symbol'] = market['id'];
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        let response: List;
+        let response: Dict | List;
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId (this.extend (request, params));
         } else {
@@ -1385,7 +1385,8 @@ export default class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1505,7 +1506,7 @@ export default class bullish extends Exchange {
         }
         let method = 'privateGetV2HistoryOrders';
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'method', method);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (method === 'privateGetV2Orders') {
             //
             //     [
@@ -2246,8 +2247,9 @@ export default class bullish extends Exchange {
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (params);
-            for (let i = 0; i < response.length; i++) {
-                const account = response[i];
+            const accounts = this.toArray (response);
+            for (let i = 0; i < accounts.length; i++) {
+                const account = accounts[i];
                 const name = this.safeString (account, 'tradingAccountName');
                 if (name === 'Primary Account') {
                     tradingAccountId = this.safeString (account, 'tradingAccountId');

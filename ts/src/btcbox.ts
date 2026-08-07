@@ -255,7 +255,7 @@ export default class btcbox extends Exchange {
             const quote = this.safeString (symbolParts, 1, '');
             const quoteId = quote.toLowerCase ();
             const id = baseCurr.toLowerCase ();
-            const res = response1[marketId];
+            const res = this.safeDict (response1, marketId, {});
             const symbol = baseCurr + '/' + quote;
             const fee = (id === 'BTC') ? this.parseNumber ('0.0005') : this.parseNumber ('0.0010');
             const details = this.safeDict (result2Data, id, {});
