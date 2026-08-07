@@ -19,6 +19,11 @@ public class MexcApi extends Exchange
         super(options);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetAnnouncements (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPublicGetAnnouncements", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  spotPublicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetPing", optionalArgs);

@@ -1564,7 +1564,7 @@ func (this *Deepcoin) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Deepcoin) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Deepcoin) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Deepcoin) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Deepcoin) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
@@ -1576,7 +1576,7 @@ func (this *Deepcoin) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Deepcoin) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Deepcoin) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Deepcoin) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Deepcoin) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -1699,7 +1699,7 @@ func (this *Deepcoin) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Deepcoin) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Deepcoin) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Deepcoin) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Deepcoin) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1744,7 +1744,7 @@ func (this *Deepcoin) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Deepcoin) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Deepcoin) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Deepcoin) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Deepcoin) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

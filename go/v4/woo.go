@@ -346,11 +346,11 @@ func (this *WooCore) Describe() any {
 				"ZRX":   "ZRX",
 			},
 			"networks": map[string]any{
-				"TRX":   "TRON",
-				"TRC20": "TRON",
-				"ERC20": "ETH",
-				"BEP20": "BSC",
-				"ARB":   "Arbitrum",
+				"TRX":      "TRON",
+				"TRC20":    "TRON",
+				"ERC20":    "ETH",
+				"BEP20":    "BSC",
+				"ARBITRUM": "Arbitrum",
 			},
 			"networksById": map[string]any{
 				"TRX":  "TRC20",

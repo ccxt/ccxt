@@ -4,6 +4,7 @@ import Client from '../base/ws/Client.js';
 export default class lbank extends lbankRest {
     describe(): any;
     requestId(): any;
+    checkContractMarket(market: Market, methodName: string): void;
     /**
      * @method
      * @name lbank#fetchOHLCVWs

@@ -73,8 +73,8 @@ class xt(ccxt.async_support.xt):
         required for private endpoints
         :param str isContract: True for contract trades
 
-        https://doc.xt.com/#websocket_privategetToken
-        https://doc.xt.com/#futures_user_websocket_v2base
+        https://doc.xt.com/docs/spot/WebSocket%20Private/GetWsToken
+        https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
 
         :returns str: listen key / access token
         """
@@ -152,8 +152,8 @@ class xt(ccxt.async_support.xt):
  @ignore
         Connects to a websocket channel
 
-        https://doc.xt.com/#websocket_privaterequestFormat
-        https://doc.xt.com/#futures_market_websocket_v2base
+        https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+        https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
 
         :param str name: name of the channel
         :param str access: public or private
@@ -201,8 +201,8 @@ class xt(ccxt.async_support.xt):
  @ignore
         Connects to a websocket channel
 
-        https://doc.xt.com/#websocket_privaterequestFormat
-        https://doc.xt.com/#futures_market_websocket_v2base
+        https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+        https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
 
         :param str messageHash: the message hash of the subscription
         :param str name: name of the channel
@@ -259,9 +259,8 @@ class xt(ccxt.async_support.xt):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://doc.xt.com/#websocket_publictickerRealTime
-        https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-        https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+        https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -281,9 +280,8 @@ class xt(ccxt.async_support.xt):
         """
         stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://doc.xt.com/#websocket_publictickerRealTime
-        https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-        https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+        https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -304,9 +302,8 @@ class xt(ccxt.async_support.xt):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://doc.xt.com/#websocket_publicallTicker
-        https://doc.xt.com/#futures_market_websocket_v2allTicker
-        https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+        https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
 
         :param str [symbols]: unified market symbols
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -330,9 +327,8 @@ class xt(ccxt.async_support.xt):
         """
         stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://doc.xt.com/#websocket_publicallTicker
-        https://doc.xt.com/#futures_market_websocket_v2allTicker
-        https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+        https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
 
         :param str [symbols]: unified market symbols
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -356,8 +352,8 @@ class xt(ccxt.async_support.xt):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://doc.xt.com/#websocket_publicsymbolKline
-        https://doc.xt.com/#futures_market_websocket_v2symbolKline
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+        https://doc.xt.com/docs/futures/WebsocKetV2/Kline
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
@@ -379,8 +375,8 @@ class xt(ccxt.async_support.xt):
         """
         stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://doc.xt.com/#websocket_publicsymbolKline
-        https://doc.xt.com/#futures_market_websocket_v2symbolKline
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+        https://doc.xt.com/docs/futures/WebsocKetV2/Kline
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
@@ -399,8 +395,8 @@ class xt(ccxt.async_support.xt):
         """
         get the list of most recent trades for a particular symbol
 
-        https://doc.xt.com/#websocket_publicdealRecord
-        https://doc.xt.com/#futures_market_websocket_v2dealRecord
+        https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+        https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -421,8 +417,8 @@ class xt(ccxt.async_support.xt):
         """
         stops watching the list of most recent trades for a particular symbol
 
-        https://doc.xt.com/#websocket_publicdealRecord
-        https://doc.xt.com/#futures_market_websocket_v2dealRecord
+        https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+        https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -439,10 +435,10 @@ class xt(ccxt.async_support.xt):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://doc.xt.com/#websocket_publiclimitDepth
-        https://doc.xt.com/#websocket_publicincreDepth
-        https://doc.xt.com/#futures_market_websocket_v2limitDepth
-        https://doc.xt.com/#futures_market_websocket_v2increDepth
+        https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+        https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+        https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+        https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by xt watchOrderBook
@@ -465,10 +461,10 @@ class xt(ccxt.async_support.xt):
         """
         stops watching information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://doc.xt.com/#websocket_publiclimitDepth
-        https://doc.xt.com/#websocket_publicincreDepth
-        https://doc.xt.com/#futures_market_websocket_v2limitDepth
-        https://doc.xt.com/#futures_market_websocket_v2increDepth
+        https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+        https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+        https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+        https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -490,8 +486,8 @@ class xt(ccxt.async_support.xt):
         """
         watches information on multiple orders made by the user
 
-        https://doc.xt.com/#websocket_privateorderChange
-        https://doc.xt.com/#futures_user_websocket_v2order
+        https://doc.xt.com/docs/spot/WebSocket%20Private/OrderChange
+        https://doc.xt.com/docs/futures/UserWebsocket/UserOrder
 
         :param str [symbol]: unified market symbol
         :param int [since]: not used by xt watchOrders
@@ -514,8 +510,8 @@ class xt(ccxt.async_support.xt):
         """
         watches information on multiple trades made by the user
 
-        https://doc.xt.com/#websocket_privateorderDeal
-        https://doc.xt.com/#futures_user_websocket_v2trade
+        https://doc.xt.com/docs/spot/WebSocket%20Private/OrderFilled
+        https://doc.xt.com/docs/futures/UserWebsocket/Transactions
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -538,8 +534,8 @@ class xt(ccxt.async_support.xt):
         """
         watches information on multiple orders made by the user
 
-        https://doc.xt.com/#websocket_privatebalanceChange
-        https://doc.xt.com/#futures_user_websocket_v2balance
+        https://doc.xt.com/docs/spot/WebSocket%20Private/BalanceChange
+        https://doc.xt.com/docs/futures/UserWebsocket/BalanceChange
 
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
@@ -552,7 +548,7 @@ class xt(ccxt.async_support.xt):
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
 
-        https://doc.xt.com/#futures_user_websocket_v2position
+        https://doc.xt.com/docs/futures/UserWebsocket/ChangePosition
 
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
@@ -582,7 +578,7 @@ class xt(ccxt.async_support.xt):
         """
         watch the current funding rate
 
-        https://doc.xt.com/#futures_market_websocket_v2fundRate
+        https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -600,7 +596,7 @@ class xt(ccxt.async_support.xt):
         """
         stops watching the funding rate
 
-        https://doc.xt.com/#futures_market_websocket_v2fundRate
+        https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint

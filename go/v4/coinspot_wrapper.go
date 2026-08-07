@@ -602,7 +602,7 @@ func (this *Coinspot) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Coinspot) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinspot) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinspot) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinspot) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -620,7 +620,7 @@ func (this *Coinspot) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Coinspot) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinspot) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinspot) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinspot) FetchTime(params ...any) (int64, error) {
@@ -746,7 +746,7 @@ func (this *Coinspot) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Coinspot) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coinspot) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Coinspot) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coinspot) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -791,7 +791,7 @@ func (this *Coinspot) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Coinspot) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coinspot) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Coinspot) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Coinspot) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

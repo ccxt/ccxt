@@ -1799,7 +1799,7 @@ public class FoxbitCore extends FoxbitApi
             }};
             return new java.util.HashMap<String, Object>() {{
                 put( "status", FoxbitCore.this.safeString(statusMap, statusRaw, statusRaw) );
-                put( "updated", FoxbitCore.this.safeString(attributes, "updatedAt") );
+                put( "updated", FoxbitCore.this.parse8601(FoxbitCore.this.safeString(attributes, "updatedAt")) );
                 put( "eta", null );
                 put( "url", null );
                 put( "info", response );

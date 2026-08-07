@@ -167,7 +167,7 @@ class derive extends \ccxt\async\derive {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
-            $topic = 'ticker.' . $market['id'] . '.100';
+            $topic = 'ticker_slim.' . $market['id'] . '.100'; // the venue deprecated the fat ticker channel in favor of ticker_slim
             $request = array(
                 'method' => 'subscribe',
                 'params' => array(
@@ -233,7 +233,7 @@ class derive extends \ccxt\async\derive {
         //           option_pricing => null,
         //           index_price => '99883.8',
         //           mark_price => '99897.52408421244763303548098',
-        //           stats => array(
+        //           $stats => array(
         //             contract_volume => '92.395',
         //             num_trades => '2924',
         //             open_interest => '33.743468027373780786',
@@ -253,8 +253,35 @@ class derive extends \ccxt\async\derive {
         $params = $this->safe_dict($message, 'params');
         $rawData = $this->safe_dict($params, 'data');
         $data = $this->safe_dict($rawData, 'instrument_ticker', array());
-        $topic = $this->safe_value($params, 'channel');
-        $ticker = $this->parse_ticker($data);
+        $topic = $this->safe_string($params, 'channel');
+        $ticker = null;
+        if ($topic !== null && str_starts_with($topic, 'ticker_slim')) {
+            // the slim payload uses short keys and does not carry the instrument name,
+            // so the symbol is recovered from the channel => ticker_slim.BTC-PERP.100
+            $parts = explode('.', $topic);
+            $marketId = $this->safe_string($parts, 1);
+            $market = $this->safe_market($marketId);
+            $stats = $this->safe_dict($data, 'stats', array());
+            $ticker = $this->safe_ticker(array(
+                'symbol' => $market['symbol'],
+                'timestamp' => $this->safe_integer($data, 't'),
+                'datetime' => $this->iso8601($this->safe_integer($data, 't')),
+                'bid' => $this->safe_string($data, 'b'),
+                'bidVolume' => $this->safe_string($data, 'B'),
+                'ask' => $this->safe_string($data, 'a'),
+                'askVolume' => $this->safe_string($data, 'A'),
+                'high' => $this->safe_string($stats, 'h'),
+                'low' => $this->safe_string($stats, 'l'),
+                'baseVolume' => $this->safe_string($stats, 'c'),
+                'quoteVolume' => $this->safe_string($stats, 'v'),
+                'percentage' => $this->safe_string($stats, 'p'),
+                'markPrice' => $this->safe_string($data, 'M'),
+                'indexPrice' => $this->safe_string($data, 'I'),
+                'info' => $rawData,
+            ), $market);
+        } else {
+            $ticker = $this->parse_ticker($data);
+        }
         $tickerSymbol = $ticker['symbol'];
         if ($tickerSymbol !== null) {
             $this->tickers[$tickerSymbol] = $ticker;
@@ -744,6 +771,7 @@ class derive extends \ccxt\async\derive {
         $methods = array(
             'orderbook' => array($this, 'handle_order_book'),
             'ticker' => array($this, 'handle_ticker'),
+            'ticker_slim' => array($this, 'handle_ticker'),
             'trades' => array($this, 'handle_trade'),
             'orders' => array($this, 'handle_order'),
             'mytrades' => array($this, 'handle_my_trade'),

@@ -56,7 +56,7 @@ const { isNode, isBun, selfIsDefined, deepExtend, extend, clone, unique, indexBy
 arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows, } = functions;
 // ----------------------------------------------------------------------------
 //
-const dynamicImport = async (moduleName) => await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(/* webpackIgnore: true */ moduleName);
+const dynamicImport = async (moduleName) => await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(/* webpackIgnore: true */ /* @vite-ignore */ moduleName); // both bundler hints needed so optional proxy-agent modules are not statically resolved, see https://github.com/ccxt/ccxt/issues/21555
 //
 // ----------------------------------------------------------------------------
 //
@@ -976,7 +976,10 @@ class BaseExchange {
             await this.loadProxyModules();
         }
         // user-agent
-        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        let userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        if ((userAgent === undefined) && isNode) {
+            userAgent = this.userAgents['chrome'];
+        }
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
                 headers = this.extend({ 'User-Agent': userAgent }, headers);
@@ -3593,6 +3596,11 @@ class BaseExchange {
                 'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
                 'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
             },
+            'backwardSupportedNetworkCodes': {
+                'ARB': 'ARBITRUM',
+                'ARBONE': 'ARBITRUM',
+                'ARBNOVA': 'ARBITRUM_NOVA',
+            },
         };
     }
     safeLedgerEntry(entry, currency = undefined) {
@@ -5166,6 +5174,11 @@ class BaseExchange {
             if (networkCode in networks) {
                 return this.safeString(networks[networkCode], 'id');
             }
+        }
+        // before returning the original input, try to match if it's backward-maintained networkCode
+        const oldCodes = this.safeDict(this.options, 'backwardSupportedNetworkCodes', {});
+        if (networkCode in oldCodes) {
+            return this.networkCodeToId(oldCodes[networkCode], currencyCode);
         }
         return networkCode;
     }
@@ -7510,14 +7523,23 @@ class BaseExchange {
         const time = this.parseTimeframe(timeframe) * 1000;
         maxEntriesPerRequest = this.requireValue(maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
         const step = time * maxEntriesPerRequest;
+        const until = this.safeInteger2(params, 'until', 'till'); // do not omit it here
         let currentSince = current - (maxCalls * step) - 1;
         if (since !== undefined) {
-            currentSince = Math.max(currentSince, since);
+            if (until !== undefined) {
+                // the recent-window floor below would jump past a fully-historical [ since, until ]
+                // range and return an empty result - requiredCalls is validated against maxCalls
+                // further down, so anchoring at since directly is safe here,
+                // see https://github.com/ccxt/ccxt/issues/26252
+                currentSince = since;
+            }
+            else {
+                currentSince = Math.max(currentSince, since);
+            }
         }
         else {
             currentSince = Math.max(currentSince, 1241440531000); // avoid timestamps older than 2009
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // do not omit it here
         if (until !== undefined) {
             if (since === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set');

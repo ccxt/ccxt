@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -593,7 +593,7 @@ class bitfinex(Exchange, ImplicitAPI):
         # Prices submit with a precision larger than 5 will be cut by the API.
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -896,11 +896,19 @@ class bitfinex(Exchange, ImplicitAPI):
         fee = self.safe_number(fees, 1)
         undl = self.safe_list(indexed['undl'], id, [])
         defaultCurrencyPrecision = self.safe_string(self.options, 'defaultCurrencyPrecision', '8')  # kept here for backward-compatibility
-        precision = self.handle_option('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision)
+        # numberToString instead of an `as string` cast: the describe() default for self option is the
+        # NUMBER 8(and users may override with numbers too), and the hard cast makes the C# build throw
+        # InvalidCastException Int32 to str here, breaking bitfinex loadMarkets entirely in C#
+        precision = self.number_to_string(self.handle_option('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision))
         networks = {}
         networkIds = self.safe_list(indexedNetworks, id, [])
         for j in range(0, len(networkIds)):
-            networkId = networkIds[j]
+            # safeString instead of raw access: the venue config payload can carry numeric
+            # network ids, and the raw value flows into toLowerCase and a dictionary key,
+            # which hard-casts to string in the C# build and throws InvalidCastException
+            networkId = self.safe_string(networkIds, j)
+            if networkId is None:
+                continue
             network = self.network_id_to_code(networkId, code)
             dwStatuses = self.safe_list(indexed['statuses'], networkId, [])
             if network is not None:
@@ -1517,11 +1525,11 @@ class bitfinex(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
-            'sort': 1,
             'limit': limit,
         }
         if since is not None:
             request['start'] = since
+            request['sort'] = 1
         request, params = self.handle_until_option('end', request, params)
         response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         #
@@ -2019,7 +2027,7 @@ class bitfinex(Exchange, ImplicitAPI):
             ordersList.append({'result': orders[i]})
         return self.parse_orders(ordersList, market)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 
@@ -2040,7 +2048,7 @@ class bitfinex(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 

@@ -29,6 +29,7 @@ interface Exchange {
     publicLinearGetFutureMarketV1PublicQSymbolIndexPrice(params?: {}): Promise<implicitReturnType>;
     publicLinearGetFutureMarketV1PublicQSymbolMarkPrice(params?: {}): Promise<implicitReturnType>;
     publicLinearGetFutureMarketV1PublicQTicker(params?: {}): Promise<implicitReturnType>;
+    publicLinearGetFutureMarketV1PublicQTickerBooks(params?: {}): Promise<implicitReturnType>;
     publicLinearGetFutureMarketV1PublicQTickers(params?: {}): Promise<implicitReturnType>;
     publicLinearGetFutureMarketV1PublicSymbolCoins(params?: {}): Promise<implicitReturnType>;
     publicLinearGetFutureMarketV1PublicSymbolDetail(params?: {}): Promise<implicitReturnType>;
@@ -49,6 +50,7 @@ interface Exchange {
     publicInverseGetFutureMarketV1PublicQSymbolIndexPrice(params?: {}): Promise<implicitReturnType>;
     publicInverseGetFutureMarketV1PublicQSymbolMarkPrice(params?: {}): Promise<implicitReturnType>;
     publicInverseGetFutureMarketV1PublicQTicker(params?: {}): Promise<implicitReturnType>;
+    publicInverseGetFutureMarketV1PublicQTickerBooks(params?: {}): Promise<implicitReturnType>;
     publicInverseGetFutureMarketV1PublicQTickers(params?: {}): Promise<implicitReturnType>;
     publicInverseGetFutureMarketV1PublicSymbolCoins(params?: {}): Promise<implicitReturnType>;
     publicInverseGetFutureMarketV1PublicSymbolDetail(params?: {}): Promise<implicitReturnType>;

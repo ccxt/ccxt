@@ -1848,6 +1848,11 @@ public partial class BaseExchange
                     { "default", "primary" },
                 } },
             } },
+            { "backwardSupportedNetworkCodes", new Dictionary<string, object>() {
+                { "ARB", "ARBITRUM" },
+                { "ARBONE", "ARBITRUM" },
+                { "ARBNOVA", "ARBITRUM_NOVA" },
+            } },
         };
     }
 
@@ -3763,6 +3768,12 @@ public partial class BaseExchange
             {
                 return this.safeString(getValue(networks, networkCode), "id");
             }
+        }
+        // before returning the original input, try to match if it's backward-maintained networkCode
+        object oldCodes = this.safeDict(this.options, "backwardSupportedNetworkCodes", new Dictionary<string, object>() {});
+        if (isTrue(inOp(oldCodes, networkCode)))
+        {
+            return this.networkCodeToId(getValue(oldCodes, networkCode), currencyCode);
         }
         return networkCode;
     }
@@ -6952,15 +6963,25 @@ public partial class BaseExchange
         object time = multiply(this.parseTimeframe(timeframe), 1000);
         maxEntriesPerRequest = this.requireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
         object step = multiply(time, maxEntriesPerRequest);
+        object until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
         object currentSince = subtract(subtract(current, (multiply(maxCalls, step))), 1);
         if (isTrue(!isEqual(since, null)))
         {
-            currentSince = mathMax(currentSince, since);
+            if (isTrue(!isEqual(until, null)))
+            {
+                // the recent-window floor below would jump past a fully-historical [ since, until ]
+                // range and return an empty result - requiredCalls is validated against maxCalls
+                // further down, so anchoring at since directly is safe here,
+                // see https://github.com/ccxt/ccxt/issues/26252
+                currentSince = since;
+            } else
+            {
+                currentSince = mathMax(currentSince, since);
+            }
         } else
         {
             currentSince = mathMax(currentSince, 1241440531000); // avoid timestamps older than 2009
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
         if (isTrue(!isEqual(until, null)))
         {
             if (isTrue(isEqual(since, null)))

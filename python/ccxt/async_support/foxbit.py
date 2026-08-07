@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.foxbit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1386,7 +1386,7 @@ class foxbit(Exchange, ImplicitAPI):
         result = self.sort_by(allTransactions, 'timestamp')
         return result
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         The latest known information on the availability of the exchange API.
 
@@ -1419,7 +1419,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         return {
             'status': self.safe_string(statusMap, statusRaw, statusRaw),
-            'updated': self.safe_string(attributes, 'updatedAt'),
+            'updated': self.parse8601(self.safe_string(attributes, 'updatedAt')),
             'eta': None,
             'url': None,
             'info': response,

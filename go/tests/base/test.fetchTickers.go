@@ -65,9 +65,14 @@ func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, 
 							}
 							ret_ = func() any {
 								// catch block:
+								var ohlcv any = nil
+								var tickerSymbol any = GetValue(ticker, "symbol")
+								if IsTrue(IsTrue((!IsEqual(tickerSymbol, nil))) && IsTrue(TickerExceptionNeedsOhlcv(ex, exchange, ticker))) {
 
-								retRes3812 := (<-ValidateTickerExceptionForPercentage(ex, exchange, ticker))
-								PanicOnError(retRes3812)
+									ohlcv = (<-exchange.FetchOHLCV(tickerSymbol, "1d", nil, 5))
+									PanicOnError(ohlcv)
+								}
+								ValidateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv)
 								return nil
 							}()
 						}

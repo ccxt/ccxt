@@ -408,7 +408,7 @@ public class BackpackCore extends BackpackApi
                 put( "adjustForTimeDifference", false );
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "APT", "Aptos" );
-                    put( "ARB", "Arbitrum" );
+                    put( "ARBITRUM", "Arbitrum" );
                     put( "AVAX", "Avalanche" );
                     put( "BASE", "Base" );
                     put( "BERA", "Berachain" );
@@ -433,7 +433,7 @@ public class BackpackCore extends BackpackApi
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "aptos", "APT" );
-                    put( "arbitrum", "ARB" );
+                    put( "arbitrum", "ARBITRUM" );
                     put( "avalanche", "AVAX" );
                     put( "base", "BASE" );
                     put( "berachain", "BERA" );

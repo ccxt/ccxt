@@ -638,9 +638,29 @@ function exchangeProp (exchange: Exchange, key: string, defaultValue: any = unde
     return exchange.getProperty (exchange, keyUpper, defaultValue);
 }
 
-async function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, ticker: any) {
+function tickerExceptionNeedsOhlcv (ex: any, exchange: Exchange, ticker: any): boolean {
+    // pure helper (no awaits): files under test/Exchange/base transpile into a single
+    // sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
+    // in the per-lane callers - this tells them whether the probe is needed
+    const eMessage: string = exchange.exceptionMessage (ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+    if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
+        const symbol = ticker['symbol'];
+        if (symbol !== undefined) {
+            if ((exchange.markets !== undefined) && (symbol in exchange.markets)) {
+                if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, ticker: any, ohlcv: any = undefined) {
     // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-    const eMessage = exchange.exceptionMessage (ex, false);
+    // pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
+    // per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
+    const eMessage: string = exchange.exceptionMessage (ex, false); // typed string so the php transpile uses mb_strpos, not in_array
     if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
         const symbol = ticker['symbol'];
         if (symbol !== undefined) {
@@ -648,11 +668,10 @@ async function validateTickerExceptionForPercentage (ex: any, exchange: Exchange
             if ((exchange.markets === undefined) || !(symbol in exchange.markets)) {
                 return;
             }
-            // if OHLCV supported
-            if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
-                const ohlcv = await exchange.fetchOHLCV (symbol, '1d', undefined, 5);
-                if (ohlcv.length <= 1) {
-                    // if only 1 day, then allow it
+            if (ohlcv !== undefined) {
+                const ohlcvLength = ohlcv.length;
+                if (ohlcvLength <= 1) {
+                    // if only 1 day of listing, then allow it
                     return;
                 }
             }
@@ -696,5 +715,6 @@ export default {
     assertRoundMinuteTimestamp,
     concat,
     getActiveMarkets,
+    tickerExceptionNeedsOhlcv,
     validateTickerExceptionForPercentage,
 };

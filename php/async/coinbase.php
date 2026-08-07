@@ -3786,7 +3786,7 @@ class coinbase extends Exchange {
         })();
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());

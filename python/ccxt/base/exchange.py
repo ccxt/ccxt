@@ -3932,6 +3932,11 @@ class BaseExchange(object):
                 'TRX': {'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary'},
                 'BTC': {'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary'},
             },
+            'backwardSupportedNetworkCodes': {
+                'ARB': 'ARBITRUM',
+                'ARBONE': 'ARBITRUM',
+                'ARBNOVA': 'ARBITRUM_NOVA',
+            },
         }
 
     def safe_ledger_entry(self, entry: object, currency: Currency = None):
@@ -5256,6 +5261,10 @@ class BaseExchange(object):
             networks = self.safe_dict(currenciesToCheck[i], 'networks', {})
             if networkCode in networks:
                 return self.safe_string(networks[networkCode], 'id')
+        # before returning the original input, try to match if it's backward-maintained networkCode
+        oldCodes = self.safe_dict(self.options, 'backwardSupportedNetworkCodes', {})
+        if networkCode in oldCodes:
+            return self.network_code_to_id(oldCodes[networkCode], currencyCode)
         return networkCode
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
@@ -7217,12 +7226,19 @@ class BaseExchange(object):
         time = self.parse_timeframe(timeframe) * 1000
         maxEntriesPerRequest = self.require_value(maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
         step = time * maxEntriesPerRequest
+        until = self.safe_integer_2(params, 'until', 'till')  # do not omit it here
         currentSince = current - (maxCalls * step) - 1
         if since is not None:
-            currentSince = max(currentSince, since)
+            if until is not None:
+                # the recent-window floor below would jump past a fully-historical [since, until]
+                # range and return an empty result - requiredCalls is validated against maxCalls
+                # further down, so anchoring at since directly is safe here,
+                # see https://github.com/ccxt/ccxt/issues/26252
+                currentSince = since
+            else:
+                currentSince = max(currentSince, since)
         else:
             currentSince = max(currentSince, 1241440531000)  # avoid timestamps older than 2009
-        until = self.safe_integer_2(params, 'until', 'till')  # do not omit it here
         if until is not None:
             if since is None:
                 raise ArgumentsRequired(self.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set')

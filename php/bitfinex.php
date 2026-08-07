@@ -577,7 +577,7 @@ class bitfinex extends Exchange {
         return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -892,11 +892,20 @@ class bitfinex extends Exchange {
         $fee = $this->safe_number($fees, 1);
         $undl = $this->safe_list($indexed['undl'], $id, array());
         $defaultCurrencyPrecision = $this->safe_string($this->options, 'defaultCurrencyPrecision', '8'); // kept here for backward-compatibility
-        $precision = $this->handle_option('fetchCurrencies', 'defaultPrecision', $defaultCurrencyPrecision);
+        // numberToString instead of an `as string` cast => the describe() default for this option is the
+        // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
+        // InvalidCastException Int32 to 'strval' here, breaking bitfinex loadMarkets entirely in C#
+        $precision = $this->number_to_string($this->handle_option('fetchCurrencies', 'defaultPrecision', $defaultCurrencyPrecision));
         $networks = array();
         $networkIds = $this->safe_list($indexedNetworks, $id, array());
         for ($j = 0; $j < count($networkIds); $j++) {
-            $networkId = $networkIds[$j];
+            // safeString instead of raw access => the venue config payload can carry numeric
+            // $network ids, and the raw value flows into toLowerCase and a dictionary key,
+            // which hard-casts to string in the C# build and throws InvalidCastException
+            $networkId = $this->safe_string($networkIds, $j);
+            if ($networkId === null) {
+                continue;
+            }
             $network = $this->network_id_to_code($networkId, $code);
             $dwStatuses = $this->safe_list($indexed['statuses'], $networkId, array());
             if ($network !== null) {
@@ -1557,11 +1566,11 @@ class bitfinex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'sort' => 1,
             'limit' => $limit,
         );
         if ($since !== null) {
             $request['start'] = $since;
+            $request['sort'] = 1;
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = $this->publicGetCandlesTradeTimeframeSymbolHist($this->extend($request, $params));
@@ -2106,7 +2115,7 @@ class bitfinex extends Exchange {
         return $this->parse_orders($ordersList, $market);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open $order by it's $id
          *
@@ -2129,7 +2138,7 @@ class bitfinex extends Exchange {
         return $order;
     }
 
-    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open $order by it's $id
          *

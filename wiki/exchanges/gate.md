@@ -950,6 +950,7 @@ fetches information on multiple closed orders made by the user
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used |
 | params.historical | <code>boolean</code> | No | *swap only* true for using historical endpoint |
 | params.unifiedAccount | <code>bool</code> | No | set to true for fetching unified account orders |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -2391,6 +2392,8 @@ watches information on multiple orders made by the user
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | spot, margin, swap, future, or option. Required if listening to all symbols. |
 | params.isInverse | <code>boolean</code> | No | if future, listen to inverse or linear contracts |
+| params.trigger | <code>boolean</code> | No | set to true to watch trigger orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202 |
+| params.stop | <code>boolean</code> | No | alias of params.trigger |
 
 
 ```javascript

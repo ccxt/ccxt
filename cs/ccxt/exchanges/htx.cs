@@ -1434,7 +1434,7 @@ public partial class htx : Exchange
             {
                 status = ((bool) isTrue((isEqual(statusRaw, "ok")))) ? "ok" : "maintenance"; // 'ok', 'error'
             }
-            updated = this.safeString(response, "ts");
+            updated = this.safeInteger(response, "ts");
         } else
         {
             object statusData = this.safeValue(response, "status", new Dictionary<string, object>() {});

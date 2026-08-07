@@ -570,7 +570,7 @@ class aster extends Exchange {
                 'networks' => array(
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
-                    'ARBONE' => 'Arbitrum',
+                    'ARBITRUM' => 'Arbitrum',
                 ),
                 'networksToChainId' => array(
                     'ETH' => 1,
@@ -2104,7 +2104,7 @@ class aster extends Exchange {
         return $response;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
          *
@@ -2378,7 +2378,7 @@ class aster extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open order by the $id
          *

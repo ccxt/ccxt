@@ -974,7 +974,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function fetch_swap_markets(mixed $params) {
+    public function fetch_swap_markets(mixed $params): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->swapV2PublicGetQuoteContracts($params));
             //
@@ -3176,7 +3176,7 @@ class bingx extends Exchange {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
             if ($triggerPrice !== null) {
-                if ($isMarketOrder && $this->safe_string($request, 'quoteOrderQty') === null) {
+                if ($isMarketOrder && ($side === 'buy') && $this->safe_string($request, 'quoteOrderQty') === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires the $cost parameter (or the $amount . $price) for placing spot $market-buy trigger orders');
                 }
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -6602,7 +6602,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets

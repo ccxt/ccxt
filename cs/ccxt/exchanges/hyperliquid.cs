@@ -3860,6 +3860,21 @@ public partial class hyperliquid : Exchange
             postOnly = (isEqual(tif, "ALO"));
         }
         object triggerPx = ((bool) isTrue(this.safeBool(entry, "isTrigger"))) ? this.safeNumber(entry, "triggerPx") : null;
+        // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
+        // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
+        object orderTypeRaw = ((string)this.safeStringLower(entry, "orderType", ""));
+        object stopLossPrice = null;
+        object takeProfitPrice = null;
+        if (isTrue(!isEqual(triggerPx, null)))
+        {
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(orderTypeRaw, "stop"), 0)))
+            {
+                stopLossPrice = triggerPx;
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(orderTypeRaw, "take profit"), 0)))
+            {
+                takeProfitPrice = triggerPx;
+            }
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString(entry, "oid") },
@@ -3876,6 +3891,8 @@ public partial class hyperliquid : Exchange
             { "side", side },
             { "price", this.safeString(entry, "limitPx") },
             { "triggerPrice", triggerPx },
+            { "stopLossPrice", stopLossPrice },
+            { "takeProfitPrice", takeProfitPrice },
             { "amount", totalAmount },
             { "cost", null },
             { "average", this.safeString(entry, "avgPx") },
@@ -4594,7 +4611,13 @@ public partial class hyperliquid : Exchange
             throw new NotSupported ((string)add(this.id, " transfer() only support main <> subaccount transfer")) ;
         }
         this.checkAddress(subAccountAddress);
-        if (isTrue(isTrue(isEqual(code, null)) || isTrue(isEqual(((string)code).ToUpper(), "USDC"))))
+        // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+        // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
+        // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
+        object transferType = this.safeString(parameters, "type");
+        parameters = this.omit(parameters, "type");
+        object isUsdc = isTrue((isEqual(code, null))) || isTrue((isEqual(((string)code).ToUpper(), "USDC")));
+        if (isTrue(isTrue(isUsdc) && isTrue((!isEqual(transferType, "spot")))))
         {
             // Transfer USDC with subAccountTransfer
             object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
@@ -4617,13 +4640,22 @@ public partial class hyperliquid : Exchange
             return this.parseTransfer(response);
         } else
         {
-            // Transfer non-USDC with subAccountSpotTransfer
-            object symbol = this.symbol(code);
+            // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
+            // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
+            if (isTrue(isEqual(code, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " transfer() requires a currency code for spot sub-account transfers")) ;
+            }
+            object currency = this.currency(code);
+            object currencyInfo = this.safeDict(currency, "info", new Dictionary<string, object>() {});
+            object tokenName = this.safeString(currencyInfo, "name");
+            object tokenId = this.safeString(currencyInfo, "tokenId");
+            object token = add(add(tokenName, ":"), tokenId);
             object action = new Dictionary<string, object>() {
                 { "type", "subAccountSpotTransfer" },
                 { "subAccountUser", subAccountAddress },
                 { "isDeposit", isDeposit },
-                { "token", symbol },
+                { "token", token },
                 { "amount", this.numberToString(amount) },
             };
             object sig = this.signL1Action(action, nonce);

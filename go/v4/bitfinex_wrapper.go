@@ -34,12 +34,12 @@ func NewBitfinexFromCore(core *BitfinexCore) *Bitfinex {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Bitfinex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitfinex) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 
 /**
@@ -492,7 +492,7 @@ func (this *Bitfinex) CancelOrders(ids []string, options ...CancelOrdersOptions)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (map[string]any, error) {
+func (this *Bitfinex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (Order, error) {
 
 	opts := FetchOpenOrderOptionsStruct{}
 
@@ -511,9 +511,9 @@ func (this *Bitfinex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions
 	}
 	res := <-this.Core.FetchOpenOrder(id, symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Order{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewOrder(res), nil
 }
 
 /**
@@ -527,7 +527,7 @@ func (this *Bitfinex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) FetchClosedOrder(id string, options ...FetchClosedOrderOptions) (map[string]any, error) {
+func (this *Bitfinex) FetchClosedOrder(id string, options ...FetchClosedOrderOptions) (Order, error) {
 
 	opts := FetchClosedOrderOptionsStruct{}
 
@@ -546,9 +546,9 @@ func (this *Bitfinex) FetchClosedOrder(id string, options ...FetchClosedOrderOpt
 	}
 	res := <-this.Core.FetchClosedOrder(id, symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Order{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewOrder(res), nil
 }
 
 /**
@@ -1561,7 +1561,7 @@ func (this *Bitfinex) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Bitfinex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitfinex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitfinex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitfinex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1687,7 +1687,7 @@ func (this *Bitfinex) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bitfinex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bitfinex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bitfinex) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bitfinex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1732,7 +1732,7 @@ func (this *Bitfinex) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Bitfinex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bitfinex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bitfinex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bitfinex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

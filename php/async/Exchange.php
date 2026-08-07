@@ -1938,6 +1938,11 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'TRX' => array( 'primary' => 'TRX', 'secondary' => 'TRC20', 'default' => 'secondary' ),
                 'BTC' => array( 'primary' => 'BTC', 'secondary' => 'BRC20', 'default' => 'primary' ),
             ),
+            'backwardSupportedNetworkCodes' => array(
+                'ARB' => 'ARBITRUM',
+                'ARBONE' => 'ARBITRUM',
+                'ARBNOVA' => 'ARBITRUM_NOVA',
+            ),
         );
     }
 
@@ -3523,6 +3528,11 @@ class BaseExchange extends \ccxt\BaseExchange {
             if (is_array($networks) && array_key_exists($networkCode ?? '', $networks)) {
                 return $this->safe_string($networks[$networkCode], 'id');
             }
+        }
+        // before returning the original input, try to match if it's backward-maintained $networkCode
+        $oldCodes = $this->safe_dict($this->options, 'backwardSupportedNetworkCodes', array());
+        if (is_array($oldCodes) && array_key_exists($networkCode ?? '', $oldCodes)) {
+            return $this->network_code_to_id($oldCodes[$networkCode], $currencyCode);
         }
         return $networkCode;
     }
@@ -6017,13 +6027,21 @@ class BaseExchange extends \ccxt\BaseExchange {
             $time = $this->parse_timeframe($timeframe) * 1000;
             $maxEntriesPerRequest = $this->require_value($maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() $maxEntriesPerRequest is required');
             $step = $time * $maxEntriesPerRequest;
+            $until = $this->safe_integer_2($params, 'until', 'till'); // do not omit it here
             $currentSince = $current - ($maxCalls * $step) - 1;
             if ($since !== null) {
-                $currentSince = max($currentSince, $since);
+                if ($until !== null) {
+                    // the recent-window floor below would jump past a fully-historical array( $since, $until )
+                    // range and return an empty $result - $requiredCalls is validated against $maxCalls
+                    // further down, so anchoring at $since directly is safe here,
+                    // see https://github.com/ccxt/ccxt/issues/26252
+                    $currentSince = $since;
+                } else {
+                    $currentSince = max($currentSince, $since);
+                }
             } else {
                 $currentSince = max($currentSince, 1241440531000); // avoid timestamps older than 2009
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // do not omit it here
             if ($until !== null) {
                 if ($since === null) {
                     throw new ArgumentsRequired($this->id . ' fetchPaginatedCallDeterministic() requires a $since argument when $until is set');

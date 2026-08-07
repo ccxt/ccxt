@@ -750,7 +750,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -2519,7 +2519,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()) {
+    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()): array {
         /**
          * fetch $orders by the list of $order $id
          *

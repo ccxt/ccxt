@@ -91,6 +91,9 @@ abstract class xt extends \ccxt\Exchange {
     public function public_linear_get_future_market_v1_public_q_ticker($params = array()) {
         return $this->request('future/market/v1/public/q/ticker', array('public', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_linear_get_future_market_v1_public_q_ticker_books($params = array()) {
+        return $this->request('future/market/v1/public/q/ticker/books', array('public', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_linear_get_future_market_v1_public_q_tickers($params = array()) {
         return $this->request('future/market/v1/public/q/tickers', array('public', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -150,6 +153,9 @@ abstract class xt extends \ccxt\Exchange {
     }
     public function public_inverse_get_future_market_v1_public_q_ticker($params = array()) {
         return $this->request('future/market/v1/public/q/ticker', array('public', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_inverse_get_future_market_v1_public_q_ticker_books($params = array()) {
+        return $this->request('future/market/v1/public/q/ticker/books', array('public', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_inverse_get_future_market_v1_public_q_tickers($params = array()) {
         return $this->request('future/market/v1/public/q/tickers', array('public', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
@@ -559,6 +565,9 @@ abstract class xt extends \ccxt\Exchange {
     public function publicLinearGetFutureMarketV1PublicQTicker($params = array()) {
         return $this->request('future/market/v1/public/q/ticker', array('public', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicLinearGetFutureMarketV1PublicQTickerBooks($params = array()) {
+        return $this->request('future/market/v1/public/q/ticker/books', array('public', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicLinearGetFutureMarketV1PublicQTickers($params = array()) {
         return $this->request('future/market/v1/public/q/tickers', array('public', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -618,6 +627,9 @@ abstract class xt extends \ccxt\Exchange {
     }
     public function publicInverseGetFutureMarketV1PublicQTicker($params = array()) {
         return $this->request('future/market/v1/public/q/ticker', array('public', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicInverseGetFutureMarketV1PublicQTickerBooks($params = array()) {
+        return $this->request('future/market/v1/public/q/ticker/books', array('public', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicInverseGetFutureMarketV1PublicQTickers($params = array()) {
         return $this->request('future/market/v1/public/q/tickers', array('public', 'inverse'), 'GET', $params, null, null, array("cost" => 1));

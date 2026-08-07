@@ -25,6 +25,10 @@ let storedPyMethods: Dict = {};
 let storedGoMethods: Dict = {};
 let storedJavaMethods: Dict = {};
 let storedRustMethods: Dict = {};
+// exchange id -> name of the class it derives from ('Exchange' when it derives
+// straight from the base). Used by the Go emitter to skip endpoints the parent
+// core already declares (see createImplicitMethodsGo).
+let storedParents: Dict = {};
 
 // when true, we are generating the implicit APIs for the prediction-market
 // exchanges (ts/src/prediction/) which live in their own namespace/subfolder
@@ -41,6 +45,7 @@ function resetStoredMethods () {
     storedPyMethods = {};
     storedGoMethods = {};
     storedJavaMethods = {};
+    storedParents = {};
 }
 
 
@@ -321,7 +326,21 @@ function createImplicitMethodsGo(){
         // cannot access the unexported callEndpointAsync from package ccxt — use the
         // exported wrapper instead
         const callEndpoint = isPrediction ? 'CallEndpointAsync' : 'callEndpointAsync';
-        const methods = methodNames.map(method=> {
+        // A derived exchange's core embeds its parent's core in Go
+        // (`type BinanceusCore struct { BinanceCore }`), so every endpoint the parent
+        // already declares is promoted onto the child receiver. Re-emitting those
+        // stubs on the child adds nothing but duplication, so only emit the endpoints
+        // the child actually adds. The lookup stays inside the current pass because
+        // the prediction pass emits a different body (exported CallEndpointAsync).
+        const parent = storedParents[exchange];
+        const inherited = {};
+        if (parent !== undefined && parent in storedCamelCaseMethods) {
+            for (const parentMethod of storedCamelCaseMethods[parent]) {
+                inherited[capitalize(parentMethod)] = true;
+            }
+        }
+        const ownMethodNames = methodNames.filter (method => !(capitalize(method) in inherited));
+        const methods = ownMethodNames.map(method=> {
             return [
                 `func (this *${capitalize(exchange)}Core) ${capitalize(method)}(args ...any) <-chan any {`,
                 `\treturn this.${callEndpoint}("${method}", args...)`,
@@ -456,6 +475,7 @@ function createCSharpHeader(exchange: Exchange, parent: string){
 
 function createGoHeader(exchange: Exchange, parent: string){
     const namespace = isPrediction ? 'package ccxtprediction' : 'package ccxt'
+    storedParents[exchange.id] = parent;
     storedGoMethods[exchange.id] = [ getPreamble(), namespace, ''];
 }
 

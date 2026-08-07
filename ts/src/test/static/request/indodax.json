@@ -28,6 +28,17 @@
                     5
                 ]
             }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "withdraw fee quote posts the currency id to the tapi withdrawFee method",
+                "method": "fetchDepositWithdrawFee",
+                "url": "https://indodax.com/tapi",
+                "input": [
+                    "BTC"
+                ],
+                "output": "method=withdrawFee&timestamp=1699457638812&recvWindow=5000&currency=btc"
+            }
         ]
     }
 }

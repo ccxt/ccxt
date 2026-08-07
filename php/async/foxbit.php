@@ -1522,7 +1522,7 @@ class foxbit extends Exchange {
         })();
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * The latest known information on the availability of the exchange API.
@@ -1556,7 +1556,7 @@ class foxbit extends Exchange {
             );
             return array(
                 'status' => $this->safe_string($statusMap, $statusRaw, $statusRaw),
-                'updated' => $this->safe_string($attributes, 'updatedAt'),
+                'updated' => $this->parse8601($this->safe_string($attributes, 'updatedAt')),
                 'eta' => null,
                 'url' => null,
                 'info' => $response,

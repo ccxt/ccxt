@@ -342,7 +342,7 @@ public class CoinsphCore extends CoinsphApi
                     put( "TRC20", "TRX" );
                     put( "ERC20", "ETH" );
                     put( "BEP20", "BSC" );
-                    put( "ARB", "ARBITRUM" );
+                    put( "ARBITRUM", "ARBITRUM" );
                 }} );
             }} );
             put( "features", new java.util.HashMap<String, Object>() {{

@@ -1980,6 +1980,10 @@ func (this *AlpacaCore) Withdraw(code any, amount any, address any, optionalArgs
 	}()
 	return ch
 }
+func (this *AlpacaCore) SetSandboxMode(enable any) {
+	this.Exchange.SetSandboxMode(enable)
+	AddElementToObject(this.Options, "sandboxMode", enable)
+}
 func (this *AlpacaCore) FetchTransactionsHelper(typeVar any, code any, since any, limit any, params any) <-chan any {
 	ch := make(chan any)
 	go func() any {
@@ -1987,12 +1991,49 @@ func (this *AlpacaCore) FetchTransactionsHelper(typeVar any, code any, since any
 		defer ReturnPanicError(ch)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes172412 := (<-this.LoadMarkets())
-			PanicOnError(retRes172412)
+			retRes172912 := (<-this.LoadMarkets())
+			PanicOnError(retRes172912)
 		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
+		}
+		var sandboxMode any = IsTrue(this.IsSandboxModeEnabled) || IsTrue(this.SafeBool(this.Options, "sandboxMode", false))
+		if IsTrue(sandboxMode) {
+			// paper-trading hosts do not serve the crypto wallets api at all, so route
+			// through the account activities ledger instead, filtered to transfer-like
+			// entries, see https://github.com/ccxt/ccxt/issues/24847
+			var request any = map[string]any{
+				"activity_types": "CSD,CSW,TRANS",
+			}
+
+			activities := (<-this.TraderPrivateGetV2AccountActivities(this.Extend(request, params)))
+			PanicOnError(activities)
+			//
+			//     [
+			//         {
+			//             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+			//             "activity_type": "CSD",
+			//             "date": "2025-01-10",
+			//             "net_amount": "1000",
+			//             "status": "executed"
+			//         }
+			//     ]
+			//
+			var filtered any = []any{}
+			for i := 0; IsLessThan(i, GetArrayLength(activities)); i++ {
+				var entry any = GetValue(activities, i)
+				var activityType any = this.SafeString(entry, "activity_type")
+				var amount any = this.SafeString(entry, "net_amount")
+				var isIncoming any = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(amount, "0"))))
+				var entryDirection any = Ternary(IsTrue(isIncoming), "INCOMING", "OUTGOING")
+				if IsTrue(IsTrue((IsEqual(typeVar, "BOTH"))) || IsTrue((IsEqual(entryDirection, typeVar)))) {
+					AppendToArray(&filtered, entry)
+				}
+			}
+
+			ch <- this.ParseTransactions(filtered, currency, since, limit, params)
+			return nil
 		}
 
 		response := (<-this.TraderPrivateGetV2WalletsTransfers(params))
@@ -2057,9 +2098,9 @@ func (this *AlpacaCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes177315 := (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
-		PanicOnError(retRes177315)
-		ch <- retRes177315
+		retRes181115 := (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
+		PanicOnError(retRes181115)
+		ch <- retRes181115
 		return nil
 
 	}()
@@ -2091,9 +2132,9 @@ func (this *AlpacaCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes178815 := (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
-		PanicOnError(retRes178815)
-		ch <- retRes178815
+		retRes182615 := (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
+		PanicOnError(retRes182615)
+		ch <- retRes182615
 		return nil
 
 	}()
@@ -2125,15 +2166,27 @@ func (this *AlpacaCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes180315 := (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
-		PanicOnError(retRes180315)
-		ch <- retRes180315
+		retRes184115 := (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
+		PanicOnError(retRes184115)
+		ch <- retRes184115
 		return nil
 
 	}()
 	return ch
 }
 func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) any {
+	//
+	// account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+	//
+	//     {
+	//         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+	//         "activity_type": "CSD",
+	//         "date": "2025-01-10",
+	//         "net_amount": "1000",
+	//         "status": "executed"
+	//     }
+	//
+	// crypto wallets api entry
 	//
 	//     {
 	//         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -2153,37 +2206,84 @@ func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var datetime any = this.SafeString(transaction, "created_at")
-	var currencyId any = this.SafeString(transaction, "asset")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var fees any = this.SafeString(transaction, "fees")
-	var networkFee any = this.SafeString(transaction, "network_fee")
-	var totalFee any = Precise.StringAdd(fees, networkFee)
-	var fee any = map[string]any{
-		"cost":     this.ParseNumber(totalFee),
-		"currency": code,
+	var activityType any = this.SafeString(transaction, "activity_type")
+	var txid any = nil
+	var timestamp any = nil
+	var datetime any = nil
+	var network any = nil
+	var address any = nil
+	var addressTo any = nil
+	var addressFrom any = nil
+	var typeVar any = nil
+	var amount any = nil
+	var code any = nil
+	var status any = nil
+	var comment any = nil
+	var internal any = nil
+	var fee any = nil
+	if IsTrue(!IsEqual(activityType, nil)) {
+		var netAmount any = this.SafeString(transaction, "net_amount")
+		var isIncoming any = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(netAmount, "0"))))
+		timestamp = this.Parse8601(Add(this.SafeString(transaction, "date"), "T00:00:00Z"))
+		datetime = this.Iso8601(timestamp)
+		typeVar = Ternary(IsTrue(isIncoming), "deposit", "withdrawal")
+		amount = this.ParseNumber(Precise.StringAbs(netAmount))
+		// cash ledger rows carry no per-entry asset field and are USD, while crypto
+		// TRANS entries may carry symbol/asset - never blindly adopt the caller's
+		// currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+		var activityCurrencyId any = this.SafeString2(transaction, "symbol", "asset")
+		if IsTrue(!IsEqual(activityCurrencyId, nil)) {
+			code = this.SafeCurrencyCode(activityCurrencyId)
+		} else if IsTrue(IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsEqual(activityType, "CSW")))) {
+			code = "USD"
+		} else {
+			code = this.SafeCurrencyCode(nil, currency)
+		}
+		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+		comment = activityType
+		internal = (!IsEqual(activityType, "TRANS"))
+	} else {
+		txid = this.SafeString(transaction, "tx_hash")
+		datetime = this.SafeString(transaction, "created_at")
+		timestamp = this.Parse8601(datetime)
+		network = this.SafeString(transaction, "chain")
+		address = this.SafeString(transaction, "to_address")
+		addressTo = this.SafeString(transaction, "to_address")
+		addressFrom = this.SafeString(transaction, "from_address")
+		typeVar = this.ParseTransactionType(this.SafeString(transaction, "direction"))
+		amount = this.SafeNumber(transaction, "amount")
+		var currencyId any = this.SafeString(transaction, "asset")
+		code = this.SafeCurrencyCode(currencyId, currency)
+		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+		var fees any = this.SafeString(transaction, "fees")
+		var networkFee any = this.SafeString(transaction, "network_fee")
+		var totalFee any = Precise.StringAdd(fees, networkFee)
+		fee = map[string]any{
+			"cost":     this.ParseNumber(totalFee),
+			"currency": code,
+		}
 	}
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "id"),
-		"txid":        this.SafeString(transaction, "tx_hash"),
-		"timestamp":   this.Parse8601(datetime),
+		"txid":        txid,
+		"timestamp":   timestamp,
 		"datetime":    datetime,
-		"network":     this.SafeString(transaction, "chain"),
-		"address":     this.SafeString(transaction, "to_address"),
-		"addressTo":   this.SafeString(transaction, "to_address"),
-		"addressFrom": this.SafeString(transaction, "from_address"),
+		"network":     network,
+		"address":     address,
+		"addressTo":   addressTo,
+		"addressFrom": addressFrom,
 		"tag":         nil,
 		"tagTo":       nil,
 		"tagFrom":     nil,
-		"type":        this.ParseTransactionType(this.SafeString(transaction, "direction")),
-		"amount":      this.SafeNumber(transaction, "amount"),
+		"type":        typeVar,
+		"amount":      amount,
 		"currency":    code,
-		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status")),
+		"status":      status,
 		"updated":     nil,
+		"comment":     comment,
+		"internal":    internal,
 		"fee":         fee,
-		"comment":     nil,
-		"internal":    nil,
 	}
 }
 func (this *AlpacaCore) ParseTransactionStatus(status any) any {
@@ -2191,6 +2291,9 @@ func (this *AlpacaCore) ParseTransactionStatus(status any) any {
 		"PROCESSING": "pending",
 		"FAILED":     "failed",
 		"COMPLETE":   "ok",
+		"executed":   "ok",
+		"canceled":   "canceled",
+		"pending":    "pending",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -2219,8 +2322,8 @@ func (this *AlpacaCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes188512 := (<-this.LoadMarkets())
-			PanicOnError(retRes188512)
+			retRes198712 := (<-this.LoadMarkets())
+			PanicOnError(retRes198712)
 		}
 
 		response := (<-this.TraderPrivateGetV2Account(params))

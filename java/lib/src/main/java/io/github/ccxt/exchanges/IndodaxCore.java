@@ -64,6 +64,8 @@ public class IndodaxCore extends IndodaxApi
                 put( "fetchDepositAddressesByNetwork", false );
                 put( "fetchDeposits", false );
                 put( "fetchDepositsWithdrawals", true );
+                put( "fetchDepositWithdrawFee", true );
+                put( "fetchDepositWithdrawFees", false );
                 put( "fetchFundingHistory", false );
                 put( "fetchFundingInterval", false );
                 put( "fetchFundingIntervals", false );
@@ -1155,7 +1157,7 @@ public class IndodaxCore extends IndodaxApi
                 quantityIsRequired = true;
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "quoteId")), this.parseToNumeric(Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
+                    Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "quoteId")), this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)))));
                 }
             }
             if (Helpers.isTrue(priceIsRequired))
@@ -1285,6 +1287,48 @@ public class IndodaxCore extends IndodaxApi
                 put( "rate", IndodaxCore.this.safeNumber(data, "withdraw_fee") );
                 put( "currency", IndodaxCore.this.safeCurrencyCode(currencyId, currency) );
             }};
+        });
+
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchDepositWithdrawFee
+     * @description fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object currency = this.currency(code);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "currency", Helpers.GetValue(currency, "id") );
+            }};
+            Object response = (this.privatePostWithdrawFee(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "success": 1,
+            //         "return": {
+            //             "server_time": 1607923272,
+            //             "withdraw_fee": 0.005,
+            //             "currency": "eth"
+            //         }
+            //     }
+            //
+            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            Object result = this.depositWithdrawFee(response);
+            Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(data, "withdraw_fee"));
+            Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
+            Helpers.addElementToObject(Helpers.GetValue(result, "deposit"), "fee", 0);
+            Helpers.addElementToObject(Helpers.GetValue(result, "deposit"), "percentage", false);
+            return this.assignDefaultDepositWithdrawFees(result, currency);
         });
 
     }

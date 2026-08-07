@@ -1560,6 +1560,7 @@ public class BitgetCore extends BitgetApi
                     put( "method", "publicMixGetV2MixMarketCurrentFundRate" );
                 }} );
                 put( "accountsByType", new java.util.HashMap<String, Object>() {{
+                    put( "funding", "spot" );
                     put( "spot", "spot" );
                     put( "cross", "crossed_margin" );
                     put( "isolated", "isolated_margin" );
@@ -1567,6 +1568,8 @@ public class BitgetCore extends BitgetApi
                     put( "usdc_swap", "usdc_futures" );
                     put( "future", "coin_futures" );
                     put( "p2p", "p2p" );
+                    put( "uta", "uta" );
+                    put( "unified", "uta" );
                 }} );
                 put( "accountsById", new java.util.HashMap<String, Object>() {{
                     put( "spot", "spot" );
@@ -1576,6 +1579,7 @@ public class BitgetCore extends BitgetApi
                     put( "usdc_futures", "usdc_swap" );
                     put( "coin_futures", "future" );
                     put( "p2p", "p2p" );
+                    put( "uta", "uta" );
                 }} );
                 put( "sandboxMode", false );
                 put( "networks", new java.util.HashMap<String, Object>() {{
@@ -1585,8 +1589,8 @@ public class BitgetCore extends BitgetApi
                     put( "ATOM", "ATOM" );
                     put( "ACA", "AcalaToken" );
                     put( "APT", "Aptos" );
-                    put( "ARBONE", "ArbitrumOne" );
-                    put( "ARBNOVA", "ArbitrumNova" );
+                    put( "ARBITRUM", "ArbitrumOne" );
+                    put( "ARBITRUM_NOVA", "ArbitrumNova" );
                     put( "AVAXC", "C-Chain" );
                     put( "AVAXX", "X-Chain" );
                     put( "AR", "Arweave" );
@@ -1660,6 +1664,7 @@ public class BitgetCore extends BitgetApi
                     put( "AZERO", "AZERO" );
                     put( "TRC10", "TRC10" );
                     put( "JUNO", "JUNO" );
+                    put( "CANTO", "CANTO-EVM" );
                     put( "ZKSYNC", "zkSyncEra" );
                     put( "STARKNET", "Starknet" );
                     put( "VIC", "VICTION" );
@@ -4873,9 +4878,11 @@ final Object finalMinNotional = minNotional;
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
      * @see https://www.bitget.com/api-doc/uta/account/Get-Account
+     * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
@@ -4904,9 +4911,17 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(uta))
             {
-                response = (this.privateUtaGetV3AccountAssets(this.extend(request, parameters))).join();
-                Object results = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                Object assets = this.safeList(results, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object assets = null;
+                if (Helpers.isTrue(Helpers.isEqual(marketType, "funding")))
+                {
+                    response = (this.privateUtaGetV3AccountFundingAssets(this.extend(request, parameters))).join();
+                    assets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                } else
+                {
+                    response = (this.privateUtaGetV3AccountAssets(this.extend(request, parameters))).join();
+                    Object results = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    assets = this.safeList(results, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                }
                 return this.parseUtaBalance(assets);
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, "swap"))) || Helpers.isTrue((Helpers.isEqual(marketType, "future")))))
             {
@@ -5005,6 +5020,22 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
+            // funding uta
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1750396239013,
+            //         "data": [
+            //             {
+            //                 "coin": "BGB",
+            //                 "available": "0.01",
+            //                 "frozen": "0",
+            //                 "balance": "0.01"
+            //             }
+            //         ]
+            //     }
+            //
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseBalance(data);
         });
@@ -5017,6 +5048,8 @@ final Object finalMinNotional = minNotional;
             put( "info", balance );
         }};
         //
+        // uta
+        //
         //     {
         //         "coin": "USDT",
         //         "equity": "6.19300826",
@@ -5027,6 +5060,15 @@ final Object finalMinNotional = minNotional;
         //         "locked": "0"
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "coin": "BGB",
+        //         "available": "0.01",
+        //         "frozen": "0",
+        //         "balance": "0.01"
+        //     }
+        //
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balance)); i++)
         {
             Object entry = Helpers.GetValue(balance, i);
@@ -5034,7 +5076,7 @@ final Object finalMinNotional = minNotional;
             Object currencyId = this.safeString(entry, "coin");
             Object code = this.safeCurrencyCode(currencyId);
             Helpers.addElementToObject(account, "debt", this.safeString(entry, "debt"));
-            Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
+            Helpers.addElementToObject(account, "used", this.safeString2(entry, "locked", "frozen"));
             Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -10730,11 +10772,13 @@ final Object finalMinNotional = minNotional;
      * @name bitget#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+     * @see https://www.bitget.com/api-doc/uta/account/transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true to transfer via the unified trading account v3 endpoint
      * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -10749,6 +10793,10 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
+            Object uta = null;
+            var utaparametersVariable = (this.handleUTAAndParams(parameters, "transfer", false)).join();
+            uta = ((java.util.List<Object>) utaparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object currency = this.currency(code);
             Object accountsByType = this.safeValue(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             Object fromType = this.safeString(accountsByType, fromAccount);
@@ -10767,7 +10815,14 @@ final Object finalMinNotional = minNotional;
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateSpotPostV2SpotWalletTransfer(this.extend(request, parameters))).join();
+            Object response = null;
+            if (Helpers.isTrue(uta))
+            {
+                response = (this.privateUtaPostV3AccountTransfer(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privateSpotPostV2SpotWalletTransfer(this.extend(request, parameters))).join();
+            }
             //
             //     {
             //         "code": "00000",

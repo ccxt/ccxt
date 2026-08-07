@@ -752,7 +752,8 @@ class gate extends Exchange {
                     'ADA' => 'ADA', // CARDANO
                     'AVAXC' => 'AVAX_C',
                     'NEAR' => 'NEAR',
-                    'ARBONE' => 'ARBEVM',
+                    'ARBITRUM' => 'ARBEVM',
+                    'ARBITRUM_NOVA' => 'ARBNOVA',
                     'BASE' => 'BASEEVM',
                     'SUI' => 'SUI',
                     'CRONOS' => 'CRO',
@@ -774,7 +775,7 @@ class gate extends Exchange {
                     'CELO' => 'CELO',
                     'HBAR' => 'HBAR',
                     // 'FTM' => SONIC REBRAND, todo
-                    'ZKSERA' => 'ZKSERA',
+                    'ZKSYNC' => 'ZKSERA', // unified code is ZKSYNC, raw chain id is ZKSERA, see https://github.com/ccxt/ccxt/issues/23989
                     'KLAY' => 'KLAY',
                     'EOS' => 'EOS',
                     'ACA' => 'ACA',
@@ -1338,7 +1339,7 @@ class gate extends Exchange {
         return $this->arrays_concat($results);
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): array {
         $marginPromise = $this->publicMarginGetCurrencyPairs($params);
         $spotMarketsPromise = $this->publicSpotGetCurrencyPairs($params);
         list($marginResponse, $spotMarketsResponse) = array( $marginPromise, $spotMarketsPromise );
@@ -1456,7 +1457,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_swap_markets($params = array()) {
+    public function fetch_swap_markets($params = array()): array {
         $result = array();
         $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
         if ($this->options['sandboxMode']) {
@@ -1476,7 +1477,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_future_markets($params = array()) {
+    public function fetch_future_markets($params = array()): array {
         if ($this->options['sandboxMode']) {
             return array(); // right now sandbox does not have inverse swaps
         }
@@ -1683,7 +1684,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_option_markets($params = array()) {
+    public function fetch_option_markets($params = array()): array {
         $result = array();
         $underlyings = $this->fetch_option_underlyings();
         for ($i = 0; $i < count($underlyings); $i++) {
@@ -5395,12 +5396,19 @@ class gate extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {boolean} [$params->historical] *swap only* true for using historical endpoint
          * @param {bool} [$params->unifiedAccount] set to true for fetching unified account orders
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $this->load_unified_status();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+        if ($paginate) {
+            // see https://github.com/ccxt/ccxt/issues/22825
+            return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params);
+        }
         $until = $this->safe_integer($params, 'until');
         $market = null;
         if ($symbol !== null) {
@@ -5471,7 +5479,7 @@ class gate extends Exchange {
         return array( $request, $finalParams );
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -6725,7 +6733,7 @@ class gate extends Exchange {
         return $tiers;
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -6757,7 +6765,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay cross margin borrowed margin and interest
          *
@@ -6809,7 +6817,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -6856,7 +6864,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -6905,7 +6913,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         // Cross
         //
@@ -6950,7 +6958,7 @@ class gate extends Exchange {
         $currencyId = $this->safe_string($info, 'currency');
         $marketId = $this->safe_string($info, 'currency_pair');
         return array(
-            'id' => $this->safe_integer($info, 'id'),
+            'id' => $this->safe_string($info, 'id'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($info, 'amount'),
             'symbol' => $this->safe_symbol($marketId, null, '_', 'margin'),
@@ -7316,7 +7324,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical settlement records
          *
@@ -7808,7 +7816,7 @@ class gate extends Exchange {
         return $this->privateFuturesPostSettleDualMode($this->extend($request, $query));
     }
 
-    public function fetch_underlying_assets($params = array()) {
+    public function fetch_underlying_assets($params = array()): array {
         /**
          * fetches the market ids of $underlying assets for a specific contract market type
          *

@@ -1409,7 +1409,8 @@ export default class phemex extends Exchange {
                 }
                 else {
                     // when 'to' is defined since is mandatory
-                    since = (until / 100) - (maxLimit * candleDuration);
+                    since = Math.round(until / 1000) - (maxLimit * candleDuration);
+                    request['from'] = since;
                 }
                 if (until !== undefined) {
                     request['to'] = Math.round(until / 1000);

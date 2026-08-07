@@ -745,7 +745,8 @@ public partial class gate : Exchange
                     { "ADA", "ADA" },
                     { "AVAXC", "AVAX_C" },
                     { "NEAR", "NEAR" },
-                    { "ARBONE", "ARBEVM" },
+                    { "ARBITRUM", "ARBEVM" },
+                    { "ARBITRUM_NOVA", "ARBNOVA" },
                     { "BASE", "BASEEVM" },
                     { "SUI", "SUI" },
                     { "CRONOS", "CRO" },
@@ -763,7 +764,7 @@ public partial class gate : Exchange
                     { "MNT", "MNT" },
                     { "CELO", "CELO" },
                     { "HBAR", "HBAR" },
-                    { "ZKSERA", "ZKSERA" },
+                    { "ZKSYNC", "ZKSERA" },
                     { "KLAY", "KLAY" },
                     { "EOS", "EOS" },
                     { "ACA", "ACA" },
@@ -5828,6 +5829,7 @@ public partial class gate : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {boolean} [params.historical] *swap only* true for using historical endpoint
      * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -5838,6 +5840,15 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         await this.loadUnifiedStatus();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            // see https://github.com/ccxt/ccxt/issues/22825
+            return await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters);
+        }
         object until = this.safeInteger(parameters, "until");
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -7572,7 +7583,7 @@ public partial class gate : Exchange
         object currencyId = this.safeString(info, "currency");
         object marketId = this.safeString(info, "currency_pair");
         return new Dictionary<string, object>() {
-            { "id", this.safeInteger(info, "id") },
+            { "id", this.safeString(info, "id") },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "amount", this.safeNumber(info, "amount") },
             { "symbol", this.safeSymbol(marketId, null, "_", "margin") },

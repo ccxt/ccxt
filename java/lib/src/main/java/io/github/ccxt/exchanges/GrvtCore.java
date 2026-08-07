@@ -168,7 +168,7 @@ public class GrvtCore extends GrvtApi
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "accountId", null );
                 put( "networks", new java.util.HashMap<String, Object>() {{
-                    put( "ARBONE", "42161" );
+                    put( "ARBITRUM", "42161" );
                     put( "AVAXC", "43114" );
                     put( "BASE", "8453" );
                     put( "BSC", "56" );
@@ -3874,7 +3874,22 @@ public class GrvtCore extends GrvtApi
             }
         } else if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
         {
-            body = this.json(parameters);
+            // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+            // the private branch below sets its own headers, this covers the public market-data endpoints
+            headers = new java.util.HashMap<String, Object>() {{
+                put( "Content-Type", "application/json" );
+            }};
+            // an empty params dict must serialize as an empty json object, not an empty json array,
+            // php json_encode would produce [] here which the venue rejects with the same 1003 error
+            Object paramsKeys = Helpers.objectKeys(parameters);
+            Object paramsKeysLength = Helpers.getArrayLength(paramsKeys);
+            if (Helpers.isTrue(Helpers.isEqual(paramsKeysLength, 0)))
+            {
+                body = "{}";
+            } else
+            {
+                body = this.json(parameters);
+            }
         }
         Object isPrivate = ((String)api).startsWith(((String)"private"));
         if (Helpers.isTrue(isPrivate))

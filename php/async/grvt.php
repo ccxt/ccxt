@@ -176,7 +176,7 @@ class grvt extends Exchange {
                 'accountId' => null, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks' => array(
-                    'ARBONE' => '42161',
+                    'ARBITRUM' => '42161',
                     'AVAXC' => '43114',
                     'BASE' => '8453',
                     'BSC' => '56',
@@ -2505,7 +2505,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -3345,7 +3345,20 @@ class grvt extends Exchange {
                 $url .= '?' . $queryString;
             }
         } elseif ($method === 'POST') {
-            $body = $this->json($params);
+            // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+            // the private branch below sets its own $headers, this covers the public market-data endpoints
+            $headers = array(
+                'Content-Type' => 'application/json',
+            );
+            // an empty $params dict must serialize empty json object, not an empty json array,
+            // php json_encode would produce array() here which the venue rejects with the same 1003 error
+            $paramsKeys = is_array($params) ? array_keys($params) : array();
+            $paramsKeysLength = count($paramsKeys);
+            if ($paramsKeysLength === 0) {
+                $body = '{}';
+            } else {
+                $body = $this->json($params);
+            }
         }
         $isPrivate = str_starts_with($api, 'private');
         if ($isPrivate) {

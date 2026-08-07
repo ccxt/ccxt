@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode, type WheelEvent } from "react";
 import { languageFromFence } from "@/lib/ai/assistant";
 import { getLanguage, isRunnable, type LanguageId } from "@/lib/languages";
 import { apiUrl } from "@/lib/basePath";
@@ -8,6 +8,11 @@ import { apiUrl } from "@/lib/basePath";
 type Msg = { role: "user" | "assistant"; content: string };
 
 type InsertFn = (code: string, target?: LanguageId) => void;
+
+// Distance from the bottom (px) that still counts as "parked at the tail". Below
+// it the transcript follows the stream; above it the user is reading and owns
+// the scrollbar until they come back down.
+const STICK_PX = 80;
 
 export default function AssistantPanel({
   language,
@@ -27,6 +32,9 @@ export default function AssistantPanel({
   const scrollRef = useRef<HTMLDivElement>(null);
   // Bumped on every reset so an in-flight stream cannot write into a cleared chat.
   const chatEpoch = useRef(0);
+  // Sticky scroll: only follow the tail while pinned. Scrolling up mid-generation
+  // unpins, so the scrollbar stays usable instead of being yanked back every token.
+  const pinnedRef = useRef(true);
 
   useEffect(() => {
     let alive = true;
@@ -49,6 +57,7 @@ export default function AssistantPanel({
     setMessages([]);
     setBusy(false);
     setInput("");
+    pinnedRef.current = true;
     const next = await fetchPrompts(prompts);
     if (epoch !== chatEpoch.current) return;
     setPrompts(next);
@@ -59,10 +68,25 @@ export default function AssistantPanel({
   }
 
   const scrollDown = () => {
+    if (!pinnedRef.current) return;
     requestAnimationFrame(() => {
       const el = scrollRef.current;
-      if (el) el.scrollTop = el.scrollHeight;
+      // Re-check: the user may have scrolled up between the token and this frame.
+      if (el && pinnedRef.current) el.scrollTop = el.scrollHeight;
     });
+  };
+
+  // Any scroll away from the bottom unpins; parking back at the bottom re-pins.
+  // Programmatic scrollDown() lands within STICK_PX, so it keeps the pin.
+  const syncPinned = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight <= STICK_PX;
+  };
+
+  // Upward wheel intent unpins immediately, before the scroll even lands.
+  const onWheel = (e: WheelEvent<HTMLDivElement>) => {
+    if (e.deltaY < 0) pinnedRef.current = false;
   };
 
   async function send(text: string) {
@@ -72,6 +96,8 @@ export default function AssistantPanel({
     setMessages([...history, { role: "assistant", content: "" }]);
     setInput("");
     setBusy(true);
+    // A new turn always starts parked at the bottom.
+    pinnedRef.current = true;
     scrollDown();
 
     try {
@@ -166,7 +192,7 @@ export default function AssistantPanel({
         <span>✦ Assistant</span>
       </div>
 
-      <div className="ai-msgs" ref={scrollRef}>
+      <div className="ai-msgs" ref={scrollRef} onScroll={syncPinned} onWheel={onWheel}>
         {messages.length === 0 ? (
           <div className="ai-empty">
             Ask for CCXT code and it lands in your editor.
@@ -280,8 +306,8 @@ function Message({
   trailing?: ReactNode;
 }) {
   const blocks = useMemo(() => parseBlocks(msg.content, streaming), [msg.content, streaming]);
-  // Primary Insert arms progressive fill: primary buffer now, each other language
-  // as its fence closes (even while the model is still streaming later blocks).
+  // The primary fence closing arms progressive fill: primary buffer now, each other
+  // language as its fence closes (even while the model is still streaming later blocks).
   const [fillArmed, setFillArmed] = useState(false);
   const [filledLangs, setFilledLangs] = useState<LanguageId[]>([]);
   const filledSet = useMemo(() => new Set(filledLangs), [filledLangs]);
@@ -345,6 +371,25 @@ function Message({
       }, 0);
     }
   };
+
+  // Auto-insert: the moment the selected language's fence closes its code lands in
+  // the editor, no click. Fires once per message (ref guard survives re-renders and
+  // StrictMode's double effect), and never for a language progressive fill already
+  // wrote — switching tabs back must not clobber a buffer the user has since edited.
+  const autoPrimary = primary.find((b) => b.complete);
+  const autoKey = autoPrimary ? `${autoPrimary.lang}:${autoPrimary.text.length}:${hashText(autoPrimary.text)}` : "";
+  const autoPrimaryRef = useRef(autoPrimary);
+  autoPrimaryRef.current = autoPrimary;
+  const insertPrimaryRef = useRef(insertPrimary);
+  insertPrimaryRef.current = insertPrimary;
+  const autoInsertedRef = useRef(false);
+
+  useEffect(() => {
+    const b = autoPrimaryRef.current;
+    if (!b || autoInsertedRef.current || filledSet.has(b.lang)) return;
+    autoInsertedRef.current = true;
+    insertPrimaryRef.current(b);
+  }, [autoKey, filledSet]);
 
   return (
     <div className={"msg " + msg.role}>

@@ -180,6 +180,7 @@ class mexc extends Exchange {
                 'spot' => array(
                     'public' => array(
                         'get' => array(
+                            'announcements' => 8,
                             'ping' => 1,
                             'time' => 1,
                             'defaultSymbols' => 1,
@@ -555,7 +556,7 @@ class mexc extends Exchange {
                     // 'ALGO' => 'Algorand(ALGO)',
                     // 'ALPH' => 'Alephium(ALPH)',
                     // 'ARB' => 'Arbitrum One(ARB)',
-                    // 'ARBONE' => 'ArbitrumOne(ARB)',
+                    // 'ARBITRUM' => 'ArbitrumOne(ARB)',
                     'ASTR' => 'ASTAR', // ASTAREVM is different
                     // 'ATOM' => 'Cosmos(ATOM)',
                     // 'AVAXC' => 'Avalanche C Chain(AVAX CCHAIN)',
@@ -1064,7 +1065,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -1265,7 +1266,7 @@ class mexc extends Exchange {
         })();
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @ignore
@@ -1394,7 +1395,7 @@ class mexc extends Exchange {
         })();
     }
 
-    public function fetch_swap_markets($params = array()) {
+    public function fetch_swap_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @ignore
@@ -3080,7 +3081,7 @@ class mexc extends Exchange {
         })();
     }
 
-    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()) {
+    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -5959,7 +5960,7 @@ class mexc extends Exchange {
         })();
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets

@@ -49,6 +49,8 @@ class luno extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
@@ -1597,6 +1599,39 @@ class luno extends Exchange {
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => $this->safe_string($depositAddress, 'name'),
         );
+    }
+
+    public function fetch_deposit_withdraw_fee(string $code, $params = array()): array {
+        /**
+         * fetch the fee for sending (withdrawing) a $currency to a specific $address; luno quotes the network fee per destination, so an $address is required, see https://github.com/ccxt/ccxt/issues/25830
+         *
+         * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+         *
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->address the destination $address luno should quote the send fee for (required by the exchange)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
+         */
+        $address = $this->safe_string($params, 'address');
+        if ($address === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositWithdrawFee() requires an "address" parameter - luno quotes the send fee per destination address');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetSendFee($this->extend($request, $params));
+        //
+        //     {
+        //         "currency" => "XBT",
+        //         "fee" => "0.00015"
+        //     }
+        //
+        $result = $this->deposit_withdraw_fee($response);
+        $result['withdraw']['fee'] = $this->safe_number($response, 'fee');
+        $result['withdraw']['percentage'] = false;
+        return $this->assign_default_deposit_withdraw_fees($result, $currency);
     }
 
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {

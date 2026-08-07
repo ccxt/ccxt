@@ -2742,7 +2742,7 @@ class blofin extends Exchange {
         return $this->parse_margin_mode($data, $market); // keep untyped to match the base setMarginMode return (array()) — narrowing it breaks the Go IExchange interface
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way
          *

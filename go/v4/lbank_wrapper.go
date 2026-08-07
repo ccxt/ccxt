@@ -74,19 +74,19 @@ func (this *Lbank) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Lbank) FetchSpotMarkets(params ...any) ([]map[string]any, error) {
+func (this *Lbank) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSpotMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Lbank) FetchSwapMarkets(params ...any) ([]map[string]any, error) {
+func (this *Lbank) FetchSwapMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSwapMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
 
 /**
@@ -1334,7 +1334,7 @@ func (this *Lbank) FetchPosition(symbol string, options ...FetchPositionOptions)
 func (this *Lbank) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Lbank) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Lbank) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Lbank) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1352,7 +1352,7 @@ func (this *Lbank) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 func (this *Lbank) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Lbank) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Lbank) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Lbank) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
@@ -1460,7 +1460,7 @@ func (this *Lbank) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Lbank) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Lbank) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Lbank) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Lbank) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1505,7 +1505,7 @@ func (this *Lbank) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Lbank) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Lbank) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Lbank) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Lbank) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

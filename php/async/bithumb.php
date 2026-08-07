@@ -1176,7 +1176,7 @@ class bithumb extends Exchange {
         })();
     }
 
-    public function cancel_unified_order(array $order, $params = array()) {
+    public function cancel_unified_order(array $order, $params = array()): PromiseInterface {
         return Async\async(function () use ($order, $params) {
             $request = array(
                 'side' => $order['side'],
@@ -1286,6 +1286,9 @@ class bithumb extends Exchange {
             $body = $this->urlencode($this->extend(array(
                 'endpoint' => $endpoint,
             ), $query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            $bodyParts = explode('%20', $body);
+            $body = implode('+', $bodyParts);
             $nonce = (string) $this->nonce();
             $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');

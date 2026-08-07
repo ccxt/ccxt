@@ -265,7 +265,7 @@
             {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCUST/hist?sort=1&limit=100",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCUST/hist?limit=100",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -273,7 +273,7 @@
             {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCF0:USTF0/hist?sort=1&limit=100",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCF0:USTF0/hist?limit=100",
                 "input": [
                     "BTC/USDT:USDT"
                 ]

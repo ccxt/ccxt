@@ -355,7 +355,7 @@ public class WooCore extends WooApi
                     put( "TRC20", "TRON" );
                     put( "ERC20", "ETH" );
                     put( "BEP20", "BSC" );
-                    put( "ARB", "Arbitrum" );
+                    put( "ARBITRUM", "Arbitrum" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );

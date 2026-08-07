@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import lbankRest from '../lbank.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class lbank extends lbankRest {
@@ -60,6 +60,13 @@ export default class lbank extends lbankRest {
         this.unlockId();
         return newValue;
     }
+    checkContractMarket(market, methodName) {
+        // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        // see https://github.com/ccxt/ccxt/issues/26864
+        if ((market !== undefined) && market['contract']) {
+            throw new NotSupported(this.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet');
+        }
+    }
     /**
      * @method
      * @name lbank#fetchOHLCVWs
@@ -77,6 +84,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchOHLCVWs');
         const url = this.urls['api']['ws'];
         const watchOHLCVOptions = this.safeValue(this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue(watchOHLCVOptions, 'timeframes', {});
@@ -115,6 +123,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchOHLCV');
         const watchOHLCVOptions = this.safeValue(this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue(watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString(timeframes, timeframe, timeframe);
@@ -252,6 +261,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchTickerWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTicker:' + market['symbol'];
         const message = {
@@ -277,6 +287,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchTicker');
         const url = this.urls['api']['ws'];
         const messageHash = 'ticker:' + market['symbol'];
         const message = {
@@ -384,6 +395,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchTradesWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTrades:' + market['symbol'];
         if (limit === undefined) {
@@ -415,6 +427,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchTrades');
         const url = this.urls['api']['ws'];
         const messageHash = 'trades:' + market['symbol'];
         const message = {
@@ -758,6 +771,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchOrderBookWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchOrderbook:' + market['symbol'];
         if (limit === undefined) {
@@ -788,6 +802,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchOrderBook');
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + market['symbol'];
         params = this.omit(params, 'aggregation');

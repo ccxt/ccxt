@@ -384,7 +384,7 @@ class hyperliquid extends Exchange {
         return parent::market($symbol);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3458,6 +3458,18 @@ class hyperliquid extends Exchange {
             $postOnly = ($tif === 'ALO');
         }
         $triggerPx = $this->safe_bool($entry, 'isTrigger') ? $this->safe_number($entry, 'triggerPx') : null;
+        // standalone stop / take-profit orders carry their trigger in $triggerPx - surface it
+        // through the unified $stopLossPrice / $takeProfitPrice fields, see #24318
+        $orderTypeRaw = $this->safe_string_lower($entry, 'orderType', '');
+        $stopLossPrice = null;
+        $takeProfitPrice = null;
+        if ($triggerPx !== null) {
+            if (mb_strpos($orderTypeRaw, 'stop') !== false) {
+                $stopLossPrice = $triggerPx;
+            } elseif (mb_strpos($orderTypeRaw, 'take profit') !== false) {
+                $takeProfitPrice = $triggerPx;
+            }
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($entry, 'oid'),
@@ -3474,6 +3486,8 @@ class hyperliquid extends Exchange {
             'side' => $side,
             'price' => $this->safe_string($entry, 'limitPx'),
             'triggerPrice' => $triggerPx,
+            'stopLossPrice' => $stopLossPrice,
+            'takeProfitPrice' => $takeProfitPrice,
             'amount' => $totalAmount,
             'cost' => null,
             'average' => $this->safe_string($entry, 'avgPx'),
@@ -4050,11 +4064,11 @@ class hyperliquid extends Exchange {
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
-         * transfer currency internally between wallets on the same account
+         * transfer $currency internally between wallets on the same account
          *
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
          *
-         * @param {string} $code unified currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from *spot, swap*
          * @param {string} $toAccount account to transfer to *swap, spot or address*
@@ -4115,7 +4129,13 @@ class hyperliquid extends Exchange {
             throw new NotSupported($this->id . ' transfer() only support main <> subaccount transfer');
         }
         $this->check_address($subAccountAddress);
-        if ($code === null || strtoupper($code) === 'USDC') {
+        // hyperliquid keeps separate perp and spot ledgers for sub-account transfers => subAccountTransfer
+        // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
+        // $params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
+        $transferType = $this->safe_string($params, 'type');
+        $params = $this->omit($params, 'type');
+        $isUsdc = ($code === null) || (strtoupper($code) === 'USDC');
+        if ($isUsdc && ($transferType !== 'spot')) {
             // Transfer USDC with subAccountTransfer
             $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
             $action = array(
@@ -4136,13 +4156,21 @@ class hyperliquid extends Exchange {
             //
             return $this->parse_transfer($response);
         } else {
-            // Transfer non-USDC with subAccountSpotTransfer
-            $symbol = $this->symbol($code);
+            // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
+            // expects the $token as "NAME:$tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' transfer() requires a $currency $code for spot sub-account transfers');
+            }
+            $currency = $this->currency($code);
+            $currencyInfo = $this->safe_dict($currency, 'info', array());
+            $tokenName = $this->safe_string($currencyInfo, 'name');
+            $tokenId = $this->safe_string($currencyInfo, 'tokenId');
+            $token = $tokenName . ':' . $tokenId;
             $action = array(
                 'type' => 'subAccountSpotTransfer',
                 'subAccountUser' => $subAccountAddress,
                 'isDeposit' => $isDeposit,
-                'token' => $symbol,
+                'token' => $token,
                 'amount' => $this->number_to_string($amount),
             );
             $sig = $this->sign_l1_action($action, $nonce);

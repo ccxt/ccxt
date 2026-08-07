@@ -1764,7 +1764,14 @@ public class BitrueCore extends BitrueApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object ticker = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
-                Object market = this.safeMarket(this.safeString(ticker, "symbol"));
+                // skip entries without a symbol: an undefined market id would become a null
+                // dictionary key here, which crashes fetchTickers in the C# build
+                Object marketId = this.safeString(ticker, "symbol");
+                if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+                {
+                    continue;
+                }
+                Object market = this.safeMarket(marketId);
                 Helpers.addElementToObject(tickers, ((String)Helpers.GetValue(market, "id")), ticker);
             }
             return this.parseTickers(tickers, symbols);

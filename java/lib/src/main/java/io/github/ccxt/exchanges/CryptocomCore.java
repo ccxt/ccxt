@@ -347,6 +347,7 @@ public class CryptocomCore extends CryptocomApi
                     put( "BEP20", "BSC" );
                     put( "ERC20", "ETH" );
                     put( "TRC20", "TRON" );
+                    put( "ARBITRUM", "ARB" );
                 }} );
                 put( "broker", "CCXT" );
             }} );

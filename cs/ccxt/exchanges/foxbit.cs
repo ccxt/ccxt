@@ -1620,7 +1620,7 @@ public partial class foxbit : Exchange
         };
         return new Dictionary<string, object>() {
             { "status", this.safeString(statusMap, statusRaw, statusRaw) },
-            { "updated", this.safeString(attributes, "updatedAt") },
+            { "updated", this.parse8601(this.safeString(attributes, "updatedAt")) },
             { "eta", null },
             { "url", null },
             { "info", response },

@@ -663,7 +663,7 @@ class bitrue extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1720,7 +1720,13 @@ class bitrue extends Exchange {
         $tickers = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->safe_dict($data, $i, array());
-            $market = $this->safe_market($this->safe_string($ticker, 'symbol'));
+            // skip entries without a symbol => an null $market id would become a null
+            // dictionary key here, which crashes fetchTickers in the C# build
+            $marketId = $this->safe_string($ticker, 'symbol');
+            if ($marketId === null) {
+                continue;
+            }
+            $market = $this->safe_market($marketId);
             $tickers[($market['id'])] = $ticker;
         }
         return $this->parse_tickers($tickers, $symbols);

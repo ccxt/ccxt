@@ -1408,7 +1408,8 @@ class phemex extends Exchange {
                     $request['from'] = $since;
                 } else {
                     // when 'to' is defined $since is mandatory
-                    $since = ($until / 100) - ($maxLimit * $candleDuration);
+                    $since = (int) round($until / 1000) - ($maxLimit * $candleDuration);
+                    $request['from'] = $since;
                 }
                 if ($until !== null) {
                     $request['to'] = (int) round($until / 1000);

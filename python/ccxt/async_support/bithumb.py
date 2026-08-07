@@ -1100,7 +1100,7 @@ class bithumb(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    async def cancel_unified_order(self, order: Order, params={}):
+    async def cancel_unified_order(self, order: Order, params={}) -> Order:
         request = {
             'side': order['side'],
         }
@@ -1195,6 +1195,9 @@ class bithumb(Exchange, ImplicitAPI):
             body = self.urlencode(self.extend({
                 'endpoint': endpoint,
             }, query))
+            # bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            bodyParts = body.split('%20')
+            body = '+'.join(bodyParts)
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)

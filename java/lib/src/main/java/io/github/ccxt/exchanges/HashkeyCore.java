@@ -314,7 +314,7 @@ public class HashkeyCore extends HashkeyApi
                     put( "DOT", "Polkadot" );
                     put( "LTC", "LTC" );
                     put( "OPTIMISM", "Optimism" );
-                    put( "ARB", "Arbitrum" );
+                    put( "ARBITRUM", "Arbitrum" );
                     put( "DOGE", "Dogecoin" );
                     put( "TRC20", "Tron" );
                     put( "ZKSYNC", "zkSync" );
@@ -331,7 +331,7 @@ public class HashkeyCore extends HashkeyApi
                     put( "AVAX C-Chain", "AVAX" );
                     put( "Solana", "SOL" );
                     put( "Cosmos", "ATOM" );
-                    put( "Arbitrum", "ARB" );
+                    put( "Arbitrum", "ARBITRUM" );
                     put( "Polygon", "MATIC" );
                     put( "Optimism", "OPTIMISM" );
                     put( "Polkadot", "DOT" );

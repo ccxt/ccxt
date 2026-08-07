@@ -444,7 +444,7 @@ public class ToobitCore extends ToobitApi
                     put( "TRC20", "TRX" );
                     put( "SOL", "SOL" );
                     put( "MATIC", "MATIC" );
-                    put( "ARBONE", "ARBITRUM" );
+                    put( "ARBITRUM", "ARBITRUM" );
                     put( "BASE", "BASE" );
                     put( "TON", "TON" );
                     put( "AVAXC", "AVAXC" );

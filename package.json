@@ -77,7 +77,7 @@
     "fumadocs-build": "npm run fumadocs-content && cd docs/website && npm run build",
     "fumadocs-dev": "npm run fumadocs-content && cd docs/website && npm run dev",
     "fumadocs-linkcheck": "tsx build/check-fumadocs-links.ts",
-    "tsBuildFile": "tsc --outDir ./js/src ",
+    "tsBuildFile": "node build/tsc-single.mjs ",
     "addJsHeaders": "tsx build/transpile.ts --js-headers",
     "tsBuild": "tsc && npm run addJsHeaders",
     "tsBuildExamples": "tsx examples/clean-js-dir.ts && tsc -p ./examples/tsconfig.json",
