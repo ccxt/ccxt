@@ -1,0 +1,878 @@
+{
+    "exchange": "binance",
+    "asyncOnly": true,
+    "skipKeys": [
+        "datetime",
+        "timestamp",
+        "signature"
+    ],
+    "outputType": "json",
+    "options": {
+        "loadAllOutcomes": true,
+        "wallet": {
+            "walletAddress": "0x6d9102ba612C1717D723b473810D13C6d6669Ca8",
+            "walletId": 12345678
+        }
+    },
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "a non-primary (NO) outcome mirrors the quoted primary price as 1 - price",
+                "method": "fetchTicker",
+                "input": [
+                    "FED_RATE_HIKE_2026:NO"
+                ],
+                "httpResponse": {
+                    "marketId": 2860,
+                    "lastTradePrice": "0.99"
+                },
+                "parsedResponse": {
+                    "timestamp": 1785932793880,
+                    "datetime": "2026-08-05T12:26:33.880Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "open": null,
+                    "close": 0.01,
+                    "last": 0.01,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "openInterest": null,
+                    "outcome": "FED_RATE_HIKE_2026:NO",
+                    "outcomeId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                    "label": "NO",
+                    "market": "FED_RATE_HIKE_2026",
+                    "event": null,
+                    "info": {
+                        "marketId": 2860,
+                        "lastTradePrice": "0.99"
+                    }
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "an OPENING limit order parses as an open prediction order",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "FED_RATE_HIKE_2026:NO"
+                ],
+                "httpResponse": {
+                    "total": 1,
+                    "offset": 0,
+                    "limit": 20,
+                    "orders": [
+                        {
+                            "orderId": "26080500001781874577",
+                            "vendorOrderId": "0x1234abcd",
+                            "vendor": "PREDICT_FUN",
+                            "marketTopicId": 176,
+                            "slug": "fed-rate-hike-in-2026",
+                            "marketTopicTitle": "Fed rate hike in 2026?",
+                            "marketId": 2860,
+                            "marketTitle": "Fed rate hike in 2026?",
+                            "outcome": "No",
+                            "outcomeIndex": 1,
+                            "status": "OPENING",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "createTime": 1785930900000,
+                            "modifyTime": 1785930900000,
+                            "makerUsdtAmount": "10",
+                            "makerShareQty": "1000",
+                            "filledUsdtAmount": "0.00",
+                            "filledShareQty": "0.00",
+                            "fillPercentage": "0.00",
+                            "price": "0.01",
+                            "marketProviderFee": "0",
+                            "networkFee": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "26080500001781874577",
+                        "clientOrderId": null,
+                        "timestamp": 1785930900000,
+                        "datetime": "2026-08-05T11:55:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": 0.01,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": "FED_RATE_HIKE_2026:NO",
+                        "outcomeId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                        "label": "NO",
+                        "market": "FED_RATE_HIKE_2026",
+                        "event": null,
+                        "info": {
+                            "orderId": "26080500001781874577",
+                            "vendorOrderId": "0x1234abcd",
+                            "vendor": "PREDICT_FUN",
+                            "marketTopicId": 176,
+                            "slug": "fed-rate-hike-in-2026",
+                            "marketTopicTitle": "Fed rate hike in 2026?",
+                            "marketId": 2860,
+                            "marketTitle": "Fed rate hike in 2026?",
+                            "outcome": "No",
+                            "outcomeIndex": 1,
+                            "status": "OPENING",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "createTime": 1785930900000,
+                            "modifyTime": 1785930900000,
+                            "makerUsdtAmount": "10",
+                            "makerShareQty": "1000",
+                            "filledUsdtAmount": "0.00",
+                            "filledShareQty": "0.00",
+                            "fillPercentage": "0.00",
+                            "price": "0.01",
+                            "marketProviderFee": "0",
+                            "networkFee": "0"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "a spot outcome position parses shares, entry price and pnl",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "summary": {},
+                    "counts": {},
+                    "positions": [
+                        {
+                            "positionId": 1001,
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "tokenId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                            "collateralSymbol": "USDT",
+                            "topicType": "FLAT",
+                            "marketTopicId": 176,
+                            "marketId": 2860,
+                            "marketTopicTitle": "Fed rate hike in 2026?",
+                            "marketTitle": "Fed rate hike in 2026?",
+                            "outcomeName": "No",
+                            "outcomeIndex": 1,
+                            "shares": "31.73",
+                            "avgPrice": "0.30549898",
+                            "totalCost": "9.69",
+                            "value": "22.53",
+                            "currentPrice": "0.71",
+                            "toWin": "31.73",
+                            "positionStatus": "OPEN",
+                            "canClaim": false,
+                            "endDate": 1798761600000,
+                            "unrealizedPnl": "2.07",
+                            "unrealizedPnlPercent": "21.43",
+                            "realizedPnl": "0.00",
+                            "pnl": "2.07",
+                            "createdTime": 1785930000000,
+                            "updatedTime": 1785931000000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1001",
+                        "timestamp": 1785930000000,
+                        "datetime": "2026-08-05T11:40:00.000Z",
+                        "contracts": null,
+                        "contractSize": 31.73,
+                        "side": "long",
+                        "notional": 22.53,
+                        "unrealizedPnl": 2.07,
+                        "realizedPnl": 0,
+                        "collateral": 9.69,
+                        "entryPrice": 0.30549898,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "percentage": 21.43,
+                        "resolved": null,
+                        "won": null,
+                        "settleFraction": null,
+                        "payout": null,
+                        "outcome": "FED_RATE_HIKE_2026:NO",
+                        "outcomeId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                        "label": null,
+                        "market": "FED_RATE_HIKE_2026",
+                        "event": null,
+                        "info": {
+                            "positionId": 1001,
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "tokenId": "29193512788410035077160621265655953593161318406168685671276005587233150887532",
+                            "collateralSymbol": "USDT",
+                            "topicType": "FLAT",
+                            "marketTopicId": 176,
+                            "marketId": 2860,
+                            "marketTopicTitle": "Fed rate hike in 2026?",
+                            "marketTitle": "Fed rate hike in 2026?",
+                            "outcomeName": "No",
+                            "outcomeIndex": 1,
+                            "shares": "31.73",
+                            "avgPrice": "0.30549898",
+                            "totalCost": "9.69",
+                            "value": "22.53",
+                            "currentPrice": "0.71",
+                            "toWin": "31.73",
+                            "positionStatus": "OPEN",
+                            "canClaim": false,
+                            "endDate": 1798761600000,
+                            "unrealizedPnl": "2.07",
+                            "unrealizedPnlPercent": "21.43",
+                            "realizedPnl": "0.00",
+                            "pnl": "2.07",
+                            "createdTime": 1785930000000,
+                            "updatedTime": 1785931000000
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "the requested payment-option account type maps to the USDT balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "CeDeFi"
+                    }
+                ],
+                "httpResponse": {
+                    "items": [
+                        {
+                            "accountType": "CeDeFi",
+                            "availableBalanceDisplay": "59.37",
+                            "enabled": true
+                        },
+                        {
+                            "accountType": "SPOT",
+                            "availableBalanceDisplay": "0.0",
+                            "enabled": true
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "items": [
+                            {
+                                "accountType": "CeDeFi",
+                                "availableBalanceDisplay": "59.37",
+                                "enabled": true
+                            },
+                            {
+                                "accountType": "SPOT",
+                                "availableBalanceDisplay": "0.0",
+                                "enabled": true
+                            }
+                        ]
+                    },
+                    "USDT": {
+                        "free": 59.37,
+                        "used": null,
+                        "total": null
+                    },
+                    "free": {
+                        "USDT": 59.37
+                    },
+                    "used": {
+                        "USDT": null
+                    },
+                    "total": {
+                        "USDT": null
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch OB by outcome label",
+                "method": "fetchOrderBook",
+                "input": [
+                    "FED_DECISION_JULY_181_50_BPS_HIKE:YES"
+                ],
+                "httpResponse": {
+                    "outcome": "YES",
+                    "tokenId": "111320514734107489769832633008728755658539627048951651727730916027834170490912",
+                    "timestamp": 1785329122855,
+                    "bids": [
+                        {
+                            "price": "0.251",
+                            "size": "200"
+                        },
+                        {
+                            "price": "0.25",
+                            "size": "14244.54333333"
+                        },
+                        {
+                            "price": "0.249",
+                            "size": "2201.5"
+                        },
+                        {
+                            "price": "0.243",
+                            "size": "4.8021"
+                        },
+                        {
+                            "price": "0.24",
+                            "size": "601.7"
+                        },
+                        {
+                            "price": "0.238",
+                            "size": "440.29"
+                        },
+                        {
+                            "price": "0.235",
+                            "size": "300"
+                        },
+                        {
+                            "price": "0.22",
+                            "size": "227.27"
+                        },
+                        {
+                            "price": "0.203",
+                            "size": "49.26"
+                        },
+                        {
+                            "price": "0.2",
+                            "size": "500"
+                        },
+                        {
+                            "price": "0.15",
+                            "size": "923.874"
+                        },
+                        {
+                            "price": "0.122",
+                            "size": "0.06"
+                        },
+                        {
+                            "price": "0.022",
+                            "size": "10000"
+                        },
+                        {
+                            "price": "0.02",
+                            "size": "2700"
+                        },
+                        {
+                            "price": "0.015",
+                            "size": "5000"
+                        },
+                        {
+                            "price": "0.01",
+                            "size": "188.46"
+                        },
+                        {
+                            "price": "0.002",
+                            "size": "50000"
+                        }
+                    ],
+                    "asks": [
+                        {
+                            "price": "0.3",
+                            "size": "13.36"
+                        },
+                        {
+                            "price": "0.309",
+                            "size": "100"
+                        },
+                        {
+                            "price": "0.31",
+                            "size": "1101.6"
+                        },
+                        {
+                            "price": "0.389",
+                            "size": "3"
+                        },
+                        {
+                            "price": "0.39",
+                            "size": "3"
+                        },
+                        {
+                            "price": "0.392",
+                            "size": "1500"
+                        },
+                        {
+                            "price": "0.4",
+                            "size": "95.28"
+                        },
+                        {
+                            "price": "0.412",
+                            "size": "1500"
+                        },
+                        {
+                            "price": "0.432",
+                            "size": "1500"
+                        },
+                        {
+                            "price": "0.496",
+                            "size": "1233.17311267"
+                        },
+                        {
+                            "price": "0.516",
+                            "size": "2500"
+                        },
+                        {
+                            "price": "0.539",
+                            "size": "83.57565768"
+                        },
+                        {
+                            "price": "0.54",
+                            "size": "100"
+                        },
+                        {
+                            "price": "0.543",
+                            "size": "94.08"
+                        },
+                        {
+                            "price": "0.55",
+                            "size": "93.87"
+                        },
+                        {
+                            "price": "0.605",
+                            "size": "180"
+                        },
+                        {
+                            "price": "0.681",
+                            "size": "299.82"
+                        },
+                        {
+                            "price": "0.882",
+                            "size": "272"
+                        },
+                        {
+                            "price": "0.883",
+                            "size": "85.47"
+                        },
+                        {
+                            "price": "0.898",
+                            "size": "100"
+                        },
+                        {
+                            "price": "0.899",
+                            "size": "5000"
+                        },
+                        {
+                            "price": "0.9",
+                            "size": "1.41"
+                        },
+                        {
+                            "price": "0.904",
+                            "size": "500"
+                        },
+                        {
+                            "price": "0.905",
+                            "size": "7000"
+                        },
+                        {
+                            "price": "0.906",
+                            "size": "234.16"
+                        },
+                        {
+                            "price": "0.935",
+                            "size": "10000"
+                        },
+                        {
+                            "price": "0.98",
+                            "size": "100"
+                        },
+                        {
+                            "price": "0.99",
+                            "size": "111.463"
+                        },
+                        {
+                            "price": "0.991",
+                            "size": "1111.1"
+                        },
+                        {
+                            "price": "0.992",
+                            "size": "1000"
+                        },
+                        {
+                            "price": "0.998",
+                            "size": "50000"
+                        },
+                        {
+                            "price": "0.999",
+                            "size": "1036.22"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            0.251,
+                            200
+                        ],
+                        [
+                            0.25,
+                            14244.54333333
+                        ],
+                        [
+                            0.249,
+                            2201.5
+                        ],
+                        [
+                            0.243,
+                            4.8021
+                        ],
+                        [
+                            0.24,
+                            601.7
+                        ],
+                        [
+                            0.238,
+                            440.29
+                        ],
+                        [
+                            0.235,
+                            300
+                        ],
+                        [
+                            0.22,
+                            227.27
+                        ],
+                        [
+                            0.203,
+                            49.26
+                        ],
+                        [
+                            0.2,
+                            500
+                        ],
+                        [
+                            0.15,
+                            923.874
+                        ],
+                        [
+                            0.122,
+                            0.06
+                        ],
+                        [
+                            0.022,
+                            10000
+                        ],
+                        [
+                            0.02,
+                            2700
+                        ],
+                        [
+                            0.015,
+                            5000
+                        ],
+                        [
+                            0.01,
+                            188.46
+                        ],
+                        [
+                            0.002,
+                            50000
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.3,
+                            13.36
+                        ],
+                        [
+                            0.309,
+                            100
+                        ],
+                        [
+                            0.31,
+                            1101.6
+                        ],
+                        [
+                            0.389,
+                            3
+                        ],
+                        [
+                            0.39,
+                            3
+                        ],
+                        [
+                            0.392,
+                            1500
+                        ],
+                        [
+                            0.4,
+                            95.28
+                        ],
+                        [
+                            0.412,
+                            1500
+                        ],
+                        [
+                            0.432,
+                            1500
+                        ],
+                        [
+                            0.496,
+                            1233.17311267
+                        ],
+                        [
+                            0.516,
+                            2500
+                        ],
+                        [
+                            0.539,
+                            83.57565768
+                        ],
+                        [
+                            0.54,
+                            100
+                        ],
+                        [
+                            0.543,
+                            94.08
+                        ],
+                        [
+                            0.55,
+                            93.87
+                        ],
+                        [
+                            0.605,
+                            180
+                        ],
+                        [
+                            0.681,
+                            299.82
+                        ],
+                        [
+                            0.882,
+                            272
+                        ],
+                        [
+                            0.883,
+                            85.47
+                        ],
+                        [
+                            0.898,
+                            100
+                        ],
+                        [
+                            0.899,
+                            5000
+                        ],
+                        [
+                            0.9,
+                            1.41
+                        ],
+                        [
+                            0.904,
+                            500
+                        ],
+                        [
+                            0.905,
+                            7000
+                        ],
+                        [
+                            0.906,
+                            234.16
+                        ],
+                        [
+                            0.935,
+                            10000
+                        ],
+                        [
+                            0.98,
+                            100
+                        ],
+                        [
+                            0.99,
+                            111.463
+                        ],
+                        [
+                            0.991,
+                            1111.1
+                        ],
+                        [
+                            0.992,
+                            1000
+                        ],
+                        [
+                            0.998,
+                            50000
+                        ],
+                        [
+                            0.999,
+                            1036.22
+                        ]
+                    ],
+                    "timestamp": 1785329122855,
+                    "datetime": "2026-07-29T12:45:22.855Z",
+                    "nonce": null,
+                    "outcome": "FED_DECISION_JULY_181_50_BPS_HIKE:YES",
+                    "outcomeId": "111320514734107489769832633008728755658539627048951651727730916027834170490912",
+                    "market": "FED_DECISION_JULY_181_50_BPS_HIKE"
+                }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "FED_DECISION_JULY_181_50_BPS_HIKE:YES"
+                ],
+                "httpResponse": {
+                    "total": 1,
+                    "offset": 0,
+                    "limit": 20,
+                    "orders": [
+                        {
+                            "orderId": "26072800000000027325",
+                            "vendorOrderId": "1381006367",
+                            "vendor": "PREDICT_FUN",
+                            "marketTopicId": 2562,
+                            "slug": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                            "topicType": "FLAT",
+                            "marketTopicTitle": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                            "marketTopicImageUrl": "",
+                            "thumbnailPaths": [],
+                            "marketVariant": "DEFAULT",
+                            "marketId": 5992559,
+                            "marketTitle": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                            "outcome": "Yes",
+                            "outcomeIndex": 1,
+                            "status": "FILLED",
+                            "side": "BUY",
+                            "orderType": "MARKET",
+                            "createTime": 1785232980917,
+                            "modifyTime": 1785232983450,
+                            "terminalTime": 1785232983450,
+                            "makerUsdtAmount": "10",
+                            "makerShareQty": "32.73",
+                            "filledUsdtAmount": "10",
+                            "filledShareQty": "32.73",
+                            "fillPercentage": "1",
+                            "price": "0.3",
+                            "marketProviderFee": "0.6",
+                            "networkFee": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "order": "26072800000000027325",
+                        "timestamp": 1785232980917,
+                        "datetime": "2026-07-28T10:03:00.917Z",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.3,
+                        "amount": 32.73,
+                        "cost": 10,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.181
+                        },
+                        "realizedPnl": null,
+                        "outcome": "FED_DECISION_JULY_181_50_BPS_HIKE:YES",
+                        "outcomeId": "111320514734107489769832633008728755658539627048951651727730916027834170490912",
+                        "label": "YES",
+                        "market": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                        "info": {
+                            "orderId": "26072800000000027325",
+                            "vendorOrderId": "1381006367",
+                            "vendor": "PREDICT_FUN",
+                            "marketTopicId": 2562,
+                            "slug": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                            "topicType": "FLAT",
+                            "marketTopicTitle": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                            "marketTopicImageUrl": "",
+                            "thumbnailPaths": [],
+                            "marketVariant": "DEFAULT",
+                            "marketId": 5992559,
+                            "marketTitle": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                            "outcome": "Yes",
+                            "outcomeIndex": 1,
+                            "status": "FILLED",
+                            "side": "BUY",
+                            "orderType": "MARKET",
+                            "createTime": 1785232980917,
+                            "modifyTime": 1785232983450,
+                            "terminalTime": 1785232983450,
+                            "makerUsdtAmount": "10",
+                            "makerShareQty": "32.73",
+                            "filledUsdtAmount": "10",
+                            "filledShareQty": "32.73",
+                            "fillPercentage": "1",
+                            "price": "0.3",
+                            "marketProviderFee": "0.6",
+                            "networkFee": "0"
+                        }
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create order",
+                "method": "createOrder",
+                "input": [
+                    "FED_DECISION_JULY_181_50_BPS_HIKE:YES",
+                    "limit",
+                    "sell",
+                    21,
+                    0.52,
+                    {
+                        "accountType": "SPOT"
+                    }
+                ],
+                "httpResponse": {
+                    "orderId": "26072900001762778754"
+                },
+                "parsedResponse": {
+                    "id": "26072900001762778754",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "type": "limit",
+                    "timeInForce": null,
+                    "side": "sell",
+                    "price": 0.52,
+                    "average": null,
+                    "amount": 21,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "outcome": "FED_DECISION_JULY_181_50_BPS_HIKE:YES",
+                    "outcomeId": "111320514734107489769832633008728755658539627048951651727730916027834170490912",
+                    "label": "YES",
+                    "market": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                    "event": null,
+                    "info": {
+                        "orderId": "26072900001762778754"
+                    }
+                }
+            }
+        ]
+    }
+}

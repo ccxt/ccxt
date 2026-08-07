@@ -3316,7 +3316,7 @@ public class BingxCore extends BingxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(isMarketOrder) && Helpers.isTrue(Helpers.isEqual(this.safeString(request, "quoteOrderQty"), null))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isMarketOrder) && Helpers.isTrue((Helpers.isEqual(side, "buy")))) && Helpers.isTrue(Helpers.isEqual(this.safeString(request, "quoteOrderQty"), null))))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")) ;
                 }
