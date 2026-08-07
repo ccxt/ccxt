@@ -46,7 +46,8 @@ public class BaseExchange {
 
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
-    public int calculateWsBackoffDelay(String url) {
+    public int calculateWsBackoffDelay(Object url) {
+        String urlKey = url.toString();
         long base = 1000L;
         long factor = 2L;
         long maxDelay = 60000L;
@@ -66,7 +67,7 @@ public class BaseExchange {
         long now = this.milliseconds();
         long attempts = 0L;
         long lastAttempt = 0L;
-        long[] state = this.wsBackoffState.get(url);
+        long[] state = this.wsBackoffState.get(urlKey);
         if (state != null) {
             attempts = state[0];
             lastAttempt = state[1];
@@ -74,7 +75,7 @@ public class BaseExchange {
         if ((lastAttempt > 0L) && ((now - lastAttempt) > stableAfter)) {
             attempts = 0L; // the previous connection was healthy long enough, start fresh
         }
-        this.wsBackoffState.put(url, new long[] { attempts + 1L, now });
+        this.wsBackoffState.put(urlKey, new long[] { attempts + 1L, now });
         if (attempts == 0L) {
             return 0; // first dial or recovered, connect immediately
         }
