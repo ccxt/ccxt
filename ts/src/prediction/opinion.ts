@@ -2007,8 +2007,8 @@ export default class opinion extends Exchange {
             'trades': [],
         }, outcomeObj);
         if (this.orders === undefined) {
-            const ordersLimit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheByOutcomeById (ordersLimit);
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheByOutcomeById (limit);
         }
         const stored = this.orders;
         stored.append (order);
