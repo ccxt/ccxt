@@ -3659,7 +3659,7 @@ export default class gate extends Exchange {
         if (since !== undefined && (market['contract'])) {
             request['from'] = this.parseToInt (since / 1000);
         }
-        let response: Dict | List;
+        let response: List;
         if (market['type'] === 'spot' || market['type'] === 'margin') {
             response = await this.publicSpotGetTrades (this.extend (request, query));
         } else if (market['swap']) {
@@ -3823,7 +3823,7 @@ export default class gate extends Exchange {
         if (until !== undefined) {
             request['to'] = this.parseToInt (until / 1000);
         }
-        let response: Dict | List;
+        let response: List;
         if (type === 'spot' || type === 'margin') {
             response = await this.privateSpotGetMyTrades (this.extend (request, params));
         } else if (type === 'swap') {
@@ -6530,9 +6530,9 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        let responseList: Dict | List = [];
+        let responseList: List = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray (response);
         }
         return this.parsePositions (responseList, symbols);
     }
@@ -8635,7 +8635,7 @@ export default class gate extends Exchange {
         if (until !== undefined) {
             request['to'] = this.parseToInt (until / 1000);
         }
-        let response: Dict | List;
+        let response: List;
         if (marketType === 'swap') {
             response = await this.privateFuturesGetSettlePositionClose (this.extend (request, params));
         } else if (marketType === 'future') {
@@ -8663,9 +8663,9 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        let responseList: Dict | List = [];
+        let responseList: List = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray (response);
         }
         return this.parsePositions (responseList, symbols, params);
     }

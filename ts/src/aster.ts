@@ -1318,7 +1318,7 @@ export default class aster extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        let response: Dict | List;
+        let response: List;
         const sinceDefined = since !== undefined;
         const untilDefined = ('until' in params);
         if (sinceDefined) {
@@ -1403,7 +1403,7 @@ export default class aster extends Exchange {
             request['limit'] = Math.min (limit, 1000);
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let response: Dict | List;
+        let response: List;
         if (marketType === 'swap') {
             response = await this.fapiPrivateGetV3UserTrades (this.extend (request, params));
         } else {

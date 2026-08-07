@@ -680,7 +680,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    override parseWsTrades (trades: Dict | List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override parseWsTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const tradesArray = this.toArray (trades);
         let result: Dict[] = [];
         for (let i = 0; i < tradesArray.length; i++) {
