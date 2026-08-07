@@ -892,7 +892,8 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //         },
             //     ]
             //
-            return this.parseAccounts(response, parameters);
+            Object accounts = this.toArray(response);
+            return this.parseAccounts(accounts, parameters);
         });
 
     }

@@ -3131,7 +3131,8 @@ final Object finalId = id;
             {
                 market = this.market(symbol);
             }
-            return this.parseTrades(trades, market, since, limit);
+            Object tradesList = this.toArray(trades);
+            return this.parseTrades(tradesList, market, since, limit);
         });
 
     }

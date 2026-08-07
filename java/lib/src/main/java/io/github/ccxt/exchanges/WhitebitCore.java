@@ -3525,7 +3525,8 @@ public class WhitebitCore extends WhitebitApi
             //         { ... }                                 // More transactions (deposits and withdrawals)
             //     ]
             //
-            return this.parseTransactions(response, currency, since, limit);
+            Object records = this.safeList(response, "records", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseTransactions(records, currency, since, limit);
         });
 
     }

@@ -2052,7 +2052,7 @@ public class MexcCore extends MexcApi
                 //         ]
                 //     }
                 //
-                trades = this.safeValue(response, "data");
+                trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit);
         });
@@ -4877,7 +4877,7 @@ public class MexcCore extends MexcApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object trades = null;
+            Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -4934,7 +4934,7 @@ public class MexcCore extends MexcApi
                 //         ]
                 //     }
                 //
-                trades = this.safeValue(response, "data");
+                trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit);
         });
@@ -4976,7 +4976,7 @@ public class MexcCore extends MexcApi
             var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
-            Object trades = null;
+            Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
@@ -5013,7 +5013,7 @@ public class MexcCore extends MexcApi
                 //         ]
                 //     }
                 //
-                trades = this.safeValue(response, "data");
+                trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit, query);
         });

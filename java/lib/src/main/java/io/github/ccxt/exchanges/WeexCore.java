@@ -1782,7 +1782,7 @@ public class WeexCore extends WeexApi
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
-                responseList = response;
+                responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
         });
@@ -3787,7 +3787,7 @@ public class WeexCore extends WeexApi
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
-                responseList = response;
+                responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
         });

@@ -7223,7 +7223,7 @@ public class BinanceCore extends BinanceApi
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
-                responseList = response;
+                responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
         });
@@ -10884,7 +10884,7 @@ public class BinanceCore extends BinanceApi
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
-                responseList = response;
+                responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
         });
@@ -18335,7 +18335,7 @@ final Object finalMarket = market;
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
-                responseList = response;
+                responseList = this.toArray(response);
             }
             return this.parseADLRanks(responseList, symbols);
         });

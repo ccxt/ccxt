@@ -8191,7 +8191,7 @@ final Object finalRebate = rebate;
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
-                responseList = response;
+                responseList = this.toArray(response);
             }
             return this.parsePositions(responseList, symbols);
         });
@@ -10644,7 +10644,7 @@ final Object finalI = i;
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
-                responseList = response;
+                responseList = this.toArray(response);
             }
             return this.parsePositions(responseList, symbols, parameters);
         });
