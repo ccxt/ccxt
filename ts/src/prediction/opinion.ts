@@ -1158,7 +1158,9 @@ export default class opinion extends Exchange {
             'side': sideEnum,
             'price': this.safeNumber (order, 'price'),
             'amount': this.safeNumber (order, 'orderShares'),
-            'cost': this.safeNumber (order, 'orderAmount'),
+            // cost is the FILLED portion's collateral (unified cost = filled * price) — orderAmount
+            // is the full requested orderShares * price, wrong for a partially filled order
+            'cost': this.safeNumber (order, 'filledAmount'),
             'filled': this.safeNumber (order, 'filledShares'),
             'fee': undefined,
             'trades': [],
