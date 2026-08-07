@@ -464,13 +464,10 @@ func (this *ExchangeTyped) UnWatchOrderBook(symbol string, options ...UnWatchOrd
 }
 func (this *ExchangeTyped) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Exchange.FetchTime(params...)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	if typed, ok := res.(int64); ok {
-		return &typed, nil
-	}
-	return nil, nil
+	return res.Val, nil
 }
 func (this *ExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 
@@ -6262,13 +6259,10 @@ func (this *BaseExchangeTyped) UnWatchOrderBook(symbol string, options ...UnWatc
 }
 func (this *BaseExchangeTyped) FetchTime(params ...any) (*int64, error) {
 	res := <-this.BaseExchange.FetchTime(params...)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	if typed, ok := res.(int64); ok {
-		return &typed, nil
-	}
-	return nil, nil
+	return res.Val, nil
 }
 func (this *BaseExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 

@@ -221,13 +221,10 @@ func (this *Btcmarkets) FetchMarkets(params ...any) ([]MarketInterface, error) {
  */
 func (this *Btcmarkets) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	if typed, ok := res.(int64); ok {
-		return &typed, nil
-	}
-	return nil, nil
+	return res.Val, nil
 }
 
 /**

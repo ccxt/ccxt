@@ -290,13 +290,10 @@ func (this *Polymarket) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOpt
  */
 func (this *Polymarket) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	if ccxt.IsErrorRes(res) {
+		return nil, ccxt.CreateReturnErrorRes(res)
 	}
-	if typed, ok := res.(int64); ok {
-		return &typed, nil
-	}
-	return nil, nil
+	return res.Val, nil
 }
 
 /**

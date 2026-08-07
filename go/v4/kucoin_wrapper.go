@@ -37,13 +37,10 @@ func NewKucoinFromCore(core *KucoinCore) *Kucoin {
  */
 func (this *Kucoin) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	if typed, ok := res.(int64); ok {
-		return &typed, nil
-	}
-	return nil, nil
+	return res.Val, nil
 }
 
 /**
