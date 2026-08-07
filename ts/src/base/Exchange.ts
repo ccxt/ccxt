@@ -1722,15 +1722,15 @@ export class BaseExchange {
             wsOptions['backoffState'] = state;
             this.options['ws'] = wsOptions;
         }
-        const now = this.milliseconds ();
+        const nowMillis = this.milliseconds ();
         const urlState = this.safeDict (state, url, {});
         const lastAttempt = this.safeInteger (urlState, 'lastAttempt', 0);
         let attempts = this.safeInteger (urlState, 'attempts', 0);
-        if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter)) {
+        if ((lastAttempt > 0) && ((nowMillis - lastAttempt) > stableAfter)) {
             attempts = 0; // the previous connection was healthy long enough, start fresh
         }
         urlState['attempts'] = attempts + 1;
-        urlState['lastAttempt'] = now;
+        urlState['lastAttempt'] = nowMillis;
         state[url] = urlState;
         if (attempts === 0) {
             return 0; // first dial or recovered, connect immediately
@@ -1740,7 +1740,7 @@ export class BaseExchange {
         for (let i = 1; i < capped; i++) {
             delay = delay * factor;
         }
-        const jitterMillis = now % 1000; // rng-free jitter, transpile-safe
+        const jitterMillis = nowMillis % 1000; // rng-free jitter, transpile-safe
         const jittered = this.parseToInt (delay * (0.8 + (jitterMillis / 2500))); // 0.8x .. 1.2x
         return Math.min (jittered, maxDelay); // the ceiling holds regardless of jitter
     }
