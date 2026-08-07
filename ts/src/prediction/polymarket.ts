@@ -582,7 +582,8 @@ export default class polymarket extends Exchange {
         let firstPageRequest: Dict = { 'offset': 0 };
         firstPageRequest = this.extend (firstPageRequest, baseRequest);
         const firstPageResponse = await this.gammaPublicGetEvents (firstPageRequest);
-        const firstPage = (Array.isArray (firstPageResponse)) ? firstPageResponse : [];
+        const firstPageIsArray = Array.isArray (firstPageResponse);
+        const firstPage = (firstPageIsArray) ? firstPageResponse : [];
         const firstPageLength = firstPage.length;
         const allRawEvents: any[] = [];
         for (let fi = 0; fi < firstPageLength; fi++) {
@@ -1082,8 +1083,10 @@ export default class polymarket extends Exchange {
             const booksResponse = responses[0];
             const midpoints = responses[1];
             const lastTradesResponse = responses[2];
-            const books = (Array.isArray (booksResponse)) ? booksResponse : [];
-            const lastTrades = (Array.isArray (lastTradesResponse)) ? lastTradesResponse : [];
+            const booksIsArray = Array.isArray (booksResponse);
+            const books = (booksIsArray) ? booksResponse : [];
+            const lastTradesIsArray = Array.isArray (lastTradesResponse);
+            const lastTrades = (lastTradesIsArray) ? lastTradesResponse : [];
             const lastTradesByTokenId: Dict = {};
             const lastTradesLength = lastTrades.length;
             for (let li = 0; li < lastTradesLength; li++) {
@@ -2442,7 +2445,8 @@ export default class polymarket extends Exchange {
                 lookup['slug'] = requestedSlug;
             }
             const response = await this.gammaPublicGetEvents (lookup);
-            rawEvents = (Array.isArray (response)) ? response : [];
+            const responseIsArray = Array.isArray (response);
+            rawEvents = (responseIsArray) ? response : [];
         } else if (queriesLength > 0) {
             rawEvents = await this.fetchRawEventsBySearch (queries, rest);
         } else {

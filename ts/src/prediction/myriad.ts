@@ -283,7 +283,8 @@ export default class myriad extends Exchange {
                 'state': state,
                 'limit': limit,
             }, rest));
-            const foundList = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
+            const responseIsArray = Array.isArray (response);
+            const foundList = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const found = (foundList !== undefined) ? foundList : [];
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
@@ -330,7 +331,8 @@ export default class myriad extends Exchange {
                 'page': page,
                 'trading_model': tradingModel,
             }, rest));
-            const rawMarketsList = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
+            const responseIsArray = Array.isArray (response);
+            const rawMarketsList = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
@@ -459,7 +461,8 @@ export default class myriad extends Exchange {
                 'keyword': q,
                 'limit': limit,
             }, rest));
-            const foundList = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
+            const responseIsArray = Array.isArray (response);
+            const foundList = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const found = (foundList !== undefined) ? foundList : [];
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
@@ -500,7 +503,8 @@ export default class myriad extends Exchange {
                 request['state'] = state;
             }
             const response = await this.myriadPublicGetQuestions (this.extend (request, rest));
-            const rawQuestionsList = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
+            const responseIsArray = Array.isArray (response);
+            const rawQuestionsList = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const rawQuestions = (rawQuestionsList !== undefined) ? rawQuestionsList : [];
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
@@ -2948,7 +2952,8 @@ export default class myriad extends Exchange {
         //         ]
         //     }
         //
-        const rowsList = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
+        const responseIsArray = Array.isArray (response);
+        const rowsList = (responseIsArray) ? response : this.safeList (response, 'data', []);
         const rows = (rowsList !== undefined) ? rowsList : [];
         const trades: any[] = [];
         for (let i = 0; i < rows.length; i++) {

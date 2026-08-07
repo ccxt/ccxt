@@ -981,10 +981,11 @@ export default class derive extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    override parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    override parseTrades (trades: Dict | List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+        const tradesArray = this.toArray (trades);
         let result: Trade[] = [];
-        for (let i = 0; i < trades.length; i++) {
-            const rawTrade = trades[i];
+        for (let i = 0; i < tradesArray.length; i++) {
+            const rawTrade = tradesArray[i];
             const isFetchTrades = !('order_id' in rawTrade);
             const liquidityRole = this.safeString (rawTrade, 'liquidity_role');
             if (isFetchTrades && (liquidityRole === 'maker')) {
