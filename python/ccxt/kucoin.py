@@ -3720,7 +3720,12 @@ class kucoin(Exchange, ImplicitAPI):
         elif (type != 'spot') and (type != 'margin'):
             if level != 2 and level is not None:
                 raise BadRequest(self.id + ' fetchOrderBook() can only return level 2')
-            if (limit is None) or limit == 20:
+            if limit is None:
+                # full L2 snapshot - required for correct ws diff-sync: the futures delta
+                # stream covers the whole book while depth20/depth100 truncate the snapshot,
+                # see https://github.com/ccxt/ccxt/issues/22063
+                response = self.futuresPublicGetLevel2Snapshot(self.extend(request, params))
+            elif limit == 20:
                 #
                 #     {
                 #         "code": "200000",

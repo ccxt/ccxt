@@ -7,6 +7,9 @@ namespace ccxt\async\abstract;
 
 
 abstract class mexc extends \ccxt\async\Exchange {
+    public function spot_public_get_announcements($params = array()) {
+        return $this->request('announcements', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 8));
+    }
     public function spot_public_get_ping($params = array()) {
         return $this->request('ping', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -717,6 +720,9 @@ abstract class mexc extends \ccxt\async\Exchange {
     }
     public function broker_private_delete_sub_account_apikey($params = array()) {
         return $this->request('sub-account/apiKey', array('broker', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function spotPublicGetAnnouncements($params = array()) {
+        return $this->request('announcements', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 8));
     }
     public function spotPublicGetPing($params = array()) {
         return $this->request('ping', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));

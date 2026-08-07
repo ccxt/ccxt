@@ -338,9 +338,9 @@ class whitebit(Exchange, ImplicitAPI):
                         'takeProfitPrice': False,  # todo
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'IOC': True,  # todo
+                            'IOC': True,
                             'FOK': False,
-                            'PO': True,  # todo
+                            'PO': True,
                             'GTD': False,
                         },
                         'hedged': False,
@@ -1917,6 +1917,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param float [params.cost]: *market orders only* the cost of the order in units of the base currency
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.postOnly]: If True, the order will only be posted to the order book and not executed immediately
+        :param str [params.timeInForce]: "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
         :param str [params.clientOrderId]: a unique id for the order
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -1949,13 +1950,23 @@ class whitebit(Exchange, ImplicitAPI):
         isMarketOrder = type == 'market'
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
         isStopOrder = (triggerPrice is not None)
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        if (timeInForce is not None) and (timeInForce != 'GTC') and (timeInForce != 'IOC') and (timeInForce != 'PO'):
+            raise NotSupported(self.id + ' createOrder() does not support timeInForce ' + timeInForce + ', only GTC, IOC and PO are allowed')
         postOnly = self.is_post_only(isMarketOrder, False, params)
+        ioc = (timeInForce == 'IOC')
+        if isStopOrder and (postOnly or ioc):
+            raise NotSupported(self.id + ' createOrder() does not support postOnly or timeInForce IOC for stop orders')
+        if ioc and not isLimitOrder:
+            raise NotSupported(self.id + ' createOrder() timeInForce IOC is only supported for limit orders')
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if postOnly:
             request['postOnly'] = True
+        if ioc:
+            request['ioc'] = True
         if marginMode is not None and marginMode != 'cross':
             raise NotSupported(self.id + ' createOrder() is only available for cross margin')
-        params = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice'])
+        params = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice', 'timeInForce'])
         useCollateralEndpoint = marginMode is not None or marketType == 'swap'
         response: dict
         if isStopOrder:
@@ -2449,6 +2460,13 @@ class whitebit(Exchange, ImplicitAPI):
             }
         timestamp = self.safe_timestamp_2(order, 'ctime', 'timestamp')
         lastTradeTimestamp = self.safe_timestamp(order, 'ftime')
+        postOnly = self.safe_bool(order, 'postOnly')
+        ioc = self.safe_bool(order, 'ioc')
+        timeInForce = None
+        if ioc is True:
+            timeInForce = 'IOC'
+        elif postOnly is True:
+            timeInForce = 'PO'
         return self.safe_order({
             'info': order,
             'id': orderId,
@@ -2457,8 +2475,8 @@ class whitebit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'status': self.parse_order_status(self.safe_string(order, 'status')),
             'side': side,
             'price': price,

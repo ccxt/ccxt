@@ -3834,7 +3834,12 @@ class kucoin extends Exchange {
             if ($level !== 2 && $level !== null) {
                 throw new BadRequest($this->id . ' fetchOrderBook() can only return $level 2');
             }
-            if (($limit === null) || $limit === 20) {
+            if ($limit === null) {
+                // full L2 snapshot - required for correct ws diff-sync => the futures delta
+                // stream covers the whole book while depth20/depth100 truncate the snapshot,
+                // see https://github.com/ccxt/ccxt/issues/22063
+                $response = $this->futuresPublicGetLevel2Snapshot($this->extend($request, $params));
+            } elseif ($limit === 20) {
                 //
                 //     {
                 //         "code" => "200000",

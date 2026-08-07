@@ -11,6 +11,11 @@ public partial class mexc : Exchange
 {
     public mexc (object args = null): base(args) {}
 
+    public async Task<object> spotPublicGetAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetAnnouncements",parameters);
+    }
+
     public async Task<object> spotPublicGetPing (object parameters = null)
     {
         return await this.callAsync ("spotPublicGetPing",parameters);

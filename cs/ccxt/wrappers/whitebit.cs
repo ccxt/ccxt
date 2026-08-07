@@ -460,6 +460,12 @@ public partial class whitebit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.clientOrderId</term>
     /// <description>
     /// string : a unique id for the order

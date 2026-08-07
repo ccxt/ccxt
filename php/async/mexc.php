@@ -180,6 +180,7 @@ class mexc extends Exchange {
                 'spot' => array(
                     'public' => array(
                         'get' => array(
+                            'announcements' => 8,
                             'ping' => 1,
                             'time' => 1,
                             'defaultSymbols' => 1,
