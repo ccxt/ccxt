@@ -864,7 +864,8 @@ public partial class coinbaseexchange : Exchange
         //         },
         //     ]
         //
-        return this.parseAccounts(response, parameters);
+        object accounts = this.toArray(response);
+        return this.parseAccounts(accounts, parameters);
     }
 
     public override object parseAccount(object account)

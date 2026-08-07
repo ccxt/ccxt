@@ -2939,7 +2939,8 @@ public partial class kraken : Exchange
         {
             market = this.market(symbol);
         }
-        return this.parseTrades(trades, market, since, limit);
+        object tradesList = this.toArray(trades);
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**

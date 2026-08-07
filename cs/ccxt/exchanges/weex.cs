@@ -1691,7 +1691,7 @@ public partial class weex : Exchange
         object responseList = new List<object>() {};
         if (isTrue(!isEqual(response, null)))
         {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -3543,7 +3543,7 @@ public partial class weex : Exchange
         object responseList = new List<object>() {};
         if (isTrue(!isEqual(response, null)))
         {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parseTrades(responseList, market, since, limit);
     }

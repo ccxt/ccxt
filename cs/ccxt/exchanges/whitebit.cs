@@ -3284,7 +3284,8 @@ public partial class whitebit : Exchange
         //         { ... }                                 // More transactions (deposits and withdrawals)
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        object records = this.safeList(response, "records", new List<object>() {});
+        return this.parseTransactions(records, currency, since, limit);
     }
 
     /**

@@ -7788,7 +7788,7 @@ public partial class gate : Exchange
         object responseList = new List<object>() {};
         if (isTrue(!isEqual(response, null)))
         {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parsePositions(responseList, symbols);
     }
@@ -10055,7 +10055,7 @@ public partial class gate : Exchange
         object responseList = new List<object>() {};
         if (isTrue(!isEqual(response, null)))
         {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parsePositions(responseList, symbols, parameters);
     }

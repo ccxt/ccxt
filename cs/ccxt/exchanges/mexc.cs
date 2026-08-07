@@ -1990,7 +1990,7 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
-            trades = this.safeValue(response, "data");
+            trades = this.safeList(response, "data", new List<object>() {});
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -4614,7 +4614,7 @@ public partial class mexc : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object trades = null;
+        object trades = new List<object>() {};
         if (isTrue(isEqual(marketType, "spot")))
         {
             if (isTrue(!isEqual(since, null)))
@@ -4671,7 +4671,7 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
-            trades = this.safeValue(response, "data");
+            trades = this.safeList(response, "data", new List<object>() {});
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -4705,7 +4705,7 @@ public partial class mexc : Exchange
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
-        object trades = null;
+        object trades = new List<object>() {};
         if (isTrue(isEqual(marketType, "spot")))
         {
             if (isTrue(isEqual(symbol, null)))
@@ -4742,7 +4742,7 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
-            trades = this.safeValue(response, "data");
+            trades = this.safeList(response, "data", new List<object>() {});
         }
         return this.parseTrades(trades, market, since, limit, query);
     }
