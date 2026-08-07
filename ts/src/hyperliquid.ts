@@ -4956,7 +4956,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    extractTypeFromDelta (data: List = []) {
+    extractTypeFromDelta (data: Dict[] = []) {
         const records: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const record = data[i];
