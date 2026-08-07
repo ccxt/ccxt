@@ -479,10 +479,10 @@ abstract class aster extends \ccxt\Exchange {
         return $this->request('v3/listenKey', 'sapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
     public function sapiprivate_put_v1_listenkey($params = array()) {
-        return $this->request('v1/listenKey', 'sapiPrivate', 'PUT', $params, null, null, array());
+        return $this->request('v1/listenKey', 'sapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function sapiprivate_put_v3_listenkey($params = array()) {
-        return $this->request('v3/listenKey', 'sapiPrivate', 'PUT', $params, null, null, array());
+        return $this->request('v3/listenKey', 'sapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function sapiprivate_delete_v1_order($params = array()) {
         return $this->request('v1/order', 'sapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
@@ -974,10 +974,10 @@ abstract class aster extends \ccxt\Exchange {
         return $this->request('v3/listenKey', 'sapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
     public function sapiPrivatePutV1ListenKey($params = array()) {
-        return $this->request('v1/listenKey', 'sapiPrivate', 'PUT', $params, null, null, array());
+        return $this->request('v1/listenKey', 'sapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function sapiPrivatePutV3ListenKey($params = array()) {
-        return $this->request('v3/listenKey', 'sapiPrivate', 'PUT', $params, null, null, array());
+        return $this->request('v3/listenKey', 'sapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function sapiPrivateDeleteV1Order($params = array()) {
         return $this->request('v1/order', 'sapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));

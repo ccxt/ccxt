@@ -7,11 +7,11 @@ namespace ccxt\abstract;
 
 
 abstract class kraken extends \ccxt\Exchange {
-    public function zendesk_get_360000292886($params = array()) {
-        return $this->request('360000292886', 'zendesk', 'GET', $params, null, null, array());
-    }
     public function zendesk_get_201893608($params = array()) {
-        return $this->request('201893608', 'zendesk', 'GET', $params, null, null, array());
+        return $this->request('201893608', 'zendesk', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function zendesk_get_360000292886($params = array()) {
+        return $this->request('360000292886', 'zendesk', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_time($params = array()) {
         return $this->request('Time', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -190,11 +190,11 @@ abstract class kraken extends \ccxt\Exchange {
     public function private_post_earn_allocations($params = array()) {
         return $this->request('Earn/Allocations', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
-    public function zendeskGet360000292886($params = array()) {
-        return $this->request('360000292886', 'zendesk', 'GET', $params, null, null, array());
-    }
     public function zendeskGet201893608($params = array()) {
-        return $this->request('201893608', 'zendesk', 'GET', $params, null, null, array());
+        return $this->request('201893608', 'zendesk', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function zendeskGet360000292886($params = array()) {
+        return $this->request('360000292886', 'zendesk', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetTime($params = array()) {
         return $this->request('Time', 'public', 'GET', $params, null, null, array("cost" => 1));

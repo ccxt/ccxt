@@ -163,174 +163,174 @@ class woo extends Exchange {
                 'v1' => array(
                     'pub' => array(
                         'get' => array(
-                            'hist/kline' => 10,
-                            'hist/trades' => 10,
+                            'hist/kline' => array( 'cost' => 10 ),
+                            'hist/trades' => array( 'cost' => 10 ),
                         ),
                     ),
                     'public' => array(
                         'get' => array(
-                            'info' => 1,
-                            'info/{symbol}' => 1,
-                            'system_info' => 1,
-                            'market_trades' => 1,
-                            'token' => 1,
-                            'token_network' => 1,
-                            'funding_rates' => 1,
-                            'funding_rate/{symbol}' => 1,
-                            'funding_rate_history' => 1,
-                            'futures' => 1,
-                            'futures/{symbol}' => 1,
-                            'orderbook/{symbol}' => 1,
-                            'kline' => 1,
+                            'info' => array( 'cost' => 1 ),
+                            'info/{symbol}' => array( 'cost' => 1 ),
+                            'system_info' => array( 'cost' => 1 ),
+                            'market_trades' => array( 'cost' => 1 ),
+                            'token' => array( 'cost' => 1 ),
+                            'token_network' => array( 'cost' => 1 ),
+                            'funding_rates' => array( 'cost' => 1 ),
+                            'funding_rate/{symbol}' => array( 'cost' => 1 ),
+                            'funding_rate_history' => array( 'cost' => 1 ),
+                            'futures' => array( 'cost' => 1 ),
+                            'futures/{symbol}' => array( 'cost' => 1 ),
+                            'orderbook/{symbol}' => array( 'cost' => 1 ),
+                            'kline' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'client/token' => 1,
-                            'order/{oid}' => 1,
-                            'client/order/{client_order_id}' => 1,
-                            'orders' => 1,
-                            'client/trade/{tid}' => 1,
-                            'order/{oid}/trades' => 1,
-                            'client/trades' => 1,
-                            'client/hist_trades' => 1,
-                            'staking/yield_history' => 1,
-                            'client/holding' => 1,
-                            'asset/deposit' => 10,
-                            'asset/history' => 60,
-                            'sub_account/all' => 60,
-                            'sub_account/assets' => 60,
-                            'sub_account/asset_detail' => 60,
-                            'sub_account/ip_restriction' => 10,
-                            'asset/main_sub_transfer_history' => 30,
-                            'token_interest' => 60,
-                            'token_interest/{token}' => 60,
-                            'interest/history' => 60,
-                            'interest/repay' => 60,
-                            'funding_fee/history' => 30,
-                            'positions' => 3.33, // 30 requests per 10 seconds
-                            'position/{symbol}' => 3.33,
-                            'client/transaction_history' => 60,
-                            'client/futures_leverage' => 60,
+                            'client/token' => array( 'cost' => 1 ),
+                            'order/{oid}' => array( 'cost' => 1 ),
+                            'client/order/{client_order_id}' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'client/trade/{tid}' => array( 'cost' => 1 ),
+                            'order/{oid}/trades' => array( 'cost' => 1 ),
+                            'client/trades' => array( 'cost' => 1 ),
+                            'client/hist_trades' => array( 'cost' => 1 ),
+                            'staking/yield_history' => array( 'cost' => 1 ),
+                            'client/holding' => array( 'cost' => 1 ),
+                            'asset/deposit' => array( 'cost' => 10 ),
+                            'asset/history' => array( 'cost' => 60 ),
+                            'sub_account/all' => array( 'cost' => 60 ),
+                            'sub_account/assets' => array( 'cost' => 60 ),
+                            'sub_account/asset_detail' => array( 'cost' => 60 ),
+                            'sub_account/ip_restriction' => array( 'cost' => 10 ),
+                            'asset/main_sub_transfer_history' => array( 'cost' => 30 ),
+                            'token_interest' => array( 'cost' => 60 ),
+                            'token_interest/{token}' => array( 'cost' => 60 ),
+                            'interest/history' => array( 'cost' => 60 ),
+                            'interest/repay' => array( 'cost' => 60 ),
+                            'funding_fee/history' => array( 'cost' => 30 ),
+                            'positions' => array( 'cost' => 3.33 ), // 30 requests per 10 seconds
+                            'position/{symbol}' => array( 'cost' => 3.33 ),
+                            'client/transaction_history' => array( 'cost' => 60 ),
+                            'client/futures_leverage' => array( 'cost' => 60 ),
                         ),
                         'post' => array(
-                            'order' => 1, // 10 requests per 1 second per symbol
-                            'order/cancel_all_after' => 1,
-                            'asset/ltv' => 30,
-                            'asset/internal_withdraw' => 30,
-                            'interest/repay' => 60,
-                            'client/account_mode' => 120,
-                            'client/position_mode' => 5,
-                            'client/leverage' => 120,
-                            'client/futures_leverage' => 30,
-                            'client/isolated_margin' => 30,
+                            'order' => array( 'cost' => 1 ), // 10 requests per 1 second per symbol
+                            'order/cancel_all_after' => array( 'cost' => 1 ),
+                            'asset/ltv' => array( 'cost' => 30 ),
+                            'asset/internal_withdraw' => array( 'cost' => 30 ),
+                            'interest/repay' => array( 'cost' => 60 ),
+                            'client/account_mode' => array( 'cost' => 120 ),
+                            'client/position_mode' => array( 'cost' => 5 ),
+                            'client/leverage' => array( 'cost' => 120 ),
+                            'client/futures_leverage' => array( 'cost' => 30 ),
+                            'client/isolated_margin' => array( 'cost' => 30 ),
                         ),
                         'delete' => array(
-                            'order' => 1,
-                            'client/order' => 1,
-                            'orders' => 1,
-                            'asset/withdraw' => 120,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
+                            'order' => array( 'cost' => 1 ),
+                            'client/order' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'asset/withdraw' => array( 'cost' => 120 ),  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         ),
                     ),
                 ),
                 'v2' => array(
                     'private' => array(
                         'get' => array(
-                            'client/holding' => 1,
+                            'client/holding' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'v3' => array(
                     'public' => array(
                         'get' => array(
-                            'systemInfo' => 1, // 10/1s
-                            'instruments' => 1, // 10/1s
-                            'token' => 1, // 10/1s
-                            'tokenNetwork' => 1, // 10/1s
-                            'tokenInfo' => 1, // 10/1s
-                            'marketTrades' => 1, // 10/1s
-                            'marketTradesHistory' => 1, // 10/1s
-                            'orderbook' => 1, // 10/1s
-                            'kline' => 1, // 10/1s
-                            'klineHistory' => 1, // 10/1s
-                            'futures' => 1, // 10/1s
-                            'fundingRate' => 1, // 10/1s
-                            'fundingRateHistory' => 1, // 10/1s
-                            'insuranceFund' => 1, // 10/1s
+                            'systemInfo' => array( 'cost' => 1 ), // 10/1s
+                            'instruments' => array( 'cost' => 1 ), // 10/1s
+                            'token' => array( 'cost' => 1 ), // 10/1s
+                            'tokenNetwork' => array( 'cost' => 1 ), // 10/1s
+                            'tokenInfo' => array( 'cost' => 1 ), // 10/1s
+                            'marketTrades' => array( 'cost' => 1 ), // 10/1s
+                            'marketTradesHistory' => array( 'cost' => 1 ), // 10/1s
+                            'orderbook' => array( 'cost' => 1 ), // 10/1s
+                            'kline' => array( 'cost' => 1 ), // 10/1s
+                            'klineHistory' => array( 'cost' => 1 ), // 10/1s
+                            'futures' => array( 'cost' => 1 ), // 10/1s
+                            'fundingRate' => array( 'cost' => 1 ), // 10/1s
+                            'fundingRateHistory' => array( 'cost' => 1 ), // 10/1s
+                            'insuranceFund' => array( 'cost' => 1 ), // 10/1s
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'trade/order' => 2, // 5/1s
-                            'trade/orders' => 1, // 10/1s
-                            'trade/algoOrder' => 1, // 10/1s
-                            'trade/algoOrders' => 1, // 10/1s
-                            'trade/transaction' => 1, // 10/1s
-                            'trade/transactionHistory' => 5, // 2/1s
-                            'trade/tradingFee' => 5, // 2/1s
-                            'account/info' => 60, // 10/60s
-                            'account/tokenConfig' => 1, // 10/1s
-                            'account/symbolConfig' => 1, // 10/1s
-                            'account/subAccounts/all' => 60, // 10/60s
-                            'account/referral/summary' => 60, // 10/60s
-                            'account/referral/rewardHistory' => 60, // 10/60s
-                            'account/credentials' => 60, // 10/60s
-                            'asset/balances' => 1, // 10/1s
-                            'asset/token/history' => 60, // 10/60s
-                            'asset/transfer/history' => 30, // 20/60s
-                            'asset/wallet/history' => 60, // 10/60s
-                            'asset/wallet/deposit' => 60, // 10/60s
-                            'asset/staking/yieldHistory' => 60, // 10/60s
-                            'futures/positions' => 3.33, // 30/10s
-                            'futures/leverage' => 60, // 10/60s
-                            'futures/defaultMarginMode' => 60, // 10/60s
-                            'futures/fundingFee/history' => 30, // 20/60s
-                            'spotMargin/interestRate' => 60, // 10/60s
-                            'spotMargin/interestHistory' => 60, // 10/60s
-                            'spotMargin/maxMargin' => 60, // 10/60s
-                            'algo/order/{oid}' => 1,
-                            'algo/orders' => 1,
-                            'positions' => 3.33,
-                            'buypower' => 1,
-                            'convert/exchangeInfo' => 1,
-                            'convert/assetInfo' => 1,
-                            'convert/rfq' => 60,
-                            'convert/trade' => 1,
-                            'convert/trades' => 1,
+                            'trade/order' => array( 'cost' => 2 ), // 5/1s
+                            'trade/orders' => array( 'cost' => 1 ), // 10/1s
+                            'trade/algoOrder' => array( 'cost' => 1 ), // 10/1s
+                            'trade/algoOrders' => array( 'cost' => 1 ), // 10/1s
+                            'trade/transaction' => array( 'cost' => 1 ), // 10/1s
+                            'trade/transactionHistory' => array( 'cost' => 5 ), // 2/1s
+                            'trade/tradingFee' => array( 'cost' => 5 ), // 2/1s
+                            'account/info' => array( 'cost' => 60 ), // 10/60s
+                            'account/tokenConfig' => array( 'cost' => 1 ), // 10/1s
+                            'account/symbolConfig' => array( 'cost' => 1 ), // 10/1s
+                            'account/subAccounts/all' => array( 'cost' => 60 ), // 10/60s
+                            'account/referral/summary' => array( 'cost' => 60 ), // 10/60s
+                            'account/referral/rewardHistory' => array( 'cost' => 60 ), // 10/60s
+                            'account/credentials' => array( 'cost' => 60 ), // 10/60s
+                            'asset/balances' => array( 'cost' => 1 ), // 10/1s
+                            'asset/token/history' => array( 'cost' => 60 ), // 10/60s
+                            'asset/transfer/history' => array( 'cost' => 30 ), // 20/60s
+                            'asset/wallet/history' => array( 'cost' => 60 ), // 10/60s
+                            'asset/wallet/deposit' => array( 'cost' => 60 ), // 10/60s
+                            'asset/staking/yieldHistory' => array( 'cost' => 60 ), // 10/60s
+                            'futures/positions' => array( 'cost' => 3.33 ), // 30/10s
+                            'futures/leverage' => array( 'cost' => 60 ), // 10/60s
+                            'futures/defaultMarginMode' => array( 'cost' => 60 ), // 10/60s
+                            'futures/fundingFee/history' => array( 'cost' => 30 ), // 20/60s
+                            'spotMargin/interestRate' => array( 'cost' => 60 ), // 10/60s
+                            'spotMargin/interestHistory' => array( 'cost' => 60 ), // 10/60s
+                            'spotMargin/maxMargin' => array( 'cost' => 60 ), // 10/60s
+                            'algo/order/{oid}' => array( 'cost' => 1 ),
+                            'algo/orders' => array( 'cost' => 1 ),
+                            'positions' => array( 'cost' => 3.33 ),
+                            'buypower' => array( 'cost' => 1 ),
+                            'convert/exchangeInfo' => array( 'cost' => 1 ),
+                            'convert/assetInfo' => array( 'cost' => 1 ),
+                            'convert/rfq' => array( 'cost' => 60 ),
+                            'convert/trade' => array( 'cost' => 1 ),
+                            'convert/trades' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'trade/order' => 2, // 5/1s
-                            'trade/algoOrder' => 5, // 2/1s
-                            'trade/cancelAllAfter' => 1, // 10/1s
-                            'account/tradingMode' => 120, // 5/60s
-                            'account/listenKey' => 20, // 5/10s
-                            'asset/transfer' => 30, // 20/60s
-                            'asset/wallet/withdraw' => 60, // 10/60s
-                            'spotMargin/leverage' => 120, // 5/60s
-                            'spotMargin/interestRepay' => 60, // 10/60s
-                            'algo/order' => 5,
-                            'convert/rft' => 60,
+                            'trade/order' => array( 'cost' => 2 ), // 5/1s
+                            'trade/algoOrder' => array( 'cost' => 5 ), // 2/1s
+                            'trade/cancelAllAfter' => array( 'cost' => 1 ), // 10/1s
+                            'account/tradingMode' => array( 'cost' => 120 ), // 5/60s
+                            'account/listenKey' => array( 'cost' => 20 ), // 5/10s
+                            'asset/transfer' => array( 'cost' => 30 ), // 20/60s
+                            'asset/wallet/withdraw' => array( 'cost' => 60 ), // 10/60s
+                            'spotMargin/leverage' => array( 'cost' => 120 ), // 5/60s
+                            'spotMargin/interestRepay' => array( 'cost' => 60 ), // 10/60s
+                            'algo/order' => array( 'cost' => 5 ),
+                            'convert/rft' => array( 'cost' => 60 ),
                         ),
                         'put' => array(
-                            'trade/order' => 2, // 5/1s
-                            'trade/algoOrder' => 2, // 5/1s
-                            'futures/leverage' => 60, // 10/60s
-                            'futures/positionMode' => 120, // 5/60s
-                            'order/{oid}' => 2,
-                            'order/client/{client_order_id}' => 2,
-                            'algo/order/{oid}' => 2,
-                            'algo/order/client/{client_order_id}' => 2,
+                            'trade/order' => array( 'cost' => 2 ), // 5/1s
+                            'trade/algoOrder' => array( 'cost' => 2 ), // 5/1s
+                            'futures/leverage' => array( 'cost' => 60 ), // 10/60s
+                            'futures/positionMode' => array( 'cost' => 120 ), // 5/60s
+                            'order/{oid}' => array( 'cost' => 2 ),
+                            'order/client/{client_order_id}' => array( 'cost' => 2 ),
+                            'algo/order/{oid}' => array( 'cost' => 2 ),
+                            'algo/order/client/{client_order_id}' => array( 'cost' => 2 ),
                         ),
                         'delete' => array(
-                            'trade/order' => 1, // 10/1s
-                            'trade/orders' => 1, // 10/1s
-                            'trade/algoOrder' => 1, // 10/1s
-                            'trade/algoOrders' => 1, // 10/1s
-                            'trade/allOrders' => 1, // 10/1s
-                            'algo/order/{order_id}' => 1,
-                            'algo/orders/pending' => 1,
-                            'algo/orders/pending/{symbol}' => 1,
-                            'orders/pending' => 1,
+                            'trade/order' => array( 'cost' => 1 ), // 10/1s
+                            'trade/orders' => array( 'cost' => 1 ), // 10/1s
+                            'trade/algoOrder' => array( 'cost' => 1 ), // 10/1s
+                            'trade/algoOrders' => array( 'cost' => 1 ), // 10/1s
+                            'trade/allOrders' => array( 'cost' => 1 ), // 10/1s
+                            'algo/order/{order_id}' => array( 'cost' => 1 ),
+                            'algo/orders/pending' => array( 'cost' => 1 ),
+                            'algo/orders/pending/{symbol}' => array( 'cost' => 1 ),
+                            'orders/pending' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),

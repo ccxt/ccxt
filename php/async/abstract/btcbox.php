@@ -8,69 +8,69 @@ namespace ccxt\async\abstract;
 
 abstract class btcbox extends \ccxt\async\Exchange {
     public function public_get_depth($params = array()) {
-        return $this->request('depth', 'public', 'GET', $params, null, null, array());
+        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_orders($params = array()) {
-        return $this->request('orders', 'public', 'GET', $params, null, null, array());
+        return $this->request('orders', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_ticker($params = array()) {
-        return $this->request('ticker', 'public', 'GET', $params, null, null, array());
+        return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_tickers($params = array()) {
-        return $this->request('tickers', 'public', 'GET', $params, null, null, array());
+        return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_post_balance($params = array()) {
-        return $this->request('balance', 'private', 'POST', $params, null, null, array());
+        return $this->request('balance', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_trade_add($params = array()) {
-        return $this->request('trade_add', 'private', 'POST', $params, null, null, array());
+        return $this->request('trade_add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_trade_cancel($params = array()) {
-        return $this->request('trade_cancel', 'private', 'POST', $params, null, null, array());
+        return $this->request('trade_cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_trade_list($params = array()) {
-        return $this->request('trade_list', 'private', 'POST', $params, null, null, array());
+        return $this->request('trade_list', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_trade_view($params = array()) {
-        return $this->request('trade_view', 'private', 'POST', $params, null, null, array());
+        return $this->request('trade_view', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_wallet($params = array()) {
-        return $this->request('wallet', 'private', 'POST', $params, null, null, array());
+        return $this->request('wallet', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function webapi_get_ajax_coin_coininfo($params = array()) {
-        return $this->request('ajax/coin/coinInfo', 'webApi', 'GET', $params, null, null, array());
+        return $this->request('ajax/coin/coinInfo', 'webApi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetDepth($params = array()) {
-        return $this->request('depth', 'public', 'GET', $params, null, null, array());
+        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetOrders($params = array()) {
-        return $this->request('orders', 'public', 'GET', $params, null, null, array());
+        return $this->request('orders', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetTicker($params = array()) {
-        return $this->request('ticker', 'public', 'GET', $params, null, null, array());
+        return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetTickers($params = array()) {
-        return $this->request('tickers', 'public', 'GET', $params, null, null, array());
+        return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostBalance($params = array()) {
-        return $this->request('balance', 'private', 'POST', $params, null, null, array());
+        return $this->request('balance', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradeAdd($params = array()) {
-        return $this->request('trade_add', 'private', 'POST', $params, null, null, array());
+        return $this->request('trade_add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradeCancel($params = array()) {
-        return $this->request('trade_cancel', 'private', 'POST', $params, null, null, array());
+        return $this->request('trade_cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradeList($params = array()) {
-        return $this->request('trade_list', 'private', 'POST', $params, null, null, array());
+        return $this->request('trade_list', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradeView($params = array()) {
-        return $this->request('trade_view', 'private', 'POST', $params, null, null, array());
+        return $this->request('trade_view', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostWallet($params = array()) {
-        return $this->request('wallet', 'private', 'POST', $params, null, null, array());
+        return $this->request('wallet', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function webApiGetAjaxCoinCoinInfo($params = array()) {
-        return $this->request('ajax/coin/coinInfo', 'webApi', 'GET', $params, null, null, array());
+        return $this->request('ajax/coin/coinInfo', 'webApi', 'GET', $params, null, null, array("cost" => 1));
     }
 }

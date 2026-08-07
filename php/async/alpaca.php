@@ -163,94 +163,94 @@ class alpaca extends Exchange {
                 'trader' => array(
                     'private' => array(
                         'get' => array(
-                            'v2/account',
-                            'v2/orders',
-                            'v2/orders/{order_id}',
-                            'v2/positions',
-                            'v2/positions/{symbol_or_asset_id}',
-                            'v2/account/portfolio/history',
-                            'v2/watchlists',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/account/configurations',
-                            'v2/account/activities',
-                            'v2/account/activities/{activity_type}',
-                            'v2/calendar',
-                            'v2/clock',
-                            'v2/assets',
-                            'v2/assets/{symbol_or_asset_id}',
-                            'v2/corporate_actions/announcements/{id}',
-                            'v2/corporate_actions/announcements',
-                            'v2/wallets',
-                            'v2/wallets/transfers',
+                            'v2/account' => array( 'cost' => 1 ),
+                            'v2/orders' => array( 'cost' => 1 ),
+                            'v2/orders/{order_id}' => array( 'cost' => 1 ),
+                            'v2/positions' => array( 'cost' => 1 ),
+                            'v2/positions/{symbol_or_asset_id}' => array( 'cost' => 1 ),
+                            'v2/account/portfolio/history' => array( 'cost' => 1 ),
+                            'v2/watchlists' => array( 'cost' => 1 ),
+                            'v2/watchlists/{watchlist_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists:by_name' => array( 'cost' => 1 ),
+                            'v2/account/configurations' => array( 'cost' => 1 ),
+                            'v2/account/activities' => array( 'cost' => 1 ),
+                            'v2/account/activities/{activity_type}' => array( 'cost' => 1 ),
+                            'v2/calendar' => array( 'cost' => 1 ),
+                            'v2/clock' => array( 'cost' => 1 ),
+                            'v2/assets' => array( 'cost' => 1 ),
+                            'v2/assets/{symbol_or_asset_id}' => array( 'cost' => 1 ),
+                            'v2/corporate_actions/announcements/{id}' => array( 'cost' => 1 ),
+                            'v2/corporate_actions/announcements' => array( 'cost' => 1 ),
+                            'v2/wallets' => array( 'cost' => 1 ),
+                            'v2/wallets/transfers' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'v2/orders',
-                            'v2/watchlists',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/wallets/transfers',
+                            'v2/orders' => array( 'cost' => 1 ),
+                            'v2/watchlists' => array( 'cost' => 1 ),
+                            'v2/watchlists/{watchlist_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists:by_name' => array( 'cost' => 1 ),
+                            'v2/wallets/transfers' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
-                            'v2/orders/{order_id}',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
+                            'v2/orders/{order_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists/{watchlist_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists:by_name' => array( 'cost' => 1 ),
                         ),
                         'patch' => array(
-                            'v2/orders/{order_id}',
-                            'v2/account/configurations',
+                            'v2/orders/{order_id}' => array( 'cost' => 1 ),
+                            'v2/account/configurations' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'v2/orders',
-                            'v2/orders/{order_id}',
-                            'v2/positions',
-                            'v2/positions/{symbol_or_asset_id}',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/watchlists/{watchlist_id}/{symbol}',
+                            'v2/orders' => array( 'cost' => 1 ),
+                            'v2/orders/{order_id}' => array( 'cost' => 1 ),
+                            'v2/positions' => array( 'cost' => 1 ),
+                            'v2/positions/{symbol_or_asset_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists/{watchlist_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists:by_name' => array( 'cost' => 1 ),
+                            'v2/watchlists/{watchlist_id}/{symbol}' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'market' => array(
                     'public' => array(
                         'get' => array(
-                            'v1beta3/crypto/{loc}/bars',
-                            'v1beta3/crypto/{loc}/latest/bars',
-                            'v1beta3/crypto/{loc}/latest/orderbooks',
-                            'v1beta3/crypto/{loc}/latest/quotes',
-                            'v1beta3/crypto/{loc}/latest/trades',
-                            'v1beta3/crypto/{loc}/quotes',
-                            'v1beta3/crypto/{loc}/snapshots',
-                            'v1beta3/crypto/{loc}/trades',
+                            'v1beta3/crypto/{loc}/bars' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/latest/bars' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/latest/orderbooks' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/latest/quotes' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/latest/trades' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/quotes' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/snapshots' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/trades' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'v1beta1/corporate-actions',
-                            'v1beta1/forex/latest/rates',
-                            'v1beta1/forex/rates',
-                            'v1beta1/logos/{symbol}',
-                            'v1beta1/news',
-                            'v1beta1/screener/stocks/most-actives',
-                            'v1beta1/screener/{market_type}/movers',
-                            'v2/stocks/auctions',
-                            'v2/stocks/bars',
-                            'v2/stocks/bars/latest',
-                            'v2/stocks/meta/conditions/{ticktype}',
-                            'v2/stocks/meta/exchanges',
-                            'v2/stocks/quotes',
-                            'v2/stocks/quotes/latest',
-                            'v2/stocks/snapshots',
-                            'v2/stocks/trades',
-                            'v2/stocks/trades/latest',
-                            'v2/stocks/{symbol}/auctions',
-                            'v2/stocks/{symbol}/bars',
-                            'v2/stocks/{symbol}/bars/latest',
-                            'v2/stocks/{symbol}/quotes',
-                            'v2/stocks/{symbol}/quotes/latest',
-                            'v2/stocks/{symbol}/snapshot',
-                            'v2/stocks/{symbol}/trades',
-                            'v2/stocks/{symbol}/trades/latest',
+                            'v1beta1/corporate-actions' => array( 'cost' => 1 ),
+                            'v1beta1/forex/latest/rates' => array( 'cost' => 1 ),
+                            'v1beta1/forex/rates' => array( 'cost' => 1 ),
+                            'v1beta1/logos/{symbol}' => array( 'cost' => 1 ),
+                            'v1beta1/news' => array( 'cost' => 1 ),
+                            'v1beta1/screener/stocks/most-actives' => array( 'cost' => 1 ),
+                            'v1beta1/screener/{market_type}/movers' => array( 'cost' => 1 ),
+                            'v2/stocks/auctions' => array( 'cost' => 1 ),
+                            'v2/stocks/bars' => array( 'cost' => 1 ),
+                            'v2/stocks/bars/latest' => array( 'cost' => 1 ),
+                            'v2/stocks/meta/conditions/{ticktype}' => array( 'cost' => 1 ),
+                            'v2/stocks/meta/exchanges' => array( 'cost' => 1 ),
+                            'v2/stocks/quotes' => array( 'cost' => 1 ),
+                            'v2/stocks/quotes/latest' => array( 'cost' => 1 ),
+                            'v2/stocks/snapshots' => array( 'cost' => 1 ),
+                            'v2/stocks/trades' => array( 'cost' => 1 ),
+                            'v2/stocks/trades/latest' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/auctions' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/bars' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/bars/latest' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/quotes' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/quotes/latest' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/snapshot' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/trades' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/trades/latest' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -668,8 +668,8 @@ class alpaca extends Exchange {
                 //    }
                 //
                 $trades = $this->safe_dict($response, 'trades', array());
-                $symbolTrades = $this->safe_dict($trades, $marketId, array());
-                $symbolTrades = array( $symbolTrades );
+                $symbolTrade = $this->safe_dict($trades, $marketId, array());
+                $symbolTrades = array( $symbolTrade );
             } else {
                 throw new NotSupported($this->id . ' fetchTrades() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
             }
@@ -838,8 +838,8 @@ class alpaca extends Exchange {
                 //     }
                 //
                 $bars = $this->safe_dict($response, 'bars', array());
-                $ohlcvs = $this->safe_dict($bars, $marketId, array());
-                $ohlcvs = array( $ohlcvs );
+                $bar = $this->safe_dict($bars, $marketId, array());
+                $ohlcvs = array( $bar );
             } else {
                 throw new NotSupported($this->id . ' fetchOHLCV() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
             }
@@ -1781,7 +1781,7 @@ class alpaca extends Exchange {
             $sandboxMode = $this->isSandboxModeEnabled || $this->safe_bool($this->options, 'sandboxMode', false);
             if ($sandboxMode) {
                 // paper-trading hosts do not serve the crypto wallets api at all, so route
-                // through the account $activities ledger instead, $filtered to transfer-like
+                // through the account $activities $ledger instead, $filtered to transfer-like
                 // entries, see https://github.com/ccxt/ccxt/issues/24847
                 $request = array(
                     'activity_types' => 'CSD,CSW,TRANS',
@@ -1799,8 +1799,12 @@ class alpaca extends Exchange {
                 //     )
                 //
                 $filtered = array();
-                for ($i = 0; $i < count($activities); $i++) {
-                    $entry = $activities[$i];
+                $ledger = array();
+                if ((gettype($activities) === 'array' && array_keys($activities) === array_keys(array_keys($activities)))) {
+                    $ledger = $activities;
+                }
+                for ($i = 0; $i < count($ledger); $i++) {
+                    $entry = $ledger[$i];
                     $activityType = $this->safe_string($entry, 'activity_type');
                     $amount = $this->safe_string($entry, 'net_amount');
                     $isIncoming = ($activityType === 'CSD') || (($activityType === 'TRANS') && !Precise::string_lt($amount, '0'));
@@ -1830,8 +1834,12 @@ class alpaca extends Exchange {
             //     }
             //
             $results = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
+            $transfers = array();
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+                $transfers = $response;
+            }
+            for ($i = 0; $i < count($transfers); $i++) {
+                $entry = $transfers[$i];
                 $direction = $this->safe_string($entry, 'direction');
                 if ($direction === $type) {
                     $results[] = $entry;
