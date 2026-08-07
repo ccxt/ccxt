@@ -37,6 +37,44 @@ let shouldTranspileTests = true;
 
 let gofmtMissingWarned = false;
 
+// ast-transpiler emits every async method core as an unbuffered result channel:
+//
+//     ch := make(chan any)
+//     go func() any {
+//         defer close(ch)
+//         defer ReturnPanicError(ch)
+//         ...
+//         ch <- value
+//     }()
+//     return ch
+//
+// The channel carries exactly one value (a resolved promise) and is closed right
+// after, so an unbuffered channel only forces the producing goroutine to block on
+// `ch <-` until somebody receives. Giving it capacity 1 lets the goroutine deposit
+// the value and finish without a rendezvous, which is strictly safer:
+//   - the generated wrappers receive immediately (`res := <-this.Core.FetchX(...)`),
+//     so behavior for existing consumers is unchanged;
+//   - a caller that abandons the channel (early return, select with a timeout,
+//     cancelled errgroup) no longer leaks a goroutine parked forever on the send;
+//   - it is the precondition for inlining the body instead of nesting a goroutine,
+//     because a fill-before-return core cannot self-deadlock with capacity 1.
+// Applied at write time so it covers every Go emitter path (exchange cores, base
+// methods, pro/, prediction/, transpiled base tests) without touching ast-transpiler.
+const GO_ASYNC_CORE_CHANNEL = new RegExp (
+    // 1: `ch := make(chan <type>` with a single type argument (no capacity yet)
+    '(\\bch\\s*:=\\s*make\\(chan\\s+[^(),\\n]+?)\\s*\\)'
+    // 2: the goroutine header that identifies the async core pattern; the
+    //    ReturnPanicError helper may be package-qualified (prediction/ -> ccxt.)
+    + '(\\s*\\n\\s*go func\\(\\)[^\\n]*\\{'
+    + '\\s*\\n\\s*defer close\\(ch\\)'
+    + '\\s*\\n\\s*defer (?:[A-Za-z_][A-Za-z0-9_.]*\\.)?ReturnPanicError\\(ch\\))',
+    'g'
+);
+
+function bufferAsyncCoreChannels (content: string): string {
+    return content.replace (GO_ASYNC_CORE_CHANNEL, '$1, 1)$2');
+}
+
 // gofmt indents with tabs while the transpiler emits 4-space indentation, so
 // we run the generated code through gofmt at write time: the emitted .go files
 // already have tabs and running gofmt over the tree afterwards does nothing
@@ -44,6 +82,7 @@ function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
+    content = bufferAsyncCoreChannels (content);
     const gofmt = spawnSync ('gofmt', [], {
         'input': content,
         'encoding': 'utf8',
@@ -2163,7 +2202,9 @@ ${constStatements.join('\n')}
                 '',
             ].join('\n');
             const file = fileHeader + '\n' + structDef + methods + shims + "\n";
-            fs.writeFileSync (goPredictionBase, file);
+            // this is the one generated .go write that does not go through
+            // overwriteFileAndFolder()/formatGoSource(), so buffer its async cores here
+            fs.writeFileSync (goPredictionBase, bufferAsyncCoreChannels (file));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
