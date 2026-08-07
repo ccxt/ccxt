@@ -173,91 +173,249 @@ func (this *BlofinCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"market/instruments":          1,
-					"market/tickers":              1,
-					"market/books":                1,
-					"market/trades":               1,
-					"market/mark-price":           1,
-					"market/funding-rate":         1,
-					"market/funding-rate-history": 1,
-					"market/candles":              1,
-					"market/index-candles":        1,
-					"market/mark-price-candles":   1,
-					"market/position-tiers":       1,
+					"market/instruments": map[string]any{
+						"cost": 1,
+					},
+					"market/tickers": map[string]any{
+						"cost": 1,
+					},
+					"market/books": map[string]any{
+						"cost": 1,
+					},
+					"market/trades": map[string]any{
+						"cost": 1,
+					},
+					"market/mark-price": map[string]any{
+						"cost": 1,
+					},
+					"market/funding-rate": map[string]any{
+						"cost": 1,
+					},
+					"market/funding-rate-history": map[string]any{
+						"cost": 1,
+					},
+					"market/candles": map[string]any{
+						"cost": 1,
+					},
+					"market/index-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/mark-price-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/position-tiers": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"asset/balances":                                 1,
-					"asset/bills":                                    1,
-					"asset/withdrawal-history":                       1,
-					"asset/deposit-history":                          1,
-					"account/config":                                 1,
-					"asset/currencies":                               1,
-					"account/balance":                                1,
-					"account/positions":                              1,
-					"account/positions-history":                      1,
-					"account/margin-mode":                            1,
-					"account/position-mode":                          1,
-					"account/leverage-info":                          1,
-					"account/batch-leverage-info":                    1,
-					"trade/orders-pending":                           1,
-					"trade/order-detail":                             1,
-					"trade/orders-tpsl-pending":                      1,
-					"trade/order-tpsl-detail":                        1,
-					"trade/orders-algo-pending":                      1,
-					"trade/orders-history":                           1,
-					"trade/orders-tpsl-history":                      1,
-					"trade/orders-algo-history":                      1,
-					"trade/fills-history":                            1,
-					"trade/order/price-range":                        1,
-					"affiliate/basic":                                1,
-					"affiliate/referral-code":                        1,
-					"affiliate/invitees":                             1,
-					"affiliate/sub-invitees":                         1,
-					"affiliate/sub-affiliates":                       1,
-					"affiliate/invitees/daily/info":                  1,
-					"copytrading/instruments":                        1,
-					"copytrading/config":                             1,
-					"copytrading/account/balance":                    1,
-					"copytrading/account/positions-by-order":         1,
-					"copytrading/account/positions-details-by-order": 1,
-					"copytrading/account/positions-by-contract":      1,
-					"copytrading/account/position-mode":              1,
-					"copytrading/account/leverage-info":              1,
-					"copytrading/trade/orders-pending":               1,
-					"copytrading/trade/pending-tpsl-by-contract":     1,
-					"copytrading/trade/position-history-by-order":    1,
-					"copytrading/trade/orders-history":               1,
-					"copytrading/trade/pending-tpsl-by-order":        1,
-					"user/query-apikey":                              1,
-					"spot/trade/fills-history":                       1,
+					"asset/balances": map[string]any{
+						"cost": 1,
+					},
+					"asset/bills": map[string]any{
+						"cost": 1,
+					},
+					"asset/withdrawal-history": map[string]any{
+						"cost": 1,
+					},
+					"asset/deposit-history": map[string]any{
+						"cost": 1,
+					},
+					"account/config": map[string]any{
+						"cost": 1,
+					},
+					"asset/currencies": map[string]any{
+						"cost": 1,
+					},
+					"account/balance": map[string]any{
+						"cost": 1,
+					},
+					"account/positions": map[string]any{
+						"cost": 1,
+					},
+					"account/positions-history": map[string]any{
+						"cost": 1,
+					},
+					"account/margin-mode": map[string]any{
+						"cost": 1,
+					},
+					"account/position-mode": map[string]any{
+						"cost": 1,
+					},
+					"account/leverage-info": map[string]any{
+						"cost": 1,
+					},
+					"account/batch-leverage-info": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders-pending": map[string]any{
+						"cost": 1,
+					},
+					"trade/order-detail": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders-tpsl-pending": map[string]any{
+						"cost": 1,
+					},
+					"trade/order-tpsl-detail": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders-algo-pending": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders-history": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders-tpsl-history": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders-algo-history": map[string]any{
+						"cost": 1,
+					},
+					"trade/fills-history": map[string]any{
+						"cost": 1,
+					},
+					"trade/order/price-range": map[string]any{
+						"cost": 1,
+					},
+					"affiliate/basic": map[string]any{
+						"cost": 1,
+					},
+					"affiliate/referral-code": map[string]any{
+						"cost": 1,
+					},
+					"affiliate/invitees": map[string]any{
+						"cost": 1,
+					},
+					"affiliate/sub-invitees": map[string]any{
+						"cost": 1,
+					},
+					"affiliate/sub-affiliates": map[string]any{
+						"cost": 1,
+					},
+					"affiliate/invitees/daily/info": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/instruments": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/config": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/account/balance": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/account/positions-by-order": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/account/positions-details-by-order": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/account/positions-by-contract": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/account/position-mode": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/account/leverage-info": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/orders-pending": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/pending-tpsl-by-contract": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/position-history-by-order": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/orders-history": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/pending-tpsl-by-order": map[string]any{
+						"cost": 1,
+					},
+					"user/query-apikey": map[string]any{
+						"cost": 1,
+					},
+					"spot/trade/fills-history": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"asset/transfer":                               1,
-					"asset/demo-apply-money":                       1,
-					"account/set-margin-mode":                      1,
-					"account/set-position-mode":                    1,
-					"account/set-leverage":                         1,
-					"trade/order":                                  1,
-					"trade/batch-orders":                           1,
-					"trade/order-tpsl":                             1,
-					"trade/order-algo":                             1,
-					"trade/cancel-order":                           1,
-					"trade/cancel-batch-orders":                    1,
-					"trade/cancel-tpsl":                            1,
-					"trade/cancel-algo":                            1,
-					"trade/close-position":                         1,
-					"copytrading/account/set-position-mode":        1,
-					"copytrading/account/set-leverage":             1,
-					"copytrading/trade/place-order":                1,
-					"copytrading/trade/cancel-order":               1,
-					"copytrading/trade/place-tpsl-by-contract":     1,
-					"copytrading/trade/cancel-tpsl-by-contract":    1,
-					"copytrading/trade/place-tpsl-by-order":        1,
-					"copytrading/trade/cancel-tpsl-by-order":       1,
-					"copytrading/trade/close-position-by-order":    1,
-					"copytrading/trade/close-position-by-contract": 1,
+					"asset/transfer": map[string]any{
+						"cost": 1,
+					},
+					"asset/demo-apply-money": map[string]any{
+						"cost": 1,
+					},
+					"account/set-margin-mode": map[string]any{
+						"cost": 1,
+					},
+					"account/set-position-mode": map[string]any{
+						"cost": 1,
+					},
+					"account/set-leverage": map[string]any{
+						"cost": 1,
+					},
+					"trade/order": map[string]any{
+						"cost": 1,
+					},
+					"trade/batch-orders": map[string]any{
+						"cost": 1,
+					},
+					"trade/order-tpsl": map[string]any{
+						"cost": 1,
+					},
+					"trade/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"trade/cancel-order": map[string]any{
+						"cost": 1,
+					},
+					"trade/cancel-batch-orders": map[string]any{
+						"cost": 1,
+					},
+					"trade/cancel-tpsl": map[string]any{
+						"cost": 1,
+					},
+					"trade/cancel-algo": map[string]any{
+						"cost": 1,
+					},
+					"trade/close-position": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/account/set-position-mode": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/account/set-leverage": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/place-order": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/cancel-order": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/place-tpsl-by-contract": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/cancel-tpsl-by-contract": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/place-tpsl-by-order": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/cancel-tpsl-by-order": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/close-position-by-order": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/trade/close-position-by-contract": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -3376,7 +3534,7 @@ func (this *BlofinCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		//
 		var data any = this.SafeDict(response, "data", map[string]any{})
 
-		ch <- this.ParseMarginMode(data, market) // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
+		ch <- this.ParseMarginMode(data, market) // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
 		return nil
 
 	}()

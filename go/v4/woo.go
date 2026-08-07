@@ -154,174 +154,442 @@ func (this *WooCore) Describe() any {
 			"v1": map[string]any{
 				"pub": map[string]any{
 					"get": map[string]any{
-						"hist/kline":  10,
-						"hist/trades": 10,
+						"hist/kline": map[string]any{
+							"cost": 10,
+						},
+						"hist/trades": map[string]any{
+							"cost": 10,
+						},
 					},
 				},
 				"public": map[string]any{
 					"get": map[string]any{
-						"info":                  1,
-						"info/{symbol}":         1,
-						"system_info":           1,
-						"market_trades":         1,
-						"token":                 1,
-						"token_network":         1,
-						"funding_rates":         1,
-						"funding_rate/{symbol}": 1,
-						"funding_rate_history":  1,
-						"futures":               1,
-						"futures/{symbol}":      1,
-						"orderbook/{symbol}":    1,
-						"kline":                 1,
+						"info": map[string]any{
+							"cost": 1,
+						},
+						"info/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"system_info": map[string]any{
+							"cost": 1,
+						},
+						"market_trades": map[string]any{
+							"cost": 1,
+						},
+						"token": map[string]any{
+							"cost": 1,
+						},
+						"token_network": map[string]any{
+							"cost": 1,
+						},
+						"funding_rates": map[string]any{
+							"cost": 1,
+						},
+						"funding_rate/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"funding_rate_history": map[string]any{
+							"cost": 1,
+						},
+						"futures": map[string]any{
+							"cost": 1,
+						},
+						"futures/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"orderbook/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"client/token":                    1,
-						"order/{oid}":                     1,
-						"client/order/{client_order_id}":  1,
-						"orders":                          1,
-						"client/trade/{tid}":              1,
-						"order/{oid}/trades":              1,
-						"client/trades":                   1,
-						"client/hist_trades":              1,
-						"staking/yield_history":           1,
-						"client/holding":                  1,
-						"asset/deposit":                   10,
-						"asset/history":                   60,
-						"sub_account/all":                 60,
-						"sub_account/assets":              60,
-						"sub_account/asset_detail":        60,
-						"sub_account/ip_restriction":      10,
-						"asset/main_sub_transfer_history": 30,
-						"token_interest":                  60,
-						"token_interest/{token}":          60,
-						"interest/history":                60,
-						"interest/repay":                  60,
-						"funding_fee/history":             30,
-						"positions":                       3.33,
-						"position/{symbol}":               3.33,
-						"client/transaction_history":      60,
-						"client/futures_leverage":         60,
+						"client/token": map[string]any{
+							"cost": 1,
+						},
+						"order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"client/trade/{tid}": map[string]any{
+							"cost": 1,
+						},
+						"order/{oid}/trades": map[string]any{
+							"cost": 1,
+						},
+						"client/trades": map[string]any{
+							"cost": 1,
+						},
+						"client/hist_trades": map[string]any{
+							"cost": 1,
+						},
+						"staking/yield_history": map[string]any{
+							"cost": 1,
+						},
+						"client/holding": map[string]any{
+							"cost": 1,
+						},
+						"asset/deposit": map[string]any{
+							"cost": 10,
+						},
+						"asset/history": map[string]any{
+							"cost": 60,
+						},
+						"sub_account/all": map[string]any{
+							"cost": 60,
+						},
+						"sub_account/assets": map[string]any{
+							"cost": 60,
+						},
+						"sub_account/asset_detail": map[string]any{
+							"cost": 60,
+						},
+						"sub_account/ip_restriction": map[string]any{
+							"cost": 10,
+						},
+						"asset/main_sub_transfer_history": map[string]any{
+							"cost": 30,
+						},
+						"token_interest": map[string]any{
+							"cost": 60,
+						},
+						"token_interest/{token}": map[string]any{
+							"cost": 60,
+						},
+						"interest/history": map[string]any{
+							"cost": 60,
+						},
+						"interest/repay": map[string]any{
+							"cost": 60,
+						},
+						"funding_fee/history": map[string]any{
+							"cost": 30,
+						},
+						"positions": map[string]any{
+							"cost": 3.33,
+						},
+						"position/{symbol}": map[string]any{
+							"cost": 3.33,
+						},
+						"client/transaction_history": map[string]any{
+							"cost": 60,
+						},
+						"client/futures_leverage": map[string]any{
+							"cost": 60,
+						},
 					},
 					"post": map[string]any{
-						"order":                   1,
-						"order/cancel_all_after":  1,
-						"asset/ltv":               30,
-						"asset/internal_withdraw": 30,
-						"interest/repay":          60,
-						"client/account_mode":     120,
-						"client/position_mode":    5,
-						"client/leverage":         120,
-						"client/futures_leverage": 30,
-						"client/isolated_margin":  30,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"order/cancel_all_after": map[string]any{
+							"cost": 1,
+						},
+						"asset/ltv": map[string]any{
+							"cost": 30,
+						},
+						"asset/internal_withdraw": map[string]any{
+							"cost": 30,
+						},
+						"interest/repay": map[string]any{
+							"cost": 60,
+						},
+						"client/account_mode": map[string]any{
+							"cost": 120,
+						},
+						"client/position_mode": map[string]any{
+							"cost": 5,
+						},
+						"client/leverage": map[string]any{
+							"cost": 120,
+						},
+						"client/futures_leverage": map[string]any{
+							"cost": 30,
+						},
+						"client/isolated_margin": map[string]any{
+							"cost": 30,
+						},
 					},
 					"delete": map[string]any{
-						"order":          1,
-						"client/order":   1,
-						"orders":         1,
-						"asset/withdraw": 120,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"client/order": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"asset/withdraw": map[string]any{
+							"cost": 120,
+						},
 					},
 				},
 			},
 			"v2": map[string]any{
 				"private": map[string]any{
 					"get": map[string]any{
-						"client/holding": 1,
+						"client/holding": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"v3": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"systemInfo":          1,
-						"instruments":         1,
-						"token":               1,
-						"tokenNetwork":        1,
-						"tokenInfo":           1,
-						"marketTrades":        1,
-						"marketTradesHistory": 1,
-						"orderbook":           1,
-						"kline":               1,
-						"klineHistory":        1,
-						"futures":             1,
-						"fundingRate":         1,
-						"fundingRateHistory":  1,
-						"insuranceFund":       1,
+						"systemInfo": map[string]any{
+							"cost": 1,
+						},
+						"instruments": map[string]any{
+							"cost": 1,
+						},
+						"token": map[string]any{
+							"cost": 1,
+						},
+						"tokenNetwork": map[string]any{
+							"cost": 1,
+						},
+						"tokenInfo": map[string]any{
+							"cost": 1,
+						},
+						"marketTrades": map[string]any{
+							"cost": 1,
+						},
+						"marketTradesHistory": map[string]any{
+							"cost": 1,
+						},
+						"orderbook": map[string]any{
+							"cost": 1,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
+						"klineHistory": map[string]any{
+							"cost": 1,
+						},
+						"futures": map[string]any{
+							"cost": 1,
+						},
+						"fundingRate": map[string]any{
+							"cost": 1,
+						},
+						"fundingRateHistory": map[string]any{
+							"cost": 1,
+						},
+						"insuranceFund": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"trade/order":                    2,
-						"trade/orders":                   1,
-						"trade/algoOrder":                1,
-						"trade/algoOrders":               1,
-						"trade/transaction":              1,
-						"trade/transactionHistory":       5,
-						"trade/tradingFee":               5,
-						"account/info":                   60,
-						"account/tokenConfig":            1,
-						"account/symbolConfig":           1,
-						"account/subAccounts/all":        60,
-						"account/referral/summary":       60,
-						"account/referral/rewardHistory": 60,
-						"account/credentials":            60,
-						"asset/balances":                 1,
-						"asset/token/history":            60,
-						"asset/transfer/history":         30,
-						"asset/wallet/history":           60,
-						"asset/wallet/deposit":           60,
-						"asset/staking/yieldHistory":     60,
-						"futures/positions":              3.33,
-						"futures/leverage":               60,
-						"futures/defaultMarginMode":      60,
-						"futures/fundingFee/history":     30,
-						"spotMargin/interestRate":        60,
-						"spotMargin/interestHistory":     60,
-						"spotMargin/maxMargin":           60,
-						"algo/order/{oid}":               1,
-						"algo/orders":                    1,
-						"positions":                      3.33,
-						"buypower":                       1,
-						"convert/exchangeInfo":           1,
-						"convert/assetInfo":              1,
-						"convert/rfq":                    60,
-						"convert/trade":                  1,
-						"convert/trades":                 1,
+						"trade/order": map[string]any{
+							"cost": 2,
+						},
+						"trade/orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/algoOrder": map[string]any{
+							"cost": 1,
+						},
+						"trade/algoOrders": map[string]any{
+							"cost": 1,
+						},
+						"trade/transaction": map[string]any{
+							"cost": 1,
+						},
+						"trade/transactionHistory": map[string]any{
+							"cost": 5,
+						},
+						"trade/tradingFee": map[string]any{
+							"cost": 5,
+						},
+						"account/info": map[string]any{
+							"cost": 60,
+						},
+						"account/tokenConfig": map[string]any{
+							"cost": 1,
+						},
+						"account/symbolConfig": map[string]any{
+							"cost": 1,
+						},
+						"account/subAccounts/all": map[string]any{
+							"cost": 60,
+						},
+						"account/referral/summary": map[string]any{
+							"cost": 60,
+						},
+						"account/referral/rewardHistory": map[string]any{
+							"cost": 60,
+						},
+						"account/credentials": map[string]any{
+							"cost": 60,
+						},
+						"asset/balances": map[string]any{
+							"cost": 1,
+						},
+						"asset/token/history": map[string]any{
+							"cost": 60,
+						},
+						"asset/transfer/history": map[string]any{
+							"cost": 30,
+						},
+						"asset/wallet/history": map[string]any{
+							"cost": 60,
+						},
+						"asset/wallet/deposit": map[string]any{
+							"cost": 60,
+						},
+						"asset/staking/yieldHistory": map[string]any{
+							"cost": 60,
+						},
+						"futures/positions": map[string]any{
+							"cost": 3.33,
+						},
+						"futures/leverage": map[string]any{
+							"cost": 60,
+						},
+						"futures/defaultMarginMode": map[string]any{
+							"cost": 60,
+						},
+						"futures/fundingFee/history": map[string]any{
+							"cost": 30,
+						},
+						"spotMargin/interestRate": map[string]any{
+							"cost": 60,
+						},
+						"spotMargin/interestHistory": map[string]any{
+							"cost": 60,
+						},
+						"spotMargin/maxMargin": map[string]any{
+							"cost": 60,
+						},
+						"algo/order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"positions": map[string]any{
+							"cost": 3.33,
+						},
+						"buypower": map[string]any{
+							"cost": 1,
+						},
+						"convert/exchangeInfo": map[string]any{
+							"cost": 1,
+						},
+						"convert/assetInfo": map[string]any{
+							"cost": 1,
+						},
+						"convert/rfq": map[string]any{
+							"cost": 60,
+						},
+						"convert/trade": map[string]any{
+							"cost": 1,
+						},
+						"convert/trades": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"trade/order":              2,
-						"trade/algoOrder":          5,
-						"trade/cancelAllAfter":     1,
-						"account/tradingMode":      120,
-						"account/listenKey":        20,
-						"asset/transfer":           30,
-						"asset/wallet/withdraw":    60,
-						"spotMargin/leverage":      120,
-						"spotMargin/interestRepay": 60,
-						"algo/order":               5,
-						"convert/rft":              60,
+						"trade/order": map[string]any{
+							"cost": 2,
+						},
+						"trade/algoOrder": map[string]any{
+							"cost": 5,
+						},
+						"trade/cancelAllAfter": map[string]any{
+							"cost": 1,
+						},
+						"account/tradingMode": map[string]any{
+							"cost": 120,
+						},
+						"account/listenKey": map[string]any{
+							"cost": 20,
+						},
+						"asset/transfer": map[string]any{
+							"cost": 30,
+						},
+						"asset/wallet/withdraw": map[string]any{
+							"cost": 60,
+						},
+						"spotMargin/leverage": map[string]any{
+							"cost": 120,
+						},
+						"spotMargin/interestRepay": map[string]any{
+							"cost": 60,
+						},
+						"algo/order": map[string]any{
+							"cost": 5,
+						},
+						"convert/rft": map[string]any{
+							"cost": 60,
+						},
 					},
 					"put": map[string]any{
-						"trade/order":                         2,
-						"trade/algoOrder":                     2,
-						"futures/leverage":                    60,
-						"futures/positionMode":                120,
-						"order/{oid}":                         2,
-						"order/client/{client_order_id}":      2,
-						"algo/order/{oid}":                    2,
-						"algo/order/client/{client_order_id}": 2,
+						"trade/order": map[string]any{
+							"cost": 2,
+						},
+						"trade/algoOrder": map[string]any{
+							"cost": 2,
+						},
+						"futures/leverage": map[string]any{
+							"cost": 60,
+						},
+						"futures/positionMode": map[string]any{
+							"cost": 120,
+						},
+						"order/{oid}": map[string]any{
+							"cost": 2,
+						},
+						"order/client/{client_order_id}": map[string]any{
+							"cost": 2,
+						},
+						"algo/order/{oid}": map[string]any{
+							"cost": 2,
+						},
+						"algo/order/client/{client_order_id}": map[string]any{
+							"cost": 2,
+						},
 					},
 					"delete": map[string]any{
-						"trade/order":                  1,
-						"trade/orders":                 1,
-						"trade/algoOrder":              1,
-						"trade/algoOrders":             1,
-						"trade/allOrders":              1,
-						"algo/order/{order_id}":        1,
-						"algo/orders/pending":          1,
-						"algo/orders/pending/{symbol}": 1,
-						"orders/pending":               1,
+						"trade/order": map[string]any{
+							"cost": 1,
+						},
+						"trade/orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/algoOrder": map[string]any{
+							"cost": 1,
+						},
+						"trade/algoOrders": map[string]any{
+							"cost": 1,
+						},
+						"trade/allOrders": map[string]any{
+							"cost": 1,
+						},
+						"algo/order/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders/pending": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders/pending/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"orders/pending": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
