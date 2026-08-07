@@ -4,6 +4,7 @@ import Exchange from '../abstract/prediction/opinion.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
+import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from '../base/errors.js';
 
@@ -21,7 +22,7 @@ export default class opinion extends Exchange {
             'countries': [ 'HK' ],
             'rateLimit': 67, // 15 requests per second per API key
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -46,6 +47,11 @@ export default class opinion extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'prediction': true,
+                'watchMyTrades': true,
+                'watchOrderBook': true,
+                'watchOrders': true,
+                'watchTicker': true,
+                'watchTrades': true,
             },
             'timeframes': {
                 // live-verified via GET /token/price-history: only 1h/1d are recognized,
@@ -57,6 +63,7 @@ export default class opinion extends Exchange {
                 'logo': '', // todo
                 'api': {
                     'opinion': 'https://openapi.opinion.trade/openapi',
+                    'ws': 'wss://ws.opinion.trade',
                 },
                 'www': 'https://opinion.trade',
                 'doc': [ 'https://docs.opinion.trade' ],
@@ -131,7 +138,14 @@ export default class opinion extends Exchange {
                     'must be the current multi-signature wallet': InvalidOrder,
                 },
             },
+            'streaming': {
+                // the venue closes idle sockets without an application-level HEARTBEAT (see ping)
+                'keepAlive': 25000,
+            },
             'options': {
+                'tradesLimit': 1000,
+                'ordersLimit': 1000,
+                'myTradesLimit': 1000,
                 'eventScopeParams': [ 'labelId' ],
                 'defaultFetchEventsLimit': 20,   // events page size for the paginated categorical listing
                 'maxFetchEventsResults': 100,    // default cap on events fetched when the caller gives no limit
@@ -1592,6 +1606,494 @@ export default class opinion extends Exchange {
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         this.apiKey = creds['apiKey'] as string;
         return creds;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#opinionWsUrl
+     * @description builds the websocket url - the venue authenticates the whole connection with the apiKey passed as a query parameter, for public and private channels alike
+     * @returns {string} the websocket url
+     */
+    opinionWsUrl (): string {
+        const hasDirectApiKey = !this.isEmptyString (this.apiKey);
+        const apiKey = (hasDirectApiKey) ? this.apiKey : this.safeString (this.options, 'apiKey');
+        if (apiKey === undefined) {
+            throw new AuthenticationError (this.id + ' websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first');
+        }
+        const wsUrl = this.safeString (this.urls['api'] as Dict, 'ws', '');
+        return wsUrl + '?apikey=' + apiKey;
+    }
+
+    ping (client: any) {
+        // the venue keeps the socket open only while application-level heartbeats arrive
+        return { 'action': 'HEARTBEAT' };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#subscribeOpinionChannel
+     * @description subscribes to one venue channel scoped by the binary marketId and waits on the given message hash
+     * @param {string} messageHash the internal hash the awaited payload resolves on
+     * @param {string} channel the venue channel name (e.g. 'market.depth.diff')
+     * @param {int} marketId the numeric binary market id
+     * @returns {any} the first resolved payload
+     */
+    async subscribeOpinionChannel (messageHash: string, channel: string, marketId: Int): Promise<any> {
+        const url = this.opinionWsUrl ();
+        const subscriptionKey = channel + ':' + this.numberToString (marketId);
+        const subscribeMsg: Dict = {
+            'action': 'SUBSCRIBE',
+            'channel': channel,
+            'marketId': marketId,
+        };
+        return await this.watch (url, messageHash, subscribeMsg, subscriptionKey);
+    }
+
+    handleMessage (client, message) {
+        // every data payload carries its channel name in msgType; frames without one -
+        // subscribe acks and heartbeat echoes - carry nothing to route
+        const msgType = this.safeString (message, 'msgType');
+        if (msgType === undefined) {
+            return;
+        }
+        if (msgType === 'market.depth.diff') {
+            this.handleOrderBook (client, message);
+        } else if (msgType === 'market.last.price') {
+            this.handleTicker (client, message);
+        } else if (msgType === 'market.last.trade') {
+            this.handleTrades (client, message);
+        } else if (msgType === 'trade.order.update') {
+            this.handleOrder (client, message);
+        } else if (msgType === 'trade.record.new') {
+            this.handleMyTrade (client, message);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#opinionOutcomeByMarketIdSide
+     * @description resolves a cached outcome object from the numeric marketId + outcomeSide (1 yes / 2 no) the user channels report instead of a tokenId - cache-only, returns undefined on a cold cache
+     * @param {int} marketId the numeric binary market id
+     * @param {int} outcomeSide 1 for the yes token, 2 for the no token
+     * @returns {object} the outcome object, or undefined
+     */
+    opinionOutcomeByMarketIdSide (marketId: Int, outcomeSide: Int): any {
+        if ((marketId === undefined) || (this.markets === undefined)) {
+            return undefined;
+        }
+        const marketKeys = Object.keys (this.markets);
+        const marketKeysLength = marketKeys.length;
+        for (let i = 0; i < marketKeysLength; i++) {
+            const market = this.markets[marketKeys[i]];
+            const info = this.safeDict (market, 'info', {});
+            if (this.safeInteger (info, 'marketId') === marketId) {
+                const outcomes = this.safeList (market, 'outcomes', []);
+                const index = (outcomeSide === 2) ? 1 : 0;
+                return this.safeDict (outcomes, index);
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * @method
+     * @name opinion#watchOrderBook
+     * @description streams the order book of an outcome token; the channel is delta-only so the live book is seeded from the REST snapshot
+     * @see https://docs.opinion.trade/developer-guide/opinion-websocket/market-channels
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
+     */
+    async watchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+        const outcomeObj = await this.loadOutcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const marketId = this.safeInteger (info, 'marketId');
+        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
+        const channel = 'market.depth.diff';
+        const messageHash = 'orderbook::' + sym;
+        const url = this.opinionWsUrl ();
+        const client = this.client (url);
+        const subscriptionKey = channel + ':' + this.numberToString (marketId);
+        const isNewSubscription = this.safeValue (client.subscriptions, subscriptionKey) === undefined;
+        if (isNewSubscription) {
+            await this.seedOrderBook (outcome, sym, limit);
+        }
+        const subscribeMsg: Dict = {
+            'action': 'SUBSCRIBE',
+            'channel': channel,
+            'marketId': marketId,
+        };
+        const future = this.watch (url, messageHash, subscribeMsg, subscriptionKey);
+        if (isNewSubscription) {
+            // return the freshly-seeded book immediately instead of blocking until the next delta
+            client.resolve (this.orderbooks[sym], messageHash);
+        }
+        const orderbook = await future;
+        return orderbook.limit ();
+    }
+
+    async seedOrderBook (outcome: string, sym: string, limit: Int = undefined) {
+        // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
+        const snapshot = await this.fetchOrderBook (outcome, limit);
+        const orderbook = this.orderBook ({});
+        orderbook.reset (snapshot);
+        this.orderbooks[sym] = orderbook;
+    }
+
+    handleOrderBook (client, message) {
+        //
+        //     {
+        //         "marketId": 2764,
+        //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
+        //         "outcomeSide": 1,
+        //         "side": "bids",
+        //         "price": "0.2",
+        //         "size": "50",
+        //         "msgType": "market.depth.diff"
+        //     }
+        //
+        const tokenId = this.safeString (message, 'tokenId');
+        const outcomeObj = this.safeDict (this.outcomes_by_id, tokenId);
+        const sym = this.safeString (outcomeObj, 'outcome');
+        if (sym === undefined) {
+            return;
+        }
+        if (this.safeValue (this.orderbooks, sym) === undefined) {
+            // the delta belongs to the market's other token, whose book is not being watched
+            return;
+        }
+        const orderbook = this.orderbooks[sym];
+        const sideStr = this.safeString (message, 'side');
+        const bookSide = (sideStr === 'bids') ? orderbook['bids'] : orderbook['asks'];
+        const price = this.safeNumber (message, 'price');
+        const size = this.safeNumber (message, 'size');
+        bookSide.storeArray ([ price, size ]);
+        const now = this.milliseconds ();
+        orderbook['timestamp'] = now;
+        orderbook['datetime'] = this.iso8601 (now);
+        client.resolve (orderbook, 'orderbook::' + sym);
+    }
+
+    /**
+     * @method
+     * @name opinion#watchTicker
+     * @description streams last-price updates of an outcome token
+     * @see https://docs.opinion.trade/developer-guide/opinion-websocket/market-channels
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    async watchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+        const outcomeObj = await this.loadOutcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const marketId = this.safeInteger (info, 'marketId');
+        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
+        const messageHash = 'ticker::' + sym;
+        return await this.subscribeOpinionChannel (messageHash, 'market.last.price', marketId);
+    }
+
+    handleTicker (client, message) {
+        //
+        //     {
+        //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
+        //         "outcomeSide": 1,
+        //         "price": "0.85",
+        //         "marketId": 2764,
+        //         "msgType": "market.last.price"
+        //     }
+        //
+        const tokenId = this.safeString (message, 'tokenId');
+        const outcomeObj = this.safeDict (this.outcomes_by_id, tokenId);
+        const sym = this.safeString (outcomeObj, 'outcome');
+        if (sym === undefined) {
+            return;
+        }
+        const now = this.milliseconds ();
+        const last = this.safeNumber (message, 'price');
+        const ticker = this.safePredictionTicker ({
+            'outcome': sym,
+            'outcomeId': tokenId,
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'close': last,
+            'last': last,
+            'info': message,
+        }, outcomeObj);
+        this.tickers[sym] = ticker as any;
+        client.resolve (ticker, 'ticker::' + sym);
+    }
+
+    /**
+     * @method
+     * @name opinion#watchTrades
+     * @description streams public trades of an outcome token
+     * @see https://docs.opinion.trade/developer-guide/opinion-websocket/market-channels
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {int} [since] timestamp in ms of the earliest trade to return
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    async watchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        const outcomeObj = await this.loadOutcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const marketId = this.safeInteger (info, 'marketId');
+        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
+        const messageHash = 'trades::' + sym;
+        const trades = await this.subscribeOpinionChannel (messageHash, 'market.last.trade', marketId);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
+    }
+
+    handleTrades (client, message) {
+        //
+        //     {
+        //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
+        //         "side": "Buy",
+        //         "outcomeSide": 1,
+        //         "price": "0.85",
+        //         "shares": "10",
+        //         "amount": "8.5",
+        //         "marketId": 2764,
+        //         "msgType": "market.last.trade"
+        //     }
+        //
+        const tokenId = this.safeString (message, 'tokenId');
+        const outcomeObj = this.safeDict (this.outcomes_by_id, tokenId);
+        const sym = this.safeString (outcomeObj, 'outcome');
+        if (sym === undefined) {
+            return;
+        }
+        const now = this.milliseconds ();
+        const trade = this.safePredictionTrade ({
+            'id': undefined,
+            'info': message,
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'outcome': sym,
+            'outcomeId': tokenId,
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'order': undefined,
+            'type': undefined,
+            'side': this.safeStringLower (message, 'side'),
+            'takerOrMaker': 'taker',
+            'price': this.safeNumber (message, 'price'),
+            'amount': this.safeNumber (message, 'shares'),
+            'cost': this.safeNumber (message, 'amount'),
+            'fee': undefined,
+        }, outcomeObj);
+        if (this.trades === undefined) {
+            this.trades = this.createSafeDictionary ();
+        }
+        if (this.safeValue (this.trades, sym) === undefined) {
+            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.trades[sym] = new ArrayCache (tradesLimit);
+        }
+        const stored = this.trades[sym];
+        stored.append (trade);
+        client.resolve (stored, 'trades::' + sym);
+    }
+
+    /**
+     * @method
+     * @name opinion#watchOrders
+     * @description streams the authenticated user's order updates of one market - the venue channel is per-market, so the outcome argument is required
+     * @see https://docs.opinion.trade/developer-guide/opinion-websocket/user-channels
+     * @param {string} outcome unified outcome or outcome token id whose market to watch
+     * @param {int} [since] timestamp in ms of the earliest order to return
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        if (outcome === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires an outcome (the order update channel is per-market)');
+        }
+        const outcomeObj = await this.loadOutcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const marketId = this.safeInteger (info, 'marketId');
+        const messageHash = 'orders';
+        const orders = await this.subscribeOpinionChannel (messageHash, 'trade.order.update', marketId);
+        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
+        return this.filterByValueSinceLimit (orders, 'outcome', sym, since, limit, 'timestamp', true) as PredictionOrder[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#parseWsOrderStatus
+     * @description maps the numeric order status of the websocket order channel onto the unified vocabulary
+     * @param {int} status the numeric order status
+     * @returns {string} a unified order status, or undefined
+     */
+    parseWsOrderStatus (status: Int): Str {
+        // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
+        if (status === 1) {
+            return 'open';
+        }
+        if (status === 2) {
+            return 'closed';
+        }
+        if (status === 3) {
+            return 'canceled';
+        }
+        if (status === 4) {
+            return 'expired';
+        }
+        if (status === 5) {
+            return 'rejected';
+        }
+        return undefined;
+    }
+
+    handleOrder (client, message) {
+        //
+        //     {
+        //         "orderUpdateType": "orderConfirm",
+        //         "marketId": 2770,
+        //         "rootMarketId": 122,
+        //         "orderId": "a11ee07e-e22f-11f0-9714-0a58a9feac02",
+        //         "side": 1,
+        //         "outcomeSide": 1,
+        //         "price": "0.150000000000000000",
+        //         "shares": "66.66",
+        //         "amount": "9.999000000000000000",
+        //         "status": 1,
+        //         "tradingMethod": 2,
+        //         "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+        //         "createdAt": 1766735464,
+        //         "expiresAt": 0,
+        //         "chainId": "56",
+        //         "filledShares": "10.000000000000000000",
+        //         "filledAmount": "1.500000000000000000",
+        //         "msgType": "trade.order.update"
+        //     }
+        //
+        const marketId = this.safeInteger (message, 'marketId');
+        const outcomeSide = this.safeInteger (message, 'outcomeSide');
+        const outcomeObj = this.opinionOutcomeByMarketIdSide (marketId, outcomeSide);
+        const timestamp = this.safeTimestamp (message, 'createdAt');
+        // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
+        // per the docs and confirmed live
+        const sideInt = this.safeInteger (message, 'side');
+        const side = (sideInt === 1) ? 'buy' : 'sell';
+        const tradingMethod = this.safeInteger (message, 'tradingMethod');
+        const type = (tradingMethod === 1) ? 'market' : 'limit';
+        const order = this.safePredictionOrder ({
+            'id': this.safeString (message, 'orderId'),
+            'clientOrderId': undefined,
+            'info': message,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': this.parseWsOrderStatus (this.safeInteger (message, 'status')),
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'type': type,
+            'side': side,
+            'price': this.safeNumber (message, 'price'),
+            'amount': this.safeNumber (message, 'shares'),
+            'cost': this.safeNumber (message, 'filledAmount'),
+            'filled': this.safeNumber (message, 'filledShares'),
+            'fee': undefined,
+            'trades': [],
+        }, outcomeObj);
+        if (this.orders === undefined) {
+            const ordersLimit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheByOutcomeById (ordersLimit);
+        }
+        const stored = this.orders;
+        stored.append (order);
+        client.resolve (stored, 'orders');
+    }
+
+    /**
+     * @method
+     * @name opinion#watchMyTrades
+     * @description streams the authenticated user's executed trades of one market - the venue channel is per-market, so the outcome argument is required
+     * @see https://docs.opinion.trade/developer-guide/opinion-websocket/user-channels
+     * @param {string} outcome unified outcome or outcome token id whose market to watch
+     * @param {int} [since] timestamp in ms of the earliest trade to return
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        if (outcome === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires an outcome (the trade record channel is per-market)');
+        }
+        const outcomeObj = await this.loadOutcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const marketId = this.safeInteger (info, 'marketId');
+        const messageHash = 'myTrades';
+        const trades = await this.subscribeOpinionChannel (messageHash, 'trade.record.new', marketId);
+        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
+        return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
+    }
+
+    handleMyTrade (client, message) {
+        //
+        //     {
+        //         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",
+        //         "tradeNo": "e1403840-e22f-11f0-83af-0a58a9feac02",
+        //         "marketId": 2770,
+        //         "rootMarketId": 122,
+        //         "txHash": "0x272c...4195",
+        //         "side": "Buy",
+        //         "outcomeSide": 2,
+        //         "price": "0.100000000000000000",
+        //         "shares": "9.44444",
+        //         "amount": "0.944444",
+        //         "profit": "0.000000000000000000",
+        //         "status": 2,
+        //         "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+        //         "fee": "0.000000000000000000",
+        //         "chainId": "56",
+        //         "createdAt": 1766735571,
+        //         "msgType": "trade.record.new"
+        //     }
+        //
+        const marketId = this.safeInteger (message, 'marketId');
+        const outcomeSide = this.safeInteger (message, 'outcomeSide');
+        const outcomeObj = this.opinionOutcomeByMarketIdSide (marketId, outcomeSide);
+        const sym = this.safeString (outcomeObj, 'outcome');
+        const timestamp = this.safeTimestamp (message, 'createdAt');
+        const trade = this.safePredictionTrade ({
+            'id': this.safeString (message, 'tradeNo'),
+            'info': message,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'outcome': sym,
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'order': this.safeString (message, 'orderId'),
+            'type': undefined,
+            'side': this.safeStringLower (message, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeNumber (message, 'price'),
+            'amount': this.safeNumber (message, 'shares'),
+            'cost': this.safeNumber (message, 'amount'),
+            'fee': {
+                'cost': this.safeNumber (message, 'fee'),
+                'currency': 'USDT',
+            },
+        }, outcomeObj);
+        if (this.myTrades === undefined) {
+            const myTradesLimit = this.safeInteger (this.options, 'myTradesLimit', 1000);
+            this.myTrades = new ArrayCacheByOutcomeById (myTradesLimit);
+        }
+        const stored = this.myTrades;
+        stored.append (trade);
+        client.resolve (stored, 'myTrades');
     }
 
     override handleErrors (code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
