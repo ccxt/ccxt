@@ -1625,7 +1625,7 @@ export default class opinion extends Exchange {
         return wsUrl + '?apikey=' + apiKey;
     }
 
-    ping (client: any) {
+    override ping (client: any) {
         // the venue keeps the socket open only while application-level heartbeats arrive
         return { 'action': 'HEARTBEAT' };
     }
@@ -1651,7 +1651,7 @@ export default class opinion extends Exchange {
         return await this.watch (url, messageHash, subscribeMsg, subscriptionKey);
     }
 
-    handleMessage (client, message) {
+    override handleMessage (client: any, message: any) {
         // every data payload carries its channel name in msgType; frames without one -
         // subscribe acks and heartbeat echoes - carry nothing to route
         const msgType = this.safeString (message, 'msgType');
@@ -1708,7 +1708,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    async watchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const marketId = this.safeInteger (info, 'marketId');
@@ -1744,7 +1744,7 @@ export default class opinion extends Exchange {
         this.orderbooks[sym] = orderbook;
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: any, message: any) {
         //
         //     {
         //         "marketId": 2764,
@@ -1787,7 +1787,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    async watchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+    override async watchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const marketId = this.safeInteger (info, 'marketId');
@@ -1796,7 +1796,7 @@ export default class opinion extends Exchange {
         return await this.subscribeOpinionChannel (messageHash, 'market.last.price', marketId);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: any, message: any) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1840,7 +1840,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    async watchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const marketId = this.safeInteger (info, 'marketId');
@@ -1850,7 +1850,7 @@ export default class opinion extends Exchange {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: any, message: any) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1911,7 +1911,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires an outcome (the order update channel is per-market)');
         }
@@ -1952,7 +1952,7 @@ export default class opinion extends Exchange {
         return undefined;
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: any, message: any) {
         //
         //     {
         //         "orderUpdateType": "orderConfirm",
@@ -2026,7 +2026,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires an outcome (the trade record channel is per-market)');
         }
@@ -2039,7 +2039,7 @@ export default class opinion extends Exchange {
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client: any, message: any) {
         //
         //     {
         //         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",
