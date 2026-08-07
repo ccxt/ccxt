@@ -1548,6 +1548,7 @@ public partial class bitget : Exchange
                     { "method", "publicMixGetV2MixMarketCurrentFundRate" },
                 } },
                 { "accountsByType", new Dictionary<string, object>() {
+                    { "funding", "spot" },
                     { "spot", "spot" },
                     { "cross", "crossed_margin" },
                     { "isolated", "isolated_margin" },
@@ -1555,6 +1556,8 @@ public partial class bitget : Exchange
                     { "usdc_swap", "usdc_futures" },
                     { "future", "coin_futures" },
                     { "p2p", "p2p" },
+                    { "uta", "uta" },
+                    { "unified", "uta" },
                 } },
                 { "accountsById", new Dictionary<string, object>() {
                     { "spot", "spot" },
@@ -1564,6 +1567,7 @@ public partial class bitget : Exchange
                     { "usdc_futures", "usdc_swap" },
                     { "coin_futures", "future" },
                     { "p2p", "p2p" },
+                    { "uta", "uta" },
                 } },
                 { "sandboxMode", false },
                 { "networks", new Dictionary<string, object>() {
@@ -4690,9 +4694,11 @@ public partial class bitget : Exchange
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
      * @see https://www.bitget.com/api-doc/uta/account/Get-Account
+     * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -4718,9 +4724,17 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(uta))
         {
-            response = await this.privateUtaGetV3AccountAssets(this.extend(request, parameters));
-            object results = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            object assets = this.safeList(results, "assets", new List<object>() {});
+            object assets = null;
+            if (isTrue(isEqual(marketType, "funding")))
+            {
+                response = await this.privateUtaGetV3AccountFundingAssets(this.extend(request, parameters));
+                assets = this.safeList(response, "data", new List<object>() {});
+            } else
+            {
+                response = await this.privateUtaGetV3AccountAssets(this.extend(request, parameters));
+                object results = this.safeDict(response, "data", new Dictionary<string, object>() {});
+                assets = this.safeList(results, "assets", new List<object>() {});
+            }
             return this.parseUtaBalance(assets);
         } else if (isTrue(isTrue((isEqual(marketType, "swap"))) || isTrue((isEqual(marketType, "future")))))
         {
@@ -4819,6 +4833,22 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750396239013,
+        //         "data": [
+        //             {
+        //                 "coin": "BGB",
+        //                 "available": "0.01",
+        //                 "frozen": "0",
+        //                 "balance": "0.01"
+        //             }
+        //         ]
+        //     }
+        //
         object data = this.safeValue(response, "data", new List<object>() {});
         return this.parseBalance(data);
     }
@@ -4828,6 +4858,8 @@ public partial class bitget : Exchange
         object result = new Dictionary<string, object>() {
             { "info", balance },
         };
+        //
+        // uta
         //
         //     {
         //         "coin": "USDT",
@@ -4839,6 +4871,15 @@ public partial class bitget : Exchange
         //         "locked": "0"
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "coin": "BGB",
+        //         "available": "0.01",
+        //         "frozen": "0",
+        //         "balance": "0.01"
+        //     }
+        //
         for (object i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
         {
             object entry = getValue(balance, i);
@@ -4846,7 +4887,7 @@ public partial class bitget : Exchange
             object currencyId = this.safeString(entry, "coin");
             object code = this.safeCurrencyCode(currencyId);
             ((IDictionary<string,object>)account)["debt"] = this.safeString(entry, "debt");
-            ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
+            ((IDictionary<string,object>)account)["used"] = this.safeString2(entry, "locked", "frozen");
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
             if (isTrue(!isEqual(code, null)))
@@ -10283,11 +10324,13 @@ public partial class bitget : Exchange
      * @name bitget#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+     * @see https://www.bitget.com/api-doc/uta/account/transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true to transfer via the unified trading account v3 endpoint
      * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -10299,6 +10342,10 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
+        object uta = null;
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "transfer", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object currency = this.currency(code);
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromType = this.safeString(accountsByType, fromAccount);
@@ -10317,7 +10364,14 @@ public partial class bitget : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        object response = await this.privateSpotPostV2SpotWalletTransfer(this.extend(request, parameters));
+        object response = null;
+        if (isTrue(uta))
+        {
+            response = await this.privateUtaPostV3AccountTransfer(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateSpotPostV2SpotWalletTransfer(this.extend(request, parameters));
+        }
         //
         //     {
         //         "code": "00000",
