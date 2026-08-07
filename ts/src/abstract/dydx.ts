@@ -5,16 +5,16 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    indexerGetAddressesAddress (params?: {}): Promise<implicitReturnType>;
+    indexerGetAddressesAddress (params?: {}): Promise<Dict>;
     indexerGetAddressesAddressParentSubaccountNumberNumber (params?: {}): Promise<implicitReturnType>;
-    indexerGetAddressesAddressSubaccountNumberSubaccountNumber (params?: {}): Promise<implicitReturnType>;
+    indexerGetAddressesAddressSubaccountNumberSubaccountNumber (params?: {}): Promise<Dict>;
     indexerGetAssetPositions (params?: {}): Promise<implicitReturnType>;
     indexerGetAssetPositionsParentSubaccountNumber (params?: {}): Promise<implicitReturnType>;
-    indexerGetCandlesPerpetualMarketsMarket (params?: {}): Promise<implicitReturnType>;
+    indexerGetCandlesPerpetualMarketsMarket (params?: {}): Promise<Dict>;
     indexerGetComplianceScreenAddress (params?: {}): Promise<implicitReturnType>;
     indexerGetFills (params?: {}): Promise<implicitReturnType>;
     indexerGetFillsParentSubaccountNumber (params?: {}): Promise<implicitReturnType>;
@@ -24,20 +24,20 @@ interface Exchange {
     indexerGetHistoricalPnl (params?: {}): Promise<implicitReturnType>;
     indexerGetHistoricalPnlParentSubaccountNumber (params?: {}): Promise<implicitReturnType>;
     indexerGetHistoricalBlockTradingRewardsAddress (params?: {}): Promise<implicitReturnType>;
-    indexerGetHistoricalFundingMarket (params?: {}): Promise<implicitReturnType>;
+    indexerGetHistoricalFundingMarket (params?: {}): Promise<Dict>;
     indexerGetHistoricalTradingRewardAggregationsAddress (params?: {}): Promise<implicitReturnType>;
-    indexerGetOrderbooksPerpetualMarketMarket (params?: {}): Promise<implicitReturnType>;
-    indexerGetOrders (params?: {}): Promise<implicitReturnType>;
+    indexerGetOrderbooksPerpetualMarketMarket (params?: {}): Promise<Dict>;
+    indexerGetOrders (params?: {}): Promise<List>;
     indexerGetOrdersParentSubaccountNumber (params?: {}): Promise<implicitReturnType>;
-    indexerGetOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    indexerGetPerpetualMarkets (params?: {}): Promise<implicitReturnType>;
-    indexerGetPerpetualPositions (params?: {}): Promise<implicitReturnType>;
+    indexerGetOrdersOrderId (params?: {}): Promise<Dict>;
+    indexerGetPerpetualMarkets (params?: {}): Promise<Dict>;
+    indexerGetPerpetualPositions (params?: {}): Promise<Dict>;
     indexerGetPerpetualPositionsParentSubaccountNumber (params?: {}): Promise<implicitReturnType>;
     indexerGetScreen (params?: {}): Promise<implicitReturnType>;
     indexerGetSparklines (params?: {}): Promise<implicitReturnType>;
-    indexerGetTime (params?: {}): Promise<implicitReturnType>;
-    indexerGetTradesPerpetualMarketMarket (params?: {}): Promise<implicitReturnType>;
-    indexerGetTransfers (params?: {}): Promise<implicitReturnType>;
+    indexerGetTime (params?: {}): Promise<Dict>;
+    indexerGetTradesPerpetualMarketMarket (params?: {}): Promise<Dict>;
+    indexerGetTransfers (params?: {}): Promise<Dict>;
     indexerGetTransfersBetween (params?: {}): Promise<implicitReturnType>;
     indexerGetTransfersParentSubaccountNumber (params?: {}): Promise<implicitReturnType>;
     indexerGetVaultV1MegavaultHistoricalPnl (params?: {}): Promise<implicitReturnType>;
@@ -55,14 +55,14 @@ interface Exchange {
     indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (params?: {}): Promise<implicitReturnType>;
     indexerGetFillsParentSubaccount (params?: {}): Promise<implicitReturnType>;
     indexerGetHistoricalPnlParentSubaccount (params?: {}): Promise<implicitReturnType>;
-    nodeRpcGetAbciInfo (params?: {}): Promise<implicitReturnType>;
+    nodeRpcGetAbciInfo (params?: {}): Promise<Dict>;
     nodeRpcGetBlock (params?: {}): Promise<implicitReturnType>;
     nodeRpcGetBroadcastTxAsync (params?: {}): Promise<implicitReturnType>;
-    nodeRpcGetBroadcastTxSync (params?: {}): Promise<implicitReturnType>;
+    nodeRpcGetBroadcastTxSync (params?: {}): Promise<Dict>;
     nodeRpcGetTx (params?: {}): Promise<implicitReturnType>;
-    nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (params?: {}): Promise<implicitReturnType>;
+    nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (params?: {}): Promise<Dict>;
     nodeRestPostCosmosTxV1beta1Encode (params?: {}): Promise<implicitReturnType>;
-    nodeRestPostCosmosTxV1beta1Simulate (params?: {}): Promise<implicitReturnType>;
+    nodeRestPostCosmosTxV1beta1Simulate (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

@@ -5,11 +5,11 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetGetAllCurrencies (params?: {}): Promise<implicitReturnType>;
+    publicGetGetAllCurrencies (params?: {}): Promise<Dict>;
     publicPostBuildRegisterSessionKeyTx (params?: {}): Promise<implicitReturnType>;
     publicPostRegisterSessionKey (params?: {}): Promise<implicitReturnType>;
     publicPostDeregisterSessionKey (params?: {}): Promise<implicitReturnType>;
@@ -18,15 +18,15 @@ interface Exchange {
     publicPostGetAllCurrencies (params?: {}): Promise<implicitReturnType>;
     publicPostGetCurrency (params?: {}): Promise<implicitReturnType>;
     publicPostGetInstrument (params?: {}): Promise<implicitReturnType>;
-    publicPostGetAllInstruments (params?: {}): Promise<implicitReturnType>;
+    publicPostGetAllInstruments (params?: {}): Promise<Dict>;
     publicPostGetInstruments (params?: {}): Promise<implicitReturnType>;
-    publicPostGetTicker (params?: {}): Promise<implicitReturnType>;
+    publicPostGetTicker (params?: {}): Promise<Dict>;
     publicPostGetLatestSignedFeeds (params?: {}): Promise<implicitReturnType>;
     publicPostGetOptionSettlementPrices (params?: {}): Promise<implicitReturnType>;
     publicPostGetSpotFeedHistory (params?: {}): Promise<implicitReturnType>;
     publicPostGetSpotFeedHistoryCandles (params?: {}): Promise<implicitReturnType>;
-    publicPostGetFundingRateHistory (params?: {}): Promise<implicitReturnType>;
-    publicPostGetTradeHistory (params?: {}): Promise<implicitReturnType>;
+    publicPostGetFundingRateHistory (params?: {}): Promise<Dict>;
+    publicPostGetTradeHistory (params?: {}): Promise<Dict>;
     publicPostGetOptionSettlementHistory (params?: {}): Promise<implicitReturnType>;
     publicPostGetLiquidationHistory (params?: {}): Promise<implicitReturnType>;
     publicPostGetInterestRateHistory (params?: {}): Promise<implicitReturnType>;
@@ -56,7 +56,7 @@ interface Exchange {
     publicPostExecuteQuoteDebug (params?: {}): Promise<implicitReturnType>;
     publicPostGetInviteCode (params?: {}): Promise<implicitReturnType>;
     publicPostRegisterInvite (params?: {}): Promise<implicitReturnType>;
-    publicPostGetTime (params?: {}): Promise<implicitReturnType>;
+    publicPostGetTime (params?: {}): Promise<Dict>;
     publicPostGetLiveIncidents (params?: {}): Promise<implicitReturnType>;
     publicPostGetMakerPrograms (params?: {}): Promise<implicitReturnType>;
     publicPostGetMakerProgramScores (params?: {}): Promise<implicitReturnType>;
@@ -64,31 +64,31 @@ interface Exchange {
     privatePostCreateSubaccount (params?: {}): Promise<implicitReturnType>;
     privatePostGetSubaccount (params?: {}): Promise<implicitReturnType>;
     privatePostGetSubaccounts (params?: {}): Promise<implicitReturnType>;
-    privatePostGetAllPortfolios (params?: {}): Promise<implicitReturnType>;
+    privatePostGetAllPortfolios (params?: {}): Promise<Dict>;
     privatePostChangeSubaccountLabel (params?: {}): Promise<implicitReturnType>;
     privatePostGetNotificationsv (params?: {}): Promise<implicitReturnType>;
     privatePostUpdateNotifications (params?: {}): Promise<implicitReturnType>;
     privatePostDeposit (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdraw (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdraw (params?: {}): Promise<Dict>;
     privatePostTransferErc20 (params?: {}): Promise<implicitReturnType>;
     privatePostTransferPosition (params?: {}): Promise<implicitReturnType>;
     privatePostTransferPositions (params?: {}): Promise<implicitReturnType>;
-    privatePostOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostReplace (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderDebug (params?: {}): Promise<implicitReturnType>;
-    privatePostGetOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostGetOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelByLabel (params?: {}): Promise<implicitReturnType>;
+    privatePostOrder (params?: {}): Promise<Dict>;
+    privatePostReplace (params?: {}): Promise<Dict>;
+    privatePostOrderDebug (params?: {}): Promise<Dict>;
+    privatePostGetOrder (params?: {}): Promise<Dict>;
+    privatePostGetOrders (params?: {}): Promise<Dict>;
+    privatePostGetOpenOrders (params?: {}): Promise<Dict>;
+    privatePostCancel (params?: {}): Promise<Dict>;
+    privatePostCancelByLabel (params?: {}): Promise<Dict>;
     privatePostCancelByNonce (params?: {}): Promise<implicitReturnType>;
     privatePostCancelByInstrument (params?: {}): Promise<implicitReturnType>;
     privatePostCancelAll (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelTriggerOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostCancelTriggerOrder (params?: {}): Promise<Dict>;
     privatePostGetOrderHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostGetTradeHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostGetDepositHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostGetWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
+    privatePostGetTradeHistory (params?: {}): Promise<Dict>;
+    privatePostGetDepositHistory (params?: {}): Promise<Dict>;
+    privatePostGetWithdrawalHistory (params?: {}): Promise<Dict>;
     privatePostSendRfq (params?: {}): Promise<implicitReturnType>;
     privatePostCancelRfq (params?: {}): Promise<implicitReturnType>;
     privatePostCancelBatchRfqs (params?: {}): Promise<implicitReturnType>;
@@ -103,11 +103,11 @@ interface Exchange {
     privatePostRfqGetBestQuote (params?: {}): Promise<implicitReturnType>;
     privatePostGetMargin (params?: {}): Promise<implicitReturnType>;
     privatePostGetCollaterals (params?: {}): Promise<implicitReturnType>;
-    privatePostGetPositions (params?: {}): Promise<implicitReturnType>;
+    privatePostGetPositions (params?: {}): Promise<Dict>;
     privatePostGetOptionSettlementHistory (params?: {}): Promise<implicitReturnType>;
     privatePostGetSubaccountValueHistory (params?: {}): Promise<implicitReturnType>;
     privatePostExpiredAndCancelledHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostGetFundingHistory (params?: {}): Promise<implicitReturnType>;
+    privatePostGetFundingHistory (params?: {}): Promise<Dict>;
     privatePostGetInterestHistory (params?: {}): Promise<implicitReturnType>;
     privatePostGetErc20TransferHistory (params?: {}): Promise<implicitReturnType>;
     privatePostGetLiquidationHistory (params?: {}): Promise<implicitReturnType>;

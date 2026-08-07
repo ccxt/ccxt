@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { implicitReturnType, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -16,13 +16,13 @@ interface Exchange {
     v2PublicGetRangeUnits (params?: {}): Promise<implicitReturnType>;
     v2PublicGetMarketsQuoteCurrency (params?: {}): Promise<implicitReturnType>;
     v2PublicGetMarketsQuoteCurrencyTargetCurrency (params?: {}): Promise<implicitReturnType>;
-    v2PublicGetOrderbookQuoteCurrencyTargetCurrency (params?: {}): Promise<implicitReturnType>;
-    v2PublicGetTradesQuoteCurrencyTargetCurrency (params?: {}): Promise<implicitReturnType>;
-    v2PublicGetTickerNewQuoteCurrency (params?: {}): Promise<implicitReturnType>;
-    v2PublicGetTickerNewQuoteCurrencyTargetCurrency (params?: {}): Promise<implicitReturnType>;
+    v2PublicGetOrderbookQuoteCurrencyTargetCurrency (params?: {}): Promise<Dict>;
+    v2PublicGetTradesQuoteCurrencyTargetCurrency (params?: {}): Promise<Dict>;
+    v2PublicGetTickerNewQuoteCurrency (params?: {}): Promise<Dict>;
+    v2PublicGetTickerNewQuoteCurrencyTargetCurrency (params?: {}): Promise<Dict>;
     v2PublicGetTickerUtcNewQuoteCurrency (params?: {}): Promise<implicitReturnType>;
     v2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency (params?: {}): Promise<implicitReturnType>;
-    v2PublicGetCurrencies (params?: {}): Promise<implicitReturnType>;
+    v2PublicGetCurrencies (params?: {}): Promise<Dict>;
     v2PublicGetCurrenciesCurrency (params?: {}): Promise<implicitReturnType>;
     v2PublicGetChartQuoteCurrencyTargetCurrency (params?: {}): Promise<implicitReturnType>;
     privatePostAccountDepositAddress (params?: {}): Promise<implicitReturnType>;
@@ -32,7 +32,7 @@ interface Exchange {
     privatePostAccountUserInfo (params?: {}): Promise<implicitReturnType>;
     privatePostAccountVirtualAccount (params?: {}): Promise<implicitReturnType>;
     privatePostOrderCancelAll (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderCancel (params?: {}): Promise<Dict>;
     privatePostOrderLimitBuy (params?: {}): Promise<implicitReturnType>;
     privatePostOrderLimitSell (params?: {}): Promise<implicitReturnType>;
     privatePostOrderCompleteOrders (params?: {}): Promise<implicitReturnType>;
@@ -43,16 +43,16 @@ interface Exchange {
     privatePostTransactionKrwHistory (params?: {}): Promise<implicitReturnType>;
     privatePostTransactionBtc (params?: {}): Promise<implicitReturnType>;
     privatePostTransactionCoin (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostAccountBalance (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostAccountDepositAddress (params?: {}): Promise<implicitReturnType>;
+    v2PrivatePostAccountBalance (params?: {}): Promise<Dict>;
+    v2PrivatePostAccountDepositAddress (params?: {}): Promise<Dict>;
     v2PrivatePostAccountUserInfo (params?: {}): Promise<implicitReturnType>;
     v2PrivatePostAccountVirtualAccount (params?: {}): Promise<implicitReturnType>;
     v2PrivatePostOrderCancel (params?: {}): Promise<implicitReturnType>;
     v2PrivatePostOrderLimitBuy (params?: {}): Promise<implicitReturnType>;
     v2PrivatePostOrderLimitSell (params?: {}): Promise<implicitReturnType>;
     v2PrivatePostOrderLimitOrders (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostOrderCompleteOrders (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostOrderQueryOrder (params?: {}): Promise<implicitReturnType>;
+    v2PrivatePostOrderCompleteOrders (params?: {}): Promise<Dict>;
+    v2PrivatePostOrderQueryOrder (params?: {}): Promise<Dict>;
     v2PrivatePostTransactionAuthNumber (params?: {}): Promise<implicitReturnType>;
     v2PrivatePostTransactionBtc (params?: {}): Promise<implicitReturnType>;
     v2PrivatePostTransactionHistory (params?: {}): Promise<implicitReturnType>;
@@ -61,10 +61,10 @@ interface Exchange {
     v2_1PrivatePostAccountBalance (params?: {}): Promise<implicitReturnType>;
     v2_1PrivatePostAccountTradeFee (params?: {}): Promise<implicitReturnType>;
     v2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency (params?: {}): Promise<implicitReturnType>;
-    v2_1PrivatePostOrderLimit (params?: {}): Promise<implicitReturnType>;
+    v2_1PrivatePostOrderLimit (params?: {}): Promise<Dict>;
     v2_1PrivatePostOrderCancel (params?: {}): Promise<implicitReturnType>;
     v2_1PrivatePostOrderCancelAll (params?: {}): Promise<implicitReturnType>;
-    v2_1PrivatePostOrderOpenOrders (params?: {}): Promise<implicitReturnType>;
+    v2_1PrivatePostOrderOpenOrders (params?: {}): Promise<Dict>;
     v2_1PrivatePostOrderOpenOrdersAll (params?: {}): Promise<implicitReturnType>;
     v2_1PrivatePostOrderCompleteOrders (params?: {}): Promise<implicitReturnType>;
     v2_1PrivatePostOrderCompleteOrdersAll (params?: {}): Promise<implicitReturnType>;

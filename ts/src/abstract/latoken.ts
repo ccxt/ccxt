@@ -5,62 +5,62 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetBookCurrencyQuote (params?: {}): Promise<implicitReturnType>;
+    publicGetBookCurrencyQuote (params?: {}): Promise<Dict>;
     publicGetChartWeek (params?: {}): Promise<implicitReturnType>;
     publicGetChartWeekCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrency (params?: {}): Promise<implicitReturnType>;
+    publicGetCurrency (params?: {}): Promise<List>;
     publicGetCurrencyAvailable (params?: {}): Promise<implicitReturnType>;
     publicGetCurrencyQuotes (params?: {}): Promise<implicitReturnType>;
     publicGetCurrencyCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetPair (params?: {}): Promise<implicitReturnType>;
+    publicGetPair (params?: {}): Promise<List>;
     publicGetPairAvailable (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerBaseQuote (params?: {}): Promise<implicitReturnType>;
-    publicGetTime (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeHistoryCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeFeeCurrencyQuote (params?: {}): Promise<implicitReturnType>;
+    publicGetTicker (params?: {}): Promise<List>;
+    publicGetTickerBaseQuote (params?: {}): Promise<Dict>;
+    publicGetTime (params?: {}): Promise<Dict>;
+    publicGetTradeHistoryCurrencyQuote (params?: {}): Promise<List>;
+    publicGetTradeFeeCurrencyQuote (params?: {}): Promise<Dict>;
     publicGetTradeFeeLevels (params?: {}): Promise<implicitReturnType>;
     publicGetTransactionBindings (params?: {}): Promise<implicitReturnType>;
     privateGetAuthAccount (params?: {}): Promise<implicitReturnType>;
     privateGetAuthAccountCurrencyCurrencyType (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthOrderGetOrderId (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthOrderPairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthOrderPairCurrencyQuoteActive (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthStopOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthStopOrderGetOrderId (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthStopOrderPairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthStopOrderPairCurrencyQuoteActive (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTrade (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTradePairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTradeFeeCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTransaction (params?: {}): Promise<implicitReturnType>;
+    privateGetAuthOrder (params?: {}): Promise<List>;
+    privateGetAuthOrderGetOrderId (params?: {}): Promise<Dict>;
+    privateGetAuthOrderPairCurrencyQuote (params?: {}): Promise<List>;
+    privateGetAuthOrderPairCurrencyQuoteActive (params?: {}): Promise<List>;
+    privateGetAuthStopOrder (params?: {}): Promise<List>;
+    privateGetAuthStopOrderGetOrderId (params?: {}): Promise<Dict>;
+    privateGetAuthStopOrderPairCurrencyQuote (params?: {}): Promise<List>;
+    privateGetAuthStopOrderPairCurrencyQuoteActive (params?: {}): Promise<List>;
+    privateGetAuthTrade (params?: {}): Promise<List>;
+    privateGetAuthTradePairCurrencyQuote (params?: {}): Promise<List>;
+    privateGetAuthTradeFeeCurrencyQuote (params?: {}): Promise<Dict>;
+    privateGetAuthTransaction (params?: {}): Promise<Dict>;
     privateGetAuthTransactionBindings (params?: {}): Promise<implicitReturnType>;
     privateGetAuthTransactionBindingsCurrency (params?: {}): Promise<implicitReturnType>;
     privateGetAuthTransactionId (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthOrderCancel (params?: {}): Promise<implicitReturnType>;
+    privateGetAuthTransfer (params?: {}): Promise<Dict>;
+    privatePostAuthOrderCancel (params?: {}): Promise<Dict>;
     privatePostAuthOrderCancelAll (params?: {}): Promise<implicitReturnType>;
     privatePostAuthOrderCancelAllCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthOrderPlace (params?: {}): Promise<implicitReturnType>;
+    privatePostAuthOrderPlace (params?: {}): Promise<Dict>;
     privatePostAuthSpotDeposit (params?: {}): Promise<implicitReturnType>;
     privatePostAuthSpotWithdraw (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthStopOrderCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostAuthStopOrderCancel (params?: {}): Promise<Dict>;
     privatePostAuthStopOrderCancelAll (params?: {}): Promise<implicitReturnType>;
     privatePostAuthStopOrderCancelAllCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthStopOrderPlace (params?: {}): Promise<implicitReturnType>;
+    privatePostAuthStopOrderPlace (params?: {}): Promise<Dict>;
     privatePostAuthTransactionDepositAddress (params?: {}): Promise<implicitReturnType>;
     privatePostAuthTransactionWithdraw (params?: {}): Promise<implicitReturnType>;
     privatePostAuthTransactionWithdrawCancel (params?: {}): Promise<implicitReturnType>;
     privatePostAuthTransactionWithdrawConfirm (params?: {}): Promise<implicitReturnType>;
     privatePostAuthTransactionWithdrawResendCode (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransferEmail (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransferId (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransferPhone (params?: {}): Promise<implicitReturnType>;
+    privatePostAuthTransferEmail (params?: {}): Promise<Dict>;
+    privatePostAuthTransferId (params?: {}): Promise<Dict>;
+    privatePostAuthTransferPhone (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

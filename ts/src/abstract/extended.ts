@@ -5,36 +5,36 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    v1PublicGetInfoMarkets (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetInfoAssets (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoMarkets (params?: {}): Promise<Dict>;
+    v1PublicGetInfoAssets (params?: {}): Promise<Dict>;
     v1PublicGetInfoAssetsAssetPrice (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetInfoMarketsMarketStats (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetInfoMarketsMarketOrderbook (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetInfoMarketsMarketTrades (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetInfoCandlesMarketCandleType (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetInfoMarketFunding (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetInfoMarketOpenInterests (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoMarketsMarketStats (params?: {}): Promise<Dict>;
+    v1PublicGetInfoMarketsMarketOrderbook (params?: {}): Promise<Dict>;
+    v1PublicGetInfoMarketsMarketTrades (params?: {}): Promise<Dict>;
+    v1PublicGetInfoCandlesMarketCandleType (params?: {}): Promise<Dict>;
+    v1PublicGetInfoMarketFunding (params?: {}): Promise<Dict>;
+    v1PublicGetInfoMarketOpenInterests (params?: {}): Promise<Dict>;
     v1PublicGetInfoBuilderDashboard (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserAccounts (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserAccountInfo (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserAccounts (params?: {}): Promise<Dict>;
+    v1PrivateGetUserAccountInfo (params?: {}): Promise<Dict>;
     v1PrivateGetUserBalance (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserSpotBalances (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserAssetOperations (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserPositions (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserPositionsHistory (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserOrders (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserOrdersId (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserOrdersExternalExternalId (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserTrades (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserFundingHistory (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserSpotBalances (params?: {}): Promise<Dict>;
+    v1PrivateGetUserAssetOperations (params?: {}): Promise<Dict>;
+    v1PrivateGetUserPositions (params?: {}): Promise<Dict>;
+    v1PrivateGetUserPositionsHistory (params?: {}): Promise<Dict>;
+    v1PrivateGetUserOrders (params?: {}): Promise<Dict>;
+    v1PrivateGetUserOrdersHistory (params?: {}): Promise<Dict>;
+    v1PrivateGetUserOrdersId (params?: {}): Promise<Dict>;
+    v1PrivateGetUserOrdersExternalExternalId (params?: {}): Promise<Dict>;
+    v1PrivateGetUserTrades (params?: {}): Promise<Dict>;
+    v1PrivateGetUserFundingHistory (params?: {}): Promise<Dict>;
     v1PrivateGetUserRebatesStats (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserLeverage (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetUserFees (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserLeverage (params?: {}): Promise<Dict>;
+    v1PrivateGetUserFees (params?: {}): Promise<Dict>;
     v1PrivateGetUserBridgeConfig (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetUserBridgeQuote (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetUserAffiliate (params?: {}): Promise<implicitReturnType>;
@@ -48,16 +48,16 @@ interface Exchange {
     v1PrivateGetVaultPublicPerformance (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetVaultPublicSummary (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetBuilderTrades (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostUserOrder (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostUserOrder (params?: {}): Promise<Dict>;
     v1PrivatePostUserOrderMassCancel (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostUserDeadmanswitch (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostUserBridgeQuote (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostUserWithdrawal (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostUserTransfer (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostUserWithdrawal (params?: {}): Promise<Dict>;
+    v1PrivatePostUserTransfer (params?: {}): Promise<Dict>;
     v1PrivatePostUserReferralsUse (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostUserReferrals (params?: {}): Promise<implicitReturnType>;
     v1PrivatePutUserReferrals (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePatchUserLeverage (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePatchUserLeverage (params?: {}): Promise<Dict>;
     v1PrivateDeleteUserOrderId (params?: {}): Promise<implicitReturnType>;
     v1PrivateDeleteUserOrder (params?: {}): Promise<implicitReturnType>;
 }

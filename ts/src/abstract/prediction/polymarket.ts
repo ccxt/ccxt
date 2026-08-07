@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../../base/types.js';
+import { implicitReturnType, Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
@@ -19,8 +19,8 @@ interface Exchange {
     gammaPublicGetEventsKeyset (params?: {}): Promise<implicitReturnType>;
     gammaPublicGetEventsPagination (params?: {}): Promise<implicitReturnType>;
     gammaPublicGetEventsResults (params?: {}): Promise<implicitReturnType>;
-    gammaPublicGetEventsSlugSlug (params?: {}): Promise<implicitReturnType>;
-    gammaPublicGetEventsId (params?: {}): Promise<implicitReturnType>;
+    gammaPublicGetEventsSlugSlug (params?: {}): Promise<Dict>;
+    gammaPublicGetEventsId (params?: {}): Promise<Dict>;
     gammaPublicGetEventsIdCommentsCount (params?: {}): Promise<implicitReturnType>;
     gammaPublicGetEventsIdTags (params?: {}): Promise<implicitReturnType>;
     gammaPublicGetEventsIdTweetCount (params?: {}): Promise<implicitReturnType>;
@@ -32,7 +32,7 @@ interface Exchange {
     gammaPublicGetMarketsIdTags (params?: {}): Promise<implicitReturnType>;
     gammaPublicGetProfilesUserAddressUserAddress (params?: {}): Promise<implicitReturnType>;
     gammaPublicGetPublicProfile (params?: {}): Promise<implicitReturnType>;
-    gammaPublicGetPublicSearch (params?: {}): Promise<implicitReturnType>;
+    gammaPublicGetPublicSearch (params?: {}): Promise<Dict>;
     gammaPublicGetSeries (params?: {}): Promise<implicitReturnType>;
     gammaPublicGetSeriesSummarySlugSlug (params?: {}): Promise<implicitReturnType>;
     gammaPublicGetSeriesSummaryId (params?: {}): Promise<implicitReturnType>;
@@ -51,11 +51,11 @@ interface Exchange {
     gammaPublicGetTeamsId (params?: {}): Promise<implicitReturnType>;
     gammaPublicPostMarketsAbridged (params?: {}): Promise<implicitReturnType>;
     gammaPublicPostMarketsInformation (params?: {}): Promise<implicitReturnType>;
-    clobPublicGetBook (params?: {}): Promise<implicitReturnType>;
+    clobPublicGetBook (params?: {}): Promise<Dict>;
     clobPublicGetBooks (params?: {}): Promise<implicitReturnType>;
     clobPublicGetBuilderTrades (params?: {}): Promise<implicitReturnType>;
     clobPublicGetClobMarketsConditionId (params?: {}): Promise<implicitReturnType>;
-    clobPublicGetFeeRate (params?: {}): Promise<implicitReturnType>;
+    clobPublicGetFeeRate (params?: {}): Promise<Dict>;
     clobPublicGetFeeRateTokenId (params?: {}): Promise<implicitReturnType>;
     clobPublicGetLastTradePrice (params?: {}): Promise<implicitReturnType>;
     clobPublicGetLastTradesPrices (params?: {}): Promise<implicitReturnType>;
@@ -67,7 +67,7 @@ interface Exchange {
     clobPublicGetNegRiskTokenId (params?: {}): Promise<implicitReturnType>;
     clobPublicGetPrice (params?: {}): Promise<implicitReturnType>;
     clobPublicGetPrices (params?: {}): Promise<implicitReturnType>;
-    clobPublicGetPricesHistory (params?: {}): Promise<implicitReturnType>;
+    clobPublicGetPricesHistory (params?: {}): Promise<Dict>;
     clobPublicGetRebatesCurrent (params?: {}): Promise<implicitReturnType>;
     clobPublicGetRewardsMarketsCurrent (params?: {}): Promise<implicitReturnType>;
     clobPublicGetRewardsMarketsMulti (params?: {}): Promise<implicitReturnType>;
@@ -78,7 +78,7 @@ interface Exchange {
     clobPublicGetSpread (params?: {}): Promise<implicitReturnType>;
     clobPublicGetTickSize (params?: {}): Promise<implicitReturnType>;
     clobPublicGetTickSizeTokenId (params?: {}): Promise<implicitReturnType>;
-    clobPublicGetTime (params?: {}): Promise<implicitReturnType>;
+    clobPublicGetTime (params?: {}): Promise<string>;
     clobPublicPostBatchPricesHistory (params?: {}): Promise<implicitReturnType>;
     clobPublicPostBooks (params?: {}): Promise<implicitReturnType>;
     clobPublicPostLastTradesPrices (params?: {}): Promise<implicitReturnType>;
@@ -90,11 +90,11 @@ interface Exchange {
     clobPrivateGetAuthBanStatusClosedOnly (params?: {}): Promise<implicitReturnType>;
     clobPrivateGetAuthBuilderApiKey (params?: {}): Promise<implicitReturnType>;
     clobPrivateGetAuthDeriveApiKey (params?: {}): Promise<implicitReturnType>;
-    clobPrivateGetBalanceAllowance (params?: {}): Promise<implicitReturnType>;
+    clobPrivateGetBalanceAllowance (params?: {}): Promise<Dict>;
     clobPrivateGetBalanceAllowanceUpdate (params?: {}): Promise<implicitReturnType>;
     clobPrivateGetDataOrderId (params?: {}): Promise<implicitReturnType>;
-    clobPrivateGetDataOrders (params?: {}): Promise<implicitReturnType>;
-    clobPrivateGetDataTrades (params?: {}): Promise<implicitReturnType>;
+    clobPrivateGetDataOrders (params?: {}): Promise<Dict>;
+    clobPrivateGetDataTrades (params?: {}): Promise<Dict>;
     clobPrivateGetNotifications (params?: {}): Promise<implicitReturnType>;
     clobPrivateGetOrderScoring (params?: {}): Promise<implicitReturnType>;
     clobPrivateGetOrdersScoring (params?: {}): Promise<implicitReturnType>;
@@ -106,25 +106,25 @@ interface Exchange {
     clobPrivatePostAuthBuilderApiKey (params?: {}): Promise<implicitReturnType>;
     clobPrivatePostHeartbeats (params?: {}): Promise<implicitReturnType>;
     clobPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
-    clobPrivatePostOrders (params?: {}): Promise<implicitReturnType>;
+    clobPrivatePostOrders (params?: {}): Promise<List>;
     clobPrivatePostV1Heartbeats (params?: {}): Promise<implicitReturnType>;
     clobPrivateDeleteAuthApiKey (params?: {}): Promise<implicitReturnType>;
     clobPrivateDeleteAuthBuilderApiKey (params?: {}): Promise<implicitReturnType>;
-    clobPrivateDeleteCancelAll (params?: {}): Promise<implicitReturnType>;
-    clobPrivateDeleteCancelMarketOrders (params?: {}): Promise<implicitReturnType>;
+    clobPrivateDeleteCancelAll (params?: {}): Promise<Dict>;
+    clobPrivateDeleteCancelMarketOrders (params?: {}): Promise<Dict>;
     clobPrivateDeleteNotifications (params?: {}): Promise<implicitReturnType>;
-    clobPrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    clobPrivateDeleteOrders (params?: {}): Promise<implicitReturnType>;
+    clobPrivateDeleteOrder (params?: {}): Promise<Dict>;
+    clobPrivateDeleteOrders (params?: {}): Promise<Dict>;
     dataPublicGetActivity (params?: {}): Promise<implicitReturnType>;
     dataPublicGetClosedPositions (params?: {}): Promise<implicitReturnType>;
     dataPublicGetHolders (params?: {}): Promise<implicitReturnType>;
     dataPublicGetLiveVolume (params?: {}): Promise<implicitReturnType>;
-    dataPublicGetOi (params?: {}): Promise<implicitReturnType>;
+    dataPublicGetOi (params?: {}): Promise<List>;
     dataPublicGetOther (params?: {}): Promise<implicitReturnType>;
-    dataPublicGetPositions (params?: {}): Promise<implicitReturnType>;
+    dataPublicGetPositions (params?: {}): Promise<Dict>;
     dataPublicGetRevisions (params?: {}): Promise<implicitReturnType>;
     dataPublicGetTraded (params?: {}): Promise<implicitReturnType>;
-    dataPublicGetTrades (params?: {}): Promise<implicitReturnType>;
+    dataPublicGetTrades (params?: {}): Promise<Dict>;
     dataPublicGetV1AccountingSnapshot (params?: {}): Promise<implicitReturnType>;
     dataPublicGetV1ActivityCombos (params?: {}): Promise<implicitReturnType>;
     dataPublicGetV1BuildersLeaderboard (params?: {}): Promise<implicitReturnType>;

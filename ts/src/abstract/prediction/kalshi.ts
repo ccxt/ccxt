@@ -5,28 +5,28 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../../base/types.js';
+import { Dict, implicitReturnType } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
-    kalshiPublicGetEvents (params?: {}): Promise<implicitReturnType>;
+    kalshiPublicGetEvents (params?: {}): Promise<Dict>;
     kalshiPublicGetEventsMultivariate (params?: {}): Promise<implicitReturnType>;
     kalshiPublicGetEventsFeeChanges (params?: {}): Promise<implicitReturnType>;
-    kalshiPublicGetEventsEventTicker (params?: {}): Promise<implicitReturnType>;
+    kalshiPublicGetEventsEventTicker (params?: {}): Promise<Dict>;
     kalshiPublicGetEventsEventTickerMetadata (params?: {}): Promise<implicitReturnType>;
-    kalshiPublicGetSeries (params?: {}): Promise<implicitReturnType>;
+    kalshiPublicGetSeries (params?: {}): Promise<Dict>;
     kalshiPublicGetSeriesFeeChanges (params?: {}): Promise<implicitReturnType>;
     kalshiPublicGetSeriesSeriesTicker (params?: {}): Promise<implicitReturnType>;
-    kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (params?: {}): Promise<implicitReturnType>;
+    kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (params?: {}): Promise<Dict>;
     kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks (params?: {}): Promise<implicitReturnType>;
     kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory (params?: {}): Promise<implicitReturnType>;
-    kalshiPublicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    kalshiPublicGetMarketsTrades (params?: {}): Promise<implicitReturnType>;
+    kalshiPublicGetMarkets (params?: {}): Promise<Dict>;
+    kalshiPublicGetMarketsTrades (params?: {}): Promise<Dict>;
     kalshiPublicGetMarketsOrderbooks (params?: {}): Promise<implicitReturnType>;
     kalshiPublicGetMarketsCandlesticks (params?: {}): Promise<implicitReturnType>;
-    kalshiPublicGetMarketsTicker (params?: {}): Promise<implicitReturnType>;
-    kalshiPublicGetMarketsTickerOrderbook (params?: {}): Promise<implicitReturnType>;
-    kalshiPublicGetExchangeStatus (params?: {}): Promise<implicitReturnType>;
+    kalshiPublicGetMarketsTicker (params?: {}): Promise<Dict>;
+    kalshiPublicGetMarketsTickerOrderbook (params?: {}): Promise<Dict>;
+    kalshiPublicGetExchangeStatus (params?: {}): Promise<Dict>;
     kalshiPublicGetExchangeSchedule (params?: {}): Promise<implicitReturnType>;
     kalshiPublicGetExchangeAnnouncements (params?: {}): Promise<implicitReturnType>;
     kalshiPublicGetExchangeUserDataTimestamp (params?: {}): Promise<implicitReturnType>;
@@ -46,14 +46,14 @@ interface Exchange {
     kalshiPublicGetMultivariateEventCollectionsCollectionTicker (params?: {}): Promise<implicitReturnType>;
     kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (params?: {}): Promise<implicitReturnType>;
     kalshiPublicGetIncentivePrograms (params?: {}): Promise<implicitReturnType>;
-    kalshiPrivateGetPortfolioBalance (params?: {}): Promise<implicitReturnType>;
-    kalshiPrivateGetPortfolioOrders (params?: {}): Promise<implicitReturnType>;
-    kalshiPrivateGetPortfolioOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    kalshiPrivateGetPortfolioBalance (params?: {}): Promise<Dict>;
+    kalshiPrivateGetPortfolioOrders (params?: {}): Promise<Dict>;
+    kalshiPrivateGetPortfolioOrdersOrderId (params?: {}): Promise<Dict>;
     kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition (params?: {}): Promise<implicitReturnType>;
     kalshiPrivateGetPortfolioOrdersQueuePositions (params?: {}): Promise<implicitReturnType>;
-    kalshiPrivateGetPortfolioPositions (params?: {}): Promise<implicitReturnType>;
-    kalshiPrivateGetPortfolioFills (params?: {}): Promise<implicitReturnType>;
-    kalshiPrivateGetPortfolioSettlements (params?: {}): Promise<implicitReturnType>;
+    kalshiPrivateGetPortfolioPositions (params?: {}): Promise<Dict>;
+    kalshiPrivateGetPortfolioFills (params?: {}): Promise<Dict>;
+    kalshiPrivateGetPortfolioSettlements (params?: {}): Promise<Dict>;
     kalshiPrivateGetPortfolioDeposits (params?: {}): Promise<implicitReturnType>;
     kalshiPrivateGetPortfolioWithdrawals (params?: {}): Promise<implicitReturnType>;
     kalshiPrivateGetPortfolioOrderGroups (params?: {}): Promise<implicitReturnType>;
@@ -65,7 +65,7 @@ interface Exchange {
     kalshiPrivateGetHistoricalFills (params?: {}): Promise<implicitReturnType>;
     kalshiPrivateGetHistoricalOrders (params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrders (params?: {}): Promise<implicitReturnType>;
-    kalshiPrivatePostPortfolioEventsOrders (params?: {}): Promise<implicitReturnType>;
+    kalshiPrivatePostPortfolioEventsOrders (params?: {}): Promise<Dict>;
     kalshiPrivatePostPortfolioOrdersBatched (params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrdersOrderIdAmend (params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrdersOrderIdDecrease (params?: {}): Promise<implicitReturnType>;
@@ -80,9 +80,9 @@ interface Exchange {
     kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (params?: {}): Promise<implicitReturnType>;
     kalshiPrivateDeletePortfolioOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     kalshiPrivateDeletePortfolioOrdersBatched (params?: {}): Promise<implicitReturnType>;
-    kalshiPrivateDeletePortfolioEventsOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    kalshiPrivateDeletePortfolioEventsOrdersOrderId (params?: {}): Promise<Dict>;
     kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId (params?: {}): Promise<implicitReturnType>;
-    electionsPublicGetSearchSeries (params?: {}): Promise<implicitReturnType>;
+    electionsPublicGetSearchSeries (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

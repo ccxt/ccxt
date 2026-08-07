@@ -5,19 +5,19 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetDepth (params?: {}): Promise<implicitReturnType>;
-    publicGetOrders (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    privatePostBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeAdd (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeList (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeView (params?: {}): Promise<implicitReturnType>;
+    publicGetDepth (params?: {}): Promise<Dict>;
+    publicGetOrders (params?: {}): Promise<List>;
+    publicGetTicker (params?: {}): Promise<Dict>;
+    publicGetTickers (params?: {}): Promise<Dict>;
+    privatePostBalance (params?: {}): Promise<Dict>;
+    privatePostTradeAdd (params?: {}): Promise<Dict>;
+    privatePostTradeCancel (params?: {}): Promise<Dict>;
+    privatePostTradeList (params?: {}): Promise<List>;
+    privatePostTradeView (params?: {}): Promise<Dict>;
     privatePostWallet (params?: {}): Promise<implicitReturnType>;
     webApiGetAjaxCoinCoinInfo (params?: {}): Promise<implicitReturnType>;
 }

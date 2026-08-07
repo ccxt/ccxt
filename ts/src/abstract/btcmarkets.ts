@@ -5,22 +5,22 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsMarketIdTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsMarketIdTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsMarketIdOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsMarketIdCandles (params?: {}): Promise<implicitReturnType>;
+    publicGetMarkets (params?: {}): Promise<List>;
+    publicGetMarketsMarketIdTicker (params?: {}): Promise<Dict>;
+    publicGetMarketsMarketIdTrades (params?: {}): Promise<List>;
+    publicGetMarketsMarketIdOrderbook (params?: {}): Promise<Dict>;
+    publicGetMarketsMarketIdCandles (params?: {}): Promise<List>;
     publicGetMarketsTickers (params?: {}): Promise<implicitReturnType>;
     publicGetMarketsOrderbooks (params?: {}): Promise<implicitReturnType>;
-    publicGetTime (params?: {}): Promise<implicitReturnType>;
-    privateGetOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersId (params?: {}): Promise<implicitReturnType>;
+    publicGetTime (params?: {}): Promise<Dict>;
+    privateGetOrders (params?: {}): Promise<List>;
+    privateGetOrdersId (params?: {}): Promise<Dict>;
     privateGetBatchordersIds (params?: {}): Promise<implicitReturnType>;
-    privateGetTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetTrades (params?: {}): Promise<List>;
     privateGetTradesId (params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawalsId (params?: {}): Promise<implicitReturnType>;
@@ -33,17 +33,17 @@ interface Exchange {
     privateGetAssets (params?: {}): Promise<implicitReturnType>;
     privateGetAccountsMeTradingFees (params?: {}): Promise<implicitReturnType>;
     privateGetAccountsMeWithdrawalLimits (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsMeBalances (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountsMeBalances (params?: {}): Promise<Dict>;
     privateGetAccountsMeTransactions (params?: {}): Promise<implicitReturnType>;
     privateGetReportsId (params?: {}): Promise<implicitReturnType>;
-    privatePostOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostOrders (params?: {}): Promise<Dict>;
     privatePostBatchorders (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawals (params?: {}): Promise<Dict>;
     privatePostReports (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrdersId (params?: {}): Promise<implicitReturnType>;
-    privateDeleteBatchordersIds (params?: {}): Promise<implicitReturnType>;
-    privatePutOrdersId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrdersId (params?: {}): Promise<Dict>;
+    privateDeleteBatchordersIds (params?: {}): Promise<Dict>;
+    privatePutOrdersId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

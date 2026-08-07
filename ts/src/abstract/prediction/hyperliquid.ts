@@ -5,12 +5,12 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../../base/types.js';
+import { implicitReturnType, Dict } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
     publicPostInfo (params?: {}): Promise<implicitReturnType | string>;
-    privatePostExchange (params?: {}): Promise<implicitReturnType>;
+    privatePostExchange (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

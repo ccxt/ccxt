@@ -5,31 +5,31 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, implicitReturnType, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetCurrencies (params?: {}): Promise<implicitReturnType>;
-    publicGetProducts (params?: {}): Promise<implicitReturnType>;
+    publicGetCurrencies (params?: {}): Promise<List>;
+    publicGetProducts (params?: {}): Promise<List>;
     publicGetProductsId (params?: {}): Promise<implicitReturnType>;
-    publicGetProductsIdBook (params?: {}): Promise<implicitReturnType>;
-    publicGetProductsIdCandles (params?: {}): Promise<implicitReturnType>;
+    publicGetProductsIdBook (params?: {}): Promise<Dict>;
+    publicGetProductsIdCandles (params?: {}): Promise<List>;
     publicGetProductsIdStats (params?: {}): Promise<implicitReturnType>;
     publicGetProductsIdTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetProductsIdTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetTime (params?: {}): Promise<implicitReturnType>;
-    publicGetProductsSparkLines (params?: {}): Promise<implicitReturnType>;
+    publicGetProductsIdTrades (params?: {}): Promise<List>;
+    publicGetTime (params?: {}): Promise<Dict>;
+    publicGetProductsSparkLines (params?: {}): Promise<Dict>;
     publicGetProductsVolumeSummary (params?: {}): Promise<implicitReturnType>;
     privateGetAddressBook (params?: {}): Promise<implicitReturnType>;
-    privateGetAccounts (params?: {}): Promise<implicitReturnType>;
+    privateGetAccounts (params?: {}): Promise<Dict>;
     privateGetAccountsId (params?: {}): Promise<implicitReturnType>;
     privateGetAccountsIdHolds (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsIdLedger (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsIdTransfers (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountsIdLedger (params?: {}): Promise<List>;
+    privateGetAccountsIdTransfers (params?: {}): Promise<List>;
     privateGetCoinbaseAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetFills (params?: {}): Promise<implicitReturnType>;
+    privateGetFills (params?: {}): Promise<List>;
     privateGetFunding (params?: {}): Promise<implicitReturnType>;
-    privateGetFees (params?: {}): Promise<implicitReturnType>;
+    privateGetFees (params?: {}): Promise<Dict>;
     privateGetMarginProfileInformation (params?: {}): Promise<implicitReturnType>;
     privateGetMarginBuyingPower (params?: {}): Promise<implicitReturnType>;
     privateGetMarginWithdrawalPower (params?: {}): Promise<implicitReturnType>;
@@ -39,16 +39,16 @@ interface Exchange {
     privateGetMarginPositionRefreshAmounts (params?: {}): Promise<implicitReturnType>;
     privateGetMarginStatus (params?: {}): Promise<implicitReturnType>;
     privateGetOracle (params?: {}): Promise<implicitReturnType>;
-    privateGetOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetOrders (params?: {}): Promise<List>;
     privateGetOrdersId (params?: {}): Promise<implicitReturnType>;
     privateGetOrdersClientClientOid (params?: {}): Promise<implicitReturnType>;
     privateGetOtcOrders (params?: {}): Promise<implicitReturnType>;
     privateGetPaymentMethods (params?: {}): Promise<implicitReturnType>;
-    privateGetPosition (params?: {}): Promise<implicitReturnType>;
+    privateGetPosition (params?: {}): Promise<List>;
     privateGetProfiles (params?: {}): Promise<implicitReturnType>;
     privateGetProfilesId (params?: {}): Promise<implicitReturnType>;
     privateGetReportsReportId (params?: {}): Promise<implicitReturnType>;
-    privateGetTransfers (params?: {}): Promise<implicitReturnType>;
+    privateGetTransfers (params?: {}): Promise<List>;
     privateGetTransfersTransferId (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSelfExchangeLimits (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSelfHoldBalances (params?: {}): Promise<implicitReturnType>;
@@ -71,9 +71,9 @@ interface Exchange {
     privatePostConversions (params?: {}): Promise<implicitReturnType>;
     privatePostDepositsCoinbaseAccount (params?: {}): Promise<implicitReturnType>;
     privatePostDepositsPaymentMethod (params?: {}): Promise<implicitReturnType>;
-    privatePostCoinbaseAccountsIdAddresses (params?: {}): Promise<implicitReturnType>;
+    privatePostCoinbaseAccountsIdAddresses (params?: {}): Promise<Dict>;
     privatePostFundingRepay (params?: {}): Promise<implicitReturnType>;
-    privatePostOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostOrders (params?: {}): Promise<Dict>;
     privatePostPositionClose (params?: {}): Promise<implicitReturnType>;
     privatePostProfiles (params?: {}): Promise<implicitReturnType>;
     privatePostProfilesMarginTransfer (params?: {}): Promise<implicitReturnType>;
@@ -88,7 +88,7 @@ interface Exchange {
     privatePostLoansRepayPrincipal (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersClientClientOid (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrdersId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrdersId (params?: {}): Promise<Dict>;
     privatePutProfilesIdDeactivate (params?: {}): Promise<implicitReturnType>;
     privatePutProfilesId (params?: {}): Promise<implicitReturnType>;
 }

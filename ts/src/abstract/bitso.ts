@@ -5,40 +5,40 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetAvailableBooks (params?: {}): Promise<implicitReturnType>;
-    publicGetCatalogues (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetOhlc (params?: {}): Promise<implicitReturnType>;
+    publicGetAvailableBooks (params?: {}): Promise<Dict>;
+    publicGetCatalogues (params?: {}): Promise<Dict>;
+    publicGetTicker (params?: {}): Promise<Dict>;
+    publicGetOrderBook (params?: {}): Promise<Dict>;
+    publicGetTrades (params?: {}): Promise<Dict>;
+    publicGetOhlc (params?: {}): Promise<Dict>;
     privateGetAccountStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetFees (params?: {}): Promise<implicitReturnType>;
-    privateGetFundings (params?: {}): Promise<implicitReturnType>;
-    privateGetFundingsFid (params?: {}): Promise<implicitReturnType>;
-    privateGetFundingDestination (params?: {}): Promise<implicitReturnType>;
+    privateGetBalance (params?: {}): Promise<Dict>;
+    privateGetFees (params?: {}): Promise<Dict>;
+    privateGetFundings (params?: {}): Promise<Dict>;
+    privateGetFundingsFid (params?: {}): Promise<Dict>;
+    privateGetFundingDestination (params?: {}): Promise<Dict>;
     privateGetKycDocuments (params?: {}): Promise<implicitReturnType>;
-    privateGetLedger (params?: {}): Promise<implicitReturnType>;
+    privateGetLedger (params?: {}): Promise<Dict>;
     privateGetLedgerTrades (params?: {}): Promise<implicitReturnType>;
     privateGetLedgerFees (params?: {}): Promise<implicitReturnType>;
     privateGetLedgerFundings (params?: {}): Promise<implicitReturnType>;
     privateGetLedgerWithdrawals (params?: {}): Promise<implicitReturnType>;
     privateGetMxBankCodes (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderTradesOid (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersOid (params?: {}): Promise<implicitReturnType>;
-    privateGetUserTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenOrders (params?: {}): Promise<Dict>;
+    privateGetOrderTradesOid (params?: {}): Promise<Dict>;
+    privateGetOrdersOid (params?: {}): Promise<Dict>;
+    privateGetUserTrades (params?: {}): Promise<Dict>;
     privateGetUserTradesTid (params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawalsWid (params?: {}): Promise<implicitReturnType>;
     privatePostBitcoinWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostDebitCardWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostEtherWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostOrders (params?: {}): Promise<Dict>;
     privatePostPhoneNumber (params?: {}): Promise<implicitReturnType>;
     privatePostPhoneVerification (params?: {}): Promise<implicitReturnType>;
     privatePostPhoneWithdrawal (params?: {}): Promise<implicitReturnType>;
@@ -46,9 +46,9 @@ interface Exchange {
     privatePostRippleWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostBcashWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostLitecoinWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrdersOid (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrdersAll (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrders (params?: {}): Promise<Dict>;
+    privateDeleteOrdersOid (params?: {}): Promise<Dict>;
+    privateDeleteOrdersAll (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

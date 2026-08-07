@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { implicitReturnType, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -14,40 +14,40 @@ interface Exchange {
     publicMarketPostFullV1Instrument (params?: {}): Promise<implicitReturnType>;
     publicMarketPostFullV1AllInstruments (params?: {}): Promise<implicitReturnType>;
     publicMarketPostFullV1Instruments (params?: {}): Promise<implicitReturnType>;
-    publicMarketPostFullV1Currency (params?: {}): Promise<implicitReturnType>;
+    publicMarketPostFullV1Currency (params?: {}): Promise<Dict>;
     publicMarketPostFullV1MarginRules (params?: {}): Promise<implicitReturnType>;
     publicMarketPostFullV1Mini (params?: {}): Promise<implicitReturnType>;
-    publicMarketPostFullV1Ticker (params?: {}): Promise<implicitReturnType>;
-    publicMarketPostFullV1Book (params?: {}): Promise<implicitReturnType>;
+    publicMarketPostFullV1Ticker (params?: {}): Promise<Dict>;
+    publicMarketPostFullV1Book (params?: {}): Promise<Dict>;
     publicMarketPostFullV1Trade (params?: {}): Promise<implicitReturnType>;
-    publicMarketPostFullV1TradeHistory (params?: {}): Promise<implicitReturnType>;
-    publicMarketPostFullV1Kline (params?: {}): Promise<implicitReturnType>;
-    publicMarketPostFullV1Funding (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1CreateOrder (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1CancelOrder (params?: {}): Promise<implicitReturnType>;
+    publicMarketPostFullV1TradeHistory (params?: {}): Promise<Dict>;
+    publicMarketPostFullV1Kline (params?: {}): Promise<Dict>;
+    publicMarketPostFullV1Funding (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1CreateOrder (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1CancelOrder (params?: {}): Promise<Dict>;
     privateTradingPostFullV1CancelOnDisconnect (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1CancelAllOrders (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1Order (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1OrderHistory (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1OpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1FillHistory (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1Positions (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1FundingPaymentHistory (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1CancelAllOrders (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1Order (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1OrderHistory (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1OpenOrders (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1FillHistory (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1Positions (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1FundingPaymentHistory (params?: {}): Promise<Dict>;
     privateTradingPostFullV1GetSubAccounts (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1AccountSummary (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1AccountSummary (params?: {}): Promise<Dict>;
     privateTradingPostFullV1AccountHistory (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1AggregatedAccountSummary (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1FundingAccountSummary (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1Transfer (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1DepositHistory (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1TransferHistory (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1Withdrawal (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1WithdrawalHistory (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1Transfer (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1DepositHistory (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1TransferHistory (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1Withdrawal (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1WithdrawalHistory (params?: {}): Promise<Dict>;
     privateTradingPostFullV1AddPositionMargin (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1GetPositionMarginLimits (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1SetPositionConfig (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1SetInitialLeverage (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1GetAllInitialLeverage (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1SetInitialLeverage (params?: {}): Promise<Dict>;
+    privateTradingPostFullV1GetAllInitialLeverage (params?: {}): Promise<Dict>;
     privateTradingPostFullV1SetDeriskMmRatio (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1VaultBurnTokens (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1VaultInvest (params?: {}): Promise<implicitReturnType>;
@@ -56,7 +56,7 @@ interface Exchange {
     privateTradingPostFullV1VaultRedeemCancel (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1VaultViewRedemptionQueue (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1VaultManagerInvestorHistory (params?: {}): Promise<implicitReturnType>;
-    privateTradingPostFullV1AuthorizeBuilder (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1AuthorizeBuilder (params?: {}): Promise<Dict>;
     privateTradingPostFullV1GetAuthorizedBuilders (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1BuilderFillHistory (params?: {}): Promise<implicitReturnType>;
 }

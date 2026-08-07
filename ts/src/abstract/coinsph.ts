@@ -5,35 +5,35 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { implicitReturnType, Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetOpenapiV1Ping (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiV1Time (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenapiV1Time (params?: {}): Promise<Dict>;
     publicGetOpenapiV1UserIp (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1Ticker24hr (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1TickerPrice (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1TickerBookTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiV1ExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiQuoteV1Depth (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiQuoteV1Klines (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiQuoteV1Trades (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenapiV1ExchangeInfo (params?: {}): Promise<Dict>;
+    publicGetOpenapiQuoteV1Depth (params?: {}): Promise<Dict>;
+    publicGetOpenapiQuoteV1Klines (params?: {}): Promise<List>;
+    publicGetOpenapiQuoteV1Trades (params?: {}): Promise<List>;
     publicGetOpenapiV1Pairs (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1AvgPrice (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiV1CheckSysStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiWalletV1ConfigGetall (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiWalletV1DepositAddress (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiWalletV1DepositHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiWalletV1WithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiWalletV1ConfigGetall (params?: {}): Promise<List>;
+    privateGetOpenapiWalletV1DepositAddress (params?: {}): Promise<Dict>;
+    privateGetOpenapiWalletV1DepositHistory (params?: {}): Promise<List>;
+    privateGetOpenapiWalletV1WithdrawHistory (params?: {}): Promise<List>;
     privateGetOpenapiWalletV1WithdrawAddressWhitelist (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1Account (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiV1Account (params?: {}): Promise<Dict>;
     privateGetOpenapiV1ApiKeys (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1OpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1AssetTradeFee (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1Order (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1HistoryOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1MyTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiV1OpenOrders (params?: {}): Promise<List>;
+    privateGetOpenapiV1AssetTradeFee (params?: {}): Promise<List>;
+    privateGetOpenapiV1Order (params?: {}): Promise<Dict>;
+    privateGetOpenapiV1HistoryOrders (params?: {}): Promise<List>;
+    privateGetOpenapiV1MyTrades (params?: {}): Promise<List>;
     privateGetOpenapiV1CapitalDepositHistory (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiV1CapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiV3PaymentRequestGetPaymentRequest (params?: {}): Promise<implicitReturnType>;
@@ -49,9 +49,9 @@ interface Exchange {
     privateGetOpenapiV1SubAccountWalletDepositHistory (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiV1FundCollectGetFundRecord (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiV1AssetTransactionHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiWalletV1WithdrawApply (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1OrderTest (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1Order (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiWalletV1WithdrawApply (params?: {}): Promise<Dict>;
+    privatePostOpenapiV1OrderTest (params?: {}): Promise<Dict>;
+    privatePostOpenapiV1Order (params?: {}): Promise<Dict>;
     privatePostOpenapiV1OrderCancelReplace (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiV1CapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiV1CapitalDepositApply (params?: {}): Promise<implicitReturnType>;
@@ -84,8 +84,8 @@ interface Exchange {
     privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiV1FundCollectCollectFromSubAccount (params?: {}): Promise<implicitReturnType>;
     privatePutOpenapiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOpenapiV1Order (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOpenapiV1OpenOrders (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOpenapiV1Order (params?: {}): Promise<Dict>;
+    privateDeleteOpenapiV1OpenOrders (params?: {}): Promise<List>;
     privateDeleteOpenapiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}

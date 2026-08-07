@@ -5,13 +5,13 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetLatest (params?: {}): Promise<implicitReturnType>;
-    privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersHistory (params?: {}): Promise<implicitReturnType>;
+    publicGetLatest (params?: {}): Promise<Dict>;
+    privatePostOrders (params?: {}): Promise<Dict>;
+    privatePostOrdersHistory (params?: {}): Promise<Dict>;
     privatePostMyCoinDeposit (params?: {}): Promise<implicitReturnType>;
     privatePostMyCoinSend (params?: {}): Promise<implicitReturnType>;
     privatePostQuoteBuy (params?: {}): Promise<implicitReturnType>;
@@ -26,7 +26,7 @@ interface Exchange {
     privatePostRoMyBalancesCointype (params?: {}): Promise<implicitReturnType>;
     privatePostRoMyDeposits (params?: {}): Promise<implicitReturnType>;
     privatePostRoMyWithdrawals (params?: {}): Promise<implicitReturnType>;
-    privatePostRoMyTransactions (params?: {}): Promise<implicitReturnType>;
+    privatePostRoMyTransactions (params?: {}): Promise<Dict>;
     privatePostRoMyTransactionsCointype (params?: {}): Promise<implicitReturnType>;
     privatePostRoMyTransactionsOpen (params?: {}): Promise<implicitReturnType>;
     privatePostRoMyTransactionsCointypeOpen (params?: {}): Promise<implicitReturnType>;

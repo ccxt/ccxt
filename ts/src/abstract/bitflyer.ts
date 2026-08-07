@@ -5,41 +5,41 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetGetmarketsUsa (params?: {}): Promise<implicitReturnType>;
-    publicGetGetmarketsEu (params?: {}): Promise<implicitReturnType>;
-    publicGetGetmarkets (params?: {}): Promise<implicitReturnType>;
-    publicGetGetboard (params?: {}): Promise<implicitReturnType>;
-    publicGetGetticker (params?: {}): Promise<implicitReturnType>;
-    publicGetGetexecutions (params?: {}): Promise<implicitReturnType>;
+    publicGetGetmarketsUsa (params?: {}): Promise<List>;
+    publicGetGetmarketsEu (params?: {}): Promise<List>;
+    publicGetGetmarkets (params?: {}): Promise<List>;
+    publicGetGetboard (params?: {}): Promise<Dict>;
+    publicGetGetticker (params?: {}): Promise<Dict>;
+    publicGetGetexecutions (params?: {}): Promise<List>;
     publicGetGethealth (params?: {}): Promise<implicitReturnType>;
     publicGetGetboardstate (params?: {}): Promise<implicitReturnType>;
     publicGetGetchats (params?: {}): Promise<implicitReturnType>;
-    publicGetGetfundingrate (params?: {}): Promise<implicitReturnType>;
+    publicGetGetfundingrate (params?: {}): Promise<Dict>;
     privateGetGetpermissions (params?: {}): Promise<implicitReturnType>;
-    privateGetGetbalance (params?: {}): Promise<implicitReturnType>;
+    privateGetGetbalance (params?: {}): Promise<Dict>;
     privateGetGetbalancehistory (params?: {}): Promise<implicitReturnType>;
     privateGetGetcollateral (params?: {}): Promise<implicitReturnType>;
     privateGetGetcollateralhistory (params?: {}): Promise<implicitReturnType>;
     privateGetGetcollateralaccounts (params?: {}): Promise<implicitReturnType>;
     privateGetGetaddresses (params?: {}): Promise<implicitReturnType>;
-    privateGetGetcoinins (params?: {}): Promise<implicitReturnType>;
-    privateGetGetcoinouts (params?: {}): Promise<implicitReturnType>;
+    privateGetGetcoinins (params?: {}): Promise<List>;
+    privateGetGetcoinouts (params?: {}): Promise<List>;
     privateGetGetbankaccounts (params?: {}): Promise<implicitReturnType>;
     privateGetGetdeposits (params?: {}): Promise<implicitReturnType>;
     privateGetGetwithdrawals (params?: {}): Promise<implicitReturnType>;
-    privateGetGetchildorders (params?: {}): Promise<implicitReturnType>;
+    privateGetGetchildorders (params?: {}): Promise<List>;
     privateGetGetparentorders (params?: {}): Promise<implicitReturnType>;
     privateGetGetparentorder (params?: {}): Promise<implicitReturnType>;
-    privateGetGetexecutions (params?: {}): Promise<implicitReturnType>;
+    privateGetGetexecutions (params?: {}): Promise<List>;
     privateGetGetpositions (params?: {}): Promise<implicitReturnType>;
-    privateGetGettradingcommission (params?: {}): Promise<implicitReturnType>;
+    privateGetGettradingcommission (params?: {}): Promise<Dict>;
     privatePostSendcoin (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdraw (params?: {}): Promise<implicitReturnType>;
-    privatePostSendchildorder (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdraw (params?: {}): Promise<Dict>;
+    privatePostSendchildorder (params?: {}): Promise<Dict>;
     privatePostCancelchildorder (params?: {}): Promise<implicitReturnType>;
     privatePostSendparentorder (params?: {}): Promise<implicitReturnType>;
     privatePostCancelparentorder (params?: {}): Promise<implicitReturnType>;

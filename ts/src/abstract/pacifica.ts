@@ -5,23 +5,23 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetInfo (params?: {}): Promise<implicitReturnType>;
+    publicGetInfo (params?: {}): Promise<Dict>;
     publicGetInfoFees (params?: {}): Promise<implicitReturnType>;
-    publicGetInfoPrices (params?: {}): Promise<implicitReturnType>;
-    publicGetKline (params?: {}): Promise<implicitReturnType>;
+    publicGetInfoPrices (params?: {}): Promise<Dict>;
+    publicGetKline (params?: {}): Promise<Dict>;
     publicGetKlineMark (params?: {}): Promise<implicitReturnType>;
-    publicGetBook (params?: {}): Promise<implicitReturnType>;
-    publicGetTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetBook (params?: {}): Promise<Dict>;
+    publicGetTrades (params?: {}): Promise<Dict>;
     publicGetFundingRateHistory (params?: {}): Promise<implicitReturnType>;
     publicGetLoanPool (params?: {}): Promise<implicitReturnType>;
-    publicGetAccount (params?: {}): Promise<implicitReturnType>;
+    publicGetAccount (params?: {}): Promise<Dict>;
     publicGetAccountLoan (params?: {}): Promise<implicitReturnType>;
-    publicGetAccountSettings (params?: {}): Promise<implicitReturnType>;
-    publicGetPositions (params?: {}): Promise<implicitReturnType>;
+    publicGetAccountSettings (params?: {}): Promise<Dict>;
+    publicGetPositions (params?: {}): Promise<Dict>;
     publicGetTradesHistory (params?: {}): Promise<implicitReturnType>;
     publicGetFundingHistory (params?: {}): Promise<implicitReturnType>;
     publicGetPortfolio (params?: {}): Promise<implicitReturnType>;
@@ -30,9 +30,9 @@ interface Exchange {
     publicGetAccountSpotAssetDepositHistory (params?: {}): Promise<implicitReturnType>;
     publicGetAccountSpotAssetWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     publicGetAccountSpotAssetWithdrawPending (params?: {}): Promise<implicitReturnType>;
-    publicGetOrders (params?: {}): Promise<implicitReturnType>;
+    publicGetOrders (params?: {}): Promise<Dict>;
     publicGetOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetOrdersHistoryById (params?: {}): Promise<implicitReturnType>;
+    publicGetOrdersHistoryById (params?: {}): Promise<Dict>;
     publicGetSpotAssets (params?: {}): Promise<implicitReturnType>;
     publicGetSpotAssetsBridgeInfo (params?: {}): Promise<implicitReturnType>;
     publicGetSpotAssetsBridgeParametersSymbol (params?: {}): Promise<implicitReturnType>;
@@ -46,18 +46,18 @@ interface Exchange {
     privatePostAccountSpotAssetWithdraw (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubaccountCreate (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubaccountList (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSubaccountTransfer (params?: {}): Promise<Dict>;
     privatePostAccountSubaccountSpotAssetTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostPositionsAddIsolatedMargin (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersCreate (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersCreateMarket (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersStopCreate (params?: {}): Promise<implicitReturnType>;
-    privatePostPositionsTpsl (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostOrdersCreate (params?: {}): Promise<Dict>;
+    privatePostOrdersCreateMarket (params?: {}): Promise<Dict>;
+    privatePostOrdersStopCreate (params?: {}): Promise<Dict>;
+    privatePostPositionsTpsl (params?: {}): Promise<Dict>;
+    privatePostOrdersCancel (params?: {}): Promise<Dict>;
     privatePostOrdersCancelAll (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersStopCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersEdit (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersBatch (params?: {}): Promise<implicitReturnType>;
+    privatePostOrdersStopCancel (params?: {}): Promise<Dict>;
+    privatePostOrdersEdit (params?: {}): Promise<Dict>;
+    privatePostOrdersBatch (params?: {}): Promise<Dict>;
     privatePostAccountBuilderCodesApprove (params?: {}): Promise<implicitReturnType>;
     privatePostAccountBuilderCodesRevoke (params?: {}): Promise<implicitReturnType>;
     privatePostAgentBind (params?: {}): Promise<implicitReturnType>;

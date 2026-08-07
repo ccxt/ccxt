@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { implicitReturnType, List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -15,42 +15,42 @@ interface Exchange {
     publicGetChatChannels (params?: {}): Promise<implicitReturnType>;
     publicGetChatConnected (params?: {}): Promise<implicitReturnType>;
     publicGetChatPinned (params?: {}): Promise<implicitReturnType>;
-    publicGetFunding (params?: {}): Promise<implicitReturnType>;
+    publicGetFunding (params?: {}): Promise<List>;
     publicGetGuild (params?: {}): Promise<implicitReturnType>;
-    publicGetInstrument (params?: {}): Promise<implicitReturnType>;
-    publicGetInstrumentActive (params?: {}): Promise<implicitReturnType>;
-    publicGetInstrumentActiveAndIndices (params?: {}): Promise<implicitReturnType>;
+    publicGetInstrument (params?: {}): Promise<List>;
+    publicGetInstrumentActive (params?: {}): Promise<List>;
+    publicGetInstrumentActiveAndIndices (params?: {}): Promise<List>;
     publicGetInstrumentActiveIntervals (params?: {}): Promise<implicitReturnType>;
     publicGetInstrumentCompositeIndex (params?: {}): Promise<implicitReturnType>;
     publicGetInstrumentIndices (params?: {}): Promise<implicitReturnType>;
     publicGetInstrumentUsdVolume (params?: {}): Promise<implicitReturnType>;
     publicGetInsurance (params?: {}): Promise<implicitReturnType>;
     publicGetLeaderboard (params?: {}): Promise<implicitReturnType>;
-    publicGetLiquidation (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderBookL2 (params?: {}): Promise<implicitReturnType>;
+    publicGetLiquidation (params?: {}): Promise<List>;
+    publicGetOrderBookL2 (params?: {}): Promise<List>;
     publicGetPorlNonce (params?: {}): Promise<implicitReturnType>;
     publicGetQuote (params?: {}): Promise<implicitReturnType>;
     publicGetQuoteBucketed (params?: {}): Promise<implicitReturnType>;
     publicGetSchema (params?: {}): Promise<implicitReturnType>;
     publicGetSchemaWebsocketHelp (params?: {}): Promise<implicitReturnType>;
     publicGetSettlement (params?: {}): Promise<implicitReturnType>;
-    publicGetStats (params?: {}): Promise<implicitReturnType>;
+    publicGetStats (params?: {}): Promise<List>;
     publicGetStatsHistory (params?: {}): Promise<implicitReturnType>;
     publicGetStatsHistoryUSD (params?: {}): Promise<implicitReturnType>;
-    publicGetTrade (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeBucketed (params?: {}): Promise<implicitReturnType>;
-    publicGetWalletAssets (params?: {}): Promise<implicitReturnType>;
+    publicGetTrade (params?: {}): Promise<List>;
+    publicGetTradeBucketed (params?: {}): Promise<List>;
+    publicGetWalletAssets (params?: {}): Promise<List>;
     publicGetWalletNetworks (params?: {}): Promise<implicitReturnType>;
     privateGetAddress (params?: {}): Promise<implicitReturnType>;
     privateGetApiKey (params?: {}): Promise<implicitReturnType>;
     privateGetExecution (params?: {}): Promise<implicitReturnType>;
-    privateGetExecutionTradeHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetExecutionTradeHistory (params?: {}): Promise<List>;
     privateGetGlobalNotification (params?: {}): Promise<implicitReturnType>;
     privateGetLeaderboardName (params?: {}): Promise<implicitReturnType>;
-    privateGetOrder (params?: {}): Promise<implicitReturnType>;
+    privateGetOrder (params?: {}): Promise<List>;
     privateGetPorlSnapshots (params?: {}): Promise<implicitReturnType>;
-    privateGetPosition (params?: {}): Promise<implicitReturnType>;
-    privateGetUser (params?: {}): Promise<implicitReturnType>;
+    privateGetPosition (params?: {}): Promise<List>;
+    privateGetUser (params?: {}): Promise<Dict>;
     privateGetUserAffiliateStatus (params?: {}): Promise<implicitReturnType>;
     privateGetUserCheckReferralCode (params?: {}): Promise<implicitReturnType>;
     privateGetUserCommission (params?: {}): Promise<implicitReturnType>;
@@ -58,7 +58,7 @@ interface Exchange {
     privateGetUserDepositAddress (params?: {}): Promise<string>;
     privateGetUserExecutionHistory (params?: {}): Promise<implicitReturnType>;
     privateGetUserGetWalletTransferAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetUserMargin (params?: {}): Promise<implicitReturnType>;
+    privateGetUserMargin (params?: {}): Promise<Dict>;
     privateGetUserQuoteFillRatio (params?: {}): Promise<implicitReturnType>;
     privateGetUserQuoteValueRatio (params?: {}): Promise<implicitReturnType>;
     privateGetUserStaking (params?: {}): Promise<implicitReturnType>;
@@ -67,7 +67,7 @@ interface Exchange {
     privateGetUserTradingVolume (params?: {}): Promise<implicitReturnType>;
     privateGetUserUnstakingRequests (params?: {}): Promise<implicitReturnType>;
     privateGetUserWallet (params?: {}): Promise<implicitReturnType>;
-    privateGetUserWalletHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetUserWalletHistory (params?: {}): Promise<List>;
     privateGetUserWalletSummary (params?: {}): Promise<implicitReturnType>;
     privateGetUserAffiliates (params?: {}): Promise<implicitReturnType>;
     privateGetUserEvent (params?: {}): Promise<implicitReturnType>;
@@ -79,7 +79,7 @@ interface Exchange {
     privatePostGuildKick (params?: {}): Promise<implicitReturnType>;
     privatePostGuildLeave (params?: {}): Promise<implicitReturnType>;
     privatePostGuildSharesTrades (params?: {}): Promise<implicitReturnType>;
-    privatePostOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostOrder (params?: {}): Promise<Dict>;
     privatePostOrderCancelAllAfter (params?: {}): Promise<implicitReturnType>;
     privatePostOrderClosePosition (params?: {}): Promise<implicitReturnType>;
     privatePostPositionIsolate (params?: {}): Promise<implicitReturnType>;
@@ -93,14 +93,14 @@ interface Exchange {
     privatePostUserConfirmWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostUserLogout (params?: {}): Promise<implicitReturnType>;
     privatePostUserPreferences (params?: {}): Promise<implicitReturnType>;
-    privatePostUserRequestWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostUserRequestWithdrawal (params?: {}): Promise<Dict>;
     privatePostUserUnstakingRequests (params?: {}): Promise<implicitReturnType>;
     privatePostUserUpdateSubaccount (params?: {}): Promise<implicitReturnType>;
     privatePostUserWalletTransfer (params?: {}): Promise<implicitReturnType>;
     privatePutGuild (params?: {}): Promise<implicitReturnType>;
-    privatePutOrder (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrderAll (params?: {}): Promise<implicitReturnType>;
+    privatePutOrder (params?: {}): Promise<Dict>;
+    privateDeleteOrder (params?: {}): Promise<List>;
+    privateDeleteOrderAll (params?: {}): Promise<List>;
     privateDeleteUserUnstakingRequests (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}

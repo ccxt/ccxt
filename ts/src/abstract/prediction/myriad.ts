@@ -5,32 +5,32 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../../base/types.js';
+import { Dict, implicitReturnType } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
-    myriadPublicGetQuestions (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetQuestions (params?: {}): Promise<Dict>;
     myriadPublicGetQuestionsId (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetMarketsId (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetMarkets (params?: {}): Promise<Dict>;
+    myriadPublicGetMarketsId (params?: {}): Promise<Dict>;
     myriadPublicGetMarketsNetworkIdId (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetMarketsIdEvents (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetMarketsIdEvents (params?: {}): Promise<Dict>;
     myriadPublicGetMarketsIdOrderbook (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetMarketsIdTrades (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetMarketsIdHolders (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetMarketsIdReferrals (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetEvents (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetOrders (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetOrdersHash (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetUsersAddressEvents (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetOrders (params?: {}): Promise<Dict>;
+    myriadPublicGetOrdersHash (params?: {}): Promise<Dict>;
+    myriadPublicGetUsersAddressEvents (params?: {}): Promise<Dict>;
     myriadPublicGetUsersAddressReferrals (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetUsersAddressPortfolio (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetUsersAddressPortfolio (params?: {}): Promise<Dict>;
     myriadPublicGetUsersAddressMarkets (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetTags (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetTopics (params?: {}): Promise<implicitReturnType>;
-    myriadPublicPostMarketsQuote (params?: {}): Promise<implicitReturnType>;
+    myriadPublicPostMarketsQuote (params?: {}): Promise<Dict>;
     myriadPublicPostMarketsClaim (params?: {}): Promise<implicitReturnType>;
-    myriadPublicPostOrders (params?: {}): Promise<implicitReturnType>;
+    myriadPublicPostOrders (params?: {}): Promise<Dict>;
     myriadPublicPostOrdersCancelBatch (params?: {}): Promise<implicitReturnType>;
     myriadPublicPostOrdersCancelAll (params?: {}): Promise<implicitReturnType>;
     myriadPublicPostPositionsSplit (params?: {}): Promise<implicitReturnType>;
@@ -39,7 +39,7 @@ interface Exchange {
     myriadPublicPostPositionsRedeemVoided (params?: {}): Promise<implicitReturnType>;
     myriadPublicPostPositionsNegRiskSplit (params?: {}): Promise<implicitReturnType>;
     myriadPublicPostPositionsNegRiskMerge (params?: {}): Promise<implicitReturnType>;
-    myriadPublicDeleteOrdersHash (params?: {}): Promise<implicitReturnType>;
+    myriadPublicDeleteOrdersHash (params?: {}): Promise<Dict>;
     myriadPrivatePostMarketsQuoteWithFee (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}

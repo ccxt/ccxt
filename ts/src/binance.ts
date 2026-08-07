@@ -3010,7 +3010,7 @@ export default class binance extends Exchange {
         if (this.safeBool (this.options, 'enableDemoTrading', false)) {
             return {};
         }
-        const promises = [ this.sapiGetCapitalConfigGetall (params) ];
+        const promises: Promise<Dict | List>[] = [ this.sapiGetCapitalConfigGetall (params) ];
         const fetchMargins = this.safeBool (this.options, 'fetchMargins', false);
         if (fetchMargins) {
             promises.push (this.sapiGetMarginAllPairs (params));

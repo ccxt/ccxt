@@ -5,28 +5,28 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetDepthPair (params?: {}): Promise<implicitReturnType>;
+    publicGetDepthPair (params?: {}): Promise<Dict>;
     publicGetCurrenciesPair (params?: {}): Promise<implicitReturnType>;
     publicGetCurrenciesAll (params?: {}): Promise<implicitReturnType>;
     publicGetCurrencyPairsPair (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrencyPairsAll (params?: {}): Promise<implicitReturnType>;
+    publicGetCurrencyPairsAll (params?: {}): Promise<List>;
     publicGetLastPricePair (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerPair (params?: {}): Promise<implicitReturnType>;
-    publicGetTradesPair (params?: {}): Promise<implicitReturnType>;
-    privatePostActiveOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
+    publicGetTickerPair (params?: {}): Promise<Dict>;
+    publicGetTradesPair (params?: {}): Promise<List>;
+    privatePostActiveOrders (params?: {}): Promise<Dict>;
+    privatePostCancelOrder (params?: {}): Promise<Dict>;
     privatePostDepositHistory (params?: {}): Promise<implicitReturnType>;
     privatePostGetIdInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostGetInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostGetInfo (params?: {}): Promise<Dict>;
     privatePostGetInfo2 (params?: {}): Promise<implicitReturnType>;
     privatePostGetPersonalInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostTrade (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdraw (params?: {}): Promise<implicitReturnType>;
+    privatePostTrade (params?: {}): Promise<Dict>;
+    privatePostTradeHistory (params?: {}): Promise<Dict>;
+    privatePostWithdraw (params?: {}): Promise<Dict>;
     privatePostWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     ecapiPostCreateInvoice (params?: {}): Promise<implicitReturnType>;
     ecapiPostGetInvoice (params?: {}): Promise<implicitReturnType>;

@@ -5,13 +5,13 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    traderPrivateGetV2Account (params?: {}): Promise<implicitReturnType>;
-    traderPrivateGetV2Orders (params?: {}): Promise<implicitReturnType>;
-    traderPrivateGetV2OrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    traderPrivateGetV2Account (params?: {}): Promise<Dict>;
+    traderPrivateGetV2Orders (params?: {}): Promise<List>;
+    traderPrivateGetV2OrdersOrderId (params?: {}): Promise<Dict>;
     traderPrivateGetV2Positions (params?: {}): Promise<implicitReturnType>;
     traderPrivateGetV2PositionsSymbolOrAssetId (params?: {}): Promise<implicitReturnType>;
     traderPrivateGetV2AccountPortfolioHistory (params?: {}): Promise<implicitReturnType>;
@@ -19,41 +19,41 @@ interface Exchange {
     traderPrivateGetV2WatchlistsWatchlistId (params?: {}): Promise<implicitReturnType>;
     traderPrivateGetV2WatchlistsByName (params?: {}): Promise<implicitReturnType>;
     traderPrivateGetV2AccountConfigurations (params?: {}): Promise<implicitReturnType>;
-    traderPrivateGetV2AccountActivities (params?: {}): Promise<implicitReturnType>;
-    traderPrivateGetV2AccountActivitiesActivityType (params?: {}): Promise<implicitReturnType>;
+    traderPrivateGetV2AccountActivities (params?: {}): Promise<List>;
+    traderPrivateGetV2AccountActivitiesActivityType (params?: {}): Promise<List>;
     traderPrivateGetV2Calendar (params?: {}): Promise<implicitReturnType>;
-    traderPrivateGetV2Clock (params?: {}): Promise<implicitReturnType>;
-    traderPrivateGetV2Assets (params?: {}): Promise<implicitReturnType>;
+    traderPrivateGetV2Clock (params?: {}): Promise<Dict>;
+    traderPrivateGetV2Assets (params?: {}): Promise<List>;
     traderPrivateGetV2AssetsSymbolOrAssetId (params?: {}): Promise<implicitReturnType>;
     traderPrivateGetV2CorporateActionsAnnouncementsId (params?: {}): Promise<implicitReturnType>;
     traderPrivateGetV2CorporateActionsAnnouncements (params?: {}): Promise<implicitReturnType>;
-    traderPrivateGetV2Wallets (params?: {}): Promise<implicitReturnType>;
-    traderPrivateGetV2WalletsTransfers (params?: {}): Promise<implicitReturnType>;
-    traderPrivatePostV2Orders (params?: {}): Promise<implicitReturnType>;
+    traderPrivateGetV2Wallets (params?: {}): Promise<Dict>;
+    traderPrivateGetV2WalletsTransfers (params?: {}): Promise<List>;
+    traderPrivatePostV2Orders (params?: {}): Promise<Dict>;
     traderPrivatePostV2Watchlists (params?: {}): Promise<implicitReturnType>;
     traderPrivatePostV2WatchlistsWatchlistId (params?: {}): Promise<implicitReturnType>;
     traderPrivatePostV2WatchlistsByName (params?: {}): Promise<implicitReturnType>;
-    traderPrivatePostV2WalletsTransfers (params?: {}): Promise<implicitReturnType>;
+    traderPrivatePostV2WalletsTransfers (params?: {}): Promise<Dict>;
     traderPrivatePutV2OrdersOrderId (params?: {}): Promise<implicitReturnType>;
     traderPrivatePutV2WatchlistsWatchlistId (params?: {}): Promise<implicitReturnType>;
     traderPrivatePutV2WatchlistsByName (params?: {}): Promise<implicitReturnType>;
-    traderPrivatePatchV2OrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    traderPrivatePatchV2OrdersOrderId (params?: {}): Promise<Dict>;
     traderPrivatePatchV2AccountConfigurations (params?: {}): Promise<implicitReturnType>;
-    traderPrivateDeleteV2Orders (params?: {}): Promise<implicitReturnType>;
-    traderPrivateDeleteV2OrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    traderPrivateDeleteV2Orders (params?: {}): Promise<List>;
+    traderPrivateDeleteV2OrdersOrderId (params?: {}): Promise<Dict>;
     traderPrivateDeleteV2Positions (params?: {}): Promise<implicitReturnType>;
     traderPrivateDeleteV2PositionsSymbolOrAssetId (params?: {}): Promise<implicitReturnType>;
     traderPrivateDeleteV2WatchlistsWatchlistId (params?: {}): Promise<implicitReturnType>;
     traderPrivateDeleteV2WatchlistsByName (params?: {}): Promise<implicitReturnType>;
     traderPrivateDeleteV2WatchlistsWatchlistIdSymbol (params?: {}): Promise<implicitReturnType>;
-    marketPublicGetV1beta3CryptoLocBars (params?: {}): Promise<implicitReturnType>;
-    marketPublicGetV1beta3CryptoLocLatestBars (params?: {}): Promise<implicitReturnType>;
-    marketPublicGetV1beta3CryptoLocLatestOrderbooks (params?: {}): Promise<implicitReturnType>;
+    marketPublicGetV1beta3CryptoLocBars (params?: {}): Promise<Dict>;
+    marketPublicGetV1beta3CryptoLocLatestBars (params?: {}): Promise<Dict>;
+    marketPublicGetV1beta3CryptoLocLatestOrderbooks (params?: {}): Promise<Dict>;
     marketPublicGetV1beta3CryptoLocLatestQuotes (params?: {}): Promise<implicitReturnType>;
-    marketPublicGetV1beta3CryptoLocLatestTrades (params?: {}): Promise<implicitReturnType>;
+    marketPublicGetV1beta3CryptoLocLatestTrades (params?: {}): Promise<Dict>;
     marketPublicGetV1beta3CryptoLocQuotes (params?: {}): Promise<implicitReturnType>;
-    marketPublicGetV1beta3CryptoLocSnapshots (params?: {}): Promise<implicitReturnType>;
-    marketPublicGetV1beta3CryptoLocTrades (params?: {}): Promise<implicitReturnType>;
+    marketPublicGetV1beta3CryptoLocSnapshots (params?: {}): Promise<Dict>;
+    marketPublicGetV1beta3CryptoLocTrades (params?: {}): Promise<Dict>;
     marketPrivateGetV1beta1CorporateActions (params?: {}): Promise<implicitReturnType>;
     marketPrivateGetV1beta1ForexLatestRates (params?: {}): Promise<implicitReturnType>;
     marketPrivateGetV1beta1ForexRates (params?: {}): Promise<implicitReturnType>;

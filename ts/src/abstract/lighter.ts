@@ -5,23 +5,23 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    rootGet (params?: {}): Promise<implicitReturnType>;
+    rootGet (params?: {}): Promise<Dict>;
     rootGetInfo (params?: {}): Promise<implicitReturnType>;
-    publicGetAccount (params?: {}): Promise<implicitReturnType>;
-    publicGetAccountsByL1Address (params?: {}): Promise<implicitReturnType>;
+    publicGetAccount (params?: {}): Promise<Dict>;
+    publicGetAccountsByL1Address (params?: {}): Promise<Dict>;
     publicGetApikeys (params?: {}): Promise<implicitReturnType>;
     publicGetExchangeStats (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetDetails (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderBookDetails (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderBookOrders (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderBooks (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetDetails (params?: {}): Promise<Dict>;
+    publicGetOrderBookDetails (params?: {}): Promise<Dict>;
+    publicGetOrderBookOrders (params?: {}): Promise<Dict>;
+    publicGetOrderBooks (params?: {}): Promise<Dict>;
     publicGetRecentTrades (params?: {}): Promise<implicitReturnType>;
     publicGetBlockTxs (params?: {}): Promise<implicitReturnType>;
-    publicGetNextNonce (params?: {}): Promise<implicitReturnType>;
+    publicGetNextNonce (params?: {}): Promise<Dict>;
     publicGetTx (params?: {}): Promise<implicitReturnType>;
     publicGetTxFromL1TxHash (params?: {}): Promise<implicitReturnType>;
     publicGetTxs (params?: {}): Promise<implicitReturnType>;
@@ -29,28 +29,28 @@ interface Exchange {
     publicGetBlock (params?: {}): Promise<implicitReturnType>;
     publicGetBlocks (params?: {}): Promise<implicitReturnType>;
     publicGetCurrentHeight (params?: {}): Promise<implicitReturnType>;
-    publicGetCandles (params?: {}): Promise<implicitReturnType>;
+    publicGetCandles (params?: {}): Promise<Dict>;
     publicGetFundings (params?: {}): Promise<implicitReturnType>;
     publicGetFastbridgeInfo (params?: {}): Promise<implicitReturnType>;
-    publicGetFundingRates (params?: {}): Promise<implicitReturnType>;
+    publicGetFundingRates (params?: {}): Promise<Dict>;
     publicGetWithdrawalDelay (params?: {}): Promise<implicitReturnType>;
-    publicPostSendTx (params?: {}): Promise<implicitReturnType>;
+    publicPostSendTx (params?: {}): Promise<Dict>;
     publicPostSendTxBatch (params?: {}): Promise<implicitReturnType>;
     privateGetAccountLimits (params?: {}): Promise<implicitReturnType>;
     privateGetAccountMetadata (params?: {}): Promise<implicitReturnType>;
     privateGetPnl (params?: {}): Promise<implicitReturnType>;
     privateGetL1Metadata (params?: {}): Promise<implicitReturnType>;
-    privateGetLiquidations (params?: {}): Promise<implicitReturnType>;
+    privateGetLiquidations (params?: {}): Promise<Dict>;
     privateGetPositionFunding (params?: {}): Promise<implicitReturnType>;
     privateGetPublicPoolsMetadata (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountActiveOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountInactiveOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountActiveOrders (params?: {}): Promise<Dict>;
+    privateGetAccountInactiveOrders (params?: {}): Promise<Dict>;
     privateGetExport (params?: {}): Promise<implicitReturnType>;
-    privateGetTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetTrades (params?: {}): Promise<Dict>;
     privateGetAccountTxs (params?: {}): Promise<implicitReturnType>;
-    privateGetDepositHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTransferHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetWithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetDepositHistory (params?: {}): Promise<Dict>;
+    privateGetTransferHistory (params?: {}): Promise<Dict>;
+    privateGetWithdrawHistory (params?: {}): Promise<Dict>;
     privateGetReferralPoints (params?: {}): Promise<implicitReturnType>;
     privateGetTransferFeeInfo (params?: {}): Promise<implicitReturnType>;
     privatePostChangeAccountTier (params?: {}): Promise<implicitReturnType>;

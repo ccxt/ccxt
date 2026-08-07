@@ -5,44 +5,44 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    exchangeGetMarkets (params?: {}): Promise<implicitReturnType>;
-    exchangePrivateGetCandles (params?: {}): Promise<implicitReturnType>;
+    exchangeGetMarkets (params?: {}): Promise<Dict>;
+    exchangePrivateGetCandles (params?: {}): Promise<Dict>;
     exchangePrivateGetMove (params?: {}): Promise<implicitReturnType>;
     exchangePrivateGetMoveListMoves (params?: {}): Promise<implicitReturnType>;
     exchangePrivateGetTransfers (params?: {}): Promise<implicitReturnType>;
     exchangePrivatePostConvert (params?: {}): Promise<implicitReturnType>;
     exchangePrivatePostMove (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderbookTop (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbook (params?: {}): Promise<Dict>;
+    publicGetOrderbookTop (params?: {}): Promise<Dict>;
+    publicGetTicker (params?: {}): Promise<Dict>;
+    publicGetTickers (params?: {}): Promise<Dict>;
+    publicGetTrades (params?: {}): Promise<Dict>;
     privateGetAccountsIdPending (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsIdTransactions (params?: {}): Promise<implicitReturnType>;
-    privateGetBalance (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountsIdTransactions (params?: {}): Promise<Dict>;
+    privateGetBalance (params?: {}): Promise<Dict>;
     privateGetBeneficiaries (params?: {}): Promise<implicitReturnType>;
-    privateGetSendNetworks (params?: {}): Promise<implicitReturnType>;
-    privateGetFeeInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetFundingAddress (params?: {}): Promise<implicitReturnType>;
-    privateGetListorders (params?: {}): Promise<implicitReturnType>;
-    privateGetListtrades (params?: {}): Promise<implicitReturnType>;
-    privateGetSendFee (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersId (params?: {}): Promise<implicitReturnType>;
+    privateGetSendNetworks (params?: {}): Promise<Dict>;
+    privateGetFeeInfo (params?: {}): Promise<Dict>;
+    privateGetFundingAddress (params?: {}): Promise<Dict>;
+    privateGetListorders (params?: {}): Promise<Dict>;
+    privateGetListtrades (params?: {}): Promise<Dict>;
+    privateGetSendFee (params?: {}): Promise<Dict>;
+    privateGetOrdersId (params?: {}): Promise<Dict>;
     privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawalsId (params?: {}): Promise<implicitReturnType>;
     privateGetTransfers (params?: {}): Promise<implicitReturnType>;
     privateGetUsersLinked (params?: {}): Promise<implicitReturnType>;
     privatePostAccounts (params?: {}): Promise<implicitReturnType>;
     privatePostAddressValidate (params?: {}): Promise<implicitReturnType>;
-    privatePostPostorder (params?: {}): Promise<implicitReturnType>;
-    privatePostMarketorder (params?: {}): Promise<implicitReturnType>;
+    privatePostPostorder (params?: {}): Promise<Dict>;
+    privatePostMarketorder (params?: {}): Promise<Dict>;
     privatePostStoporder (params?: {}): Promise<implicitReturnType>;
-    privatePostFundingAddress (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
+    privatePostFundingAddress (params?: {}): Promise<Dict>;
+    privatePostWithdrawals (params?: {}): Promise<Dict>;
     privatePostSend (params?: {}): Promise<implicitReturnType>;
     privatePostOauth2Grant (params?: {}): Promise<implicitReturnType>;
     privatePostBeneficiaries (params?: {}): Promise<implicitReturnType>;

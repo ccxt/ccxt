@@ -5,23 +5,23 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../../base/types.js';
+import { Dict, List, implicitReturnType } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
-    limitlessPublicGetMarketsActive (params?: {}): Promise<implicitReturnType>;
-    limitlessPublicGetMarketsActiveCategoryId (params?: {}): Promise<implicitReturnType>;
-    limitlessPublicGetCategories (params?: {}): Promise<implicitReturnType>;
-    limitlessPublicGetMarketsAddressOrSlug (params?: {}): Promise<implicitReturnType>;
+    limitlessPublicGetMarketsActive (params?: {}): Promise<Dict>;
+    limitlessPublicGetMarketsActiveCategoryId (params?: {}): Promise<Dict>;
+    limitlessPublicGetCategories (params?: {}): Promise<List>;
+    limitlessPublicGetMarketsAddressOrSlug (params?: {}): Promise<Dict>;
     limitlessPublicGetMarketsCategoriesCount (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketsActiveSlugs (params?: {}): Promise<implicitReturnType>;
-    limitlessPublicGetMarketsSearch (params?: {}): Promise<implicitReturnType>;
-    limitlessPublicGetMarketsSlugOrderbook (params?: {}): Promise<implicitReturnType>;
-    limitlessPublicGetMarketsSlugHistoricalPrice (params?: {}): Promise<implicitReturnType>;
+    limitlessPublicGetMarketsSearch (params?: {}): Promise<Dict>;
+    limitlessPublicGetMarketsSlugOrderbook (params?: {}): Promise<Dict>;
+    limitlessPublicGetMarketsSlugHistoricalPrice (params?: {}): Promise<Dict>;
     limitlessPublicGetAuthSigningMessage (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketsAddressOrSlugOracleCandles (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketsSlugGetFeedEvents (params?: {}): Promise<implicitReturnType>;
-    limitlessPublicGetMarketsSlugEvents (params?: {}): Promise<implicitReturnType>;
+    limitlessPublicGetMarketsSlugEvents (params?: {}): Promise<Dict>;
     limitlessPublicGetMarketsTimeline (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketsSlugTimeline (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetNavigation (params?: {}): Promise<implicitReturnType>;
@@ -35,14 +35,14 @@ interface Exchange {
     limitlessPublicGetPortfolioAccountPnlChart (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetAuthApiKeys (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetProfilesPartnerAccounts (params?: {}): Promise<implicitReturnType>;
-    limitlessPrivateGetMarketsSlugUserOrders (params?: {}): Promise<implicitReturnType>;
-    limitlessPrivateGetPortfolioPositions (params?: {}): Promise<implicitReturnType>;
+    limitlessPrivateGetMarketsSlugUserOrders (params?: {}): Promise<List>;
+    limitlessPrivateGetPortfolioPositions (params?: {}): Promise<Dict>;
     limitlessPrivateGetPortfolioTrades (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetMarketsSlugLockedBalance (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetProfilesMe (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetProfilesAccount (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetPortfolioPnlChart (params?: {}): Promise<implicitReturnType>;
-    limitlessPrivateGetPortfolioHistory (params?: {}): Promise<implicitReturnType>;
+    limitlessPrivateGetPortfolioHistory (params?: {}): Promise<Dict>;
     limitlessPrivateGetPortfolioPoints (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetPortfolioTradingAllowance (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetAuthApiTokensCapabilities (params?: {}): Promise<implicitReturnType>;
@@ -53,9 +53,9 @@ interface Exchange {
     limitlessPrivatePostAuthLogin (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostOrders (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostOrdersCancel (params?: {}): Promise<implicitReturnType>;
-    limitlessPrivatePostOrdersCancelBatch (params?: {}): Promise<implicitReturnType>;
+    limitlessPrivatePostOrdersCancelBatch (params?: {}): Promise<Dict>;
     limitlessPrivatePostOrdersBatchCancel (params?: {}): Promise<implicitReturnType>;
-    limitlessPrivatePostOrdersStatusBatch (params?: {}): Promise<implicitReturnType>;
+    limitlessPrivatePostOrdersStatusBatch (params?: {}): Promise<Dict>;
     limitlessPrivatePostPortfolioRedeem (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostPortfolioWithdraw (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostPortfolioWithdrawalAddresses (params?: {}): Promise<implicitReturnType>;

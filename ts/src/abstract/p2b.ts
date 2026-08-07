@@ -5,27 +5,27 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetMarkets (params?: {}): Promise<implicitReturnType>;
+    publicGetMarkets (params?: {}): Promise<Dict>;
     publicGetMarket (params?: {}): Promise<implicitReturnType>;
-    publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetBook (params?: {}): Promise<implicitReturnType>;
-    publicGetHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetDepthResult (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketKline (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountBalances (params?: {}): Promise<implicitReturnType>;
+    publicGetTickers (params?: {}): Promise<Dict>;
+    publicGetTicker (params?: {}): Promise<Dict>;
+    publicGetBook (params?: {}): Promise<Dict>;
+    publicGetHistory (params?: {}): Promise<Dict>;
+    publicGetDepthResult (params?: {}): Promise<Dict>;
+    publicGetMarketKline (params?: {}): Promise<Dict>;
+    privatePostAccountBalances (params?: {}): Promise<Dict>;
     privatePostAccountBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderNew (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderNew (params?: {}): Promise<Dict>;
+    privatePostOrderCancel (params?: {}): Promise<Dict>;
+    privatePostOrders (params?: {}): Promise<Dict>;
     privatePostAccountMarketOrderHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountMarketDealHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountOrderHistory (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountMarketDealHistory (params?: {}): Promise<Dict>;
+    privatePostAccountOrder (params?: {}): Promise<Dict>;
+    privatePostAccountOrderHistory (params?: {}): Promise<Dict>;
     privatePostAccountExecutedHistory (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}

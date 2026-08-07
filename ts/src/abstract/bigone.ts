@@ -5,34 +5,34 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetPing (params?: {}): Promise<implicitReturnType>;
+    publicGetPing (params?: {}): Promise<Dict>;
     publicGetAssetPairs (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetPairsAssetPairNameDepth (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetPairsAssetPairNameTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetPairsAssetPairNameTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetPairsAssetPairNameCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetPairsTickers (params?: {}): Promise<implicitReturnType>;
-    privateGetAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetFundAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetsAssetSymbolAddress (params?: {}): Promise<implicitReturnType>;
-    privateGetOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersId (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetPairsAssetPairNameDepth (params?: {}): Promise<Dict>;
+    publicGetAssetPairsAssetPairNameTrades (params?: {}): Promise<Dict>;
+    publicGetAssetPairsAssetPairNameTicker (params?: {}): Promise<Dict>;
+    publicGetAssetPairsAssetPairNameCandles (params?: {}): Promise<Dict>;
+    publicGetAssetPairsTickers (params?: {}): Promise<Dict>;
+    privateGetAccounts (params?: {}): Promise<Dict>;
+    privateGetFundAccounts (params?: {}): Promise<Dict>;
+    privateGetAssetsAssetSymbolAddress (params?: {}): Promise<Dict>;
+    privateGetOrders (params?: {}): Promise<Dict>;
+    privateGetOrdersId (params?: {}): Promise<Dict>;
     privateGetOrdersMulti (params?: {}): Promise<implicitReturnType>;
-    privateGetTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
-    privateGetDeposits (params?: {}): Promise<implicitReturnType>;
-    privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersIdCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
-    privatePostTransfer (params?: {}): Promise<implicitReturnType>;
+    privateGetTrades (params?: {}): Promise<Dict>;
+    privateGetWithdrawals (params?: {}): Promise<Dict>;
+    privateGetDeposits (params?: {}): Promise<Dict>;
+    privatePostOrders (params?: {}): Promise<Dict>;
+    privatePostOrdersIdCancel (params?: {}): Promise<Dict>;
+    privatePostOrdersCancel (params?: {}): Promise<Dict>;
+    privatePostWithdrawals (params?: {}): Promise<Dict>;
+    privatePostTransfer (params?: {}): Promise<Dict>;
     contractPublicGetSymbols (params?: {}): Promise<implicitReturnType>;
-    contractPublicGetInstruments (params?: {}): Promise<implicitReturnType>;
-    contractPublicGetDepthSymbolSnapshot (params?: {}): Promise<implicitReturnType>;
+    contractPublicGetInstruments (params?: {}): Promise<List>;
+    contractPublicGetDepthSymbolSnapshot (params?: {}): Promise<Dict>;
     contractPublicGetInstrumentsDifference (params?: {}): Promise<implicitReturnType>;
     contractPublicGetInstrumentsPrices (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetAccounts (params?: {}): Promise<implicitReturnType>;

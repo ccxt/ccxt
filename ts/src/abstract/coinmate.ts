@@ -5,19 +5,19 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerAll (params?: {}): Promise<implicitReturnType>;
+    publicGetOrderBook (params?: {}): Promise<Dict>;
+    publicGetTicker (params?: {}): Promise<Dict>;
+    publicGetTickerAll (params?: {}): Promise<Dict>;
     publicGetProducts (params?: {}): Promise<implicitReturnType>;
-    publicGetTransactions (params?: {}): Promise<implicitReturnType>;
-    publicGetTradingPairs (params?: {}): Promise<implicitReturnType>;
-    publicGetSystemTime (params?: {}): Promise<implicitReturnType>;
+    publicGetTransactions (params?: {}): Promise<Dict>;
+    publicGetTradingPairs (params?: {}): Promise<Dict>;
+    publicGetSystemTime (params?: {}): Promise<Dict>;
     privatePostCurrencies (params?: {}): Promise<implicitReturnType>;
-    privatePostBalances (params?: {}): Promise<implicitReturnType>;
+    privatePostBalances (params?: {}): Promise<Dict>;
     privatePostBitcoinCashWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostBitcoinCashDepositAddresses (params?: {}): Promise<implicitReturnType>;
     privatePostBitcoinDepositAddresses (params?: {}): Promise<implicitReturnType>;
@@ -25,8 +25,8 @@ interface Exchange {
     privatePostBitcoinWithdrawalFees (params?: {}): Promise<implicitReturnType>;
     privatePostBuyInstant (params?: {}): Promise<implicitReturnType>;
     privatePostBuyLimit (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrderWithInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostCancelOrder (params?: {}): Promise<Dict>;
+    privatePostCancelOrderWithInfo (params?: {}): Promise<Dict>;
     privatePostCreateVoucher (params?: {}): Promise<implicitReturnType>;
     privatePostDashDepositAddresses (params?: {}): Promise<implicitReturnType>;
     privatePostDashWithdrawal (params?: {}): Promise<implicitReturnType>;
@@ -34,10 +34,10 @@ interface Exchange {
     privatePostEthereumDepositAddresses (params?: {}): Promise<implicitReturnType>;
     privatePostLitecoinWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostLitecoinDepositAddresses (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderById (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenOrders (params?: {}): Promise<Dict>;
+    privatePostOrder (params?: {}): Promise<Dict>;
+    privatePostOrderHistory (params?: {}): Promise<Dict>;
+    privatePostOrderById (params?: {}): Promise<Dict>;
     privatePostPusherAuth (params?: {}): Promise<implicitReturnType>;
     privatePostRedeemVoucher (params?: {}): Promise<implicitReturnType>;
     privatePostReplaceByBuyLimit (params?: {}): Promise<implicitReturnType>;
@@ -49,10 +49,10 @@ interface Exchange {
     privatePostSellInstant (params?: {}): Promise<implicitReturnType>;
     privatePostSellLimit (params?: {}): Promise<implicitReturnType>;
     privatePostTransactionHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostTraderFees (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostTransferHistory (params?: {}): Promise<implicitReturnType>;
+    privatePostTraderFees (params?: {}): Promise<Dict>;
+    privatePostTradeHistory (params?: {}): Promise<Dict>;
+    privatePostTransfer (params?: {}): Promise<Dict>;
+    privatePostTransferHistory (params?: {}): Promise<Dict>;
     privatePostUnconfirmedBitcoinDeposits (params?: {}): Promise<implicitReturnType>;
     privatePostUnconfirmedBitcoinCashDeposits (params?: {}): Promise<implicitReturnType>;
     privatePostUnconfirmedDashDeposits (params?: {}): Promise<implicitReturnType>;
