@@ -233,6 +233,10 @@ class binance(ccxt.async_support.binance):
         return stream
 
     def get_ws_url(self, type: Any, category: Any):
+        if type == 'option':
+            # binance options ws(nbstream.binance.com/eoptions) is not integrated yet - without
+            # self guard the None base url produces a silent hang, see https://github.com/ccxt/ccxt/issues/26333
+            raise NotSupported(self.id + ' watch methods do not support option markets yet')
         baseUrl = self.urls['api']['ws'][type]
         if type == 'future':
             # skip URL manipulation for proxied/bridge URLs(contain an embedded protocol)
@@ -672,7 +676,9 @@ class binance(ccxt.async_support.binance):
         symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
-        if firstMarket['contract']:
+        if firstMarket['contract'] and not firstMarket['option']:
+            # options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            # see https://github.com/ccxt/ccxt/issues/26333
             type = 'future' if firstMarket['linear'] else 'delivery'
         name = 'depth'
         streamHash = 'multipleOrderbook'
@@ -739,7 +745,9 @@ class binance(ccxt.async_support.binance):
         symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
-        if firstMarket['contract']:
+        if firstMarket['contract'] and not firstMarket['option']:
+            # options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            # see https://github.com/ccxt/ccxt/issues/26333
             type = 'future' if firstMarket['linear'] else 'delivery'
         name = 'depth'
         streamHash = 'multipleOrderbook'
@@ -1095,7 +1103,9 @@ class binance(ccxt.async_support.binance):
         params = self.omit(params, 'callerMethodName')
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
-        if firstMarket['contract']:
+        if firstMarket['contract'] and not firstMarket['option']:
+            # options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            # see https://github.com/ccxt/ccxt/issues/26333
             type = 'future' if firstMarket['linear'] else 'delivery'
         messageHashes = []
         subParams = []
@@ -1152,7 +1162,9 @@ class binance(ccxt.async_support.binance):
         params = self.omit(params, 'callerMethodName')
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
-        if firstMarket['contract']:
+        if firstMarket['contract'] and not firstMarket['option']:
+            # options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            # see https://github.com/ccxt/ccxt/issues/26333
             type = 'future' if firstMarket['linear'] else 'delivery'
         subMessageHashes = []
         subParams = []
@@ -1438,7 +1450,9 @@ class binance(ccxt.async_support.binance):
         marketSymbols = self.market_symbols(symbols, None, False, False, True)
         firstMarket = self.market(marketSymbols[0])
         type = firstMarket['type']
-        if firstMarket['contract']:
+        if firstMarket['contract'] and not firstMarket['option']:
+            # options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            # see https://github.com/ccxt/ccxt/issues/26333
             type = 'future' if firstMarket['linear'] else 'delivery'
         isSpot = (type == 'spot')
         timezone = None
@@ -1502,7 +1516,9 @@ class binance(ccxt.async_support.binance):
         marketSymbols = self.market_symbols(symbols, None, False, False, True)
         firstMarket = self.market(marketSymbols[0])
         type = firstMarket['type']
-        if firstMarket['contract']:
+        if firstMarket['contract'] and not firstMarket['option']:
+            # options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            # see https://github.com/ccxt/ccxt/issues/26333
             type = 'future' if firstMarket['linear'] else 'delivery'
         isSpot = (type == 'spot')
         timezone = None
