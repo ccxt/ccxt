@@ -3087,8 +3087,9 @@ func (this *KrakenCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
+		var tradesList any = this.ToArray(trades)
 
-		ch <- this.ParseTrades(trades, market, since, limit)
+		ch <- this.ParseTrades(tradesList, market, since, limit)
 		return nil
 
 	}()
@@ -3118,8 +3119,8 @@ func (this *KrakenCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes264812 := (<-this.LoadMarkets())
-			PanicOnError(retRes264812)
+			retRes264912 := (<-this.LoadMarkets())
+			PanicOnError(retRes264912)
 		}
 		var response any = nil
 		var requestId any = this.SafeValue(params, "userref", id) // string or integer
@@ -3234,8 +3235,8 @@ func (this *KrakenCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes272612 := (<-this.LoadMarkets())
-			PanicOnError(retRes272612)
+			retRes272712 := (<-this.LoadMarkets())
+			PanicOnError(retRes272712)
 		}
 
 		response := (<-this.PrivatePostCancelAll(params))
@@ -3282,8 +3283,8 @@ func (this *KrakenCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes276112 := (<-this.LoadMarkets())
-			PanicOnError(retRes276112)
+			retRes276212 := (<-this.LoadMarkets())
+			PanicOnError(retRes276212)
 		}
 		if IsTrue(IsEqual(timeout, nil)) {
 			panic(ExchangeError(Add(this.Id, " cancelAllOrdersAfter() missing timeout")))
@@ -3339,8 +3340,8 @@ func (this *KrakenCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes279712 := (<-this.LoadMarkets())
-			PanicOnError(retRes279712)
+			retRes279812 := (<-this.LoadMarkets())
+			PanicOnError(retRes279812)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -3448,8 +3449,8 @@ func (this *KrakenCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes288312 := (<-this.LoadMarkets())
-			PanicOnError(retRes288312)
+			retRes288412 := (<-this.LoadMarkets())
+			PanicOnError(retRes288412)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -3705,8 +3706,8 @@ func (this *KrakenCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes311112 := (<-this.LoadMarkets())
-			PanicOnError(retRes311112)
+			retRes311212 := (<-this.LoadMarkets())
+			PanicOnError(retRes311212)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -3814,8 +3815,8 @@ func (this *KrakenCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes318612 := (<-this.LoadMarkets())
-			PanicOnError(retRes318612)
+			retRes318712 := (<-this.LoadMarkets())
+			PanicOnError(retRes318712)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
@@ -3824,9 +3825,9 @@ func (this *KrakenCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		if IsTrue(paginate) {
 			AddElementToObject(params, "cursor", true)
 
-			retRes319219 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "next_cursor", "cursor"))
-			PanicOnError(retRes319219)
-			ch <- retRes319219
+			retRes319319 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "next_cursor", "cursor"))
+			PanicOnError(retRes319319)
+			ch <- retRes319319
 			return nil
 		}
 		var request any = map[string]any{}
@@ -3931,9 +3932,9 @@ func (this *KrakenCore) CreateDepositAddress(code any, optionalArgs ...any) <-ch
 			"new": "true",
 		}
 
-		retRes328315 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
-		PanicOnError(retRes328315)
-		ch <- retRes328315
+		retRes328415 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
+		PanicOnError(retRes328415)
+		ch <- retRes328415
 		return nil
 
 	}()
@@ -3958,8 +3959,8 @@ func (this *KrakenCore) FetchDepositMethods(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes329712 := (<-this.LoadMarkets())
-			PanicOnError(retRes329712)
+			retRes329812 := (<-this.LoadMarkets())
+			PanicOnError(retRes329812)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -4017,8 +4018,8 @@ func (this *KrakenCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes334112 := (<-this.LoadMarkets())
-			PanicOnError(retRes334112)
+			retRes334212 := (<-this.LoadMarkets())
+			PanicOnError(retRes334212)
 		}
 		var currency any = this.Currency(code)
 		var network any = this.SafeStringUpper(params, "network")
@@ -4132,8 +4133,8 @@ func (this *KrakenCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(InOp(params, "key")) {
 
-			retRes343412 := (<-this.LoadMarkets())
-			PanicOnError(retRes343412)
+			retRes343512 := (<-this.LoadMarkets())
+			PanicOnError(retRes343512)
 			var currency any = this.Currency(code)
 			var request any = map[string]any{
 				"asset":  GetValue(currency, "id"),
@@ -4185,8 +4186,8 @@ func (this *KrakenCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes347112 := (<-this.LoadMarkets())
-			PanicOnError(retRes347112)
+			retRes347212 := (<-this.LoadMarkets())
+			PanicOnError(retRes347212)
 		}
 		var request any = map[string]any{
 			"docalcs":       "true",
@@ -4327,9 +4328,9 @@ func (this *KrakenCore) TransferOut(code any, amount any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes359915 := (<-this.Transfer(code, amount, "spot", "swap", params))
-		PanicOnError(retRes359915)
-		ch <- retRes359915
+		retRes360015 := (<-this.Transfer(code, amount, "spot", "swap", params))
+		PanicOnError(retRes360015)
+		ch <- retRes360015
 		return nil
 
 	}()
@@ -4357,8 +4358,8 @@ func (this *KrakenCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes361612 := (<-this.LoadMarkets())
-			PanicOnError(retRes361612)
+			retRes361712 := (<-this.LoadMarkets())
+			PanicOnError(retRes361712)
 		}
 		var currency any = this.Currency(code)
 		var fromAccountParsed any = this.ParseAccountType(fromAccount)

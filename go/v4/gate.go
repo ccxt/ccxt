@@ -8269,7 +8269,7 @@ func (this *GateCore) FetchPositions(optionalArgs ...any) <-chan any {
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParsePositions(responseList, symbols)
@@ -10817,7 +10817,7 @@ func (this *GateCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParsePositions(responseList, symbols, params)

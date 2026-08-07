@@ -2078,7 +2078,7 @@ func (this *MexcCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 			//         ]
 			//     }
 			//
-			trades = this.SafeValue(response, "data")
+			trades = this.SafeList(response, "data", []any{})
 		}
 
 		ch <- this.ParseTrades(trades, market, since, limit)
@@ -4931,7 +4931,7 @@ func (this *MexcCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var trades any = nil
+		var trades any = []any{}
 		if IsTrue(IsEqual(marketType, "spot")) {
 			if IsTrue(!IsEqual(since, nil)) {
 				AddElementToObject(request, "startTime", since)
@@ -4984,7 +4984,7 @@ func (this *MexcCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			//         ]
 			//     }
 			//
-			trades = this.SafeValue(response, "data")
+			trades = this.SafeList(response, "data", []any{})
 		}
 
 		ch <- this.ParseTrades(trades, market, since, limit)
@@ -5033,7 +5033,7 @@ func (this *MexcCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
 		marketType := GetValue(marketTypequeryVariable, 0)
 		query := GetValue(marketTypequeryVariable, 1)
-		var trades any = nil
+		var trades any = []any{}
 		if IsTrue(IsEqual(marketType, "spot")) {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " fetchOrderTrades() requires a symbol argument")))
@@ -5071,7 +5071,7 @@ func (this *MexcCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 			//         ]
 			//     }
 			//
-			trades = this.SafeValue(response, "data")
+			trades = this.SafeList(response, "data", []any{})
 		}
 
 		ch <- this.ParseTrades(trades, market, since, limit, query)

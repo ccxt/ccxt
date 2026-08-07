@@ -7143,7 +7143,7 @@ func (this *BinanceCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParseTrades(responseList, market, since, limit)
@@ -10784,7 +10784,7 @@ func (this *BinanceCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParseTrades(responseList, market, since, limit)
@@ -18348,7 +18348,7 @@ func (this *BinanceCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParseADLRanks(responseList, symbols)
