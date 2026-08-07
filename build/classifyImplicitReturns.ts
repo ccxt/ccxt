@@ -51,29 +51,41 @@ const WEAK = 1;
 // shape; the comment records how it was established.
 // -------------------------------------------------------------------------
 const OVERRIDES: { [exchange: string]: { [method: string]: string } } = {
-    'bitmex': {
-        // returns a bare quoted address string, not JSON
-        'privateGetUserDepositAddress': 'string',
-    },
-    'prediction/polymarket': {
-        // health probe, responds with the literal "OK" (see fetchStatus)
-        'gammaPublicGetStatus': 'string',
-    },
     'bitget': {
-        // candle endpoints answer with an empty string body when a token was
-        // just listed and has no candles yet (see fetchOHLCV's `response === ''`)
-        'publicMixGetV2MixMarketCandles': 'List | string',
-        'publicMixGetV2MixMarketHistoryCandles': 'List | string',
-        'publicSpotGetV2SpotMarketCandles': 'List | string',
-        'publicSpotGetV2SpotMarketHistoryCandles': 'List | string',
+        // fetchOHLCV feeds all of these into one `response` local and guards it
+        // with `response === ''` (bitget.ts) — the endpoints answer with an empty
+        // string body when a token was just listed and has no candles yet. The
+        // same local is then read both as an array (`Array.isArray (response)`)
+        // and as an object (`safeList (response, 'data', [])`), so all three
+        // shapes are reachable. The `safeList` read is STRONG evidence for Dict
+        // and would otherwise outscore the two weaker arms, dropping `string`
+        // and breaking the emptiness guard.
+        'publicMixGetV2MixMarketCandles': 'Dict | List | string',
+        'publicMixGetV2MixMarketHistoryCandles': 'Dict | List | string',
+        'publicMixGetV2MixMarketHistoryIndexCandles': 'Dict | List | string',
+        'publicMixGetV2MixMarketHistoryMarkCandles': 'Dict | List | string',
+        'publicSpotGetV2SpotMarketCandles': 'Dict | List | string',
+        'publicSpotGetV2SpotMarketHistoryCandles': 'Dict | List | string',
+        'publicUtaGetV3MarketCandles': 'Dict | List | string',
+        // no call site of its own (fetchOHLCV's uta branch only reaches the
+        // non-history variant), but it is the same candle family with the same
+        // empty-body behaviour, and it is public surface — narrowing it would
+        // reject an external caller's own `=== ''` guard
+        'publicUtaGetV3MarketHistoryCandles': 'Dict | List | string',
     },
     'hyperliquid': {
-        // single RPC-style endpoint multiplexed over a `type` param across 25
+        // single RPC-style endpoint multiplexed over a `type` param across 24
         // call sites: object for most types, array for `perpDexs`/`meta`, and a
-        // bare string for `userAbstraction` ("unifiedAccount" | "disabled" | ...)
+        // bare string for `userAbstraction` ("unifiedAccount" | "disabled" | ...).
+        // Genuinely multi-shape: the shape is selected by the request body, so
+        // no single shape can be asserted. Call sites discriminate with
+        // `typeof response !== 'string'` / `Array.isArray (response)`.
         'publicPostInfo': 'Dict | List | string',
     },
     'prediction/hyperliquid': {
+        // same endpoint and same multiplexing as above — this exchange's own
+        // call sites never send `userAbstraction`, but the method is public
+        // surface and callers may, so the string arm stays
         'publicPostInfo': 'Dict | List | string',
     },
 };
@@ -648,6 +660,17 @@ function main () {
                 stats.viaNameConsensus += 1;
             } else {
                 stats.viaOverride += 1;
+            }
+        }
+    }
+
+    // An override that matches no generated method is dead weight that would
+    // silently rot as exchanges rename or drop endpoints, so fail loudly.
+    for (const ex of Object.keys (OVERRIDES)) {
+        const methods = inv.byExchange[ex] || [];
+        for (const m of Object.keys (OVERRIDES[ex])) {
+            if (!methods.includes (m)) {
+                throw new Error ('stale OVERRIDES entry: ' + ex + '.' + m + ' matches no generated method');
             }
         }
     }
