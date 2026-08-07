@@ -337,14 +337,36 @@ function returnTypeMembers (exchange: string, method: string): string[] {
 }
 
 // the PHPDoc type for one generated method. PHP has one `array` for both an
-// object and a list, so a native `: array` would throw the Dict/List
-// distinction away; the PHPStan/Psalm array shapes keep it. It stays a
-// docblock rather than a native return type because the same method text is
-// written to both the sync and the async abstract, and the async request()
-// resolves to the body instead of returning it — see createImplicitMethodsPhp.
+// object and a list, so a native `: array` throws the Dict/List distinction
+// away; the PHPStan/Psalm array shapes keep it next to the coarse native
+// return type (see phpNativeReturnType).
 function phpdocReturnType (exchange: string, method: string): string {
     const members = returnTypeMembers (exchange, method).map ((name) => PHPDOC_RETURN_TYPES[name] || 'mixed');
     return members.join ('|');
+}
+
+// native PHP return type for the *sync* abstract only. Dict and List both
+// collapse to `array`; string stays `string`; multi-shape unions become
+// `array|string` (PHP 8). Empty string means "no native hint" (unknown
+// member). Async abstracts strip this suffix when derived — their request()
+// returns a Promise, not the decoded body.
+function phpNativeReturnType (exchange: string, method: string): string {
+    const members = returnTypeMembers (exchange, method);
+    const native: string[] = [];
+    for (const name of members) {
+        let part = '';
+        if ((name === 'Dict') || (name === 'List')) {
+            part = 'array';
+        } else if (name === 'string') {
+            part = 'string';
+        } else {
+            return '';
+        }
+        if (!native.includes (part)) {
+            native.push (part);
+        }
+    }
+    return native.join ('|');
 }
 
 // the Python type argument for one generated method, as an alias declared in
@@ -713,10 +735,14 @@ function createImplicitMethodsPhp(){
             // arrays are filled in lockstep by generateImplicitMethodNames, so
             // index i is the same endpoint in both halves of this concat
             const returns = phpdocReturnType (exchange, camelCaseMethods[i])
+            const native = phpNativeReturnType (exchange, camelCaseMethods[i])
+            const nativeSuffix = native ? (': ' + native) : ''
+            // sync only: native `: array` / `: string` (or `array|string`). The
+            // async pass strips the suffix — see generateImplicitAPIs PHP block.
             return `${IDEN}/**
 ${IDEN} * @return ${returns}
 ${IDEN} */
-${IDEN}public function ${method}($params = array()) {
+${IDEN}public function ${method}($params = array())${nativeSuffix} {
 ${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
 ${IDEN}}`
         })
@@ -1105,11 +1131,13 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
             Object.values (storedPhpMethods).forEach (x => {
                 x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
                 x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
-                // the async Exchange::request() resolves to the decoded body
-                // instead of returning it, so the same @return has to be
-                // restated as the promise of that shape
+                // the async Exchange::request() returns a Promise of the body,
+                // not the body: drop the sync native `: array` / `: string`
+                // suffix and restate @return as PromiseInterface<shape>
                 for (let i = 3; i < x.length; i++) {
                     x[i] = x[i].replace (/^(\s*) \* @return (.+)$/m, '$1 * @return \\React\\Promise\\PromiseInterface<$2>')
+                    // drop sync-only native return types (`: array`, `: string`, `: array|string`)
+                    x[i] = x[i].replace (/: (?:array\|string|array|string) \{/g, ' {')
                 }
             })
             await editFiles (ASYNC_PHP_PATH + subdir, storedPhpMethods, '.php');
