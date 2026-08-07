@@ -230,7 +230,7 @@ public partial class BaseExchange
         var messageHash = messageHash2.ToString();
         var subscribeHash = subscribeHash2?.ToString();
         var client = this.client(url);
-        var backoffDelay = this.calculateWsBackoffDelay(url);
+        var backoffDelay = 0;
 
         Future existingFuture = null;
         if (subscribeHash == null && (client.futures as ConcurrentDictionary<string, Future>).TryGetValue(messageHash, out existingFuture))
@@ -243,6 +243,11 @@ public partial class BaseExchange
         if (!clientSubscriptionExists)
         {
             (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true);
+        }
+        if (!client.startedConnecting)
+        {
+            // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay(url);
         }
         var connected = client.connect(backoffDelay);
         if (!clientSubscriptionExists)
@@ -291,7 +296,13 @@ public partial class BaseExchange
             }
         }
 
-        var connected = client.connect(this.calculateWsBackoffDelay(url));
+        var backoffDelay2 = 0;
+        if (!client.startedConnecting)
+        {
+            // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay2 = this.calculateWsBackoffDelay(url);
+        }
+        var connected = client.connect(backoffDelay2);
 
         if (subscribeHashes == null || missingSubscriptions.Count > 0)
         {
