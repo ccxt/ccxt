@@ -239,6 +239,11 @@ export default class binance extends binanceRest {
     }
 
     getWsUrl (type: any, category: any) {
+        if (type === 'option') {
+            // binance options ws (nbstream.binance.com/eoptions) is not integrated yet - without
+            // this guard the undefined base url produces a silent hang, see https://github.com/ccxt/ccxt/issues/26333
+            throw new NotSupported (this.id + ' watch methods do not support option markets yet');
+        }
         const baseUrl = this.urls['api']['ws'][type];
         if (type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
@@ -710,7 +715,9 @@ export default class binance extends binanceRest {
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
-        if (firstMarket['contract']) {
+        if (firstMarket['contract'] && !firstMarket['option']) {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         let name = 'depth';
@@ -785,7 +792,9 @@ export default class binance extends binanceRest {
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
-        if (firstMarket['contract']) {
+        if (firstMarket['contract'] && !firstMarket['option']) {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const name = 'depth';
@@ -1193,7 +1202,9 @@ export default class binance extends binanceRest {
         params = this.omit (params, 'callerMethodName');
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
-        if (firstMarket['contract']) {
+        if (firstMarket['contract'] && !firstMarket['option']) {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const messageHashes: string[] = [];
@@ -1257,7 +1268,9 @@ export default class binance extends binanceRest {
         params = this.omit (params, 'callerMethodName');
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
-        if (firstMarket['contract']) {
+        if (firstMarket['contract'] && !firstMarket['option']) {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const subMessageHashes: string[] = [];
@@ -1561,7 +1574,9 @@ export default class binance extends binanceRest {
         const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
         const firstMarket = this.market (marketSymbols[0]);
         let type = firstMarket['type'];
-        if (firstMarket['contract']) {
+        if (firstMarket['contract'] && !firstMarket['option']) {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const isSpot = (type === 'spot');
@@ -1632,7 +1647,9 @@ export default class binance extends binanceRest {
         const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
         const firstMarket = this.market (marketSymbols[0]);
         let type = firstMarket['type'];
-        if (firstMarket['contract']) {
+        if (firstMarket['contract'] && !firstMarket['option']) {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const isSpot = (type === 'spot');

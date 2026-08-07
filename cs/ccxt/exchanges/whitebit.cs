@@ -2000,6 +2000,7 @@ public partial class whitebit : Exchange
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2049,7 +2050,21 @@ public partial class whitebit : Exchange
         object isMarketOrder = isEqual(type, "market");
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
         object isStopOrder = (!isEqual(triggerPrice, null));
+        object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(timeInForce, null))) && isTrue((!isEqual(timeInForce, "GTC")))) && isTrue((!isEqual(timeInForce, "IOC")))) && isTrue((!isEqual(timeInForce, "PO")))))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
+        }
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
+        object ioc = (isEqual(timeInForce, "IOC"));
+        if (isTrue(isTrue(isStopOrder) && isTrue((isTrue(postOnly) || isTrue(ioc)))))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
+        }
+        if (isTrue(isTrue(ioc) && !isTrue(isLimitOrder)))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
+        }
         var marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
@@ -2057,11 +2072,15 @@ public partial class whitebit : Exchange
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
+        if (isTrue(ioc))
+        {
+            ((IDictionary<string,object>)request)["ioc"] = true;
+        }
         if (isTrue(isTrue(!isEqual(marginMode, null)) && isTrue(!isEqual(marginMode, "cross"))))
         {
             throw new NotSupported ((string)add(this.id, " createOrder() is only available for cross margin")) ;
         }
-        parameters = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
+        parameters = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice", "timeInForce"});
         object useCollateralEndpoint = isTrue(!isEqual(marginMode, null)) || isTrue(isEqual(marketType, "swap"));
         object response = null;
         if (isTrue(isStopOrder))
@@ -2703,6 +2722,16 @@ public partial class whitebit : Exchange
         }
         object timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
         object lastTradeTimestamp = this.safeTimestamp(order, "ftime");
+        object postOnly = this.safeBool(order, "postOnly");
+        object ioc = this.safeBool(order, "ioc");
+        object timeInForce = null;
+        if (isTrue(isEqual(ioc, true)))
+        {
+            timeInForce = "IOC";
+        } else if (isTrue(isEqual(postOnly, true)))
+        {
+            timeInForce = "PO";
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", orderId },
@@ -2711,8 +2740,8 @@ public partial class whitebit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
-            { "timeInForce", null },
-            { "postOnly", null },
+            { "timeInForce", timeInForce },
+            { "postOnly", postOnly },
             { "status", this.parseOrderStatus(this.safeString(order, "status")) },
             { "side", side },
             { "price", price },

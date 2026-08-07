@@ -1612,6 +1612,7 @@ class bitget(Exchange, ImplicitAPI):
                     'method': 'publicMixGetV2MixMarketCurrentFundRate',  # or publicMixGetV2MixMarketFundingTime
                 },
                 'accountsByType': {
+                    'funding': 'spot',
                     'spot': 'spot',
                     'cross': 'crossed_margin',
                     'isolated': 'isolated_margin',
@@ -1619,6 +1620,8 @@ class bitget(Exchange, ImplicitAPI):
                     'usdc_swap': 'usdc_futures',
                     'future': 'coin_futures',
                     'p2p': 'p2p',
+                    'uta': 'uta',
+                    'unified': 'uta',
                 },
                 'accountsById': {
                     'spot': 'spot',
@@ -1628,6 +1631,7 @@ class bitget(Exchange, ImplicitAPI):
                     'usdc_futures': 'usdc_swap',
                     'coin_futures': 'future',
                     'p2p': 'p2p',
+                    'uta': 'uta',
                 },
                 'sandboxMode': False,
                 'networks': {
@@ -4335,10 +4339,12 @@ class bitget(Exchange, ImplicitAPI):
         https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
         https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
         https://www.bitget.com/api-doc/uta/account/Get-Account
+        https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param str [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param str [params.type]: 'funding' to fetch the uta funding-account assets(uta only, classic accounts route funding through 'spot')
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         if self.markets is None:
@@ -4352,9 +4358,14 @@ class bitget(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         if uta:
-            response = self.privateUtaGetV3AccountAssets(self.extend(request, params))
-            results = self.safe_dict(response, 'data', {})
-            assets = self.safe_list(results, 'assets', [])
+            assets = None
+            if marketType == 'funding':
+                response = self.privateUtaGetV3AccountFundingAssets(self.extend(request, params))
+                assets = self.safe_list(response, 'data', [])
+            else:
+                response = self.privateUtaGetV3AccountAssets(self.extend(request, params))
+                results = self.safe_dict(response, 'data', {})
+                assets = self.safe_list(results, 'assets', [])
             return self.parse_uta_balance(assets)
         elif (marketType == 'swap') or (marketType == 'future'):
             productType = None
@@ -4488,11 +4499,29 @@ class bitget(Exchange, ImplicitAPI):
         #         }
         #     }
         #
+        # funding uta
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1750396239013,
+        #         "data": [
+        #             {
+        #                 "coin": "BGB",
+        #                 "available": "0.01",
+        #                 "frozen": "0",
+        #                 "balance": "0.01"
+        #             }
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
         return self.parse_balance(data)
 
     def parse_uta_balance(self, balance: Any) -> Balances:
         result = {'info': balance}
+        #
+        # uta
         #
         #     {
         #         "coin": "USDT",
@@ -4504,13 +4533,22 @@ class bitget(Exchange, ImplicitAPI):
         #         "locked": "0"
         #     }
         #
+        # funding uta
+        #
+        #     {
+        #         "coin": "BGB",
+        #         "available": "0.01",
+        #         "frozen": "0",
+        #         "balance": "0.01"
+        #     }
+        #
         for i in range(0, len(balance)):
             entry = balance[i]
             account = self.account()
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
             account['debt'] = self.safe_string(entry, 'debt')
-            account['used'] = self.safe_string(entry, 'locked')
+            account['used'] = self.safe_string_2(entry, 'locked', 'frozen')
             account['free'] = self.safe_string(entry, 'available')
             account['total'] = self.safe_string(entry, 'balance')
             if code is not None:
@@ -9061,18 +9099,22 @@ class bitget(Exchange, ImplicitAPI):
         transfer currency internally between wallets on the same account
 
         https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+        https://www.bitget.com/api-doc/uta/account/transfer
 
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True to transfer via the unified trading account v3 endpoint
         :param str [params.symbol]: unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
         :param str [params.clientOid]: custom id
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         if self.markets is None:
             self.load_markets()
+        uta = None
+        uta, params = self.handle_uta_and_params(params, 'transfer', False)
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromType = self.safe_string(accountsByType, fromAccount)
@@ -9089,7 +9131,11 @@ class bitget(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = self.privateSpotPostV2SpotWalletTransfer(self.extend(request, params))
+        response = None
+        if uta:
+            response = self.privateUtaPostV3AccountTransfer(self.extend(request, params))
+        else:
+            response = self.privateSpotPostV2SpotWalletTransfer(self.extend(request, params))
         #
         #     {
         #         "code": "00000",

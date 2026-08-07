@@ -3692,7 +3692,13 @@ public partial class kucoin : Exchange
             {
                 throw new BadRequest ((string)add(this.id, " fetchOrderBook() can only return level 2")) ;
             }
-            if (isTrue(isTrue((isEqual(limit, null))) || isTrue(isEqual(limit, 20))))
+            if (isTrue(isEqual(limit, null)))
+            {
+                // full L2 snapshot - required for correct ws diff-sync: the futures delta
+                // stream covers the whole book while depth20/depth100 truncate the snapshot,
+                // see https://github.com/ccxt/ccxt/issues/22063
+                response = await this.futuresPublicGetLevel2Snapshot(this.extend(request, parameters));
+            } else if (isTrue(isEqual(limit, 20)))
             {
                 //
                 //     {

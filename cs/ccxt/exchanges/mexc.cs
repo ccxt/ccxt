@@ -159,6 +159,7 @@ public partial class mexc : Exchange
                 { "spot", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
+                            { "announcements", 8 },
                             { "ping", 1 },
                             { "time", 1 },
                             { "defaultSymbols", 1 },

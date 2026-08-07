@@ -9,6 +9,7 @@ import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
+    spotPublicGetAnnouncements (params?: {}): Promise<Dict>;
     spotPublicGetPing (params?: {}): Promise<Dict>;
     spotPublicGetTime (params?: {}): Promise<Dict>;
     spotPublicGetDefaultSymbols (params?: {}): Promise<Dict>;

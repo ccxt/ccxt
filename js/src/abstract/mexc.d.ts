@@ -1,6 +1,7 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
+    spotPublicGetAnnouncements(params?: {}): Promise<implicitReturnType>;
     spotPublicGetPing(params?: {}): Promise<implicitReturnType>;
     spotPublicGetTime(params?: {}): Promise<implicitReturnType>;
     spotPublicGetDefaultSymbols(params?: {}): Promise<implicitReturnType>;

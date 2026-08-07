@@ -250,6 +250,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
 
     public Object getWsUrl(Object type, Object category)
     {
+        if (Helpers.isTrue(Helpers.isEqual(type, "option")))
+        {
+            throw new NotSupported((String)Helpers.add(this.id, " watch methods do not support option markets yet")) ;
+        }
         Object baseUrl = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
         if (Helpers.isTrue(Helpers.isEqual(type, "future")))
         {
@@ -810,8 +814,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")) && !Helpers.isTrue(Helpers.GetValue(firstMarket, "option"))))
             {
+                // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
             }
             Object name = "depth";
@@ -907,8 +913,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")) && !Helpers.isTrue(Helpers.GetValue(firstMarket, "option"))))
             {
+                // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
             }
             Object name = "depth";
@@ -1410,8 +1418,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             parameters = this.omit(parameters, "callerMethodName");
             Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")) && !Helpers.isTrue(Helpers.GetValue(firstMarket, "option"))))
             {
+                // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
             }
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1489,8 +1499,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             parameters = this.omit(parameters, "callerMethodName");
             Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")) && !Helpers.isTrue(Helpers.GetValue(firstMarket, "option"))))
             {
+                // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
             }
             Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1853,8 +1865,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
             Object firstMarket = this.market(Helpers.GetValue(marketSymbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")) && !Helpers.isTrue(Helpers.GetValue(firstMarket, "option"))))
             {
+                // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
             }
             Object isSpot = (Helpers.isEqual(type, "spot"));
@@ -1944,8 +1958,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
             Object firstMarket = this.market(Helpers.GetValue(marketSymbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")) && !Helpers.isTrue(Helpers.GetValue(firstMarket, "option"))))
             {
+                // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
             }
             Object isSpot = (Helpers.isEqual(type, "spot"));

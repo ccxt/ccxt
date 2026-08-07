@@ -243,6 +243,11 @@ class binance extends \ccxt\async\binance {
     }
 
     public function get_ws_url(mixed $type, mixed $category) {
+        if ($type === 'option') {
+            // binance options ws (nbstream.binance.com/eoptions) is not integrated yet - without
+            // this guard the null base url produces a silent hang, see https://github.com/ccxt/ccxt/issues/26333
+            throw new NotSupported($this->id . ' watch methods do not support option markets yet');
+        }
         $baseUrl = $this->urls['api']['ws'][$type];
         if ($type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
@@ -719,7 +724,9 @@ class binance extends \ccxt\async\binance {
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
+            if ($firstMarket['contract'] && !$firstMarket['option']) {
+                // options must keep $type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
             $name = 'depth';
@@ -796,7 +803,9 @@ class binance extends \ccxt\async\binance {
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
+            if ($firstMarket['contract'] && !$firstMarket['option']) {
+                // options must keep $type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
             $name = 'depth';
@@ -1210,7 +1219,9 @@ class binance extends \ccxt\async\binance {
             $params = $this->omit($params, 'callerMethodName');
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
+            if ($firstMarket['contract'] && !$firstMarket['option']) {
+                // options must keep $type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
             $messageHashes = array();
@@ -1276,7 +1287,9 @@ class binance extends \ccxt\async\binance {
             $params = $this->omit($params, 'callerMethodName');
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
+            if ($firstMarket['contract'] && !$firstMarket['option']) {
+                // options must keep $type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
             $subMessageHashes = array();
@@ -1586,7 +1599,9 @@ class binance extends \ccxt\async\binance {
             $marketSymbols = $this->market_symbols($symbols, null, false, false, true);
             $firstMarket = $this->market($marketSymbols[0]);
             $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
+            if ($firstMarket['contract'] && !$firstMarket['option']) {
+                // options must keep $type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
             $isSpot = ($type === 'spot');
@@ -1659,7 +1674,9 @@ class binance extends \ccxt\async\binance {
             $marketSymbols = $this->market_symbols($symbols, null, false, false, true);
             $firstMarket = $this->market($marketSymbols[0]);
             $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
+            if ($firstMarket['contract'] && !$firstMarket['option']) {
+                // options must keep $type 'option' so the getWsUrl NotSupported guard fires,
+                // see https://github.com/ccxt/ccxt/issues/26333
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
             $isSpot = ($type === 'spot');

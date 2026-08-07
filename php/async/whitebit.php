@@ -333,9 +333,9 @@ class whitebit extends Exchange {
                         'takeProfitPrice' => false, // todo
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'IOC' => true, // todo
+                            'IOC' => true,
                             'FOK' => false,
-                            'PO' => true, // todo
+                            'PO' => true,
                             'GTD' => false,
                         ),
                         'hedged' => false,
@@ -2046,6 +2046,7 @@ class whitebit extends Exchange {
              * @param {float} [$params->cost] *$market orders only* the $cost of the order in units of the base currency
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {bool} [$params->postOnly] If true, the order will only be posted to the order book and not executed immediately
+             * @param {string} [$params->timeInForce] "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
              * @param {string} [$params->clientOrderId] a unique id for the order
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
@@ -2083,15 +2084,29 @@ class whitebit extends Exchange {
             $isMarketOrder = $type === 'market';
             $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
             $isStopOrder = ($triggerPrice !== null);
+            $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+            if (($timeInForce !== null) && ($timeInForce !== 'GTC') && ($timeInForce !== 'IOC') && ($timeInForce !== 'PO')) {
+                throw new NotSupported($this->id . ' createOrder() does not support $timeInForce ' . $timeInForce . ', only GTC, IOC and PO are allowed');
+            }
             $postOnly = $this->is_post_only($isMarketOrder, false, $params);
+            $ioc = ($timeInForce === 'IOC');
+            if ($isStopOrder && ($postOnly || $ioc)) {
+                throw new NotSupported($this->id . ' createOrder() does not support $postOnly or $timeInForce IOC for stop orders');
+            }
+            if ($ioc && !$isLimitOrder) {
+                throw new NotSupported($this->id . ' createOrder() $timeInForce IOC is only supported for limit orders');
+            }
             list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
             if ($postOnly) {
                 $request['postOnly'] = true;
             }
+            if ($ioc) {
+                $request['ioc'] = true;
+            }
             if ($marginMode !== null && $marginMode !== 'cross') {
                 throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
             }
-            $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
+            $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice', 'timeInForce' ));
             $useCollateralEndpoint = $marginMode !== null || $marketType === 'swap';
             if ($isStopOrder) {
                 $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -2657,6 +2672,14 @@ class whitebit extends Exchange {
         }
         $timestamp = $this->safe_timestamp_2($order, 'ctime', 'timestamp');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'ftime');
+        $postOnly = $this->safe_bool($order, 'postOnly');
+        $ioc = $this->safe_bool($order, 'ioc');
+        $timeInForce = null;
+        if ($ioc === true) {
+            $timeInForce = 'IOC';
+        } elseif ($postOnly === true) {
+            $timeInForce = 'PO';
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $orderId,
@@ -2665,8 +2688,8 @@ class whitebit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'timeInForce' => null,
-            'postOnly' => null,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'side' => $side,
             'price' => $price,

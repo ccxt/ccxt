@@ -1405,6 +1405,8 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot, margin, swap, future, or option. Required if listening to all symbols.
         :param boolean [params.isInverse]: if future, listen to inverse or linear contracts
+        :param boolean [params.trigger]: set to True to watch trigger orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202
+        :param boolean [params.stop]: alias of params.trigger
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1424,8 +1426,17 @@ class gate(ccxt.async_support.gate):
             'swap': 'futures',
             'option': 'options',
         })
-        channel = typeId + '.orders'
-        messageHash = 'orders'
+        isTrigger = False
+        isTrigger, query = self.handle_param_bool_2(query, 'trigger', 'stop', False)
+        if isTrigger and (typeId == 'options'):
+            raise NotSupported(self.id + ' watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202')
+        # gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
+        # see https://github.com/ccxt/ccxt/issues/27202
+        suffix = '.orders'
+        if isTrigger:
+            suffix = '.priceorders' if (typeId == 'spot') else '.autoorders'
+        channel = typeId + suffix
+        messageHash = 'triggerOrders' if isTrigger else 'orders'
         payload = ['!' + 'all']
         if market is not None:
             messageHash += ':' + market['id']
@@ -1487,10 +1498,14 @@ class gate(ccxt.async_support.gate):
         #     }
         #
         orders = self.safe_value(message, 'result', [])
+        channel = self.safe_string(message, 'channel', '')
+        isTrigger = (channel.find('autoorders') >= 0) or (channel.find('priceorders') >= 0)
+        hashPrefix = 'triggerOrders' if isTrigger else 'orders'
         limit = self.safe_integer(self.options, 'ordersLimit', 1000)
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
-        stored = self.orders
+            self.triggerOrders = ArrayCacheBySymbolById(limit)
+        stored = self.triggerOrders if isTrigger else self.orders
         marketIds = {}
         parsedOrders = self.parse_orders(orders)
         for i in range(0, len(parsedOrders)):
@@ -1512,9 +1527,9 @@ class gate(ccxt.async_support.gate):
                 marketIds[market['id']] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
-            messageHash = 'orders:' + keys[i]
-            client.resolve(self.orders, messageHash)
-        client.resolve(self.orders, 'orders')
+            messageHash = hashPrefix + ':' + keys[i]
+            client.resolve(stored, messageHash)
+        client.resolve(stored, hashPrefix)
 
     def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
@@ -1944,6 +1959,8 @@ class gate(ccxt.async_support.gate):
             'usertrades': self.handle_my_trades,
             'candlesticks': self.handle_ohlcv,
             'orders': self.handle_order,
+            'autoorders': self.handle_order,  # futures trigger orders, see https://github.com/ccxt/ccxt/issues/27202
+            'priceorders': self.handle_order,  # spot trigger orders
             'positions': self.handle_positions,
             'tickers': self.handle_ticker,
             'book_ticker': self.handle_bid_ask,

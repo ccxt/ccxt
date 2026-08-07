@@ -188,6 +188,7 @@ class mexc(Exchange, ImplicitAPI):
                 'spot': {
                     'public': {
                         'get': {
+                            'announcements': 8,
                             'ping': 1,
                             'time': 1,
                             'defaultSymbols': 1,

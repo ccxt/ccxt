@@ -173,6 +173,7 @@ export default class mexc extends Exchange {
                 'spot': {
                     'public': {
                         'get': {
+                            'announcements': { 'cost': 8 } as Endpoint<Dict>,
                             'ping': { 'cost': 1 } as Endpoint<Dict>,
                             'time': { 'cost': 1 } as Endpoint<Dict>,
                             'defaultSymbols': { 'cost': 1 } as Endpoint<Dict>,
