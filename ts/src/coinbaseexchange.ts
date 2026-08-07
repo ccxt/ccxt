@@ -1687,7 +1687,7 @@ export default class coinbaseexchange extends Exchange {
         return [ this.safeOrder ({ 'info': response }) ];
     }
 
-    override async fetchPaymentMethods (params = {}): Promise<{}> {
+    override async fetchPaymentMethods (params = {}): Promise<Dict> {
         return await this.privateGetPaymentMethods (params);
     }
 
