@@ -3,6 +3,7 @@ import { Future } from './Future.js';
 
 import {
     isNode,
+    isBun,
     isJsonEncodedObject,
     deepExtend,
     milliseconds,
@@ -20,6 +21,15 @@ if (isNode) {
 } else {
     import (/* webpackMode: "eager" */ 'fflate').then ((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateSync; }).catch (() => {});
 }
+
+// platform checks are likewise resolved once at module load so the send/ping
+// hot paths stay branch-cheap:
+// - usesNodeWsPackage: the 'ws' npm package is in use (node-style send callbacks, connection.ping ())
+// - bunHasNativePing: bun's native WebSocket exposes ping () as a non-standard extension
+// - hasPing: the active WebSocket implementation supports connection.ping ()
+const usesNodeWsPackage = isNode && !isBun;
+const bunHasNativePing = isBun && (typeof (globalThis as any).WebSocket !== 'undefined') && (typeof (globalThis as any).WebSocket.prototype.ping === 'function');
+const hasPing = usesNodeWsPackage || bunHasNativePing;
 
 export default class Client {
     connected: Promise<any>
@@ -241,9 +251,10 @@ export default class Client {
                     this.send (message).catch ((error) => {
                         this.onError (error);
                     });
-                } else if (isNode) {
+                } else if (hasPing) {
                     // can't do this inside browser
                     // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
+                    // under bun the native WebSocket implements ping () as a non-standard extension
                     this.connection.ping ()
                 } else {
                     // browsers handle ping-pong automatically therefore
@@ -330,7 +341,8 @@ export default class Client {
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
         const future = Future ()
-        if (isNode) {
+        if (usesNodeWsPackage) {
+            // bun's native WebSocket send () does not accept a completion callback
             /* eslint-disable no-inner-declarations */
             /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete (error: any) {
@@ -358,20 +370,37 @@ export default class Client {
 
         let message : Buffer | string = messageEvent.data
         let arrayBuffer : Uint8Array
-        if (typeof message !== 'string') {
-            if (this.gunzip || this.inflate) {
-                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
-                if (this.gunzip) {
-                    arrayBuffer = gunzipSync (arrayBuffer)
-                } else if (this.inflate) {
-                    arrayBuffer = inflateRawSync (arrayBuffer)
-                }
-                message = utf8.encode (arrayBuffer)
-            } else {
-                if (this.decompressBinary) {
-                    message = message.toString ()
+        try {
+            if (typeof message !== 'string') {
+                if (this.gunzip || this.inflate) {
+                    arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
+                    if (this.gunzip) {
+                        arrayBuffer = gunzipSync (arrayBuffer)
+                    } else if (this.inflate) {
+                        arrayBuffer = inflateRawSync (arrayBuffer)
+                    }
+                    message = utf8.encode (arrayBuffer)
+                } else {
+                    if (this.decompressBinary) {
+                        message = message.toString ()
+                    }
                 }
             }
+        } catch (error) {
+            // a frame that cannot be decompressed/decoded is connection-fatal:
+            // the stream is corrupt or misaligned, so no subsequent frame can
+            // be trusted either. the error must be handled here, at the throw
+            // site - if it escaped onMessage it would be lost: on node it
+            // would reject the fire-and-forget deliverLoop promise
+            // (WsClient.ts) and crash the process as an unhandled rejection,
+            // on browsers/bun the host event dispatch swallows handler
+            // exceptions silently. established error semantics: onError
+            // normalizes the error, sets this.error, rejects all pending
+            // futures and notifies the exchange, then close () tears the
+            // connection down
+            this.onError (error)
+            this.close ()
+            return
         }
         try {
             if (isJsonEncodedObject (message)) {

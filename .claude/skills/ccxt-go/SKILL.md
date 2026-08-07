@@ -940,6 +940,32 @@ fmt.Println(exchange.LastHttpResponse)
 fmt.Println(exchange.LastJsonResponse)
 ```
 
+## Prediction Markets
+
+CCXT supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid) in a dedicated `go/v4/prediction` package. They use the same unified API, but prices are quoted **0–1** (USDC per outcome share) and the tradeable unit is an **outcome** (e.g. a market's YES/NO token), not a regular market symbol.
+
+```go
+import (
+    ccxt "github.com/ccxt/ccxt/go/v4"
+    ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
+)
+
+ex := ccxtprediction.NewPolymarket(map[string]interface{}{})
+ex.LoadMarkets() // outcomes load automatically (outcome handle, outcomeId, market, label)
+// an outcome handle looks like 'TRUMP_OUT_PRESIDENT_2027:YES'
+handle := "TRUMP_OUT_PRESIDENT_2027:YES"
+ticker, _ := ex.FetchTicker(handle)
+book, _ := ex.FetchOrderBook(handle)
+// limit buy 5 YES shares @ 0.40 USDC (price is 0..1 per share)
+order, err := ex.CreateOrder(handle, "limit", "buy", 5, ccxt.WithCreateOrderPrice(0.40))
+if err == nil {
+    ex.CancelOrder(*order.Id, ccxtprediction.WithCancelOrderOutcome(handle))
+}
+```
+
+- Price/trade methods (`FetchTicker`, `FetchOrderBook`, `FetchOHLCV`, `FetchTrades`, `CreateOrder`, `CancelOrder`, …) take an **outcome handle or outcomeId** — passed positionally or via the `With…Outcome` / `With…Outcomes` option, not a market symbol.
+- Discover markets via `FetchEvents` / `FetchEvent` (or `LoadMarkets`).
+
 ## Learn More
 
 - [CCXT Manual](https://docs.ccxt.com/)

@@ -374,14 +374,26 @@ class bittrade extends Exchange {
                     'ALGO' => 'algo',
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
-                'createMarketBuyOrderRequiresPrice' => true,
-                'fetchMarketsMethod' => 'publicGetCommonSymbols',
-                'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
-                'createOrderMethod' => 'privatePostOrderOrdersPlace',
+                'fetchOrdersByStates' => array(
+                    'method' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                ),
+                'fetchOpenOrders' => array(
+                    'method' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
+                ),
+                'createOrder' => array(
+                    'createMarketBuyOrderRequiresPrice' => true,
+                    'method' => 'privatePostOrderOrdersPlace',
+                ),
+                'fetchMarkets' => array(
+                    'method' => 'publicGetCommonSymbols',
+                ),
+                'fetchBalance' => array(
+                    'method' => 'privateGetAccountAccountsIdBalance',
+                ),
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
-                'language' => 'en-US',
+                'fetchCurrencies' => array(
+                    'language' => 'en-US',
+                ),
                 'broker' => array(
                     'id' => 'AA03022abc',
                 ),
@@ -424,6 +436,9 @@ class bittrade extends Exchange {
         if ($symbols === null) {
             $symbols = $this->symbols;
         }
+        if ($symbols === null) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
@@ -432,7 +447,7 @@ class bittrade extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_limits_by_id(string $id, $params = array()) {
+    public function fetch_trading_limits_by_id(?string $id, $params = array()) {
         $request = array(
             'symbol' => $id,
         );
@@ -456,7 +471,7 @@ class bittrade extends Exchange {
         return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
-    public function parse_trading_limits($limits, ?string $symbol = null, $params = array()) {
+    public function parse_trading_limits(mixed $limits, ?string $symbol = null, $params = array()) {
         //
         //   {                                  $symbol => "aidocbtc",
         //                  "buy-limit-must-less-than" =>  1.1,
@@ -483,8 +498,8 @@ class bittrade extends Exchange {
         );
     }
 
-    public function cost_to_precision($symbol, $cost) {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
+    public function cost_to_precision(?string $symbol, mixed $cost) {
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->market($symbol)['precision']['cost'], $this->precisionMode);
     }
 
     public function fetch_markets($params = array()): array {
@@ -493,7 +508,7 @@ class bittrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $method = $this->options['fetchMarketsMethod'];
+        $method = $this->handle_option('fetchMarkets', 'method', 'publicGetCommonSymbols');
         $response = $this->$method($params);
         //
         //    {
@@ -544,6 +559,12 @@ class bittrade extends Exchange {
             $superLeverageRatio = $this->safe_string($market, 'super-$margin-leverage-ratio', '1');
             $margin = Precise::string_gt($leverageRatio, '1') || Precise::string_gt($superLeverageRatio, '1');
             $fee = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
+            if ($baseId === null) {
+                throw new ExchangeError($this->id . ' fetchMarkets() missing baseId');
+            }
+            if ($quoteId === null) {
+                throw new ExchangeError($this->id . ' fetchMarkets() missing quoteId');
+            }
             $result[] = array(
                 'id' => $baseId . $quoteId,
                 'symbol' => $base . '/' . $quote,
@@ -641,7 +662,7 @@ class bittrade extends Exchange {
         $bidVolume = null;
         $ask = null;
         $askVolume = null;
-        if (is_array($ticker) && array_key_exists('bid', $ticker)) {
+        if (is_array($ticker) && array_key_exists('bid' ?? '', $ticker)) {
             if ((gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid'])))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
@@ -650,7 +671,7 @@ class bittrade extends Exchange {
                 $bidVolume = $this->safe_string($ticker, 'bidSize');
             }
         }
-        if (is_array($ticker) && array_key_exists('ask', $ticker)) {
+        if (is_array($ticker) && array_key_exists('ask' ?? '', $ticker)) {
             if ((gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask'])))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
@@ -693,7 +714,7 @@ class bittrade extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -725,7 +746,7 @@ class bittrade extends Exchange {
         //         }
         //     }
         //
-        if (is_array($response) && array_key_exists('tick', $response)) {
+        if (is_array($response) && array_key_exists('tick' ?? '', $response)) {
             if (!$response['tick']) {
                 throw new BadSymbol($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
             }
@@ -996,7 +1017,7 @@ class bittrade extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "amount":1.2082,
@@ -1077,7 +1098,7 @@ class bittrade extends Exchange {
          * @return {array} an associative dictionary of $currencies
          */
         $request = array(
-            'language' => $this->options['language'],
+            'language' => $this->handle_option('fetchCurrencies', 'language', 'en-US'),
         );
         $response = $this->publicGetSettingsCurrencys($this->extend($request, $params));
         //
@@ -1167,7 +1188,7 @@ class bittrade extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -1175,18 +1196,26 @@ class bittrade extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = null;
-            if (is_array($result) && array_key_exists($code, $result)) {
+            if (($code !== null) && (is_array($result) && array_key_exists($code ?? '', $result))) {
                 $account = $result[$code];
             } else {
                 $account = $this->account();
             }
+            if ($account === null) {
+                throw new ExchangeError($this->id . ' parseBalance() could not resolve account');
+            }
             if ($balance['type'] === 'trade') {
                 $account['free'] = $this->safe_string($balance, 'balance');
+            }
+            if ($account === null) {
+                throw new ExchangeError($this->id . ' parseBalance() could not resolve account');
             }
             if ($balance['type'] === 'frozen') {
                 $account['used'] = $this->safe_string($balance, 'balance');
             }
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1201,7 +1230,7 @@ class bittrade extends Exchange {
             $this->load_markets();
         }
         $this->load_accounts();
-        $method = $this->options['fetchBalanceMethod'];
+        $method = $this->handle_option('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
         $request = array(
             'id' => $this->accounts[0]['id'],
         );
@@ -1209,7 +1238,7 @@ class bittrade extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_orders_by_states($states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1221,7 +1250,7 @@ class bittrade extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
+        $method = $this->handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders');
         $response = $this->$method($this->extend($request, $params));
         //
         //     { "status" =>   "ok",
@@ -1258,7 +1287,7 @@ class bittrade extends Exchange {
             'id' => $id,
         );
         $response = $this->privateGetOrderOrdersId($this->extend($request, $params));
-        $order = $this->safe_dict($response, 'data');
+        $order = $this->safe_dict($response, 'data', array());
         return $this->parse_order($order);
     }
 
@@ -1283,7 +1312,7 @@ class bittrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $method = $this->safe_string($this->options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
+        $method = $this->handle_option('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
         return $this->$method($symbol, $since, $limit, $params);
     }
 
@@ -1408,7 +1437,7 @@ class bittrade extends Exchange {
         $side = null;
         $type = null;
         $status = null;
-        if (is_array($order) && array_key_exists('type', $order)) {
+        if (is_array($order) && array_key_exists('type' ?? '', $order)) {
             $orderType = explode('-', $order['type']);
             $side = $orderType[0];
             $type = $orderType[1];
@@ -1562,11 +1591,11 @@ class bittrade extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          * @param {string} $id order $id
-         * @param {string} $symbol not used by bittrade cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1587,7 +1616,7 @@ class bittrade extends Exchange {
         /**
          * cancel multiple orders
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol not used by bittrade cancelOrders ()
+         * @param {string} $symbol not used by cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1638,7 +1667,7 @@ class bittrade extends Exchange {
         return $this->parse_cancel_orders($response);
     }
 
-    public function parse_cancel_orders($orders) {
+    public function parse_cancel_orders(mixed $orders) {
         //
         //    {
         //        "success" => array(
@@ -1699,7 +1728,7 @@ class bittrade extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1737,7 +1766,7 @@ class bittrade extends Exchange {
         );
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
         //
         //     {
         //         "currency" => "usdt",
@@ -1985,7 +2014,7 @@ class bittrade extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = '/';
         if ($api === 'market') {
             $url .= $api;
@@ -2038,11 +2067,11 @@ class bittrade extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status', $response)) {
+        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
             //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
             //

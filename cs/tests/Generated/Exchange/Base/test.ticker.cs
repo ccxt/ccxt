@@ -7,8 +7,23 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testTicker(Exchange exchange, object skippedProperties, object method, object entry, object symbol)
+    public static void testTicker(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol)
     {
+        // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+        // books where bid==ask and a stale `last` far from the median are normal — skip the
+        // crypto-oriented price-relationship checks for them. the PredictionTicker type also
+        // omits vwap/previousClose entirely, so their presence must not be asserted
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new Dictionary<string, object>() {
+                { "symbol", true },
+                { "spread", true },
+                { "lastBetweenBidAsk", true },
+                { "maxIncrease", true },
+                { "vwap", true },
+                { "previousClose", true },
+            }, skippedProperties);
+        }
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "ETH/BTC" },
@@ -49,7 +64,7 @@ public partial class testMainClass : BaseTest
         object symbolForMarket = ((bool) isTrue((!isEqual(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
         if (isTrue(!isEqual(symbolForMarket, null)))
         {
-            if (isTrue(inOp(exchange.markets, symbolForMarket)))
+            if (isTrue(isTrue((!isEqual(exchange.markets, null))) && isTrue((inOp(exchange.markets, symbolForMarket)))))
             {
                 market = exchange.market(symbolForMarket);
             } else
@@ -101,16 +116,21 @@ public partial class testMainClass : BaseTest
         //
         // base & quote volumes
         //
-        object baseVolume = exchange.omitZero(((string)exchange.safeString(entry, "baseVolume")));
-        object quoteVolume = exchange.omitZero(((string)exchange.safeString(entry, "quoteVolume")));
-        object high = exchange.omitZero(((string)exchange.safeString(entry, "high")));
-        object low = exchange.omitZero(((string)exchange.safeString(entry, "low")));
-        object open = exchange.omitZero(((string)exchange.safeString(entry, "open")));
-        object close = exchange.omitZero(((string)exchange.safeString(entry, "close")));
+        object baseVolume = exchange.omitZero(exchange.safeString(entry, "baseVolume"));
+        object quoteVolume = exchange.omitZero(exchange.safeString(entry, "quoteVolume"));
+        object high = exchange.omitZero(exchange.safeString(entry, "high"));
+        object low = exchange.omitZero(exchange.safeString(entry, "low"));
+        object open = exchange.omitZero(exchange.safeString(entry, "open"));
+        object close = exchange.omitZero(exchange.safeString(entry, "close"));
         if (!isTrue((inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-            if (isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))))
+            // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+            // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+            // far above baseVolume * high), so the spot-derived invariant does not hold there,
+            // see https://github.com/ccxt/ccxt/pull/29563
+            object isInverse = exchange.safeBool(market, "inverse", false);
+            if (isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))) && !isTrue(isInverse)))
             {
                 object baseLow = Precise.stringMul(baseVolume, low);
                 object baseHigh = Precise.stringMul(baseVolume, high);
@@ -174,7 +194,8 @@ public partial class testMainClass : BaseTest
         object bidString = exchange.safeString(entry, "bid");
         if (isTrue(isTrue(isTrue((!isEqual(askString, null))) && isTrue((!isEqual(bidString, null)))) && !isTrue((inOp(skippedProperties, "spread")))))
         {
-            testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "ask", ((string)exchange.safeString(entry, "bid")));
+            // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
+            testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", ((string)exchange.safeString(entry, "bid")));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
         object allowedPercentageVariation = "0.01";
@@ -192,7 +213,7 @@ public partial class testMainClass : BaseTest
             //
             // percentage
             //
-            object maxIncrease = "100"; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+            object maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
             if (isTrue(!isEqual(percentage, null)))
             {
                 // - should be above -100 and below MAX

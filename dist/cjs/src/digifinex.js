@@ -414,7 +414,7 @@ class digifinex extends digifinex$1["default"] {
                     'OTC': '3',
                 },
                 'networks': {
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
@@ -532,26 +532,28 @@ class digifinex extends digifinex$1["default"] {
             const networkEntry = networkEntries[j];
             const networkId = this.safeString2(networkEntry, 'chain', 'currency');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
-                'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
-                'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
+                    'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
+                    'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
-                        'max': undefined,
-                    },
-                },
-                'info': networkEntry,
-            };
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -761,6 +763,9 @@ class digifinex extends digifinex$1["default"] {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString(market, 'market');
+            if (id === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchMarketsV1() missing id');
+            }
             const [baseId, quoteId] = id.split('_');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
@@ -851,7 +856,9 @@ class digifinex extends digifinex$1["default"] {
             account['free'] = free;
             account['used'] = Precise["default"].stringSub(total, free);
             account['total'] = total;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -935,7 +942,7 @@ class digifinex extends digifinex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1093,7 +1100,9 @@ class digifinex extends digifinex$1["default"] {
             }, tickers[i]);
             const ticker = this.parseTicker(rawTicker);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
@@ -1177,6 +1186,9 @@ class digifinex extends digifinex$1["default"] {
         }
         else {
             result = this.extend({ 'date': date }, firstTicker);
+        }
+        if (result === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker(result, market);
     }
@@ -1359,6 +1371,9 @@ class digifinex extends digifinex$1["default"] {
             }
         }
         else {
+            if (side === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseTrade() returned no side');
+            }
             const parts = side.split('_');
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
@@ -1604,6 +1619,9 @@ class digifinex extends digifinex$1["default"] {
                         }
                     }
                     else {
+                        if (limit === undefined) {
+                            throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a limit argument');
+                        }
                         request['end_time'] = this.sum(startTime, limit * duration);
                     }
                 }
@@ -1702,6 +1720,9 @@ class digifinex extends digifinex$1["default"] {
         //         "data": "1590873693003714560"
         //     }
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' createOrder() returned empty response');
+        }
         const order = this.parseOrder(response, market);
         order['symbol'] = market['symbol'];
         order['type'] = type;
@@ -1811,6 +1832,12 @@ class digifinex extends digifinex$1["default"] {
         return this.parseOrders(result, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1954,7 +1981,7 @@ class digifinex extends digifinex$1["default"] {
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
      * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
      * @param {string} id order id
-     * @param {string} symbol not used by digifinex cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2062,7 +2089,7 @@ class digifinex extends digifinex$1["default"] {
      * @description cancel multiple orders
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by digifinex cancelOrders ()
+     * @param {string} symbol not used by cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3153,6 +3180,9 @@ class digifinex extends digifinex$1["default"] {
             //
             response = await this.privateSpotPostTransfer(this.extend(request, params));
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' transfer() returned empty response');
+        }
         return this.parseTransfer(response, currency);
     }
     /**
@@ -3293,7 +3323,7 @@ class digifinex extends digifinex$1["default"] {
         //     }
         //
         const data = this.safeValue(response, 'list', []);
-        let result = [];
+        let result = undefined;
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             if (this.safeString(entry, 'currency') === code) {
@@ -3371,7 +3401,9 @@ class digifinex extends digifinex$1["default"] {
             const currency = this.safeString(item, codeKey);
             const code = this.safeCurrencyCode(currency);
             const borrowRate = this.parseBorrowRate(item);
-            result[code] = borrowRate;
+            if (code !== undefined) {
+                result[code] = borrowRate;
+            }
         }
         return result;
     }
@@ -3962,6 +3994,9 @@ class digifinex extends digifinex$1["default"] {
         const request = {};
         if (code !== undefined) {
             currency = this.safeCurrencyCode(code);
+            if (currency === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchTransfers() could not resolve currency');
+            }
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
@@ -4234,7 +4269,7 @@ class digifinex extends digifinex$1["default"] {
             const entry = response[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (this.inArray(code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
                 const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
@@ -4254,10 +4289,12 @@ class digifinex extends digifinex$1["default"] {
                 };
                 if (networkId !== undefined) {
                     const networkCode = this.networkIdToCode(networkId, code);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
+                    if (networkCode !== undefined) {
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        };
+                    }
                 }
                 else {
                     depositWithdrawFees[code]['withdraw'] = withdrawResult;

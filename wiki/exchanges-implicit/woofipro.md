@@ -1,6 +1,6 @@
 Every endpoint in `woofipro`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/woofipro) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `v1PublicGetPublicVolumeStats`); the snake_case alias (`v1_public_get_public_volume_stats`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V1PublicGetPublicVolumeStats`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `v1PublicGetPublicVolumeStats`); the snake_case alias (`v1_public_get_public_volume_stats`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V1PublicGetPublicVolumeStats`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -53,7 +53,7 @@ response := <-woofipro.V1PublicGetPublicVolumeStats(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official woofipro API documentation:** [orderly.network](https://orderly.network/docs/build-on-omnichain/building-on-evm)
+📚 **Official woofipro API documentation:** [orderly.network](https://orderly.network/docs/build-on-omnichain/building-on-omnichain)
 
 > 115 implicit endpoints across 1 access group.
 

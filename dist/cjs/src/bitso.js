@@ -53,7 +53,7 @@ class bitso extends bitso$1["default"] {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -146,12 +146,6 @@ class bitso extends bitso$1["default"] {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
-                'precision': {
-                    'XRP': 0.000001,
-                    'MXN': 0.01,
-                    'TUSD': 0.01,
-                },
-                'defaultPrecision': 0.00000001,
                 'networks': {
                     'TRC20': 'trx',
                     'ERC20': 'erc20',
@@ -174,6 +168,7 @@ class bitso extends bitso$1["default"] {
                 'public': {
                     'get': [
                         'available_books',
+                        'catalogues',
                         'ticker',
                         'order_book',
                         'trades',
@@ -493,6 +488,7 @@ class bitso extends bitso$1["default"] {
         //         ]
         //     }
         const markets = this.safeValue(response, 'payload', []);
+        const currencies = this.safeDict(this.options, 'cachedCurrencies');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -534,9 +530,8 @@ class bitso extends bitso$1["default"] {
                 'maker': makerFees,
             };
             fee['tiers'] = tiers;
-            // TODO: precisions can be also set from https://bitso.com/api/v3/catalogues ->available_currency_conversions->currencies (or ->currencies->metadata)  or https://bitso.com/api/v3/get_exchange_rates/mxn
-            const defaultPricePrecision = this.safeNumber(this.options['precision'], quote, this.options['defaultPrecision']);
-            result.push(this.extend({
+            const baseCurrency = this.safeDict(currencies, base);
+            result.push(this.safeMarketStructure(this.extend({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -563,8 +558,8 @@ class bitso extends bitso$1["default"] {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber(this.options['precision'], base, this.options['defaultPrecision']),
-                    'price': this.safeNumber(market, 'tick_size', defaultPricePrecision),
+                    'amount': this.safeNumber(baseCurrency, 'precision'),
+                    'price': this.safeNumber(market, 'tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -586,9 +581,78 @@ class bitso extends bitso$1["default"] {
                 },
                 'created': undefined,
                 'info': market,
-            }, fee));
+            }, fee)));
         }
         return result;
+    }
+    /**
+     * @method
+     * @name bitso#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.bitso.com/bitso-payouts-funding/docs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies(params = {}) {
+        const catalogues = await this.publicGetCatalogues(params);
+        //
+        //     {
+        //         "payload": {
+        //             "currencies": {
+        //                 "metadata": [
+        //                     {
+        //                         "code": "brl",
+        //                         "full_name": "Brazilian Reais",
+        //                         "color": "02A630",
+        //                         "precision": 2,
+        //                         "display_ticker": "BRL",
+        //                         "type": "fiat"
+        //                     },
+        //                     {
+        //                         "code": "usdt",
+        //                         "full_name": "USDT (Digital Dollars)",
+        //                         "color": "50AF95",
+        //                         "precision": 2,
+        //                         "display_ticker": "USDT",
+        //                         "type": "crypto"
+        //                     }, ...
+        //
+        const payload = this.safeDict(catalogues, 'payload');
+        const currencies = this.safeDict(payload, 'currencies');
+        const metadata = this.safeList(currencies, 'metadata', []);
+        return this.parseCurrencies(metadata);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'code');
+        const code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': this.safeString(rawCurrency, 'full_name'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision'))),
+            'margin': this.safeBool(rawCurrency, 'marginAvailable'),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': undefined,
+            'type': this.safeString(rawCurrency, 'type'),
+        });
     }
     parseBalance(response) {
         const payload = this.safeValue(response, 'payload', {});
@@ -606,7 +670,9 @@ class bitso extends bitso$1["default"] {
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'locked');
             account['total'] = this.safeString(balance, 'total');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -658,7 +724,7 @@ class bitso extends bitso$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1119,7 +1185,7 @@ class bitso extends bitso$1["default"] {
      * @description cancels an open order
      * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
      * @param {string} id order id
-     * @param {string} symbol not used by bitso cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1186,7 +1252,7 @@ class bitso extends bitso$1["default"] {
      * @name bitso#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
-     * @param {undefined} symbol bitso does not support canceling orders for only a specific market
+     * @param {string} [symbol] bitso does not support canceling orders for only a specific market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1548,14 +1614,16 @@ class bitso extends bitso$1["default"] {
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
             }
-            result[code] = {
-                'deposit': this.safeNumber(depositFee, 'fee'),
-                'withdraw': undefined,
-                'info': {
-                    'deposit': depositFee,
+            if (code !== undefined) {
+                result[code] = {
+                    'deposit': this.safeNumber(depositFee, 'fee'),
                     'withdraw': undefined,
-                },
-            };
+                    'info': {
+                        'deposit': depositFee,
+                        'withdraw': undefined,
+                    },
+                };
+            }
         }
         const withdrawalFees = this.safeValue(payload, 'withdrawal_fees', []);
         const currencyIds = Object.keys(withdrawalFees);
@@ -1565,14 +1633,16 @@ class bitso extends bitso$1["default"] {
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
             }
-            result[code] = {
-                'deposit': this.safeValue(result[code], 'deposit'),
-                'withdraw': this.safeNumber(withdrawalFees, currencyId),
-                'info': {
-                    'deposit': this.safeValue(result[code]['info'], 'deposit'),
+            if (code !== undefined) {
+                result[code] = {
+                    'deposit': this.safeValue(this.safeValue(result, code), 'deposit'),
                     'withdraw': this.safeNumber(withdrawalFees, currencyId),
-                },
-            };
+                    'info': {
+                        'deposit': this.safeValue(this.safeValue(this.safeValue(result, code), 'info'), 'deposit'),
+                        'withdraw': this.safeNumber(withdrawalFees, currencyId),
+                    },
+                };
+            }
         }
         return result;
     }
@@ -1684,26 +1754,28 @@ class bitso extends bitso$1["default"] {
             const entry = depositResponse[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (code in codes)) {
-                result[code] = {
-                    'deposit': {
-                        'fee': this.safeNumber(entry, 'fee'),
-                        'percentage': !this.safeValue(entry, 'is_fixed'),
-                    },
-                    'withdraw': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                    'networks': {},
-                    'info': entry,
-                };
+            if ((codes === undefined) || ((code !== undefined) && (code in codes))) {
+                if (code !== undefined) {
+                    result[code] = {
+                        'deposit': {
+                            'fee': this.safeNumber(entry, 'fee'),
+                            'percentage': !this.safeValue(entry, 'is_fixed'),
+                        },
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'networks': {},
+                        'info': entry,
+                    };
+                }
             }
         }
         const withdrawalKeys = Object.keys(withdrawalResponse);
         for (let i = 0; i < withdrawalKeys.length; i++) {
             const currencyId = withdrawalKeys[i];
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (code in codes)) {
+            if ((code !== undefined) && ((codes === undefined) || (code in codes))) {
                 const withdrawFee = this.parseNumber(withdrawalResponse[currencyId]);
                 const resultValue = this.safeValue(result, code);
                 if (resultValue === undefined) {

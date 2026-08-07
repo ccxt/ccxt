@@ -498,6 +498,10 @@ public partial class deribit : Exchange
             settle = bs;
         }
         object splitBase = bs;
+        if (isTrue(isEqual(bs, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " createExpiredOptionMarket() missing base")) ;
+        }
         if (isTrue(isGreaterThan(getIndexOf(bs, "_"), -1)))
         {
             object splitSymbol = ((string)bs).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
@@ -558,7 +562,7 @@ public partial class deribit : Exchange
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((((string)marketId).EndsWith(((string)"-C")))) || isTrue((((string)marketId).EndsWith(((string)"-P"))))));
-        if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
+        if (isTrue(isTrue(isOption) && isTrue((isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -938,8 +942,20 @@ public partial class deribit : Exchange
                 object settle = this.safeCurrencyCode(settleId);
                 object settlementPeriod = this.safeValue(market, "settlement_period");
                 object swap = (isEqual(settlementPeriod, "perpetual"));
+                if (isTrue(isEqual(kind, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " method() missing kind")) ;
+                }
                 object future = !isTrue(swap) && isTrue((isGreaterThanOrEqual(getIndexOf(kind, "future"), 0)));
+                if (isTrue(isEqual(kind, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " method() missing kind")) ;
+                }
                 object option = (isGreaterThanOrEqual(getIndexOf(kind, "option"), 0));
+                if (isTrue(isEqual(kind, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " method() missing kind")) ;
+                }
                 object isComboMarket = isGreaterThanOrEqual(getIndexOf(kind, "combo"), 0);
                 object expiry = this.safeInteger(market, "expiration_timestamp");
                 object strike = null;
@@ -983,7 +999,10 @@ public partial class deribit : Exchange
                 {
                     continue;
                 }
-                ((IDictionary<string,object>)parsedMarkets)[(string)symbol] = true;
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    ((IDictionary<string,object>)parsedMarkets)[(string)symbol] = true;
+                }
                 object minTradeAmount = this.safeNumber(market, "min_trade_amount");
                 object tickSize = this.safeNumber(market, "tick_size");
                 ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -1050,7 +1069,7 @@ public partial class deribit : Exchange
         object summaries = new List<object>() {};
         if (isTrue(inOp(balance, "summaries")))
         {
-            summaries = this.safeList(balance, "summaries");
+            summaries = this.safeList(balance, "summaries", new List<object>() {});
         } else
         {
             summaries = new List<object>() {balance};
@@ -1064,7 +1083,10 @@ public partial class deribit : Exchange
             ((IDictionary<string,object>)account)["free"] = this.safeString(data, "available_funds");
             ((IDictionary<string,object>)account)["used"] = this.safeString(data, "maintenance_margin");
             ((IDictionary<string,object>)account)["total"] = this.safeString(data, "equity");
-            ((IDictionary<string,object>)result)[(string)currencyCode] = account;
+            if (isTrue(!isEqual(currencyCode, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)currencyCode] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1474,7 +1496,10 @@ public partial class deribit : Exchange
         {
             object ticker = this.parseTicker(getValue(result, i));
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(tickers, "symbol", symbols);
     }
@@ -1842,9 +1867,10 @@ public partial class deribit : Exchange
             }
         }
         object parsedFees = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object fee = new Dictionary<string, object>() {
                 { "info", market },
@@ -1877,7 +1903,7 @@ public partial class deribit : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2379,7 +2405,7 @@ public partial class deribit : Exchange
      * @description cancels an open order
      * @see https://docs.deribit.com/#private-cancel
      * @param {string} id order id
-     * @param {string} symbol not used by deribit cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2404,7 +2430,7 @@ public partial class deribit : Exchange
      * @description cancel all open orders
      * @see https://docs.deribit.com/#private-cancel_all
      * @see https://docs.deribit.com/#private-cancel_all_by_instrument
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3508,6 +3534,10 @@ public partial class deribit : Exchange
         if (isTrue(inOp(parameters, "isDeribitPaginationCall")))
         {
             parameters = this.omit(parameters, "isDeribitPaginationCall");
+            if (isTrue(isEqual(limit, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a limit argument")) ;
+            }
             object maxUntil = this.sum(since, multiply(limit, duration));
             ((IDictionary<string,object>)request)["end_timestamp"] = mathMin(getValue(request, "end_timestamp"), maxUntil);
         }

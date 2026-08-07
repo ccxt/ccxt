@@ -55,11 +55,13 @@ class ArrayCache extends BaseCache {
             $this->all_new_updates = 0;
             $this->new_updates_by_symbol = array();
         }
-        if ($this->clear_updates_by_symbol[$item['symbol']] ?? false) {
-            $this->clear_updates_by_symbol[$item['symbol']] = false;
-            $this->new_updates_by_symbol[$item['symbol']] = 0;
+        // prediction-market items carry an `outcome` handle instead of a `symbol`
+        $symbol = $item['symbol'] ?? $item['outcome'] ?? '';
+        if ($this->clear_updates_by_symbol[$symbol] ?? false) {
+            $this->clear_updates_by_symbol[$symbol] = false;
+            $this->new_updates_by_symbol[$symbol] = 0;
         }
-        $this->new_updates_by_symbol[$item['symbol']] = ($this->new_updates_by_symbol[$item['symbol']] ?? 0) + 1;
+        $this->new_updates_by_symbol[$symbol] = ($this->new_updates_by_symbol[$symbol] ?? 0) + 1;
         $this->all_new_updates = ($this->all_new_updates ?? 0) + 1;
     }
 }

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFee, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -70,6 +70,8 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
@@ -226,7 +228,7 @@ class indodax(Exchange, ImplicitAPI):
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     # 'BEP2': 'bep2',
-                    # 'ARB': 'arb',
+                    # 'ARBITRUM': 'arb',
                     # 'ERC20': 'erc20',
                     # 'KIP7': 'kip7',
                     # 'MAINNET': 'mainnet',  # TODO: does mainnet just mean the default?
@@ -432,7 +434,7 @@ class indodax(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         balances = self.safe_value(response, 'return', {})
         free = self.safe_value(balances, 'balance', {})
         used = self.safe_value(balances, 'balance_hold', {})
@@ -449,7 +451,8 @@ class indodax(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(free, currencyId)
             account['used'] = self.safe_string(used, currencyId)
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -505,7 +508,7 @@ class indodax(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -671,7 +674,7 @@ class indodax(Exchange, ImplicitAPI):
         response = await self.publicGetApiTradesPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "Time": 1708416900,
@@ -795,6 +798,7 @@ class indodax(Exchange, ImplicitAPI):
         price = self.safe_string(order, 'price')
         amount = None
         remaining = None
+        filled = None
         marketId = self.safe_string(order, 'pair')
         market = self.safe_market(marketId, market)
         if market is not None:
@@ -806,9 +810,11 @@ class indodax(Exchange, ImplicitAPI):
             if (market['baseId'] == 'idr') and ('remain_rp' in order):
                 baseId = 'rp'
             cost = self.safe_string(order, 'order_' + quoteId)
-            if not cost:
-                amount = self.safe_string(order, 'order_' + baseId)
-                remaining = self.safe_string(order, 'remain_' + baseId)
+            amount = self.safe_string(order, 'order_' + baseId)
+            remaining = self.safe_string(order, 'remain_' + baseId)
+            # filled buy orders on idr-quoted markets carry the executed base amount
+            # only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            filled = self.safe_string(order, 'receive_' + baseId)
         timestamp = self.safe_integer(order, 'submit_time')
         fee = None
         id = self.safe_string(order, 'order_id')
@@ -829,7 +835,7 @@ class indodax(Exchange, ImplicitAPI):
             'cost': cost,
             'average': None,
             'amount': amount,
-            'filled': None,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
@@ -970,7 +976,7 @@ class indodax(Exchange, ImplicitAPI):
             priceIsRequired = True
             quantityIsRequired = True
             if side == 'buy':
-                request[market['quoteId']] = self.parse_to_numeric(Precise.string_mul(self.number_to_string(amount), self.number_to_string(price)))
+                request[market['quoteId']] = self.parse_to_numeric(self.cost_to_precision(symbol, Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))))
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
@@ -1066,6 +1072,40 @@ class indodax(Exchange, ImplicitAPI):
             'rate': self.safe_number(data, 'withdraw_fee'),
             'currency': self.safe_currency_code(currencyId, currency),
         }
+
+    async def fetch_deposit_withdraw_fee(self, code: str, params={}) -> DepositWithdrawFee:
+        """
+        fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privatePostWithdrawFee(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": {
+        #             "server_time": 1607923272,
+        #             "withdraw_fee": 0.005,
+        #             "currency": "eth"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'return', {})
+        result = self.deposit_withdraw_fee(response)
+        result['withdraw']['fee'] = self.safe_number(data, 'withdraw_fee')
+        result['withdraw']['percentage'] = False
+        result['deposit']['fee'] = 0
+        result['deposit']['percentage'] = False
+        return self.assign_default_deposit_withdraw_fees(result, currency)
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -1362,24 +1402,33 @@ class indodax(Exchange, ImplicitAPI):
                 network = None
                 if marketId in networks:
                     networkId = self.safe_string(networks, marketId)
+                    if networkId is None:
+                        raise ExchangeError(self.id + ' fetchDepositAddresses() missing networkId')
                     if networkId.find(',') >= 0:
                         network = []
+                        if networkId is None:
+                            raise ExchangeError(self.id + ' fetchDepositAddresses() missing networkId')
                         networkIds = networkId.split(',')
                         for j in range(0, len(networkIds)):
-                            network.append(self.network_id_to_code(networkIds[j], code).upper())
+                            _netIdTmp = self.network_id_to_code(networkIds[j], code)
+                            if _netIdTmp is not None:
+                                network.append(_netIdTmp.upper())
                     else:
-                        network = self.network_id_to_code(networkId, code).upper()
+                        _netIdTmp = self.network_id_to_code(networkId, code)
+                        if _netIdTmp is not None:
+                            network = _netIdTmp.upper()
                 finalNetwork = network  # java req
-                result[code] = {
-                    'info': {},
-                    'currency': code,
-                    'network': finalNetwork,
-                    'address': address,
-                    'tag': None,
-                }
+                if code is not None:
+                    result[code] = {
+                        'info': {},
+                        'currency': code,
+                        'network': finalNetwork,
+                        'address': address,
+                        'tag': None,
+                    }
         return result
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api]
         if api == 'public':
             query = self.omit(params, self.extract_params(path))
@@ -1401,7 +1450,7 @@ class indodax(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         # {success: 0, error: "invalid order."}

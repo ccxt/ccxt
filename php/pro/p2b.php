@@ -10,6 +10,8 @@ use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class p2b extends \ccxt\async\p2b {
     public function describe(): mixed {
@@ -64,7 +66,7 @@ class p2b extends \ccxt\async\p2b {
         ));
     }
 
-    public function subscribe(string $name, string $messageHash, $request, $params = array()) {
+    public function subscribe(string $name, string $messageHash, mixed $request, $params = array()) {
         return Async\async(function () use ($name, $messageHash, $request, $params) {
             /**
              * @ignore
@@ -190,20 +192,18 @@ class p2b extends \ccxt\async\p2b {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -258,7 +258,7 @@ class p2b extends \ccxt\async\p2b {
              * @param {int} [$limit] 1-100, default=100
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, $interval of precision for order, default=0.001
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -280,7 +280,7 @@ class p2b extends \ccxt\async\p2b {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //    {
         //        "method" => "kline.update",
@@ -325,7 +325,7 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         //    {
         //        "method" => "deals.update",
@@ -366,7 +366,7 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // state
         //
@@ -423,7 +423,7 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //    {
         //        "method" => "depth.update",
@@ -443,6 +443,7 @@ class p2b extends \ccxt\async\p2b {
         //    }
         //
         $params = $this->safe_list($message, 'params', array());
+        $isFullUpdate = $this->safe_bool($params, 0, false);
         $data = $this->safe_dict($params, 1);
         $asks = $this->safe_list($data, 'asks');
         $bids = $this->safe_list($data, 'bids');
@@ -456,6 +457,13 @@ class p2b extends \ccxt\async\p2b {
         if ($orderbook === null) {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
+        }
+        if ($isFullUpdate) {
+            // the first parameter signals whether the $message carries all
+            // records or only the changed ones, a full set replaces the book,
+            // otherwise stale levels that left the depth window would linger
+            // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
+            $orderbook->reset(array());
         }
         if ($bids !== null) {
             for ($i = 0; $i < count($bids); $i++) {
@@ -479,7 +487,7 @@ class p2b extends \ccxt\async\p2b {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -502,7 +510,7 @@ class p2b extends \ccxt\async\p2b {
         }
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' $error => ' . $this->json($error));
@@ -522,7 +530,7 @@ class p2b extends \ccxt\async\p2b {
         );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //    {
         //        error => null,
@@ -534,12 +542,12 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function on_error(Client $client, $error) {
+    public function on_error(Client $client, mixed $error) {
         $this->options['tickerSubs'] = $this->create_safe_dictionary();
         parent::on_error($client, $error);
     }
 
-    public function on_close(Client $client, $error) {
+    public function on_close(Client $client, mixed $error) {
         $this->options['tickerSubs'] = $this->create_safe_dictionary();
         parent::on_close($client, $error);
     }

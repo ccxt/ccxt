@@ -121,7 +121,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function parse_transfer_type($transferType) {
+    public function parse_transfer_type(mixed $transferType) {
         $transferTypes = array(
             'spot' => 'TRADE',
             'funding' => 'MAIN',

@@ -62,10 +62,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// retrieves data on all markets for kucoin
@@ -95,7 +95,7 @@ public partial class kucoin
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<MarketInterface>> FetchContractMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchContractMarkets(object parameters = null)
     {
         var res = await this.fetchContractMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
@@ -135,7 +135,7 @@ public partial class kucoin
     /// *DEPRECATED* please use fetchDepositWithdrawFee instead
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-withdrawal-quotas"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -166,10 +166,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFee> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFee(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFee(res);
     }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -576,7 +576,7 @@ public partial class kucoin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -1441,6 +1441,12 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -2184,7 +2190,7 @@ public partial class kucoin
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#list-fills"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-trade-history"/>  <br/>
@@ -2541,8 +2547,7 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-deposit-history-old"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -2628,8 +2633,7 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-withdrawal-history-old"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -3087,7 +3091,7 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol.</returns>
-    public async Task<Dictionary<string, object>> FetchBorrowRateHistories(object codes = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchBorrowRateHistories(List<String> codes = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -3164,7 +3168,7 @@ public partial class kucoin
     /// fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-currencies"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -3175,10 +3179,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// fetch the set leverage for a market
@@ -3601,7 +3605,7 @@ public partial class kucoin
     /// <item>
     /// <term>symbol</term>
     /// <description>
-    /// string : not used by bybit setPositionMode ()
+    /// string : not used by setPositionMode ()
     /// </description>
     /// </item>
     /// <item>
@@ -3639,10 +3643,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
-    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PositionModeInfo> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionMode(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PositionModeInfo(res);
     }
     /// <summary>
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market

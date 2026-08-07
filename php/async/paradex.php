@@ -14,6 +14,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class paradex extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -150,7 +152,9 @@ class paradex extends Exchange {
                         'bbo/{market}/interactive' => 1,
                         'funding/data' => 1,
                         'markets' => 1,
+                        'markets/history' => 1,
                         'markets/klines' => 1,
+                        'markets/settlement-price' => 1,
                         'markets/summary' => 1,
                         'orderbook/{market}' => 1,
                         'orderbook/{market}/impact-price' => 1,
@@ -453,7 +457,7 @@ class paradex extends Exchange {
         })();
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -881,7 +885,7 @@ class paradex extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1720071900000,
@@ -1055,7 +1059,7 @@ class paradex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1266,7 +1270,7 @@ class paradex extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-USD-PERP",
@@ -1298,11 +1302,11 @@ class paradex extends Exchange {
         ), $market);
     }
 
-    public function hash_message($message) {
+    public function hash_message(mixed $message) {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -1310,7 +1314,7 @@ class paradex extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -1431,6 +1435,9 @@ class paradex extends Exchange {
             $now = $this->nonce();
             if ($cachedToken !== null) {
                 $cachedExpires = $this->safe_integer($this->options, 'expires');
+                if ($cachedExpires === null) {
+                    throw new ExchangeError($this->id . ' authenticateRest() missing cachedExpires');
+                }
                 if ($now < $cachedExpires) {
                     return $cachedToken;
                 }
@@ -1505,7 +1512,7 @@ class paradex extends Exchange {
         //
         $timestamp = $this->safe_integer($order, 'created_at');
         $orderId = $this->safe_string($order, 'id');
-        $clientOrderId = $this->omit_zero(($this->safe_string($order, 'client_id')));
+        $clientOrderId = $this->omit_zero($this->safe_string($order, 'client_id'));
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
@@ -1522,12 +1529,12 @@ class paradex extends Exchange {
             }
         }
         $side = $this->safe_string_lower($order, 'side');
-        $average = $this->omit_zero(($this->safe_string($order, 'avg_fill_price')));
-        $remaining = $this->omit_zero(($this->safe_string($order, 'remaining_size')));
+        $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
+        $remaining = $this->omit_zero($this->safe_string($order, 'remaining_size'));
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
         $flags = $this->safe_list($order, 'flags', array());
         $reduceOnly = null;
-        if (is_array($flags) && array_key_exists('REDUCE_ONLY', $flags)) {
+        if (is_array($flags) && array_key_exists('REDUCE_ONLY' ?? '', $flags)) {
             $reduceOnly = true;
         }
         return $this->safe_order(array(
@@ -1598,7 +1605,13 @@ class paradex extends Exchange {
         return Precise::string_mul($num, '100000000');
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $orderType = strtoupper($type);
@@ -1686,6 +1699,9 @@ class paradex extends Exchange {
             $account = Async\await($this->retrieve_account());
             $now = $this->nonce();
             $orderType = $this->safe_string($request, 'type');
+            if ($orderType === null) {
+                throw new ExchangeError($this->id . ' signOrderRequest() missing orderType');
+            }
             $isMarket = (mb_strpos($orderType, 'MARKET') !== false);
             $orderReq = array(
                 'timestamp' => $now * 1000,
@@ -1793,7 +1809,7 @@ class paradex extends Exchange {
             /**
              * edit an open limit order or TPSL order
              *
-             * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+             * @see https://docs.paradex.trade/api/prod/orders/modify
              *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to edit an order in
@@ -1968,7 +1984,7 @@ class paradex extends Exchange {
              * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
              *
              * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified $market $symbol, not used by paradex cancelOrders()
+             * @param {string} [$symbol] unified $market $symbol, not used by cancelOrders()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string[]} [$params->clientOrderIds] client order $ids
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -2021,7 +2037,7 @@ class paradex extends Exchange {
             for ($i = 0; $i < count($results); $i++) {
                 $result = $results[$i];
                 $marketId = $this->safe_string($result, 'market');
-                $market = $this->safe_market($marketId, null);
+                $market = $this->safe_market($marketId);
                 $status = $this->safe_string($result, 'status');
                 $orderStatus = null;
                 if ($status === 'QUEUED_FOR_CANCELLATION') {
@@ -2308,7 +2324,7 @@ class paradex extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $this->safe_dict($response, $i, array());
@@ -2316,7 +2332,9 @@ class paradex extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'size');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2561,7 +2579,7 @@ class paradex extends Exchange {
         })();
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
         //         "created_at" => 1697213130097,
@@ -2920,7 +2938,7 @@ class paradex extends Exchange {
         })();
     }
 
-    public function parse_margin_mode(array $rawMarginMode, $market = null): array {
+    public function parse_margin_mode(array $rawMarginMode, ?array $market = null): array {
         $marketId = $this->safe_string($rawMarginMode, 'market');
         $market = $this->safe_market($marketId, $market);
         $marginMode = $this->safe_string_lower($rawMarginMode, 'margin_type');
@@ -2950,8 +2968,8 @@ class paradex extends Exchange {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
-            $leverage = null;
-            list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', 1);
+            $leverage = 1;
+            list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', $leverage);
             $request = array(
                 'market' => $market['id'],
                 'leverage' => $leverage,
@@ -3011,7 +3029,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function encode_margin_mode($mode) {
+    public function encode_margin_mode(mixed $mode) {
         $modes = array(
             'cross' => 'CROSS',
             'isolated' => 'ISOLATED',
@@ -3291,7 +3309,7 @@ class paradex extends Exchange {
         })();
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //         "account" => "string",
@@ -3391,7 +3409,7 @@ class paradex extends Exchange {
         })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $this->version;
         if (mb_strpos($path, 'v2/') === 0) {
             $version = 'v2';
@@ -3449,7 +3467,7 @@ class paradex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

@@ -92,7 +92,7 @@ class bitrue(ccxt.async_support.bitrue):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
         #         "e": "BALANCE",
@@ -143,7 +143,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'balance'
         client.resolve(self.balance, messageHash)
 
-    def parse_ws_balances(self, balances):
+    def parse_ws_balances(self, balances: Any):
         #
         #    [{
         #         "a": "btc",
@@ -177,7 +177,8 @@ class bitrue(ccxt.async_support.bitrue):
                     account['free'] = free
                 if updateUsed:
                     account['used'] = used
-                self.balance[code] = account
+                if code is not None:
+                    self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -211,7 +212,7 @@ class bitrue(ccxt.async_support.bitrue):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         #    {
         #        "e": "ORDER",
@@ -244,7 +245,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'orders'
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         #    {
         #        "e": "ORDER",
@@ -334,7 +335,7 @@ class bitrue(ccxt.async_support.bitrue):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "market_ethbtc_simple_depth_step0",
@@ -398,9 +399,12 @@ class bitrue(ccxt.async_support.bitrue):
         client.resolve(orderbook, messageHash)
 
     def find_swap_market_by_ws_base_quote(self, wsBaseQuote: str):
-        symbols = list(self.markets.keys())
+        markets = self.markets
+        if markets is None:
+            return None
+        symbols = list(markets.keys())
         for i in range(0, len(symbols)):
-            candidate = self.markets[symbols[i]]
+            candidate = markets[symbols[i]]
             if not candidate['swap']:
                 continue
             baseId = self.safe_string_lower(candidate, 'baseId', '')
@@ -409,7 +413,7 @@ class bitrue(ccxt.async_support.bitrue):
                 return candidate
         return None
 
-    def parse_contract_bids_asks(self, bidsAsks, symbol: str):
+    def parse_contract_bids_asks(self, bidsAsks: Any, symbol: str):
         result = []
         for i in range(0, len(bidsAsks)):
             level = bidsAsks[i]
@@ -419,7 +423,7 @@ class bitrue(ccxt.async_support.bitrue):
             result.append([price, amount])
         return result
 
-    def convert_from_raw_quantity(self, symbol: str, rawQuantity):
+    def convert_from_raw_quantity(self, symbol: str, rawQuantity: Any):
         if rawQuantity is None:
             return None
         market = self.market(symbol)
@@ -465,7 +469,7 @@ class bitrue(ccxt.async_support.bitrue):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "event_rep": "",
@@ -509,7 +513,7 @@ class bitrue(ccxt.async_support.bitrue):
             messageHash = 'trades:' + symbol
             client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'ts')
         sideLower = self.safe_string_lower(trade, 'side')
@@ -574,7 +578,7 @@ class bitrue(ccxt.async_support.bitrue):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "market_e_btcusdt_kline_1min",
@@ -617,7 +621,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'ohlcv:' + symbol + ':' + timeframe
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, tick, market: Market = None) -> list:
+    def parse_ws_ohlcv(self, tick: Any, market: Market = None) -> list:
         symbol = market['symbol']
         idSeconds = self.safe_integer(tick, 'id')
         timestamp = None if (idSeconds is None) else idSeconds * 1000
@@ -661,7 +665,7 @@ class bitrue(ccxt.async_support.bitrue):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "market_e_btcusdt_ticker",
@@ -694,7 +698,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'ticker:' + symbol
         client.resolve(parsed, messageHash)
 
-    def parse_ws_ticker(self, tick, market, timestamp: Int = None) -> Ticker:
+    def parse_ws_ticker(self, tick: Any, market: Any, timestamp: Int = None) -> Ticker:
         symbol = market['symbol']
         rawVol = self.safe_number(tick, 'vol')
         rawAmount = self.safe_number(tick, 'amount')
@@ -726,7 +730,7 @@ class bitrue(ccxt.async_support.bitrue):
             'quoteVolume': quoteVolume,
         }, market)
 
-    def parse_ws_order_type(self, typeId):
+    def parse_ws_order_type(self, typeId: Any):
         types = {
             '1': 'limit',
             '2': 'market',
@@ -734,7 +738,7 @@ class bitrue(ccxt.async_support.bitrue):
         }
         return self.safe_string(types, typeId, typeId)
 
-    def parse_ws_order_status(self, status):
+    def parse_ws_order_status(self, status: Any):
         statuses = {
             '0': 'open',  # The order has not been accepted by the engine.
             '1': 'open',  # The order has been accepted by the engine.
@@ -745,10 +749,10 @@ class bitrue(ccxt.async_support.bitrue):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_ping(self, client: Client, message):
+    def handle_ping(self, client: Client, message: Any):
         self.spawn(self.pong, client, message)
 
-    async def pong(self, client, message):
+    async def pong(self, client: Client, message: Any):
         #
         #     {
         #         "ping": 1670057540627
@@ -760,7 +764,7 @@ class bitrue(ccxt.async_support.bitrue):
         }
         await client.send(pong)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if 'channel' in message:
             channel = self.safe_string(message, 'channel')
             if channel.find('_depth_step') > -1:

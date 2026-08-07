@@ -381,14 +381,26 @@ export default class bittrade extends Exchange {
                     'ALGO': 'algo',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
-                'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
-                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
-                'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'fetchOrdersByStates': {
+                    'method': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                },
+                'fetchOpenOrders': {
+                    'method': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
+                },
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                    'method': 'privatePostOrderOrdersPlace',
+                },
+                'fetchMarkets': {
+                    'method': 'publicGetCommonSymbols',
+                },
+                'fetchBalance': {
+                    'method': 'privateGetAccountAccountsIdBalance',
+                },
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'language': 'en-US',
+                'fetchCurrencies': {
+                    'language': 'en-US',
+                },
                 'broker': {
                     'id': 'AA03022abc',
                 },
@@ -430,6 +442,9 @@ export default class bittrade extends Exchange {
         }
         if (symbols === undefined) {
             symbols = this.symbols;
+        }
+        if (symbols === undefined) {
+            throw new ExchangeError(this.id + ' markets not loaded');
         }
         const result = {};
         for (let i = 0; i < symbols.length; i++) {
@@ -488,7 +503,7 @@ export default class bittrade extends Exchange {
         };
     }
     costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.market(symbol)['precision']['cost'], this.precisionMode);
     }
     /**
      * @method
@@ -498,7 +513,7 @@ export default class bittrade extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.options['fetchMarketsMethod'];
+        const method = this.handleOption('fetchMarkets', 'method', 'publicGetCommonSymbols');
         const response = await this[method](params);
         //
         //    {
@@ -549,6 +564,12 @@ export default class bittrade extends Exchange {
             const superLeverageRatio = this.safeString(market, 'super-margin-leverage-ratio', '1');
             const margin = Precise.stringGt(leverageRatio, '1') || Precise.stringGt(superLeverageRatio, '1');
             const fee = (base === 'OMG') ? this.parseNumber('0') : this.parseNumber('0.002');
+            if (baseId === undefined) {
+                throw new ExchangeError(this.id + ' fetchMarkets() missing baseId');
+            }
+            if (quoteId === undefined) {
+                throw new ExchangeError(this.id + ' fetchMarkets() missing quoteId');
+            }
             result.push({
                 'id': baseId + quoteId,
                 'symbol': base + '/' + quote,
@@ -699,7 +720,7 @@ export default class bittrade extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1090,7 +1111,7 @@ export default class bittrade extends Exchange {
      */
     async fetchCurrencies(params = {}) {
         const request = {
-            'language': this.options['language'],
+            'language': this.handleOption('fetchCurrencies', 'language', 'en-US'),
         };
         const response = await this.publicGetSettingsCurrencys(this.extend(request, params));
         //
@@ -1186,19 +1207,27 @@ export default class bittrade extends Exchange {
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             let account = undefined;
-            if (code in result) {
+            if ((code !== undefined) && (code in result)) {
                 account = result[code];
             }
             else {
                 account = this.account();
             }
+            if (account === undefined) {
+                throw new ExchangeError(this.id + ' parseBalance() could not resolve account');
+            }
             if (balance['type'] === 'trade') {
                 account['free'] = this.safeString(balance, 'balance');
+            }
+            if (account === undefined) {
+                throw new ExchangeError(this.id + ' parseBalance() could not resolve account');
             }
             if (balance['type'] === 'frozen') {
                 account['used'] = this.safeString(balance, 'balance');
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1214,7 +1243,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const method = this.options['fetchBalanceMethod'];
+        const method = this.handleOption('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
         const request = {
             'id': this.accounts[0]['id'],
         };
@@ -1233,7 +1262,7 @@ export default class bittrade extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.safeString(this.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
+        const method = this.handleOption('fetchOrdersByStates', 'method', 'private_get_order_orders');
         const response = await this[method](this.extend(request, params));
         //
         //     { "status":   "ok",
@@ -1271,7 +1300,7 @@ export default class bittrade extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId(this.extend(request, params));
-        const order = this.safeDict(response, 'data');
+        const order = this.safeDict(response, 'data', {});
         return this.parseOrder(order);
     }
     /**
@@ -1298,7 +1327,7 @@ export default class bittrade extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.safeString(this.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
+        const method = this.handleOption('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
         return await this[method](symbol, since, limit, params);
     }
     async fetchOpenOrdersV1(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1585,7 +1614,7 @@ export default class bittrade extends Exchange {
      * @name bittrade#cancelOrder
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol not used by bittrade cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1607,7 +1636,7 @@ export default class bittrade extends Exchange {
      * @name bittrade#cancelOrders
      * @description cancel multiple orders
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by bittrade cancelOrders ()
+     * @param {string} symbol not used by cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1721,7 +1750,7 @@ export default class bittrade extends Exchange {
      * @method
      * @name bittrade#cancelAllOrders
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

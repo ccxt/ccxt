@@ -4,34 +4,33 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cdf169c2db0f8d56949557b870b22546",
+    "content-hash": "cfc7d609eed41780269e5df954fe236d",
     "packages": [
         {
             "name": "clue/http-proxy-react",
-            "version": "v1.9.0",
+            "version": "v1.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/clue/reactphp-http-proxy.git",
-                "reference": "f3b02835273036a9370ac1c144b55df8e2b98430"
+                "reference": "5bd777a2a55464aa722edde4176504a8875bdbab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/clue/reactphp-http-proxy/zipball/f3b02835273036a9370ac1c144b55df8e2b98430",
-                "reference": "f3b02835273036a9370ac1c144b55df8e2b98430",
+                "url": "https://api.github.com/repos/clue/reactphp-http-proxy/zipball/5bd777a2a55464aa722edde4176504a8875bdbab",
+                "reference": "5bd777a2a55464aa722edde4176504a8875bdbab",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3",
-                "react/promise": "^3 || ^2.1 || ^1.2.1",
-                "react/socket": "^1.12",
-                "ringcentral/psr7": "^1.2"
+                "react/promise": "^3.3 || ^2.1 || ^1.2.1",
+                "react/socket": "^1.17"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36",
-                "react/async": "^4 || ^3 || ^2",
-                "react/event-loop": "^1.2",
-                "react/http": "^1.5",
-                "react/promise-timer": "^1.10"
+                "phpunit/phpunit": "^9.6 || ^8.5 || ^5.7 || ^4.8.36",
+                "react/async": "^4.3 || ^3 || ^2",
+                "react/event-loop": "^1.6",
+                "react/http": "^1.11",
+                "react/promise-timer": "^1.11"
             },
             "type": "library",
             "autoload": {
@@ -60,7 +59,7 @@
             ],
             "support": {
                 "issues": "https://github.com/clue/reactphp-http-proxy/issues",
-                "source": "https://github.com/clue/reactphp-http-proxy/tree/v1.9.0"
+                "source": "https://github.com/clue/reactphp-http-proxy/tree/v1.10.0"
             },
             "funding": [
                 {
@@ -72,7 +71,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-04-10T14:46:11+00:00"
+            "time": "2026-06-29T09:33:22+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -179,16 +178,16 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.12.1",
+            "version": "2.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "172ef2f4e9824c1e058b7f30be8ae25a02c0f2b7"
+                "reference": "dad89620b7a6edb60c15858442eb2e408b45d8f4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/172ef2f4e9824c1e058b7f30be8ae25a02c0f2b7",
-                "reference": "172ef2f4e9824c1e058b7f30be8ae25a02c0f2b7",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/dad89620b7a6edb60c15858442eb2e408b45d8f4",
+                "reference": "dad89620b7a6edb60c15858442eb2e408b45d8f4",
                 "shasum": ""
             },
             "require": {
@@ -197,7 +196,7 @@
                 "psr/http-message": "^1.1 || ^2.0",
                 "ralouphie/getallheaders": "^3.0",
                 "symfony/deprecation-contracts": "^2.5 || ^3.0",
-                "symfony/polyfill-php80": "^1.24"
+                "symfony/polyfill-php80": "^1.25"
             },
             "provide": {
                 "psr/http-factory-implementation": "1.0",
@@ -278,7 +277,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.12.1"
+                "source": "https://github.com/guzzle/psr7/tree/2.13.0"
             },
             "funding": [
                 {
@@ -294,7 +293,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-06-18T09:49:37+00:00"
+            "time": "2026-07-16T22:23:49+00:00"
         },
         {
             "name": "kornrunner/keccak",
@@ -3895,5 +3894,5 @@
         "ext-gmp": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

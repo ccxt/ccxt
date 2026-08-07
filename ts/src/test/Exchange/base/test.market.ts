@@ -2,12 +2,13 @@ import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import { Exchange, Market } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
+import type { Dict } from '../../../base/types.js';
 
 function testMarket (exchange: Exchange, skippedProperties: object, method: string, market: Market) {
     if (market === undefined) {
         return;
     }
-    const format = {
+    let format: Dict = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
         'base': 'BTC', // unified uppercase string, base currency, 3 or more letters
@@ -106,8 +107,16 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         emptyAllowedFor.push ('base');
         emptyAllowedFor.push ('quote');
     }
+    if (exchange.safeString (market, 'type') === 'prediction') {
+        // prediction market rows carry the unified 'market' handle, the
+        // deprecated 'symbol' key is intentionally absent from their structures
+        format = exchange.omit (format, [ 'symbol' ]);
+    }
     testSharedMethods.assertStructure (exchange, skippedProperties, method, market, format, emptyAllowedFor);
-    testSharedMethods.assertSymbol (exchange, skippedProperties, method, market, 'symbol');
+    // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+    if (market['type'] !== 'prediction') {
+        testSharedMethods.assertSymbol (exchange, skippedProperties, method, market, 'symbol');
+    }
     const logText = testSharedMethods.logTemplate (exchange, method, market);
 
     // check taker/maker
@@ -117,8 +126,8 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'maker', '-100');
     testSharedMethods.assertLess (exchange, skippedProperties, method, market, 'maker', '100');
 
-    // validate type
-    const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option', 'index', 'other' ];
+    // validate type ('prediction' for prediction-market exchanges)
+    const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option', 'index', 'prediction', 'other' ];
     testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'type', validTypes);
     // validate subTypes
     const validSubTypes = [ 'linear', 'inverse', 'quanto', undefined ];
@@ -128,7 +137,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     const checkedTypes = [ 'spot', 'swap', 'future', 'option' ];
     for (let i = 0; i < checkedTypes.length; i++) {
         const type = checkedTypes[i];
-        if (market[type]) {
+        if ((market as Dict)[type]) {
             assert (type === market['type'], 'market.type (' + market['type'] + ') not equal to "' + type + '"' + logText);
         }
     }
@@ -138,7 +147,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         const checkedSubTypes = [ 'linear', 'inverse' ];
         for (let i = 0; i < checkedSubTypes.length; i++) {
             const subType = checkedSubTypes[i];
-            if (market[subType]) {
+            if ((market as Dict)[subType]) {
                 assert (subType === market['subType'], 'market.subType (' + market['subType'] + ') not equal to "' + subType + '"' + logText);
             }
         }
@@ -154,7 +163,11 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     }
 
     // check mutually exclusive fields
-    if (spot) {
+    const isPrediction = (market['type'] === 'prediction');
+    if (isPrediction) {
+        // prediction markets trade outcome shares — neither spot nor a derivative contract
+        assert (!spot && !contract && !future && !swap && !option, 'for prediction market, none of spot/contract/future/swap/option should be set' + logText);
+    } else if (spot) {
         assert (!contract && linear === undefined && inverse === undefined && !option && !swap && !future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + logText);
     } else {
         // if not spot, any of the below should be true
@@ -248,7 +261,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     assert (limitsKeysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
     for (let i = 0; i < limitsKeys.length; i++) {
         const key = limitsKeys[i];
-        const limitEntry = market['limits'][key];
+        const limitEntry = (market['limits'] as Dict)[key];
         if (isInactiveMarket) {
             // for inactive markets, there might be `0` for min & max values, so we skip
             continue;
@@ -265,8 +278,9 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
             }
         }
     }
-    // check currencies
-    if (!isInactiveMarket) {
+    // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
+    // not a currency, so baseId is the market/outcome id and won't map to a currency code)
+    if (!isInactiveMarket && !isPrediction) {
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);

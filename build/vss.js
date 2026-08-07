@@ -63,12 +63,14 @@ async function vssEverything () {
     vss ('./python/ccxt/async_support/__init__.py',      "__version__ = '{version}'",                                                   version)
     vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'",                                                   version)
     vss ('./python/ccxt/pro/__init__.py',                "__version__ = '{version}'",                                                   version)
+    vss ('./python/ccxt/prediction/__init__.py',         "__version__ = '{version}'",                                                   version)
     vss ('./cs/ccxt/base/Exchange.MetaData.cs',          "public static string ccxtVersion = \"{version}\";",                           version)
     vss ('./cs/ccxt/ccxt.csproj',                         "<PackageVersion>{version}</PackageVersion>",                                 version)
     vss ('./cs/ccxt/ccxt.csproj',                         "<AssemblyVersion>{version}</AssemblyVersion>",                               version)
     vss ('./cs/ccxt/ccxt.csproj',                         "<FileVersion>{version}</FileVersion>",                                       version)
     vss ('./go/v4/exchange_metadata.go',                 "var Version string = \"{version}\"",                                          version)
     vss ('./go/v4/pro/exchange_metadata.go',                 "var Version string = \"{version}\"",                                      version)
+    vss ('./go/v4/prediction/exchange_metadata.go',          "var Version string = \"{version}\"",                                      version)
     vss ('./java/lib/src/main/java/io/github/ccxt/Version.java', "public static final String VERSION = \"{version}\";",                 version)
     vss ('./java/gradle.properties',                          "version={version}",                                                      version)
 
@@ -76,15 +78,6 @@ async function vssEverything () {
 
     vss ('./README.md',       "ccxt@{version}", version, true)
     vss ('./wiki/Install.md', "ccxt@{version}", version, true)
-
-    const pythonFiles = [
-        'package.json',
-        'LICENSE.txt',
-        'keys.json',
-        'README.md',
-    ]
-
-    pythonFiles.forEach ((fileName) => copyFile ('./' + fileName, './python/' + fileName))
 
     log.bright.green ('Version single-sourced successfully.')
 }

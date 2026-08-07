@@ -11,6 +11,7 @@ use ccxt\NotSupported;
 use ccxt\RateLimitExceeded;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class mudrex extends \ccxt\async\mudrex {
     public function describe(): mixed {
@@ -36,7 +37,7 @@ class mudrex extends \ccxt\async\mudrex {
         ));
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'id' => $this->request_id(),
             'method' => 'PING',
@@ -77,11 +78,14 @@ class mudrex extends \ccxt\async\mudrex {
             $messageHash = 'ticker:' . $symbol;
             $url = $this->urls['api']['ws'];
             $this->set_broker_headers();
+            $baseIdString = ($market['baseId'] !== null) ? $market['baseId'] : '';
+            $quoteIdString = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
+            $assetId = strtolower($baseIdString) . strtolower($quoteIdString);
             $subscribe = array(
                 'id' => $this->request_id(),
                 'method' => 'SUBSCRIBE',
                 'params' => array( 'ticker@1s' ),
-                'assets' => array( strtolower($market['baseId']) . strtolower($market['quoteId']) ),
+                'assets' => array( $assetId ),
             );
             $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
@@ -100,7 +104,9 @@ class mudrex extends \ccxt\async\mudrex {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $market = $this->market($symbols[$i]);
                     $messageHashes[] = 'ticker:' . $market['symbol'];
-                    $assets[] = strtolower($market['baseId']) . strtolower($market['quoteId']);
+                    $baseIdString = ($market['baseId'] !== null) ? $market['baseId'] : '';
+                    $quoteIdString = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
+                    $assets[] = strtolower($baseIdString) . strtolower($quoteIdString);
                 }
             }
             $url = $this->urls['api']['ws'];
@@ -139,7 +145,9 @@ class mudrex extends \ccxt\async\mudrex {
             if ($priceType === 'mark') {
                 $prefix = 'markKline';
             }
-            $stream = $prefix . '@' . $interval . '@' . strtolower($market['baseId']) . strtolower($market['quoteId']);
+            $streamBaseId = ($market['baseId'] !== null) ? $market['baseId'] : '';
+            $streamQuoteId = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
+            $stream = $prefix . '@' . $interval . '@' . strtolower($streamBaseId) . strtolower($streamQuoteId);
             $messageHash = $stream;
             $url = $this->urls['api']['ws'];
             $this->set_broker_headers();
@@ -157,7 +165,7 @@ class mudrex extends \ccxt\async\mudrex {
         })();
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(mixed $client, mixed $message) {
         if ($this->safe_string($message, 'method') === 'PONG') {
             return;
         }
@@ -176,7 +184,7 @@ class mudrex extends \ccxt\async\mudrex {
         }
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         $error = $this->safe_dict($message, 'error', array());
         $code = $this->safe_string($error, 'code');
         $msg = $this->safe_string($error, 'msg');
@@ -187,8 +195,11 @@ class mudrex extends \ccxt\async\mudrex {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(mixed $client, mixed $message) {
         $stream = $this->safe_string($message, 'stream');
+        if ($stream === null) {
+            return;
+        }
         $parts = explode('@', $stream);
         $interval = $parts[1];
         $tf = $this->find_timeframe($interval);
@@ -208,18 +219,20 @@ class mudrex extends \ccxt\async\mudrex {
             $this->safe_number($data, 'v'),
         );
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $tf);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $tf);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $this->ohlcvs[$symbol][$tf] = $stored;
+            if ($symbol !== null && $tf !== null) {
+                $this->ohlcvs[$symbol][$tf] = $stored;
+            }
         }
         $stored->append($parsed);
         $messageHash = $stream;
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(mixed $client, mixed $message) {
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $t = $data[$i];

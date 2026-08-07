@@ -45,7 +45,7 @@ public partial class whitebit : Exchange
                 { "fetchConvertQuote", true },
                 { "fetchConvertTrade", false },
                 { "fetchConvertTradeHistory", true },
-                { "fetchCrossBorrowRate", true },
+                { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
@@ -398,7 +398,7 @@ public partial class whitebit : Exchange
         object makerFeeRate = this.safeString(market, "makerFee");
         object maker = Precise.stringDiv(makerFeeRate, "100");
         object isSpot = !isTrue(swap);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -448,7 +448,7 @@ public partial class whitebit : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -552,25 +552,28 @@ public partial class whitebit : Exchange
             object networkCode = this.networkIdToCode(networkId, code);
             object networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
             object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", null },
-                { "deposit", this.inArray(networkId, depositsNetworks) },
-                { "withdraw", this.inArray(networkId, withdrawsNetworks) },
-                { "fee", null },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkDepositLimits, "min") },
-                        { "max", this.safeNumber(networkDepositLimits, "max") },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", this.inArray(networkId, depositsNetworks) },
+                    { "withdraw", this.inArray(networkId, withdrawsNetworks) },
+                    { "fee", null },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkDepositLimits, "min") },
+                            { "max", this.safeNumber(networkDepositLimits, "max") },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkWithdrawLimits, "min") },
+                            { "max", this.safeNumber(networkWithdrawLimits, "max") },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkWithdrawLimits, "min") },
-                        { "max", this.safeNumber(networkWithdrawLimits, "max") },
-                    } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -653,9 +656,15 @@ public partial class whitebit : Exchange
             object data = getValue(response, currency);
             object code = this.safeCurrencyCode(currency);
             object withdraw = this.safeValue(data, "withdraw", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)withdrawFees)[(string)code] = this.safeString(withdraw, "fixed");
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)withdrawFees)[(string)code] = this.safeString(withdraw, "fixed");
+            }
             object deposit = this.safeValue(data, "deposit", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)depositFees)[(string)code] = this.safeString(deposit, "fixed");
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)depositFees)[(string)code] = this.safeString(deposit, "fixed");
+            }
         }
         return new Dictionary<string, object>() {
             { "withdraw", withdrawFees },
@@ -780,7 +789,7 @@ public partial class whitebit : Exchange
             object currencyId = getValue(splitEntry, 0);
             object feeInfo = getValue(response, entry);
             object code = this.safeCurrencyCode(currencyId);
-            if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
+            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))))
             {
                 object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (isTrue(isEqual(depositWithdrawFee, null)))
@@ -806,10 +815,13 @@ public partial class whitebit : Exchange
                     object networkLength = ((string)networkId).Length;
                     networkId = slice(networkId, 1, subtract(networkLength, 1));
                     object networkCode = this.networkIdToCode(networkId, code);
-                    ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                        { "withdraw", withdrawResult },
-                        { "deposit", depositResult },
-                    };
+                    if (isTrue(!isEqual(networkCode, null)))
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                            { "withdraw", withdrawResult },
+                            { "deposit", depositResult },
+                        };
+                    }
                 } else
                 {
                     ((IDictionary<string,object>)getValue(depositWithdrawFees, code))["withdraw"] = withdrawResult;
@@ -861,9 +873,10 @@ public partial class whitebit : Exchange
         //      }
         //
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object fee = this.safeValue(response, getValue(market, "baseId"), new Dictionary<string, object>() {});
             object makerFee = this.safeString(fee, "maker_fee");
@@ -944,11 +957,16 @@ public partial class whitebit : Exchange
         //
         object result = new Dictionary<string, object>() {};
         // Process all markets from the loaded markets cache
-        object marketIds = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        object markets = this.markets;
+        if (isTrue(isEqual(markets, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
+        }
+        object marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object market = getValue(this.markets, marketId);
+            object market = getValue(markets, marketId);
             if (isTrue(!isTrue(market) || !isTrue(getValue(market, "symbol"))))
             {
                 continue;
@@ -1109,14 +1127,15 @@ public partial class whitebit : Exchange
                 }
             }
             // Build comprehensive funding limits
+            object currencyLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
             object limits = new Dictionary<string, object>() {
                 { "deposit", new Dictionary<string, object>() {
-                    { "min", getValue(getValue(getValue(currency, "limits"), "deposit"), "min") },
-                    { "max", getValue(getValue(getValue(currency, "limits"), "deposit"), "max") },
+                    { "min", getValue(getValue(currencyLimits, "deposit"), "min") },
+                    { "max", getValue(getValue(currencyLimits, "deposit"), "max") },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
-                    { "min", getValue(getValue(getValue(currency, "limits"), "withdraw"), "min") },
-                    { "max", getValue(getValue(getValue(currency, "limits"), "withdraw"), "max") },
+                    { "min", getValue(getValue(currencyLimits, "withdraw"), "min") },
+                    { "max", getValue(getValue(currencyLimits, "withdraw"), "max") },
                 } },
             };
             // Add fee information if available
@@ -1561,7 +1580,7 @@ public partial class whitebit : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2231,7 +2250,7 @@ public partial class whitebit : Exchange
      * @name whitebit#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] market type, ['swap', 'spot']
      * @param {boolean} [params.isMargin] cancel all margin orders
@@ -2343,10 +2362,18 @@ public partial class whitebit : Exchange
         }
         object market = this.market(symbol);
         parameters = this.omit(parameters, "symbol");
+        if (isTrue(isEqual(timeout, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+        }
         object isBiggerThanZero = (isGreaterThan(timeout, 0));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
+        if (isTrue(isEqual(timeout, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+        }
         if (isTrue(isBiggerThanZero))
         {
             ((IDictionary<string,object>)request)["timeout"] = this.numberToString(divide(timeout, 1000));
@@ -2381,12 +2408,18 @@ public partial class whitebit : Exchange
                 ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "available", "main_balance");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "freeze");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "main_balance");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             } else
             {
                 object account = this.account();
                 ((IDictionary<string,object>)account)["total"] = balance;
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -3320,7 +3353,7 @@ public partial class whitebit : Exchange
      * @description fetch information on a deposit
      * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
      * @param {string} id deposit id
-     * @param {string} code not used by whitebit fetchDeposit ()
+     * @param {string} code not used by fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
@@ -3458,7 +3491,12 @@ public partial class whitebit : Exchange
         //     }
         //
         object records = this.safeList(response, "records", new List<object>() {});
-        return this.parseTransactions(records, currency, since, limit);
+        object recordsList = new List<object>() {};
+        if (isTrue(!isEqual(records, null)))
+        {
+            recordsList = records;
+        }
+        return this.parseTransactions(recordsList, currency, since, limit);
     }
 
     /**
@@ -3874,7 +3912,12 @@ public partial class whitebit : Exchange
         //    }
         //
         object records = this.safeList(response, "records");
-        return this.parseTransactions(records, currency, since, limit);
+        object recordsList = new List<object>() {};
+        if (isTrue(!isEqual(records, null)))
+        {
+            recordsList = records;
+        }
+        return this.parseTransactions(recordsList, currency, since, limit);
     }
 
     /**
@@ -4089,7 +4132,7 @@ public partial class whitebit : Exchange
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.positionId] the id of the requested position
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -4312,49 +4355,6 @@ public partial class whitebit : Exchange
         });
     }
 
-    /**
-     * @method
-     * @name whitebit#fetchCrossBorrowRate
-     * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
-     */
-    public async override Task<object> fetchCrossBorrowRate(object code, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "ticker", getValue(currency, "id") },
-        };
-        object response = await this.v4PrivatePostMainAccountSmartPlans(this.extend(request, parameters));
-        //
-        //
-        object data = this.safeList(response, 0, new List<object>() {});
-        return this.parseBorrowRate(data, currency);
-    }
-
-    public override object parseBorrowRate(object info, object currency = null)
-    {
-        //
-        //
-        object currencyId = this.safeString(info, "ticker");
-        object percent = this.safeString(info, "percent");
-        return new Dictionary<string, object>() {
-            { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "rate", this.parseNumber(Precise.stringDiv(percent, "100")) },
-            { "period", this.safeInteger(info, "duration") },
-            { "timestamp", null },
-            { "datetime", null },
-            { "info", info },
-        };
-    }
-
     public virtual object isFiat(object currency)
     {
         object fiatCurrencies = this.safeValue(this.options, "fiatCurrencies", new List<object>() {});
@@ -4448,8 +4448,8 @@ public partial class whitebit : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object version = this.safeValue(((object)api), 0);
-        object accessibility = this.safeValue(((object)api), 1);
+        object version = this.safeValue(api, 0);
+        object accessibility = this.safeValue(api, 1);
         if (isTrue(isEqual(headers, null)))
         {
             headers = new Dictionary<string, object>() {};

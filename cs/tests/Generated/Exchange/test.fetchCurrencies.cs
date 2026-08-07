@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchCurrencies(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFetchCurrencies(BaseExchange exchange, object skippedProperties)
     {
         object method = "fetchCurrencies";
-        object currencies = await exchange.fetchCurrencies();
+        object currencies = await ((dynamic)exchange).fetchCurrencies();
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         object numInactiveCurrencies = 0;
         object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
@@ -59,7 +59,7 @@ public partial class testMainClass : BaseTest
         }
         return true;
     }
-    public static object detectCurrencyConflicts(Exchange exchange, object currencyValues)
+    public static object detectCurrencyConflicts(BaseExchange exchange, object currencyValues)
     {
         // detect if there are currencies with different ids for the same code
         object ids = new Dictionary<string, object>() {};

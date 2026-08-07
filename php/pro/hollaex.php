@@ -7,8 +7,11 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class hollaex extends \ccxt\async\hollaex {
     public function describe(): mixed {
@@ -65,7 +68,7 @@ class hollaex extends \ccxt\async\hollaex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -77,7 +80,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "topic":"orderbook",
@@ -103,16 +106,22 @@ class hollaex extends \ccxt\async\hollaex {
         $channel = $this->safe_string($message, 'topic');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
+        if ($symbol === null) {
+            return;
+        }
         $data = $this->safe_value($message, 'data');
         $timestamp = $this->safe_string($data, 'timestamp');
         $timestampMs = $this->parse8601($timestamp);
         $snapshot = $this->parse_order_book($data, $symbol, $timestampMs);
         $orderbook = null;
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $orderbook = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $orderbook;
         } else {
             $orderbook = $this->orderbooks[$symbol];
+            if ($orderbook === null) {
+                return;
+            }
             $orderbook->reset($snapshot);
         }
         $messageHash = $channel . ':' . $marketId;
@@ -146,7 +155,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "trade",
@@ -213,7 +222,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message, $subscription = null) {
+    public function handle_my_trades(Client $client, mixed $message, ?array $subscription = null) {
         //
         // {
         //     "topic":"usertrade",
@@ -257,7 +266,9 @@ class hollaex extends \ccxt\async\hollaex {
             $symbol = $trade['symbol'];
             $market = $this->market($symbol);
             $marketId = $market['id'];
-            $marketIds[$marketId] = true;
+            if ($marketId !== null) {
+                $marketIds[$marketId] = true;
+            }
         }
         // non-$symbol specific
         $client->resolve($this->myTrades, $channel);
@@ -300,7 +311,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_order(Client $client, $message, $subscription = null) {
+    public function handle_order(Client $client, mixed $message, ?array $subscription = null) {
         //
         //     {
         //         "topic" => "order",
@@ -384,7 +395,9 @@ class hollaex extends \ccxt\async\hollaex {
             $symbol = $order['symbol'];
             $market = $this->market($symbol);
             $marketId = $market['id'];
-            $marketIds[$marketId] = true;
+            if ($marketId !== null) {
+                $marketIds[$marketId] = true;
+            }
         }
         // non-$symbol specific
         $client->resolve($this->orders, $channel);
@@ -411,7 +424,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "wallet",
@@ -440,17 +453,22 @@ class hollaex extends \ccxt\async\hollaex {
             $parts = explode('_', $key);
             $currencyId = $this->safe_string($parts, 0);
             $code = $this->safe_currency_code($currencyId);
-            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+            $account = $this->account();
+            if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
+                $account = $this->balance[$code];
+            }
             $second = $this->safe_string($parts, 1);
             $freeOrTotal = ($second === 'available') ? 'free' : 'total';
             $account[$freeOrTotal] = $this->safe_string($data, $key);
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
         }
         $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_public($messageHash, $params = array()) {
+    public function watch_public(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $url = $this->urls['api']['ws'];
             $request = array(
@@ -462,13 +480,16 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function watch_private($messageHash, $params = array()) {
+    public function watch_private(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $this->check_required_credentials();
             $expires = $this->safe_string($this->options, 'ws-expires');
             if ($expires === null) {
                 $timeout = intval(($this->timeout / (string) 1000));
                 $expires = $this->sum($this->seconds(), $timeout);
+                if ($expires === null) {
+                    throw new ArgumentsRequired($this->id . ' watchPrivate() $expires is required');
+                }
                 $expires = (string) $expires;
                 // we need to memoize these values to avoid generating a new $url on each method execution
                 // that would trigger a new connection on each received $message
@@ -492,7 +513,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     array( $error => "Bearer or HMAC authentication required" )
         //     array( $error => "Error => wrong input" )
@@ -511,7 +532,7 @@ class hollaex extends \ccxt\async\hollaex {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // pong
         //
@@ -624,17 +645,17 @@ class hollaex extends \ccxt\async\hollaex {
         return array( 'op' => 'ping' );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function on_error(Client $client, $error) {
+    public function on_error(Client $client, mixed $error) {
         $this->options['ws-expires'] = null;
         parent::on_error($client, $error);
     }
 
-    public function on_close(Client $client, $error) {
+    public function on_close(Client $client, mixed $error) {
         $this->options['ws-expires'] = null;
         parent::on_close($client, $error);
     }

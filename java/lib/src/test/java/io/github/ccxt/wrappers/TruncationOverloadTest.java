@@ -2,7 +2,7 @@ package io.github.ccxt.wrappers;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.ccxt.exchanges.Aftermath;
+import io.github.ccxt.exchanges.Okx;
 import io.github.ccxt.types.Trade;
 
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * intercepting the full method on a subclass and observing what each
  * truncation actually forwards.
  *
- * Aftermath.fetchTrades(String symbol, Long since, Long limit, Map params) is
+ * Okx.fetchTrades(String symbol, Long since, Long limit, Map params) is
  * a 1-required + 3-optional shape, so the generator should emit three
  * truncations — (symbol), (symbol, since), (symbol, since, limit) — plus the
  * full one. We exercise all four.
@@ -28,10 +28,10 @@ import java.util.concurrent.atomic.AtomicReference;
 class TruncationOverloadTest {
 
     /** Captures the args that reach the full typed method. */
-    private static class CapturingAftermath extends Aftermath {
+    private static class CapturingOkx extends Okx {
         final AtomicReference<Object[]> captured = new AtomicReference<>();
 
-        CapturingAftermath() {
+        CapturingOkx() {
             super(new HashMap<String, Object>());
         }
 
@@ -44,7 +44,7 @@ class TruncationOverloadTest {
 
     @Test
     void requiredOnlyTruncationFillsAllOptionalsWithNull() {
-        CapturingAftermath ex = new CapturingAftermath();
+        CapturingOkx ex = new CapturingOkx();
         ex.fetchTrades("BTC/USD:USDC");
         Object[] args = ex.captured.get();
         assertNotNull(args, "full method must be invoked by the truncation");
@@ -56,7 +56,7 @@ class TruncationOverloadTest {
 
     @Test
     void firstOptionalTruncationKeepsCallerValueNullsRest() {
-        CapturingAftermath ex = new CapturingAftermath();
+        CapturingOkx ex = new CapturingOkx();
         ex.fetchTrades("ETH/USD:USDC", 1234567890L);
         Object[] args = ex.captured.get();
         assertEquals("ETH/USD:USDC", args[0]);
@@ -67,7 +67,7 @@ class TruncationOverloadTest {
 
     @Test
     void twoOptionalsTruncationKeepsCallerValuesNullsTail() {
-        CapturingAftermath ex = new CapturingAftermath();
+        CapturingOkx ex = new CapturingOkx();
         ex.fetchTrades("BTC/USD:USDC", 1L, 50L);
         Object[] args = ex.captured.get();
         assertEquals("BTC/USD:USDC", args[0]);
@@ -78,7 +78,7 @@ class TruncationOverloadTest {
 
     @Test
     void fullSignaturePassesEverythingThrough() {
-        CapturingAftermath ex = new CapturingAftermath();
+        CapturingOkx ex = new CapturingOkx();
         Map<String, Object> params = new HashMap<>();
         params.put("custom", "value");
         ex.fetchTrades("BTC/USD:USDC", 1L, 50L, params);

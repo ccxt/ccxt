@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class coinone extends \ccxt\async\coinone {
     public function describe(): mixed {
@@ -60,7 +61,7 @@ class coinone extends \ccxt\async\coinone {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -82,7 +83,7 @@ class coinone extends \ccxt\async\coinone {
         })();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         //     {
         //         "response_type" => "DATA",
@@ -132,7 +133,7 @@ class coinone extends \ccxt\async\coinone {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta, 'price', 'qty');
         $bookside->storeArray($bidAsk);
     }
@@ -167,7 +168,7 @@ class coinone extends \ccxt\async\coinone {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "response_type" => "DATA",
@@ -205,7 +206,7 @@ class coinone extends \ccxt\async\coinone {
         $client->resolve($this->tickers[$symbol], $messageHash);
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null): array {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "quote_currency" => "KRW",
@@ -298,7 +299,7 @@ class coinone extends \ccxt\async\coinone {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "response_type" => "DATA",
@@ -371,7 +372,7 @@ class coinone extends \ccxt\async\coinone {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
         //         "response_type" => "ERROR",
@@ -386,7 +387,7 @@ class coinone extends \ccxt\async\coinone {
         return false;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -425,7 +426,7 @@ class coinone extends \ccxt\async\coinone {
         );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //     {
         //         "response_type":"PONG"

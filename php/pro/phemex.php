@@ -10,6 +10,9 @@ use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class phemex extends \ccxt\async\phemex {
     public function describe(): mixed {
@@ -24,7 +27,7 @@ class phemex extends \ccxt\async\phemex {
                 'watchOrderBook' => true,
                 'watchOHLCV' => true,
                 'watchPositions' => null, // TODO
-                // mutli-endpoints are not supported => https://github.com/ccxt/ccxt/pull/21490
+                // multi-endpoints are not supported => https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols' => false,
                 'watchTradesForSymbols' => false,
                 'watchOHLCVForSymbols' => false,
@@ -48,7 +51,7 @@ class phemex extends \ccxt\async\phemex {
         ));
     }
 
-    public function from_en($en, $scale) {
+    public function from_en(mixed $en, mixed $scale) {
         if ($en === null) {
             return null;
         }
@@ -58,21 +61,21 @@ class phemex extends \ccxt\async\phemex {
         return (string) $precise;
     }
 
-    public function from_ep($ep, $market = null) {
+    public function from_ep(mixed $ep, ?array $market = null) {
         if (($ep === null) || ($market === null)) {
             return $ep;
         }
         return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
     }
 
-    public function from_ev($ev, $market = null) {
+    public function from_ev(mixed $ev, ?array $market = null) {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
         return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
     }
 
-    public function from_er($er, $market = null) {
+    public function from_er(mixed $er, ?array $market = null) {
         if (($er === null) || ($market === null)) {
             return $er;
         }
@@ -87,7 +90,7 @@ class phemex extends \ccxt\async\phemex {
         return $requestId;
     }
 
-    public function parse_swap_ticker($ticker, $market = null) {
+    public function parse_swap_ticker(mixed $ticker, ?array $market = null) {
         //
         //     {
         //         "close" => 442800,
@@ -105,8 +108,9 @@ class phemex extends \ccxt\async\phemex {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $marketResolved;
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
         $lastString = $this->from_ep($this->safe_string($ticker, 'close'), $market);
         $last = $this->parse_number($lastString);
@@ -148,7 +152,7 @@ class phemex extends \ccxt\async\phemex {
         ));
     }
 
-    public function parse_perpetual_ticker($ticker, $market = null) {
+    public function parse_perpetual_ticker(mixed $ticker, ?array $market = null) {
         //
         //    array(
         //        "STXUSDT",
@@ -166,8 +170,9 @@ class phemex extends \ccxt\async\phemex {
         //    )
         //
         $marketId = $this->safe_string($ticker, 0);
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $marketResolved;
+        $symbol = $marketResolved['symbol'];
         $lastString = $this->from_ep($this->safe_string($ticker, 4), $market);
         $last = $this->parse_number($lastString);
         $quoteVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 6), $market));
@@ -206,7 +211,7 @@ class phemex extends \ccxt\async\phemex {
         ));
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "spot_market24h" => array(
@@ -283,13 +288,13 @@ class phemex extends \ccxt\async\phemex {
         //    }
         //
         $tickers = array();
-        if (is_array($message) && array_key_exists('market24h', $message)) {
+        if (is_array($message) && array_key_exists('market24h' ?? '', $message)) {
             $ticker = $this->safe_value($message, 'market24h');
             $tickers[] = $this->parse_swap_ticker($ticker);
-        } elseif (is_array($message) && array_key_exists('spot_market24h', $message)) {
+        } elseif (is_array($message) && array_key_exists('spot_market24h' ?? '', $message)) {
             $ticker = $this->safe_value($message, 'spot_market24h');
             $tickers[] = $this->parse_ticker($ticker);
-        } elseif (is_array($message) && array_key_exists('data', $message)) {
+        } elseif (is_array($message) && array_key_exists('data' ?? '', $message)) {
             $data = $this->safe_value($message, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $tickers[] = $this->parse_perpetual_ticker($data[$i]);
@@ -332,7 +337,7 @@ class phemex extends \ccxt\async\phemex {
         })();
     }
 
-    public function handle_balance($type, $client, $message) {
+    public function handle_balance(mixed $type, Client $client, mixed $message) {
         // spot
         //    array(
         //       array(
@@ -400,14 +405,16 @@ class phemex extends \ccxt\async\phemex {
             }
             $account['used'] = $used;
             $account['total'] = $total;
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
             $this->balance = $this->safe_balance($this->balance);
         }
         $messageHash = $type . ':balance';
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "sequence" => 1795484727,
@@ -453,7 +460,7 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "kline" => array(
@@ -496,7 +503,7 @@ class phemex extends \ccxt\async\phemex {
             $messageHash = 'kline:' . $timeframe . ':' . $symbol;
             $ohlcvs = $this->parse_ohlcvs($candles, $market);
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
@@ -653,7 +660,7 @@ class phemex extends \ccxt\async\phemex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -725,18 +732,18 @@ class phemex extends \ccxt\async\phemex {
         })();
     }
 
-    public function custom_handle_delta($bookside, $delta, $market = null) {
+    public function custom_handle_delta(mixed $bookside, mixed $delta, ?array $market = null) {
         $bidAsk = $this->custom_parse_bid_ask($delta, 0, 1, $market);
         $bookside->storeArray($bidAsk);
     }
 
-    public function custom_handle_deltas($bookside, $deltas, $market = null) {
+    public function custom_handle_deltas(mixed $bookside, mixed $deltas, ?array $market = null) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->custom_handle_delta($bookside, $deltas[$i], $market);
         }
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "book" => array(
@@ -797,7 +804,7 @@ class phemex extends \ccxt\async\phemex {
             $this->orderbooks[$symbol] = $orderbook;
             $client->resolve($orderbook, $messageHash);
         } else {
-            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                 $orderbook = $this->orderbooks[$symbol];
                 $changes = $this->safe_dict_2($message, 'book', 'orderbook_p', array());
                 $asks = $this->safe_list($changes, 'asks', array());
@@ -851,7 +858,7 @@ class phemex extends \ccxt\async\phemex {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         // swap
         //    array(
@@ -967,7 +974,9 @@ class phemex extends \ccxt\async\phemex {
             if ($type === null) {
                 $type = ($market['settle'] === 'USDT') ? 'perpetual' : $market['type'];
             }
-            $marketIds[$symbol] = true;
+            if ($symbol !== null) {
+                $marketIds[$symbol] = true;
+            }
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1018,7 +1027,7 @@ class phemex extends \ccxt\async\phemex {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         // spot $update
         // {
         //        "closed":array(
@@ -1179,7 +1188,7 @@ class phemex extends \ccxt\async\phemex {
         //
         $trades = array();
         $parsedOrders = array();
-        if ((is_array($message) && array_key_exists('closed', $message)) || (is_array($message) && array_key_exists('fills', $message)) || (is_array($message) && array_key_exists('open', $message))) {
+        if ((is_array($message) && array_key_exists('closed' ?? '', $message)) || (is_array($message) && array_key_exists('fills' ?? '', $message)) || (is_array($message) && array_key_exists('open' ?? '', $message))) {
             $closed = $this->safe_value($message, 'closed', array());
             $open = $this->safe_value($message, 'open', array());
             $orders = $this->array_concat($open, $closed);
@@ -1238,7 +1247,7 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_swap_order($order, $market = null) {
+    public function parse_ws_swap_order(mixed $order, ?array $market = null) {
         //
         // swap
         //    {
@@ -1367,8 +1376,9 @@ class phemex extends \ccxt\async\phemex {
             $clientOrderId = null;
         }
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $marketResolved;
+        $symbol = $marketResolved['symbol'];
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->parseOrderType($this->safe_string($order, 'ordType'));
@@ -1411,7 +1421,7 @@ class phemex extends \ccxt\async\phemex {
         ), $market);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         // private spot update
         // {
         //     "orders" => array( closed => array(), fills => array(), open => array() ),
@@ -1507,9 +1517,9 @@ class phemex extends \ccxt\async\phemex {
         //       }
         //     )
         // }
-        $id = $this->safe_string($message, 'id');
-        if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
-            $method = $client->subscriptions[$id];
+        $id = $this->safe_string($message, 'id', '');
+        if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
+            $method = $this->safe_value($client->subscriptions, $id);
             unset($client->subscriptions[$id]);
             if ($method !== true) {
                 $method($client, $message);
@@ -1517,26 +1527,26 @@ class phemex extends \ccxt\async\phemex {
             }
         }
         $methodName = $this->safe_string($message, 'method', '');
-        if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message)) || (mb_strpos($methodName, 'perp_market24h_pack_p') !== false)) {
+        if ((is_array($message) && array_key_exists('market24h' ?? '', $message)) || (is_array($message) && array_key_exists('spot_market24h' ?? '', $message)) || (mb_strpos($methodName, 'perp_market24h_pack_p') !== false)) {
             $this->handle_ticker($client, $message);
             return;
-        } elseif ((is_array($message) && array_key_exists('trades', $message)) || (is_array($message) && array_key_exists('trades_p', $message))) {
+        } elseif ((is_array($message) && array_key_exists('trades' ?? '', $message)) || (is_array($message) && array_key_exists('trades_p' ?? '', $message))) {
             $this->handle_trades($client, $message);
             return;
-        } elseif ((is_array($message) && array_key_exists('kline', $message)) || (is_array($message) && array_key_exists('kline_p', $message))) {
+        } elseif ((is_array($message) && array_key_exists('kline' ?? '', $message)) || (is_array($message) && array_key_exists('kline_p' ?? '', $message))) {
             $this->handle_ohlcv($client, $message);
             return;
-        } elseif ((is_array($message) && array_key_exists('book', $message)) || (is_array($message) && array_key_exists('orderbook_p', $message))) {
+        } elseif ((is_array($message) && array_key_exists('book' ?? '', $message)) || (is_array($message) && array_key_exists('orderbook_p' ?? '', $message))) {
             $this->handle_order_book($client, $message);
             return;
         }
-        if ((is_array($message) && array_key_exists('orders', $message)) || (is_array($message) && array_key_exists('orders_p', $message))) {
+        if ((is_array($message) && array_key_exists('orders' ?? '', $message)) || (is_array($message) && array_key_exists('orders_p' ?? '', $message))) {
             $orders = $this->safe_value_2($message, 'orders', 'orders_p', array());
             $this->handle_orders($client, $orders);
         }
-        if ((is_array($message) && array_key_exists('accounts', $message)) || (is_array($message) && array_key_exists('accounts_p', $message)) || (is_array($message) && array_key_exists('wallets', $message))) {
-            $type = (is_array($message) && array_key_exists('accounts', $message)) ? 'swap' : 'spot';
-            if (is_array($message) && array_key_exists('accounts_p', $message)) {
+        if ((is_array($message) && array_key_exists('accounts' ?? '', $message)) || (is_array($message) && array_key_exists('accounts_p' ?? '', $message)) || (is_array($message) && array_key_exists('wallets' ?? '', $message))) {
+            $type = (is_array($message) && array_key_exists('accounts' ?? '', $message)) ? 'swap' : 'spot';
+            if (is_array($message) && array_key_exists('accounts_p' ?? '', $message)) {
                 $type = 'perpetual';
             }
             $accounts = $this->safe_value_n($message, array( 'accounts', 'accounts_p', 'wallets' ), array());
@@ -1544,7 +1554,7 @@ class phemex extends \ccxt\async\phemex {
         }
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         //
         // {
         //     "error" => null,
@@ -1562,13 +1572,13 @@ class phemex extends \ccxt\async\phemex {
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
     }
 
-    public function subscribe_private($type, $messageHash, $params = array()) {
+    public function subscribe_private(mixed $type, mixed $messageHash, $params = array()) {
         return Async\async(function () use ($type, $messageHash, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1616,7 +1626,7 @@ class phemex extends \ccxt\async\phemex {
                 );
                 $subscriptionHash = (string) $requestId;
                 $message = $this->extend($request, $params);
-                if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                     $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
                 }
                 $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));

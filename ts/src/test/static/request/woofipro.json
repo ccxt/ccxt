@@ -69,6 +69,27 @@
                 "output": "{\"quantity\":\"0.0001\",\"type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDC\",\"order_tag\":\"CCXT\",\"algo_type\":\"STOP\",\"trigger_price\":\"50000\",\"reduce_only\":true}"
             },
             {
+                "description": "Swap market buy with attached stopLoss and takeProfit (TP_SL child orders)",
+                "method": "createOrder",
+                "url": "https://api-evm.orderly.org/v1/algo/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.0001,
+                    null,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": "50000"
+                        },
+                        "takeProfit": {
+                            "triggerPrice": "70000"
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"PERP_BTC_USDC\",\"side\":\"BUY\",\"type\":\"MARKET\",\"quantity\":\"0.0001\",\"algo_type\":\"TP_SL\",\"child_orders\":[{\"symbol\":\"PERP_BTC_USDC\",\"reduce_only\":false,\"algo_type\":\"POSITIONAL_TP_SL\",\"child_orders\":[{\"side\":\"SELL\",\"algo_type\":\"TP_SL\",\"trigger_price\":\"50000\",\"type\":\"LIMIT\",\"reduce_only\":true},{\"side\":\"SELL\",\"algo_type\":\"TP_SL\",\"trigger_price\":\"70000\",\"type\":\"LIMIT\",\"reduce_only\":true}]}],\"order_tag\":\"CCXT\"}"
+            },
+            {
                 "description": "postOnly order",
                 "method": "createOrder",
                 "url": "https://api-evm.orderly.org/v1/order",

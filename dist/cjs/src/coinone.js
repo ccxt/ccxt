@@ -483,7 +483,9 @@ class coinone extends coinone$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'avail');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -510,7 +512,7 @@ class coinone extends coinone$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -843,36 +845,45 @@ class coinone extends coinone$1["default"] {
      * @method
      * @name coinone#createOrder
      * @description create a trade order
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+     * @see https://docs.coinone.co.kr/reference/order-v21
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type must be 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
+        const orderType = type.toUpperCase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        const orderSide = side.toUpperCase(); // unified lowercase order sides, same override rule
+        if (orderType !== 'LIMIT') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
+        }
+        if (price === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price argument for the limit orders');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        // the v1 order/limit_buy and order/limit_sell endpoints were retired by
+        // the exchange and return 404, the v2.1 order endpoint replaces them,
+        // see https://github.com/ccxt/ccxt/issues/23174
         const request = {
-            'price': price,
-            'currency': market['id'],
-            'qty': amount,
+            'quote_currency': market['quoteId'],
+            'target_currency': market['baseId'],
+            'type': orderType,
+            'side': orderSide,
+            'price': this.priceToPrecision(symbol, price),
+            'qty': this.amountToPrecision(symbol, amount),
         };
-        const method = 'privatePostOrder' + this.capitalize(type) + this.capitalize(side);
-        const response = await this[method](this.extend(request, params));
+        const response = await this.v2_1PrivatePostOrderLimit(this.extend(request, params));
         //
         //     {
         //         "result": "success",
-        //         "errorCode": "0",
-        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //         "error_code": "0",
+        //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
         return this.parseOrder(response, market);
@@ -976,9 +987,9 @@ class coinone extends coinone$1["default"] {
         //         "feeRate": "-0.0015"
         //     }
         //
-        const id = this.safeString(order, 'orderId');
-        const baseId = this.safeString(order, 'baseCurrency');
-        const quoteId = this.safeString(order, 'targetCurrency');
+        const id = this.safeString2(order, 'orderId', 'order_id');
+        const baseId = this.safeString2(order, 'baseCurrency', 'target_currency');
+        const quoteId = this.safeString2(order, 'targetCurrency', 'quote_currency');
         let base = undefined;
         let quote = undefined;
         if (baseId !== undefined) {
@@ -992,16 +1003,22 @@ class coinone extends coinone$1["default"] {
             symbol = base + '/' + quote;
             market = this.safeMarket(symbol, market, '/');
         }
-        const timestamp = this.safeTimestamp2(order, 'timestamp', 'updatedAt');
-        let side = this.safeString2(order, 'type', 'side');
+        let timestamp = this.safeTimestamp2(order, 'timestamp', 'updatedAt');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger2(order, 'ordered_at', 'updated_at'); // v2.1 sends milliseconds
+        }
+        let side = this.safeStringLower2(order, 'type', 'side');
+        if ((side === 'limit') || (side === 'market') || (side === 'stop_limit')) {
+            side = this.safeStringLower(order, 'side'); // in v2.1 rows the type field carries the order type, the side lives in side
+        }
         if (side === 'ask') {
             side = 'sell';
         }
         else if (side === 'bid') {
             side = 'buy';
         }
-        const remainingString = this.safeString(order, 'remainQty');
-        const amountString = this.safeString2(order, 'originalQty', 'qty');
+        const remainingString = this.safeString2(order, 'remainQty', 'remain_qty');
+        const amountString = this.safeStringN(order, ['originalQty', 'qty', 'original_qty']);
         let status = this.safeString(order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'live') {
@@ -1019,7 +1036,7 @@ class coinone extends coinone$1["default"] {
             const feeCurrencyCode = (side === 'sell') ? quote : base;
             fee = {
                 'cost': feeCostString,
-                'rate': this.safeString(order, 'feeRate'),
+                'rate': this.safeString2(order, 'feeRate', 'fee_rate'),
                 'currency': feeCurrencyCode,
             };
         }
@@ -1038,9 +1055,9 @@ class coinone extends coinone$1["default"] {
             'price': this.safeString(order, 'price'),
             'triggerPrice': undefined,
             'cost': undefined,
-            'average': this.safeString(order, 'averageExecutedPrice'),
+            'average': this.safeString2(order, 'averageExecutedPrice', 'average_executed_price'),
             'amount': amountString,
-            'filled': this.safeString(order, 'executedQty'),
+            'filled': this.safeString2(order, 'executedQty', 'executed_qty'),
             'remaining': remainingString,
             'status': status,
             'fee': fee,
@@ -1068,9 +1085,10 @@ class coinone extends coinone$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'currency': market['id'],
+            'quote_currency': market['quoteId'],
+            'target_currency': market['baseId'],
         };
-        const response = await this.privatePostOrderLimitOrders(this.extend(request, params));
+        const response = await this.v2_1PrivatePostOrderOpenOrders(this.extend(request, params));
         //
         //     {
         //         "result": "success",
@@ -1088,8 +1106,8 @@ class coinone extends coinone$1["default"] {
         //         ]
         //     }
         //
-        const limitOrders = this.safeList(response, 'limitOrders', []);
-        return this.parseOrders(limitOrders, market, since, limit);
+        const openOrders = this.safeList2(response, 'open_orders', 'limitOrders', []);
+        return this.parseOrders(openOrders, market, since, limit);
     }
     /**
      * @method
@@ -1232,7 +1250,9 @@ class coinone extends coinone$1["default"] {
                 depositAddress['tag'] = value;
                 depositAddress['info'] = [address, value];
             }
-            result[code] = depositAddress;
+            if (code !== undefined) {
+                result[code] = depositAddress;
+            }
         }
         return result;
     }
@@ -1259,7 +1279,14 @@ class coinone extends coinone$1["default"] {
         else {
             this.checkRequiredCredentials();
             url += request;
-            const nonce = this.nonce().toString();
+            // the v2.1 api requires a uuid nonce, the older apis use a numeric one
+            let nonce = undefined;
+            if (api === 'v2_1Private') {
+                nonce = this.uuid();
+            }
+            else {
+                nonce = this.nonce().toString();
+            }
             const json = this.json(this.extend({
                 'access_token': this.apiKey,
                 'nonce': nonce,

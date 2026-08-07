@@ -43,14 +43,17 @@ abstract class onetrading extends \ccxt\async\Exchange {
     public function private_get_account_orders_order_id($params = array()) {
         return $this->request('account/orders/{order_id}', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_account_orders_client_client_id($params = array()) {
+        return $this->request('account/orders/client/{client_id}', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_account_orders_order_id_trades($params = array()) {
         return $this->request('account/orders/{order_id}/trades', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_account_trades($params = array()) {
         return $this->request('account/trades', 'private', 'GET', $params, null, null, array());
     }
-    public function private_get_account_trades_trade_id($params = array()) {
-        return $this->request('account/trades/{trade_id}', 'private', 'GET', $params, null, null, array());
+    public function private_get_account_trade_trade_id($params = array()) {
+        return $this->request('account/trade/{trade_id}', 'private', 'GET', $params, null, null, array());
     }
     public function private_post_account_orders($params = array()) {
         return $this->request('account/orders', 'private', 'POST', $params, null, null, array());
@@ -100,14 +103,17 @@ abstract class onetrading extends \ccxt\async\Exchange {
     public function privateGetAccountOrdersOrderId($params = array()) {
         return $this->request('account/orders/{order_id}', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetAccountOrdersClientClientId($params = array()) {
+        return $this->request('account/orders/client/{client_id}', 'private', 'GET', $params, null, null, array());
+    }
     public function privateGetAccountOrdersOrderIdTrades($params = array()) {
         return $this->request('account/orders/{order_id}/trades', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetAccountTrades($params = array()) {
         return $this->request('account/trades', 'private', 'GET', $params, null, null, array());
     }
-    public function privateGetAccountTradesTradeId($params = array()) {
-        return $this->request('account/trades/{trade_id}', 'private', 'GET', $params, null, null, array());
+    public function privateGetAccountTradeTradeId($params = array()) {
+        return $this->request('account/trade/{trade_id}', 'private', 'GET', $params, null, null, array());
     }
     public function privatePostAccountOrders($params = array()) {
         return $this->request('account/orders', 'private', 'POST', $params, null, null, array());

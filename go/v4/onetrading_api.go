@@ -55,6 +55,10 @@ func (this *OnetradingCore) PrivateGetAccountOrdersOrderId(args ...any) <-chan a
 	return this.callEndpointAsync("privateGetAccountOrdersOrderId", args...)
 }
 
+func (this *OnetradingCore) PrivateGetAccountOrdersClientClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountOrdersClientClientId", args...)
+}
+
 func (this *OnetradingCore) PrivateGetAccountOrdersOrderIdTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountOrdersOrderIdTrades", args...)
 }
@@ -63,8 +67,8 @@ func (this *OnetradingCore) PrivateGetAccountTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountTrades", args...)
 }
 
-func (this *OnetradingCore) PrivateGetAccountTradesTradeId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountTradesTradeId", args...)
+func (this *OnetradingCore) PrivateGetAccountTradeTradeId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountTradeTradeId", args...)
 }
 
 func (this *OnetradingCore) PrivatePostAccountOrders(args ...any) <-chan any {

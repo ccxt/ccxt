@@ -346,7 +346,7 @@ hitbtc.fetchOrderBooks (symbols?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hitbtc</code>](#hitbtc)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api.hitbtc.com/#order-books  
 
@@ -609,14 +609,14 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' only 'isolated' is supported |
 | params.margin | <code>bool</code> | No | true for canceling margin orders |
 
 
 ```javascript
-hitbtc.cancelAllOrders (symbol, params?)
+hitbtc.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -819,7 +819,7 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by hitbtc fetchPositions () |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchPositions () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set |
 | params.margin | <code>bool</code> | No | true for fetching spot-margin positions |
@@ -1060,7 +1060,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified ccxt market symbol |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.symbol | <code>string</code> | No | *required* unified market symbol |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'cross' |
 

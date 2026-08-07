@@ -10,6 +10,7 @@ import Exchange from './abstract/bitopro.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+;
 //  ---------------------------------------------------------------------------
 /**
  * @class bitopro
@@ -240,7 +241,9 @@ export default class bitopro extends Exchange {
                     'BEP20': 'BSC',
                     'BSC': 'BSC',
                 },
-                'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
+                'fetchCurrencies': {
+                    'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
+                },
             },
             'features': {
                 'spot': {
@@ -370,7 +373,7 @@ export default class bitopro extends Exchange {
         return this.parseCurrencies(currencies);
     }
     parseCurrency(rawCurrency) {
-        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.handleOption('fetchCurrencies', 'fiatCurrencies', []);
         const currencyId = this.safeString(rawCurrency, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const deposit = this.safeBool(rawCurrency, 'deposit');
@@ -436,6 +439,9 @@ export default class bitopro extends Exchange {
     parseMarket(market) {
         const active = !this.safeBool(market, 'maintain');
         const id = this.safeString(market, 'pair');
+        if (id === undefined) {
+            throw new ExchangeError(this.id + ' parseMarket() missing id');
+        }
         const uppercaseId = id.toUpperCase();
         const baseId = this.safeString(market, 'base');
         const quoteId = this.safeString(market, 'quote');
@@ -460,7 +466,7 @@ export default class bitopro extends Exchange {
                 'max': undefined,
             },
         };
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'uppercaseId': uppercaseId,
             'symbol': symbol,
@@ -492,7 +498,7 @@ export default class bitopro extends Exchange {
             'active': active,
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -606,7 +612,7 @@ export default class bitopro extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -845,8 +851,9 @@ export default class bitopro extends Exchange {
         const result = {};
         const maker = this.safeNumber(first, 'makerFee');
         const taker = this.safeNumber(first, 'takerFee');
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': first,
                 'symbol': symbol,
@@ -992,7 +999,9 @@ export default class bitopro extends Exchange {
                 'free': available,
                 'total': amount,
             };
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1075,6 +1084,9 @@ export default class bitopro extends Exchange {
         const id = this.safeString2(order, 'id', 'orderId');
         const timestamp = this.safeInteger2(order, 'timestamp', 'createdTimestamp');
         let side = this.safeString(order, 'action');
+        if (side === undefined) {
+            throw new ExchangeError(this.id + ' parseOrder() returned no side');
+        }
         side = side.toLowerCase();
         const amount = this.safeString2(order, 'amount', 'originalAmount');
         const price = this.safeString(order, 'price');
@@ -1260,7 +1272,9 @@ export default class bitopro extends Exchange {
         const market = this.market(symbol);
         const id = market['uppercaseId'];
         const request = {};
-        request[id] = ids;
+        if (id !== undefined) {
+            request[id] = ids;
+        }
         const response = await this.privatePutOrders(this.extend(request, params));
         //
         //     {
@@ -1280,7 +1294,7 @@ export default class bitopro extends Exchange {
      * @name bitopro#cancelAllOrders
      * @description cancel all open orders
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

@@ -16,6 +16,11 @@ public partial class pacifica : Exchange
         return await this.callAsync ("publicGetInfo",parameters);
     }
 
+    public async Task<object> publicGetInfoFees (object parameters = null)
+    {
+        return await this.callAsync ("publicGetInfoFees",parameters);
+    }
+
     public async Task<object> publicGetInfoPrices (object parameters = null)
     {
         return await this.callAsync ("publicGetInfoPrices",parameters);
@@ -46,9 +51,19 @@ public partial class pacifica : Exchange
         return await this.callAsync ("publicGetFundingRateHistory",parameters);
     }
 
+    public async Task<object> publicGetLoanPool (object parameters = null)
+    {
+        return await this.callAsync ("publicGetLoanPool",parameters);
+    }
+
     public async Task<object> publicGetAccount (object parameters = null)
     {
         return await this.callAsync ("publicGetAccount",parameters);
+    }
+
+    public async Task<object> publicGetAccountLoan (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAccountLoan",parameters);
     }
 
     public async Task<object> publicGetAccountSettings (object parameters = null)
@@ -81,6 +96,26 @@ public partial class pacifica : Exchange
         return await this.callAsync ("publicGetAccountBalanceHistory",parameters);
     }
 
+    public async Task<object> publicGetAccountSpotBalanceHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAccountSpotBalanceHistory",parameters);
+    }
+
+    public async Task<object> publicGetAccountSpotAssetDepositHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAccountSpotAssetDepositHistory",parameters);
+    }
+
+    public async Task<object> publicGetAccountSpotAssetWithdrawHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAccountSpotAssetWithdrawHistory",parameters);
+    }
+
+    public async Task<object> publicGetAccountSpotAssetWithdrawPending (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAccountSpotAssetWithdrawPending",parameters);
+    }
+
     public async Task<object> publicGetOrders (object parameters = null)
     {
         return await this.callAsync ("publicGetOrders",parameters);
@@ -94,6 +129,26 @@ public partial class pacifica : Exchange
     public async Task<object> publicGetOrdersHistoryById (object parameters = null)
     {
         return await this.callAsync ("publicGetOrdersHistoryById",parameters);
+    }
+
+    public async Task<object> publicGetSpotAssets (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSpotAssets",parameters);
+    }
+
+    public async Task<object> publicGetSpotAssetsBridgeInfo (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSpotAssetsBridgeInfo",parameters);
+    }
+
+    public async Task<object> publicGetSpotAssetsBridgeParametersSymbol (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSpotAssetsBridgeParametersSymbol",parameters);
+    }
+
+    public async Task<object> publicGetLakeList (object parameters = null)
+    {
+        return await this.callAsync ("publicGetLakeList",parameters);
     }
 
     public async Task<object> publicGetAccountBuilderCodesApprovals (object parameters = null)
@@ -116,6 +171,21 @@ public partial class pacifica : Exchange
         return await this.callAsync ("privatePostAccountWithdraw",parameters);
     }
 
+    public async Task<object> privatePostAccountSettingsAutoLendDisabled (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountSettingsAutoLendDisabled",parameters);
+    }
+
+    public async Task<object> privatePostAccountSettingsSpot (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountSettingsSpot",parameters);
+    }
+
+    public async Task<object> privatePostAccountSpotAssetWithdraw (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountSpotAssetWithdraw",parameters);
+    }
+
     public async Task<object> privatePostAccountSubaccountCreate (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountSubaccountCreate",parameters);
@@ -129,6 +199,16 @@ public partial class pacifica : Exchange
     public async Task<object> privatePostAccountSubaccountTransfer (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountSubaccountTransfer",parameters);
+    }
+
+    public async Task<object> privatePostAccountSubaccountSpotAssetTransfer (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountSubaccountSpotAssetTransfer",parameters);
+    }
+
+    public async Task<object> privatePostPositionsAddIsolatedMargin (object parameters = null)
+    {
+        return await this.callAsync ("privatePostPositionsAddIsolatedMargin",parameters);
     }
 
     public async Task<object> privatePostOrdersCreate (object parameters = null)
@@ -204,6 +284,66 @@ public partial class pacifica : Exchange
     public async Task<object> privatePostAccountApiKeys (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountApiKeys",parameters);
+    }
+
+    public async Task<object> privatePostLakeAddBlacklist (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeAddBlacklist",parameters);
+    }
+
+    public async Task<object> privatePostLakeAddMaxLeverage (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeAddMaxLeverage",parameters);
+    }
+
+    public async Task<object> privatePostLakeAddWhitelist (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeAddWhitelist",parameters);
+    }
+
+    public async Task<object> privatePostLakeClaimManager (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeClaimManager",parameters);
+    }
+
+    public async Task<object> privatePostLakeClaimReferralCode (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeClaimReferralCode",parameters);
+    }
+
+    public async Task<object> privatePostLakeCreate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeCreate",parameters);
+    }
+
+    public async Task<object> privatePostLakeDeposit (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeDeposit",parameters);
+    }
+
+    public async Task<object> privatePostLakeRemoveBlacklist (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeRemoveBlacklist",parameters);
+    }
+
+    public async Task<object> privatePostLakeRemoveMaxLeverage (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeRemoveMaxLeverage",parameters);
+    }
+
+    public async Task<object> privatePostLakeRemoveWhitelist (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeRemoveWhitelist",parameters);
+    }
+
+    public async Task<object> privatePostLakeUpdateDepositCap (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeUpdateDepositCap",parameters);
+    }
+
+    public async Task<object> privatePostLakeWithdraw (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLakeWithdraw",parameters);
     }
 
 }

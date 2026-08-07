@@ -16,6 +16,11 @@ public partial class bitso : Exchange
         return await this.callAsync ("publicGetAvailableBooks",parameters);
     }
 
+    public async Task<object> publicGetCatalogues (object parameters = null)
+    {
+        return await this.callAsync ("publicGetCatalogues",parameters);
+    }
+
     public async Task<object> publicGetTicker (object parameters = null)
     {
         return await this.callAsync ("publicGetTicker",parameters);

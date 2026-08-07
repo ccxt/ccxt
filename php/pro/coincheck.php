@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class coincheck extends \ccxt\async\coincheck {
     public function describe(): mixed {
@@ -56,7 +57,7 @@ class coincheck extends \ccxt\async\coincheck {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -74,7 +75,7 @@ class coincheck extends \ccxt\async\coincheck {
         })();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         //     array(
         //         "btc_jpy",
@@ -144,7 +145,7 @@ class coincheck extends \ccxt\async\coincheck {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     array(
         //         array(
@@ -211,7 +212,7 @@ class coincheck extends \ccxt\async\coincheck {
         ), $market);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $data = $this->safe_value($message, 0);
         if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $this->handle_order_book($client, $message);

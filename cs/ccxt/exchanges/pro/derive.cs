@@ -79,7 +79,7 @@ public partial class derive : ccxt.derive
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -164,7 +164,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object topic = add(add("ticker.", getValue(market, "id")), ".100");
+        object topic = add(add("ticker_slim.", getValue(market, "id")), ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
         object request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -248,8 +248,37 @@ public partial class derive : ccxt.derive
         object parameters = this.safeDict(message, "params");
         object rawData = this.safeDict(parameters, "data");
         object data = this.safeDict(rawData, "instrument_ticker", new Dictionary<string, object>() {});
-        object topic = this.safeValue(parameters, "channel");
-        object ticker = this.parseTicker(data);
+        object topic = this.safeString(parameters, "channel");
+        object ticker = null;
+        if (isTrue(isTrue(!isEqual(topic, null)) && isTrue(((string)topic).StartsWith(((string)"ticker_slim")))))
+        {
+            // the slim payload uses short keys and does not carry the instrument name,
+            // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+            object parts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            object marketId = this.safeString(parts, 1);
+            object market = this.safeMarket(marketId);
+            object stats = this.safeDict(data, "stats", new Dictionary<string, object>() {});
+            ticker = this.safeTicker(new Dictionary<string, object>() {
+                { "symbol", getValue(market, "symbol") },
+                { "timestamp", this.safeInteger(data, "t") },
+                { "datetime", this.iso8601(this.safeInteger(data, "t")) },
+                { "bid", this.safeString(data, "b") },
+                { "bidVolume", this.safeString(data, "B") },
+                { "ask", this.safeString(data, "a") },
+                { "askVolume", this.safeString(data, "A") },
+                { "high", this.safeString(stats, "h") },
+                { "low", this.safeString(stats, "l") },
+                { "baseVolume", this.safeString(stats, "c") },
+                { "quoteVolume", this.safeString(stats, "v") },
+                { "percentage", this.safeString(stats, "p") },
+                { "markPrice", this.safeString(data, "M") },
+                { "indexPrice", this.safeString(data, "I") },
+                { "info", rawData },
+            }, market);
+        } else
+        {
+            ticker = this.parseTicker(data);
+        }
         object tickerSymbol = getValue(ticker, "symbol");
         if (isTrue(!isEqual(tickerSymbol, null)))
         {
@@ -782,6 +811,7 @@ public partial class derive : ccxt.derive
         object methods = new Dictionary<string, object>() {
             { "orderbook", this.handleOrderBook },
             { "ticker", this.handleTicker },
+            { "ticker_slim", this.handleTicker },
             { "trades", this.handleTrade },
             { "orders", this.handleOrder },
             { "mytrades", this.handleMyTrade },

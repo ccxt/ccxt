@@ -29,6 +29,31 @@ public class LunoApi extends Exchange
         return this.callAsync ("exchangePrivateGetCandles", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  exchangePrivateGetMove (Object... optionalArgs)
+    {
+        return this.callAsync ("exchangePrivateGetMove", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  exchangePrivateGetMoveListMoves (Object... optionalArgs)
+    {
+        return this.callAsync ("exchangePrivateGetMoveListMoves", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  exchangePrivateGetTransfers (Object... optionalArgs)
+    {
+        return this.callAsync ("exchangePrivateGetTransfers", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  exchangePrivatePostConvert (Object... optionalArgs)
+    {
+        return this.callAsync ("exchangePrivatePostConvert", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  exchangePrivatePostMove (Object... optionalArgs)
+    {
+        return this.callAsync ("exchangePrivatePostMove", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrderbook", optionalArgs);
@@ -122,6 +147,11 @@ public class LunoApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privateGetTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTransfers", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetUsersLinked (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUsersLinked", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostAccounts (Object... optionalArgs)

@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class dydx extends \ccxt\async\dydx {
     public function describe(): mixed {
@@ -94,7 +96,7 @@ class dydx extends \ccxt\async\dydx {
         })();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(mixed $client, mixed $message) {
         //
         // {
         //     "type" => "subscribed",
@@ -137,7 +139,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // {
         //     "id" => "02b6148d0000000200000003",
@@ -177,7 +179,7 @@ class dydx extends \ccxt\async\dydx {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -221,7 +223,7 @@ class dydx extends \ccxt\async\dydx {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // {
         //     "type" => "subscribed",
@@ -264,7 +266,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         if ((gettype($delta) === 'array' && array_keys($delta) === array_keys(array_keys($delta)))) {
             $price = $this->safe_float($delta, 0);
             $amount = $this->safe_float($delta, 1);
@@ -338,7 +340,7 @@ class dydx extends \ccxt\async\dydx {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // {
         //     "type" => "subscribed",
@@ -390,7 +392,7 @@ class dydx extends \ccxt\async\dydx {
         //     }
         // }
         //
-        $id = $this->safe_string($message, 'id');
+        $id = $this->safe_string($message, 'id', '');
         $part = explode('/', $id);
         $interval = $this->safe_string($part, 1);
         $timeframe = $this->find_timeframe($interval);
@@ -413,7 +415,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         //
         // {
         //     "type" => "error",
@@ -431,7 +433,7 @@ class dydx extends \ccxt\async\dydx {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $type = $this->safe_string($message, 'type');
         if ($type === 'error') {
             $this->handle_error_message($client, $message);

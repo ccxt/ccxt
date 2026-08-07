@@ -212,7 +212,9 @@ public partial class bitopro : Exchange
                     { "BEP20", "BSC" },
                     { "BSC", "BSC" },
                 } },
-                { "fiatCurrencies", new List<object>() {"TWD"} },
+                { "fetchCurrencies", new Dictionary<string, object>() {
+                    { "fiatCurrencies", new List<object>() {"TWD"} },
+                } },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -346,7 +348,7 @@ public partial class bitopro : Exchange
 
     public override object parseCurrency(object rawCurrency)
     {
-        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
+        object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object currencyId = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(currencyId);
         object deposit = this.safeBool(rawCurrency, "deposit");
@@ -417,6 +419,10 @@ public partial class bitopro : Exchange
     {
         object active = !isTrue(this.safeBool(market, "maintain"));
         object id = this.safeString(market, "pair");
+        if (isTrue(isEqual(id, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing id")) ;
+        }
         object uppercaseId = ((string)id).ToUpper();
         object baseId = this.safeString(market, "base");
         object quoteId = this.safeString(market, "quote");
@@ -441,7 +447,7 @@ public partial class bitopro : Exchange
                 { "max", null },
             } },
         };
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "uppercaseId", uppercaseId },
             { "symbol", symbol },
@@ -473,7 +479,7 @@ public partial class bitopro : Exchange
             { "active", active },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -598,7 +604,7 @@ public partial class bitopro : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -858,9 +864,10 @@ public partial class bitopro : Exchange
         object result = new Dictionary<string, object>() {};
         object maker = this.safeNumber(first, "makerFee");
         object taker = this.safeNumber(first, "takerFee");
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", first },
                 { "symbol", symbol },
@@ -1017,7 +1024,10 @@ public partial class bitopro : Exchange
                 { "free", available },
                 { "total", amount },
             };
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1108,6 +1118,10 @@ public partial class bitopro : Exchange
         object id = this.safeString2(order, "id", "orderId");
         object timestamp = this.safeInteger2(order, "timestamp", "createdTimestamp");
         object side = this.safeString(order, "action");
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseOrder() returned no side")) ;
+        }
         side = ((string)side).ToLower();
         object amount = this.safeString2(order, "amount", "originalAmount");
         object price = this.safeString(order, "price");
@@ -1318,7 +1332,10 @@ public partial class bitopro : Exchange
         object market = this.market(symbol);
         object id = getValue(market, "uppercaseId");
         object request = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)request)[(string)id] = ids;
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)[(string)id] = ids;
+        }
         object response = await this.privatePutOrders(this.extend(request, parameters));
         //
         //     {
@@ -1339,7 +1356,7 @@ public partial class bitopro : Exchange
      * @name bitopro#cancelAllOrders
      * @description cancel all open orders
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

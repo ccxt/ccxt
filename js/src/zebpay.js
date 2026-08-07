@@ -302,7 +302,7 @@ export default class zebpay extends Exchange {
      * @description retrieves data on all markets for zebpay
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
@@ -403,26 +403,28 @@ export default class zebpay extends Exchange {
             if (minNetworkDepositString !== undefined) {
                 minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
             }
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': depositAllowed && withdrawAllowed,
-                'deposit': depositAllowed,
-                'withdraw': withdrawAllowed,
-                'fee': this.parseNumber(withdrawFeeString),
-                'precision': precision,
-                'limits': {
-                    'withdraw': {
-                        'min': this.parseNumber(minNetworkWithdrawString),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': depositAllowed && withdrawAllowed,
+                    'deposit': depositAllowed,
+                    'withdraw': withdrawAllowed,
+                    'fee': this.parseNumber(withdrawFeeString),
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.parseNumber(minNetworkWithdrawString),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.parseNumber(minNetworkDepositString),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.parseNumber(minNetworkDepositString),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': rawCurrency,
@@ -506,7 +508,7 @@ export default class zebpay extends Exchange {
             // }
             //
             const responseData = this.safeList(response, 'data', []);
-            data = this.safeDict(responseData, 0);
+            data = this.safeDict(responseData, 0, {});
         }
         return this.parseTradingFee(data, market);
     }
@@ -547,7 +549,9 @@ export default class zebpay extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -560,7 +564,7 @@ export default class zebpay extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1027,6 +1031,9 @@ export default class zebpay extends Exchange {
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         params = this.omit(params, ['marginAsset', 'takeProfitPrice', 'takeProfitPrice']);
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         let request = {
             'symbol': market['id'],
             'side': side.toUpperCase(),
@@ -1076,7 +1083,7 @@ export default class zebpay extends Exchange {
     }
     orderRequest(symbol, type, amount, request, price = undefined, params = {}) {
         const upperCaseType = type.toUpperCase();
-        const triggerPrice = this.safeString(params, 'stopLossPrice', undefined);
+        const triggerPrice = this.safeString(params, 'stopLossPrice');
         const quoteOrderQty = this.safeString2(params, 'quoteOrderQty', 'cost', undefined);
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         const clientOrderId = this.safeString(params, 'clientOrderId', this.uuid());
@@ -1139,17 +1146,17 @@ export default class zebpay extends Exchange {
         //        },
         //    }
         //
-        return this.parseOrder(this.safeDict(response, 'data'));
+        return this.parseOrder(this.safeDict(response, 'data', {}));
     }
     /**
      * @method
-     * @name zebpay#cancelOrders
+     * @name zebpay#cancelAllOrders
      * @description cancels all open orders
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.timestamp] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {int} [params.timestamp] the timestamp of the request in ms
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         let type = undefined;
@@ -1328,7 +1335,7 @@ export default class zebpay extends Exchange {
         const clientOrderId = this.safeString(order, 'clientOrderId');
         const timeInForce = this.safeString(order, 'timeInForce');
         const status = this.safeStringLower(order, 'status');
-        const orderId = this.safeString(order, 'orderId', undefined);
+        const orderId = this.safeString(order, 'orderId');
         const parsedOrder = this.safeOrder({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1363,7 +1370,7 @@ export default class zebpay extends Exchange {
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side not used by kucoinfutures closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.positionId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -1743,7 +1750,9 @@ export default class zebpay extends Exchange {
             account['used'] = this.safeString(entry, 'used');
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

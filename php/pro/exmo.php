@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class exmo extends \ccxt\async\exmo {
     public function describe(): mixed {
@@ -71,7 +73,7 @@ class exmo extends \ccxt\async\exmo {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //  spot
         //     {
@@ -124,6 +126,9 @@ class exmo extends \ccxt\async\exmo {
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $parts = explode('/', $topic);
         $type = $this->safe_string($parts, 0);
         if ($type === 'spot') {
@@ -135,7 +140,7 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function parse_spot_balance($message) {
+    public function parse_spot_balance(mixed $message) {
         //
         //     {
         //         "balances" => array(
@@ -163,7 +168,9 @@ class exmo extends \ccxt\async\exmo {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balances, $currencyId);
                 $account['used'] = $this->safe_string($reserved, $currencyId);
-                $this->balance[$code] = $account;
+                if ($code !== null) {
+                    $this->balance[$code] = $account;
+                }
             }
         } elseif ($event === 'update') {
             $currencyId = $this->safe_string($data, 'currency');
@@ -171,12 +178,14 @@ class exmo extends \ccxt\async\exmo {
             $account = $this->account();
             $account['free'] = $this->safe_string($data, 'balance');
             $account['used'] = $this->safe_string($data, 'reserved');
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
         }
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function parse_margin_balance($message) {
+    public function parse_margin_balance(mixed $message) {
         //
         //     {
         //         "RUB" => array(
@@ -202,7 +211,9 @@ class exmo extends \ccxt\async\exmo {
             $account['free'] = $this->safe_string($wallet, 'free');
             $account['used'] = $this->safe_string($wallet, 'used');
             $account['total'] = $this->safe_string($wallet, 'balance');
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
             $this->balance = $this->safe_balance($this->balance);
         }
     }
@@ -271,7 +282,7 @@ class exmo extends \ccxt\async\exmo {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //  spot
         //      {
@@ -292,6 +303,9 @@ class exmo extends \ccxt\async\exmo {
         //      }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $topicParts = explode(':', $topic);
         $marketId = $this->safe_string($topicParts, 1);
         $symbol = $this->safe_symbol($marketId);
@@ -333,7 +347,7 @@ class exmo extends \ccxt\async\exmo {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //      {
         //          "ts" => 1654206084001,
@@ -350,6 +364,9 @@ class exmo extends \ccxt\async\exmo {
         //      }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $parts = explode(':', $topic);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
@@ -408,7 +425,7 @@ class exmo extends \ccxt\async\exmo {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //  spot
         //     {
@@ -467,6 +484,9 @@ class exmo extends \ccxt\async\exmo {
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $parts = explode('/', $topic);
         $type = $this->safe_string($parts, 0);
         $messageHash = 'myTrades:' . $type;
@@ -491,7 +511,9 @@ class exmo extends \ccxt\async\exmo {
         for ($j = 0; $j < count($trades); $j++) {
             $trade = $trades[$j];
             $myTrades->append($trade);
-            $symbols[$trade['symbol']] = true;
+            if ($trade['symbol'] !== null) {
+                $symbols[$trade['symbol']] = true;
+            }
         }
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($symbolKeys); $i++) {
@@ -509,7 +531,7 @@ class exmo extends \ccxt\async\exmo {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -532,7 +554,7 @@ class exmo extends \ccxt\async\exmo {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "ts" => 1574427585174,
@@ -567,13 +589,16 @@ class exmo extends \ccxt\async\exmo {
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $parts = explode(':', $topic);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
         $orderBook = $this->safe_value($message, 'data', array());
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer($message, 'ts');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -592,12 +617,12 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -644,7 +669,7 @@ class exmo extends \ccxt\async\exmo {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //  spot
         // {
@@ -701,6 +726,9 @@ class exmo extends \ccxt\async\exmo {
         // }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $parts = explode('/', $topic);
         $type = $this->safe_string($parts, 0);
         $messageHash = 'orders:' . $type;
@@ -721,7 +749,9 @@ class exmo extends \ccxt\async\exmo {
         for ($j = 0; $j < count($rawOrders); $j++) {
             $order = $this->parse_ws_order($rawOrders[$j]);
             $cachedOrders->append($order);
-            $symbols[$order['symbol']] = true;
+            if ($order['symbol'] !== null) {
+                $symbols[$order['symbol']] = true;
+            }
         }
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($symbolKeys); $i++) {
@@ -768,7 +798,7 @@ class exmo extends \ccxt\async\exmo {
             $type = $orderType;
         }
         $trades = null;
-        if (is_array($order) && array_key_exists('last_trade_id', $order)) {
+        if (is_array($order) && array_key_exists('last_trade_id' ?? '', $order)) {
             $trade = $this->parse_ws_trade($order, $market);
             $trades = array( $trade );
         }
@@ -822,7 +852,7 @@ class exmo extends \ccxt\async\exmo {
         ), $market);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // {
         //     "ts" => 1654206362552,
@@ -877,7 +907,7 @@ class exmo extends \ccxt\async\exmo {
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }
 
-    public function handle_subscribed(Client $client, $message) {
+    public function handle_subscribed(Client $client, mixed $message) {
         //
         // {
         //     "method" => "subscribe",
@@ -888,7 +918,7 @@ class exmo extends \ccxt\async\exmo {
         return $message;
     }
 
-    public function handle_info(Client $client, $message) {
+    public function handle_info(Client $client, mixed $message) {
         //
         // {
         //     "ts" => 1654215731659,
@@ -901,7 +931,7 @@ class exmo extends \ccxt\async\exmo {
         return $message;
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         //
         //     {
         //         "method" => "login",

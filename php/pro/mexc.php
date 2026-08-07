@@ -11,6 +11,9 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class mexc extends \ccxt\async\mexc {
     public function describe(): mixed {
@@ -89,13 +92,11 @@ class mexc extends \ccxt\async\mexc {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-$symbol-book-ticker-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/individual-$symbol-book-ticker-streams // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/get-a-single-ticker // swap
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->miniTicker] set to true for using the miniTicker endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             if ($this->markets === null) {
@@ -116,7 +117,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // swap
         //
@@ -194,8 +195,10 @@ class mexc extends \ccxt\async\mexc {
             $ticker = $this->parse_ws_ticker($rawTicker, $market);
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
-        } else {
+        } elseif ($rawTicker !== null) {
             $ticker = $this->parse_ticker($rawTicker, $market);
+        } else {
+            return;
         }
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
@@ -207,13 +210,10 @@ class mexc extends \ccxt\async\mexc {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-$ticker-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/tickers
              *
              * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->miniTicker] set to true for using the $miniTicker endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             if ($this->markets === null) {
@@ -274,7 +274,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_tickers(Client $client, $message) {
+    public function handle_tickers(Client $client, mixed $message) {
         //
         // swap
         //
@@ -335,7 +335,7 @@ class mexc extends \ccxt\async\mexc {
         //         "s" => "BTCUSDT"
         //     }
         //
-        $data = $this->safe_list_2($message, 'data', 'd');
+        $data = $this->safe_list_2($message, 'data', 'd', array());
         $channel = $this->safe_string($message, 'c', '');
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId);
@@ -354,7 +354,9 @@ class mexc extends \ccxt\async\mexc {
                 $ticker = $this->parse_ticker($entry);
             }
             $symbol = $ticker['symbol'];
-            $this->tickers[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $this->tickers[$symbol] = $ticker;
+            }
             $result[] = $ticker;
             $messageHash = 'ticker:' . $symbol;
             $client->resolve($ticker, $messageHash);
@@ -362,7 +364,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         // protobuf $ticker
         // "bidprice" => "93387.28",  // Best bid $price
         // "bidquantity" => "3.73485", // Best bid quantity
@@ -426,7 +428,7 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-$ticker-streams
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/individual-symbol-book-$ticker-streams
              *
              * watches best bid & ask for $symbols
              * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
@@ -441,7 +443,7 @@ class mexc extends \ccxt\async\mexc {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchBidsAsks required $symbols argument');
             }
-            $markets = $this->markets_for_symbols($symbols);
+            $markets = $this->require_value($this->markets_for_symbols($symbols), 'watchBidsAsks() $markets is required');
             list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
             $isSpot = $marketType === 'spot';
             if (!$isSpot) {
@@ -471,7 +473,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         //
         //    {
         //        "c" => "spot@public.bookTicker.v3.api@BTCUSDT",
@@ -495,7 +497,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         $data = $this->safe_dict($ticker, 'd');
         $marketId = $this->safe_string($ticker, 's');
         $market = $this->safe_market($marketId, $market);
@@ -513,7 +515,7 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function watch_spot_public($channel, $messageHash, $params = array()) {
+    public function watch_spot_public(mixed $channel, mixed $messageHash, $params = array()) {
         return Async\async(function () use ($channel, $messageHash, $params) {
             $unsubscribed = $this->safe_bool($params, 'unsubscribed', false);
             $params = $this->omit($params, array( 'unsubscribed' ));
@@ -527,7 +529,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function watch_spot_private($channel, $messageHash, $params = array()) {
+    public function watch_spot_private(mixed $channel, mixed $messageHash, $params = array()) {
         return Async\async(function () use ($channel, $messageHash, $params) {
             $this->check_required_credentials();
             $listenKey = Async\await($this->authenticate($channel));
@@ -540,7 +542,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function watch_swap_public($channel, $messageHash, $requestParams, $params = array()) {
+    public function watch_swap_public(mixed $channel, mixed $messageHash, mixed $requestParams, $params = array()) {
         return Async\async(function () use ($channel, $messageHash, $requestParams, $params) {
             $url = $this->urls['api']['ws']['swap'];
             $request = array(
@@ -552,7 +554,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function watch_swap_private($messageHash, $params = array()) {
+    public function watch_swap_private(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $this->check_required_credentials();
             $channel = 'login';
@@ -577,7 +579,8 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams#trade-streams
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/k-line-streams // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/k-line-data // swap
              *
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -607,6 +610,7 @@ class mexc extends \ccxt\async\mexc {
                 );
                 $ohlcv = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
             }
+            $ohlcv = $this->require_value($ohlcv, 'watchOHLCV() $ohlcv is required');
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit($symbol, $limit);
             }
@@ -614,7 +618,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // spot
         //
@@ -681,7 +685,7 @@ class mexc extends \ccxt\async\mexc {
         //
         $symbol = null;
         $timeframe = null;
-        if (is_array($message) && array_key_exists('publicSpotKline', $message)) {
+        if (is_array($message) && array_key_exists('publicSpotKline' ?? '', $message)) {
             $symbol = $this->symbol($this->safe_string($message, 'symbol'));
             $data = $this->safe_dict($message, 'publicSpotKline', array());
             $timeframeId = $this->safe_string($data, 'interval');
@@ -699,18 +703,21 @@ class mexc extends \ccxt\async\mexc {
             $parsed = $this->parse_ws_ohlcv($rawOhlcv, $market);
         }
         $messageHash = 'candles:' . $symbol . ':' . $timeframe;
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $symbolOhlcvs = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $symbolOhlcvs;
+        $stored = $this->safe_value($symbolOhlcvs, $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            if ($timeframe !== null) {
+                $symbolOhlcvs[$timeframe] = $stored;
+            }
         }
         $stored->append($parsed);
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // spot
         //
@@ -774,15 +781,15 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams#trade-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/diffdepth-stream // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/order-book-depth // swap
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->frequency] the $frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -803,32 +810,39 @@ class mexc extends \ccxt\async\mexc {
                 );
                 $orderbook = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
             }
+            $orderbook = $this->require_value($orderbook, 'watchOrderBook() $orderbook is required');
             return $orderbook->limit();
         })();
     }
 
-    public function handle_order_book_subscription(Client $client, $message) {
+    public function handle_order_book_subscription(Client $client, mixed $message) {
         // spot
         //     array( id => 0, code => 0, $msg => "spot@public.increase.depth.v3.api@BTCUSDT" )
         //
-        $msg = $this->safe_string($message, 'msg');
+        $msg = $this->safe_string($message, 'msg', '');
         $parts = explode('@', $msg);
         $marketId = $this->safe_string($parts, 2);
         $symbol = $this->safe_symbol($marketId);
         $this->orderbooks[$symbol] = $this->order_book(array());
     }
 
-    public function get_cache_index($orderbook, $cache) {
+    public function get_cache_index(mixed $orderbook, mixed $cache) {
         // return the first index of the $cache that can be applied to the $orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_value($cache, 0);
         $firstDeltaNonce = $this->safe_integer_n($firstDelta, array( 'r', 'version', 'fromVersion' ));
+        if (($nonce === null) || ($firstDeltaNonce === null)) {
+            return -1;
+        }
         if ($nonce < $firstDeltaNonce - 1) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
             $delta = $cache[$i];
             $deltaNonce = $this->safe_integer_n($delta, array( 'r', 'version', 'fromVersion' ));
+            if ($deltaNonce === null) {
+                continue;
+            }
             if ($deltaNonce >= $nonce) {
                 return $i;
             }
@@ -836,7 +850,7 @@ class mexc extends \ccxt\async\mexc {
         return count($cache);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // spot
         //    {
@@ -909,7 +923,7 @@ class mexc extends \ccxt\async\mexc {
         $messageHash = 'orderbook:' . $symbol;
         $subscription = $this->safe_value($client->subscriptions, $messageHash);
         $limit = $this->safe_integer($subscription, 'limit');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $storedOrderBook = $this->orderbooks[$symbol];
@@ -941,7 +955,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function handle_bookside_delta($bookside, $bidasks) {
+    public function handle_bookside_delta(mixed $bookside, mixed $bidasks) {
         //
         //    [array(
         //        "p" => "20290.89",
@@ -960,10 +974,10 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $existingNonce = $this->safe_integer($orderbook, 'nonce');
         $deltaNonce = $this->safe_integer_n($delta, array( 'r', 'version', 'fromVersion' ));
-        if ($deltaNonce < $existingNonce) {
+        if (($deltaNonce !== null) && ($existingNonce !== null) && ($deltaNonce < $existingNonce)) {
             // even when doing < comparison, this happens => https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
             return;
@@ -981,8 +995,8 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams#trade-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/trade-streams // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/deal // swap
              *
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
@@ -1008,6 +1022,7 @@ class mexc extends \ccxt\async\mexc {
                 );
                 $trades = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
             }
+            $trades = $this->require_value($trades, 'watchTrades() $trades is required');
             if ($this->newUpdates) {
                 $limit = $trades->getLimit($symbol, $limit);
             }
@@ -1015,7 +1030,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         // protobuf
         // {
         // "channel" => "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
@@ -1096,8 +1111,8 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-deals // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/fill-details // swap
              *
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
@@ -1125,6 +1140,7 @@ class mexc extends \ccxt\async\mexc {
             } else {
                 $trades = Async\await($this->watch_swap_private($messageHash, $params));
             }
+            $trades = $this->require_value($trades, 'watchMyTrades() $trades is required');
             if ($this->newUpdates) {
                 $limit = $trades->getLimit($symbol, $limit);
             }
@@ -1132,7 +1148,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_my_trade(Client $client, $message, $subscription = null) {
+    public function handle_my_trade(Client $client, mixed $message, ?array $subscription = null) {
         //
         //    {
         //        "c" => "spot@private.deals.v3.api",
@@ -1175,8 +1191,10 @@ class mexc extends \ccxt\async\mexc {
         $symbol = $market['symbol'];
         if ($market['spot']) {
             $trade = $this->parse_ws_trade($data, $market);
-        } else {
+        } elseif ($data !== null) {
             $trade = $this->parse_trade($data, $market);
+        } else {
+            return;
         }
         $trades = $this->myTrades;
         if ($trades === null) {
@@ -1190,7 +1208,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($trades, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // public $trade (protobuf)
         //    {
@@ -1277,15 +1295,15 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-$orders
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-$orders
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-$orders // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/order // swap
              *
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'margin'
+             * @param {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'swap'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($this->markets === null) {
@@ -1307,6 +1325,7 @@ class mexc extends \ccxt\async\mexc {
             } else {
                 $orders = Async\await($this->watch_swap_private($messageHash, $params));
             }
+            $orders = $this->require_value($orders, 'watchOrders() $orders is required');
             if ($this->newUpdates) {
                 $limit = $orders->getLimit($symbol, $limit);
             }
@@ -1314,7 +1333,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         // spot
         //    {
@@ -1399,8 +1418,10 @@ class mexc extends \ccxt\async\mexc {
             if ($sendTime !== null) {
                 $parsed['lastTradeTimestamp'] = $sendTime;
             }
-        } else {
+        } elseif ($data !== null) {
             $parsed = $this->parse_order($data, $market);
+        } else {
+            return;
         }
         $orders = $this->orders;
         if ($orders === null) {
@@ -1414,7 +1435,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($orders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         // spot
         //     {
@@ -1519,7 +1540,7 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function parse_ws_order_status($status, ?array $market = null) {
+    public function parse_ws_order_status(mixed $status, ?array $market = null) {
         $statuses = array(
             '0' => 'open',     // new/pending (OCO orders)
             '1' => 'open',     // new order
@@ -1535,7 +1556,7 @@ class mexc extends \ccxt\async\mexc {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order_type($type) {
+    public function parse_ws_order_type(mixed $type) {
         $types = array(
             '1' => 'limit',   // LIMIT_ORDER
             '2' => 'limit', // POST_ONLY
@@ -1549,7 +1570,7 @@ class mexc extends \ccxt\async\mexc {
         return $this->safe_string($types, $type);
     }
 
-    public function parse_ws_time_in_force($timeInForce) {
+    public function parse_ws_time_in_force(mixed $timeInForce) {
         $timeInForceIds = array(
             '1' => 'GTC',   // LIMIT_ORDER
             '2' => 'PO', // POST_ONLY
@@ -1567,7 +1588,8 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-update // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/assets // swap
              *
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1588,7 +1610,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // spot
         //
@@ -1629,18 +1651,20 @@ class mexc extends \ccxt\async\mexc {
         $data = $this->safe_dict_n($message, array( 'data', 'privateAccount' ));
         $futuresTimestamp = $this->safe_integer_2($message, 'ts', 'createTime');
         $timestamp = $this->safe_integer_2($data, 'time', $futuresTimestamp);
-        if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
+        if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $data;
         $this->balance[$type]['timestamp'] = $timestamp;
         $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
-        $currencyId = $this->safe_string_n($data, array( 'currency', 'vcoinName' ));
+        $currencyId = $this->safe_string_2($data, 'currency', 'vcoinName');
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
         $account['free'] = $this->safe_string_2($data, 'balanceAmount', 'availableBalance');
-        $account['used'] = $this->safe_string_n($data, array( 'frozenBalance', 'frozenAmount' ));
-        $this->balance[$type][$code] = $account;
+        $account['used'] = $this->safe_string_2($data, 'frozenBalance', 'frozenAmount');
+        if ($code !== null) {
+            $this->balance[$type][$code] = $account;
+        }
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $client->resolve($this->balance[$type], $messageHash);
     }
@@ -1650,7 +1674,7 @@ class mexc extends \ccxt\async\mexc {
             /**
              * watch the current funding rate
              *
-             * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1674,7 +1698,7 @@ class mexc extends \ccxt\async\mexc {
             /**
              * unWatches the current funding rate for a $symbol
              *
-             * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
              *
              * @param {string} $symbol unified $symbol of the $market
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1698,7 +1722,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_funding_rate(Client $client, $message) {
+    public function handle_funding_rate(Client $client, mixed $message) {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -1714,7 +1738,9 @@ class mexc extends \ccxt\async\mexc {
         $data = $this->safe_dict($message, 'data', array());
         $fundingRate = $this->parse_funding_rate($data);
         $symbol = $fundingRate['symbol'];
-        $this->fundingRates[$symbol] = $fundingRate;
+        if ($symbol !== null) {
+            $this->fundingRates[$symbol] = $fundingRate;
+        }
         $messageHash = 'fundingRate:' . $symbol;
         $client->resolve($fundingRate, $messageHash);
     }
@@ -1832,7 +1858,7 @@ class mexc extends \ccxt\async\mexc {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchBidsAsks required $symbols argument');
             }
-            $markets = $this->markets_for_symbols($symbols);
+            $markets = $this->require_value($this->markets_for_symbols($symbols), 'unWatchBidsAsks() $markets is required');
             list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
             $isSpot = $marketType === 'spot';
             if (!$isSpot) {
@@ -1983,12 +2009,12 @@ class mexc extends \ccxt\async\mexc {
                     for ($j = 0; $j < count($symbols); $j++) {
                         unset($this->tickers[$symbols[$j]]);
                     }
-                } elseif (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+                } elseif (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
                     unset($this->tickers[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'bidask') !== false) {
                 $symbol = str_replace('unsubscribe:bidask:', '', $messageHash);
-                if (is_array($this->bidsasks) && array_key_exists($symbol, $this->bidsasks)) {
+                if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
                     unset($this->bidsasks[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'candles') !== false) {
@@ -1997,36 +2023,57 @@ class mexc extends \ccxt\async\mexc {
                 if (strlen($splitHashes) > 4) {
                     $symbol .= ':' . $this->safe_string($splitHashes, 3);
                 }
-                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+                if (($symbol !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
                     unset($this->ohlcvs[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'orderbook') !== false) {
                 $symbol = str_replace('unsubscribe:orderbook:', '', $messageHash);
-                if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                     unset($this->orderbooks[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'trades') !== false) {
                 $symbol = str_replace('unsubscribe:trades:', '', $messageHash);
-                if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+                if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
                     unset($this->trades[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'fundingRate') !== false) {
                 $symbol = str_replace('unsubscribe:fundingRate:', '', $messageHash);
-                if (is_array($this->fundingRates) && array_key_exists($symbol, $this->fundingRates)) {
+                if (is_array($this->fundingRates) && array_key_exists($symbol ?? '', $this->fundingRates)) {
                     unset($this->fundingRates[$symbol]);
                 }
             }
         }
     }
 
-    public function authenticate($subscriptionHash, $params = array()) {
+    public function authenticate(mixed $subscriptionHash, $params = array()) {
         return Async\async(function () use ($subscriptionHash, $params) {
             // we only need one $listenKey since ccxt shares connections
             $listenKey = $this->safe_string($this->options, 'listenKey');
             if ($listenKey !== null) {
                 return $listenKey;
             }
-            $response = Async\await($this->spotPrivatePostUserDataStream($params));
+            // guard against concurrent $listenKey requests with a future on the base
+            // spot ws $client - the first caller fetches the $listenKey, concurrent
+            // callers wait on the future and resume when the $listenKey is ready,
+            // otherwise the user-data subscriptions would be split across two connections
+            $client = $this->client($this->urls['api']['ws']['spot']);
+            $messageHash = 'authenticate:listenKey';
+            $isFetching = $this->safe_bool($this->options, 'listenKeyFetching', false);
+            if ($isFetching) {
+                Async\await($client->future($messageHash));
+                return $this->safe_string($this->options, 'listenKey');
+            }
+            $this->options['listenKeyFetching'] = true;
+            $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
+            $response = null;
+            try {
+                $response = Async\await($this->spotPrivatePostUserDataStream($params));
+            } catch (Exception $e) {
+                $this->options['listenKeyFetching'] = false;
+                $client->reject($e, $messageHash);
+                throw $e;
+            }
+            $this->options['listenKeyFetching'] = false;
             //
             //    {
             //        "listenKey" => "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -2034,13 +2081,14 @@ class mexc extends \ccxt\async\mexc {
             //
             $listenKey = $this->safe_string($response, 'listenKey');
             $this->options['listenKey'] = $listenKey;
+            $client->resolve($listenKey, $messageHash);
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
             $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
             return $listenKey;
         })();
     }
 
-    public function keep_alive_listen_key($listenKey, $params = array()) {
+    public function keep_alive_listen_key(mixed $listenKey, $params = array()) {
         return Async\async(function () use ($listenKey, $params) {
             if ($listenKey === null) {
                 return;
@@ -2062,12 +2110,12 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //    {
         //        "id" => 0,
@@ -2092,7 +2140,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function handle_protobuf_message(Client $client, $message) {
+    public function handle_protobuf_message(Client $client, mixed $message) {
         // protobuf $message decoded
         //  {
         //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
@@ -2111,7 +2159,7 @@ class mexc extends \ccxt\async\mexc {
         //       "windowEnd":"1754737980"
         //    }
         // }
-        $channel = $this->safe_string($message, 'channel');
+        $channel = $this->safe_string($message, 'channel', '');
         $channelParts = explode('@', $channel);
         $channelId = $this->safe_string($channelParts, 1);
         if ($channelId === 'public.kline.v3.api.pb') {
@@ -2132,7 +2180,7 @@ class mexc extends \ccxt\async\mexc {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (gettype($message) === 'string') {
             if ($message === 'Invalid listen key') {
                 $error = new AuthenticationError($this->id . ' invalid listen key');
@@ -2145,7 +2193,7 @@ class mexc extends \ccxt\async\mexc {
             $this->handle_protobuf_message($client, $message);
             return;
         }
-        if (is_array($message) && array_key_exists('msg', $message)) {
+        if (is_array($message) && array_key_exists('msg' ?? '', $message)) {
             $this->handle_subscription_status($client, $message);
             return;
         }
@@ -2155,7 +2203,7 @@ class mexc extends \ccxt\async\mexc {
             $channel = $this->safe_string($message, 'channel');
         } else {
             $parts = explode('@', $c);
-            $channel = $this->safe_string($parts, 1);
+            $channel = $this->safe_string($parts, 1, '');
         }
         $methods = array(
             'public.deals.v3.api' => array($this, 'handle_trades'),
@@ -2178,7 +2226,7 @@ class mexc extends \ccxt\async\mexc {
             'pong' => array($this, 'handle_pong'),
             'push.funding.rate' => array($this, 'handle_funding_rate'),
         );
-        if (is_array($methods) && array_key_exists($channel, $methods)) {
+        if (($channel !== null) && (is_array($methods) && array_key_exists($channel ?? '', $methods))) {
             $method = $methods[$channel];
             $method($client, $message);
         }

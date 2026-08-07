@@ -10,6 +10,10 @@ use ccxt\ExchangeError;
 use ccxt\InvalidNonce;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class extended extends \ccxt\async\extended {
     public function describe(): mixed {
@@ -58,7 +62,7 @@ class extended extends \ccxt\async\extended {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->depth] set to '1' to receive best bid and ask snapshots only
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -79,7 +83,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "ts" => 1701563440000,
@@ -104,7 +108,7 @@ class extended extends \ccxt\async\extended {
         $timestamp = $this->safe_integer($message, 'ts');
         $nonce = $this->safe_integer($message, 'seq');
         $type = $this->safe_string($message, 'type', $this->safe_string($data, 't'));
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
             $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
@@ -134,13 +138,13 @@ class extended extends \ccxt\async\extended {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $this->safe_float($delta, 'p');
         $amount = $this->safe_float_2($delta, 'c', 'q');
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -150,7 +154,7 @@ class extended extends \ccxt\async\extended {
         return Async\async(function () use ($messageHash, $subscription) {
             $this->check_required_credentials();
             $url = $this->urls['api']['ws'] . '/account';
-            if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url, $this->clients))) {
+            if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
                 $defaultOptions = array(
                     'ws' => array(
                         'options' => array(
@@ -225,7 +229,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "BALANCE",
@@ -318,7 +322,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "TRADE",
@@ -410,7 +414,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_positions(Client $client, $message) {
+    public function handle_positions(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "POSITION",
@@ -469,7 +473,7 @@ class extended extends \ccxt\async\extended {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "ORDER",
@@ -562,7 +566,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_funding_rate(Client $client, $message) {
+    public function handle_funding_rate(Client $client, mixed $message) {
         //
         //     {
         //         "ts" => 1701563440000,
@@ -582,7 +586,7 @@ class extended extends \ccxt\async\extended {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function parse_ws_funding_rate($fundingRate, ?array $market = null, $message = null): array {
+    public function parse_ws_funding_rate(mixed $fundingRate, ?array $market = null, mixed $message = null): array {
         $marketId = $this->safe_string($fundingRate, 'm');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($message, 'ts');
@@ -639,7 +643,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_mark_price(Client $client, $message) {
+    public function handle_mark_price(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "MP",
@@ -707,7 +711,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "ts" => 1701563440000,
@@ -807,7 +811,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "ts" => 1695738675123,
@@ -868,7 +872,7 @@ class extended extends \ccxt\async\extended {
         return null;
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     array( "status" => "ERROR", "error" => array( "code" => 1001, "message" => "Market not found." ) )
         //
@@ -884,7 +888,7 @@ class extended extends \ccxt\async\extended {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -899,21 +903,21 @@ class extended extends \ccxt\async\extended {
                 $this->handle_ohlcv($client, $message);
             }
         } elseif ($data !== null) {
-            if (($type === 'ORDER') || (is_array($data) && array_key_exists('orders', $data))) {
+            if (($type === 'ORDER') || (is_array($data) && array_key_exists('orders' ?? '', $data))) {
                 $this->handle_orders($client, $message);
             }
-            if (($type === 'TRADE') || (is_array($data) && array_key_exists('trades', $data))) {
+            if (($type === 'TRADE') || (is_array($data) && array_key_exists('trades' ?? '', $data))) {
                 $this->handle_my_trades($client, $message);
             }
-            if (($type === 'POSITION') || (is_array($data) && array_key_exists('positions', $data))) {
+            if (($type === 'POSITION') || (is_array($data) && array_key_exists('positions' ?? '', $data))) {
                 $this->handle_positions($client, $message);
             }
-            if (($type === 'BALANCE') || (is_array($data) && array_key_exists('balance', $data)) || (is_array($data) && array_key_exists('spotBalances', $data))) {
+            if (($type === 'BALANCE') || (is_array($data) && array_key_exists('balance' ?? '', $data)) || (is_array($data) && array_key_exists('spotBalances' ?? '', $data))) {
                 $this->handle_balance($client, $message);
             }
             if ($type === 'MP') {
                 $this->handle_mark_price($client, $message);
-            } elseif (is_array($data) && array_key_exists('f', $data)) {
+            } elseif (is_array($data) && array_key_exists('f' ?? '', $data)) {
                 $this->handle_funding_rate($client, $message);
             } else {
                 $this->handle_order_book($client, $message);

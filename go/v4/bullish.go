@@ -26,7 +26,7 @@ func (this *BullishCore) Describe() any {
 			"spot":                           true,
 			"margin":                         false,
 			"swap":                           true,
-			"future":                         false,
+			"future":                         true,
 			"option":                         false,
 			"addMargin":                      false,
 			"borrowMargin":                   false,
@@ -950,7 +950,7 @@ func (this *BullishCore) ParseMarketType(optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (not used by bullish)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BullishCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3081,7 +3081,9 @@ func (this *BullishCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "availableQuantity"))
 		AddElementToObject(account, "used", this.SafeString(balance, "lockedQuantity"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -3106,8 +3108,8 @@ func (this *BullishCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes25178 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes25178)
+		retRes25198 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes25198)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3239,8 +3241,8 @@ func (this *BullishCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes26278 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes26278)
+		retRes26298 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes26298)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3252,9 +3254,9 @@ func (this *BullishCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		if IsTrue(paginate) {
 			params = this.HandlePaginationParams("fetchTransfers", since, params)
 
-			retRes263419 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
-			PanicOnError(retRes263419)
-			ch <- retRes263419
+			retRes263619 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
+			PanicOnError(retRes263619)
+			ch <- retRes263619
 			return nil
 		}
 		var request any = map[string]any{
@@ -3324,8 +3326,8 @@ func (this *BullishCore) Transfer(code any, amount any, fromAccount any, toAccou
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes26878 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes26878)
+		retRes26898 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes26898)
 		// todo check this method properly
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3437,8 +3439,8 @@ func (this *BullishCore) FetchBorrowRateHistory(code any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes27818 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes27818)
+		retRes27838 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes27838)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3530,8 +3532,8 @@ func (this *BullishCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes285512 := (<-this.LoadMarkets())
-			PanicOnError(retRes285512)
+			retRes285712 := (<-this.LoadMarkets())
+			PanicOnError(retRes285712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3756,9 +3758,9 @@ func (this *BullishCore) HandleToken(optionalArgs ...any) <-chan any {
 		var tokenExpires any = this.SafeInteger(this.Options, "tokenExpires")
 		if IsTrue(IsTrue(IsTrue((IsEqual(token, nil))) || IsTrue((IsEqual(tokenExpires, nil)))) || IsTrue((IsGreaterThan(now, tokenExpires)))) {
 
-			retRes304019 := (<-this.SignIn())
-			PanicOnError(retRes304019)
-			ch <- retRes304019
+			retRes304219 := (<-this.SignIn())
+			PanicOnError(retRes304219)
+			ch <- retRes304219
 			return nil
 		} else {
 

@@ -51,7 +51,7 @@ class bitopro(ccxt.async_support.bitopro):
             },
         })
 
-    async def watch_public(self, path, messageHash, marketId):
+    async def watch_public(self, path: Any, messageHash: Any, marketId: Any):
         url = self.urls['ws']['public'] + '/' + path + '/' + marketId
         return await self.watch(url, messageHash, None, messageHash)
 
@@ -64,7 +64,7 @@ class bitopro(ccxt.async_support.bitopro):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if limit is not None:
             if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500) and (limit != 1000):
@@ -82,7 +82,7 @@ class bitopro(ccxt.async_support.bitopro):
         orderbook = await self.watch_public('order-books', messageHash, endPart)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "event": "ORDER_BOOK",
@@ -139,7 +139,7 @@ class bitopro(ccxt.async_support.bitopro):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: Any):
         #
         #     {
         #         "event": "TRADE",
@@ -201,7 +201,7 @@ class bitopro(ccxt.async_support.bitopro):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: Any):
         #
         #     {
         #         "event": "USER_TRADE",
@@ -327,7 +327,7 @@ class bitopro(ccxt.async_support.bitopro):
         messageHash = 'TICKER' + ':' + symbol
         return await self.watch_public('tickers', messageHash, market['id'])
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "event": "TICKER",
@@ -360,7 +360,7 @@ class bitopro(ccxt.async_support.bitopro):
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
-    def authenticate(self, url):
+    def authenticate(self, url: Any):
         if (self.clients is not None) and (url in self.clients):
             return
         self.check_required_credentials()
@@ -409,7 +409,7 @@ class bitopro(ccxt.async_support.bitopro):
         self.authenticate(url)
         return await self.watch(url, messageHash, None, messageHash)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
         #         "event": "ACCOUNT_BALANCE",
@@ -444,11 +444,12 @@ class bitopro(ccxt.async_support.bitopro):
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['total'] = self.safe_string(balance, 'amount')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, event)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         methods = {
             'TRADE': self.handle_trade,
             'TICKER': self.handle_ticker,
