@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -16,8 +16,8 @@ interface Exchange {
     publicGetDeepcoinMarketIndexCandles (params?: {}): Promise<Dict>;
     publicGetDeepcoinMarketTrades (params?: {}): Promise<Dict>;
     publicGetDeepcoinMarketMarkPriceCandles (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketStepMargin (params?: {}): Promise<implicitReturnType>;
-    publicGetDeepcoinTradeFundingRate (params?: {}): Promise<implicitReturnType>;
+    publicGetDeepcoinMarketStepMargin (params?: {}): Promise<Dict | List>;
+    publicGetDeepcoinTradeFundingRate (params?: {}): Promise<Dict | List>;
     publicGetDeepcoinTradeFundRateCurrentFundingRate (params?: {}): Promise<Dict>;
     publicGetDeepcoinTradeFundRateHistory (params?: {}): Promise<Dict>;
     privateGetDeepcoinAccountBalances (params?: {}): Promise<Dict>;
@@ -30,23 +30,23 @@ interface Exchange {
     privateGetDeepcoinTradeV2OrdersPending (params?: {}): Promise<Dict>;
     privateGetDeepcoinTradeTriggerOrdersPending (params?: {}): Promise<Dict>;
     privateGetDeepcoinTradeTriggerOrdersHistory (params?: {}): Promise<Dict>;
-    privateGetDeepcoinCopytradingSupportContracts (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinCopytradingLeaderPosition (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinCopytradingEstimateProfit (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinCopytradingHistoryProfit (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinCopytradingFollowerRank (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinInternalTransferSupport (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinInternalTransferHistoryOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinRebateConfig (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinAgentsUsers (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinAgentsUsersRebateList (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinAgentsUsersRebates (params?: {}): Promise<implicitReturnType>;
+    privateGetDeepcoinCopytradingSupportContracts (params?: {}): Promise<Dict | List>;
+    privateGetDeepcoinCopytradingLeaderPosition (params?: {}): Promise<Dict | List>;
+    privateGetDeepcoinCopytradingEstimateProfit (params?: {}): Promise<Dict | List>;
+    privateGetDeepcoinCopytradingHistoryProfit (params?: {}): Promise<Dict | List>;
+    privateGetDeepcoinCopytradingFollowerRank (params?: {}): Promise<Dict | List>;
+    privateGetDeepcoinInternalTransferSupport (params?: {}): Promise<Dict | List>;
+    privateGetDeepcoinInternalTransferHistoryOrder (params?: {}): Promise<Dict | List>;
+    privateGetDeepcoinRebateConfig (params?: {}): Promise<Dict | List>;
+    privateGetDeepcoinAgentsUsers (params?: {}): Promise<Dict | List>;
+    privateGetDeepcoinAgentsUsersRebateList (params?: {}): Promise<Dict | List>;
+    privateGetDeepcoinAgentsUsersRebates (params?: {}): Promise<Dict | List>;
     privateGetDeepcoinAssetDepositList (params?: {}): Promise<Dict>;
     privateGetDeepcoinAssetWithdrawList (params?: {}): Promise<Dict>;
     privateGetDeepcoinAssetRechargeChainList (params?: {}): Promise<Dict>;
     privateGetDeepcoinListenkeyAcquire (params?: {}): Promise<Dict>;
     privateGetDeepcoinListenkeyExtend (params?: {}): Promise<Dict>;
-    privatePostDeepcoinAccountSetLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePostDeepcoinAccountSetLeverage (params?: {}): Promise<Dict | List>;
     privatePostDeepcoinTradeOrder (params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeReplaceOrder (params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeCancelOrder (params?: {}): Promise<Dict>;
@@ -57,10 +57,10 @@ interface Exchange {
     privatePostDeepcoinTradeBatchClosePosition (params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeReplaceOrderSltp (params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeClosePositionByIds (params?: {}): Promise<Dict>;
-    privatePostDeepcoinCopytradingLeaderSettings (params?: {}): Promise<implicitReturnType>;
-    privatePostDeepcoinCopytradingSetContracts (params?: {}): Promise<implicitReturnType>;
-    privatePostDeepcoinInternalTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostDeepcoinRebateConfig (params?: {}): Promise<implicitReturnType>;
+    privatePostDeepcoinCopytradingLeaderSettings (params?: {}): Promise<Dict | List>;
+    privatePostDeepcoinCopytradingSetContracts (params?: {}): Promise<Dict | List>;
+    privatePostDeepcoinInternalTransfer (params?: {}): Promise<Dict | List>;
+    privatePostDeepcoinRebateConfig (params?: {}): Promise<Dict | List>;
     privatePostDeepcoinAssetTransfer (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}

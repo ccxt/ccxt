@@ -107,28 +107,28 @@ export default class zaif extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'depth/{pair}': 1,
+                        'depth/{pair}': { 'cost': 1, 'returnType': 'Dict' },
                         'currencies/{pair}': 1,
                         'currencies/all': 1,
                         'currency_pairs/{pair}': 1,
-                        'currency_pairs/all': 1,
+                        'currency_pairs/all': { 'cost': 1, 'returnType': 'List' },
                         'last_price/{pair}': 1,
-                        'ticker/{pair}': 1,
-                        'trades/{pair}': 1,
+                        'ticker/{pair}': { 'cost': 1, 'returnType': 'Dict' },
+                        'trades/{pair}': { 'cost': 1, 'returnType': 'List' },
                     },
                 },
                 'private': {
                     'post': {
-                        'active_orders': 5, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
-                        'cancel_order': 5,
+                        'active_orders': { 'cost': 5, 'returnType': 'Dict' }, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order': { 'cost': 5, 'returnType': 'Dict' },
                         'deposit_history': 5,
                         'get_id_info': 5,
-                        'get_info': 10, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info': { 'cost': 10, 'returnType': 'Dict' }, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
                         'get_info2': 5, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
                         'get_personal_info': 5,
-                        'trade': 5,
-                        'trade_history': 50, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
-                        'withdraw': 5,
+                        'trade': { 'cost': 5, 'returnType': 'Dict' },
+                        'trade_history': { 'cost': 50, 'returnType': 'Dict' }, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw': { 'cost': 5, 'returnType': 'Dict' },
                         'withdraw_history': 5,
                     },
                 },

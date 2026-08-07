@@ -5,34 +5,34 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType, Dict, List } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetCountries (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrencies (params?: {}): Promise<implicitReturnType>;
+    publicGetCountries (params?: {}): Promise<Dict | List>;
+    publicGetCurrencies (params?: {}): Promise<Dict | List>;
     publicGetDataCurrencyTicker (params?: {}): Promise<Dict>;
     publicGetDataCurrencyTrades (params?: {}): Promise<List>;
     publicGetDataCurrencyDepth (params?: {}): Promise<Dict>;
-    publicGetBitcoinChartsIdTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetBitcoinChartsIdDepth (params?: {}): Promise<implicitReturnType>;
+    publicGetBitcoinChartsIdTrades (params?: {}): Promise<Dict | List>;
+    publicGetBitcoinChartsIdDepth (params?: {}): Promise<Dict | List>;
     privateGetUser (params?: {}): Promise<Dict>;
     privateGetUserAddresses (params?: {}): Promise<List>;
     privateGetUserAddressesAddress (params?: {}): Promise<Dict>;
-    privateGetUserOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetUserOrdersUuid (params?: {}): Promise<implicitReturnType>;
-    privateGetUserPriceAlerts (params?: {}): Promise<implicitReturnType>;
-    privateGetMerchantGetPaymentUuid (params?: {}): Promise<implicitReturnType>;
+    privateGetUserOrders (params?: {}): Promise<Dict | List>;
+    privateGetUserOrdersUuid (params?: {}): Promise<Dict | List>;
+    privateGetUserPriceAlerts (params?: {}): Promise<Dict | List>;
+    privateGetMerchantGetPaymentUuid (params?: {}): Promise<Dict | List>;
     privatePostUserAddresses (params?: {}): Promise<Dict>;
     privatePostUserOrders (params?: {}): Promise<Dict>;
-    privatePostUserWithdrawals (params?: {}): Promise<implicitReturnType>;
+    privatePostUserWithdrawals (params?: {}): Promise<Dict | List>;
     privatePostUserEmailTransfers (params?: {}): Promise<Dict>;
-    privatePostUserPaymentRequests (params?: {}): Promise<implicitReturnType>;
-    privatePostUserPriceAlerts (params?: {}): Promise<implicitReturnType>;
-    privatePostMerchantCreatePayment (params?: {}): Promise<implicitReturnType>;
-    privateDeleteUserOrdersUuid (params?: {}): Promise<implicitReturnType>;
-    privateDeleteUserOrdersUuidCancel (params?: {}): Promise<implicitReturnType>;
-    privateDeleteUserPriceAlertsId (params?: {}): Promise<implicitReturnType>;
+    privatePostUserPaymentRequests (params?: {}): Promise<Dict | List>;
+    privatePostUserPriceAlerts (params?: {}): Promise<Dict | List>;
+    privatePostMerchantCreatePayment (params?: {}): Promise<Dict | List>;
+    privateDeleteUserOrdersUuid (params?: {}): Promise<Dict | List>;
+    privateDeleteUserOrdersUuidCancel (params?: {}): Promise<Dict | List>;
+    privateDeleteUserPriceAlertsId (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

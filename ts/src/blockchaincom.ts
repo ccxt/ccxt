@@ -95,38 +95,38 @@ export default class blockchaincom extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'tickers': 1, // fetchTickers
-                        'tickers/{symbol}': 1, // fetchTicker
-                        'symbols': 1, // fetchMarkets
+                        'tickers': { 'cost': 1, 'returnType': 'List' }, // fetchTickers
+                        'tickers/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchTicker
+                        'symbols': { 'cost': 1, 'returnType': 'Dict' }, // fetchMarkets
                         'symbols/{symbol}': 1, // fetchMarket
-                        'l2/{symbol}': 1, // fetchL2OrderBook
-                        'l3/{symbol}': 1, // fetchL3OrderBook
+                        'l2/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchL2OrderBook
+                        'l3/{symbol}': { 'cost': 1, 'returnType': 'Dict' }, // fetchL3OrderBook
                     },
                 },
                 'private': {
                     'get': {
-                        'fees': 1, // fetchFees
-                        'orders': 1, // fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}': 1, // fetchOrder(id)
+                        'fees': { 'cost': 1, 'returnType': 'Dict' }, // fetchFees
+                        'orders': { 'cost': 1, 'returnType': 'List' }, // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': { 'cost': 1, 'returnType': 'Dict' }, // fetchOrder(id)
                         'trades': 1,
-                        'fills': 1, // fetchMyTrades
-                        'deposits': 1, // fetchDeposits
-                        'deposits/{depositId}': 1, // fetchDeposit
-                        'accounts': 1, // fetchBalance
+                        'fills': { 'cost': 1, 'returnType': 'List' }, // fetchMyTrades
+                        'deposits': { 'cost': 1, 'returnType': 'List' }, // fetchDeposits
+                        'deposits/{depositId}': { 'cost': 1, 'returnType': 'Dict' }, // fetchDeposit
+                        'accounts': { 'cost': 1, 'returnType': 'Dict' }, // fetchBalance
                         'accounts/{account}/{currency}': 1,
                         'whitelist': 1, // fetchWithdrawalWhitelist
                         'whitelist/{currency}': 1, // fetchWithdrawalWhitelistByCurrency
-                        'withdrawals': 1, // fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}': 1, // fetchWithdrawalById
+                        'withdrawals': { 'cost': 1, 'returnType': 'List' }, // fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}': { 'cost': 1, 'returnType': 'Dict' }, // fetchWithdrawalById
                     },
                     'post': {
-                        'orders': 1, // createOrder
-                        'deposits/{currency}': 1, // fetchDepositAddress by currency (only crypto supported)
-                        'withdrawals': 1, // withdraw
+                        'orders': { 'cost': 1, 'returnType': 'Dict' }, // createOrder
+                        'deposits/{currency}': { 'cost': 1, 'returnType': 'Dict' }, // fetchDepositAddress by currency (only crypto supported)
+                        'withdrawals': { 'cost': 1, 'returnType': 'Dict' }, // withdraw
                     },
                     'delete': {
                         'orders': 1, // cancelOrders
-                        'orders/{orderId}': 1, // cancelOrder
+                        'orders/{orderId}': { 'cost': 1, 'returnType': 'Dict' }, // cancelOrder
                     },
                 },
             },

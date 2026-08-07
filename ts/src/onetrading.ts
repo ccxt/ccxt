@@ -163,31 +163,31 @@ export default class onetrading extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies',
-                        'candlesticks/{instrument_code}',
-                        'fees',
-                        'instruments',
-                        'order-book/{instrument_code}',
-                        'market-ticker',
-                        'market-ticker/{instrument_code}',
-                        'time',
-                    ],
+                    'get': {
+                        'currencies': { 'cost': 1, 'returnType': 'List' },
+                        'candlesticks/{instrument_code}': { 'cost': 1, 'returnType': 'Dict' },
+                        'fees': { 'cost': 1, 'returnType': 'List' },
+                        'instruments': { 'cost': 1, 'returnType': 'List' },
+                        'order-book/{instrument_code}': { 'cost': 1, 'returnType': 'Dict' },
+                        'market-ticker': { 'cost': 1, 'returnType': 'List' },
+                        'market-ticker/{instrument_code}': { 'cost': 1, 'returnType': 'Dict' },
+                        'time': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account/balances',
-                        'account/fees',
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                        'account/orders/{order_id}/trades',
-                        'account/trades',
-                        'account/trade/{trade_id}',
-                    ],
-                    'post': [
-                        'account/orders',
-                    ],
+                    'get': {
+                        'account/balances': { 'cost': 1, 'returnType': 'Dict' },
+                        'account/fees': { 'cost': 1, 'returnType': 'Dict' },
+                        'account/orders': { 'cost': 1, 'returnType': 'Dict' },
+                        'account/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
+                        'account/orders/client/{client_id}': 1,
+                        'account/orders/{order_id}/trades': { 'cost': 1, 'returnType': 'Dict' },
+                        'account/trades': { 'cost': 1, 'returnType': 'Dict' },
+                        'account/trade/{trade_id}': 1,
+                    },
+                    'post': {
+                        'account/orders': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                     'delete': [
                         'account/orders',
                         'account/orders/{order_id}',

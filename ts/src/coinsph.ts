@@ -188,7 +188,7 @@ export default class coinsph extends Exchange {
                 'public': {
                     'get': {
                         'openapi/v1/ping': 1,
-                        'openapi/v1/time': 1,
+                        'openapi/v1/time': { 'cost': 1, 'returnType': 'Dict' },
                         'openapi/v1/user/ip': 1,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
@@ -200,11 +200,11 @@ export default class coinsph extends Exchange {
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'openapi/v1/exchangeInfo': 10,
+                        'openapi/v1/exchangeInfo': { 'cost': 10, 'returnType': 'Dict' },
                         // cost 1 if limit <= 100; 5 if limit > 100.
-                        'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ] },
-                        'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
-                        'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
+                        'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ], 'returnType': 'Dict' },
+                        'openapi/quote/v1/klines': { 'cost': 1, 'returnType': 'List' }, // default limit 500; max 1000.
+                        'openapi/quote/v1/trades': { 'cost': 1, 'returnType': 'List' }, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
                         'openapi/v1/pairs': 1,
                         'openapi/quote/v1/avgPrice': 1,
                     },
@@ -212,20 +212,20 @@ export default class coinsph extends Exchange {
                 'private': {
                     'get': {
                         'openapi/v1/check-sys-status': 1,
-                        'openapi/wallet/v1/config/getall': 10,
-                        'openapi/wallet/v1/deposit/address': 10,
-                        'openapi/wallet/v1/deposit/history': 1,
-                        'openapi/wallet/v1/withdraw/history': 1,
+                        'openapi/wallet/v1/config/getall': { 'cost': 10, 'returnType': 'List' },
+                        'openapi/wallet/v1/deposit/address': { 'cost': 10, 'returnType': 'Dict' },
+                        'openapi/wallet/v1/deposit/history': { 'cost': 1, 'returnType': 'List' },
+                        'openapi/wallet/v1/withdraw/history': { 'cost': 1, 'returnType': 'List' },
                         'openapi/wallet/v1/withdraw/address-whitelist': 1,
-                        'openapi/v1/account': 10,
+                        'openapi/v1/account': { 'cost': 10, 'returnType': 'Dict' },
                         'openapi/v1/api-keys': 1,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
-                        'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 },
-                        'openapi/v1/asset/tradeFee': 1,
-                        'openapi/v1/order': 2,
+                        'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40, 'returnType': 'List' },
+                        'openapi/v1/asset/tradeFee': { 'cost': 1, 'returnType': 'List' },
+                        'openapi/v1/order': { 'cost': 2, 'returnType': 'Dict' },
                         // cost 10 with symbol, 40 when the symbol parameter is omitted;
-                        'openapi/v1/historyOrders': { 'cost': 10, 'noSymbol': 40 },
-                        'openapi/v1/myTrades': 10,
+                        'openapi/v1/historyOrders': { 'cost': 10, 'noSymbol': 40, 'returnType': 'List' },
+                        'openapi/v1/myTrades': { 'cost': 10, 'returnType': 'List' },
                         'openapi/v1/capital/deposit/history': 1,
                         'openapi/v1/capital/withdraw/history': 1,
                         'openapi/v3/payment-request/get-payment-request': 1,
@@ -243,9 +243,9 @@ export default class coinsph extends Exchange {
                         'openapi/v1/asset/transaction/history': 20,
                     },
                     'post': {
-                        'openapi/wallet/v1/withdraw/apply': 600,
-                        'openapi/v1/order/test': 1,
-                        'openapi/v1/order': 1,
+                        'openapi/wallet/v1/withdraw/apply': { 'cost': 600, 'returnType': 'Dict' },
+                        'openapi/v1/order/test': { 'cost': 1, 'returnType': 'Dict' },
+                        'openapi/v1/order': { 'cost': 1, 'returnType': 'Dict' },
                         'openapi/v1/order/cancelReplace': 1,
                         'openapi/v1/capital/withdraw/apply': 1,
                         'openapi/v1/capital/deposit/apply': 1,
@@ -282,8 +282,8 @@ export default class coinsph extends Exchange {
                         'openapi/v1/userDataStream': 1,
                     },
                     'delete': {
-                        'openapi/v1/order': 1,
-                        'openapi/v1/openOrders': 1,
+                        'openapi/v1/order': { 'cost': 1, 'returnType': 'Dict' },
+                        'openapi/v1/openOrders': { 'cost': 1, 'returnType': 'List' },
                         'openapi/v1/userDataStream': 1,
                     },
                 },

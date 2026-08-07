@@ -143,31 +143,31 @@ export default class mercado extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'coins',
-                        '{coin}/orderbook/', // last slash critical
-                        '{coin}/ticker/',
-                        '{coin}/trades/',
-                        '{coin}/trades/{from}/',
-                        '{coin}/trades/{from}/{to}',
-                        '{coin}/day-summary/{year}/{month}/{day}/',
-                    ],
+                    'get': {
+                        'coins': { 'cost': 1, 'returnType': 'List' },
+                        '{coin}/orderbook/': { 'cost': 1, 'returnType': 'Dict' },
+                        '{coin}/ticker/': { 'cost': 1, 'returnType': 'Dict' },
+                        '{coin}/trades/': 1,
+                        '{coin}/trades/{from}/': 1,
+                        '{coin}/trades/{from}/{to}': 1,
+                        '{coin}/day-summary/{year}/{month}/{day}/': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'cancel_order',
-                        'get_account_info',
-                        'get_order',
-                        'get_withdrawal',
-                        'list_system_messages',
-                        'list_orders',
-                        'list_orderbook',
-                        'place_buy_order',
-                        'place_sell_order',
-                        'place_market_buy_order',
-                        'place_market_sell_order',
-                        'withdraw_coin',
-                    ],
+                    'post': {
+                        'cancel_order': { 'cost': 1, 'returnType': 'Dict' },
+                        'get_account_info': { 'cost': 1, 'returnType': 'Dict' },
+                        'get_order': { 'cost': 1, 'returnType': 'Dict' },
+                        'get_withdrawal': 1,
+                        'list_system_messages': 1,
+                        'list_orders': { 'cost': 1, 'returnType': 'Dict' },
+                        'list_orderbook': 1,
+                        'place_buy_order': 1,
+                        'place_sell_order': 1,
+                        'place_market_buy_order': 1,
+                        'place_market_sell_order': 1,
+                        'withdraw_coin': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'v4Public': {
                     'get': [

@@ -170,27 +170,27 @@ export default class cryptomus extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v2/user-api/exchange/markets': 1, // done
+                        'v2/user-api/exchange/markets': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'v2/user-api/exchange/market/price': 1, // not used
-                        'v1/exchange/market/assets': 1, // done
-                        'v1/exchange/market/order-book/{currencyPair}': 1, // done
-                        'v1/exchange/market/tickers': 1, // done
-                        'v1/exchange/market/trades/{currencyPair}': 1, // done
+                        'v1/exchange/market/assets': { 'cost': 1, 'returnType': 'Dict' }, // done
+                        'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1, 'returnType': 'Dict' }, // done
+                        'v1/exchange/market/tickers': { 'cost': 1, 'returnType': 'Dict' }, // done
+                        'v1/exchange/market/trades/{currencyPair}': { 'cost': 1, 'returnType': 'Dict' }, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/user-api/exchange/orders': 1, // done
-                        'v2/user-api/exchange/orders/history': 1, // done
-                        'v2/user-api/exchange/account/balance': 1, // done
-                        'v2/user-api/exchange/account/tariffs': 1, // done
+                        'v2/user-api/exchange/orders': { 'cost': 1, 'returnType': 'Dict' }, // done
+                        'v2/user-api/exchange/orders/history': { 'cost': 1, 'returnType': 'Dict' }, // done
+                        'v2/user-api/exchange/account/balance': { 'cost': 1, 'returnType': 'Dict' }, // done
+                        'v2/user-api/exchange/account/tariffs': { 'cost': 1, 'returnType': 'Dict' }, // done
                         'v2/user-api/payment/services': 1,
                         'v2/user-api/payout/services': 1,
                         'v2/user-api/transaction/list': 1,
                     },
                     'post': {
-                        'v2/user-api/exchange/orders': 1, // done
-                        'v2/user-api/exchange/orders/market': 1, // done
+                        'v2/user-api/exchange/orders': { 'cost': 1, 'returnType': 'Dict' }, // done
+                        'v2/user-api/exchange/orders/market': { 'cost': 1, 'returnType': 'Dict' }, // done
                     },
                     'delete': {
                         'v2/user-api/exchange/orders/{orderId}': 1, // done

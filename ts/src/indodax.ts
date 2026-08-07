@@ -150,29 +150,29 @@ export default class indodax extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/server_time': 5,
-                        'api/pairs': 5,
+                        'api/server_time': { 'cost': 5, 'returnType': 'Dict' },
+                        'api/pairs': { 'cost': 5, 'returnType': 'List' },
                         'api/price_increments': 5,
                         'api/summaries': 5,
-                        'api/ticker/{pair}': 5,
-                        'api/ticker_all': 5,
-                        'api/trades/{pair}': 5,
-                        'api/depth/{pair}': 5,
-                        'tradingview/history_v2': 5,
+                        'api/ticker/{pair}': { 'cost': 5, 'returnType': 'Dict' },
+                        'api/ticker_all': { 'cost': 5, 'returnType': 'Dict' },
+                        'api/trades/{pair}': { 'cost': 5, 'returnType': 'List' },
+                        'api/depth/{pair}': { 'cost': 5, 'returnType': 'Dict' },
+                        'tradingview/history_v2': { 'cost': 5, 'returnType': 'List' },
                     },
                 },
                 'private': {
                     'post': {
-                        'getInfo': 4,
-                        'transHistory': 4,
-                        'trade': 1,
-                        'tradeHistory': 4, // TODO add fetchMyTrades
-                        'openOrders': 4,
-                        'orderHistory': 4,
-                        'getOrder': 4,
-                        'cancelOrder': 4,
-                        'withdrawFee': 4,
-                        'withdrawCoin': 4,
+                        'getInfo': { 'cost': 4, 'returnType': 'Dict' },
+                        'transHistory': { 'cost': 4, 'returnType': 'Dict' },
+                        'trade': { 'cost': 1, 'returnType': 'Dict' },
+                        'tradeHistory': { 'cost': 4, 'returnType': 'Dict' }, // TODO add fetchMyTrades
+                        'openOrders': { 'cost': 4, 'returnType': 'Dict' },
+                        'orderHistory': { 'cost': 4, 'returnType': 'Dict' },
+                        'getOrder': { 'cost': 4, 'returnType': 'Dict' },
+                        'cancelOrder': { 'cost': 4, 'returnType': 'Dict' },
+                        'withdrawFee': { 'cost': 4, 'returnType': 'Dict' },
+                        'withdrawCoin': { 'cost': 4, 'returnType': 'Dict' },
                         'listDownline': 4,
                         'checkDownline': 4,
                         'createVoucher': 4, // partner only

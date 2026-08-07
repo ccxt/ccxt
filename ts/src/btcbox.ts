@@ -127,22 +127,22 @@ export default class btcbox extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'tickers',
-                    ],
+                    'get': {
+                        'depth': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders': { 'cost': 1, 'returnType': 'List' },
+                        'ticker': { 'cost': 1, 'returnType': 'Dict' },
+                        'tickers': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
-                    ],
+                    'post': {
+                        'balance': { 'cost': 1, 'returnType': 'Dict' },
+                        'trade_add': { 'cost': 1, 'returnType': 'Dict' },
+                        'trade_cancel': { 'cost': 1, 'returnType': 'Dict' },
+                        'trade_list': { 'cost': 1, 'returnType': 'List' },
+                        'trade_view': { 'cost': 1, 'returnType': 'Dict' },
+                        'wallet': 1,
+                    },
                 },
                 'webApi': {
                     'get': [

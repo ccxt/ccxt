@@ -5,49 +5,49 @@
 
 // -------------------------------------------------------------------------------
 
-import { List, implicitReturnType, Dict } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetGetValidPrimaryCurrencyCodes (params?: {}): Promise<List>;
     publicGetGetValidSecondaryCurrencyCodes (params?: {}): Promise<List>;
-    publicGetGetValidLimitOrderTypes (params?: {}): Promise<implicitReturnType>;
-    publicGetGetValidMarketOrderTypes (params?: {}): Promise<implicitReturnType>;
-    publicGetGetValidOrderTypes (params?: {}): Promise<implicitReturnType>;
-    publicGetGetValidTransactionTypes (params?: {}): Promise<implicitReturnType>;
+    publicGetGetValidLimitOrderTypes (params?: {}): Promise<Dict | List>;
+    publicGetGetValidMarketOrderTypes (params?: {}): Promise<Dict | List>;
+    publicGetGetValidOrderTypes (params?: {}): Promise<Dict | List>;
+    publicGetGetValidTransactionTypes (params?: {}): Promise<Dict | List>;
     publicGetGetMarketSummary (params?: {}): Promise<Dict>;
     publicGetGetOrderBook (params?: {}): Promise<Dict>;
-    publicGetGetAllOrders (params?: {}): Promise<implicitReturnType>;
-    publicGetGetTradeHistorySummary (params?: {}): Promise<implicitReturnType>;
+    publicGetGetAllOrders (params?: {}): Promise<Dict | List>;
+    publicGetGetTradeHistorySummary (params?: {}): Promise<Dict | List>;
     publicGetGetRecentTrades (params?: {}): Promise<Dict>;
-    publicGetGetFxRates (params?: {}): Promise<implicitReturnType>;
+    publicGetGetFxRates (params?: {}): Promise<Dict | List>;
     publicGetGetOrderMinimumVolumes (params?: {}): Promise<Dict>;
-    publicGetGetCryptoWithdrawalFees (params?: {}): Promise<implicitReturnType>;
-    publicGetGetCryptoWithdrawalFees2 (params?: {}): Promise<implicitReturnType>;
-    publicGetGetNetworks (params?: {}): Promise<implicitReturnType>;
-    publicGetGetPrimaryCurrencyConfig2 (params?: {}): Promise<implicitReturnType>;
+    publicGetGetCryptoWithdrawalFees (params?: {}): Promise<Dict | List>;
+    publicGetGetCryptoWithdrawalFees2 (params?: {}): Promise<Dict | List>;
+    publicGetGetNetworks (params?: {}): Promise<Dict | List>;
+    publicGetGetPrimaryCurrencyConfig2 (params?: {}): Promise<Dict | List>;
     privatePostGetOpenOrders (params?: {}): Promise<Dict>;
     privatePostGetClosedOrders (params?: {}): Promise<Dict>;
-    privatePostGetClosedFilledOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostGetClosedFilledOrders (params?: {}): Promise<Dict | List>;
     privatePostGetOrderDetails (params?: {}): Promise<Dict>;
     privatePostGetAccounts (params?: {}): Promise<Dict>;
-    privatePostGetTransactions (params?: {}): Promise<implicitReturnType>;
-    privatePostGetFiatBankAccounts (params?: {}): Promise<implicitReturnType>;
+    privatePostGetTransactions (params?: {}): Promise<Dict | List>;
+    privatePostGetFiatBankAccounts (params?: {}): Promise<Dict | List>;
     privatePostGetDigitalCurrencyDepositAddress (params?: {}): Promise<Dict>;
-    privatePostGetDigitalCurrencyDepositAddress2 (params?: {}): Promise<implicitReturnType>;
-    privatePostGetDigitalCurrencyDepositAddresses (params?: {}): Promise<implicitReturnType>;
-    privatePostGetDigitalCurrencyDepositAddresses2 (params?: {}): Promise<implicitReturnType>;
+    privatePostGetDigitalCurrencyDepositAddress2 (params?: {}): Promise<Dict | List>;
+    privatePostGetDigitalCurrencyDepositAddresses (params?: {}): Promise<Dict | List>;
+    privatePostGetDigitalCurrencyDepositAddresses2 (params?: {}): Promise<Dict | List>;
     privatePostGetTrades (params?: {}): Promise<Dict>;
     privatePostGetBrokerageFees (params?: {}): Promise<List>;
-    privatePostGetDigitalCurrencyWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostGetDigitalCurrencyWithdrawal (params?: {}): Promise<Dict | List>;
     privatePostPlaceLimitOrder (params?: {}): Promise<Dict>;
     privatePostPlaceMarketOrder (params?: {}): Promise<Dict>;
     privatePostCancelOrder (params?: {}): Promise<Dict>;
-    privatePostSynchDigitalCurrencyDepositAddressWithBlockchain (params?: {}): Promise<implicitReturnType>;
-    privatePostRequestFiatWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawFiatCurrency (params?: {}): Promise<implicitReturnType>;
+    privatePostSynchDigitalCurrencyDepositAddressWithBlockchain (params?: {}): Promise<Dict | List>;
+    privatePostRequestFiatWithdrawal (params?: {}): Promise<Dict | List>;
+    privatePostWithdrawFiatCurrency (params?: {}): Promise<Dict | List>;
     privatePostWithdrawDigitalCurrency (params?: {}): Promise<Dict>;
-    privatePostWithdrawCrypto (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawCrypto (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

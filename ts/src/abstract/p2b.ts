@@ -5,12 +5,12 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetMarkets (params?: {}): Promise<Dict>;
-    publicGetMarket (params?: {}): Promise<implicitReturnType>;
+    publicGetMarket (params?: {}): Promise<Dict | List>;
     publicGetTickers (params?: {}): Promise<Dict>;
     publicGetTicker (params?: {}): Promise<Dict>;
     publicGetBook (params?: {}): Promise<Dict>;
@@ -18,15 +18,15 @@ interface Exchange {
     publicGetDepthResult (params?: {}): Promise<Dict>;
     publicGetMarketKline (params?: {}): Promise<Dict>;
     privatePostAccountBalances (params?: {}): Promise<Dict>;
-    privatePostAccountBalance (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountBalance (params?: {}): Promise<Dict | List>;
     privatePostOrderNew (params?: {}): Promise<Dict>;
     privatePostOrderCancel (params?: {}): Promise<Dict>;
     privatePostOrders (params?: {}): Promise<Dict>;
-    privatePostAccountMarketOrderHistory (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountMarketOrderHistory (params?: {}): Promise<Dict | List>;
     privatePostAccountMarketDealHistory (params?: {}): Promise<Dict>;
     privatePostAccountOrder (params?: {}): Promise<Dict>;
     privatePostAccountOrderHistory (params?: {}): Promise<Dict>;
-    privatePostAccountExecutedHistory (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountExecutedHistory (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { List, Dict, implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -21,14 +21,14 @@ interface Exchange {
     privateGetAccountFees (params?: {}): Promise<Dict>;
     privateGetAccountOrders (params?: {}): Promise<Dict>;
     privateGetAccountOrdersOrderId (params?: {}): Promise<Dict>;
-    privateGetAccountOrdersClientClientId (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountOrdersClientClientId (params?: {}): Promise<Dict | List>;
     privateGetAccountOrdersOrderIdTrades (params?: {}): Promise<Dict>;
     privateGetAccountTrades (params?: {}): Promise<Dict>;
-    privateGetAccountTradeTradeId (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountTradeTradeId (params?: {}): Promise<Dict | List>;
     privatePostAccountOrders (params?: {}): Promise<Dict>;
-    privateDeleteAccountOrders (params?: {}): Promise<implicitReturnType>;
-    privateDeleteAccountOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    privateDeleteAccountOrdersClientClientId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteAccountOrders (params?: {}): Promise<Dict | List>;
+    privateDeleteAccountOrdersOrderId (params?: {}): Promise<Dict | List>;
+    privateDeleteAccountOrdersClientClientId (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

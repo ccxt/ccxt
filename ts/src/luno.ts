@@ -140,12 +140,12 @@ export default class luno extends Exchange {
             'api': {
                 'exchange': {
                     'get': {
-                        'markets': 1,
+                        'markets': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'exchangePrivate': {
                     'get': {
-                        'candles': 1,
+                        'candles': { 'cost': 1, 'returnType': 'Dict' },
                         'move': 1,
                         'move/list_moves': 1,
                         'transfers': 1,
@@ -157,26 +157,26 @@ export default class luno extends Exchange {
                 },
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'orderbook_top': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'trades': 1,
+                        'orderbook': { 'cost': 1, 'returnType': 'Dict' },
+                        'orderbook_top': { 'cost': 1, 'returnType': 'Dict' },
+                        'ticker': { 'cost': 1, 'returnType': 'Dict' },
+                        'tickers': { 'cost': 1, 'returnType': 'Dict' },
+                        'trades': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'private': {
                     'get': {
                         'accounts/{id}/pending': 1,
-                        'accounts/{id}/transactions': 1,
-                        'balance': 1,
+                        'accounts/{id}/transactions': { 'cost': 1, 'returnType': 'Dict' },
+                        'balance': { 'cost': 1, 'returnType': 'Dict' },
                         'beneficiaries': 1,
-                        'send/networks': 1,
-                        'fee_info': 1,
-                        'funding_address': 1,
-                        'listorders': 1,
-                        'listtrades': 1,
-                        'send_fee': 1,
-                        'orders/{id}': 1,
+                        'send/networks': { 'cost': 1, 'returnType': 'Dict' },
+                        'fee_info': { 'cost': 1, 'returnType': 'Dict' },
+                        'funding_address': { 'cost': 1, 'returnType': 'Dict' },
+                        'listorders': { 'cost': 1, 'returnType': 'Dict' },
+                        'listtrades': { 'cost': 1, 'returnType': 'Dict' },
+                        'send_fee': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
                         'withdrawals': 1,
                         'withdrawals/{id}': 1,
                         'transfers': 1, // not found in current docs, use GET /api/exchange/1/transfers
@@ -188,11 +188,11 @@ export default class luno extends Exchange {
                     'post': {
                         'accounts': 1,
                         'address/validate': 1,
-                        'postorder': 1,
-                        'marketorder': 1,
+                        'postorder': { 'cost': 1, 'returnType': 'Dict' },
+                        'marketorder': { 'cost': 1, 'returnType': 'Dict' },
                         'stoporder': 1,
-                        'funding_address': 1,
-                        'withdrawals': 1,
+                        'funding_address': { 'cost': 1, 'returnType': 'Dict' },
+                        'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
                         'send': 1,
                         'oauth2/grant': 1, // deprecated for new applications
                         'beneficiaries': 1,

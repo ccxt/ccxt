@@ -84,24 +84,24 @@ export default class kalshi extends Exchange {
                 'kalshi': {
                     'public': {
                         'get': {
-                            'events': 1,
+                            'events': { 'cost': 1, 'returnType': 'Dict' },
                             'events/multivariate': 1,
                             'events/fee_changes': 1,
-                            'events/{event_ticker}': 1,
+                            'events/{event_ticker}': { 'cost': 1, 'returnType': 'Dict' },
                             'events/{event_ticker}/metadata': 1,
-                            'series': 1,
+                            'series': { 'cost': 1, 'returnType': 'Dict' },
                             'series/fee_changes': 1,
                             'series/{series_ticker}': 1,
-                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
+                            'series/{series_ticker}/markets/{ticker}/candlesticks': { 'cost': 1, 'returnType': 'Dict' },
                             'series/{series_ticker}/events/{ticker}/candlesticks': 1,
                             'series/{series_ticker}/events/{ticker}/forecast_percentile_history': 1,
-                            'markets': 1,
-                            'markets/trades': 1,
+                            'markets': { 'cost': 1, 'returnType': 'Dict' },
+                            'markets/trades': { 'cost': 1, 'returnType': 'Dict' },
                             'markets/orderbooks': 1,
                             'markets/candlesticks': 1,
-                            'markets/{ticker}': 1,
-                            'markets/{ticker}/orderbook': 1,
-                            'exchange/status': 1,
+                            'markets/{ticker}': { 'cost': 1, 'returnType': 'Dict' },
+                            'markets/{ticker}/orderbook': { 'cost': 1, 'returnType': 'Dict' },
+                            'exchange/status': { 'cost': 1, 'returnType': 'Dict' },
                             'exchange/schedule': 1,
                             'exchange/announcements': 1,
                             'exchange/user_data_timestamp': 1,
@@ -125,14 +125,14 @@ export default class kalshi extends Exchange {
                     },
                     'private': {
                         'get': {
-                            'portfolio/balance': 1,
-                            'portfolio/orders': 1,
-                            'portfolio/orders/{order_id}': 1,
+                            'portfolio/balance': { 'cost': 1, 'returnType': 'Dict' },
+                            'portfolio/orders': { 'cost': 1, 'returnType': 'Dict' },
+                            'portfolio/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
                             'portfolio/orders/{order_id}/queue_position': 1,
                             'portfolio/orders/queue_positions': 1,
-                            'portfolio/positions': 1,
-                            'portfolio/fills': 1,
-                            'portfolio/settlements': 1,
+                            'portfolio/positions': { 'cost': 1, 'returnType': 'Dict' },
+                            'portfolio/fills': { 'cost': 1, 'returnType': 'Dict' },
+                            'portfolio/settlements': { 'cost': 1, 'returnType': 'Dict' },
                             'portfolio/deposits': 1,
                             'portfolio/withdrawals': 1,
                             'portfolio/order_groups': 1,
@@ -146,7 +146,7 @@ export default class kalshi extends Exchange {
                         },
                         'post': {
                             'portfolio/orders': 1,
-                            'portfolio/events/orders': 1,
+                            'portfolio/events/orders': { 'cost': 1, 'returnType': 'Dict' },
                             'portfolio/orders/batched': 1,
                             'portfolio/orders/{order_id}/amend': 1,
                             'portfolio/orders/{order_id}/decrease': 1,
@@ -165,7 +165,7 @@ export default class kalshi extends Exchange {
                         'delete': {
                             'portfolio/orders/{order_id}': 1,
                             'portfolio/orders/batched': 1,
-                            'portfolio/events/orders/{order_id}': 1, // v2 cancel (the non-v2 paths above are 410 Gone)
+                            'portfolio/events/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' }, // v2 cancel (the non-v2 paths above are 410 Gone)
                             'portfolio/order_groups/{order_group_id}': 1,
                         },
                     },
@@ -173,7 +173,7 @@ export default class kalshi extends Exchange {
                 'elections': {
                     'public': {
                         'get': {
-                            'search/series': 1,   // free-text series/event search — elections web host only
+                            'search/series': { 'cost': 1, 'returnType': 'Dict' },   // free-text series/event search — elections web host only
                         },
                     },
                 },

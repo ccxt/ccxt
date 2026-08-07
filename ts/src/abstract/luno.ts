@@ -5,26 +5,26 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     exchangeGetMarkets (params?: {}): Promise<Dict>;
     exchangePrivateGetCandles (params?: {}): Promise<Dict>;
-    exchangePrivateGetMove (params?: {}): Promise<implicitReturnType>;
-    exchangePrivateGetMoveListMoves (params?: {}): Promise<implicitReturnType>;
-    exchangePrivateGetTransfers (params?: {}): Promise<implicitReturnType>;
-    exchangePrivatePostConvert (params?: {}): Promise<implicitReturnType>;
-    exchangePrivatePostMove (params?: {}): Promise<implicitReturnType>;
+    exchangePrivateGetMove (params?: {}): Promise<Dict | List>;
+    exchangePrivateGetMoveListMoves (params?: {}): Promise<Dict | List>;
+    exchangePrivateGetTransfers (params?: {}): Promise<Dict | List>;
+    exchangePrivatePostConvert (params?: {}): Promise<Dict | List>;
+    exchangePrivatePostMove (params?: {}): Promise<Dict | List>;
     publicGetOrderbook (params?: {}): Promise<Dict>;
     publicGetOrderbookTop (params?: {}): Promise<Dict>;
     publicGetTicker (params?: {}): Promise<Dict>;
     publicGetTickers (params?: {}): Promise<Dict>;
     publicGetTrades (params?: {}): Promise<Dict>;
-    privateGetAccountsIdPending (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountsIdPending (params?: {}): Promise<Dict | List>;
     privateGetAccountsIdTransactions (params?: {}): Promise<Dict>;
     privateGetBalance (params?: {}): Promise<Dict>;
-    privateGetBeneficiaries (params?: {}): Promise<implicitReturnType>;
+    privateGetBeneficiaries (params?: {}): Promise<Dict | List>;
     privateGetSendNetworks (params?: {}): Promise<Dict>;
     privateGetFeeInfo (params?: {}): Promise<Dict>;
     privateGetFundingAddress (params?: {}): Promise<Dict>;
@@ -32,23 +32,23 @@ interface Exchange {
     privateGetListtrades (params?: {}): Promise<Dict>;
     privateGetSendFee (params?: {}): Promise<Dict>;
     privateGetOrdersId (params?: {}): Promise<Dict>;
-    privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
-    privateGetWithdrawalsId (params?: {}): Promise<implicitReturnType>;
-    privateGetTransfers (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersLinked (params?: {}): Promise<implicitReturnType>;
-    privatePostAccounts (params?: {}): Promise<implicitReturnType>;
-    privatePostAddressValidate (params?: {}): Promise<implicitReturnType>;
+    privateGetWithdrawals (params?: {}): Promise<Dict | List>;
+    privateGetWithdrawalsId (params?: {}): Promise<Dict | List>;
+    privateGetTransfers (params?: {}): Promise<Dict | List>;
+    privateGetUsersLinked (params?: {}): Promise<Dict | List>;
+    privatePostAccounts (params?: {}): Promise<Dict | List>;
+    privatePostAddressValidate (params?: {}): Promise<Dict | List>;
     privatePostPostorder (params?: {}): Promise<Dict>;
     privatePostMarketorder (params?: {}): Promise<Dict>;
-    privatePostStoporder (params?: {}): Promise<implicitReturnType>;
+    privatePostStoporder (params?: {}): Promise<Dict | List>;
     privatePostFundingAddress (params?: {}): Promise<Dict>;
     privatePostWithdrawals (params?: {}): Promise<Dict>;
-    privatePostSend (params?: {}): Promise<implicitReturnType>;
-    privatePostOauth2Grant (params?: {}): Promise<implicitReturnType>;
-    privatePostBeneficiaries (params?: {}): Promise<implicitReturnType>;
-    privatePutAccountsIdName (params?: {}): Promise<implicitReturnType>;
-    privateDeleteWithdrawalsId (params?: {}): Promise<implicitReturnType>;
-    privateDeleteBeneficiariesId (params?: {}): Promise<implicitReturnType>;
+    privatePostSend (params?: {}): Promise<Dict | List>;
+    privatePostOauth2Grant (params?: {}): Promise<Dict | List>;
+    privatePostBeneficiaries (params?: {}): Promise<Dict | List>;
+    privatePutAccountsIdName (params?: {}): Promise<Dict | List>;
+    privateDeleteWithdrawalsId (params?: {}): Promise<Dict | List>;
+    privateDeleteBeneficiariesId (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

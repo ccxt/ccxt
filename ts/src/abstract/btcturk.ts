@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType, List } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -18,12 +18,12 @@ interface Exchange {
     privateGetOpenOrders (params?: {}): Promise<Dict>;
     privateGetAllOrders (params?: {}): Promise<Dict>;
     privateGetUsersTransactionsTrade (params?: {}): Promise<Dict>;
-    privatePostUsersTransactionsCrypto (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersTransactionsFiat (params?: {}): Promise<implicitReturnType>;
+    privatePostUsersTransactionsCrypto (params?: {}): Promise<Dict | List>;
+    privatePostUsersTransactionsFiat (params?: {}): Promise<Dict | List>;
     privatePostOrder (params?: {}): Promise<Dict>;
     privatePostCancelOrder (params?: {}): Promise<Dict>;
-    privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    graphGetOhlcs (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrder (params?: {}): Promise<Dict | List>;
+    graphGetOhlcs (params?: {}): Promise<Dict | List>;
     graphGetKlinesHistory (params?: {}): Promise<List>;
 }
 abstract class Exchange extends _Exchange {}

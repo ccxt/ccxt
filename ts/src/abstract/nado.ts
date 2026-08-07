@@ -5,17 +5,17 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType, Dict, List } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    gatewayPublicGetSymbols (params?: {}): Promise<implicitReturnType>;
+    gatewayPublicGetSymbols (params?: {}): Promise<Dict | List>;
     gatewayPublicGetQuery (params?: {}): Promise<Dict>;
     gatewayPublicGetEdgeQuery (params?: {}): Promise<Dict>;
-    gatewayPublicPostQuery (params?: {}): Promise<implicitReturnType>;
+    gatewayPublicPostQuery (params?: {}): Promise<Dict | List>;
     gatewayPrivatePostExecute (params?: {}): Promise<Dict>;
     gatewayV2PublicGetAssets (params?: {}): Promise<List>;
-    gatewayV2PublicGetPairs (params?: {}): Promise<implicitReturnType>;
+    gatewayV2PublicGetPairs (params?: {}): Promise<Dict | List>;
     gatewayV2PublicGetOrderbook (params?: {}): Promise<Dict>;
     archivePost (params?: {}): Promise<Dict>;
     archiveV2PublicGetTickers (params?: {}): Promise<List>;

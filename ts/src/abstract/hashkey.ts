@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -15,13 +15,13 @@ interface Exchange {
     publicGetQuoteV1Klines (params?: {}): Promise<List>;
     publicGetQuoteV1Ticker24hr (params?: {}): Promise<List>;
     publicGetQuoteV1TickerPrice (params?: {}): Promise<List>;
-    publicGetQuoteV1TickerBookTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetQuoteV1DepthMerged (params?: {}): Promise<implicitReturnType>;
-    publicGetQuoteV1MarkPrice (params?: {}): Promise<implicitReturnType>;
-    publicGetQuoteV1Index (params?: {}): Promise<implicitReturnType>;
+    publicGetQuoteV1TickerBookTicker (params?: {}): Promise<Dict | List>;
+    publicGetQuoteV1DepthMerged (params?: {}): Promise<Dict | List>;
+    publicGetQuoteV1MarkPrice (params?: {}): Promise<Dict | List>;
+    publicGetQuoteV1Index (params?: {}): Promise<Dict | List>;
     publicGetApiV1FuturesFundingRate (params?: {}): Promise<List>;
     publicGetApiV1FuturesHistoryFundingRate (params?: {}): Promise<List>;
-    publicGetApiV1Ping (params?: {}): Promise<implicitReturnType>;
+    publicGetApiV1Ping (params?: {}): Promise<Dict | List>;
     publicGetApiV1Time (params?: {}): Promise<Dict>;
     privateGetApiV1SpotOrder (params?: {}): Promise<Dict>;
     privateGetApiV1SpotOpenOrders (params?: {}): Promise<List>;
@@ -33,24 +33,24 @@ interface Exchange {
     privateGetApiV1FuturesPositions (params?: {}): Promise<List>;
     privateGetApiV1FuturesHistoryOrders (params?: {}): Promise<List>;
     privateGetApiV1FuturesBalance (params?: {}): Promise<List>;
-    privateGetApiV1FuturesLiquidationAssignStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1FuturesRiskLimit (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1FuturesCommissionRate (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1FuturesGetBestOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1CoinInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetApiV1FuturesLiquidationAssignStatus (params?: {}): Promise<Dict | List>;
+    privateGetApiV1FuturesRiskLimit (params?: {}): Promise<Dict | List>;
+    privateGetApiV1FuturesCommissionRate (params?: {}): Promise<Dict | List>;
+    privateGetApiV1FuturesGetBestOrder (params?: {}): Promise<Dict | List>;
+    privateGetApiV1CoinInfo (params?: {}): Promise<Dict | List>;
     privateGetApiV1AccountVipInfo (params?: {}): Promise<Dict>;
     privateGetApiV1Account (params?: {}): Promise<List>;
     privateGetApiV1AccountTrades (params?: {}): Promise<List>;
     privateGetApiV1AccountType (params?: {}): Promise<List>;
-    privateGetApiV1AccountChainType (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1AccountCheckApiKey (params?: {}): Promise<implicitReturnType>;
+    privateGetApiV1AccountChainType (params?: {}): Promise<Dict | List>;
+    privateGetApiV1AccountCheckApiKey (params?: {}): Promise<Dict | List>;
     privateGetApiV1AccountBalanceFlow (params?: {}): Promise<List>;
-    privateGetApiV1SpotSubAccountOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1SpotSubAccountTradeOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1SubAccountTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1FuturesSubAccountOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1FuturesSubAccountHistoryOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1FuturesSubAccountUserTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetApiV1SpotSubAccountOpenOrders (params?: {}): Promise<Dict | List>;
+    privateGetApiV1SpotSubAccountTradeOrders (params?: {}): Promise<Dict | List>;
+    privateGetApiV1SubAccountTrades (params?: {}): Promise<Dict | List>;
+    privateGetApiV1FuturesSubAccountOpenOrders (params?: {}): Promise<Dict | List>;
+    privateGetApiV1FuturesSubAccountHistoryOrders (params?: {}): Promise<Dict | List>;
+    privateGetApiV1FuturesSubAccountUserTrades (params?: {}): Promise<Dict | List>;
     privateGetApiV1AccountDepositAddress (params?: {}): Promise<Dict>;
     privateGetApiV1AccountDepositOrders (params?: {}): Promise<List>;
     privateGetApiV1AccountWithdrawOrders (params?: {}): Promise<List>;
@@ -63,19 +63,19 @@ interface Exchange {
     privatePostApiV1FuturesOrder (params?: {}): Promise<Dict>;
     privatePostApiV1FuturesMarginType (params?: {}): Promise<Dict>;
     privatePostApiV1FuturesPositionMargin (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesPositionTradingStop (params?: {}): Promise<implicitReturnType>;
+    privatePostApiV1FuturesPositionTradingStop (params?: {}): Promise<Dict | List>;
     privatePostApiV1FuturesBatchOrders (params?: {}): Promise<Dict>;
     privatePostApiV1AccountAssetTransfer (params?: {}): Promise<Dict>;
-    privatePostApiV1AccountAuthAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostApiV1AccountAuthAddress (params?: {}): Promise<Dict | List>;
     privatePostApiV1AccountWithdraw (params?: {}): Promise<Dict>;
-    privatePutApiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
+    privatePutApiV1UserDataStream (params?: {}): Promise<Dict | List>;
     privateDeleteApiV1SpotOrder (params?: {}): Promise<Dict>;
-    privateDeleteApiV1SpotOpenOrders (params?: {}): Promise<implicitReturnType>;
+    privateDeleteApiV1SpotOpenOrders (params?: {}): Promise<Dict | List>;
     privateDeleteApiV1SpotCancelOrderByIds (params?: {}): Promise<Dict>;
     privateDeleteApiV1FuturesOrder (params?: {}): Promise<Dict>;
-    privateDeleteApiV1FuturesBatchOrders (params?: {}): Promise<implicitReturnType>;
+    privateDeleteApiV1FuturesBatchOrders (params?: {}): Promise<Dict | List>;
     privateDeleteApiV1FuturesCancelOrderByIds (params?: {}): Promise<Dict>;
-    privateDeleteApiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
+    privateDeleteApiV1UserDataStream (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

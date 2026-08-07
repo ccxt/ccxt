@@ -5,46 +5,46 @@
 
 // -------------------------------------------------------------------------------
 
-import { List, Dict, implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     wwwGetOrderFetchMarkets (params?: {}): Promise<List>;
     wwwGetOrderFetchTickers (params?: {}): Promise<List>;
     wwwGetOrderFetchOrderbook (params?: {}): Promise<Dict>;
-    wwwGetOrderGetTickerWithVolume (params?: {}): Promise<implicitReturnType>;
-    wwwGetExchangeDataOhlc (params?: {}): Promise<implicitReturnType>;
-    wwwGetExchangeDataOrderBook (params?: {}): Promise<implicitReturnType>;
+    wwwGetOrderGetTickerWithVolume (params?: {}): Promise<Dict | List>;
+    wwwGetExchangeDataOhlc (params?: {}): Promise<Dict | List>;
+    wwwGetExchangeDataOrderBook (params?: {}): Promise<Dict | List>;
     wwwGetExchangeDataTradedetails (params?: {}): Promise<List>;
     v1GetPlatformStatus (params?: {}): Promise<Dict>;
-    v1GetTickers (params?: {}): Promise<implicitReturnType>;
-    v1GetOrderbookSellSymbol (params?: {}): Promise<implicitReturnType>;
-    v1GetOrderbookBuySymbol (params?: {}): Promise<implicitReturnType>;
+    v1GetTickers (params?: {}): Promise<Dict | List>;
+    v1GetOrderbookSellSymbol (params?: {}): Promise<Dict | List>;
+    v1GetOrderbookBuySymbol (params?: {}): Promise<Dict | List>;
     v1PostCurrentCoinBalanceEVERYTHING (params?: {}): Promise<Dict>;
-    v1PostGetApiUsageStatusUSAGE (params?: {}): Promise<implicitReturnType>;
-    v1PostGetOrderSocketTokenUSAGE (params?: {}): Promise<implicitReturnType>;
-    v1PostCurrentCoinBalanceSymbol (params?: {}): Promise<implicitReturnType>;
+    v1PostGetApiUsageStatusUSAGE (params?: {}): Promise<Dict | List>;
+    v1PostGetOrderSocketTokenUSAGE (params?: {}): Promise<Dict | List>;
+    v1PostCurrentCoinBalanceSymbol (params?: {}): Promise<Dict | List>;
     v1PostOrderStatusSymbol (params?: {}): Promise<Dict>;
     v1PostDepositHistorySymbol (params?: {}): Promise<Dict>;
     v1PostWithdrawHistorySymbol (params?: {}): Promise<Dict>;
-    v1PostWithdrawHistoryAllSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostDepositHistoryAllSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostListOpenOrdersSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostListOpenStopOrdersSymbol (params?: {}): Promise<implicitReturnType>;
+    v1PostWithdrawHistoryAllSymbol (params?: {}): Promise<Dict | List>;
+    v1PostDepositHistoryAllSymbol (params?: {}): Promise<Dict | List>;
+    v1PostListOpenOrdersSymbol (params?: {}): Promise<Dict | List>;
+    v1PostListOpenStopOrdersSymbol (params?: {}): Promise<Dict | List>;
     v1PostGetCoinAddressSymbol (params?: {}): Promise<Dict>;
-    v1PostPlaceSellOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostPlaceBuyOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostBuyStopLossSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostSellStopLossSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostCancelOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostCancelStopLossOrderSymbol (params?: {}): Promise<implicitReturnType>;
+    v1PostPlaceSellOrderSymbol (params?: {}): Promise<Dict | List>;
+    v1PostPlaceBuyOrderSymbol (params?: {}): Promise<Dict | List>;
+    v1PostBuyStopLossSymbol (params?: {}): Promise<Dict | List>;
+    v1PostSellStopLossSymbol (params?: {}): Promise<Dict | List>;
+    v1PostCancelOrderSymbol (params?: {}): Promise<Dict | List>;
+    v1PostCancelStopLossOrderSymbol (params?: {}): Promise<Dict | List>;
     v1PostListExecutedOrdersSymbol (params?: {}): Promise<Dict>;
-    v1PostPlaceMarketOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostPlaceMarketOrderQntySymbol (params?: {}): Promise<implicitReturnType>;
-    v2PostOrders (params?: {}): Promise<implicitReturnType>;
-    v2PostCancel (params?: {}): Promise<implicitReturnType>;
+    v1PostPlaceMarketOrderSymbol (params?: {}): Promise<Dict | List>;
+    v1PostPlaceMarketOrderQntySymbol (params?: {}): Promise<Dict | List>;
+    v2PostOrders (params?: {}): Promise<Dict | List>;
+    v2PostCancel (params?: {}): Promise<Dict | List>;
     v2PostGetordersnew (params?: {}): Promise<Dict>;
-    v2PostMarginOrders (params?: {}): Promise<implicitReturnType>;
+    v2PostMarginOrders (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

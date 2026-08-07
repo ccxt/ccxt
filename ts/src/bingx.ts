@@ -178,7 +178,7 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'account/balance': 1,
+                                'account/balance': { 'cost': 1, 'returnType': 'Dict' },
                             },
                         },
                     },
@@ -188,34 +188,34 @@ export default class bingx extends Exchange {
                         'public': {
                             'get': {
                                 'server/time': 1,
-                                'common/symbols': 1,
-                                'market/trades': 1,
-                                'market/depth': 1,
-                                'market/kline': 1,
-                                'ticker/24hr': 1,
+                                'common/symbols': { 'cost': 1, 'returnType': 'Dict' },
+                                'market/trades': { 'cost': 1, 'returnType': 'Dict' },
+                                'market/depth': { 'cost': 1, 'returnType': 'Dict' },
+                                'market/kline': { 'cost': 1, 'returnType': 'Dict' },
+                                'ticker/24hr': { 'cost': 1, 'returnType': 'Dict' },
                                 'ticker/price': 1, // deprecated, still can be used
                                 'ticker/bookTicker': 1,
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/query': 1,
-                                'trade/openOrders': 1,
-                                'trade/historyOrders': 1,
-                                'trade/myTrades': 2,
-                                'user/commissionRate': 5,
-                                'account/balance': 2,
+                                'trade/query': { 'cost': 1, 'returnType': 'Dict' },
+                                'trade/openOrders': { 'cost': 1, 'returnType': 'Dict' },
+                                'trade/historyOrders': { 'cost': 1, 'returnType': 'Dict' },
+                                'trade/myTrades': { 'cost': 2, 'returnType': 'Dict' },
+                                'user/commissionRate': { 'cost': 5, 'returnType': 'Dict' },
+                                'account/balance': { 'cost': 2, 'returnType': 'Dict' },
                                 'oco/orderList': 5,
                                 'oco/openOrderList': 5,
                                 'oco/historyOrderList': 5,
                             },
                             'post': {
-                                'trade/order': 2,
-                                'trade/cancel': 2,
-                                'trade/batchOrders': 5,
-                                'trade/order/cancelReplace': 5,
-                                'trade/cancelOrders': 5,
-                                'trade/cancelOpenOrders': 5,
+                                'trade/order': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/cancel': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/batchOrders': { 'cost': 5, 'returnType': 'Dict' },
+                                'trade/order/cancelReplace': { 'cost': 5, 'returnType': 'Dict' },
+                                'trade/cancelOrders': { 'cost': 5, 'returnType': 'Dict' },
+                                'trade/cancelOpenOrders': { 'cost': 5, 'returnType': 'Dict' },
                                 'trade/cancelAllAfter': 5,
                                 'oco/order': 5,
                                 'oco/cancel': 5,
@@ -236,8 +236,8 @@ export default class bingx extends Exchange {
                             'get': {
                                 'get/asset/transfer': 1,
                                 'asset/transfer': 1,
-                                'capital/deposit/hisrec': 1,
-                                'capital/withdraw/history': 1,
+                                'capital/deposit/hisrec': { 'cost': 1, 'returnType': 'List' },
+                                'capital/withdraw/history': { 'cost': 1, 'returnType': 'List' },
                             },
                             'post': {
                                 'post/asset/transfer': 5,
@@ -251,34 +251,34 @@ export default class bingx extends Exchange {
                             'get': {
                                 'ticker/price': 1,
                                 'market/historicalTrades': 1,
-                                'market/markPriceKlines': 1,
+                                'market/markPriceKlines': { 'cost': 1, 'returnType': 'Dict' },
                                 'trade/multiAssetsRules': 1,
                                 'tradingRules': 1,
                             },
                         },
                         'private': {
                             'get': {
-                                'positionSide/dual': 5,
+                                'positionSide/dual': { 'cost': 5, 'returnType': 'Dict' },
                                 'trade/batchCancelReplace': 5,
-                                'trade/fullOrder': 2,
-                                'maintMarginRatio': 2,
-                                'trade/positionHistory': 2,
+                                'trade/fullOrder': { 'cost': 2, 'returnType': 'Dict' },
+                                'maintMarginRatio': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/positionHistory': { 'cost': 2, 'returnType': 'Dict' },
                                 'positionMargin/history': 2,
-                                'twap/openOrders': 5,
-                                'twap/historyOrders': 5,
-                                'twap/orderDetail': 5,
+                                'twap/openOrders': { 'cost': 5, 'returnType': 'Dict' },
+                                'twap/historyOrders': { 'cost': 5, 'returnType': 'Dict' },
+                                'twap/orderDetail': { 'cost': 5, 'returnType': 'Dict' },
                                 'trade/assetMode': 5,
                                 'user/marginAssets': 5,
                             },
                             'post': {
                                 'trade/amend': 2,
-                                'trade/cancelReplace': 2,
+                                'trade/cancelReplace': { 'cost': 2, 'returnType': 'Dict' },
                                 'positionSide/dual': 5,
                                 'trade/batchCancelReplace': 5,
-                                'trade/closePosition': 2,
+                                'trade/closePosition': { 'cost': 2, 'returnType': 'Dict' },
                                 'trade/getVst': 5, // deprecated
-                                'twap/order': 5,
-                                'twap/cancelOrder': 5,
+                                'twap/order': { 'cost': 5, 'returnType': 'Dict' },
+                                'twap/cancelOrder': { 'cost': 5, 'returnType': 'Dict' },
                                 'trade/assetMode': 5,
                                 'trade/reverse': 5,
                                 'trade/autoAddMargin': 5,
@@ -288,64 +288,64 @@ export default class bingx extends Exchange {
                     'v2': {
                         'public': {
                             'get': {
-                                'server/time': 1,
-                                'quote/contracts': 1,
+                                'server/time': { 'cost': 1, 'returnType': 'Dict' },
+                                'quote/contracts': { 'cost': 1, 'returnType': 'Dict' },
                                 'quote/price': 1,
-                                'quote/depth': 1,
-                                'quote/trades': 1,
-                                'quote/premiumIndex': 1,
-                                'quote/fundingRate': 1,
+                                'quote/depth': { 'cost': 1, 'returnType': 'Dict' },
+                                'quote/trades': { 'cost': 1, 'returnType': 'Dict' },
+                                'quote/premiumIndex': { 'cost': 1, 'returnType': 'Dict' },
+                                'quote/fundingRate': { 'cost': 1, 'returnType': 'Dict' },
                                 'quote/klines': 1,
-                                'quote/openInterest': 1,
-                                'quote/ticker': 1,
+                                'quote/openInterest': { 'cost': 1, 'returnType': 'Dict' },
+                                'quote/ticker': { 'cost': 1, 'returnType': 'Dict' },
                                 'quote/bookTicker': 1,
                             },
                         },
                         'private': {
                             'get': {
                                 'user/balance': 2,
-                                'user/positions': 2,
-                                'user/income': 2,
-                                'trade/openOrders': 2,
+                                'user/positions': { 'cost': 2, 'returnType': 'Dict' },
+                                'user/income': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/openOrders': { 'cost': 2, 'returnType': 'Dict' },
                                 'trade/openOrder': 2,
-                                'trade/order': 2,
-                                'trade/marginType': 5,
-                                'trade/leverage': 2,
-                                'trade/forceOrders': 1,
-                                'trade/allOrders': 2,
-                                'trade/allFillOrders': 2,
+                                'trade/order': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/marginType': { 'cost': 5, 'returnType': 'Dict' },
+                                'trade/leverage': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/forceOrders': { 'cost': 1, 'returnType': 'Dict' },
+                                'trade/allOrders': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/allFillOrders': { 'cost': 2, 'returnType': 'Dict' },
                                 'trade/fillHistory': 2,
                                 'user/income/export': 2,
-                                'user/commissionRate': 2,
+                                'user/commissionRate': { 'cost': 2, 'returnType': 'Dict' },
                                 'quote/bookTicker': 1,
                             },
                             'post': {
                                 'trade/getVst': 5,
-                                'trade/order': 2,
-                                'trade/batchOrders': 2,
-                                'trade/closeAllPositions': 2,
+                                'trade/order': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/batchOrders': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/closeAllPositions': { 'cost': 2, 'returnType': 'Dict' },
                                 'trade/cancelAllAfter': 5,
                                 'trade/marginType': 5,
                                 'trade/leverage': 5,
-                                'trade/positionMargin': 5,
-                                'trade/order/test': 2,
+                                'trade/positionMargin': { 'cost': 5, 'returnType': 'Dict' },
+                                'trade/order/test': { 'cost': 2, 'returnType': 'Dict' },
                             },
                             'delete': {
-                                'trade/order': 2,
-                                'trade/batchOrders': 2,
-                                'trade/allOpenOrders': 2,
+                                'trade/order': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/batchOrders': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/allOpenOrders': { 'cost': 2, 'returnType': 'Dict' },
                             },
                         },
                     },
                     'v3': {
                         'public': {
                             'get': {
-                                'quote/klines': 1,
+                                'quote/klines': { 'cost': 1, 'returnType': 'Dict' },
                             },
                         },
                         'private': {
                             'get': {
-                                'user/balance': 2,
+                                'user/balance': { 'cost': 2, 'returnType': 'Dict' },
                             },
                         },
                     },
@@ -354,38 +354,38 @@ export default class bingx extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'market/contracts': 1,
-                                'market/premiumIndex': 1,
-                                'market/openInterest': 1,
-                                'market/klines': 1,
-                                'market/depth': 1,
-                                'market/ticker': 1,
+                                'market/contracts': { 'cost': 1, 'returnType': 'Dict' },
+                                'market/premiumIndex': { 'cost': 1, 'returnType': 'Dict' },
+                                'market/openInterest': { 'cost': 1, 'returnType': 'Dict' },
+                                'market/klines': { 'cost': 1, 'returnType': 'Dict' },
+                                'market/depth': { 'cost': 1, 'returnType': 'Dict' },
+                                'market/ticker': { 'cost': 1, 'returnType': 'Dict' },
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/leverage': 2,
-                                'trade/forceOrders': 2,
-                                'trade/allFillOrders': 2,
-                                'trade/openOrders': 2,
-                                'trade/orderDetail': 2,
-                                'trade/orderHistory': 2,
-                                'trade/marginType': 2,
-                                'user/commissionRate': 2,
-                                'user/positions': 2,
-                                'user/balance': 2,
+                                'trade/leverage': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/forceOrders': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/allFillOrders': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/openOrders': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/orderDetail': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/orderHistory': { 'cost': 2, 'returnType': 'Dict' },
+                                'trade/marginType': { 'cost': 2, 'returnType': 'Dict' },
+                                'user/commissionRate': { 'cost': 2, 'returnType': 'Dict' },
+                                'user/positions': { 'cost': 2, 'returnType': 'Dict' },
+                                'user/balance': { 'cost': 2, 'returnType': 'Dict' },
                             },
                             'post': {
-                                'trade/order': 2,
+                                'trade/order': { 'cost': 2, 'returnType': 'Dict' },
                                 'trade/leverage': 2,
                                 'trade/allOpenOrders': 2,
-                                'trade/closeAllPositions': 2,
+                                'trade/closeAllPositions': { 'cost': 2, 'returnType': 'Dict' },
                                 'trade/marginType': 2,
                                 'trade/positionMargin': 2,
                             },
                             'delete': {
-                                'trade/allOpenOrders': 2, // post method in doc
-                                'trade/cancelOrder': 2,
+                                'trade/allOpenOrders': { 'cost': 2, 'returnType': 'Dict' }, // post method in doc
+                                'trade/cancelOrder': { 'cost': 2, 'returnType': 'Dict' },
                             },
                         },
                     },
@@ -394,9 +394,9 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'allPosition': 2,
-                                'allOrders': 2,
-                                'balance': 2,
+                                'allPosition': { 'cost': 2, 'returnType': 'Dict' },
+                                'allOrders': { 'cost': 2, 'returnType': 'Dict' },
+                                'balance': { 'cost': 2, 'returnType': 'Dict' },
                             },
                         },
                     },
@@ -405,8 +405,8 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'capital/config/getall': 5,
-                                'capital/deposit/address': 5,
+                                'capital/config/getall': { 'cost': 5, 'returnType': 'Dict' },
+                                'capital/deposit/address': { 'cost': 5, 'returnType': 'Dict' },
                                 'capital/innerTransfer/records': 1,
                                 'capital/subAccount/deposit/address': 5,
                                 'capital/deposit/subHisrec': 2,
@@ -414,7 +414,7 @@ export default class bingx extends Exchange {
                                 'capital/deposit/riskRecords': 5,
                             },
                             'post': {
-                                'capital/withdraw/apply': 5,
+                                'capital/withdraw/apply': { 'cost': 5, 'returnType': 'Dict' },
                                 'capital/innerTransfer/apply': 5,
                                 'capital/subAccountInnerTransfer/apply': 2,
                                 'capital/deposit/createSubAddress': 2,
@@ -472,7 +472,7 @@ export default class bingx extends Exchange {
                     'auth': {
                         'private': {
                             'post': {
-                                'userDataStream': 2,
+                                'userDataStream': { 'cost': 2, 'returnType': 'Dict' },
                             },
                             'put': {
                                 'userDataStream': 2,
@@ -511,7 +511,7 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'asset/transfer': 1,
-                                'asset/transferRecord': 5,
+                                'asset/transferRecord': { 'cost': 5, 'returnType': 'Dict' },
                                 'capital/deposit/hisrec': 1,
                                 'capital/withdraw/history': 1,
                             },
@@ -524,7 +524,7 @@ export default class bingx extends Exchange {
                         'v1': {
                             'private': {
                                 'post': {
-                                    'transfer': 5,
+                                    'transfer': { 'cost': 5, 'returnType': 'Dict' },
                                 },
                             },
                             'public': {

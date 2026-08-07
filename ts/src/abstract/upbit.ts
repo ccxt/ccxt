@@ -5,63 +5,63 @@
 
 // -------------------------------------------------------------------------------
 
-import { List, implicitReturnType, Dict } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetMarketAll (params?: {}): Promise<List>;
     publicGetCandlesTimeframe (params?: {}): Promise<List>;
     publicGetCandlesTimeframeUnit (params?: {}): Promise<List>;
-    publicGetCandlesSeconds (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesMinutesUnit (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesMinutes1 (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesMinutes3 (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesMinutes5 (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesMinutes10 (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesMinutes15 (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesMinutes30 (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesMinutes60 (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesMinutes240 (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesDays (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesWeeks (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesMonths (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesYears (params?: {}): Promise<implicitReturnType>;
+    publicGetCandlesSeconds (params?: {}): Promise<Dict | List>;
+    publicGetCandlesMinutesUnit (params?: {}): Promise<Dict | List>;
+    publicGetCandlesMinutes1 (params?: {}): Promise<Dict | List>;
+    publicGetCandlesMinutes3 (params?: {}): Promise<Dict | List>;
+    publicGetCandlesMinutes5 (params?: {}): Promise<Dict | List>;
+    publicGetCandlesMinutes10 (params?: {}): Promise<Dict | List>;
+    publicGetCandlesMinutes15 (params?: {}): Promise<Dict | List>;
+    publicGetCandlesMinutes30 (params?: {}): Promise<Dict | List>;
+    publicGetCandlesMinutes60 (params?: {}): Promise<Dict | List>;
+    publicGetCandlesMinutes240 (params?: {}): Promise<Dict | List>;
+    publicGetCandlesDays (params?: {}): Promise<Dict | List>;
+    publicGetCandlesWeeks (params?: {}): Promise<Dict | List>;
+    publicGetCandlesMonths (params?: {}): Promise<Dict | List>;
+    publicGetCandlesYears (params?: {}): Promise<Dict | List>;
     publicGetTradesTicks (params?: {}): Promise<List>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
+    publicGetTicker (params?: {}): Promise<Dict | List>;
     publicGetTickerAll (params?: {}): Promise<Dict>;
     publicGetOrderbook (params?: {}): Promise<List>;
-    publicGetOrderbookInstruments (params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbookInstruments (params?: {}): Promise<Dict | List>;
     privateGetAccounts (params?: {}): Promise<Dict>;
     privateGetOrdersChance (params?: {}): Promise<Dict>;
     privateGetOrder (params?: {}): Promise<Dict>;
     privateGetOrdersClosed (params?: {}): Promise<List>;
     privateGetOrdersOpen (params?: {}): Promise<List>;
-    privateGetOrdersUuids (params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersUuids (params?: {}): Promise<Dict | List>;
     privateGetWithdraws (params?: {}): Promise<List>;
     privateGetWithdraw (params?: {}): Promise<Dict>;
     privateGetWithdrawsChance (params?: {}): Promise<Dict>;
-    privateGetWithdrawsCoinAddresses (params?: {}): Promise<implicitReturnType>;
+    privateGetWithdrawsCoinAddresses (params?: {}): Promise<Dict | List>;
     privateGetDeposits (params?: {}): Promise<List>;
-    privateGetDepositsChanceCoin (params?: {}): Promise<implicitReturnType>;
+    privateGetDepositsChanceCoin (params?: {}): Promise<Dict | List>;
     privateGetDeposit (params?: {}): Promise<Dict>;
     privateGetDepositsCoinAddresses (params?: {}): Promise<List>;
     privateGetDepositsCoinAddress (params?: {}): Promise<Dict>;
-    privateGetTravelRuleVasps (params?: {}): Promise<implicitReturnType>;
-    privateGetStatusWallet (params?: {}): Promise<implicitReturnType>;
-    privateGetApiKeys (params?: {}): Promise<implicitReturnType>;
+    privateGetTravelRuleVasps (params?: {}): Promise<Dict | List>;
+    privateGetStatusWallet (params?: {}): Promise<Dict | List>;
+    privateGetApiKeys (params?: {}): Promise<Dict | List>;
     privatePostOrders (params?: {}): Promise<Dict>;
     privatePostOrdersTest (params?: {}): Promise<Dict>;
     privatePostOrdersCancelAndNew (params?: {}): Promise<Dict>;
     privatePostWithdrawsCoin (params?: {}): Promise<Dict>;
     privatePostWithdrawsKrw (params?: {}): Promise<Dict>;
-    privatePostDepositsKrw (params?: {}): Promise<implicitReturnType>;
+    privatePostDepositsKrw (params?: {}): Promise<Dict | List>;
     privatePostDepositsGenerateCoinAddress (params?: {}): Promise<Dict>;
-    privatePostTravelRuleDepositUuid (params?: {}): Promise<implicitReturnType>;
-    privatePostTravelRuleDepositTxid (params?: {}): Promise<implicitReturnType>;
+    privatePostTravelRuleDepositUuid (params?: {}): Promise<Dict | List>;
+    privatePostTravelRuleDepositTxid (params?: {}): Promise<Dict | List>;
     privateDeleteOrder (params?: {}): Promise<Dict>;
-    privateDeleteOrdersOpen (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrdersUuids (params?: {}): Promise<implicitReturnType>;
-    privateDeleteWithdrawsCoin (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrdersOpen (params?: {}): Promise<Dict | List>;
+    privateDeleteOrdersUuids (params?: {}): Promise<Dict | List>;
+    privateDeleteWithdrawsCoin (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

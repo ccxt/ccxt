@@ -167,26 +167,26 @@ export default class lighter extends Exchange {
                 'root': {
                     'get': {
                         // root
-                        '': 1, // status
+                        '': { 'cost': 1, 'returnType': 'Dict' }, // status
                         'info': 1,
                     },
                 },
                 'public': {
                     'get': {
                         // account
-                        'account': 1,
-                        'accountsByL1Address': 1,
+                        'account': { 'cost': 1, 'returnType': 'Dict' },
+                        'accountsByL1Address': { 'cost': 1, 'returnType': 'Dict' },
                         'apikeys': 1,
                         // order
                         'exchangeStats': 1,
-                        'assetDetails': 1,
-                        'orderBookDetails': 1,
-                        'orderBookOrders': 1,
-                        'orderBooks': 1,
+                        'assetDetails': { 'cost': 1, 'returnType': 'Dict' },
+                        'orderBookDetails': { 'cost': 1, 'returnType': 'Dict' },
+                        'orderBookOrders': { 'cost': 1, 'returnType': 'Dict' },
+                        'orderBooks': { 'cost': 1, 'returnType': 'Dict' },
                         'recentTrades': 1,
                         // transaction
                         'blockTxs': 1,
-                        'nextNonce': 1,
+                        'nextNonce': { 'cost': 1, 'returnType': 'Dict' },
                         'tx': 1,
                         'txFromL1TxHash': 1,
                         'txs': 1,
@@ -197,18 +197,18 @@ export default class lighter extends Exchange {
                         'blocks': 1,
                         'currentHeight': 1,
                         // candlestick
-                        'candles': 1,
+                        'candles': { 'cost': 1, 'returnType': 'Dict' },
                         'fundings': 1,
                         // bridge
                         'fastbridge/info': 1,
                         // funding
-                        'funding-rates': 1,
+                        'funding-rates': { 'cost': 1, 'returnType': 'Dict' },
                         // info
                         'withdrawalDelay': 1,
                     },
                     'post': {
                         // transaction
-                        'sendTx': 1,
+                        'sendTx': { 'cost': 1, 'returnType': 'Dict' },
                         'sendTxBatch': 1,
                     },
                 },
@@ -219,19 +219,19 @@ export default class lighter extends Exchange {
                         'accountMetadata': 1,
                         'pnl': 1,
                         'l1Metadata': 1,
-                        'liquidations': 1,
+                        'liquidations': { 'cost': 1, 'returnType': 'Dict' },
                         'positionFunding': 1,
                         'publicPoolsMetadata': 1,
                         // order
-                        'accountActiveOrders': 1,
-                        'accountInactiveOrders': 1,
+                        'accountActiveOrders': { 'cost': 1, 'returnType': 'Dict' },
+                        'accountInactiveOrders': { 'cost': 1, 'returnType': 'Dict' },
                         'export': 1,
-                        'trades': 1,
+                        'trades': { 'cost': 1, 'returnType': 'Dict' },
                         // transaction
                         'accountTxs': 1,
-                        'deposit/history': 1,
-                        'transfer/history': 1,
-                        'withdraw/history': 1,
+                        'deposit/history': { 'cost': 1, 'returnType': 'Dict' },
+                        'transfer/history': { 'cost': 1, 'returnType': 'Dict' },
+                        'withdraw/history': { 'cost': 1, 'returnType': 'Dict' },
                         // referral
                         'referral/points': 1,
                         // info

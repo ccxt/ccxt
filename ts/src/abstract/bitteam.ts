@@ -5,26 +5,26 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType, List } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     historyGetApiTwHistoryPairNameResolution (params?: {}): Promise<Dict>;
-    publicGetTradeApiAsset (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiAsset (params?: {}): Promise<Dict | List>;
     publicGetTradeApiCurrencies (params?: {}): Promise<Dict>;
-    publicGetTradeApiOrderbooksSymbol (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiOrders (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiOrderbooksSymbol (params?: {}): Promise<Dict | List>;
+    publicGetTradeApiOrders (params?: {}): Promise<Dict | List>;
     publicGetTradeApiPairName (params?: {}): Promise<Dict>;
-    publicGetTradeApiPairs (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiPairsPrecisions (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiRates (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiTradeId (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeApiTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiPairs (params?: {}): Promise<Dict | List>;
+    publicGetTradeApiPairsPrecisions (params?: {}): Promise<Dict | List>;
+    publicGetTradeApiRates (params?: {}): Promise<Dict | List>;
+    publicGetTradeApiTradeId (params?: {}): Promise<Dict | List>;
+    publicGetTradeApiTrades (params?: {}): Promise<Dict | List>;
     publicGetTradeApiCcxtPairs (params?: {}): Promise<Dict>;
-    publicGetTradeApiCmcAssets (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiCmcAssets (params?: {}): Promise<Dict | List>;
     publicGetTradeApiCmcOrderbookPair (params?: {}): Promise<Dict>;
     publicGetTradeApiCmcSummary (params?: {}): Promise<List>;
-    publicGetTradeApiCmcTicker (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiCmcTicker (params?: {}): Promise<Dict | List>;
     publicGetTradeApiCmcTradesPair (params?: {}): Promise<List>;
     privateGetTradeApiCcxtBalance (params?: {}): Promise<Dict>;
     privateGetTradeApiCcxtOrderId (params?: {}): Promise<Dict>;

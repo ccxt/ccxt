@@ -139,25 +139,25 @@ export default class btcturk extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'ticker': 0.1,
-                        'trades': 1,   // ?last=COUNT (max 50)
-                        'ohlc': 1,
-                        'server/exchangeinfo': 1,
+                        'orderbook': { 'cost': 1, 'returnType': 'Dict' },
+                        'ticker': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'trades': { 'cost': 1, 'returnType': 'Dict' },   // ?last=COUNT (max 50)
+                        'ohlc': { 'cost': 1, 'returnType': 'Dict' },
+                        'server/exchangeinfo': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'private': {
                     'get': {
-                        'users/balances': 1,
-                        'openOrders': 1,
-                        'allOrders': 1,
-                        'users/transactions/trade': 1,
+                        'users/balances': { 'cost': 1, 'returnType': 'Dict' },
+                        'openOrders': { 'cost': 1, 'returnType': 'Dict' },
+                        'allOrders': { 'cost': 1, 'returnType': 'Dict' },
+                        'users/transactions/trade': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         'users/transactions/crypto': 1,
                         'users/transactions/fiat': 1,
-                        'order': 1,
-                        'cancelOrder': 1,
+                        'order': { 'cost': 1, 'returnType': 'Dict' },
+                        'cancelOrder': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'delete': {
                         'order': 1,
@@ -166,7 +166,7 @@ export default class btcturk extends Exchange {
                 'graph': {
                     'get': {
                         'ohlcs': 1,
-                        'klines/history': 1,
+                        'klines/history': { 'cost': 1, 'returnType': 'List' },
                     },
                 },
             },

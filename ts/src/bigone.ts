@@ -123,44 +123,44 @@ export default class bigone extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ping',
-                        'asset_pairs',
-                        'asset_pairs/{asset_pair_name}/depth',
-                        'asset_pairs/{asset_pair_name}/trades',
-                        'asset_pairs/{asset_pair_name}/ticker',
-                        'asset_pairs/{asset_pair_name}/candles',
-                        'asset_pairs/tickers',
-                    ],
+                    'get': {
+                        'ping': { 'cost': 1, 'returnType': 'Dict' },
+                        'asset_pairs': 1,
+                        'asset_pairs/{asset_pair_name}/depth': { 'cost': 1, 'returnType': 'Dict' },
+                        'asset_pairs/{asset_pair_name}/trades': { 'cost': 1, 'returnType': 'Dict' },
+                        'asset_pairs/{asset_pair_name}/ticker': { 'cost': 1, 'returnType': 'Dict' },
+                        'asset_pairs/{asset_pair_name}/candles': { 'cost': 1, 'returnType': 'Dict' },
+                        'asset_pairs/tickers': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'fund/accounts',
-                        'assets/{asset_symbol}/address',
-                        'orders',
-                        'orders/{id}',
-                        'orders/multi',
-                        'trades',
-                        'withdrawals',
-                        'deposits',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/{id}/cancel',
-                        'orders/cancel',
-                        'withdrawals',
-                        'transfer',
-                    ],
+                    'get': {
+                        'accounts': { 'cost': 1, 'returnType': 'Dict' },
+                        'fund/accounts': { 'cost': 1, 'returnType': 'Dict' },
+                        'assets/{asset_symbol}/address': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders/multi': 1,
+                        'trades': { 'cost': 1, 'returnType': 'Dict' },
+                        'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
+                        'deposits': { 'cost': 1, 'returnType': 'Dict' },
+                    },
+                    'post': {
+                        'orders': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders/{id}/cancel': { 'cost': 1, 'returnType': 'Dict' },
+                        'orders/cancel': { 'cost': 1, 'returnType': 'Dict' },
+                        'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
+                        'transfer': { 'cost': 1, 'returnType': 'Dict' },
+                    },
                 },
                 'contractPublic': {
-                    'get': [
-                        'symbols',
-                        'instruments',
-                        'depth@{symbol}/snapshot',
-                        'instruments/difference',
-                        'instruments/prices',
-                    ],
+                    'get': {
+                        'symbols': 1,
+                        'instruments': { 'cost': 1, 'returnType': 'List' },
+                        'depth@{symbol}/snapshot': { 'cost': 1, 'returnType': 'Dict' },
+                        'instruments/difference': 1,
+                        'instruments/prices': 1,
+                    },
                 },
                 'contractPrivate': {
                     'get': [

@@ -150,7 +150,7 @@ export default class bitfinex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'conf/{config}': 2.7, // 90 requests a minute, 90/60 = 1.5, 1000 / (250 * 2.66) = 1.503, use 2.7 instead of 2.66 to ensure rateLimitExceeded is not triggered
+                        'conf/{config}': { 'cost': 2.7, 'returnType': 'List' }, // 90 requests a minute, 90/60 = 1.5, 1000 / (250 * 2.66) = 1.503, use 2.7 instead of 2.66 to ensure rateLimitExceeded is not triggered
                         'conf/pub:{action}:{object}': 2.7,
                         'conf/pub:{action}:{object}:{detail}': 2.7,
                         'conf/pub:map:{object}': 2.7,
@@ -177,12 +177,12 @@ export default class bitfinex extends Exchange {
                         'conf/pub:info:pair:futures': 2.7,
                         'conf/pub:info:tx:status': 2.7, // [ deposit, withdrawal ] statuses 1 = active, 0 = maintenance
                         'conf/pub:fees': 2.7,
-                        'platform/status': 8, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
-                        'tickers': 2.7, // 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
-                        'ticker/{symbol}': 2.7,
+                        'platform/status': { 'cost': 8, 'returnType': 'List' }, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
+                        'tickers': { 'cost': 2.7, 'returnType': 'List' }, // 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
+                        'ticker/{symbol}': { 'cost': 2.7, 'returnType': 'Dict' },
                         'tickers/hist': 2.7,
-                        'trades/{symbol}/hist': 2.7,
-                        'book/{symbol}/{precision}': 1, // 240 requests a minute
+                        'trades/{symbol}/hist': { 'cost': 2.7, 'returnType': 'List' },
+                        'book/{symbol}/{precision}': { 'cost': 1, 'returnType': 'List' }, // 240 requests a minute
                         'book/{symbol}/P0': 1,
                         'book/{symbol}/P1': 1,
                         'book/{symbol}/P2': 1,
@@ -201,11 +201,11 @@ export default class bitfinex extends Exchange {
                         'candles/trade:{timeframe}:{symbol}:{period}/{section}': 2.7,
                         'candles/trade:{timeframe}:{symbol}/{section}': 2.7,
                         'candles/trade:{timeframe}:{symbol}/last': 2.7,
-                        'candles/trade:{timeframe}:{symbol}/hist': 2.7,
+                        'candles/trade:{timeframe}:{symbol}/hist': { 'cost': 2.7, 'returnType': 'List' },
                         'status/{type}': 2.7,
-                        'status/deriv': 2.7,
-                        'status/deriv/{symbol}/hist': 2.7,
-                        'liquidations/hist': 80, // 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
+                        'status/deriv': { 'cost': 2.7, 'returnType': 'List' },
+                        'status/deriv/{symbol}/hist': { 'cost': 2.7, 'returnType': 'List' },
+                        'liquidations/hist': { 'cost': 80, 'returnType': 'List' }, // 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
                         'rankings/{key}:{timeframe}:{symbol}/{section}': 2.7,
                         'rankings/{key}:{timeframe}:{symbol}/hist': 2.7,
                         'pulse/hist': 2.7,
@@ -222,33 +222,33 @@ export default class bitfinex extends Exchange {
                     'post': {
                         // 'auth/r/orders/{symbol}/new', // outdated
                         // 'auth/r/stats/perf:{timeframe}/hist', // outdated
-                        'auth/r/wallets': 2.7,
+                        'auth/r/wallets': { 'cost': 2.7, 'returnType': 'List' },
                         'auth/r/wallets/hist': 2.7,
-                        'auth/r/orders': 2.7,
-                        'auth/r/orders/{symbol}': 2.7,
-                        'auth/w/order/submit': 2.7,
-                        'auth/w/order/update': 2.7,
-                        'auth/w/order/cancel': 2.7,
-                        'auth/w/order/multi': 2.7,
-                        'auth/w/order/cancel/multi': 2.7,
-                        'auth/r/orders/{symbol}/hist': 2.7,
-                        'auth/r/orders/hist': 2.7,
-                        'auth/r/order/{symbol}:{id}/trades': 2.7,
-                        'auth/r/trades/{symbol}/hist': 2.7,
-                        'auth/r/trades/hist': 2.7,
-                        'auth/r/ledgers/{currency}/hist': 2.7,
-                        'auth/r/ledgers/hist': 2.7,
+                        'auth/r/orders': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/r/orders/{symbol}': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/w/order/submit': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/w/order/update': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/w/order/cancel': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/w/order/multi': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/w/order/cancel/multi': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/r/orders/{symbol}/hist': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/r/orders/hist': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/r/order/{symbol}:{id}/trades': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/r/trades/{symbol}/hist': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/r/trades/hist': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/r/ledgers/{currency}/hist': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/r/ledgers/hist': { 'cost': 2.7, 'returnType': 'List' },
                         'auth/r/info/margin/{key}': 2.7,
                         'auth/r/info/margin/base': 2.7,
                         'auth/r/info/margin/sym_all': 2.7,
-                        'auth/r/positions': 2.7,
+                        'auth/r/positions': { 'cost': 2.7, 'returnType': 'List' },
                         'auth/w/position/claim': 2.7,
                         'auth/w/position/increase:': 2.7,
                         'auth/r/position/increase/info': 2.7,
                         'auth/r/positions/hist': 2.7,
                         'auth/r/positions/audit': 2.7,
                         'auth/r/positions/snap': 2.7,
-                        'auth/w/deriv/collateral/set': 2.7,
+                        'auth/w/deriv/collateral/set': { 'cost': 2.7, 'returnType': 'List' },
                         'auth/w/deriv/collateral/limits': 2.7,
                         'auth/r/funding/offers': 2.7,
                         'auth/r/funding/offers/{symbol}': 2.7,
@@ -272,17 +272,17 @@ export default class bitfinex extends Exchange {
                         'auth/r/funding/trades/hist': 2.7,
                         'auth/r/info/funding/{key}': 2.7,
                         'auth/r/info/user': 2.7,
-                        'auth/r/summary': 2.7,
+                        'auth/r/summary': { 'cost': 2.7, 'returnType': 'List' },
                         'auth/r/logins/hist': 2.7,
                         'auth/r/permissions': 2.7,
                         'auth/w/token': 2.7,
                         'auth/r/audit/hist': 2.7,
-                        'auth/w/transfer': 2.7, // ratelimit not in docs...
-                        'auth/w/deposit/address': 24, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/w/transfer': { 'cost': 2.7, 'returnType': 'List' }, // ratelimit not in docs...
+                        'auth/w/deposit/address': { 'cost': 24, 'returnType': 'List' }, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
                         'auth/w/deposit/invoice': 24, // ratelimit not in docs
-                        'auth/w/withdraw': 24, // ratelimit not in docs
-                        'auth/r/movements/{currency}/hist': 2.7,
-                        'auth/r/movements/hist': 2.7,
+                        'auth/w/withdraw': { 'cost': 24, 'returnType': 'List' }, // ratelimit not in docs
+                        'auth/r/movements/{currency}/hist': { 'cost': 2.7, 'returnType': 'List' },
+                        'auth/r/movements/hist': { 'cost': 2.7, 'returnType': 'List' },
                         'auth/r/alerts': 5.34, // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
                         'auth/w/alert/set': 2.7,
                         'auth/w/alert/price:{symbol}:{price}/del': 2.7,

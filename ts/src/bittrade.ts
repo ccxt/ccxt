@@ -138,8 +138,8 @@ export default class bittrade extends Exchange {
                         'etp/limit': 1, // 获取ETP持仓限额
                     },
                     'post': {
-                        'account/transfer': 1,
-                        'account/repayment': 5, // 归还借币（全仓逐仓通用）
+                        'account/transfer': { 'cost': 1, 'returnType': 'Dict' },
+                        'account/repayment': { 'cost': 5, 'returnType': 'Dict' }, // 归还借币（全仓逐仓通用）
                         'point/transfer': 5, // 点卡划转
                         'sub-user/management': 1, // 冻结/解冻子用户
                         'sub-user/creation': 1, // 子用户创建
@@ -165,13 +165,13 @@ export default class bittrade extends Exchange {
                 },
                 'market': {
                     'get': {
-                        'history/kline': 1, // 获取K线数据
-                        'detail/merged': 1, // 获取聚合行情(Ticker)
-                        'depth': 1, // 获取 Market Depth 数据
+                        'history/kline': { 'cost': 1, 'returnType': 'Dict' }, // 获取K线数据
+                        'detail/merged': { 'cost': 1, 'returnType': 'Dict' }, // 获取聚合行情(Ticker)
+                        'depth': { 'cost': 1, 'returnType': 'Dict' }, // 获取 Market Depth 数据
                         'trade': 1, // 获取 Trade Detail 数据
-                        'history/trade': 1, // 批量获取最近的交易记录
+                        'history/trade': { 'cost': 1, 'returnType': 'Dict' }, // 批量获取最近的交易记录
                         'detail': 1, // 获取 Market Detail 24小时成交量数据
-                        'tickers': 1,
+                        'tickers': { 'cost': 1, 'returnType': 'Dict' },
                         'etp': 1, // 获取杠杆ETP实时净值
                     },
                 },
@@ -179,33 +179,33 @@ export default class bittrade extends Exchange {
                     'get': {
                         'common/symbols': 1, // 查询系统支持的所有交易对
                         'common/currencys': 1, // 查询系统支持的所有币种
-                        'common/timestamp': 1, // 查询系统当前时间
-                        'common/exchange': 1, // order limits
-                        'settings/currencys': 1, // ?language=en-US
+                        'common/timestamp': { 'cost': 1, 'returnType': 'Dict' }, // 查询系统当前时间
+                        'common/exchange': { 'cost': 1, 'returnType': 'Dict' }, // order limits
+                        'settings/currencys': { 'cost': 1, 'returnType': 'Dict' }, // ?language=en-US
                     },
                 },
                 'private': {
                     'get': {
-                        'account/accounts': 0.2, // 查询当前用户的所有账户(即account-id)
+                        'account/accounts': { 'cost': 0.2, 'returnType': 'Dict' }, // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance': 0.2, // 查询指定账户的余额
                         'account/accounts/{sub-uid}': 1,
-                        'account/history': 4,
+                        'account/history': { 'cost': 4, 'returnType': 'Dict' },
                         'cross-margin/loan-info': 1,
                         'margin/loan-info': 1, // 查询借币币息率及额度
                         'fee/fee-rate/get': 1,
-                        'order/openOrders': 0.4,
+                        'order/openOrders': { 'cost': 0.4, 'returnType': 'Dict' },
                         'order/orders': 0.4,
-                        'order/orders/{id}': 0.4, // 查询某个订单详情
-                        'order/orders/{id}/matchresults': 0.4, // 查询某个订单的成交明细
+                        'order/orders/{id}': { 'cost': 0.4, 'returnType': 'Dict' }, // 查询某个订单详情
+                        'order/orders/{id}/matchresults': { 'cost': 0.4, 'returnType': 'Dict' }, // 查询某个订单的成交明细
                         'order/orders/getClientOrder': 0.4,
                         'order/history': 1, // 查询当前委托、历史委托
-                        'order/matchresults': 1, // 查询当前成交、历史成交
+                        'order/matchresults': { 'cost': 1, 'returnType': 'Dict' }, // 查询当前成交、历史成交
                         // 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
-                        'query/deposit-withdraw': 1,
+                        'query/deposit-withdraw': { 'cost': 1, 'returnType': 'Dict' },
                         // 'margin/loan-info', // duplicate
-                        'margin/loan-orders': 0.2, // 借贷订单
+                        'margin/loan-orders': { 'cost': 0.2, 'returnType': 'Dict' }, // 借贷订单
                         'margin/accounts/balance': 0.2, // 借贷账户详情
-                        'cross-margin/loan-orders': 1, // 查询借币订单
+                        'cross-margin/loan-orders': { 'cost': 1, 'returnType': 'Dict' }, // 查询借币订单
                         'cross-margin/accounts/balance': 1, // 借币账户详情
                         'points/actions': 1,
                         'points/orders': 1,
@@ -216,26 +216,26 @@ export default class bittrade extends Exchange {
                     'post': {
                         'account/transfer': 1, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
                         'futures/transfer': 1,
-                        'order/batch-orders': 0.4,
+                        'order/batch-orders': { 'cost': 0.4, 'returnType': 'Dict' },
                         'order/orders/place': 0.2, // 创建并执行一个新订单 (一步下单， 推荐使用)
                         'order/orders/submitCancelClientOrder': 0.2,
-                        'order/orders/batchCancelOpenOrders': 0.4,
+                        'order/orders/batchCancelOpenOrders': { 'cost': 0.4, 'returnType': 'Dict' },
                         // 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         // 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel': 0.2, // 申请撤销一个订单请求
+                        'order/orders/{id}/submitcancel': { 'cost': 0.2, 'returnType': 'Dict' }, // 申请撤销一个订单请求
                         'order/orders/batchcancel': 0.4, // 批量撤销订单
                         // 'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create': 1, // 申请提现虚拟币
+                        'dw/withdraw/api/create': { 'cost': 1, 'returnType': 'Dict' }, // 申请提现虚拟币
                         // 'dw/withdraw-virtual/create', // 申请提现虚拟币
                         // 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
                         'dw/withdraw-virtual/{id}/cancel': 1, // 申请取消提现虚拟币
-                        'dw/transfer-in/margin': 10, // 现货账户划入至借贷账户
-                        'dw/transfer-out/margin': 10, // 借贷账户划出至现货账户
-                        'margin/orders': 10, // 申请借贷
+                        'dw/transfer-in/margin': { 'cost': 10, 'returnType': 'Dict' }, // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin': { 'cost': 10, 'returnType': 'Dict' }, // 借贷账户划出至现货账户
+                        'margin/orders': { 'cost': 10, 'returnType': 'Dict' }, // 申请借贷
                         'margin/orders/{id}/repay': 10, // 归还借贷
-                        'cross-margin/transfer-in': 1, // 资产划转
-                        'cross-margin/transfer-out': 1, // 资产划转
-                        'cross-margin/orders': 1, // 申请借币
+                        'cross-margin/transfer-in': { 'cost': 1, 'returnType': 'Dict' }, // 资产划转
+                        'cross-margin/transfer-out': { 'cost': 1, 'returnType': 'Dict' }, // 资产划转
+                        'cross-margin/orders': { 'cost': 1, 'returnType': 'Dict' }, // 申请借币
                         'cross-margin/orders/{id}/repay': 1, // 归还借币
                         'stable-coin/exchange': 1,
                         'subuser/transfer': 10,

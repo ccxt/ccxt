@@ -224,27 +224,27 @@ export default class bybit extends Exchange {
                         'derivatives/v3/public/insurance': 1,
                         // v5
                         'v5/announcements/index': 5, // 10/s = 1000 / (20 * 5)
-                        'v5/system/status': 5,
+                        'v5/system/status': { 'cost': 5, 'returnType': 'Dict' },
                         // market
-                        'v5/market/time': 5,
-                        'v5/market/kline': 5,
-                        'v5/market/mark-price-kline': 5,
-                        'v5/market/index-price-kline': 5,
-                        'v5/market/premium-index-price-kline': 5,
-                        'v5/market/instruments-info': 5,
-                        'v5/market/orderbook': 5,
+                        'v5/market/time': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/kline': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/mark-price-kline': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/index-price-kline': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/premium-index-price-kline': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/instruments-info': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/orderbook': { 'cost': 5, 'returnType': 'Dict' },
                         'v5/market/rpi_orderbook': 5,
                         'v5/market/full_orderbook': 5,
-                        'v5/market/tickers': 5,
-                        'v5/market/funding/history': 5,
-                        'v5/market/recent-trade': 5,
-                        'v5/market/open-interest': 5,
-                        'v5/market/historical-volatility': 5,
+                        'v5/market/tickers': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/funding/history': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/recent-trade': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/open-interest': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/historical-volatility': { 'cost': 5, 'returnType': 'Dict' },
                         'v5/market/insurance': 5,
-                        'v5/market/risk-limit': 5,
-                        'v5/market/delivery-price': 5,
+                        'v5/market/risk-limit': { 'cost': 5, 'returnType': 'Dict' },
+                        'v5/market/delivery-price': { 'cost': 5, 'returnType': 'Dict' },
                         'v5/market/new-delivery-price': 5,
-                        'v5/market/account-ratio': 5,
+                        'v5/market/account-ratio': { 'cost': 5, 'returnType': 'Dict' },
                         'v5/market/index-price-components': 5,
                         'v5/market/price-limit': 5,
                         'v5/market/adlAlert': 5,
@@ -275,7 +275,7 @@ export default class bybit extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'v5/market/instruments-info': 5,
+                        'v5/market/instruments-info': { 'cost': 5, 'returnType': 'Dict' },
                         // Legacy inverse swap
                         'v2/private/wallet/fund/records': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         // spot
@@ -337,13 +337,13 @@ export default class bybit extends Exchange {
                         'asset/v3/private/withdraw/record/query': 10,
                         // v5
                         // trade
-                        'v5/order/realtime': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/realtime': { 'cost': 5, 'returnType': 'Dict' }, // 10/s => cost = 50 / 10 = 5
                         'v5/order/history': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/spot-borrow-check': 1, // 50/s = 1000 / (20 * 1)
                         // position
-                        'v5/position/list': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/list': { 'cost': 5, 'returnType': 'Dict' }, // 10/s => cost = 50 / 10 = 5
                         'v5/execution/list': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/closed-pnl': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/closed-pnl': { 'cost': 5, 'returnType': 'Dict' }, // 10/s => cost = 50 / 10 = 5
                         'v5/position/get-closed-positions': 5,
                         'v5/position/move-history': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/symbol-info': 5,
@@ -355,14 +355,14 @@ export default class bybit extends Exchange {
                         'v5/pre-upgrade/asset/delivery-record': 5,
                         'v5/pre-upgrade/asset/settlement-record': 5,
                         // account
-                        'v5/account/wallet-balance': 1,
+                        'v5/account/wallet-balance': { 'cost': 1, 'returnType': 'Dict' },
                         'v5/account/borrow-history': 1,
                         'v5/account/instruments-info': 1,
                         'v5/account/collateral-info': 1,
                         'v5/account/option-asset-info': 1,
                         'v5/asset/coin-greeks': 1,
-                        'v5/account/fee-rate': 10, // 5/s = 1000 / (20 * 10)
-                        'v5/account/info': 5,
+                        'v5/account/fee-rate': { 'cost': 10, 'returnType': 'Dict' }, // 5/s = 1000 / (20 * 10)
+                        'v5/account/info': { 'cost': 5, 'returnType': 'Dict' },
                         'v5/account/transaction-log': 1.66, // 30/s = 50 / 30
                         'v5/account/contract-transaction-log': 1, // deprecated
                         'v5/account/query-dcp-info': 5,
@@ -374,17 +374,17 @@ export default class bybit extends Exchange {
                         'v5/account/withdrawal': 5,
                         // asset
                         'v5/asset/asset-overview': 5,
-                        'v5/asset/exchange/query-coin-list': 0.5, // 100/s => cost = 50 / 100 = 0.5
-                        'v5/asset/exchange/convert-result-query': 0.5, // 100/s => cost = 50 / 100 = 0.5
-                        'v5/asset/exchange/query-convert-history': 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/query-coin-list': { 'cost': 0.5, 'returnType': 'Dict' }, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/convert-result-query': { 'cost': 0.5, 'returnType': 'Dict' }, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/query-convert-history': { 'cost': 0.5, 'returnType': 'Dict' }, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/order-record': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/asset/fundinghistory': 5,
                         'v5/asset/portfolio-margin': 5,
                         'v5/asset/total-members-assets': 5,
-                        'v5/asset/delivery-record': 5,
+                        'v5/asset/delivery-record': { 'cost': 5, 'returnType': 'Dict' },
                         'v5/asset/settlement-record': 5,
                         'v5/asset/transfer/query-asset-info': 50, // deprecated, 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-account-coins-balance': 25, // 2/s => cost = 50 / 2 = 25
+                        'v5/asset/transfer/query-account-coins-balance': { 'cost': 25, 'returnType': 'Dict' }, // 2/s => cost = 50 / 2 = 25
                         'v5/asset/transfer/query-account-coin-balance': 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-transfer-coin-list': 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-inter-transfer-list': 50, // 1/s => cost = 50 / 1 = 50
@@ -394,9 +394,9 @@ export default class bybit extends Exchange {
                         'v5/asset/deposit/query-record': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-record': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-internal-record': 5,
-                        'v5/asset/deposit/query-address': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-address': { 'cost': 10, 'returnType': 'Dict' }, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-address': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/coin/query-info': 28, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
+                        'v5/asset/coin/query-info': { 'cost': 28, 'returnType': 'Dict' }, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
                         'v5/asset/withdraw/query-address': 10,
                         'v5/asset/withdraw/query-record': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
@@ -427,7 +427,7 @@ export default class bybit extends Exchange {
                         'v5/spot-lever-token/order-record': 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
                         'v5/spot-margin-trade/flexible-available-inventory': 5,
-                        'v5/spot-margin-trade/interest-rate-history': 5,
+                        'v5/spot-margin-trade/interest-rate-history': { 'cost': 5, 'returnType': 'Dict' },
                         'v5/spot-margin-trade/state': 5,
                         'v5/spot-margin-trade/max-borrowable': 5,
                         'v5/spot-margin-trade/position-tiers': 5,
@@ -439,8 +439,8 @@ export default class bybit extends Exchange {
                         'v5/spot-margin-trade/liability': 5,
                         'v5/spot-margin-trade/repayment-available-amount': 5,
                         'v5/spot-margin-trade/get-auto-repay-mode': 5,
-                        'v5/spot-cross-margin-trade/loan-info': 1, // 50/s => cost = 50 / 50 = 1
-                        'v5/spot-cross-margin-trade/account': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/loan-info': { 'cost': 1, 'returnType': 'Dict' }, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account': { 'cost': 1, 'returnType': 'Dict' }, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history': 1, // 50/s => cost = 50 / 50 = 1
                         // crypto loan
@@ -552,13 +552,13 @@ export default class bybit extends Exchange {
                         'fht/compliance/tax/v3/private/url': 50,
                         // v5
                         // trade
-                        'v5/order/create': 2.5, // 20/s = 1000 / (20 * 2.5)
-                        'v5/order/amend': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/cancel': 2.5,
-                        'v5/order/cancel-all': 50, // 1/s = 1000 / (20 * 50)
-                        'v5/order/create-batch': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/amend-batch': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/cancel-batch': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/create': { 'cost': 2.5, 'returnType': 'Dict' }, // 20/s = 1000 / (20 * 2.5)
+                        'v5/order/amend': { 'cost': 5, 'returnType': 'Dict' }, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/cancel': { 'cost': 2.5, 'returnType': 'Dict' },
+                        'v5/order/cancel-all': { 'cost': 50, 'returnType': 'Dict' }, // 1/s = 1000 / (20 * 50)
+                        'v5/order/create-batch': { 'cost': 5, 'returnType': 'Dict' }, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/amend-batch': { 'cost': 5, 'returnType': 'Dict' }, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/cancel-batch': { 'cost': 5, 'returnType': 'Dict' }, // 10/s => cost = 50 / 10 = 5
                         'v5/order/disconnected-cancel-all': 5,
                         'v5/order/pre-check': 5,
                         // position
@@ -567,7 +567,7 @@ export default class bybit extends Exchange {
                         'v5/position/set-tpsl-mode': 5, // deprecated, 10/s => cost = 50 / 10 = 5
                         'v5/position/switch-mode': 5,
                         'v5/position/set-risk-limit': 5, // deprecated, 10/s => cost = 50 / 10 = 5
-                        'v5/position/trading-stop': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/trading-stop': { 'cost': 5, 'returnType': 'Dict' }, // 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin': 5,
                         'v5/position/add-margin': 5,
                         'v5/position/move-positions': 5,
@@ -579,20 +579,20 @@ export default class bybit extends Exchange {
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
-                        'v5/account/borrow': 5,
+                        'v5/account/borrow': { 'cost': 5, 'returnType': 'Dict' },
                         'v5/account/repay': 5,
-                        'v5/account/no-convert-repay': 5,
+                        'v5/account/no-convert-repay': { 'cost': 5, 'returnType': 'Dict' },
                         'v5/account/set-limit-px-action': 5,
                         'v5/account/set-delta-mode': 5,
                         // asset
-                        'v5/asset/exchange/quote-apply': 1, // 50/s
-                        'v5/asset/exchange/convert-execute': 1, // 50/s
-                        'v5/asset/transfer/inter-transfer': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/exchange/quote-apply': { 'cost': 1, 'returnType': 'Dict' }, // 50/s
+                        'v5/asset/exchange/convert-execute': { 'cost': 1, 'returnType': 'Dict' }, // 50/s
+                        'v5/asset/transfer/inter-transfer': { 'cost': 50, 'returnType': 'Dict' }, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/save-transfer-sub-member': 150, // deprecated, 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account': 5,
                         'v5/asset/travel-rule/deposit/submit': 5,
-                        'v5/asset/withdraw/create': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/withdraw/create': { 'cost': 50, 'returnType': 'Dict' }, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/withdraw/cancel': 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/covert/get-quote': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/covert/small-balance-execute': 10, // 5/s => cost = 50 / 5 = 10

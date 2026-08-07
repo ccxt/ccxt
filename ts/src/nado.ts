@@ -90,8 +90,8 @@ export default class nado extends Exchange {
                     'public': {
                         'get': {
                             'symbols': 2,
-                            'query': 1,
-                            'edge/query': 1,
+                            'query': { 'cost': 1, 'returnType': 'Dict' },
+                            'edge/query': { 'cost': 1, 'returnType': 'Dict' },
                         },
                         'post': {
                             'query': 1,
@@ -99,38 +99,38 @@ export default class nado extends Exchange {
                     },
                     'private': {
                         'post': {
-                            'execute': 1,
+                            'execute': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                 },
                 'gatewayV2': {
                     'public': {
                         'get': {
-                            'assets': 2,
+                            'assets': { 'cost': 2, 'returnType': 'List' },
                             'pairs': 1,
-                            'orderbook': 1,
+                            'orderbook': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': 1,
+                        '': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': 1,
-                            'contracts': 1,
-                            'trades': 1,
+                            'tickers': { 'cost': 1, 'returnType': 'List' },
+                            'contracts': { 'cost': 1, 'returnType': 'Dict' },
+                            'trades': { 'cost': 1, 'returnType': 'List' },
                         },
                     },
                 },
                 'trigger': {
                     'private': {
                         'post': {
-                            'execute': 1,
-                            'query': 1,
+                            'execute': { 'cost': 1, 'returnType': 'Dict' },
+                            'query': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                 },

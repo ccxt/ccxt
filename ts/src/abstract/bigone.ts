@@ -5,12 +5,12 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType, List } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetPing (params?: {}): Promise<Dict>;
-    publicGetAssetPairs (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetPairs (params?: {}): Promise<Dict | List>;
     publicGetAssetPairsAssetPairNameDepth (params?: {}): Promise<Dict>;
     publicGetAssetPairsAssetPairNameTrades (params?: {}): Promise<Dict>;
     publicGetAssetPairsAssetPairNameTicker (params?: {}): Promise<Dict>;
@@ -21,7 +21,7 @@ interface Exchange {
     privateGetAssetsAssetSymbolAddress (params?: {}): Promise<Dict>;
     privateGetOrders (params?: {}): Promise<Dict>;
     privateGetOrdersId (params?: {}): Promise<Dict>;
-    privateGetOrdersMulti (params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersMulti (params?: {}): Promise<Dict | List>;
     privateGetTrades (params?: {}): Promise<Dict>;
     privateGetWithdrawals (params?: {}): Promise<Dict>;
     privateGetDeposits (params?: {}): Promise<Dict>;
@@ -30,26 +30,26 @@ interface Exchange {
     privatePostOrdersCancel (params?: {}): Promise<Dict>;
     privatePostWithdrawals (params?: {}): Promise<Dict>;
     privatePostTransfer (params?: {}): Promise<Dict>;
-    contractPublicGetSymbols (params?: {}): Promise<implicitReturnType>;
+    contractPublicGetSymbols (params?: {}): Promise<Dict | List>;
     contractPublicGetInstruments (params?: {}): Promise<List>;
     contractPublicGetDepthSymbolSnapshot (params?: {}): Promise<Dict>;
-    contractPublicGetInstrumentsDifference (params?: {}): Promise<implicitReturnType>;
-    contractPublicGetInstrumentsPrices (params?: {}): Promise<implicitReturnType>;
-    contractPrivateGetAccounts (params?: {}): Promise<implicitReturnType>;
-    contractPrivateGetOrdersId (params?: {}): Promise<implicitReturnType>;
-    contractPrivateGetOrders (params?: {}): Promise<implicitReturnType>;
-    contractPrivateGetOrdersOpening (params?: {}): Promise<implicitReturnType>;
-    contractPrivateGetOrdersCount (params?: {}): Promise<implicitReturnType>;
-    contractPrivateGetOrdersOpeningCount (params?: {}): Promise<implicitReturnType>;
-    contractPrivateGetTrades (params?: {}): Promise<implicitReturnType>;
-    contractPrivateGetTradesCount (params?: {}): Promise<implicitReturnType>;
-    contractPrivatePostOrders (params?: {}): Promise<implicitReturnType>;
-    contractPrivatePostOrdersBatch (params?: {}): Promise<implicitReturnType>;
-    contractPrivatePutPositionsSymbolMargin (params?: {}): Promise<implicitReturnType>;
-    contractPrivatePutPositionsSymbolRiskLimit (params?: {}): Promise<implicitReturnType>;
-    contractPrivateDeleteOrdersId (params?: {}): Promise<implicitReturnType>;
-    contractPrivateDeleteOrdersBatch (params?: {}): Promise<implicitReturnType>;
-    webExchangeGetV3Assets (params?: {}): Promise<implicitReturnType>;
+    contractPublicGetInstrumentsDifference (params?: {}): Promise<Dict | List>;
+    contractPublicGetInstrumentsPrices (params?: {}): Promise<Dict | List>;
+    contractPrivateGetAccounts (params?: {}): Promise<Dict | List>;
+    contractPrivateGetOrdersId (params?: {}): Promise<Dict | List>;
+    contractPrivateGetOrders (params?: {}): Promise<Dict | List>;
+    contractPrivateGetOrdersOpening (params?: {}): Promise<Dict | List>;
+    contractPrivateGetOrdersCount (params?: {}): Promise<Dict | List>;
+    contractPrivateGetOrdersOpeningCount (params?: {}): Promise<Dict | List>;
+    contractPrivateGetTrades (params?: {}): Promise<Dict | List>;
+    contractPrivateGetTradesCount (params?: {}): Promise<Dict | List>;
+    contractPrivatePostOrders (params?: {}): Promise<Dict | List>;
+    contractPrivatePostOrdersBatch (params?: {}): Promise<Dict | List>;
+    contractPrivatePutPositionsSymbolMargin (params?: {}): Promise<Dict | List>;
+    contractPrivatePutPositionsSymbolRiskLimit (params?: {}): Promise<Dict | List>;
+    contractPrivateDeleteOrdersId (params?: {}): Promise<Dict | List>;
+    contractPrivateDeleteOrdersBatch (params?: {}): Promise<Dict | List>;
+    webExchangeGetV3Assets (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

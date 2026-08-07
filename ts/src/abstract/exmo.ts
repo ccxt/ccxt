@@ -5,20 +5,20 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType, List, Dict } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    webGetCtrlFeesAndLimits (params?: {}): Promise<implicitReturnType>;
-    webGetEnDocsFees (params?: {}): Promise<implicitReturnType>;
+    webGetCtrlFeesAndLimits (params?: {}): Promise<Dict | List>;
+    webGetEnDocsFees (params?: {}): Promise<Dict | List>;
     publicGetCurrency (params?: {}): Promise<List>;
-    publicGetCurrencyListExtended (params?: {}): Promise<implicitReturnType>;
+    publicGetCurrencyListExtended (params?: {}): Promise<Dict | List>;
     publicGetOrderBook (params?: {}): Promise<Dict>;
-    publicGetPairSettings (params?: {}): Promise<implicitReturnType>;
+    publicGetPairSettings (params?: {}): Promise<Dict | List>;
     publicGetTicker (params?: {}): Promise<Dict>;
-    publicGetTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetTrades (params?: {}): Promise<Dict | List>;
     publicGetCandlesHistory (params?: {}): Promise<Dict>;
-    publicGetRequiredAmount (params?: {}): Promise<implicitReturnType>;
+    publicGetRequiredAmount (params?: {}): Promise<Dict | List>;
     publicGetPaymentsProvidersCryptoList (params?: {}): Promise<Dict>;
     privatePostUserInfo (params?: {}): Promise<Dict>;
     privatePostOrderCreate (params?: {}): Promise<Dict>;
@@ -29,37 +29,37 @@ interface Exchange {
     privatePostUserTrades (params?: {}): Promise<Dict>;
     privatePostUserCancelledOrders (params?: {}): Promise<List>;
     privatePostOrderTrades (params?: {}): Promise<Dict>;
-    privatePostDepositAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostDepositAddress (params?: {}): Promise<Dict | List>;
     privatePostWithdrawCrypt (params?: {}): Promise<Dict>;
-    privatePostWithdrawGetTxid (params?: {}): Promise<implicitReturnType>;
-    privatePostExcodeCreate (params?: {}): Promise<implicitReturnType>;
-    privatePostExcodeLoad (params?: {}): Promise<implicitReturnType>;
-    privatePostCodeCheck (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawGetTxid (params?: {}): Promise<Dict | List>;
+    privatePostExcodeCreate (params?: {}): Promise<Dict | List>;
+    privatePostExcodeLoad (params?: {}): Promise<Dict | List>;
+    privatePostCodeCheck (params?: {}): Promise<Dict | List>;
     privatePostWalletHistory (params?: {}): Promise<Dict>;
     privatePostWalletOperations (params?: {}): Promise<Dict>;
     privatePostMarginUserOrderCreate (params?: {}): Promise<Dict>;
     privatePostMarginUserOrderUpdate (params?: {}): Promise<Dict>;
     privatePostMarginUserOrderCancel (params?: {}): Promise<Dict>;
-    privatePostMarginUserPositionClose (params?: {}): Promise<implicitReturnType>;
+    privatePostMarginUserPositionClose (params?: {}): Promise<Dict | List>;
     privatePostMarginUserPositionMarginAdd (params?: {}): Promise<Dict>;
     privatePostMarginUserPositionMarginRemove (params?: {}): Promise<Dict>;
-    privatePostMarginCurrencyList (params?: {}): Promise<implicitReturnType>;
+    privatePostMarginCurrencyList (params?: {}): Promise<Dict | List>;
     privatePostMarginPairList (params?: {}): Promise<Dict>;
-    privatePostMarginSettings (params?: {}): Promise<implicitReturnType>;
-    privatePostMarginFundingList (params?: {}): Promise<implicitReturnType>;
-    privatePostMarginUserInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostMarginSettings (params?: {}): Promise<Dict | List>;
+    privatePostMarginFundingList (params?: {}): Promise<Dict | List>;
+    privatePostMarginUserInfo (params?: {}): Promise<Dict | List>;
     privatePostMarginUserOrderList (params?: {}): Promise<Dict>;
     privatePostMarginUserOrderHistory (params?: {}): Promise<Dict>;
     privatePostMarginUserOrderTrades (params?: {}): Promise<Dict>;
-    privatePostMarginUserOrderMaxQuantity (params?: {}): Promise<implicitReturnType>;
-    privatePostMarginUserPositionList (params?: {}): Promise<implicitReturnType>;
-    privatePostMarginUserPositionMarginRemoveInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostMarginUserPositionMarginAddInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostMarginUserOrderMaxQuantity (params?: {}): Promise<Dict | List>;
+    privatePostMarginUserPositionList (params?: {}): Promise<Dict | List>;
+    privatePostMarginUserPositionMarginRemoveInfo (params?: {}): Promise<Dict | List>;
+    privatePostMarginUserPositionMarginAddInfo (params?: {}): Promise<Dict | List>;
     privatePostMarginUserWalletList (params?: {}): Promise<Dict>;
-    privatePostMarginUserWalletHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostMarginUserTradeList (params?: {}): Promise<implicitReturnType>;
+    privatePostMarginUserWalletHistory (params?: {}): Promise<Dict | List>;
+    privatePostMarginUserTradeList (params?: {}): Promise<Dict | List>;
     privatePostMarginTrades (params?: {}): Promise<Dict>;
-    privatePostMarginLiquidationFeed (params?: {}): Promise<implicitReturnType>;
+    privatePostMarginLiquidationFeed (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

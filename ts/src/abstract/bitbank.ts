@@ -5,36 +5,36 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetPairTicker (params?: {}): Promise<Dict>;
-    publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetTickersJpy (params?: {}): Promise<implicitReturnType>;
+    publicGetTickers (params?: {}): Promise<Dict | List>;
+    publicGetTickersJpy (params?: {}): Promise<Dict | List>;
     publicGetPairDepth (params?: {}): Promise<Dict>;
     publicGetPairTransactions (params?: {}): Promise<Dict>;
-    publicGetPairTransactionsYyyymmdd (params?: {}): Promise<implicitReturnType>;
+    publicGetPairTransactionsYyyymmdd (params?: {}): Promise<Dict | List>;
     publicGetPairCandlestickCandletypeYyyymmdd (params?: {}): Promise<Dict>;
-    publicGetPairCircuitBreakInfo (params?: {}): Promise<implicitReturnType>;
+    publicGetPairCircuitBreakInfo (params?: {}): Promise<Dict | List>;
     privateGetUserAssets (params?: {}): Promise<Dict>;
     privateGetUserSpotOrder (params?: {}): Promise<Dict>;
     privateGetUserSpotActiveOrders (params?: {}): Promise<Dict>;
-    privateGetUserMarginPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetUserMarginPositions (params?: {}): Promise<Dict | List>;
     privateGetUserSpotTradeHistory (params?: {}): Promise<Dict>;
-    privateGetUserDepositHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetUserUnconfirmedDeposits (params?: {}): Promise<implicitReturnType>;
-    privateGetUserDepositOriginators (params?: {}): Promise<implicitReturnType>;
+    privateGetUserDepositHistory (params?: {}): Promise<Dict | List>;
+    privateGetUserUnconfirmedDeposits (params?: {}): Promise<Dict | List>;
+    privateGetUserDepositOriginators (params?: {}): Promise<Dict | List>;
     privateGetUserWithdrawalAccount (params?: {}): Promise<Dict>;
-    privateGetUserWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetSpotStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetSpotPairs (params?: {}): Promise<implicitReturnType>;
+    privateGetUserWithdrawalHistory (params?: {}): Promise<Dict | List>;
+    privateGetSpotStatus (params?: {}): Promise<Dict | List>;
+    privateGetSpotPairs (params?: {}): Promise<Dict | List>;
     privatePostUserSpotOrder (params?: {}): Promise<Dict>;
     privatePostUserSpotCancelOrder (params?: {}): Promise<Dict>;
-    privatePostUserSpotCancelOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostUserSpotOrdersInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostUserConfirmDeposits (params?: {}): Promise<implicitReturnType>;
-    privatePostUserConfirmDepositsAll (params?: {}): Promise<implicitReturnType>;
+    privatePostUserSpotCancelOrders (params?: {}): Promise<Dict | List>;
+    privatePostUserSpotOrdersInfo (params?: {}): Promise<Dict | List>;
+    privatePostUserConfirmDeposits (params?: {}): Promise<Dict | List>;
+    privatePostUserConfirmDepositsAll (params?: {}): Promise<Dict | List>;
     privatePostUserRequestWithdrawal (params?: {}): Promise<Dict>;
     marketsGetSpotPairs (params?: {}): Promise<Dict>;
 }

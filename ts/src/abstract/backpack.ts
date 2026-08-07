@@ -5,16 +5,16 @@
 
 // -------------------------------------------------------------------------------
 
-import { List, implicitReturnType, Dict } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetApiV1Assets (params?: {}): Promise<List>;
-    publicGetApiV1Collateral (params?: {}): Promise<implicitReturnType>;
-    publicGetApiV1BorrowLendMarkets (params?: {}): Promise<implicitReturnType>;
-    publicGetApiV1BorrowLendMarketsHistory (params?: {}): Promise<implicitReturnType>;
+    publicGetApiV1Collateral (params?: {}): Promise<Dict | List>;
+    publicGetApiV1BorrowLendMarkets (params?: {}): Promise<Dict | List>;
+    publicGetApiV1BorrowLendMarketsHistory (params?: {}): Promise<Dict | List>;
     publicGetApiV1Markets (params?: {}): Promise<List>;
-    publicGetApiV1Market (params?: {}): Promise<implicitReturnType>;
+    publicGetApiV1Market (params?: {}): Promise<Dict | List>;
     publicGetApiV1Ticker (params?: {}): Promise<Dict>;
     publicGetApiV1Tickers (params?: {}): Promise<List>;
     publicGetApiV1Depth (params?: {}): Promise<Dict>;
@@ -23,48 +23,48 @@ interface Exchange {
     publicGetApiV1OpenInterest (params?: {}): Promise<List>;
     publicGetApiV1FundingRates (params?: {}): Promise<List>;
     publicGetApiV1Status (params?: {}): Promise<Dict>;
-    publicGetApiV1Ping (params?: {}): Promise<implicitReturnType>;
+    publicGetApiV1Ping (params?: {}): Promise<Dict | List>;
     publicGetApiV1Time (params?: {}): Promise<List>;
-    publicGetApiV1Wallets (params?: {}): Promise<implicitReturnType>;
+    publicGetApiV1Wallets (params?: {}): Promise<Dict | List>;
     publicGetApiV1Trades (params?: {}): Promise<List>;
     publicGetApiV1TradesHistory (params?: {}): Promise<List>;
-    privateGetApiV1Account (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1AccountLimitsBorrow (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1AccountLimitsOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1AccountLimitsWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1BorrowLendPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetApiV1Account (params?: {}): Promise<Dict | List>;
+    privateGetApiV1AccountLimitsBorrow (params?: {}): Promise<Dict | List>;
+    privateGetApiV1AccountLimitsOrder (params?: {}): Promise<Dict | List>;
+    privateGetApiV1AccountLimitsWithdrawal (params?: {}): Promise<Dict | List>;
+    privateGetApiV1BorrowLendPositions (params?: {}): Promise<Dict | List>;
     privateGetApiV1Capital (params?: {}): Promise<Dict>;
-    privateGetApiV1CapitalCollateral (params?: {}): Promise<implicitReturnType>;
+    privateGetApiV1CapitalCollateral (params?: {}): Promise<Dict | List>;
     privateGetWapiV1CapitalDeposits (params?: {}): Promise<List>;
     privateGetWapiV1CapitalDepositAddress (params?: {}): Promise<Dict>;
     privateGetWapiV1CapitalWithdrawals (params?: {}): Promise<List>;
     privateGetApiV1Position (params?: {}): Promise<List>;
-    privateGetWapiV1HistoryBorrowLend (params?: {}): Promise<implicitReturnType>;
-    privateGetWapiV1HistoryInterest (params?: {}): Promise<implicitReturnType>;
-    privateGetWapiV1HistoryBorrowLendPositions (params?: {}): Promise<implicitReturnType>;
-    privateGetWapiV1HistoryDust (params?: {}): Promise<implicitReturnType>;
+    privateGetWapiV1HistoryBorrowLend (params?: {}): Promise<Dict | List>;
+    privateGetWapiV1HistoryInterest (params?: {}): Promise<Dict | List>;
+    privateGetWapiV1HistoryBorrowLendPositions (params?: {}): Promise<Dict | List>;
+    privateGetWapiV1HistoryDust (params?: {}): Promise<Dict | List>;
     privateGetWapiV1HistoryFills (params?: {}): Promise<List>;
     privateGetWapiV1HistoryFunding (params?: {}): Promise<List>;
     privateGetWapiV1HistoryOrders (params?: {}): Promise<List>;
-    privateGetWapiV1HistoryRfq (params?: {}): Promise<implicitReturnType>;
-    privateGetWapiV1HistoryQuote (params?: {}): Promise<implicitReturnType>;
-    privateGetWapiV1HistorySettlement (params?: {}): Promise<implicitReturnType>;
-    privateGetWapiV1HistoryStrategies (params?: {}): Promise<implicitReturnType>;
+    privateGetWapiV1HistoryRfq (params?: {}): Promise<Dict | List>;
+    privateGetWapiV1HistoryQuote (params?: {}): Promise<Dict | List>;
+    privateGetWapiV1HistorySettlement (params?: {}): Promise<Dict | List>;
+    privateGetWapiV1HistoryStrategies (params?: {}): Promise<Dict | List>;
     privateGetApiV1Order (params?: {}): Promise<Dict>;
     privateGetApiV1Orders (params?: {}): Promise<List>;
-    privatePostApiV1AccountConvertDust (params?: {}): Promise<implicitReturnType>;
-    privatePostApiV1BorrowLend (params?: {}): Promise<implicitReturnType>;
+    privatePostApiV1AccountConvertDust (params?: {}): Promise<Dict | List>;
+    privatePostApiV1BorrowLend (params?: {}): Promise<Dict | List>;
     privatePostWapiV1CapitalWithdrawals (params?: {}): Promise<Dict>;
     privatePostApiV1Order (params?: {}): Promise<Dict>;
     privatePostApiV1Orders (params?: {}): Promise<List>;
-    privatePostApiV1Rfq (params?: {}): Promise<implicitReturnType>;
-    privatePostApiV1RfqAccept (params?: {}): Promise<implicitReturnType>;
-    privatePostApiV1RfqRefresh (params?: {}): Promise<implicitReturnType>;
-    privatePostApiV1RfqCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostApiV1RfqQuote (params?: {}): Promise<implicitReturnType>;
+    privatePostApiV1Rfq (params?: {}): Promise<Dict | List>;
+    privatePostApiV1RfqAccept (params?: {}): Promise<Dict | List>;
+    privatePostApiV1RfqRefresh (params?: {}): Promise<Dict | List>;
+    privatePostApiV1RfqCancel (params?: {}): Promise<Dict | List>;
+    privatePostApiV1RfqQuote (params?: {}): Promise<Dict | List>;
     privateDeleteApiV1Order (params?: {}): Promise<Dict>;
     privateDeleteApiV1Orders (params?: {}): Promise<List>;
-    privatePatchApiV1Account (params?: {}): Promise<implicitReturnType>;
+    privatePatchApiV1Account (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

@@ -37,7 +37,7 @@ export default class bitrue extends bitrueRest {
                     'v1': {
                         'private': {
                             'post': {
-                                'poseidon/api/v1/listenKey': 1,
+                                'poseidon/api/v1/listenKey': { 'cost': 1, 'returnType': 'Dict' },
                             },
                             'put': {
                                 'poseidon/api/v1/listenKey/{listenKey}': 1,

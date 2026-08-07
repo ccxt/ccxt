@@ -5,38 +5,38 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType, Dict, List } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    spotKlinePublicGetPublicJson (params?: {}): Promise<implicitReturnType>;
-    spotKlinePublicGetPublicCurrencyJson (params?: {}): Promise<implicitReturnType>;
+    spotKlinePublicGetPublicJson (params?: {}): Promise<Dict | List>;
+    spotKlinePublicGetPublicCurrencyJson (params?: {}): Promise<Dict | List>;
     spotV1PublicGetPing (params?: {}): Promise<Dict>;
     spotV1PublicGetTime (params?: {}): Promise<Dict>;
     spotV1PublicGetExchangeInfo (params?: {}): Promise<Dict>;
     spotV1PublicGetDepth (params?: {}): Promise<Dict>;
     spotV1PublicGetTrades (params?: {}): Promise<List>;
-    spotV1PublicGetHistoricalTrades (params?: {}): Promise<implicitReturnType>;
-    spotV1PublicGetAggTrades (params?: {}): Promise<implicitReturnType>;
+    spotV1PublicGetHistoricalTrades (params?: {}): Promise<Dict | List>;
+    spotV1PublicGetAggTrades (params?: {}): Promise<Dict | List>;
     spotV1PublicGetTicker24hr (params?: {}): Promise<List>;
-    spotV1PublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
-    spotV1PublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
+    spotV1PublicGetTickerPrice (params?: {}): Promise<Dict | List>;
+    spotV1PublicGetTickerBookTicker (params?: {}): Promise<Dict | List>;
     spotV1PublicGetMarketKline (params?: {}): Promise<Dict>;
     spotV1PrivateGetOrder (params?: {}): Promise<Dict>;
     spotV1PrivateGetOpenOrders (params?: {}): Promise<Dict>;
     spotV1PrivateGetAllOrders (params?: {}): Promise<List>;
     spotV1PrivateGetAccount (params?: {}): Promise<Dict>;
-    spotV1PrivateGetMyTrades (params?: {}): Promise<implicitReturnType>;
-    spotV1PrivateGetEtfNetValueSymbol (params?: {}): Promise<implicitReturnType>;
+    spotV1PrivateGetMyTrades (params?: {}): Promise<Dict | List>;
+    spotV1PrivateGetEtfNetValueSymbol (params?: {}): Promise<Dict | List>;
     spotV1PrivateGetWithdrawHistory (params?: {}): Promise<Dict>;
     spotV1PrivateGetDepositHistory (params?: {}): Promise<Dict>;
     spotV1PrivatePostOrder (params?: {}): Promise<Dict>;
     spotV1PrivatePostWithdrawCommit (params?: {}): Promise<Dict>;
     spotV1PrivateDeleteOrder (params?: {}): Promise<Dict>;
     spotV2PrivateGetMyTrades (params?: {}): Promise<Dict>;
-    fapiV1PublicGetPing (params?: {}): Promise<implicitReturnType>;
-    fapiV1PublicGetTime (params?: {}): Promise<implicitReturnType>;
-    fapiV1PublicGetContracts (params?: {}): Promise<implicitReturnType>;
+    fapiV1PublicGetPing (params?: {}): Promise<Dict | List>;
+    fapiV1PublicGetTime (params?: {}): Promise<Dict | List>;
+    fapiV1PublicGetContracts (params?: {}): Promise<Dict | List>;
     fapiV1PublicGetDepth (params?: {}): Promise<Dict>;
     fapiV1PublicGetTicker (params?: {}): Promise<List>;
     fapiV1PublicGetKlines (params?: {}): Promise<Dict>;
@@ -44,19 +44,19 @@ interface Exchange {
     fapiV2PrivateGetOpenOrders (params?: {}): Promise<Dict>;
     fapiV2PrivateGetOrder (params?: {}): Promise<Dict>;
     fapiV2PrivateGetAccount (params?: {}): Promise<Dict>;
-    fapiV2PrivateGetLeverageBracket (params?: {}): Promise<implicitReturnType>;
-    fapiV2PrivateGetCommissionRate (params?: {}): Promise<implicitReturnType>;
+    fapiV2PrivateGetLeverageBracket (params?: {}): Promise<Dict | List>;
+    fapiV2PrivateGetCommissionRate (params?: {}): Promise<Dict | List>;
     fapiV2PrivateGetFuturesTransferHistory (params?: {}): Promise<Dict>;
-    fapiV2PrivateGetForceOrdersHistory (params?: {}): Promise<implicitReturnType>;
+    fapiV2PrivateGetForceOrdersHistory (params?: {}): Promise<Dict | List>;
     fapiV2PrivatePostPositionMargin (params?: {}): Promise<Dict>;
-    fapiV2PrivatePostLevelEdit (params?: {}): Promise<implicitReturnType>;
+    fapiV2PrivatePostLevelEdit (params?: {}): Promise<Dict | List>;
     fapiV2PrivatePostCancel (params?: {}): Promise<Dict>;
     fapiV2PrivatePostOrder (params?: {}): Promise<Dict>;
     fapiV2PrivatePostAllOpenOrders (params?: {}): Promise<Dict>;
     fapiV2PrivatePostFuturesTransfer (params?: {}): Promise<Dict>;
-    dapiV1PublicGetPing (params?: {}): Promise<implicitReturnType>;
-    dapiV1PublicGetTime (params?: {}): Promise<implicitReturnType>;
-    dapiV1PublicGetContracts (params?: {}): Promise<implicitReturnType>;
+    dapiV1PublicGetPing (params?: {}): Promise<Dict | List>;
+    dapiV1PublicGetTime (params?: {}): Promise<Dict | List>;
+    dapiV1PublicGetContracts (params?: {}): Promise<Dict | List>;
     dapiV1PublicGetDepth (params?: {}): Promise<Dict>;
     dapiV1PublicGetTicker (params?: {}): Promise<List>;
     dapiV1PublicGetKlines (params?: {}): Promise<Dict>;
@@ -64,19 +64,19 @@ interface Exchange {
     dapiV2PrivateGetOpenOrders (params?: {}): Promise<Dict>;
     dapiV2PrivateGetOrder (params?: {}): Promise<Dict>;
     dapiV2PrivateGetAccount (params?: {}): Promise<Dict>;
-    dapiV2PrivateGetLeverageBracket (params?: {}): Promise<implicitReturnType>;
-    dapiV2PrivateGetCommissionRate (params?: {}): Promise<implicitReturnType>;
-    dapiV2PrivateGetFuturesTransferHistory (params?: {}): Promise<implicitReturnType>;
-    dapiV2PrivateGetForceOrdersHistory (params?: {}): Promise<implicitReturnType>;
+    dapiV2PrivateGetLeverageBracket (params?: {}): Promise<Dict | List>;
+    dapiV2PrivateGetCommissionRate (params?: {}): Promise<Dict | List>;
+    dapiV2PrivateGetFuturesTransferHistory (params?: {}): Promise<Dict | List>;
+    dapiV2PrivateGetForceOrdersHistory (params?: {}): Promise<Dict | List>;
     dapiV2PrivatePostPositionMargin (params?: {}): Promise<Dict>;
-    dapiV2PrivatePostLevelEdit (params?: {}): Promise<implicitReturnType>;
+    dapiV2PrivatePostLevelEdit (params?: {}): Promise<Dict | List>;
     dapiV2PrivatePostCancel (params?: {}): Promise<Dict>;
     dapiV2PrivatePostOrder (params?: {}): Promise<Dict>;
     dapiV2PrivatePostAllOpenOrders (params?: {}): Promise<Dict>;
-    dapiV2PrivatePostFuturesTransfer (params?: {}): Promise<implicitReturnType>;
+    dapiV2PrivatePostFuturesTransfer (params?: {}): Promise<Dict | List>;
     openV1PrivatePostPoseidonApiV1ListenKey (params?: {}): Promise<Dict>;
-    openV1PrivatePutPoseidonApiV1ListenKeyListenKey (params?: {}): Promise<implicitReturnType>;
-    openV1PrivateDeletePoseidonApiV1ListenKeyListenKey (params?: {}): Promise<implicitReturnType>;
+    openV1PrivatePutPoseidonApiV1ListenKeyListenKey (params?: {}): Promise<Dict | List>;
+    openV1PrivateDeletePoseidonApiV1ListenKeyListenKey (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

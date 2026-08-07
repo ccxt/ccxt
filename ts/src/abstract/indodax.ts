@@ -5,14 +5,14 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetApiServerTime (params?: {}): Promise<Dict>;
     publicGetApiPairs (params?: {}): Promise<List>;
-    publicGetApiPriceIncrements (params?: {}): Promise<implicitReturnType>;
-    publicGetApiSummaries (params?: {}): Promise<implicitReturnType>;
+    publicGetApiPriceIncrements (params?: {}): Promise<Dict | List>;
+    publicGetApiSummaries (params?: {}): Promise<Dict | List>;
     publicGetApiTickerPair (params?: {}): Promise<Dict>;
     publicGetApiTickerAll (params?: {}): Promise<Dict>;
     publicGetApiTradesPair (params?: {}): Promise<List>;
@@ -28,9 +28,9 @@ interface Exchange {
     privatePostCancelOrder (params?: {}): Promise<Dict>;
     privatePostWithdrawFee (params?: {}): Promise<Dict>;
     privatePostWithdrawCoin (params?: {}): Promise<Dict>;
-    privatePostListDownline (params?: {}): Promise<implicitReturnType>;
-    privatePostCheckDownline (params?: {}): Promise<implicitReturnType>;
-    privatePostCreateVoucher (params?: {}): Promise<implicitReturnType>;
+    privatePostListDownline (params?: {}): Promise<Dict | List>;
+    privatePostCheckDownline (params?: {}): Promise<Dict | List>;
+    privatePostCreateVoucher (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

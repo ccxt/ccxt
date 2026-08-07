@@ -5,28 +5,28 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType, Dict, List } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetFeeschedules (params?: {}): Promise<implicitReturnType>;
+    publicGetFeeschedules (params?: {}): Promise<Dict | List>;
     publicGetInstruments (params?: {}): Promise<Dict>;
     publicGetOrderbook (params?: {}): Promise<Dict>;
     publicGetTickers (params?: {}): Promise<Dict>;
     publicGetHistory (params?: {}): Promise<Dict>;
     publicGetHistoricalfundingrates (params?: {}): Promise<Dict>;
-    privateGetFeeschedulesVolumes (params?: {}): Promise<implicitReturnType>;
+    privateGetFeeschedulesVolumes (params?: {}): Promise<Dict | List>;
     privateGetOpenpositions (params?: {}): Promise<List>;
-    privateGetNotifications (params?: {}): Promise<implicitReturnType>;
+    privateGetNotifications (params?: {}): Promise<Dict | List>;
     privateGetAccounts (params?: {}): Promise<Dict>;
     privateGetOpenorders (params?: {}): Promise<Dict>;
-    privateGetRecentorders (params?: {}): Promise<implicitReturnType>;
+    privateGetRecentorders (params?: {}): Promise<Dict | List>;
     privateGetFills (params?: {}): Promise<Dict>;
-    privateGetTransfers (params?: {}): Promise<implicitReturnType>;
+    privateGetTransfers (params?: {}): Promise<Dict | List>;
     privateGetLeveragepreferences (params?: {}): Promise<Dict>;
-    privateGetPnlpreferences (params?: {}): Promise<implicitReturnType>;
-    privateGetAssignmentprogramCurrent (params?: {}): Promise<implicitReturnType>;
-    privateGetAssignmentprogramHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetPnlpreferences (params?: {}): Promise<Dict | List>;
+    privateGetAssignmentprogramCurrent (params?: {}): Promise<Dict | List>;
+    privateGetAssignmentprogramHistory (params?: {}): Promise<Dict | List>;
     privateGetOrdersStatus (params?: {}): Promise<Dict>;
     privatePostSendorder (params?: {}): Promise<Dict>;
     privatePostEditorder (params?: {}): Promise<Dict>;
@@ -34,19 +34,19 @@ interface Exchange {
     privatePostTransfer (params?: {}): Promise<Dict>;
     privatePostBatchorder (params?: {}): Promise<Dict>;
     privatePostCancelallorders (params?: {}): Promise<Dict>;
-    privatePostCancelallordersafter (params?: {}): Promise<implicitReturnType>;
+    privatePostCancelallordersafter (params?: {}): Promise<Dict | List>;
     privatePostWithdrawal (params?: {}): Promise<Dict>;
-    privatePostAssignmentprogramAdd (params?: {}): Promise<implicitReturnType>;
-    privatePostAssignmentprogramDelete (params?: {}): Promise<implicitReturnType>;
-    privatePutLeveragepreferences (params?: {}): Promise<implicitReturnType>;
-    privatePutPnlpreferences (params?: {}): Promise<implicitReturnType>;
+    privatePostAssignmentprogramAdd (params?: {}): Promise<Dict | List>;
+    privatePostAssignmentprogramDelete (params?: {}): Promise<Dict | List>;
+    privatePutLeveragepreferences (params?: {}): Promise<Dict | List>;
+    privatePutPnlpreferences (params?: {}): Promise<Dict | List>;
     chartsGetPriceTypeSymbolInterval (params?: {}): Promise<Dict>;
     historyGetOrders (params?: {}): Promise<Dict>;
-    historyGetExecutions (params?: {}): Promise<implicitReturnType>;
+    historyGetExecutions (params?: {}): Promise<Dict | List>;
     historyGetTriggers (params?: {}): Promise<Dict>;
-    historyGetAccountlogcsv (params?: {}): Promise<implicitReturnType>;
-    historyGetAccountLog (params?: {}): Promise<implicitReturnType>;
-    historyGetMarketSymbolOrders (params?: {}): Promise<implicitReturnType>;
+    historyGetAccountlogcsv (params?: {}): Promise<Dict | List>;
+    historyGetAccountLog (params?: {}): Promise<Dict | List>;
+    historyGetMarketSymbolOrders (params?: {}): Promise<Dict | List>;
     historyGetMarketSymbolExecutions (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}

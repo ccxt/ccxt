@@ -5,35 +5,35 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicPostGetServerTime (params?: {}): Promise<Dict>;
     publicPostGetPairsInfo (params?: {}): Promise<Dict>;
-    publicPostGetCurrenciesInfo (params?: {}): Promise<implicitReturnType>;
-    publicPostGetProcessingInfo (params?: {}): Promise<implicitReturnType>;
+    publicPostGetCurrenciesInfo (params?: {}): Promise<Dict | List>;
+    publicPostGetProcessingInfo (params?: {}): Promise<Dict | List>;
     publicPostGetTicker (params?: {}): Promise<Dict>;
     publicPostGetTradeHistory (params?: {}): Promise<Dict>;
     publicPostGetOrderBook (params?: {}): Promise<Dict>;
     publicPostGetCandles (params?: {}): Promise<Dict>;
     privatePostGetMyCurrentFee (params?: {}): Promise<Dict>;
-    privatePostGetFeeStrategy (params?: {}): Promise<implicitReturnType>;
-    privatePostGetMyVolume (params?: {}): Promise<implicitReturnType>;
-    privatePostDoCreateAccount (params?: {}): Promise<implicitReturnType>;
+    privatePostGetFeeStrategy (params?: {}): Promise<Dict | List>;
+    privatePostGetMyVolume (params?: {}): Promise<Dict | List>;
+    privatePostDoCreateAccount (params?: {}): Promise<Dict | List>;
     privatePostGetMyAccountStatusV3 (params?: {}): Promise<Dict>;
     privatePostGetMyWalletBalance (params?: {}): Promise<Dict>;
     privatePostGetMyOrders (params?: {}): Promise<Dict>;
     privatePostDoMyNewOrder (params?: {}): Promise<Dict>;
     privatePostDoCancelMyOrder (params?: {}): Promise<Dict>;
     privatePostDoCancelAllOrders (params?: {}): Promise<Dict>;
-    privatePostGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    privatePostGetCandles (params?: {}): Promise<implicitReturnType>;
+    privatePostGetOrderBook (params?: {}): Promise<Dict | List>;
+    privatePostGetCandles (params?: {}): Promise<Dict | List>;
     privatePostGetTradeHistory (params?: {}): Promise<Dict>;
     privatePostGetMyTransactionHistory (params?: {}): Promise<Dict>;
     privatePostGetMyFundingHistory (params?: {}): Promise<Dict>;
     privatePostDoMyInternalTransfer (params?: {}): Promise<Dict>;
-    privatePostGetProcessingInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostGetProcessingInfo (params?: {}): Promise<Dict | List>;
     privatePostGetDepositAddress (params?: {}): Promise<Dict>;
     privatePostDoDepositFundsFromWallet (params?: {}): Promise<Dict>;
     privatePostDoWithdrawalFundsToWallet (params?: {}): Promise<Dict>;

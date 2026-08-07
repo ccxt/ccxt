@@ -96,12 +96,13 @@ export default class hyperliquid extends Exchange {
                                 'candleSnapshot': 4,
                                 'orderStatus': 2,
                             },
+                            'returnType': 'Dict | List | string',
                         },
                     },
                 },
                 'private': {
                     'post': {
-                        'exchange': 1,
+                        'exchange': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },

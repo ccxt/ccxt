@@ -5,43 +5,43 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType, Dict, List } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    binanceGetPing (params?: {}): Promise<implicitReturnType>;
-    binanceGetTime (params?: {}): Promise<implicitReturnType>;
+    binanceGetPing (params?: {}): Promise<Dict | List>;
+    binanceGetTime (params?: {}): Promise<Dict | List>;
     binanceGetDepth (params?: {}): Promise<Dict>;
     binanceGetTrades (params?: {}): Promise<List>;
     binanceGetAggTrades (params?: {}): Promise<List>;
-    binanceGetHistoricalTrades (params?: {}): Promise<implicitReturnType>;
+    binanceGetHistoricalTrades (params?: {}): Promise<Dict | List>;
     binanceGetKlines (params?: {}): Promise<Dict>;
     binanceGetTicker24hr (params?: {}): Promise<List>;
-    binanceGetTickerPrice (params?: {}): Promise<implicitReturnType>;
+    binanceGetTickerPrice (params?: {}): Promise<Dict | List>;
     binanceGetTickerBookTicker (params?: {}): Promise<List>;
-    binanceGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    binancePutUserDataStream (params?: {}): Promise<implicitReturnType>;
-    binancePostUserDataStream (params?: {}): Promise<implicitReturnType>;
-    binanceDeleteUserDataStream (params?: {}): Promise<implicitReturnType>;
+    binanceGetExchangeInfo (params?: {}): Promise<Dict | List>;
+    binancePutUserDataStream (params?: {}): Promise<Dict | List>;
+    binancePostUserDataStream (params?: {}): Promise<Dict | List>;
+    binanceDeleteUserDataStream (params?: {}): Promise<Dict | List>;
     publicGetOpenV1CommonTime (params?: {}): Promise<Dict>;
     publicGetOpenV1CommonSymbols (params?: {}): Promise<Dict>;
     publicGetOpenV1MarketDepth (params?: {}): Promise<Dict>;
     publicGetOpenV1MarketTrades (params?: {}): Promise<Dict>;
-    publicGetOpenV1MarketAggTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenV1MarketAggTrades (params?: {}): Promise<Dict | List>;
     publicGetOpenV1MarketKlines (params?: {}): Promise<Dict>;
-    privateGetOpenV1OrdersDetail (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenV1OrdersDetail (params?: {}): Promise<Dict | List>;
     privateGetOpenV1Orders (params?: {}): Promise<Dict>;
-    privateGetOpenV1AccountSpot (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenV1AccountSpotAsset (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenV1AccountSpot (params?: {}): Promise<Dict | List>;
+    privateGetOpenV1AccountSpotAsset (params?: {}): Promise<Dict | List>;
     privateGetOpenV1OrdersTrades (params?: {}): Promise<Dict>;
     privateGetOpenV1Withdraws (params?: {}): Promise<Dict>;
     privateGetOpenV1Deposits (params?: {}): Promise<Dict>;
     privateGetOpenV1DepositsAddress (params?: {}): Promise<Dict>;
     privatePostOpenV1Orders (params?: {}): Promise<Dict>;
     privatePostOpenV1OrdersCancel (params?: {}): Promise<Dict>;
-    privatePostOpenV1OrdersOco (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenV1OrdersOco (params?: {}): Promise<Dict | List>;
     privatePostOpenV1Withdraws (params?: {}): Promise<Dict>;
-    privatePostOpenV1UserDataStream (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenV1UserDataStream (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

@@ -5,56 +5,56 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     rootGet (params?: {}): Promise<Dict>;
-    rootGetInfo (params?: {}): Promise<implicitReturnType>;
+    rootGetInfo (params?: {}): Promise<Dict | List>;
     publicGetAccount (params?: {}): Promise<Dict>;
     publicGetAccountsByL1Address (params?: {}): Promise<Dict>;
-    publicGetApikeys (params?: {}): Promise<implicitReturnType>;
-    publicGetExchangeStats (params?: {}): Promise<implicitReturnType>;
+    publicGetApikeys (params?: {}): Promise<Dict | List>;
+    publicGetExchangeStats (params?: {}): Promise<Dict | List>;
     publicGetAssetDetails (params?: {}): Promise<Dict>;
     publicGetOrderBookDetails (params?: {}): Promise<Dict>;
     publicGetOrderBookOrders (params?: {}): Promise<Dict>;
     publicGetOrderBooks (params?: {}): Promise<Dict>;
-    publicGetRecentTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetBlockTxs (params?: {}): Promise<implicitReturnType>;
+    publicGetRecentTrades (params?: {}): Promise<Dict | List>;
+    publicGetBlockTxs (params?: {}): Promise<Dict | List>;
     publicGetNextNonce (params?: {}): Promise<Dict>;
-    publicGetTx (params?: {}): Promise<implicitReturnType>;
-    publicGetTxFromL1TxHash (params?: {}): Promise<implicitReturnType>;
-    publicGetTxs (params?: {}): Promise<implicitReturnType>;
-    publicGetAnnouncement (params?: {}): Promise<implicitReturnType>;
-    publicGetBlock (params?: {}): Promise<implicitReturnType>;
-    publicGetBlocks (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrentHeight (params?: {}): Promise<implicitReturnType>;
+    publicGetTx (params?: {}): Promise<Dict | List>;
+    publicGetTxFromL1TxHash (params?: {}): Promise<Dict | List>;
+    publicGetTxs (params?: {}): Promise<Dict | List>;
+    publicGetAnnouncement (params?: {}): Promise<Dict | List>;
+    publicGetBlock (params?: {}): Promise<Dict | List>;
+    publicGetBlocks (params?: {}): Promise<Dict | List>;
+    publicGetCurrentHeight (params?: {}): Promise<Dict | List>;
     publicGetCandles (params?: {}): Promise<Dict>;
-    publicGetFundings (params?: {}): Promise<implicitReturnType>;
-    publicGetFastbridgeInfo (params?: {}): Promise<implicitReturnType>;
+    publicGetFundings (params?: {}): Promise<Dict | List>;
+    publicGetFastbridgeInfo (params?: {}): Promise<Dict | List>;
     publicGetFundingRates (params?: {}): Promise<Dict>;
-    publicGetWithdrawalDelay (params?: {}): Promise<implicitReturnType>;
+    publicGetWithdrawalDelay (params?: {}): Promise<Dict | List>;
     publicPostSendTx (params?: {}): Promise<Dict>;
-    publicPostSendTxBatch (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountLimits (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountMetadata (params?: {}): Promise<implicitReturnType>;
-    privateGetPnl (params?: {}): Promise<implicitReturnType>;
-    privateGetL1Metadata (params?: {}): Promise<implicitReturnType>;
+    publicPostSendTxBatch (params?: {}): Promise<Dict | List>;
+    privateGetAccountLimits (params?: {}): Promise<Dict | List>;
+    privateGetAccountMetadata (params?: {}): Promise<Dict | List>;
+    privateGetPnl (params?: {}): Promise<Dict | List>;
+    privateGetL1Metadata (params?: {}): Promise<Dict | List>;
     privateGetLiquidations (params?: {}): Promise<Dict>;
-    privateGetPositionFunding (params?: {}): Promise<implicitReturnType>;
-    privateGetPublicPoolsMetadata (params?: {}): Promise<implicitReturnType>;
+    privateGetPositionFunding (params?: {}): Promise<Dict | List>;
+    privateGetPublicPoolsMetadata (params?: {}): Promise<Dict | List>;
     privateGetAccountActiveOrders (params?: {}): Promise<Dict>;
     privateGetAccountInactiveOrders (params?: {}): Promise<Dict>;
-    privateGetExport (params?: {}): Promise<implicitReturnType>;
+    privateGetExport (params?: {}): Promise<Dict | List>;
     privateGetTrades (params?: {}): Promise<Dict>;
-    privateGetAccountTxs (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountTxs (params?: {}): Promise<Dict | List>;
     privateGetDepositHistory (params?: {}): Promise<Dict>;
     privateGetTransferHistory (params?: {}): Promise<Dict>;
     privateGetWithdrawHistory (params?: {}): Promise<Dict>;
-    privateGetReferralPoints (params?: {}): Promise<implicitReturnType>;
-    privateGetTransferFeeInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostChangeAccountTier (params?: {}): Promise<implicitReturnType>;
-    privatePostNotificationAck (params?: {}): Promise<implicitReturnType>;
+    privateGetReferralPoints (params?: {}): Promise<Dict | List>;
+    privateGetTransferFeeInfo (params?: {}): Promise<Dict | List>;
+    privatePostChangeAccountTier (params?: {}): Promise<Dict | List>;
+    privatePostNotificationAck (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

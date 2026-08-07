@@ -5,42 +5,42 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType } from '../../base/types.js';
+import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
     myriadPublicGetQuestions (params?: {}): Promise<Dict>;
-    myriadPublicGetQuestionsId (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetQuestionsId (params?: {}): Promise<Dict | List>;
     myriadPublicGetMarkets (params?: {}): Promise<Dict>;
     myriadPublicGetMarketsId (params?: {}): Promise<Dict>;
-    myriadPublicGetMarketsNetworkIdId (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetMarketsNetworkIdId (params?: {}): Promise<Dict | List>;
     myriadPublicGetMarketsIdEvents (params?: {}): Promise<Dict>;
-    myriadPublicGetMarketsIdOrderbook (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetMarketsIdTrades (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetMarketsIdHolders (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetMarketsIdReferrals (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetEvents (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetMarketsIdOrderbook (params?: {}): Promise<Dict | List>;
+    myriadPublicGetMarketsIdTrades (params?: {}): Promise<Dict | List>;
+    myriadPublicGetMarketsIdHolders (params?: {}): Promise<Dict | List>;
+    myriadPublicGetMarketsIdReferrals (params?: {}): Promise<Dict | List>;
+    myriadPublicGetEvents (params?: {}): Promise<Dict | List>;
     myriadPublicGetOrders (params?: {}): Promise<Dict>;
     myriadPublicGetOrdersHash (params?: {}): Promise<Dict>;
     myriadPublicGetUsersAddressEvents (params?: {}): Promise<Dict>;
-    myriadPublicGetUsersAddressReferrals (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetUsersAddressReferrals (params?: {}): Promise<Dict | List>;
     myriadPublicGetUsersAddressPortfolio (params?: {}): Promise<Dict>;
-    myriadPublicGetUsersAddressMarkets (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetTags (params?: {}): Promise<implicitReturnType>;
-    myriadPublicGetTopics (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetUsersAddressMarkets (params?: {}): Promise<Dict | List>;
+    myriadPublicGetTags (params?: {}): Promise<Dict | List>;
+    myriadPublicGetTopics (params?: {}): Promise<Dict | List>;
     myriadPublicPostMarketsQuote (params?: {}): Promise<Dict>;
-    myriadPublicPostMarketsClaim (params?: {}): Promise<implicitReturnType>;
+    myriadPublicPostMarketsClaim (params?: {}): Promise<Dict | List>;
     myriadPublicPostOrders (params?: {}): Promise<Dict>;
-    myriadPublicPostOrdersCancelBatch (params?: {}): Promise<implicitReturnType>;
-    myriadPublicPostOrdersCancelAll (params?: {}): Promise<implicitReturnType>;
-    myriadPublicPostPositionsSplit (params?: {}): Promise<implicitReturnType>;
-    myriadPublicPostPositionsMerge (params?: {}): Promise<implicitReturnType>;
-    myriadPublicPostPositionsRedeem (params?: {}): Promise<implicitReturnType>;
-    myriadPublicPostPositionsRedeemVoided (params?: {}): Promise<implicitReturnType>;
-    myriadPublicPostPositionsNegRiskSplit (params?: {}): Promise<implicitReturnType>;
-    myriadPublicPostPositionsNegRiskMerge (params?: {}): Promise<implicitReturnType>;
+    myriadPublicPostOrdersCancelBatch (params?: {}): Promise<Dict | List>;
+    myriadPublicPostOrdersCancelAll (params?: {}): Promise<Dict | List>;
+    myriadPublicPostPositionsSplit (params?: {}): Promise<Dict | List>;
+    myriadPublicPostPositionsMerge (params?: {}): Promise<Dict | List>;
+    myriadPublicPostPositionsRedeem (params?: {}): Promise<Dict | List>;
+    myriadPublicPostPositionsRedeemVoided (params?: {}): Promise<Dict | List>;
+    myriadPublicPostPositionsNegRiskSplit (params?: {}): Promise<Dict | List>;
+    myriadPublicPostPositionsNegRiskMerge (params?: {}): Promise<Dict | List>;
     myriadPublicDeleteOrdersHash (params?: {}): Promise<Dict>;
-    myriadPrivatePostMarketsQuoteWithFee (params?: {}): Promise<implicitReturnType>;
+    myriadPrivatePostMarketsQuoteWithFee (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -15,37 +15,37 @@ interface Exchange {
     publicGetOrderBook (params?: {}): Promise<Dict>;
     publicGetTrades (params?: {}): Promise<Dict>;
     publicGetOhlc (params?: {}): Promise<Dict>;
-    privateGetAccountStatus (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountStatus (params?: {}): Promise<Dict | List>;
     privateGetBalance (params?: {}): Promise<Dict>;
     privateGetFees (params?: {}): Promise<Dict>;
     privateGetFundings (params?: {}): Promise<Dict>;
     privateGetFundingsFid (params?: {}): Promise<Dict>;
     privateGetFundingDestination (params?: {}): Promise<Dict>;
-    privateGetKycDocuments (params?: {}): Promise<implicitReturnType>;
+    privateGetKycDocuments (params?: {}): Promise<Dict | List>;
     privateGetLedger (params?: {}): Promise<Dict>;
-    privateGetLedgerTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetLedgerFees (params?: {}): Promise<implicitReturnType>;
-    privateGetLedgerFundings (params?: {}): Promise<implicitReturnType>;
-    privateGetLedgerWithdrawals (params?: {}): Promise<implicitReturnType>;
-    privateGetMxBankCodes (params?: {}): Promise<implicitReturnType>;
+    privateGetLedgerTrades (params?: {}): Promise<Dict | List>;
+    privateGetLedgerFees (params?: {}): Promise<Dict | List>;
+    privateGetLedgerFundings (params?: {}): Promise<Dict | List>;
+    privateGetLedgerWithdrawals (params?: {}): Promise<Dict | List>;
+    privateGetMxBankCodes (params?: {}): Promise<Dict | List>;
     privateGetOpenOrders (params?: {}): Promise<Dict>;
     privateGetOrderTradesOid (params?: {}): Promise<Dict>;
     privateGetOrdersOid (params?: {}): Promise<Dict>;
     privateGetUserTrades (params?: {}): Promise<Dict>;
-    privateGetUserTradesTid (params?: {}): Promise<implicitReturnType>;
-    privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
-    privateGetWithdrawalsWid (params?: {}): Promise<implicitReturnType>;
-    privatePostBitcoinWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostDebitCardWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostEtherWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privateGetUserTradesTid (params?: {}): Promise<Dict | List>;
+    privateGetWithdrawals (params?: {}): Promise<Dict | List>;
+    privateGetWithdrawalsWid (params?: {}): Promise<Dict | List>;
+    privatePostBitcoinWithdrawal (params?: {}): Promise<Dict | List>;
+    privatePostDebitCardWithdrawal (params?: {}): Promise<Dict | List>;
+    privatePostEtherWithdrawal (params?: {}): Promise<Dict | List>;
     privatePostOrders (params?: {}): Promise<Dict>;
-    privatePostPhoneNumber (params?: {}): Promise<implicitReturnType>;
-    privatePostPhoneVerification (params?: {}): Promise<implicitReturnType>;
-    privatePostPhoneWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostSpeiWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostRippleWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostBcashWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostLitecoinWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostPhoneNumber (params?: {}): Promise<Dict | List>;
+    privatePostPhoneVerification (params?: {}): Promise<Dict | List>;
+    privatePostPhoneWithdrawal (params?: {}): Promise<Dict | List>;
+    privatePostSpeiWithdrawal (params?: {}): Promise<Dict | List>;
+    privatePostRippleWithdrawal (params?: {}): Promise<Dict | List>;
+    privatePostBcashWithdrawal (params?: {}): Promise<Dict | List>;
+    privatePostLitecoinWithdrawal (params?: {}): Promise<Dict | List>;
     privateDeleteOrders (params?: {}): Promise<Dict>;
     privateDeleteOrdersOid (params?: {}): Promise<Dict>;
     privateDeleteOrdersAll (params?: {}): Promise<Dict>;

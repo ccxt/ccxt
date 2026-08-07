@@ -194,35 +194,35 @@ export default class aster extends Exchange {
                         'v1/ping': 1,
                         'v3/ping': 1,
                         'v1/time': 1,
-                        'v3/time': 1,
+                        'v3/time': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/exchangeInfo': 1,
                         'v3/exchangeInfo': 1,
                         'v1/depth': 1,
-                        'v3/depth': 2, // dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
+                        'v3/depth': { 'cost': 2, 'returnType': 'Dict' }, // dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
                         'v1/trades': 1,
-                        'v3/trades': 1,
+                        'v3/trades': { 'cost': 1, 'returnType': 'List' },
                         'v1/historicalTrades': 1,
                         'v3/historicalTrades': 20,
                         'v1/aggTrades': 1,
-                        'v3/aggTrades': 20,
+                        'v3/aggTrades': { 'cost': 20, 'returnType': 'List' },
                         'v1/klines': 1,
-                        'v3/klines': 1, // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
+                        'v3/klines': { 'cost': 1, 'returnType': 'List' }, // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
                         'v1/indexPriceKlines': 1,
-                        'v3/indexPriceKlines': 1, // same as klines
+                        'v3/indexPriceKlines': { 'cost': 1, 'returnType': 'List' }, // same as klines
                         'v1/markPriceKlines': 1,
-                        'v3/markPriceKlines': 1, // same as klines
+                        'v3/markPriceKlines': { 'cost': 1, 'returnType': 'List' }, // same as klines
                         'v1/premiumIndex': 1,
                         'v3/premiumIndex': 1,
                         'v1/fundingRate': 1,
-                        'v3/fundingRate': 1,
+                        'v3/fundingRate': { 'cost': 1, 'returnType': 'List' },
                         'v1/fundingInfo': 1,
-                        'v3/fundingInfo': 1,
+                        'v3/fundingInfo': { 'cost': 1, 'returnType': 'List' },
                         'v1/ticker/24hr': 1,
                         'v3/ticker/24hr': 1, // 1 single-symbol, otherwise 40
                         'v1/ticker/price': 1,
-                        'v3/ticker/price': 1, // 1 single-symbol, otherwise 2
+                        'v3/ticker/price': { 'cost': 1, 'returnType': 'List' }, // 1 single-symbol, otherwise 2
                         'v1/ticker/bookTicker': 1,
-                        'v3/ticker/bookTicker': 1, // 1 single-symbol, otherwise 2
+                        'v3/ticker/bookTicker': { 'cost': 1, 'returnType': 'List' }, // 1 single-symbol, otherwise 2
                         // different endpoints
                         'v1/adlQuantile': 1,
                         'v1/forceOrders': 1,
@@ -232,32 +232,32 @@ export default class aster extends Exchange {
                 'fapiPrivate': {
                     'get': {
                         'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 30,
+                        'v3/positionSide/dual': { 'cost': 30, 'returnType': 'Dict' },
                         'v1/multiAssetsMargin': 1,
                         'v3/multiAssetsMargin': 1,
                         'v1/order': 1,
-                        'v3/order': 1,
+                        'v3/order': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/openOrder': 1,
-                        'v3/openOrder': 1,
+                        'v3/openOrder': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/openOrders': 1,
-                        'v3/openOrders': 1,
+                        'v3/openOrders': { 'cost': 1, 'returnType': 'List' },
                         'v1/allOrders': 1,
-                        'v3/allOrders': 1,
+                        'v3/allOrders': { 'cost': 1, 'returnType': 'List' },
                         'v2/balance': 1,
-                        'v3/balance': 1,
+                        'v3/balance': { 'cost': 1, 'returnType': 'Dict' },
                         'v3/account': 1,
                         'v1/positionMargin/history': 1,
-                        'v3/positionMargin/history': 1,
+                        'v3/positionMargin/history': { 'cost': 1, 'returnType': 'List' },
                         'v2/positionRisk': 1,
-                        'v3/positionRisk': 1,
+                        'v3/positionRisk': { 'cost': 1, 'returnType': 'List' },
                         'v1/userTrades': 1,
-                        'v3/userTrades': 5,
+                        'v3/userTrades': { 'cost': 5, 'returnType': 'List' },
                         'v1/income': 1,
-                        'v3/income': 1,
+                        'v3/income': { 'cost': 1, 'returnType': 'List' },
                         'v1/leverageBracket': 1,
-                        'v3/leverageBracket': 1,
+                        'v3/leverageBracket': { 'cost': 1, 'returnType': 'List' },
                         'v1/commissionRate': 1,
-                        'v3/commissionRate': 1,
+                        'v3/commissionRate': { 'cost': 1, 'returnType': 'Dict' },
                         // others
                         'v3/adlQuantile': 1,
                         'v3/forceOrders': 1,
@@ -274,11 +274,11 @@ export default class aster extends Exchange {
                         'v1/multiAssetsMargin': 1,
                         'v3/multiAssetsMargin': 1,
                         'v1/order': 1,
-                        'v3/order': 1,
+                        'v3/order': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/order/test': 1,
                         'v3/order/test': 1,
                         'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
+                        'v3/batchOrders': { 'cost': 1, 'returnType': 'List' },
                         'v1/asset/wallet/transfer': 1,
                         'v3/asset/wallet/transfer': 1,
                         'v1/countdownCancelAll': 1,
@@ -288,9 +288,9 @@ export default class aster extends Exchange {
                         'v1/marginType': 1,
                         'v3/marginType': 1,
                         'v1/positionMargin': 1,
-                        'v3/positionMargin': 1,
+                        'v3/positionMargin': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v3/listenKey': { 'cost': 1, 'returnType': 'Dict' },
                         // others
                         'v3/mmp': 1,
                         'v3/mmpReset': 1,
@@ -298,7 +298,7 @@ export default class aster extends Exchange {
                         // builder
                         'v3/approveAgent': 1,
                         'v3/updateAgent': 1,
-                        'v3/approveBuilder': 1,
+                        'v3/approveBuilder': { 'cost': 1, 'returnType': 'Dict' },
                         'v3/updateBuilder': 1,
                     },
                     'put': {
@@ -307,11 +307,11 @@ export default class aster extends Exchange {
                     },
                     'delete': {
                         'v1/order': 1,
-                        'v3/order': 1,
+                        'v3/order': { 'cost': 1, 'returnType': 'Dict' },
                         'v1/allOpenOrders': 1,
                         'v3/allOpenOrders': 1,
                         'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
+                        'v3/batchOrders': { 'cost': 1, 'returnType': 'List' },
                         'v3/mmp': 1,
                         'v1/listenKey': 1,
                         'v3/listenKey': 1,
@@ -337,16 +337,16 @@ export default class aster extends Exchange {
                         'v1/aster/withdraw/estimateFee': 1,
                         // v3
                         'v3/ping': 1,
-                        'v3/time': 1,
-                        'v3/exchangeInfo': 1,
-                        'v3/depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] },
-                        'v3/trades': 1,
+                        'v3/time': { 'cost': 1, 'returnType': 'Dict' },
+                        'v3/exchangeInfo': { 'cost': 1, 'returnType': 'Dict' },
+                        'v3/depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ], 'returnType': 'Dict' },
+                        'v3/trades': { 'cost': 1, 'returnType': 'List' },
                         'v3/historicalTrades': 20,
-                        'v3/aggTrades': 20,
-                        'v3/klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] }, // todo: not specified in docs
+                        'v3/aggTrades': { 'cost': 20, 'returnType': 'List' },
+                        'v3/klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' }, // todo: not specified in docs
                         'v3/ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
-                        'v3/ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                        'v3/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        'v3/ticker/price': { 'cost': 1, 'noSymbol': 2, 'returnType': 'List' },
+                        'v3/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2, 'returnType': 'List' },
                         'v3/aster/withdraw/estimateFee': 1,
                     },
                 },
@@ -361,13 +361,13 @@ export default class aster extends Exchange {
                         'v1/account': 1,
                         'v1/userTrades': 1,
                         // v3
-                        'v3/commissionRate': { 'cost': 1, 'noSymbol': 2 },
-                        'v3/order': 1,
-                        'v3/openOrders': 1, // with symbol 1, otherwise 40
-                        'v3/allOrders': 5,
-                        'v3/account': 5,
-                        'v3/userTrades': 5,
-                        'v3/openOrder': 1,
+                        'v3/commissionRate': { 'cost': 1, 'noSymbol': 2, 'returnType': 'Dict' },
+                        'v3/order': { 'cost': 1, 'returnType': 'Dict' },
+                        'v3/openOrders': { 'cost': 1, 'returnType': 'List' }, // with symbol 1, otherwise 40
+                        'v3/allOrders': { 'cost': 5, 'returnType': 'List' },
+                        'v3/account': { 'cost': 5, 'returnType': 'Dict' },
+                        'v3/userTrades': { 'cost': 5, 'returnType': 'List' },
+                        'v3/openOrder': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
                         // v1
@@ -376,10 +376,10 @@ export default class aster extends Exchange {
                         'v1/asset/sendToAddress': 1, // inexistent in v3
                         'v1/listenKey': 1,
                         // v3
-                        'v3/order': 1,
-                        'v3/asset/wallet/transfer': 5,
-                        'v3/aster/user-withdraw': 1,
-                        'v3/listenKey': 1,
+                        'v3/order': { 'cost': 1, 'returnType': 'Dict' },
+                        'v3/asset/wallet/transfer': { 'cost': 5, 'returnType': 'Dict' },
+                        'v3/aster/user-withdraw': { 'cost': 1, 'returnType': 'Dict' },
+                        'v3/listenKey': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'put': [
                         'v1/listenKey',
@@ -391,8 +391,8 @@ export default class aster extends Exchange {
                         'v1/allOpenOrders': 1,
                         'v1/listenKey': 1,
                         // v3
-                        'v3/allOpenOrders': 1,
-                        'v3/order': 1,
+                        'v3/allOpenOrders': { 'cost': 1, 'returnType': 'List' },
+                        'v3/order': { 'cost': 1, 'returnType': 'Dict' },
                         'v3/listenKey': 1,
                     },
                 },

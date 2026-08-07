@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -35,7 +35,7 @@ interface Exchange {
     privateSpotGetV2ExOrder (params?: {}): Promise<Dict>;
     privateSpotGetV2ExOrderFills (params?: {}): Promise<Dict>;
     privateSpotDeleteV2ExOrder (params?: {}): Promise<Dict>;
-    privateSpotDeleteV2ExOrders (params?: {}): Promise<implicitReturnType>;
+    privateSpotDeleteV2ExOrders (params?: {}): Promise<Dict | List>;
     privateSpotDeleteV2ExOrdersCancelAll (params?: {}): Promise<Dict>;
     privateSwapGetV1WalletBalance (params?: {}): Promise<Dict>;
     privateSwapGetV1TradeOrder (params?: {}): Promise<Dict>;
@@ -49,7 +49,7 @@ interface Exchange {
     privateSwapPostV1TradeAddMargin (params?: {}): Promise<Dict>;
     privateSwapPostV1TradeReduceMargin (params?: {}): Promise<Dict>;
     privateSwapPostV1TradePositionClose (params?: {}): Promise<Dict>;
-    privateSwapPostV1TradeUpdateUserLeverage (params?: {}): Promise<implicitReturnType>;
+    privateSwapPostV1TradeUpdateUserLeverage (params?: {}): Promise<Dict | List>;
     privateSwapDeleteV1TradeOrder (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}

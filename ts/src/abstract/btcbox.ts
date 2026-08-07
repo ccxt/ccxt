@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List, implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -18,8 +18,8 @@ interface Exchange {
     privatePostTradeCancel (params?: {}): Promise<Dict>;
     privatePostTradeList (params?: {}): Promise<List>;
     privatePostTradeView (params?: {}): Promise<Dict>;
-    privatePostWallet (params?: {}): Promise<implicitReturnType>;
-    webApiGetAjaxCoinCoinInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostWallet (params?: {}): Promise<Dict | List>;
+    webApiGetAjaxCoinCoinInfo (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

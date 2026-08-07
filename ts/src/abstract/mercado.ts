@@ -5,31 +5,31 @@
 
 // -------------------------------------------------------------------------------
 
-import { List, Dict, implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetCoins (params?: {}): Promise<List>;
     publicGetCoinOrderbook (params?: {}): Promise<Dict>;
     publicGetCoinTicker (params?: {}): Promise<Dict>;
-    publicGetCoinTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetCoinTradesFrom (params?: {}): Promise<implicitReturnType>;
-    publicGetCoinTradesFromTo (params?: {}): Promise<implicitReturnType>;
-    publicGetCoinDaySummaryYearMonthDay (params?: {}): Promise<implicitReturnType>;
+    publicGetCoinTrades (params?: {}): Promise<Dict | List>;
+    publicGetCoinTradesFrom (params?: {}): Promise<Dict | List>;
+    publicGetCoinTradesFromTo (params?: {}): Promise<Dict | List>;
+    publicGetCoinDaySummaryYearMonthDay (params?: {}): Promise<Dict | List>;
     privatePostCancelOrder (params?: {}): Promise<Dict>;
     privatePostGetAccountInfo (params?: {}): Promise<Dict>;
     privatePostGetOrder (params?: {}): Promise<Dict>;
-    privatePostGetWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostListSystemMessages (params?: {}): Promise<implicitReturnType>;
+    privatePostGetWithdrawal (params?: {}): Promise<Dict | List>;
+    privatePostListSystemMessages (params?: {}): Promise<Dict | List>;
     privatePostListOrders (params?: {}): Promise<Dict>;
-    privatePostListOrderbook (params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceBuyOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceSellOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceMarketBuyOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceMarketSellOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostListOrderbook (params?: {}): Promise<Dict | List>;
+    privatePostPlaceBuyOrder (params?: {}): Promise<Dict | List>;
+    privatePostPlaceSellOrder (params?: {}): Promise<Dict | List>;
+    privatePostPlaceMarketBuyOrder (params?: {}): Promise<Dict | List>;
+    privatePostPlaceMarketSellOrder (params?: {}): Promise<Dict | List>;
     privatePostWithdrawCoin (params?: {}): Promise<Dict>;
-    v4PublicGetCoinCandle (params?: {}): Promise<implicitReturnType>;
-    v4PublicNetGetCandles (params?: {}): Promise<implicitReturnType>;
+    v4PublicGetCoinCandle (params?: {}): Promise<Dict | List>;
+    v4PublicNetGetCandles (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

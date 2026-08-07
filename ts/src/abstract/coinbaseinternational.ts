@@ -5,43 +5,43 @@
 
 // -------------------------------------------------------------------------------
 
-import { List, implicitReturnType, Dict } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     v1PublicGetAssets (params?: {}): Promise<List>;
-    v1PublicGetAssetsAssets (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetAssetsAssetNetworks (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAssetsAssets (params?: {}): Promise<Dict | List>;
+    v1PublicGetAssetsAssetNetworks (params?: {}): Promise<Dict | List>;
     v1PublicGetInstruments (params?: {}): Promise<List>;
-    v1PublicGetInstrumentsInstrument (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInstrumentsInstrument (params?: {}): Promise<Dict | List>;
     v1PublicGetInstrumentsInstrumentQuote (params?: {}): Promise<Dict>;
     v1PublicGetInstrumentsInstrumentFunding (params?: {}): Promise<Dict>;
     v1PublicGetInstrumentsInstrumentCandles (params?: {}): Promise<Dict>;
     v1PrivateGetOrders (params?: {}): Promise<Dict>;
     v1PrivateGetOrdersId (params?: {}): Promise<Dict>;
     v1PrivateGetPortfolios (params?: {}): Promise<List>;
-    v1PrivateGetPortfoliosPortfolio (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetPortfoliosPortfolioDetail (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetPortfoliosPortfolioSummary (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetPortfoliosPortfolio (params?: {}): Promise<Dict | List>;
+    v1PrivateGetPortfoliosPortfolioDetail (params?: {}): Promise<Dict | List>;
+    v1PrivateGetPortfoliosPortfolioSummary (params?: {}): Promise<Dict | List>;
     v1PrivateGetPortfoliosPortfolioBalances (params?: {}): Promise<Dict>;
-    v1PrivateGetPortfoliosPortfolioBalancesAsset (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetPortfoliosPortfolioBalancesAsset (params?: {}): Promise<Dict | List>;
     v1PrivateGetPortfoliosPortfolioPositions (params?: {}): Promise<List>;
     v1PrivateGetPortfoliosPortfolioPositionsInstrument (params?: {}): Promise<Dict>;
     v1PrivateGetPortfoliosFills (params?: {}): Promise<Dict>;
-    v1PrivateGetPortfoliosPortfolioFills (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetPortfoliosPortfolioFills (params?: {}): Promise<Dict | List>;
     v1PrivateGetTransfers (params?: {}): Promise<Dict>;
-    v1PrivateGetTransfersTransferUuid (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetTransfersTransferUuid (params?: {}): Promise<Dict | List>;
     v1PrivatePostOrders (params?: {}): Promise<Dict>;
-    v1PrivatePostPortfolios (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPortfolios (params?: {}): Promise<Dict | List>;
     v1PrivatePostPortfoliosMargin (params?: {}): Promise<Dict>;
     v1PrivatePostPortfoliosTransfer (params?: {}): Promise<Dict>;
-    v1PrivatePostTransfersWithdraw (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostTransfersAddress (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostTransfersCreateCounterpartyId (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostTransfersValidateCounterpartyId (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostTransfersWithdrawCounterparty (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostTransfersWithdraw (params?: {}): Promise<Dict | List>;
+    v1PrivatePostTransfersAddress (params?: {}): Promise<Dict | List>;
+    v1PrivatePostTransfersCreateCounterpartyId (params?: {}): Promise<Dict | List>;
+    v1PrivatePostTransfersValidateCounterpartyId (params?: {}): Promise<Dict | List>;
+    v1PrivatePostTransfersWithdrawCounterparty (params?: {}): Promise<Dict | List>;
     v1PrivatePutOrdersId (params?: {}): Promise<Dict>;
-    v1PrivatePutPortfoliosPortfolio (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePutPortfoliosPortfolio (params?: {}): Promise<Dict | List>;
     v1PrivateDeleteOrders (params?: {}): Promise<List>;
     v1PrivateDeleteOrdersId (params?: {}): Promise<Dict>;
 }

@@ -5,44 +5,44 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, implicitReturnType, List } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetDepthPair (params?: {}): Promise<Dict>;
-    publicGetCurrenciesPair (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrenciesAll (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrencyPairsPair (params?: {}): Promise<implicitReturnType>;
+    publicGetCurrenciesPair (params?: {}): Promise<Dict | List>;
+    publicGetCurrenciesAll (params?: {}): Promise<Dict | List>;
+    publicGetCurrencyPairsPair (params?: {}): Promise<Dict | List>;
     publicGetCurrencyPairsAll (params?: {}): Promise<List>;
-    publicGetLastPricePair (params?: {}): Promise<implicitReturnType>;
+    publicGetLastPricePair (params?: {}): Promise<Dict | List>;
     publicGetTickerPair (params?: {}): Promise<Dict>;
     publicGetTradesPair (params?: {}): Promise<List>;
     privatePostActiveOrders (params?: {}): Promise<Dict>;
     privatePostCancelOrder (params?: {}): Promise<Dict>;
-    privatePostDepositHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostGetIdInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostDepositHistory (params?: {}): Promise<Dict | List>;
+    privatePostGetIdInfo (params?: {}): Promise<Dict | List>;
     privatePostGetInfo (params?: {}): Promise<Dict>;
-    privatePostGetInfo2 (params?: {}): Promise<implicitReturnType>;
-    privatePostGetPersonalInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostGetInfo2 (params?: {}): Promise<Dict | List>;
+    privatePostGetPersonalInfo (params?: {}): Promise<Dict | List>;
     privatePostTrade (params?: {}): Promise<Dict>;
     privatePostTradeHistory (params?: {}): Promise<Dict>;
     privatePostWithdraw (params?: {}): Promise<Dict>;
-    privatePostWithdrawHistory (params?: {}): Promise<implicitReturnType>;
-    ecapiPostCreateInvoice (params?: {}): Promise<implicitReturnType>;
-    ecapiPostGetInvoice (params?: {}): Promise<implicitReturnType>;
-    ecapiPostGetInvoiceIdsByOrderNumber (params?: {}): Promise<implicitReturnType>;
-    ecapiPostCancelInvoice (params?: {}): Promise<implicitReturnType>;
-    tlapiPostGetPositions (params?: {}): Promise<implicitReturnType>;
-    tlapiPostPositionHistory (params?: {}): Promise<implicitReturnType>;
-    tlapiPostActivePositions (params?: {}): Promise<implicitReturnType>;
-    tlapiPostCreatePosition (params?: {}): Promise<implicitReturnType>;
-    tlapiPostChangePosition (params?: {}): Promise<implicitReturnType>;
-    tlapiPostCancelPosition (params?: {}): Promise<implicitReturnType>;
-    fapiGetGroupsGroupId (params?: {}): Promise<implicitReturnType>;
-    fapiGetLastPriceGroupIdPair (params?: {}): Promise<implicitReturnType>;
-    fapiGetTickerGroupIdPair (params?: {}): Promise<implicitReturnType>;
-    fapiGetTradesGroupIdPair (params?: {}): Promise<implicitReturnType>;
-    fapiGetDepthGroupIdPair (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawHistory (params?: {}): Promise<Dict | List>;
+    ecapiPostCreateInvoice (params?: {}): Promise<Dict | List>;
+    ecapiPostGetInvoice (params?: {}): Promise<Dict | List>;
+    ecapiPostGetInvoiceIdsByOrderNumber (params?: {}): Promise<Dict | List>;
+    ecapiPostCancelInvoice (params?: {}): Promise<Dict | List>;
+    tlapiPostGetPositions (params?: {}): Promise<Dict | List>;
+    tlapiPostPositionHistory (params?: {}): Promise<Dict | List>;
+    tlapiPostActivePositions (params?: {}): Promise<Dict | List>;
+    tlapiPostCreatePosition (params?: {}): Promise<Dict | List>;
+    tlapiPostChangePosition (params?: {}): Promise<Dict | List>;
+    tlapiPostCancelPosition (params?: {}): Promise<Dict | List>;
+    fapiGetGroupsGroupId (params?: {}): Promise<Dict | List>;
+    fapiGetLastPriceGroupIdPair (params?: {}): Promise<Dict | List>;
+    fapiGetTickerGroupIdPair (params?: {}): Promise<Dict | List>;
+    fapiGetTradesGroupIdPair (params?: {}): Promise<Dict | List>;
+    fapiGetDepthGroupIdPair (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 

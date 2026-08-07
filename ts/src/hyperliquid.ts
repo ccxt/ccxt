@@ -168,12 +168,13 @@ export default class hyperliquid extends Exchange {
                                 'exchangeStatus': 2,
                                 'candleSnapshot': 4,
                             },
+                            'returnType': 'Dict | List | string',
                         },
                     },
                 },
                 'private': {
                     'post': {
-                        'exchange': 1,
+                        'exchange': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },

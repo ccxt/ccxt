@@ -5,32 +5,32 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType, Dict, List } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetHealth (params?: {}): Promise<implicitReturnType>;
+    publicGetHealth (params?: {}): Promise<Dict | List>;
     publicGetConstants (params?: {}): Promise<Dict>;
-    publicGetKit (params?: {}): Promise<implicitReturnType>;
+    publicGetKit (params?: {}): Promise<Dict | List>;
     publicGetTiers (params?: {}): Promise<Dict>;
     publicGetTicker (params?: {}): Promise<Dict>;
     publicGetTickers (params?: {}): Promise<List>;
-    publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbook (params?: {}): Promise<Dict | List>;
     publicGetOrderbooks (params?: {}): Promise<Dict>;
-    publicGetTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetTrades (params?: {}): Promise<Dict | List>;
     publicGetChart (params?: {}): Promise<List>;
-    publicGetCharts (params?: {}): Promise<implicitReturnType>;
-    publicGetMinicharts (params?: {}): Promise<implicitReturnType>;
-    publicGetOraclePrices (params?: {}): Promise<implicitReturnType>;
-    publicGetQuickTrade (params?: {}): Promise<implicitReturnType>;
-    publicGetUdfConfig (params?: {}): Promise<implicitReturnType>;
-    publicGetUdfHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetUdfSymbols (params?: {}): Promise<implicitReturnType>;
+    publicGetCharts (params?: {}): Promise<Dict | List>;
+    publicGetMinicharts (params?: {}): Promise<Dict | List>;
+    publicGetOraclePrices (params?: {}): Promise<Dict | List>;
+    publicGetQuickTrade (params?: {}): Promise<Dict | List>;
+    publicGetUdfConfig (params?: {}): Promise<Dict | List>;
+    publicGetUdfHistory (params?: {}): Promise<Dict | List>;
+    publicGetUdfSymbols (params?: {}): Promise<Dict | List>;
     privateGetUser (params?: {}): Promise<Dict>;
     privateGetUserBalance (params?: {}): Promise<Dict>;
     privateGetUserDeposits (params?: {}): Promise<Dict>;
     privateGetUserWithdrawals (params?: {}): Promise<Dict>;
-    privateGetUserWithdrawalFee (params?: {}): Promise<implicitReturnType>;
+    privateGetUserWithdrawalFee (params?: {}): Promise<Dict | List>;
     privateGetUserTrades (params?: {}): Promise<Dict>;
     privateGetOrders (params?: {}): Promise<Dict>;
     privateGetOrder (params?: {}): Promise<Dict>;

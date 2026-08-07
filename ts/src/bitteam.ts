@@ -176,41 +176,41 @@ export default class bitteam extends Exchange {
             'api': {
                 'history': {
                     'get': {
-                        'api/tw/history/{pairName}/{resolution}': 1,
+                        'api/tw/history/{pairName}/{resolution}': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'public': {
                     'get': {
                         'trade/api/asset': 1, // not unified
-                        'trade/api/currencies': 1,
+                        'trade/api/currencies': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/api/orderbooks/{symbol}': 1, // not unified
                         'trade/api/orders': 1, // not unified
-                        'trade/api/pair/{name}': 1,
+                        'trade/api/pair/{name}': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/api/pairs': 1, // not unified
                         'trade/api/pairs/precisions': 1, // not unified
                         'trade/api/rates': 1, // not unified
                         'trade/api/trade/{id}': 1, // not unified
                         'trade/api/trades': 1, // not unified
-                        'trade/api/ccxt/pairs': 1,
+                        'trade/api/ccxt/pairs': { 'cost': 1, 'returnType': 'Dict' },
                         'trade/api/cmc/assets': 1,
-                        'trade/api/cmc/orderbook/{pair}': 1,
-                        'trade/api/cmc/summary': 1,
+                        'trade/api/cmc/orderbook/{pair}': { 'cost': 1, 'returnType': 'Dict' },
+                        'trade/api/cmc/summary': { 'cost': 1, 'returnType': 'List' },
                         'trade/api/cmc/ticker': 1, // not unified
-                        'trade/api/cmc/trades/{pair}': 1,
+                        'trade/api/cmc/trades/{pair}': { 'cost': 1, 'returnType': 'List' },
                     },
                 },
                 'private': {
                     'get': {
-                        'trade/api/ccxt/balance': 1,
-                        'trade/api/ccxt/order/{id}': 1,
-                        'trade/api/ccxt/ordersOfUser': 1,
-                        'trade/api/ccxt/tradesOfUser': 1,
-                        'trade/api/transactionsOfUser': 1,
+                        'trade/api/ccxt/balance': { 'cost': 1, 'returnType': 'Dict' },
+                        'trade/api/ccxt/order/{id}': { 'cost': 1, 'returnType': 'Dict' },
+                        'trade/api/ccxt/ordersOfUser': { 'cost': 1, 'returnType': 'Dict' },
+                        'trade/api/ccxt/tradesOfUser': { 'cost': 1, 'returnType': 'Dict' },
+                        'trade/api/transactionsOfUser': { 'cost': 1, 'returnType': 'Dict' },
                     },
                     'post': {
-                        'trade/api/ccxt/cancel-all-order': 1,
-                        'trade/api/ccxt/cancelorder': 1,
-                        'trade/api/ccxt/ordercreate': 1,
+                        'trade/api/ccxt/cancel-all-order': { 'cost': 1, 'returnType': 'Dict' },
+                        'trade/api/ccxt/cancelorder': { 'cost': 1, 'returnType': 'Dict' },
+                        'trade/api/ccxt/ordercreate': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
             },
