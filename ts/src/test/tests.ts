@@ -65,8 +65,8 @@ class testMainClass {
     sandbox: boolean = false;
     onlySpecificTests: string[] = [];
     skippedSettingsForExchange = {};
-    skippedMethods: any = {};
-    checkedPublicTests: any = {};
+    skippedMethods: Dict = {};
+    checkedPublicTests: Dict = {};
     testFiles: any = {};
     publicTests = {};
     ext: string = "";

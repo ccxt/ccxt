@@ -455,21 +455,32 @@ class NewTranspiler {
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
-    // TypeReference returns the raw TypeScript type name (`Dict`, `Str`, `Num`, `Strings`, ...)
-    // WITHOUT consulting `VariableTypeReplacements` — the very map it already applies to locals,
-    // parameters and return types. Java has no `Dict`/`Str`/`Num` class, so a TS field declared
+    // TypeReference returns the raw TypeScript type name verbatim (`Dict`, `Str`, `Num`, ...).
+    // Java has no such classes, so a TS field declared
     //     skippedMethods: Dict = {};
-    // was emitted verbatim as
+    // was emitted as
     //     public Dict skippedMethods = new java.util.HashMap<String, Object>() {{}};
-    // and javac failed with "cannot find symbol". Untyped fields were unaffected (they fall back
-    // to the initializer-inferred type), which is why this only surfaced once ts/src was annotated
-    // for noImplicitAny.
+    // and javac failed with "cannot find symbol". Unannotated fields were unaffected (they fall
+    // back to the initializer-inferred type), which is why this only surfaced once ts/src was
+    // annotated for noImplicitAny.
     //
-    // Scope: within JavaTranspiler, getType() is called from exactly ONE site —
-    // printPropertyAccessModifiers() — so routing its result through VariableTypeReplacements
-    // fixes class-field declarations only, and cannot perturb parameters, locals or return types
-    // (those already go through ArgTypeReplacements / the Dict special-cases and are correct).
-    // The map is applied by exact key, so a type name it does not know is passed through unchanged.
+    // Fix: a ccxt TS type alias in FIELD position resolves to the transpiler's DEFAULT_TYPE
+    // (`Object`) — the dynamic type every generated Java expression already uses. That restores
+    // byte-identical output to what master emitted for these (then-unannotated) fields.
+    //
+    // Why `Object` and NOT the `VariableTypeReplacements` mapping (`Dict` -> Map<String, Object>):
+    // generated Java is uniformly Object-typed, so a narrowly-typed field breaks on assignment.
+    // Verified empirically — mapping Dict to Map<String, Object> traded the original errors for
+    //   TestMain.java:264: error: incompatible types: Object cannot be converted to Map<String,Object>
+    //     this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
+    // because safeValue() returns Object and Java will not implicitly downcast. Every read of these
+    // fields likewise goes through Helpers.getValue/inOp/addElementToObject, which take Object.
+    //
+    // Scope: inside JavaTranspiler, getType() has exactly ONE caller —
+    // printPropertyAccessModifiers() — so this touches class-field declarations only and cannot
+    // perturb parameters, locals or return types (those go through ArgTypeReplacements and the
+    // existing Dict special-cases, which are already correct). Type names that are not ccxt
+    // aliases (String/boolean/... from SupportedKindNames) pass through untouched.
     patchJavaPropertyTypes() {
         const javaTranspiler = (this.transpiler as any)?.javaTranspiler;
         if (!javaTranspiler || typeof javaTranspiler.getType !== 'function' || javaTranspiler._propertyTypesPatched) {
@@ -478,9 +489,17 @@ class NewTranspiler {
         const originalGetType = javaTranspiler.getType.bind(javaTranspiler);
         javaTranspiler.getType = (node: any) => {
             const type = originalGetType(node);
-            const replacements = javaTranspiler.VariableTypeReplacements ?? {};
-            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call(replacements, type)) {
-                return replacements[type];
+            // Only rewrite genuine TypeReference annotations (`x: Dict`). Keyword types
+            // (`x: boolean`, `x: string`, `x: any`, `x: string[]`) carry no `typeName` and are
+            // already resolved to real Java types by SupportedKindNames — `boolean` is also a key
+            // of VariableTypeReplacements, so matching on the name alone would wrongly demote
+            // `public boolean verbose` to `public Object verbose`.
+            const isTypeReference = node?.type?.typeName !== undefined;
+            // VariableTypeReplacements is used here purely as the set of known ccxt TS aliases
+            // (Dict/Str/Num/Int/Strings/List/...) — i.e. names with no Java class behind them.
+            const tsAliases = javaTranspiler.VariableTypeReplacements ?? {};
+            if (isTypeReference && (typeof type === 'string') && Object.prototype.hasOwnProperty.call(tsAliases, type)) {
+                return javaTranspiler.DEFAULT_TYPE ?? 'Object';
             }
             return type;
         };

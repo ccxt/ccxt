@@ -5488,8 +5488,7 @@ export default class okx extends Exchange {
         params = this.omit (params, 'network');
         code = this.safeCurrencyCode (code) as string;
         const network = this.networkIdToCode (rawNetwork, code);
-        const responseRaw = await this.fetchDepositAddressesByNetwork (code, params);
-        const response: Dict = responseRaw as any;
+        const response: Dict = await this.fetchDepositAddressesByNetwork (code, params);
         if (network !== undefined) {
             const result = this.safeDict (response, network);
             if (result === undefined) {

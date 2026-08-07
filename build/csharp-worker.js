@@ -43,6 +43,38 @@ export function setupCsharpPrinter (transpiler) {
     };
 }
 
+// ast-transpiler's BaseTranspiler.getType() returns the raw TypeScript type name verbatim for a
+// TypeReference (`Dict`, `Str`, `Num`, ...). CSharpTranspiler calls it only from
+// printPropertyAccessModifiers(), so a TS class field `x: Dict = {}` was emitted as
+// `public Dict x = ...` → CS0246. Resolve ccxt TS aliases in FIELD position to DEFAULT_TYPE
+// (`object`) — the dynamic type all generated C# already uses. A narrower
+// `Dictionary<string, object>` instead breaks on assignment from safeValue(), which returns
+// `object` and does not implicitly downcast (CS0266).
+// Exported and consumed by BOTH csharpTranspiler.ts (main thread) and this worker, so the pooled
+// path CI uses cannot drift from the main-thread emit.
+export function patchCsharpPropertyTypes (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.getType !== 'function' || csharp._propertyTypesPatched) {
+        return;
+    }
+    const originalGetType = csharp.getType.bind (csharp);
+    csharp.getType = (node) => {
+        const type = originalGetType (node);
+        // Only rewrite genuine TypeReference annotations (`x: Dict`). Keyword types
+        // (`x: boolean`, `x: string`, `x: any`, `x: string[]`) carry no `typeName` and are already
+        // resolved to real C# types by SupportedKindNames — `boolean` is also a key of
+        // VariableTypeReplacements, so matching on the name alone would wrongly demote
+        // `public bool verbose` to `public object verbose`.
+        const isTypeReference = node?.type?.typeName !== undefined;
+        const tsAliases = csharp.VariableTypeReplacements ?? {};
+        if (isTypeReference && (typeof type === 'string') && Object.prototype.hasOwnProperty.call (tsAliases, type)) {
+            return csharp.DEFAULT_TYPE ?? 'object';
+        }
+        return type;
+    };
+    csharp._propertyTypesPatched = true;
+}
+
 // piscina reuses worker threads across tasks — cache the Transpiler per thread
 // (construction is expensive) and rebuild only if the config ever changes
 let cachedTranspiler = null;
@@ -56,6 +88,7 @@ export default async ({transpilerConfig, configKey, file, files, roots}) => {
     if (!cachedTranspiler || cachedConfigKey !== key) {
         cachedTranspiler = new Transpiler(transpilerConfig);
         setupCsharpPrinter(cachedTranspiler);
+        patchCsharpPropertyTypes(cachedTranspiler);
         // the main thread turns these into C# doc comments — collect the raw ones and let
         // it replay its own transform so the wrapper docs stay identical
         cachedTranspiler.csharpTranspiler.transformLeadingComment = (comment) => {

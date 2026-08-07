@@ -3,7 +3,7 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
-import { setupCsharpPrinter } from './csharp-worker.js'
+import { setupCsharpPrinter, patchCsharpPropertyTypes as applyCsharpPropertyTypePatch } from './csharp-worker.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -317,25 +317,35 @@ class NewTranspiler {
         this.patchCsharpPropertyTypes ();
     }
 
-    // Same ast-transpiler field-type hole as Java: getType() returns raw TS aliases
-    // (Dict/Str/Num/...) for class fields without VariableTypeReplacements. Without this,
-    // `skippedMethods: Dict = {}` emits `public Dict ...` and CS0246. Route field types
-    // through the existing map (exact key only).
+    // Same ast-transpiler field-type hole as Java (see patchJavaPropertyTypes in
+    // build/javaTranspiler.ts). BaseTranspiler.getType() returns the raw TypeScript type name
+    // verbatim for a TypeReference (`Dict`, `Str`, `Num`, ...), and C# has no such classes, so a
+    // TS field declared
+    //     skippedMethods: Dict = {};
+    // was emitted as
+    //     public Dict skippedMethods = new Dictionary<string, object>() {};
+    // → CS0246 "type or namespace name 'Dict' could not be found". Unannotated fields were
+    // unaffected (they fall back to the initializer-inferred type), which is why this only
+    // surfaced once ts/src was annotated for noImplicitAny.
+    //
+    // Fix: a ccxt TS alias in FIELD position resolves to the transpiler's DEFAULT_TYPE (`object`),
+    // the dynamic type every generated C# expression already uses — restoring exactly what master
+    // emitted for these (then-unannotated) fields.
+    //
+    // Why `object` and NOT the `VariableTypeReplacements` mapping (`Dict` -> Dictionary<string,
+    // object>): generated C# is uniformly object-typed, so a narrowly-typed field breaks on
+    // assignment. Verified empirically — that mapping traded CS0246 for
+    //   TestMethods.cs(245,31): error CS0266: Cannot implicitly convert type 'object' to
+    //   'System.Collections.Generic.Dictionary<string, object>'
+    //     this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
+    // because safeValue() returns object and C# will not implicitly downcast. Reads of these
+    // fields go through getValue/inOp/addElementToObject, which all take object.
+    //
+    // The implementation lives in ./csharp-worker.js (next to setupCsharpPrinter, imported above)
+    // so the main thread and the piscina workers — which build their own Transpiler and never see
+    // a patch applied here — run the byte-identical function and cannot drift apart.
     patchCsharpPropertyTypes () {
-        const csharpTranspiler = (this.transpiler as any)?.csharpTranspiler;
-        if (!csharpTranspiler || typeof csharpTranspiler.getType !== 'function' || csharpTranspiler._propertyTypesPatched) {
-            return;
-        }
-        const originalGetType = csharpTranspiler.getType.bind (csharpTranspiler);
-        csharpTranspiler.getType = (node: any) => {
-            const type = originalGetType (node);
-            const replacements = csharpTranspiler.VariableTypeReplacements ?? {};
-            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call (replacements, type)) {
-                return replacements[type];
-            }
-            return type;
-        };
-        csharpTranspiler._propertyTypesPatched = true;
+        applyCsharpPropertyTypePatch (this.transpiler);
     }
 
     createGeneratedHeader() {
