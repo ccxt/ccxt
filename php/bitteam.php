@@ -171,41 +171,41 @@ class bitteam extends Exchange {
             'api' => array(
                 'history' => array(
                     'get' => array(
-                        'api/tw/history/{pairName}/{resolution}' => 1,
+                        'api/tw/history/{pairName}/{resolution}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'trade/api/asset' => 1, // not unified
-                        'trade/api/currencies' => 1,
-                        'trade/api/orderbooks/{symbol}' => 1, // not unified
-                        'trade/api/orders' => 1, // not unified
-                        'trade/api/pair/{name}' => 1,
-                        'trade/api/pairs' => 1, // not unified
-                        'trade/api/pairs/precisions' => 1, // not unified
-                        'trade/api/rates' => 1, // not unified
-                        'trade/api/trade/{id}' => 1, // not unified
-                        'trade/api/trades' => 1, // not unified
-                        'trade/api/ccxt/pairs' => 1,
-                        'trade/api/cmc/assets' => 1,
-                        'trade/api/cmc/orderbook/{pair}' => 1,
-                        'trade/api/cmc/summary' => 1,
-                        'trade/api/cmc/ticker' => 1, // not unified
-                        'trade/api/cmc/trades/{pair}' => 1,
+                        'trade/api/asset' => array( 'cost' => 1 ), // not unified
+                        'trade/api/currencies' => array( 'cost' => 1 ),
+                        'trade/api/orderbooks/{symbol}' => array( 'cost' => 1 ), // not unified
+                        'trade/api/orders' => array( 'cost' => 1 ), // not unified
+                        'trade/api/pair/{name}' => array( 'cost' => 1 ),
+                        'trade/api/pairs' => array( 'cost' => 1 ), // not unified
+                        'trade/api/pairs/precisions' => array( 'cost' => 1 ), // not unified
+                        'trade/api/rates' => array( 'cost' => 1 ), // not unified
+                        'trade/api/trade/{id}' => array( 'cost' => 1 ), // not unified
+                        'trade/api/trades' => array( 'cost' => 1 ), // not unified
+                        'trade/api/ccxt/pairs' => array( 'cost' => 1 ),
+                        'trade/api/cmc/assets' => array( 'cost' => 1 ),
+                        'trade/api/cmc/orderbook/{pair}' => array( 'cost' => 1 ),
+                        'trade/api/cmc/summary' => array( 'cost' => 1 ),
+                        'trade/api/cmc/ticker' => array( 'cost' => 1 ), // not unified
+                        'trade/api/cmc/trades/{pair}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'trade/api/ccxt/balance' => 1,
-                        'trade/api/ccxt/order/{id}' => 1,
-                        'trade/api/ccxt/ordersOfUser' => 1,
-                        'trade/api/ccxt/tradesOfUser' => 1,
-                        'trade/api/transactionsOfUser' => 1,
+                        'trade/api/ccxt/balance' => array( 'cost' => 1 ),
+                        'trade/api/ccxt/order/{id}' => array( 'cost' => 1 ),
+                        'trade/api/ccxt/ordersOfUser' => array( 'cost' => 1 ),
+                        'trade/api/ccxt/tradesOfUser' => array( 'cost' => 1 ),
+                        'trade/api/transactionsOfUser' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'trade/api/ccxt/cancel-all-order' => 1,
-                        'trade/api/ccxt/cancelorder' => 1,
-                        'trade/api/ccxt/ordercreate' => 1,
+                        'trade/api/ccxt/cancel-all-order' => array( 'cost' => 1 ),
+                        'trade/api/ccxt/cancelorder' => array( 'cost' => 1 ),
+                        'trade/api/ccxt/ordercreate' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -1453,11 +1453,12 @@ class bitteam extends Exchange {
         //     )
         //
         $tickers = array();
-        if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
-            $response = array();
+        $rawTickers = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $rawTickers = $response;
         }
-        for ($i = 0; $i < count($response); $i++) {
-            $rawTicker = $response[$i];
+        for ($i = 0; $i < count($rawTickers); $i++) {
+            $rawTicker = $rawTickers[$i];
             $ticker = $this->parse_ticker($rawTicker);
             $tickers[] = $ticker;
         }

@@ -189,6 +189,7 @@ var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
+var binance$2 = require('./src/prediction/binance.js');
 var hyperliquid$2 = require('./src/prediction/hyperliquid.js');
 var kalshi = require('./src/prediction/kalshi.js');
 var limitless = require('./src/prediction/limitless.js');
@@ -386,6 +387,7 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const prediction = {
+    'binance': binance$2["default"],
     'hyperliquid': hyperliquid$2["default"],
     'kalshi': kalshi["default"],
     'limitless': limitless["default"],

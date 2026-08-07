@@ -133,39 +133,95 @@ func (this *CexCore) Describe() any {
 			"public": map[string]any{
 				"get": map[string]any{},
 				"post": map[string]any{
-					"get_server_time":     1,
-					"get_pairs_info":      1,
-					"get_currencies_info": 1,
-					"get_processing_info": 10,
-					"get_ticker":          1,
-					"get_trade_history":   1,
-					"get_order_book":      1,
-					"get_candles":         1,
+					"get_server_time": map[string]any{
+						"cost": 1,
+					},
+					"get_pairs_info": map[string]any{
+						"cost": 1,
+					},
+					"get_currencies_info": map[string]any{
+						"cost": 1,
+					},
+					"get_processing_info": map[string]any{
+						"cost": 10,
+					},
+					"get_ticker": map[string]any{
+						"cost": 1,
+					},
+					"get_trade_history": map[string]any{
+						"cost": 1,
+					},
+					"get_order_book": map[string]any{
+						"cost": 1,
+					},
+					"get_candles": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{},
 				"post": map[string]any{
-					"get_my_current_fee":            5,
-					"get_fee_strategy":              1,
-					"get_my_volume":                 5,
-					"do_create_account":             1,
-					"get_my_account_status_v3":      5,
-					"get_my_wallet_balance":         5,
-					"get_my_orders":                 5,
-					"do_my_new_order":               1,
-					"do_cancel_my_order":            1,
-					"do_cancel_all_orders":          5,
-					"get_order_book":                1,
-					"get_candles":                   1,
-					"get_trade_history":             1,
-					"get_my_transaction_history":    1,
-					"get_my_funding_history":        5,
-					"do_my_internal_transfer":       1,
-					"get_processing_info":           10,
-					"get_deposit_address":           5,
-					"do_deposit_funds_from_wallet":  1,
-					"do_withdrawal_funds_to_wallet": 1,
+					"get_my_current_fee": map[string]any{
+						"cost": 5,
+					},
+					"get_fee_strategy": map[string]any{
+						"cost": 1,
+					},
+					"get_my_volume": map[string]any{
+						"cost": 5,
+					},
+					"do_create_account": map[string]any{
+						"cost": 1,
+					},
+					"get_my_account_status_v3": map[string]any{
+						"cost": 5,
+					},
+					"get_my_wallet_balance": map[string]any{
+						"cost": 5,
+					},
+					"get_my_orders": map[string]any{
+						"cost": 5,
+					},
+					"do_my_new_order": map[string]any{
+						"cost": 1,
+					},
+					"do_cancel_my_order": map[string]any{
+						"cost": 1,
+					},
+					"do_cancel_all_orders": map[string]any{
+						"cost": 5,
+					},
+					"get_order_book": map[string]any{
+						"cost": 1,
+					},
+					"get_candles": map[string]any{
+						"cost": 1,
+					},
+					"get_trade_history": map[string]any{
+						"cost": 1,
+					},
+					"get_my_transaction_history": map[string]any{
+						"cost": 1,
+					},
+					"get_my_funding_history": map[string]any{
+						"cost": 5,
+					},
+					"do_my_internal_transfer": map[string]any{
+						"cost": 1,
+					},
+					"get_processing_info": map[string]any{
+						"cost": 10,
+					},
+					"get_deposit_address": map[string]any{
+						"cost": 5,
+					},
+					"do_deposit_funds_from_wallet": map[string]any{
+						"cost": 1,
+					},
+					"do_withdrawal_funds_to_wallet": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},

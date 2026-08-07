@@ -39,7 +39,7 @@ export default class whitebit extends Exchange {
     fetchTransactionFees(codes?: Strings, params?: {}): Promise<{
         withdraw: Dict;
         deposit: Dict;
-        info: any;
+        info: Dict;
     }>;
     /**
      * @method
@@ -226,6 +226,7 @@ export default class whitebit extends Exchange {
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -293,7 +294,7 @@ export default class whitebit extends Exchange {
      * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -414,7 +415,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name whitebit#transfer

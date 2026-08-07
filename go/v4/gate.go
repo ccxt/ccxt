@@ -186,499 +186,1177 @@ func (this *GateCore) Describe() any {
 			"public": map[string]any{
 				"wallet": map[string]any{
 					"get": map[string]any{
-						"currency_chains": 1,
+						"currency_chains": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"unified": map[string]any{
 					"get": map[string]any{
-						"currencies":        1,
-						"history_loan_rate": 1,
+						"currencies": map[string]any{
+							"cost": 1,
+						},
+						"history_loan_rate": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"spot": map[string]any{
 					"get": map[string]any{
-						"currencies":                     1,
-						"currencies/{currency}":          1,
-						"currency_pairs":                 1,
-						"currency_pairs/{currency_pair}": 1,
-						"tickers":                        1,
-						"order_book":                     1,
-						"trades":                         1,
-						"candlesticks":                   1,
-						"time":                           1,
-						"insurance_history":              1,
+						"currencies": map[string]any{
+							"cost": 1,
+						},
+						"currencies/{currency}": map[string]any{
+							"cost": 1,
+						},
+						"currency_pairs": map[string]any{
+							"cost": 1,
+						},
+						"currency_pairs/{currency_pair}": map[string]any{
+							"cost": 1,
+						},
+						"tickers": map[string]any{
+							"cost": 1,
+						},
+						"order_book": map[string]any{
+							"cost": 1,
+						},
+						"trades": map[string]any{
+							"cost": 1,
+						},
+						"candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"time": map[string]any{
+							"cost": 1,
+						},
+						"insurance_history": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"margin": map[string]any{
 					"get": map[string]any{
-						"uni/currency_pairs":                 1,
-						"uni/currency_pairs/{currency_pair}": 1,
-						"loan_margin_tiers":                  1,
-						"currency_pairs":                     1,
-						"currency_pairs/{currency_pair}":     1,
-						"funding_book":                       1,
-						"cross/currencies":                   1,
-						"cross/currencies/{currency}":        1,
+						"uni/currency_pairs": map[string]any{
+							"cost": 1,
+						},
+						"uni/currency_pairs/{currency_pair}": map[string]any{
+							"cost": 1,
+						},
+						"loan_margin_tiers": map[string]any{
+							"cost": 1,
+						},
+						"currency_pairs": map[string]any{
+							"cost": 1,
+						},
+						"currency_pairs/{currency_pair}": map[string]any{
+							"cost": 1,
+						},
+						"funding_book": map[string]any{
+							"cost": 1,
+						},
+						"cross/currencies": map[string]any{
+							"cost": 1,
+						},
+						"cross/currencies/{currency}": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"flash_swap": map[string]any{
 					"get": map[string]any{
-						"currency_pairs": 1,
-						"currencies":     1,
+						"currency_pairs": map[string]any{
+							"cost": 1,
+						},
+						"currencies": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"futures": map[string]any{
 					"get": map[string]any{
-						"{settle}/contracts":                  1,
-						"{settle}/contracts/{contract}":       1,
-						"{settle}/order_book":                 1,
-						"{settle}/trades":                     1,
-						"{settle}/candlesticks":               1,
-						"{settle}/premium_index":              1,
-						"{settle}/tickers":                    1,
-						"{settle}/funding_rate":               1,
-						"{settle}/insurance":                  1,
-						"{settle}/contract_stats":             1,
-						"{settle}/index_constituents/{index}": 1,
-						"{settle}/liq_orders":                 1,
-						"{settle}/risk_limit_tiers":           1,
+						"{settle}/contracts": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/contracts/{contract}": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/order_book": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/trades": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/premium_index": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/tickers": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/funding_rate": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/insurance": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/contract_stats": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/index_constituents/{index}": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/liq_orders": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/risk_limit_tiers": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"delivery": map[string]any{
 					"get": map[string]any{
-						"{settle}/contracts":            1,
-						"{settle}/contracts/{contract}": 1,
-						"{settle}/order_book":           1,
-						"{settle}/trades":               1,
-						"{settle}/candlesticks":         1,
-						"{settle}/tickers":              1,
-						"{settle}/insurance":            1,
-						"{settle}/risk_limit_tiers":     1,
+						"{settle}/contracts": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/contracts/{contract}": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/order_book": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/trades": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/tickers": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/insurance": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/risk_limit_tiers": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"options": map[string]any{
 					"get": map[string]any{
-						"underlyings":                     1,
-						"expirations":                     1,
-						"contracts":                       1,
-						"contracts/{contract}":            1,
-						"settlements":                     1,
-						"settlements/{contract}":          1,
-						"order_book":                      1,
-						"tickers":                         1,
-						"underlying/tickers/{underlying}": 1,
-						"candlesticks":                    1,
-						"underlying/candlesticks":         1,
-						"trades":                          1,
+						"underlyings": map[string]any{
+							"cost": 1,
+						},
+						"expirations": map[string]any{
+							"cost": 1,
+						},
+						"contracts": map[string]any{
+							"cost": 1,
+						},
+						"contracts/{contract}": map[string]any{
+							"cost": 1,
+						},
+						"settlements": map[string]any{
+							"cost": 1,
+						},
+						"settlements/{contract}": map[string]any{
+							"cost": 1,
+						},
+						"order_book": map[string]any{
+							"cost": 1,
+						},
+						"tickers": map[string]any{
+							"cost": 1,
+						},
+						"underlying/tickers/{underlying}": map[string]any{
+							"cost": 1,
+						},
+						"candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"underlying/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"trades": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"earn": map[string]any{
 					"get": map[string]any{
-						"uni/currencies":            1,
-						"uni/currencies/{currency}": 1,
-						"dual/investment_plan":      1,
-						"structured/products":       1,
+						"uni/currencies": map[string]any{
+							"cost": 1,
+						},
+						"uni/currencies/{currency}": map[string]any{
+							"cost": 1,
+						},
+						"dual/investment_plan": map[string]any{
+							"cost": 1,
+						},
+						"structured/products": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"loan": map[string]any{
 					"get": map[string]any{
-						"collateral/currencies":         1,
-						"multi_collateral/currencies":   1,
-						"multi_collateral/ltv":          1,
-						"multi_collateral/fixed_rate":   1,
-						"multi_collateral/current_rate": 1,
+						"collateral/currencies": map[string]any{
+							"cost": 1,
+						},
+						"multi_collateral/currencies": map[string]any{
+							"cost": 1,
+						},
+						"multi_collateral/ltv": map[string]any{
+							"cost": 1,
+						},
+						"multi_collateral/fixed_rate": map[string]any{
+							"cost": 1,
+						},
+						"multi_collateral/current_rate": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"private": map[string]any{
 				"withdrawals": map[string]any{
 					"post": map[string]any{
-						"withdrawals": 20,
-						"push":        1,
+						"withdrawals": map[string]any{
+							"cost": 20,
+						},
+						"push": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"withdrawals/{withdrawal_id}": 1,
+						"withdrawals/{withdrawal_id}": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"wallet": map[string]any{
 					"get": map[string]any{
-						"deposit_address":                   1,
-						"withdrawals":                       1,
-						"deposits":                          1,
-						"sub_account_transfers":             1,
-						"order_status":                      1,
-						"withdraw_status":                   1,
-						"sub_account_balances":              2.5,
-						"sub_account_margin_balances":       2.5,
-						"sub_account_futures_balances":      2.5,
-						"sub_account_cross_margin_balances": 2.5,
-						"saved_address":                     1,
-						"fee":                               1,
-						"total_balance":                     2.5,
-						"small_balance":                     1,
-						"small_balance_history":             1,
-						"push":                              1,
-						"getLowCapExchangeList":             1,
+						"deposit_address": map[string]any{
+							"cost": 1,
+						},
+						"withdrawals": map[string]any{
+							"cost": 1,
+						},
+						"deposits": map[string]any{
+							"cost": 1,
+						},
+						"sub_account_transfers": map[string]any{
+							"cost": 1,
+						},
+						"order_status": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_status": map[string]any{
+							"cost": 1,
+						},
+						"sub_account_balances": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_account_margin_balances": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_account_futures_balances": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_account_cross_margin_balances": map[string]any{
+							"cost": 2.5,
+						},
+						"saved_address": map[string]any{
+							"cost": 1,
+						},
+						"fee": map[string]any{
+							"cost": 1,
+						},
+						"total_balance": map[string]any{
+							"cost": 2.5,
+						},
+						"small_balance": map[string]any{
+							"cost": 1,
+						},
+						"small_balance_history": map[string]any{
+							"cost": 1,
+						},
+						"push": map[string]any{
+							"cost": 1,
+						},
+						"getLowCapExchangeList": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"transfers":                  2.5,
-						"sub_account_transfers":      2.5,
-						"sub_account_to_sub_account": 2.5,
-						"small_balance":              1,
+						"transfers": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_account_transfers": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_account_to_sub_account": map[string]any{
+							"cost": 2.5,
+						},
+						"small_balance": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"subAccounts": map[string]any{
 					"get": map[string]any{
-						"sub_accounts":                      2.5,
-						"sub_accounts/{user_id}":            2.5,
-						"sub_accounts/{user_id}/keys":       2.5,
-						"sub_accounts/{user_id}/keys/{key}": 2.5,
+						"sub_accounts": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_accounts/{user_id}": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_accounts/{user_id}/keys": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_accounts/{user_id}/keys/{key}": map[string]any{
+							"cost": 2.5,
+						},
 					},
 					"post": map[string]any{
-						"sub_accounts":                  2.5,
-						"sub_accounts/{user_id}/keys":   2.5,
-						"sub_accounts/{user_id}/lock":   2.5,
-						"sub_accounts/{user_id}/unlock": 2.5,
+						"sub_accounts": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_accounts/{user_id}/keys": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_accounts/{user_id}/lock": map[string]any{
+							"cost": 2.5,
+						},
+						"sub_accounts/{user_id}/unlock": map[string]any{
+							"cost": 2.5,
+						},
 					},
 					"put": map[string]any{
-						"sub_accounts/{user_id}/keys/{key}": 2.5,
+						"sub_accounts/{user_id}/keys/{key}": map[string]any{
+							"cost": 2.5,
+						},
 					},
 					"delete": map[string]any{
-						"sub_accounts/{user_id}/keys/{key}": 2.5,
+						"sub_accounts/{user_id}/keys/{key}": map[string]any{
+							"cost": 2.5,
+						},
 					},
 				},
 				"unified": map[string]any{
 					"get": map[string]any{
-						"accounts":                       Divide(20, 15),
-						"borrowable":                     Divide(20, 15),
-						"transferable":                   Divide(20, 15),
-						"transferables":                  Divide(20, 15),
-						"batch_borrowable":               Divide(20, 15),
-						"loans":                          Divide(20, 15),
-						"loan_records":                   Divide(20, 15),
-						"interest_records":               Divide(20, 15),
-						"risk_units":                     Divide(20, 15),
-						"unified_mode":                   Divide(20, 15),
-						"estimate_rate":                  Divide(20, 15),
-						"currency_discount_tiers":        Divide(20, 15),
-						"loan_margin_tiers":              Divide(20, 15),
-						"leverage/user_currency_config":  Divide(20, 15),
-						"leverage/user_currency_setting": Divide(20, 15),
-						"account_mode":                   Divide(20, 15),
+						"accounts": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"borrowable": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"transferable": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"transferables": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"batch_borrowable": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loans": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loan_records": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"interest_records": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"risk_units": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"unified_mode": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"estimate_rate": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"currency_discount_tiers": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loan_margin_tiers": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"leverage/user_currency_config": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"leverage/user_currency_setting": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"account_mode": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"post": map[string]any{
-						"loans":                          Divide(200, 15),
-						"portfolio_calculator":           Divide(20, 15),
-						"leverage/user_currency_setting": Divide(20, 15),
-						"collateral_currencies":          Divide(20, 15),
-						"account_mode":                   Divide(20, 15),
+						"loans": map[string]any{
+							"cost": Divide(200, 15),
+						},
+						"portfolio_calculator": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"leverage/user_currency_setting": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"collateral_currencies": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"account_mode": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"put": map[string]any{
-						"unified_mode": Divide(20, 15),
+						"unified_mode": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 				},
 				"spot": map[string]any{
 					"get": map[string]any{
-						"fee":                     1,
-						"batch_fee":               1,
-						"accounts":                1,
-						"account_book":            1,
-						"open_orders":             1,
-						"orders":                  1,
-						"orders/{order_id}":       1,
-						"my_trades":               1,
-						"price_orders":            1,
-						"price_orders/{order_id}": 1,
+						"fee": map[string]any{
+							"cost": 1,
+						},
+						"batch_fee": map[string]any{
+							"cost": 1,
+						},
+						"accounts": map[string]any{
+							"cost": 1,
+						},
+						"account_book": map[string]any{
+							"cost": 1,
+						},
+						"open_orders": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"my_trades": map[string]any{
+							"cost": 1,
+						},
+						"price_orders": map[string]any{
+							"cost": 1,
+						},
+						"price_orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"batch_orders":           0.4,
-						"cross_liquidate_orders": 1,
-						"orders":                 0.4,
-						"cancel_batch_orders":    Divide(20, 75),
-						"countdown_cancel_all":   Divide(20, 75),
-						"amend_batch_orders":     0.4,
-						"price_orders":           0.4,
+						"batch_orders": map[string]any{
+							"cost": 0.4,
+						},
+						"cross_liquidate_orders": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 0.4,
+						},
+						"cancel_batch_orders": map[string]any{
+							"cost": Divide(20, 75),
+						},
+						"countdown_cancel_all": map[string]any{
+							"cost": Divide(20, 75),
+						},
+						"amend_batch_orders": map[string]any{
+							"cost": 0.4,
+						},
+						"price_orders": map[string]any{
+							"cost": 0.4,
+						},
 					},
 					"delete": map[string]any{
-						"orders":                  Divide(20, 75),
-						"orders/{order_id}":       Divide(20, 75),
-						"price_orders":            Divide(20, 75),
-						"price_orders/{order_id}": Divide(20, 75),
+						"orders": map[string]any{
+							"cost": Divide(20, 75),
+						},
+						"orders/{order_id}": map[string]any{
+							"cost": Divide(20, 75),
+						},
+						"price_orders": map[string]any{
+							"cost": Divide(20, 75),
+						},
+						"price_orders/{order_id}": map[string]any{
+							"cost": Divide(20, 75),
+						},
 					},
 					"patch": map[string]any{
-						"orders/{order_id}": 0.4,
+						"orders/{order_id}": map[string]any{
+							"cost": 0.4,
+						},
 					},
 				},
 				"margin": map[string]any{
 					"get": map[string]any{
-						"accounts":                      Divide(20, 15),
-						"account_book":                  Divide(20, 15),
-						"funding_accounts":              Divide(20, 15),
-						"auto_repay":                    Divide(20, 15),
-						"transferable":                  Divide(20, 15),
-						"uni/estimate_rate":             Divide(20, 15),
-						"uni/loans":                     Divide(20, 15),
-						"uni/loan_records":              Divide(20, 15),
-						"uni/interest_records":          Divide(20, 15),
-						"uni/borrowable":                Divide(20, 15),
-						"user/loan_margin_tiers":        Divide(20, 15),
-						"user/account":                  Divide(20, 15),
-						"loans":                         Divide(20, 15),
-						"loans/{loan_id}":               Divide(20, 15),
-						"loans/{loan_id}/repayment":     Divide(20, 15),
-						"loan_records":                  Divide(20, 15),
-						"loan_records/{loan_record_id}": Divide(20, 15),
-						"borrowable":                    Divide(20, 15),
-						"cross/accounts":                Divide(20, 15),
-						"cross/account_book":            Divide(20, 15),
-						"cross/loans":                   Divide(20, 15),
-						"cross/loans/{loan_id}":         Divide(20, 15),
-						"cross/repayments":              Divide(20, 15),
-						"cross/interest_records":        Divide(20, 15),
-						"cross/transferable":            Divide(20, 15),
-						"cross/estimate_rate":           Divide(20, 15),
-						"cross/borrowable":              Divide(20, 15),
+						"accounts": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"account_book": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"funding_accounts": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"auto_repay": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"transferable": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/estimate_rate": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/loans": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/loan_records": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/interest_records": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/borrowable": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"user/loan_margin_tiers": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"user/account": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loans": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loans/{loan_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loans/{loan_id}/repayment": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loan_records": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loan_records/{loan_record_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"borrowable": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/accounts": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/account_book": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/loans": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/loans/{loan_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/repayments": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/interest_records": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/transferable": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/estimate_rate": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/borrowable": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"post": map[string]any{
-						"auto_repay":                   Divide(20, 15),
-						"uni/loans":                    Divide(20, 15),
-						"leverage/user_market_setting": Divide(20, 15),
-						"loans":                        Divide(20, 15),
-						"merged_loans":                 Divide(20, 15),
-						"loans/{loan_id}/repayment":    Divide(20, 15),
-						"cross/loans":                  Divide(20, 15),
-						"cross/repayments":             Divide(20, 15),
+						"auto_repay": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/loans": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"leverage/user_market_setting": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loans": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"merged_loans": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loans/{loan_id}/repayment": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/loans": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"cross/repayments": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"patch": map[string]any{
-						"loans/{loan_id}":               Divide(20, 15),
-						"loan_records/{loan_record_id}": Divide(20, 15),
+						"loans/{loan_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"loan_records/{loan_record_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"delete": map[string]any{
-						"loans/{loan_id}": Divide(20, 15),
+						"loans/{loan_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 				},
 				"flash_swap": map[string]any{
 					"get": map[string]any{
-						"orders":            1,
-						"orders/{order_id}": 1,
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"orders":         1,
-						"orders/preview": 1,
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"orders/preview": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"futures": map[string]any{
 					"get": map[string]any{
-						"{settle}/accounts":                       1,
-						"{settle}/account_book":                   1,
-						"{settle}/positions":                      1,
-						"{settle}/positions/{contract}":           1,
-						"{settle}/get_leverage/{contract}":        1,
-						"{settle}/dual_comp/positions/{contract}": 1,
-						"{settle}/orders":                         1,
-						"{settle}/orders_timerange":               1,
-						"{settle}/orders/{order_id}":              1,
-						"{settle}/my_trades":                      1,
-						"{settle}/my_trades_timerange":            1,
-						"{settle}/position_close":                 1,
-						"{settle}/liquidates":                     1,
-						"{settle}/auto_deleverages":               1,
-						"{settle}/fee":                            1,
-						"{settle}/risk_limit_table":               1,
-						"{settle}/price_orders":                   1,
-						"{settle}/price_orders/{order_id}":        1,
+						"{settle}/accounts": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/account_book": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/positions": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/positions/{contract}": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/get_leverage/{contract}": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/dual_comp/positions/{contract}": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/orders": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/orders_timerange": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/my_trades": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/my_trades_timerange": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/position_close": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/liquidates": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/auto_deleverages": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/fee": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/risk_limit_table": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/price_orders": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/price_orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"{settle}/positions/{contract}/margin":               1,
-						"{settle}/positions/{contract}/leverage":             1,
-						"{settle}/positions/{contract}/set_leverage":         1,
-						"{settle}/positions/{contract}/risk_limit":           1,
-						"{settle}/positions/cross_mode":                      1,
-						"{settle}/dual_comp/positions/cross_mode":            1,
-						"{settle}/dual_mode":                                 1,
-						"{settle}/set_position_mode":                         1,
-						"{settle}/dual_comp/positions/{contract}/margin":     1,
-						"{settle}/dual_comp/positions/{contract}/leverage":   1,
-						"{settle}/dual_comp/positions/{contract}/risk_limit": 1,
-						"{settle}/orders":                                    0.4,
-						"{settle}/batch_orders":                              0.4,
-						"{settle}/countdown_cancel_all":                      0.4,
-						"{settle}/batch_cancel_orders":                       0.4,
-						"{settle}/batch_amend_orders":                        0.4,
-						"{settle}/bbo_orders":                                0.4,
-						"{settle}/price_orders":                              0.4,
+						"{settle}/positions/{contract}/margin": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/positions/{contract}/leverage": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/positions/{contract}/set_leverage": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/positions/{contract}/risk_limit": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/positions/cross_mode": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/dual_comp/positions/cross_mode": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/dual_mode": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/set_position_mode": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/dual_comp/positions/{contract}/margin": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/dual_comp/positions/{contract}/leverage": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/dual_comp/positions/{contract}/risk_limit": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/orders": map[string]any{
+							"cost": 0.4,
+						},
+						"{settle}/batch_orders": map[string]any{
+							"cost": 0.4,
+						},
+						"{settle}/countdown_cancel_all": map[string]any{
+							"cost": 0.4,
+						},
+						"{settle}/batch_cancel_orders": map[string]any{
+							"cost": 0.4,
+						},
+						"{settle}/batch_amend_orders": map[string]any{
+							"cost": 0.4,
+						},
+						"{settle}/bbo_orders": map[string]any{
+							"cost": 0.4,
+						},
+						"{settle}/price_orders": map[string]any{
+							"cost": 0.4,
+						},
 					},
 					"put": map[string]any{
-						"{settle}/orders/{order_id}":       1,
-						"{settle}/price_orders/{order_id}": 1,
+						"{settle}/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"{settle}/price_orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"{settle}/orders":                  Divide(20, 75),
-						"{settle}/orders/{order_id}":       Divide(20, 75),
-						"{settle}/price_orders":            Divide(20, 75),
-						"{settle}/price_orders/{order_id}": Divide(20, 75),
+						"{settle}/orders": map[string]any{
+							"cost": Divide(20, 75),
+						},
+						"{settle}/orders/{order_id}": map[string]any{
+							"cost": Divide(20, 75),
+						},
+						"{settle}/price_orders": map[string]any{
+							"cost": Divide(20, 75),
+						},
+						"{settle}/price_orders/{order_id}": map[string]any{
+							"cost": Divide(20, 75),
+						},
 					},
 				},
 				"delivery": map[string]any{
 					"get": map[string]any{
-						"{settle}/accounts":                Divide(20, 15),
-						"{settle}/account_book":            Divide(20, 15),
-						"{settle}/positions":               Divide(20, 15),
-						"{settle}/positions/{contract}":    Divide(20, 15),
-						"{settle}/orders":                  Divide(20, 15),
-						"{settle}/orders/{order_id}":       Divide(20, 15),
-						"{settle}/my_trades":               Divide(20, 15),
-						"{settle}/position_close":          Divide(20, 15),
-						"{settle}/liquidates":              Divide(20, 15),
-						"{settle}/settlements":             Divide(20, 15),
-						"{settle}/price_orders":            Divide(20, 15),
-						"{settle}/price_orders/{order_id}": Divide(20, 15),
+						"{settle}/accounts": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/account_book": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/positions": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/positions/{contract}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/orders/{order_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/my_trades": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/position_close": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/liquidates": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/settlements": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/price_orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/price_orders/{order_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"post": map[string]any{
-						"{settle}/positions/{contract}/margin":     Divide(20, 15),
-						"{settle}/positions/{contract}/leverage":   Divide(20, 15),
-						"{settle}/positions/{contract}/risk_limit": Divide(20, 15),
-						"{settle}/orders":                          Divide(20, 15),
-						"{settle}/price_orders":                    Divide(20, 15),
+						"{settle}/positions/{contract}/margin": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/positions/{contract}/leverage": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/positions/{contract}/risk_limit": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/price_orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"delete": map[string]any{
-						"{settle}/orders":                  Divide(20, 15),
-						"{settle}/orders/{order_id}":       Divide(20, 15),
-						"{settle}/price_orders":            Divide(20, 15),
-						"{settle}/price_orders/{order_id}": Divide(20, 15),
+						"{settle}/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/orders/{order_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/price_orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"{settle}/price_orders/{order_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 				},
 				"options": map[string]any{
 					"get": map[string]any{
-						"my_settlements":       Divide(20, 15),
-						"accounts":             Divide(20, 15),
-						"account_book":         Divide(20, 15),
-						"positions":            Divide(20, 15),
-						"positions/{contract}": Divide(20, 15),
-						"position_close":       Divide(20, 15),
-						"orders":               Divide(20, 15),
-						"orders/{order_id}":    Divide(20, 15),
-						"my_trades":            Divide(20, 15),
-						"mmp":                  Divide(20, 15),
+						"my_settlements": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"accounts": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"account_book": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"positions": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"positions/{contract}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"position_close": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"orders/{order_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"my_trades": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"mmp": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"post": map[string]any{
-						"orders":               Divide(20, 15),
-						"countdown_cancel_all": Divide(20, 15),
-						"mmp":                  Divide(20, 15),
-						"mmp/reset":            Divide(20, 15),
+						"orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"countdown_cancel_all": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"mmp": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"mmp/reset": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"delete": map[string]any{
-						"orders":            Divide(20, 15),
-						"orders/{order_id}": Divide(20, 15),
+						"orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"orders/{order_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 				},
 				"earn": map[string]any{
 					"get": map[string]any{
-						"uni/lends":                      Divide(20, 15),
-						"uni/lend_records":               Divide(20, 15),
-						"uni/interests/{currency}":       Divide(20, 15),
-						"uni/interest_records":           Divide(20, 15),
-						"uni/interest_status/{currency}": Divide(20, 15),
-						"uni/chart":                      Divide(20, 15),
-						"uni/rate":                       Divide(20, 15),
-						"staking/eth2/rate_records":      Divide(20, 15),
-						"dual/orders":                    Divide(20, 15),
-						"dual/balance":                   Divide(20, 15),
-						"structured/orders":              Divide(20, 15),
-						"staking/coins":                  Divide(20, 15),
-						"staking/order_list":             Divide(20, 15),
-						"staking/award_list":             Divide(20, 15),
-						"staking/assets":                 Divide(20, 15),
-						"uni/currencies":                 Divide(20, 15),
-						"uni/currencies/{currency}":      Divide(20, 15),
+						"uni/lends": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/lend_records": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/interests/{currency}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/interest_records": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/interest_status/{currency}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/chart": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/rate": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"staking/eth2/rate_records": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"dual/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"dual/balance": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"structured/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"staking/coins": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"staking/order_list": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"staking/award_list": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"staking/assets": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/currencies": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"uni/currencies/{currency}": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"post": map[string]any{
-						"uni/lends":         Divide(20, 15),
-						"staking/eth2/swap": Divide(20, 15),
-						"dual/orders":       Divide(20, 15),
-						"structured/orders": Divide(20, 15),
-						"staking/swap":      Divide(20, 15),
+						"uni/lends": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"staking/eth2/swap": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"dual/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"structured/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"staking/swap": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"put": map[string]any{
-						"uni/interest_reinvest": Divide(20, 15),
+						"uni/interest_reinvest": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"patch": map[string]any{
-						"uni/lends": Divide(20, 15),
+						"uni/lends": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 				},
 				"loan": map[string]any{
 					"get": map[string]any{
-						"collateral/orders":                  Divide(20, 15),
-						"collateral/orders/{order_id}":       Divide(20, 15),
-						"collateral/repay_records":           Divide(20, 15),
-						"collateral/collaterals":             Divide(20, 15),
-						"collateral/total_amount":            Divide(20, 15),
-						"collateral/ltv":                     Divide(20, 15),
-						"multi_collateral/orders":            Divide(20, 15),
-						"multi_collateral/orders/{order_id}": Divide(20, 15),
-						"multi_collateral/repay":             Divide(20, 15),
-						"multi_collateral/mortgage":          Divide(20, 15),
-						"multi_collateral/currency_quota":    Divide(20, 15),
-						"collateral/currencies":              Divide(20, 15),
-						"multi_collateral/currencies":        Divide(20, 15),
-						"multi_collateral/ltv":               Divide(20, 15),
-						"multi_collateral/fixed_rate":        Divide(20, 15),
-						"multi_collateral/current_rate":      Divide(20, 15),
+						"collateral/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"collateral/orders/{order_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"collateral/repay_records": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"collateral/collaterals": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"collateral/total_amount": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"collateral/ltv": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/orders/{order_id}": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/repay": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/mortgage": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/currency_quota": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"collateral/currencies": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/currencies": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/ltv": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/fixed_rate": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/current_rate": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"post": map[string]any{
-						"collateral/orders":         Divide(20, 15),
-						"collateral/repay":          Divide(20, 15),
-						"collateral/collaterals":    Divide(20, 15),
-						"multi_collateral/orders":   Divide(20, 15),
-						"multi_collateral/repay":    Divide(20, 15),
-						"multi_collateral/mortgage": Divide(20, 15),
+						"collateral/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"collateral/repay": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"collateral/collaterals": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/orders": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/repay": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"multi_collateral/mortgage": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 				},
 				"account": map[string]any{
 					"get": map[string]any{
-						"detail":                    Divide(20, 15),
-						"main_keys":                 Divide(20, 15),
-						"rate_limit":                Divide(20, 15),
-						"stp_groups":                Divide(20, 15),
-						"stp_groups/{stp_id}/users": Divide(20, 15),
-						"stp_groups/debit_fee":      Divide(20, 15),
-						"debit_fee":                 Divide(20, 15),
+						"detail": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"main_keys": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"rate_limit": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"stp_groups": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"stp_groups/{stp_id}/users": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"stp_groups/debit_fee": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"debit_fee": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"post": map[string]any{
-						"stp_groups":                Divide(20, 15),
-						"stp_groups/{stp_id}/users": Divide(20, 15),
-						"debit_fee":                 Divide(20, 15),
+						"stp_groups": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"stp_groups/{stp_id}/users": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"debit_fee": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 					"delete": map[string]any{
-						"stp_groups/{stp_id}/users": Divide(20, 15),
+						"stp_groups/{stp_id}/users": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 				},
 				"rebate": map[string]any{
 					"get": map[string]any{
-						"agency/transaction_history":  Divide(20, 15),
-						"agency/commission_history":   Divide(20, 15),
-						"partner/transaction_history": Divide(20, 15),
-						"partner/commission_history":  Divide(20, 15),
-						"partner/sub_list":            Divide(20, 15),
-						"broker/commission_history":   Divide(20, 15),
-						"broker/transaction_history":  Divide(20, 15),
-						"user/info":                   Divide(20, 15),
-						"user/sub_relation":           Divide(20, 15),
+						"agency/transaction_history": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"agency/commission_history": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"partner/transaction_history": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"partner/commission_history": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"partner/sub_list": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"broker/commission_history": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"broker/transaction_history": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"user/info": map[string]any{
+							"cost": Divide(20, 15),
+						},
+						"user/sub_relation": map[string]any{
+							"cost": Divide(20, 15),
+						},
 					},
 				},
 				"otc": map[string]any{
 					"get": map[string]any{
-						"get_user_def_bank":      1,
-						"order/list":             1,
-						"stable_coin/order/list": 1,
-						"order/detail":           1,
+						"get_user_def_bank": map[string]any{
+							"cost": 1,
+						},
+						"order/list": map[string]any{
+							"cost": 1,
+						},
+						"stable_coin/order/list": map[string]any{
+							"cost": 1,
+						},
+						"order/detail": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"quote":                    1,
-						"order/create":             1,
-						"stable_coin/order/create": 1,
-						"order/paid":               1,
-						"order/cancel":             1,
+						"quote": map[string]any{
+							"cost": 1,
+						},
+						"order/create": map[string]any{
+							"cost": 1,
+						},
+						"stable_coin/order/create": map[string]any{
+							"cost": 1,
+						},
+						"order/paid": map[string]any{
+							"cost": 1,
+						},
+						"order/cancel": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -1384,7 +2062,7 @@ func (this *GateCore) FetchSpotMarkets(optionalArgs ...any) <-chan any {
 		//
 		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(spotMarketsResponse)); i++ {
-			var spotMarket any = GetValue(spotMarketsResponse, i)
+			var spotMarket any = this.SafeDict(spotMarketsResponse, i, map[string]any{})
 			var id any = this.SafeString(spotMarket, "id")
 			var marginMarket any = this.SafeValue(marginMarkets, id)
 			var market any = this.DeepExtend(marginMarket, spotMarket)
@@ -1483,7 +2161,8 @@ func (this *GateCore) FetchSwapMarkets(optionalArgs ...any) <-chan any {
 			response := (<-this.PublicFuturesGetSettleContracts(this.Extend(request, params)))
 			PanicOnError(response)
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-				var parsedMarket any = this.ParseContractMarket(GetValue(response, i), settleId)
+				var contract any = this.SafeDict(response, i, map[string]any{})
+				var parsedMarket any = this.ParseContractMarket(contract, settleId)
 				AppendToArray(&result, parsedMarket)
 			}
 		}
@@ -1517,7 +2196,8 @@ func (this *GateCore) FetchFutureMarkets(optionalArgs ...any) <-chan any {
 			response := (<-this.PublicDeliveryGetSettleContracts(this.Extend(request, params)))
 			PanicOnError(response)
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-				var parsedMarket any = this.ParseContractMarket(GetValue(response, i), settleId)
+				var contract any = this.SafeDict(response, i, map[string]any{})
+				var parsedMarket any = this.ParseContractMarket(contract, settleId)
 				AppendToArray(&result, parsedMarket)
 			}
 		}
@@ -1771,7 +2451,7 @@ func (this *GateCore) FetchOptionMarkets(optionalArgs ...any) <-chan any {
 			//    ]
 			//
 			for j := 0; IsLessThan(j, GetArrayLength(response)); j++ {
-				var market any = GetValue(response, j)
+				var market any = this.SafeDict(response, j, map[string]any{})
 				var id any = this.SafeString(market, "name")
 				var parts any = Split(underlying, "_")
 				var baseId any = this.SafeString(parts, 0)
@@ -1874,7 +2554,7 @@ func (this *GateCore) FetchOptionUnderlyings() <-chan any {
 		//
 		var underlyings any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(underlyingsResponse)); i++ {
-			var underlying any = GetValue(underlyingsResponse, i)
+			var underlying any = this.SafeDict(underlyingsResponse, i, map[string]any{})
 			var name any = this.SafeString(underlying, "name")
 			if IsTrue(!IsEqual(name, nil)) {
 				AppendToArray(&underlyings, name)
@@ -2172,8 +2852,8 @@ func (this *GateCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes208212 := (<-this.LoadMarkets())
-			PanicOnError(retRes208212)
+			retRes208412 := (<-this.LoadMarkets())
+			PanicOnError(retRes208412)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -2257,8 +2937,8 @@ func (this *GateCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes214812 := (<-this.LoadMarkets())
-			PanicOnError(retRes214812)
+			retRes215012 := (<-this.LoadMarkets())
+			PanicOnError(retRes215012)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var market any = nil
@@ -2417,8 +3097,8 @@ func (this *GateCore) FetchNetworkDepositAddress(code any, optionalArgs ...any) 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes229212 := (<-this.LoadMarkets())
-			PanicOnError(retRes229212)
+			retRes229412 := (<-this.LoadMarkets())
+			PanicOnError(retRes229412)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2483,8 +3163,8 @@ func (this *GateCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes234312 := (<-this.LoadMarkets())
-			PanicOnError(retRes234312)
+			retRes234512 := (<-this.LoadMarkets())
+			PanicOnError(retRes234512)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2524,8 +3204,8 @@ func (this *GateCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes236912 := (<-this.LoadMarkets())
-			PanicOnError(retRes236912)
+			retRes237112 := (<-this.LoadMarkets())
+			PanicOnError(retRes237112)
 		}
 		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -2585,8 +3265,8 @@ func (this *GateCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes241212 := (<-this.LoadMarkets())
-			PanicOnError(retRes241212)
+			retRes241412 := (<-this.LoadMarkets())
+			PanicOnError(retRes241412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2634,8 +3314,8 @@ func (this *GateCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes244612 := (<-this.LoadMarkets())
-			PanicOnError(retRes244612)
+			retRes244812 := (<-this.LoadMarkets())
+			PanicOnError(retRes244812)
 		}
 
 		response := (<-this.PrivateWalletGetFee(params))
@@ -2725,8 +3405,8 @@ func (this *GateCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes252012 := (<-this.LoadMarkets())
-			PanicOnError(retRes252012)
+			retRes252212 := (<-this.LoadMarkets())
+			PanicOnError(retRes252212)
 		}
 
 		response := (<-this.PrivateWalletGetWithdrawStatus(params))
@@ -2752,7 +3432,7 @@ func (this *GateCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
 		var withdrawFees any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 			withdrawFees = map[string]any{}
-			var entry any = GetValue(response, i)
+			var entry any = this.SafeDict(response, i, map[string]any{})
 			var currencyId any = this.SafeString(entry, "currency")
 			var code any = this.SafeCurrencyCode(currencyId)
 			if IsTrue(IsTrue((!IsEqual(codes, nil))) && !IsTrue(this.InArray(code, codes))) {
@@ -2805,8 +3485,8 @@ func (this *GateCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes258312 := (<-this.LoadMarkets())
-			PanicOnError(retRes258312)
+			retRes258512 := (<-this.LoadMarkets())
+			PanicOnError(retRes258512)
 		}
 
 		response := (<-this.PrivateWalletGetWithdrawStatus(params))
@@ -2921,8 +3601,8 @@ func (this *GateCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes267712 := (<-this.LoadMarkets())
-			PanicOnError(retRes267712)
+			retRes267912 := (<-this.LoadMarkets())
+			PanicOnError(retRes267912)
 		}
 		// let defaultType = 'future';
 		var market any = nil
@@ -3035,8 +3715,8 @@ func (this *GateCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes276812 := (<-this.LoadMarkets())
-			PanicOnError(retRes276812)
+			retRes277012 := (<-this.LoadMarkets())
+			PanicOnError(retRes277012)
 		}
 		var market any = this.Market(symbol)
 		//
@@ -3184,8 +3864,8 @@ func (this *GateCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes289412 := (<-this.LoadMarkets())
-			PanicOnError(retRes289412)
+			retRes289612 := (<-this.LoadMarkets())
+			PanicOnError(retRes289612)
 		}
 		var market any = this.Market(symbol)
 		requestqueryVariable := this.PrepareRequest(market, nil, params)
@@ -3376,8 +4056,8 @@ func (this *GateCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes306012 := (<-this.LoadMarkets())
-			PanicOnError(retRes306012)
+			retRes306212 := (<-this.LoadMarkets())
+			PanicOnError(retRes306212)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var first any = this.SafeString(symbols, 0)
@@ -3461,12 +4141,12 @@ func (this *GateCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes312112 := (<-this.LoadMarkets())
-			PanicOnError(retRes312112)
+			retRes312312 := (<-this.LoadMarkets())
+			PanicOnError(retRes312312)
 		}
 
-		retRes31238 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes31238)
+		retRes31258 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes31258)
 		var symbol any = this.SafeString(params, "symbol")
 		params = this.Omit(params, "symbol")
 		var isUnifiedAccount any = false
@@ -3801,8 +4481,8 @@ func (this *GateCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes341612 := (<-this.LoadMarkets())
-			PanicOnError(retRes341612)
+			retRes341812 := (<-this.LoadMarkets())
+			PanicOnError(retRes341812)
 		}
 		var market any = this.Market(symbol)
 		var paginate any = false
@@ -3811,16 +4491,16 @@ func (this *GateCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes342219 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-			PanicOnError(retRes342219)
-			ch <- retRes342219
+			retRes342419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+			PanicOnError(retRes342419)
+			ch <- retRes342419
 			return nil
 		}
 		if IsTrue(GetValue(market, "option")) {
 
-			retRes342519 := (<-this.FetchOptionOHLCV(symbol, timeframe, since, limit, params))
-			PanicOnError(retRes342519)
-			ch <- retRes342519
+			retRes342719 := (<-this.FetchOptionOHLCV(symbol, timeframe, since, limit, params))
+			PanicOnError(retRes342719)
+			ch <- retRes342719
 			return nil
 		}
 		var price any = this.SafeString(params, "price")
@@ -3854,7 +4534,7 @@ func (this *GateCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			}
 			AddElementToObject(request, "limit", limit)
 		}
-		var response any = nil
+		var response any = []any{}
 		if IsTrue(GetValue(market, "contract")) {
 			var isMark any = (IsEqual(price, "mark"))
 			var isIndex any = (IsEqual(price, "index"))
@@ -3877,7 +4557,7 @@ func (this *GateCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			PanicOnError(response)
 		}
 
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -3899,8 +4579,8 @@ func (this *GateCore) FetchOptionOHLCV(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes347812 := (<-this.LoadMarkets())
-			PanicOnError(retRes347812)
+			retRes348012 := (<-this.LoadMarkets())
+			PanicOnError(retRes348012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -3912,7 +4592,7 @@ func (this *GateCore) FetchOptionOHLCV(symbol any, optionalArgs ...any) <-chan a
 		response := (<-this.PublicOptionsGetCandlesticks(this.Extend(request, params)))
 		PanicOnError(response)
 
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -3950,8 +4630,8 @@ func (this *GateCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes350612 := (<-this.LoadMarkets())
-			PanicOnError(retRes350612)
+			retRes350812 := (<-this.LoadMarkets())
+			PanicOnError(retRes350812)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -3959,9 +4639,9 @@ func (this *GateCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes351119 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes351119)
-			ch <- retRes351119
+			retRes351319 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes351319)
+			ch <- retRes351319
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -3994,7 +4674,7 @@ func (this *GateCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		//
 		var rates any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var entry any = GetValue(response, i)
+			var entry any = this.SafeDict(response, i, map[string]any{})
 			var timestamp any = this.SafeTimestamp(entry, "t")
 			AppendToArray(&rates, map[string]any{
 				"info":        entry,
@@ -4076,8 +4756,8 @@ func (this *GateCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes361812 := (<-this.LoadMarkets())
-			PanicOnError(retRes361812)
+			retRes362012 := (<-this.LoadMarkets())
+			PanicOnError(retRes362012)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
@@ -4085,9 +4765,9 @@ func (this *GateCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes362319 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes362319)
-			ch <- retRes362319
+			retRes362519 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes362519)
+			ch <- retRes362519
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -4227,8 +4907,8 @@ func (this *GateCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes373412 := (<-this.LoadMarkets())
-			PanicOnError(retRes373412)
+			retRes373612 := (<-this.LoadMarkets())
+			PanicOnError(retRes373612)
 		}
 		//
 		//      [
@@ -4302,21 +4982,21 @@ func (this *GateCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes378612 := (<-this.LoadMarkets())
-			PanicOnError(retRes378612)
+			retRes378812 := (<-this.LoadMarkets())
+			PanicOnError(retRes378812)
 		}
 
-		retRes37888 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes37888)
+		retRes37908 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes37908)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes379219 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes379219)
-			ch <- retRes379219
+			retRes379419 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes379419)
+			ch <- retRes379419
 			return nil
 		}
 		var typeVar any = nil
@@ -4642,8 +5322,8 @@ func (this *GateCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes408412 := (<-this.LoadMarkets())
-			PanicOnError(retRes408412)
+			retRes408612 := (<-this.LoadMarkets())
+			PanicOnError(retRes408612)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
@@ -4651,9 +5331,9 @@ func (this *GateCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes408919 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-			PanicOnError(retRes408919)
-			ch <- retRes408919
+			retRes409119 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+			PanicOnError(retRes409119)
+			ch <- retRes409119
 			return nil
 		}
 		var request any = map[string]any{}
@@ -4712,8 +5392,8 @@ func (this *GateCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes412512 := (<-this.LoadMarkets())
-			PanicOnError(retRes412512)
+			retRes412712 := (<-this.LoadMarkets())
+			PanicOnError(retRes412712)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
@@ -4721,9 +5401,9 @@ func (this *GateCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes413019 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-			PanicOnError(retRes413019)
-			ch <- retRes413019
+			retRes413219 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+			PanicOnError(retRes413219)
+			ch <- retRes413219
 			return nil
 		}
 		var request any = map[string]any{}
@@ -4781,8 +5461,8 @@ func (this *GateCore) Withdraw(code any, amount any, address any, optionalArgs .
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes416712 := (<-this.LoadMarkets())
-			PanicOnError(retRes416712)
+			retRes416912 := (<-this.LoadMarkets())
+			PanicOnError(retRes416912)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -5006,12 +5686,12 @@ func (this *GateCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes437412 := (<-this.LoadMarkets())
-			PanicOnError(retRes437412)
+			retRes437612 := (<-this.LoadMarkets())
+			PanicOnError(retRes437612)
 		}
 
-		retRes43768 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes43768)
+		retRes43788 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes43788)
 		var market any = this.Market(symbol)
 		var trigger any = this.SafeValue(params, "trigger")
 		var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
@@ -5186,12 +5866,12 @@ func (this *GateCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes452412 := (<-this.LoadMarkets())
-			PanicOnError(retRes452412)
+			retRes452612 := (<-this.LoadMarkets())
+			PanicOnError(retRes452612)
 		}
 
-		retRes45268 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes45268)
+		retRes45288 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes45288)
 		var ordersRequests any = this.CreateOrdersRequest(orders, params)
 		var firstOrder any = GetValue(orders, 0)
 		var market any = this.Market(GetValue(firstOrder, "symbol"))
@@ -5485,12 +6165,12 @@ func (this *GateCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optiona
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes481112 := (<-this.LoadMarkets())
-			PanicOnError(retRes481112)
+			retRes481312 := (<-this.LoadMarkets())
+			PanicOnError(retRes481312)
 		}
 
-		retRes48138 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes48138)
+		retRes48158 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes48158)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
@@ -5499,9 +6179,9 @@ func (this *GateCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optiona
 			"createMarketBuyOrderRequiresPrice": false,
 		})
 
-		retRes481915 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes481915)
-		ch <- retRes481915
+		retRes482115 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes482115)
+		ch <- retRes482115
 		return nil
 
 	}()
@@ -5587,12 +6267,12 @@ func (this *GateCore) EditOrder(id any, symbol any, typeVar any, side any, optio
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes488212 := (<-this.LoadMarkets())
-			PanicOnError(retRes488212)
+			retRes488412 := (<-this.LoadMarkets())
+			PanicOnError(retRes488412)
 		}
 
-		retRes48848 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes48848)
+		retRes48868 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes48868)
 		var market any = this.Market(symbol)
 		var extendedRequest any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 		var response any = nil
@@ -6076,12 +6756,12 @@ func (this *GateCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes534312 := (<-this.LoadMarkets())
-			PanicOnError(retRes534312)
+			retRes534512 := (<-this.LoadMarkets())
+			PanicOnError(retRes534512)
 		}
 
-		retRes53458 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes53458)
+		retRes53478 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes53478)
 		var market any = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
 		var result any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 		var typeVar any = this.SafeString(result, 0)
@@ -6164,9 +6844,9 @@ func (this *GateCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes539415 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
-		PanicOnError(retRes539415)
-		ch <- retRes539415
+		retRes539615 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
+		PanicOnError(retRes539615)
+		ch <- retRes539615
 		return nil
 
 	}()
@@ -6212,22 +6892,22 @@ func (this *GateCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes542312 := (<-this.LoadMarkets())
-			PanicOnError(retRes542312)
+			retRes542512 := (<-this.LoadMarkets())
+			PanicOnError(retRes542512)
 		}
 
-		retRes54258 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes54258)
+		retRes54278 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes54278)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes543019 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
-			PanicOnError(retRes543019)
+			retRes543219 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+			PanicOnError(retRes543219)
 			// see https://github.com/ccxt/ccxt/issues/22825
-			ch <- retRes543019
+			ch <- retRes543219
 			return nil
 		}
 		var until any = this.SafeInteger(params, "until")
@@ -6244,9 +6924,9 @@ func (this *GateCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(useHistoricalparamsVariable, 1)
 		if IsTrue(!IsTrue(useHistorical) && IsTrue((IsTrue((IsTrue(IsEqual(since, nil)) && IsTrue(IsEqual(until, nil)))) || IsTrue((!IsEqual(typeVar, "swap")))))) {
 
-			retRes544319 := (<-this.FetchOrdersByStatus("finished", symbol, since, limit, params))
-			PanicOnError(retRes544319)
-			ch <- retRes544319
+			retRes544519 := (<-this.FetchOrdersByStatus("finished", symbol, since, limit, params))
+			PanicOnError(retRes544519)
+			ch <- retRes544519
 			return nil
 		}
 		params = this.Omit(params, "type")
@@ -6344,12 +7024,12 @@ func (this *GateCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes550412 := (<-this.LoadMarkets())
-			PanicOnError(retRes550412)
+			retRes550612 := (<-this.LoadMarkets())
+			PanicOnError(retRes550612)
 		}
 
-		retRes55068 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes55068)
+		retRes55088 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes55088)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -6557,11 +7237,13 @@ func (this *GateCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-cha
 		//
 		var result any = response
 		if IsTrue(openSpotOrders) {
-			result = []any{}
+			var spotResult any = []any{}
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-				var ordersInner any = this.SafeValue(GetValue(response, i), "orders")
-				result = this.ArrayConcat(result, ordersInner)
+				var responseEntry any = this.SafeDict(response, i, map[string]any{})
+				var ordersInner any = this.SafeValue(responseEntry, "orders")
+				spotResult = this.ArrayConcat(spotResult, ordersInner)
 			}
+			result = spotResult
 		}
 		var orders any = this.ParseOrders(result, market, since, limit)
 
@@ -6601,12 +7283,12 @@ func (this *GateCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes572612 := (<-this.LoadMarkets())
-			PanicOnError(retRes572612)
+			retRes573012 := (<-this.LoadMarkets())
+			PanicOnError(retRes573012)
 		}
 
-		retRes57288 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes57288)
+		retRes57328 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes57328)
 		var market any = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
 		var trigger any = this.SafeBoolN(params, []any{"is_stop_order", "stop", "trigger"}, false)
 		params = this.Omit(params, []any{"is_stop_order", "stop", "trigger"})
@@ -6767,12 +7449,12 @@ func (this *GateCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes585712 := (<-this.LoadMarkets())
-			PanicOnError(retRes585712)
+			retRes586112 := (<-this.LoadMarkets())
+			PanicOnError(retRes586112)
 		}
 
-		retRes58598 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes58598)
+		retRes58638 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes58638)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -6798,9 +7480,9 @@ func (this *GateCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 				AppendToArray(&ordersRequests, orderItem)
 			}
 
-			retRes588219 := (<-this.CancelOrdersForSymbols(ordersRequests, params))
-			PanicOnError(retRes588219)
-			ch <- retRes588219
+			retRes588619 := (<-this.CancelOrdersForSymbols(ordersRequests, params))
+			PanicOnError(retRes588619)
+			ch <- retRes588619
 			return nil
 		}
 		var request any = map[string]any{
@@ -6841,12 +7523,12 @@ func (this *GateCore) CancelOrdersForSymbols(orders any, optionalArgs ...any) <-
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes590812 := (<-this.LoadMarkets())
-			PanicOnError(retRes590812)
+			retRes591212 := (<-this.LoadMarkets())
+			PanicOnError(retRes591212)
 		}
 
-		retRes59108 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes59108)
+		retRes59148 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes59148)
 		var ordersRequests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var order any = GetValue(orders, i)
@@ -6908,12 +7590,12 @@ func (this *GateCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes595612 := (<-this.LoadMarkets())
-			PanicOnError(retRes595612)
+			retRes596012 := (<-this.LoadMarkets())
+			PanicOnError(retRes596012)
 		}
 
-		retRes59588 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes59588)
+		retRes59628 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes59628)
 		var market any = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
 		var trigger any = this.SafeBool2(params, "stop", "trigger")
 		params = this.Omit(params, []any{"stop", "trigger"})
@@ -7019,8 +7701,8 @@ func (this *GateCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes603412 := (<-this.LoadMarkets())
-			PanicOnError(retRes603412)
+			retRes603812 := (<-this.LoadMarkets())
+			PanicOnError(retRes603812)
 		}
 		var currency any = this.Currency(code)
 		var fromId any = this.ConvertTypeToAccount(fromAccount)
@@ -7130,8 +7812,8 @@ func (this *GateCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes612712 := (<-this.LoadMarkets())
-			PanicOnError(retRes612712)
+			retRes613112 := (<-this.LoadMarkets())
+			PanicOnError(retRes613112)
 		}
 		var market any = this.Market(symbol)
 		requestqueryVariable := this.PrepareRequest(market, nil, params)
@@ -7364,8 +8046,8 @@ func (this *GateCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes634112 := (<-this.LoadMarkets())
-			PanicOnError(retRes634112)
+			retRes634512 := (<-this.LoadMarkets())
+			PanicOnError(retRes634512)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
@@ -7481,8 +8163,8 @@ func (this *GateCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes643512 := (<-this.LoadMarkets())
-			PanicOnError(retRes643512)
+			retRes643912 := (<-this.LoadMarkets())
+			PanicOnError(retRes643912)
 		}
 		var market any = nil
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
@@ -7587,7 +8269,7 @@ func (this *GateCore) FetchPositions(optionalArgs ...any) <-chan any {
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParsePositions(responseList, symbols)
@@ -7618,8 +8300,8 @@ func (this *GateCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes654712 := (<-this.LoadMarkets())
-			PanicOnError(retRes654712)
+			retRes655112 := (<-this.LoadMarkets())
+			PanicOnError(retRes655112)
 		}
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchLeverageTiers", nil, params)
 		typeVar := GetValue(typeVarqueryVariable, 0)
@@ -7761,8 +8443,8 @@ func (this *GateCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes666912 := (<-this.LoadMarkets())
-			PanicOnError(retRes666912)
+			retRes667312 := (<-this.LoadMarkets())
+			PanicOnError(retRes667312)
 		}
 		var market any = this.Market(symbol)
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchMarketLeverageTiers", market, params)
@@ -7892,8 +8574,8 @@ func (this *GateCore) RepayIsolatedMargin(symbol any, code any, amount any, opti
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes677712 := (<-this.LoadMarkets())
-			PanicOnError(retRes677712)
+			retRes678112 := (<-this.LoadMarkets())
+			PanicOnError(retRes678112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -7939,12 +8621,12 @@ func (this *GateCore) RepayCrossMargin(code any, amount any, optionalArgs ...any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes680912 := (<-this.LoadMarkets())
-			PanicOnError(retRes680912)
+			retRes681312 := (<-this.LoadMarkets())
+			PanicOnError(retRes681312)
 		}
 
-		retRes68118 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes68118)
+		retRes68158 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes68158)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": ToUpper(GetValue(currency, "id")),
@@ -7996,8 +8678,8 @@ func (this *GateCore) BorrowIsolatedMargin(symbol any, code any, amount any, opt
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes686112 := (<-this.LoadMarkets())
-			PanicOnError(retRes686112)
+			retRes686512 := (<-this.LoadMarkets())
+			PanicOnError(retRes686512)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -8058,12 +8740,12 @@ func (this *GateCore) BorrowCrossMargin(code any, amount any, optionalArgs ...an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes690812 := (<-this.LoadMarkets())
-			PanicOnError(retRes690812)
+			retRes691212 := (<-this.LoadMarkets())
+			PanicOnError(retRes691212)
 		}
 
-		retRes69108 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes69108)
+		retRes69148 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes69148)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": ToUpper(GetValue(currency, "id")),
@@ -8181,12 +8863,12 @@ func (this *GateCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes701512 := (<-this.LoadMarkets())
-			PanicOnError(retRes701512)
+			retRes701912 := (<-this.LoadMarkets())
+			PanicOnError(retRes701912)
 		}
 
-		retRes70178 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes70178)
+		retRes70218 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes70218)
 		var isUnifiedAccount any = false
 		isUnifiedAccountparamsVariable := this.HandleOptionAndParams(params, "fetchBorrowInterest", "unifiedAccount")
 		isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
@@ -8284,7 +8966,7 @@ func (this *GateCore) Sign(path any, optionalArgs ...any) any {
 		path = this.ImplodeParams(path, settle)
 		// remove the first element from params
 		var newParams any = []any{}
-		var anyParams any = params
+		var anyParams any = this.ToArray(params)
 		for i := 1; IsLessThan(i, GetArrayLength(anyParams)); i++ {
 			AppendToArray(&newParams, GetValue(params, i))
 		}
@@ -8379,8 +9061,8 @@ func (this *GateCore) ModifyMarginHelper(symbol any, amount any, optionalArgs ..
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes717312 := (<-this.LoadMarkets())
-			PanicOnError(retRes717312)
+			retRes717712 := (<-this.LoadMarkets())
+			PanicOnError(retRes717712)
 		}
 		var market any = this.Market(symbol)
 		requestqueryVariable := this.PrepareRequest(market, nil, params)
@@ -8472,9 +9154,9 @@ func (this *GateCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes724615 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), params))
-		PanicOnError(retRes724615)
-		ch <- retRes724615
+		retRes725015 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), params))
+		PanicOnError(retRes725015)
+		ch <- retRes725015
 		return nil
 
 	}()
@@ -8500,9 +9182,9 @@ func (this *GateCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-c
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes726115 := (<-this.ModifyMarginHelper(symbol, amount, params))
-		PanicOnError(retRes726115)
-		ch <- retRes726115
+		retRes726515 := (<-this.ModifyMarginHelper(symbol, amount, params))
+		PanicOnError(retRes726515)
+		ch <- retRes726515
 		return nil
 
 	}()
@@ -8537,8 +9219,8 @@ func (this *GateCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes727912 := (<-this.LoadMarkets())
-			PanicOnError(retRes727912)
+			retRes728312 := (<-this.LoadMarkets())
+			PanicOnError(retRes728312)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false)
@@ -8546,9 +9228,9 @@ func (this *GateCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes728419 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 100))
-			PanicOnError(retRes728419)
-			ch <- retRes728419
+			retRes728819 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 100))
+			PanicOnError(retRes728819)
+			ch <- retRes728819
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -8658,8 +9340,8 @@ func (this *GateCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes737212 := (<-this.LoadMarkets())
-			PanicOnError(retRes737212)
+			retRes737612 := (<-this.LoadMarkets())
+			PanicOnError(retRes737612)
 		}
 		var market any = this.Market(symbol)
 		var typeVar any = nil
@@ -8732,8 +9414,8 @@ func (this *GateCore) FetchMySettlementHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes742312 := (<-this.LoadMarkets())
-			PanicOnError(retRes742312)
+			retRes742712 := (<-this.LoadMarkets())
+			PanicOnError(retRes742712)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -8939,8 +9621,8 @@ func (this *GateCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes760512 := (<-this.LoadMarkets())
-			PanicOnError(retRes760512)
+			retRes760912 := (<-this.LoadMarkets())
+			PanicOnError(retRes760912)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
@@ -8948,9 +9630,9 @@ func (this *GateCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes761019 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
-			PanicOnError(retRes761019)
-			ch <- retRes761019
+			retRes761419 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+			PanicOnError(retRes761419)
+			ch <- retRes761419
 			return nil
 		}
 		var typeVar any = nil
@@ -9217,9 +9899,9 @@ func (this *GateCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan an
 		query := GetValue(requestqueryVariable, 1)
 		AddElementToObject(request, "dual_mode", hedged)
 
-		retRes784615 := (<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query)))
-		PanicOnError(retRes784615)
-		ch <- retRes784615
+		retRes785015 := (<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query)))
+		PanicOnError(retRes785015)
+		ch <- retRes785015
 		return nil
 
 	}()
@@ -9244,8 +9926,8 @@ func (this *GateCore) FetchUnderlyingAssets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes786012 := (<-this.LoadMarkets())
-			PanicOnError(retRes786012)
+			retRes786412 := (<-this.LoadMarkets())
+			PanicOnError(retRes786412)
 		}
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
@@ -9271,7 +9953,7 @@ func (this *GateCore) FetchUnderlyingAssets(optionalArgs ...any) <-chan any {
 		//
 		var underlyings any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var underlying any = GetValue(response, i)
+			var underlying any = this.SafeDict(response, i, map[string]any{})
 			var name any = this.SafeString(underlying, "name")
 			if IsTrue(!IsEqual(name, nil)) {
 				AppendToArray(&underlyings, name)
@@ -9310,8 +9992,8 @@ func (this *GateCore) FetchLiquidations(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes790512 := (<-this.LoadMarkets())
-			PanicOnError(retRes790512)
+			retRes790912 := (<-this.LoadMarkets())
+			PanicOnError(retRes790912)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -9346,7 +10028,7 @@ func (this *GateCore) FetchLiquidations(symbol any, optionalArgs ...any) <-chan 
 		//         },
 		//     ]
 		//
-		ch <- this.ParseLiquidations(response, market, since, limit)
+		ch <- this.ParseLiquidations(this.ToArray(response), market, since, limit)
 		return nil
 
 	}()
@@ -9384,8 +10066,8 @@ func (this *GateCore) FetchMyLiquidations(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes795612 := (<-this.LoadMarkets())
-			PanicOnError(retRes795612)
+			retRes796012 := (<-this.LoadMarkets())
+			PanicOnError(retRes796012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -9451,7 +10133,7 @@ func (this *GateCore) FetchMyLiquidations(optionalArgs ...any) <-chan any {
 		//         }
 		//     ]
 		//
-		ch <- this.ParseLiquidations(response, market, since, limit)
+		ch <- this.ParseLiquidations(this.ToArray(response), market, since, limit)
 		return nil
 
 	}()
@@ -9561,8 +10243,8 @@ func (this *GateCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes811312 := (<-this.LoadMarkets())
-			PanicOnError(retRes811312)
+			retRes811712 := (<-this.LoadMarkets())
+			PanicOnError(retRes811712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -9595,7 +10277,7 @@ func (this *GateCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any {
 		//
 		var marketId any = GetValue(market, "id")
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var entry any = GetValue(response, i)
+			var entry any = this.SafeDict(response, i, map[string]any{})
 			var entryMarketId any = this.SafeString(entry, "name")
 			if IsTrue(IsEqual(entryMarketId, marketId)) {
 
@@ -9603,8 +10285,7 @@ func (this *GateCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any {
 				return nil
 			}
 		}
-
-		return nil
+		panic(NullResponse(Add(Add(this.Id, " fetchGreeks() could not find greeks for "), symbol)))
 
 	}()
 	return ch
@@ -9689,9 +10370,9 @@ func (this *GateCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any 
 			side = "" // side is not used but needs to be present, otherwise crashes in php
 		}
 
-		retRes822215 := (<-this.CreateOrder(symbol, "market", side, 0, nil, params))
-		PanicOnError(retRes822215)
-		ch <- retRes822215
+		retRes822615 := (<-this.CreateOrder(symbol, "market", side, 0, nil, params))
+		PanicOnError(retRes822615)
+		ch <- retRes822615
 		return nil
 
 	}()
@@ -9718,8 +10399,8 @@ func (this *GateCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes823812 := (<-this.LoadMarkets())
-			PanicOnError(retRes823812)
+			retRes824212 := (<-this.LoadMarkets())
+			PanicOnError(retRes824212)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -9777,8 +10458,8 @@ func (this *GateCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes834612 := (<-this.LoadMarkets())
-			PanicOnError(retRes834612)
+			retRes835012 := (<-this.LoadMarkets())
+			PanicOnError(retRes835012)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var response any = nil
@@ -9796,7 +10477,7 @@ func (this *GateCore) FetchLeverages(optionalArgs ...any) <-chan any {
 			PanicOnError(response) // deprecated
 		}
 
-		ch <- this.ParseLeverages(response, symbols, marketIdRequest, "spot")
+		ch <- this.ParseLeverages(this.ToArray(response), symbols, marketIdRequest, "spot")
 		return nil
 
 	}()
@@ -9834,8 +10515,8 @@ func (this *GateCore) FetchOption(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes840912 := (<-this.LoadMarkets())
-			PanicOnError(retRes840912)
+			retRes841312 := (<-this.LoadMarkets())
+			PanicOnError(retRes841312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -9912,8 +10593,8 @@ func (this *GateCore) FetchOptionChain(code any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes847212 := (<-this.LoadMarkets())
-			PanicOnError(retRes847212)
+			retRes847612 := (<-this.LoadMarkets())
+			PanicOnError(retRes847612)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -9965,7 +10646,7 @@ func (this *GateCore) FetchOptionChain(code any, optionalArgs ...any) <-chan any
 		//         },
 		//     ]
 		//
-		ch <- this.ParseOptionChain(response, nil, "name")
+		ch <- this.ParseOptionChain(this.ToArray(response), nil, "name")
 		return nil
 
 	}()
@@ -10073,8 +10754,8 @@ func (this *GateCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes860912 := (<-this.LoadMarkets())
-			PanicOnError(retRes860912)
+			retRes861312 := (<-this.LoadMarkets())
+			PanicOnError(retRes861312)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -10136,7 +10817,7 @@ func (this *GateCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParsePositions(responseList, symbols, params)

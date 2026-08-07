@@ -131,13 +131,123 @@ func (this *BtcmarketsCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"markets", "markets/{marketId}/ticker", "markets/{marketId}/trades", "markets/{marketId}/orderbook", "markets/{marketId}/candles", "markets/tickers", "markets/orderbooks", "time"},
+				"get": map[string]any{
+					"markets": map[string]any{
+						"cost": 1,
+					},
+					"markets/{marketId}/ticker": map[string]any{
+						"cost": 1,
+					},
+					"markets/{marketId}/trades": map[string]any{
+						"cost": 1,
+					},
+					"markets/{marketId}/orderbook": map[string]any{
+						"cost": 1,
+					},
+					"markets/{marketId}/candles": map[string]any{
+						"cost": 1,
+					},
+					"markets/tickers": map[string]any{
+						"cost": 1,
+					},
+					"markets/orderbooks": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":    []any{"orders", "orders/{id}", "batchorders/{ids}", "trades", "trades/{id}", "withdrawals", "withdrawals/{id}", "deposits", "deposits/{id}", "transfers", "transfers/{id}", "addresses", "withdrawal-fees", "assets", "accounts/me/trading-fees", "accounts/me/withdrawal-limits", "accounts/me/balances", "accounts/me/transactions", "reports/{id}"},
-				"post":   []any{"orders", "batchorders", "withdrawals", "reports"},
-				"delete": []any{"orders", "orders/{id}", "batchorders/{ids}"},
-				"put":    []any{"orders/{id}"},
+				"get": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+					"batchorders/{ids}": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"trades/{id}": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals/{id}": map[string]any{
+						"cost": 1,
+					},
+					"deposits": map[string]any{
+						"cost": 1,
+					},
+					"deposits/{id}": map[string]any{
+						"cost": 1,
+					},
+					"transfers": map[string]any{
+						"cost": 1,
+					},
+					"transfers/{id}": map[string]any{
+						"cost": 1,
+					},
+					"addresses": map[string]any{
+						"cost": 1,
+					},
+					"withdrawal-fees": map[string]any{
+						"cost": 1,
+					},
+					"assets": map[string]any{
+						"cost": 1,
+					},
+					"accounts/me/trading-fees": map[string]any{
+						"cost": 1,
+					},
+					"accounts/me/withdrawal-limits": map[string]any{
+						"cost": 1,
+					},
+					"accounts/me/balances": map[string]any{
+						"cost": 1,
+					},
+					"accounts/me/transactions": map[string]any{
+						"cost": 1,
+					},
+					"reports/{id}": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"batchorders": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"reports": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+					"batchorders/{ids}": map[string]any{
+						"cost": 1,
+					},
+				},
+				"put": map[string]any{
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"timeframes": map[string]any{
@@ -771,7 +881,7 @@ func (this *BtcmarketsCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan a
 		//         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()

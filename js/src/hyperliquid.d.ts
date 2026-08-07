@@ -232,8 +232,8 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
-    setRef(): Promise<any>;
-    approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
+    setRef(): Promise<true | Dict | undefined>;
+    approveBuilderFee(builder: string, maxFeeRate: string): Promise<Dict>;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
     /**
@@ -258,7 +258,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
      * @returns dictionary response from the exchange
      */
-    setUserAbstraction(abstraction: string, params?: {}): Promise<any>;
+    setUserAbstraction(abstraction: string, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#enableUserDexAbstraction
@@ -268,7 +268,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
      * @returns dictionary response from the exchange
      */
-    enableUserDexAbstraction(enabled: boolean, params?: {}): Promise<any>;
+    enableUserDexAbstraction(enabled: boolean, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#setAgentAbstraction
@@ -277,7 +277,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params]
      * @returns dictionary response from the exchange
      */
-    setAgentAbstraction(abstraction: string, params?: {}): Promise<any>;
+    setAgentAbstraction(abstraction: string, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#createOrder
@@ -396,7 +396,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     editOrdersRequest(orders: any, params?: {}): Dict;
     /**
      * @method
@@ -440,7 +440,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    createVault(name: string, description: string, initialUsd: int, params?: {}): Promise<any>;
+    createVault(name: string, description: string, initialUsd: int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#fetchFundingRateHistory
@@ -592,7 +592,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#setLeverage
@@ -603,7 +603,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#addMargin
@@ -777,8 +777,8 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
      * @returns {object} a response object
      */
-    createSubAccount(name: string, params?: {}): Promise<any>;
-    extractTypeFromDelta(data?: never[]): any[];
+    createSubAccount(name: string, params?: {}): Promise<Dict>;
+    extractTypeFromDelta(data?: Dict[]): Dict[];
     formatVaultAddress(address?: Str): string | undefined;
     handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
     coinToMarketId(coin: Str): string | undefined;

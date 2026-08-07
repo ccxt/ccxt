@@ -152,12 +152,76 @@ public partial class onetrading : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"currencies", "candlesticks/{instrument_code}", "fees", "instruments", "order-book/{instrument_code}", "market-ticker", "market-ticker/{instrument_code}", "time"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "candlesticks/{instrument_code}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "instruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order-book/{instrument_code}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market-ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market-ticker/{instrument_code}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"account/balances", "account/fees", "account/orders", "account/orders/{order_id}", "account/orders/client/{client_id}", "account/orders/{order_id}/trades", "account/trades", "account/trade/{trade_id}"} },
-                    { "post", new List<object>() {"account/orders"} },
-                    { "delete", new List<object>() {"account/orders", "account/orders/{order_id}", "account/orders/client/{client_id}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "account/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/orders/client/{client_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/orders/{order_id}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/trade/{trade_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "account/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "account/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/orders/client/{client_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -893,9 +957,10 @@ public partial class onetrading : Exchange
         //     ]
         //
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawTickers = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(response, i));
+            object ticker = this.parseTicker(getValue(rawTickers, i));
             object symbol = getValue(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {

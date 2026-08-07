@@ -43,7 +43,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, NullableList, Status, PositionModeInfo, MarginLoan } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -1241,7 +1241,10 @@ export class BaseExchange {
             await this.loadProxyModules ();
         }
         // user-agent
-        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        let userAgent: any = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        if ((userAgent === undefined) && isNode) {
+            userAgent = this.userAgents['chrome'];
+        }
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
                 headers = this.extend ({ 'User-Agent': userAgent }, headers);
@@ -1634,6 +1637,11 @@ export class BaseExchange {
 
     spawn (method: any, ...args: any[]) {
         const future = Future ();
+        // spawned tasks are fire-and-forget - when the caller does not await the
+        // returned future, a rejection (e.g. a keepalive pong sent after the test
+        // harness closed the socket) must not escalate to unhandledRejection and
+        // crash the process, see https://github.com/ccxt/ccxt/actions/runs/31173661492
+        future.catch (() => {});
         // using setTimeout 0 to force the execution to run after the future is returned
         setTimeout (() => {
             method.apply (this, args).then (future.resolve).catch (future.reject);
@@ -6023,12 +6031,12 @@ export class BaseExchange {
         return position as Position;
     }
 
-    parsePositions (positions: any[], symbols: Strings = undefined, params = {}): Position[] {
+    parsePositions (positions: List, symbols: Strings = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
-        positions = this.toArray (positions);
+        const positionsArray = this.toArray (positions);
         const result: Position[] = [];
-        for (let i = 0; i < positions.length; i++) {
-            const position = this.extend (this.parsePosition (positions[i]), params);
+        for (let i = 0; i < positionsArray.length; i++) {
+            const position = this.extend (this.parsePosition (positionsArray[i]), params);
             result.push (position);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
@@ -6041,36 +6049,36 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseADLRank() is not supported yet');
     }
 
-    parseADLRanks (ranks: any[], symbols: Strings = undefined, params = {}): ADL[] {
+    parseADLRanks (ranks: List, symbols: Strings = undefined, params = {}): ADL[] {
         symbols = this.marketSymbols (symbols);
-        ranks = this.toArray (ranks);
+        const ranksArray = this.toArray (ranks);
         const result: ADL[] = [];
-        for (let i = 0; i < ranks.length; i++) {
-            const rank = this.extend (this.parseADLRank (ranks[i]), params);
+        for (let i = 0; i < ranksArray.length; i++) {
+            const rank = this.extend (this.parseADLRank (ranksArray[i]), params);
             result.push (rank);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseAccounts (accounts: any[], params = {}): Account[] {
-        accounts = this.toArray (accounts);
+    parseAccounts (accounts: List, params = {}): Account[] {
+        const accountsArray = this.toArray (accounts);
         const result: Account[] = [];
-        for (let i = 0; i < accounts.length; i++) {
-            const account = this.extend (this.parseAccount (accounts[i]), params);
+        for (let i = 0; i < accountsArray.length; i++) {
+            const account = this.extend (this.parseAccount (accountsArray[i]), params);
             result.push (account);
         }
         return result;
     }
 
-    parseTradesHelper (isWs: boolean, trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
-        trades = this.toArray (trades);
+    parseTradesHelper (isWs: boolean, trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+        const tradesArray = this.toArray (trades);
         let result: Trade[] = [];
-        for (let i = 0; i < trades.length; i++) {
+        for (let i = 0; i < tradesArray.length; i++) {
             let parsed: NullableDict = undefined;
             if (isWs) {
-                parsed = this.parseWsTrade (trades[i], market);
+                parsed = this.parseWsTrade (tradesArray[i], market);
             } else {
-                parsed = this.parseTrade (trades[i], market);
+                parsed = this.parseTrade (tradesArray[i], market);
             }
             const trade = this.extend (parsed, params);
             result.push (trade);
@@ -6080,19 +6088,19 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         return this.parseTradesHelper (false, trades, market, since, limit, params);
     }
 
-    parseWsTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseWsTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         return this.parseTradesHelper (true, trades, market, since, limit, params);
     }
 
-    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
-        transactions = this.toArray (transactions);
+    parseTransactions (transactions: List, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+        const transactionsArray = this.toArray (transactions);
         let result: Transaction[] = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = this.extend (this.parseTransaction (transactions[i], currency), params);
+        for (let i = 0; i < transactionsArray.length; i++) {
+            const transaction = this.extend (this.parseTransaction (transactionsArray[i], currency), params);
             result.push (transaction);
         }
         result = this.sortBy (result, 'timestamp');
@@ -6100,11 +6108,11 @@ export class BaseExchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntry[] {
-        transfers = this.toArray (transfers);
+    parseTransfers (transfers: List, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntry[] {
+        const transfersArray = this.toArray (transfers);
         let result: TransferEntry[] = [];
-        for (let i = 0; i < transfers.length; i++) {
-            const transfer = this.extend (this.parseTransfer (transfers[i], currency), params);
+        for (let i = 0; i < transfersArray.length; i++) {
+            const transfer = this.extend (this.parseTransfer (transfersArray[i], currency), params);
             result.push (transfer);
         }
         result = this.sortBy (result, 'timestamp');
@@ -8344,7 +8352,9 @@ export class BaseExchange {
         return this.filterBySinceLimit (uniqueResults, since, limit, key);
     }
 
-    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
+    // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
+    async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = 10;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
         let maxRetries = 3;
@@ -8370,7 +8380,8 @@ export class BaseExchange {
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method] (symbol, params);
                 } else if (method === 'fetchOpenInterestHistory') {
-                    if (symbol === undefined) {
+                    if (typeof symbol !== 'string') {
+                        // fetchOpenInterestHistory takes a single symbol, never a list
                         throw new ArgumentsRequired (this.id + ' fetchPaginatedCallCursor() requires a symbol argument');
                     }
                     if (timeframe === undefined) {
@@ -8675,13 +8686,13 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseLeverage () is not supported yet');
     }
 
-    parseConversions (conversions: any[], code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
-        conversions = this.toArray (conversions);
+    parseConversions (conversions: List, code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
+        const conversionsArray = this.toArray (conversions);
         const result: Dict[] = [];
         let fromCurrency: Currency = undefined;
         let toCurrency: Currency = undefined;
-        for (let i = 0; i < conversions.length; i++) {
-            const entry = conversions[i];
+        for (let i = 0; i < conversionsArray.length; i++) {
+            const entry = conversionsArray[i];
             const fromId = (fromCurrencyKey === undefined) ? undefined : this.safeString (entry, fromCurrencyKey);
             const toId = (toCurrencyKey === undefined) ? undefined : this.safeString (entry, toCurrencyKey);
             if (fromId !== undefined) {

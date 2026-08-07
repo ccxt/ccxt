@@ -131,42 +131,86 @@ func (this *FoxbitCore) Describe() any {
 			"v3": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"currencies":                      5,
-						"markets":                         5,
-						"markets/ticker/24hr":             60,
-						"markets/{market}/orderbook":      6,
-						"markets/{market}/candlesticks":   12,
-						"markets/{market}/trades/history": 12,
-						"markets/{market}/ticker/24hr":    15,
+						"currencies": map[string]any{
+							"cost": 5,
+						},
+						"markets": map[string]any{
+							"cost": 5,
+						},
+						"markets/ticker/24hr": map[string]any{
+							"cost": 60,
+						},
+						"markets/{market}/orderbook": map[string]any{
+							"cost": 6,
+						},
+						"markets/{market}/candlesticks": map[string]any{
+							"cost": 12,
+						},
+						"markets/{market}/trades/history": map[string]any{
+							"cost": 12,
+						},
+						"markets/{market}/ticker/24hr": map[string]any{
+							"cost": 15,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"accounts":                       2,
-						"accounts/{symbol}/transactions": 60,
-						"orders":                         2,
-						"orders/by-order-id/{id}":        2,
-						"trades":                         6,
-						"deposits/address":               10,
-						"deposits":                       10,
-						"withdrawals":                    10,
-						"me/fees/trading":                60,
+						"accounts": map[string]any{
+							"cost": 2,
+						},
+						"accounts/{symbol}/transactions": map[string]any{
+							"cost": 60,
+						},
+						"orders": map[string]any{
+							"cost": 2,
+						},
+						"orders/by-order-id/{id}": map[string]any{
+							"cost": 2,
+						},
+						"trades": map[string]any{
+							"cost": 6,
+						},
+						"deposits/address": map[string]any{
+							"cost": 10,
+						},
+						"deposits": map[string]any{
+							"cost": 10,
+						},
+						"withdrawals": map[string]any{
+							"cost": 10,
+						},
+						"me/fees/trading": map[string]any{
+							"cost": 60,
+						},
 					},
 					"post": map[string]any{
-						"orders":                2,
-						"orders/batch":          7.5,
-						"orders/cancel-replace": 3,
-						"withdrawals":           10,
+						"orders": map[string]any{
+							"cost": 2,
+						},
+						"orders/batch": map[string]any{
+							"cost": 7.5,
+						},
+						"orders/cancel-replace": map[string]any{
+							"cost": 3,
+						},
+						"withdrawals": map[string]any{
+							"cost": 10,
+						},
 					},
 					"put": map[string]any{
-						"orders/cancel": 2,
+						"orders/cancel": map[string]any{
+							"cost": 2,
+						},
 					},
 				},
 			},
 			"status": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"status": 30,
+						"status": map[string]any{
+							"cost": 30,
+						},
 					},
 				},
 			},
@@ -930,7 +974,7 @@ func (this *FoxbitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		//         "15466.34096391" // taker buy quote volume
 		//     ]
 		// ]
-		ch <- this.ParseOHLCVs(response, market, interval, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, interval, since, limit)
 		return nil
 
 	}()
@@ -2011,7 +2055,6 @@ func (this *FoxbitCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 
 		response := (<-this.V3PrivatePostOrdersCancelReplace(this.Extend(request, params)))
 		PanicOnError(response)
-
 		// {
 		//     "cancel": {
 		//         "id": 123456789
@@ -2021,7 +2064,9 @@ func (this *FoxbitCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		//         "client_order_id": "451637946501"
 		//     }
 		// }
-		ch <- this.ParseOrder(GetValue(response, "create"), market)
+		var created any = this.SafeDict(response, "create", map[string]any{})
+
+		ch <- this.ParseOrder(created, market)
 		return nil
 
 	}()
@@ -2054,8 +2099,8 @@ func (this *FoxbitCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes159512 := (<-this.LoadMarkets())
-			PanicOnError(retRes159512)
+			retRes159612 := (<-this.LoadMarkets())
+			PanicOnError(retRes159612)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2117,8 +2162,8 @@ func (this *FoxbitCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes163512 := (<-this.LoadMarkets())
-			PanicOnError(retRes163512)
+			retRes163612 := (<-this.LoadMarkets())
+			PanicOnError(retRes163612)
 		}
 		var request any = map[string]any{}
 		if IsTrue(IsEqual(code, nil)) {

@@ -99,72 +99,156 @@ func (this *ZebpayCore) Describe() any {
 			"public": map[string]any{
 				"spot": map[string]any{
 					"get": map[string]any{
-						"v2/system/time":       10,
-						"v2/system/status":     10,
-						"v2/market/orderbook":  10,
-						"v2/market/trades":     10,
-						"v2/market/ticker":     10,
-						"v2/market/allTickers": 10,
-						"v2/ex/exchangeInfo":   10,
-						"v2/ex/currencies":     10,
-						"v2/market/klines":     10,
-						"v2/ex/tradefees":      10,
+						"v2/system/time": map[string]any{
+							"cost": 10,
+						},
+						"v2/system/status": map[string]any{
+							"cost": 10,
+						},
+						"v2/market/orderbook": map[string]any{
+							"cost": 10,
+						},
+						"v2/market/trades": map[string]any{
+							"cost": 10,
+						},
+						"v2/market/ticker": map[string]any{
+							"cost": 10,
+						},
+						"v2/market/allTickers": map[string]any{
+							"cost": 10,
+						},
+						"v2/ex/exchangeInfo": map[string]any{
+							"cost": 10,
+						},
+						"v2/ex/currencies": map[string]any{
+							"cost": 10,
+						},
+						"v2/market/klines": map[string]any{
+							"cost": 10,
+						},
+						"v2/ex/tradefees": map[string]any{
+							"cost": 10,
+						},
 					},
 				},
 				"swap": map[string]any{
 					"get": map[string]any{
-						"v1/system/time":        10,
-						"v1/system/status":      10,
-						"v1/exchange/tradefee":  10,
-						"v1/exchange/tradefees": 10,
-						"v1/market/orderBook":   10,
-						"v1/market/ticker24Hr":  10,
-						"v1/market/markets":     10,
-						"v1/market/aggTrade":    10,
+						"v1/system/time": map[string]any{
+							"cost": 10,
+						},
+						"v1/system/status": map[string]any{
+							"cost": 10,
+						},
+						"v1/exchange/tradefee": map[string]any{
+							"cost": 10,
+						},
+						"v1/exchange/tradefees": map[string]any{
+							"cost": 10,
+						},
+						"v1/market/orderBook": map[string]any{
+							"cost": 10,
+						},
+						"v1/market/ticker24Hr": map[string]any{
+							"cost": 10,
+						},
+						"v1/market/markets": map[string]any{
+							"cost": 10,
+						},
+						"v1/market/aggTrade": map[string]any{
+							"cost": 10,
+						},
 					},
 					"post": map[string]any{
-						"v1/market/klines": 10,
+						"v1/market/klines": map[string]any{
+							"cost": 10,
+						},
 					},
 				},
 			},
 			"private": map[string]any{
 				"spot": map[string]any{
 					"post": map[string]any{
-						"v2/ex/orders": 10,
+						"v2/ex/orders": map[string]any{
+							"cost": 10,
+						},
 					},
 					"get": map[string]any{
-						"v2/ex/orders":       10,
-						"v2/account/balance": 10,
-						"v2/ex/tradefee":     10,
-						"v2/ex/order":        10,
-						"v2/ex/order/fills":  10,
+						"v2/ex/orders": map[string]any{
+							"cost": 10,
+						},
+						"v2/account/balance": map[string]any{
+							"cost": 10,
+						},
+						"v2/ex/tradefee": map[string]any{
+							"cost": 10,
+						},
+						"v2/ex/order": map[string]any{
+							"cost": 10,
+						},
+						"v2/ex/order/fills": map[string]any{
+							"cost": 10,
+						},
 					},
 					"delete": map[string]any{
-						"v2/ex/order":            10,
-						"v2/ex/orders":           10,
-						"v2/ex/orders/cancelAll": 10,
+						"v2/ex/order": map[string]any{
+							"cost": 10,
+						},
+						"v2/ex/orders": map[string]any{
+							"cost": 10,
+						},
+						"v2/ex/orders/cancelAll": map[string]any{
+							"cost": 10,
+						},
 					},
 				},
 				"swap": map[string]any{
 					"get": map[string]any{
-						"v1/wallet/balance":          10,
-						"v1/trade/order":             10,
-						"v1/trade/order/open-orders": 10,
-						"v1/trade/userLeverages":     10,
-						"v1/trade/userLeverage":      10,
-						"v1/trade/positions":         10,
-						"v1/trade/history":           10,
+						"v1/wallet/balance": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/order": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/order/open-orders": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/userLeverages": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/userLeverage": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/positions": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/history": map[string]any{
+							"cost": 10,
+						},
 					},
 					"post": map[string]any{
-						"v1/trade/order":               10,
-						"v1/trade/order/addTPSL":       10,
-						"v1/trade/addMargin":           10,
-						"v1/trade/reduceMargin":        10,
-						"v1/trade/position/close":      10,
-						"v1/trade/update/userLeverage": 10,
+						"v1/trade/order": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/order/addTPSL": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/addMargin": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/reduceMargin": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/position/close": map[string]any{
+							"cost": 10,
+						},
+						"v1/trade/update/userLeverage": map[string]any{
+							"cost": 10,
+						},
 					},
 					"delete": map[string]any{
-						"v1/trade/order": 10,
+						"v1/trade/order": map[string]any{
+							"cost": 10,
+						},
 					},
 				},
 			},

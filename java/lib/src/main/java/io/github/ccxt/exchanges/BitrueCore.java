@@ -165,57 +165,103 @@ public class BitrueCore extends BitrueApi
                     put( "kline", new java.util.HashMap<String, Object>() {{
                         put( "public", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "public.json", 0.24 );
-                                put( "public{currency}.json", 0.24 );
+                                put( "public.json", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "public{currency}.json", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
                             }} );
                         }} );
                     }} );
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "public", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "ping", 0.24 );
-                                put( "time", 0.24 );
-                                put( "exchangeInfo", 0.24 );
+                                put( "ping", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "time", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "exchangeInfo", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
                                 put( "depth", new java.util.HashMap<String, Object>() {{
                                     put( "cost", 1 );
                                     put( "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(100, 0.24)), new java.util.ArrayList<Object>(java.util.Arrays.asList(500, 1.2)), new java.util.ArrayList<Object>(java.util.Arrays.asList(1000, 2.4)))) );
                                 }} );
-                                put( "trades", 0.24 );
-                                put( "historicalTrades", 1.2 );
-                                put( "aggTrades", 0.24 );
+                                put( "trades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "historicalTrades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1.2 );
+                                }} );
+                                put( "aggTrades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
                                 put( "ticker/24hr", new java.util.HashMap<String, Object>() {{
                                     put( "cost", 0.24 );
                                     put( "noSymbol", 9.6 );
                                 }} );
-                                put( "ticker/price", 0.24 );
-                                put( "ticker/bookTicker", 0.24 );
-                                put( "market/kline", 0.24 );
+                                put( "ticker/price", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "ticker/bookTicker", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "market/kline", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
                             }} );
                         }} );
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "order", 5 );
-                                put( "openOrders", 5 );
-                                put( "allOrders", 25 );
-                                put( "account", 25 );
-                                put( "myTrades", 25 );
-                                put( "etf/net-value/{symbol}", 0.24 );
-                                put( "withdraw/history", 120 );
-                                put( "deposit/history", 120 );
+                                put( "order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "openOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "allOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 25 );
+                                }} );
+                                put( "account", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 25 );
+                                }} );
+                                put( "myTrades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 25 );
+                                }} );
+                                put( "etf/net-value/{symbol}", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "withdraw/history", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 120 );
+                                }} );
+                                put( "deposit/history", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 120 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "order", 5 );
-                                put( "withdraw/commit", 120 );
+                                put( "order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "withdraw/commit", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 120 );
+                                }} );
                             }} );
                             put( "delete", new java.util.HashMap<String, Object>() {{
-                                put( "order", 5 );
+                                put( "order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                         }} );
                     }} );
                     put( "v2", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "myTrades", 1.2 );
+                                put( "myTrades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1.2 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -224,34 +270,74 @@ public class BitrueCore extends BitrueApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "public", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "ping", 0.24 );
-                                put( "time", 0.24 );
-                                put( "contracts", 0.24 );
-                                put( "depth", 0.24 );
-                                put( "ticker", 0.24 );
-                                put( "klines", 0.24 );
+                                put( "ping", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "time", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "contracts", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "depth", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "ticker", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "klines", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
                             }} );
                         }} );
                     }} );
                     put( "v2", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "myTrades", 5 );
-                                put( "openOrders", 5 );
-                                put( "order", 5 );
-                                put( "account", 5 );
-                                put( "leverageBracket", 5 );
-                                put( "commissionRate", 5 );
-                                put( "futures_transfer_history", 5 );
-                                put( "forceOrdersHistory", 5 );
+                                put( "myTrades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "openOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "account", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "leverageBracket", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "commissionRate", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "futures_transfer_history", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "forceOrdersHistory", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "positionMargin", 5 );
-                                put( "level_edit", 5 );
-                                put( "cancel", 5 );
-                                put( "order", 25 );
-                                put( "allOpenOrders", 5 );
-                                put( "futures_transfer", 5 );
+                                put( "positionMargin", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "level_edit", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "cancel", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 25 );
+                                }} );
+                                put( "allOpenOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "futures_transfer", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -260,34 +346,74 @@ public class BitrueCore extends BitrueApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "public", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "ping", 0.24 );
-                                put( "time", 0.24 );
-                                put( "contracts", 0.24 );
-                                put( "depth", 0.24 );
-                                put( "ticker", 0.24 );
-                                put( "klines", 0.24 );
+                                put( "ping", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "time", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "contracts", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "depth", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "ticker", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
+                                put( "klines", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 0.24 );
+                                }} );
                             }} );
                         }} );
                     }} );
                     put( "v2", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "myTrades", 5 );
-                                put( "openOrders", 5 );
-                                put( "order", 5 );
-                                put( "account", 5 );
-                                put( "leverageBracket", 5 );
-                                put( "commissionRate", 5 );
-                                put( "futures_transfer_history", 5 );
-                                put( "forceOrdersHistory", 5 );
+                                put( "myTrades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "openOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "account", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "leverageBracket", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "commissionRate", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "futures_transfer_history", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "forceOrdersHistory", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "positionMargin", 5 );
-                                put( "level_edit", 5 );
-                                put( "cancel", 5 );
-                                put( "order", 5 );
-                                put( "allOpenOrders", 5 );
-                                put( "futures_transfer", 5 );
+                                put( "positionMargin", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "level_edit", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "cancel", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "allOpenOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "futures_transfer", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -1490,7 +1616,7 @@ public class BitrueCore extends BitrueApi
                 {
                     response = (this.dapiV1PublicGetKlines(this.extend(request, parameters))).join();
                 }
-                data = (java.util.List<Object>)(response);
+                data = response;
             } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
                 Object timeframesSpot = this.safeDict(timeframes, "spot", new java.util.HashMap<String, Object>() {{}});
@@ -1688,7 +1814,7 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = null;
+            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
@@ -1702,7 +1828,7 @@ public class BitrueCore extends BitrueApi
                 } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
                 {
                     response = (this.spotV1PublicGetTicker24hr(this.extend(request, parameters))).join();
-                    data = (java.util.List<Object>)(response);
+                    data = this.toArray(response);
                 } else
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " fetchTickers only support spot & swap markets")) ;
@@ -1717,7 +1843,7 @@ public class BitrueCore extends BitrueApi
                     throw new NotSupported((String)Helpers.add(this.id, " fetchTickers only support spot when symbols are not proved")) ;
                 }
                 response = (this.spotV1PublicGetTicker24hr(this.extend(request, parameters))).join();
-                data = (java.util.List<Object>)(response);
+                data = this.toArray(response);
             }
             //
             // spot
@@ -2514,7 +2640,7 @@ public class BitrueCore extends BitrueApi
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 response = (this.spotV1PrivateGetOpenOrders(this.extend(request, parameters))).join();
-                data = (java.util.List<Object>)(response);
+                data = response;
             } else
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrders only support spot & swap markets")) ;
@@ -2777,7 +2903,7 @@ public class BitrueCore extends BitrueApi
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 response = (this.spotV2PrivateGetMyTrades(this.extend(request, parameters))).join();
-                data = (java.util.List<Object>)(response);
+                data = response;
             } else
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchMyTrades only support spot & swap markets")) ;
@@ -3796,7 +3922,7 @@ public class BitrueCore extends BitrueApi
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "byLimit"))) && Helpers.isTrue((Helpers.inOp(parameters, "limit")))))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            Object byLimit = ((Object)Helpers.GetValue(config, "byLimit"));
+            Object byLimit = this.safeList(config, "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(byLimit)); i++)
             {
                 Object entry = Helpers.GetValue(byLimit, i);

@@ -128,34 +128,66 @@ public partial class btcturk : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "orderbook", 1 },
-                        { "ticker", 0.1 },
-                        { "trades", 1 },
-                        { "ohlc", 1 },
-                        { "server/exchangeinfo", 1 },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 0.1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ohlc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "server/exchangeinfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "users/balances", 1 },
-                        { "openOrders", 1 },
-                        { "allOrders", 1 },
-                        { "users/transactions/trade", 1 },
+                        { "users/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "allOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/transactions/trade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "users/transactions/crypto", 1 },
-                        { "users/transactions/fiat", 1 },
-                        { "order", 1 },
-                        { "cancelOrder", 1 },
+                        { "users/transactions/crypto", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/transactions/fiat", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "order", 1 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "graph", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "ohlcs", 1 },
-                        { "klines/history", 1 },
+                        { "ohlcs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "klines/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
