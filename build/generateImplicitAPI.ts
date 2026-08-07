@@ -734,13 +734,23 @@ function createImplicitMethodsPhp(){
             // storedReturnTypes is keyed by the camelCase name, and the two name
             // arrays are filled in lockstep by generateImplicitMethodNames, so
             // index i is the same endpoint in both halves of this concat
-            const returns = phpdocReturnType (exchange, camelCaseMethods[i])
+            const bodyShape = phpdocReturnType (exchange, camelCaseMethods[i])
+            // prediction abstracts are async-only (PredictionExchange); normal
+            // REST is written as sync first and rewritten for php/async/abstract
+            if (isPrediction) {
+                return `${IDEN}/**
+${IDEN} * @return \\React\\Promise\\PromiseInterface<${bodyShape}>
+${IDEN} */
+${IDEN}public function ${method}($params = array()): \\React\\Promise\\PromiseInterface {
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
+${IDEN}}`
+            }
             const native = phpNativeReturnType (exchange, camelCaseMethods[i])
             const nativeSuffix = native ? (': ' + native) : ''
-            // sync only: native `: array` / `: string` (or `array|string`). The
-            // async pass strips the suffix — see generateImplicitAPIs PHP block.
+            // sync REST: native `: array` / `: string` (or `array|string`). The
+            // async pass rewrites to PromiseInterface — see generateImplicitAPIs.
             return `${IDEN}/**
-${IDEN} * @return ${returns}
+${IDEN} * @return ${bodyShape}
 ${IDEN} */
 ${IDEN}public function ${method}($params = array())${nativeSuffix} {
 ${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
@@ -1131,13 +1141,17 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
             Object.values (storedPhpMethods).forEach (x => {
                 x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
                 x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
-                // the async Exchange::request() returns a Promise of the body,
-                // not the body: drop the sync native `: array` / `: string`
-                // suffix and restate @return as PromiseInterface<shape>
+                // async Exchange::request() returns a Promise of the body, not
+                // the body. PHP has no runtime generics, so the native return
+                // is bare PromiseInterface (same as transpiled unified methods);
+                // the shape lives in @return PromiseInterface<array|list|…>
+                // for Psalm/PHPStan — parallel to TS Promise<Dict|List>.
                 for (let i = 3; i < x.length; i++) {
                     x[i] = x[i].replace (/^(\s*) \* @return (.+)$/m, '$1 * @return \\React\\Promise\\PromiseInterface<$2>')
-                    // drop sync-only native return types (`: array`, `: string`, `: array|string`)
-                    x[i] = x[i].replace (/: (?:array\|string|array|string) \{/g, ' {')
+                    // sync `: array` / `: string` / `: array|string` → PromiseInterface
+                    x[i] = x[i].replace (/: (?:array\|string|array|string) \{/g, ': \\React\\Promise\\PromiseInterface {')
+                    // methods that had no sync native type still need the Promise return
+                    x[i] = x[i].replace (/(public function \w+\(\$params = array\(\)) \{/g, '$1: \\React\\Promise\\PromiseInterface {')
                 }
             })
             await editFiles (ASYNC_PHP_PATH + subdir, storedPhpMethods, '.php');
