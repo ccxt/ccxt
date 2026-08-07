@@ -227,7 +227,7 @@ export default class hitbtc extends Exchange {
                         'wallet/internal/withdraw': { 'cost': 30, 'returnType': 'Dict' },
                         'wallet/crypto/check-offchain-available': { 'cost': 30, 'returnType': 'Dict' },
                         'wallet/crypto/fees/estimate': { 'cost': 30, 'returnType': 'List' },
-                        'wallet/airdrops/{id}/claim': 30,
+                        'wallet/airdrops/{id}/claim': { 'cost': 30, 'returnType': 'Dict' },
                         'sub-account/freeze': { 'cost': 15, 'returnType': 'Dict' },
                         'sub-account/activate': { 'cost': 15, 'returnType': 'Dict' },
                         'sub-account/transfer': { 'cost': 15, 'returnType': 'Dict' },

@@ -9,7 +9,7 @@ import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicSpotGetMarketSymbols (params?: {}): Promise<Dict | List>;
+    publicSpotGetMarketSymbols (params?: {}): Promise<Dict>;
     publicSpotGetKline (params?: {}): Promise<Dict>;
     publicSpotGetMarginCurrencies (params?: {}): Promise<Dict>;
     publicSpotGetMarginSymbols (params?: {}): Promise<Dict>;
@@ -42,15 +42,15 @@ interface Exchange {
     privateSpotGetMarketOrderHistory (params?: {}): Promise<Dict>;
     privateSpotGetMarginAssets (params?: {}): Promise<Dict>;
     privateSpotGetMarginFinancelog (params?: {}): Promise<Dict>;
-    privateSpotGetMarginMytrades (params?: {}): Promise<Dict | List>;
+    privateSpotGetMarginMytrades (params?: {}): Promise<Dict>;
     privateSpotGetMarginOrder (params?: {}): Promise<Dict>;
     privateSpotGetMarginOrderCurrent (params?: {}): Promise<Dict>;
     privateSpotGetMarginOrderHistory (params?: {}): Promise<Dict>;
     privateSpotGetMarginPositions (params?: {}): Promise<Dict>;
-    privateSpotGetOtcFinancelog (params?: {}): Promise<Dict | List>;
+    privateSpotGetOtcFinancelog (params?: {}): Promise<Dict>;
     privateSpotGetSpotAssets (params?: {}): Promise<Dict>;
     privateSpotGetSpotFinancelog (params?: {}): Promise<Dict>;
-    privateSpotGetSpotMytrades (params?: {}): Promise<Dict | List>;
+    privateSpotGetSpotMytrades (params?: {}): Promise<Dict>;
     privateSpotGetSpotOrder (params?: {}): Promise<Dict>;
     privateSpotGetSpotOrderCurrent (params?: {}): Promise<Dict>;
     privateSpotGetSpotOrderHistory (params?: {}): Promise<Dict>;
@@ -96,7 +96,7 @@ interface Exchange {
     privateSwapPostFollowCancelAlgo (params?: {}): Promise<Dict>;
     privateSwapPostFollowAccountAvailable (params?: {}): Promise<Dict>;
     privateSwapPostFollowPlanTask (params?: {}): Promise<Dict>;
-    privateSwapPostFollowInstrumentList (params?: {}): Promise<Dict | List>;
+    privateSwapPostFollowInstrumentList (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

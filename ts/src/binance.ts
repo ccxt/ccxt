@@ -382,7 +382,7 @@ export default class binance extends Exchange {
                         'sub-account/sub/transfer/history': { 'cost': 0.1, 'returnType': 'List' },
                         'sub-account/transfer/subUserHistory': { 'cost': 0.1, 'returnType': 'List' },
                         'sub-account/universalTransfer': { 'cost': 0.1, 'returnType': 'Dict' },
-                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
+                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList': { 'cost': 1, 'returnType': 'Dict' },
                         'sub-account/transaction-statistics': { 'cost': 0.40002, 'returnType': 'Dict' }, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
                         'sub-account/subAccountApi/ipRestriction': { 'cost': 20.001, 'returnType': 'Dict' }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset': { 'cost': 0.1, 'returnType': 'List' },
@@ -395,14 +395,14 @@ export default class binance extends Exchange {
                         'managed-subaccount/deposit/address': { 'cost': 0.006667, 'returnType': 'Dict' }, // Weight(UID): 1 => cost = 0.006667 * 1 = 0.006667
                         'managed-subaccount/query-trans-log': { 'cost': 0.40002, 'returnType': 'Dict' },
                         // lending endpoints
-                        'lending/daily/product/list': 0.1,
-                        'lending/daily/userLeftQuota': 0.1,
-                        'lending/daily/userRedemptionQuota': 0.1,
-                        'lending/daily/token/position': 0.1,
-                        'lending/union/account': 0.1,
+                        'lending/daily/product/list': { 'cost': 0.1, 'returnType': 'List' },
+                        'lending/daily/userLeftQuota': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'lending/daily/userRedemptionQuota': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'lending/daily/token/position': { 'cost': 0.1, 'returnType': 'List' },
+                        'lending/union/account': { 'cost': 0.1, 'returnType': 'Dict' },
                         'lending/union/purchaseRecord': 0.1,
                         'lending/union/redemptionRecord': 0.1,
-                        'lending/union/interestHistory': 0.1,
+                        'lending/union/interestHistory': { 'cost': 0.1, 'returnType': 'List' },
                         'lending/project/list': { 'cost': 0.1, 'returnType': 'List' },
                         'lending/project/position/list': { 'cost': 0.1, 'returnType': 'List' },
                         // eth-staking
@@ -468,7 +468,7 @@ export default class binance extends Exchange {
                         'broker/subAccount/depositHist': { 'cost': 1, 'returnType': 'List' },
                         'broker/subAccount/spotSummary': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/marginSummary': { 'cost': 1, 'returnType': 'Dict' },
-                        'broker/subAccount/futuresSummary': 1,
+                        'broker/subAccount/futuresSummary': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/rebate/futures/recentRecord': { 'cost': 1, 'returnType': 'List' },
                         'broker/subAccountApi/ipRestriction': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/universalTransfer': { 'cost': 1, 'returnType': 'List' },
@@ -592,8 +592,8 @@ export default class binance extends Exchange {
                         'futures/transfer': { 'cost': 0.1, 'returnType': 'Dict' },
                         // lending
                         'lending/customizedFixed/purchase': { 'cost': 0.1, 'returnType': 'Dict' },
-                        'lending/daily/purchase': 0.1,
-                        'lending/daily/redeem': 0.1,
+                        'lending/daily/purchase': { 'cost': 0.1, 'returnType': 'Dict' },
+                        'lending/daily/redeem': { 'cost': 0.1, 'returnType': 'Dict' },
                         // liquid swap endpoints
                         'bswap/liquidityAdd': { 'cost': 60, 'returnType': 'Dict' }, // Weight(UID): 1000 + (Additional: 1 request every 3 seconds =  0.333 requests per second) => cost = ( 1000 / rateLimit ) / 0.333 = 60.0000006
                         'bswap/liquidityRemove': { 'cost': 60, 'returnType': 'Dict' }, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
@@ -608,7 +608,7 @@ export default class binance extends Exchange {
                         'apiReferral/rebate/historicalRecord': 1,
                         'apiReferral/kickback/historicalRecord': 1,
                         'broker/subAccount': { 'cost': 1, 'returnType': 'Dict' },
-                        'broker/subAccount/margin': 1,
+                        'broker/subAccount/margin': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/futures': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccountApi': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccountApi/permission': { 'cost': 1, 'returnType': 'Dict' },
@@ -620,12 +620,12 @@ export default class binance extends Exchange {
                         'broker/rebate/historicalRecord': 1,
                         'broker/subAccount/bnbBurn/spot': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccount/bnbBurn/marginInterest': { 'cost': 1, 'returnType': 'Dict' },
-                        'broker/subAccount/blvt': 1,
-                        'broker/subAccountApi/ipRestriction': 1,
-                        'broker/subAccountApi/ipRestriction/ipList': 1,
+                        'broker/subAccount/blvt': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccountApi/ipRestriction': { 'cost': 1, 'returnType': 'Dict' },
+                        'broker/subAccountApi/ipRestriction/ipList': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/universalTransfer': { 'cost': 1, 'returnType': 'Dict' },
                         'broker/subAccountApi/permission/universalTransfer': { 'cost': 1, 'returnType': 'Dict' },
-                        'broker/subAccountApi/permission/vanillaOptions': 1,
+                        'broker/subAccountApi/permission/vanillaOptions': { 'cost': 1, 'returnType': 'Dict' },
                         //
                         'giftcard/createCode': { 'cost': 0.1, 'returnType': 'Dict' },
                         'giftcard/redeemCode': { 'cost': 0.1, 'returnType': 'Dict' },

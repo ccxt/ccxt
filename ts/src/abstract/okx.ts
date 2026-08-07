@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -21,7 +21,7 @@ interface Exchange {
     publicGetMarketPlatform24Volume (params?: {}): Promise<Dict>;
     publicGetMarketCallAuctionDetail (params?: {}): Promise<Dict>;
     publicGetMarketCallAuctionDetails (params?: {}): Promise<Dict>;
-    publicGetMarketBooksSbe (params?: {}): Promise<Dict | List>;
+    publicGetMarketBooksSbe (params?: {}): Promise<Dict>;
     publicGetMarketBlockTickers (params?: {}): Promise<Dict>;
     publicGetMarketBlockTicker (params?: {}): Promise<Dict>;
     publicGetMarketSprdTicker (params?: {}): Promise<Dict>;
@@ -34,8 +34,8 @@ interface Exchange {
     publicGetMarketHistoryMarkPriceCandles (params?: {}): Promise<Dict>;
     publicGetMarketExchangeRate (params?: {}): Promise<Dict>;
     publicGetMarketIndexComponents (params?: {}): Promise<Dict>;
-    publicGetMarketOpenOracle (params?: {}): Promise<Dict | List>;
-    publicGetMarketBooksLite (params?: {}): Promise<Dict | List>;
+    publicGetMarketOpenOracle (params?: {}): Promise<Dict>;
+    publicGetMarketBooksLite (params?: {}): Promise<Dict>;
     publicGetPublicOptionTrades (params?: {}): Promise<Dict>;
     publicGetPublicBlockTrades (params?: {}): Promise<Dict>;
     publicGetPublicInstruments (params?: {}): Promise<Dict>;
@@ -107,7 +107,7 @@ interface Exchange {
     publicGetCopytradingPublicSubpositionsHistory (params?: {}): Promise<Dict>;
     publicGetCopytradingPublicCopyTraders (params?: {}): Promise<Dict>;
     publicGetSupportAnnouncements (params?: {}): Promise<Dict>;
-    publicGetSupportAnnouncementsTypes (params?: {}): Promise<Dict | List>;
+    publicGetSupportAnnouncementsTypes (params?: {}): Promise<Dict>;
     publicGetSupportAnnouncementTypes (params?: {}): Promise<Dict>;
     publicPostTradingBotGridMinInvestment (params?: {}): Promise<Dict>;
     privateGetRfqCounterparties (params?: {}): Promise<Dict>;

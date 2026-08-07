@@ -115,7 +115,7 @@ export default class myriad extends Exchange {
                             'questions/{id}': { 'cost': 1, 'returnType': 'Dict' },
                             'markets': { 'cost': 1, 'returnType': 'Dict' },
                             'markets/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                            'markets/{networkId}/{id}': 1,
+                            'markets/{networkId}/{id}': { 'cost': 1, 'returnType': 'Dict' },
                             'markets/{id}/events': { 'cost': 1, 'returnType': 'Dict' },
                             'markets/{id}/orderbook': { 'cost': 1, 'returnType': 'Dict' },
                             'markets/{id}/trades': { 'cost': 1, 'returnType': 'List' },

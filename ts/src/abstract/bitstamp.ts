@@ -62,8 +62,8 @@ interface Exchange {
     privatePostWithdrawalOpen (params?: {}): Promise<Dict>;
     privatePostWithdrawalStatus (params?: {}): Promise<Dict>;
     privatePostWithdrawalCancel (params?: {}): Promise<Dict>;
-    privatePostLiquidationAddressNew (params?: {}): Promise<Dict | List>;
-    privatePostLiquidationAddressInfo (params?: {}): Promise<Dict | List>;
+    privatePostLiquidationAddressNew (params?: {}): Promise<Dict>;
+    privatePostLiquidationAddressInfo (params?: {}): Promise<Dict>;
     privatePostBtcUnconfirmed (params?: {}): Promise<Dict>;
     privatePostWebsocketsToken (params?: {}): Promise<Dict>;
     privatePostRevokeAllApiKeys (params?: {}): Promise<Dict>;

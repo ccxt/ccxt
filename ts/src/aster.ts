@@ -217,12 +217,12 @@ export default class aster extends Exchange {
                         'v3/fundingRate': { 'cost': 1, 'returnType': 'List' },
                         'v1/fundingInfo': { 'cost': 1, 'returnType': 'List' },
                         'v3/fundingInfo': { 'cost': 1, 'returnType': 'List' },
-                        'v1/ticker/24hr': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/ticker/24hr': { 'cost': 1, 'returnType': 'Dict' }, // 1 single-symbol, otherwise 40
-                        'v1/ticker/price': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/ticker/price': { 'cost': 1, 'returnType': 'List' }, // 1 single-symbol, otherwise 2
-                        'v1/ticker/bookTicker': { 'cost': 1, 'returnType': 'Dict' },
-                        'v3/ticker/bookTicker': { 'cost': 1, 'returnType': 'List' }, // 1 single-symbol, otherwise 2
+                        'v1/ticker/24hr': { 'cost': 1, 'returnType': 'Dict | List' },
+                        'v3/ticker/24hr': { 'cost': 1, 'returnType': 'Dict | List' }, // 1 single-symbol, otherwise 40
+                        'v1/ticker/price': { 'cost': 1, 'returnType': 'Dict | List' },
+                        'v3/ticker/price': { 'cost': 1, 'returnType': 'Dict | List' }, // 1 single-symbol, otherwise 2
+                        'v1/ticker/bookTicker': { 'cost': 1, 'returnType': 'Dict | List' },
+                        'v3/ticker/bookTicker': { 'cost': 1, 'returnType': 'Dict | List' }, // 1 single-symbol, otherwise 2
                         // different endpoints
                         'v1/adlQuantile': { 'cost': 1, 'returnType': 'List' },
                         'v1/forceOrders': { 'cost': 1, 'returnType': 'List' },
@@ -294,7 +294,7 @@ export default class aster extends Exchange {
                         // others
                         'v3/mmp': 1,
                         'v3/mmpReset': 1,
-                        'v3/noop': 1,
+                        'v3/noop': { 'cost': 1, 'returnType': 'Dict' },
                         // builder
                         'v3/approveAgent': 1,
                         'v3/updateAgent': 1,
@@ -331,9 +331,9 @@ export default class aster extends Exchange {
                         'v1/historicalTrades': { 'cost': 1, 'returnType': 'List' },
                         'v1/aggTrades': { 'cost': 1, 'returnType': 'List' },
                         'v1/klines': { 'cost': 1, 'returnType': 'List' },
-                        'v1/ticker/24hr': { 'cost': 1, 'returnType': 'Dict' },
-                        'v1/ticker/price': { 'cost': 1, 'returnType': 'Dict' },
-                        'v1/ticker/bookTicker': { 'cost': 1, 'returnType': 'Dict' },
+                        'v1/ticker/24hr': { 'cost': 1, 'returnType': 'Dict | List' },
+                        'v1/ticker/price': { 'cost': 1, 'returnType': 'Dict | List' },
+                        'v1/ticker/bookTicker': { 'cost': 1, 'returnType': 'Dict | List' },
                         'v1/aster/withdraw/estimateFee': { 'cost': 1, 'returnType': 'Dict' },
                         // v3
                         'v3/ping': { 'cost': 1, 'returnType': 'Dict' },
@@ -344,9 +344,9 @@ export default class aster extends Exchange {
                         'v3/historicalTrades': { 'cost': 20, 'returnType': 'List' },
                         'v3/aggTrades': { 'cost': 20, 'returnType': 'List' },
                         'v3/klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ], 'returnType': 'List' }, // todo: not specified in docs
-                        'v3/ticker/24hr': { 'cost': 1, 'noSymbol': 40, 'returnType': 'Dict' },
-                        'v3/ticker/price': { 'cost': 1, 'noSymbol': 2, 'returnType': 'List' },
-                        'v3/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2, 'returnType': 'List' },
+                        'v3/ticker/24hr': { 'cost': 1, 'noSymbol': 40, 'returnType': 'Dict | List' },
+                        'v3/ticker/price': { 'cost': 1, 'noSymbol': 2, 'returnType': 'Dict | List' },
+                        'v3/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2, 'returnType': 'Dict | List' },
                         'v3/aster/withdraw/estimateFee': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },

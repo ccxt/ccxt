@@ -210,7 +210,7 @@ export default class weex extends Exchange {
                         'api/v3/exchangeInfo': { 'cost': 100, 'returnType': 'Dict' }, // done
                         'api/v3/ping': { 'cost': 5, 'returnType': 'Dict' }, // done
                         'api/v3/apiTradingSymbols': { 'cost': 25, 'returnType': 'List' }, // not unified
-                        'api/v3/market/ticker/price': { 'cost': 20, 'returnType': 'Dict' }, // not unified
+                        'api/v3/market/ticker/price': { 'cost': 20, 'returnType': 'Dict | List' }, // not unified
                         'api/v3/market/ticker/24hr': { 'cost': 10, 'returnType': 'List' }, // done
                         'api/v3/market/trades': { 'cost': 125, 'returnType': 'List' }, // done
                         'api/v3/market/klines': { 'cost': 10, 'returnType': 'List' }, // done

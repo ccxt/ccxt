@@ -249,7 +249,7 @@ export default class whitebit extends Exchange {
                             'order/stop_market': { 'cost': 1, 'returnType': 'Dict' },
                             'order/cancel': { 'cost': 1, 'returnType': 'Dict' },
                             'order/cancel/all': { 'cost': 1, 'returnType': 'List' },
-                            'order/kill-switch': 1,
+                            'order/kill-switch': { 'cost': 1, 'returnType': 'Dict' },
                             'order/kill-switch/status': { 'cost': 1, 'returnType': 'List' },
                             'order/bulk': { 'cost': 1, 'returnType': 'List' },
                             'order/modify': { 'cost': 1, 'returnType': 'Dict' },

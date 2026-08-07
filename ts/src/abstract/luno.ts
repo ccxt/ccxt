@@ -34,7 +34,7 @@ interface Exchange {
     privateGetOrdersId (params?: {}): Promise<Dict>;
     privateGetWithdrawals (params?: {}): Promise<Dict>;
     privateGetWithdrawalsId (params?: {}): Promise<Dict>;
-    privateGetTransfers (params?: {}): Promise<Dict | List>;
+    privateGetTransfers (params?: {}): Promise<Dict>;
     privateGetUsersLinked (params?: {}): Promise<Dict>;
     privatePostAccounts (params?: {}): Promise<Dict>;
     privatePostAddressValidate (params?: {}): Promise<Dict>;

@@ -54,7 +54,7 @@ interface Exchange {
     privateGetSmartorders (params?: {}): Promise<List>;
     privateGetSmartordersId (params?: {}): Promise<List>;
     privateGetOrdersHistory (params?: {}): Promise<Dict>;
-    privateGetSmartordersHistory (params?: {}): Promise<Dict | List>;
+    privateGetSmartordersHistory (params?: {}): Promise<List>;
     privateGetTrades (params?: {}): Promise<List>;
     privateGetOrdersIdTrades (params?: {}): Promise<List>;
     privatePostAccountsTransfer (params?: {}): Promise<Dict>;

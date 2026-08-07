@@ -19,7 +19,7 @@ interface Exchange {
     commonGetQuoteV1IndexKlines (params?: {}): Promise<List>;
     commonGetQuoteV1IndexPriceComponents (params?: {}): Promise<Dict>;
     commonGetQuoteV1MarkPriceKlines (params?: {}): Promise<List>;
-    commonGetQuoteV1MarkPrice (params?: {}): Promise<Dict>;
+    commonGetQuoteV1MarkPrice (params?: {}): Promise<Dict | List>;
     commonGetQuoteV1Index (params?: {}): Promise<Dict>;
     commonGetQuoteV1Ticker24hr (params?: {}): Promise<List>;
     commonGetQuoteV1ContractTicker24hr (params?: {}): Promise<List>;

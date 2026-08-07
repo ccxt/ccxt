@@ -182,7 +182,7 @@ export default class poloniex extends Exchange {
                         'smartorders': { 'cost': 20, 'returnType': 'List' },
                         'smartorders/{id}': { 'cost': 4, 'returnType': 'List' },
                         'orders/history': { 'cost': 20, 'returnType': 'Dict' },
-                        'smartorders/history': 20,
+                        'smartorders/history': { 'cost': 20, 'returnType': 'List' },
                         'trades': { 'cost': 20, 'returnType': 'List' },
                         'orders/{id}/trades': { 'cost': 4, 'returnType': 'List' },
                     },

@@ -28,7 +28,7 @@ interface Exchange {
     kalshiPublicGetMarketsTickerOrderbook (params?: {}): Promise<Dict>;
     kalshiPublicGetExchangeStatus (params?: {}): Promise<Dict>;
     kalshiPublicGetExchangeSchedule (params?: {}): Promise<Dict>;
-    kalshiPublicGetExchangeAnnouncements (params?: {}): Promise<Dict | List>;
+    kalshiPublicGetExchangeAnnouncements (params?: {}): Promise<Dict>;
     kalshiPublicGetExchangeUserDataTimestamp (params?: {}): Promise<Dict>;
     kalshiPublicGetMilestones (params?: {}): Promise<Dict>;
     kalshiPublicGetMilestonesMilestoneId (params?: {}): Promise<Dict>;
@@ -44,7 +44,7 @@ interface Exchange {
     kalshiPublicGetHistoricalCutoffTimestamps (params?: {}): Promise<Dict | List>;
     kalshiPublicGetMultivariateEventCollections (params?: {}): Promise<Dict>;
     kalshiPublicGetMultivariateEventCollectionsCollectionTicker (params?: {}): Promise<Dict>;
-    kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (params?: {}): Promise<Dict | List>;
+    kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (params?: {}): Promise<Dict>;
     kalshiPublicGetIncentivePrograms (params?: {}): Promise<Dict>;
     kalshiPrivateGetPortfolioBalance (params?: {}): Promise<Dict>;
     kalshiPrivateGetPortfolioOrders (params?: {}): Promise<Dict>;
@@ -77,7 +77,7 @@ interface Exchange {
     kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (params?: {}): Promise<Dict>;
     kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (params?: {}): Promise<Dict>;
     kalshiPrivatePutPortfolioSubaccountsNetting (params?: {}): Promise<Dict | List>;
-    kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (params?: {}): Promise<Dict | List>;
+    kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (params?: {}): Promise<Dict>;
     kalshiPrivateDeletePortfolioOrdersOrderId (params?: {}): Promise<Dict>;
     kalshiPrivateDeletePortfolioOrdersBatched (params?: {}): Promise<Dict>;
     kalshiPrivateDeletePortfolioEventsOrdersOrderId (params?: {}): Promise<Dict>;

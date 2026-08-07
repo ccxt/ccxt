@@ -231,7 +231,7 @@ export default class hashkey extends Exchange {
                         'api/v1/account/chainType': { 'cost': 1, 'returnType': 'List' },
                         'api/v1/account/checkApiKey': { 'cost': 1, 'returnType': 'Dict' },
                         'api/v1/account/balanceFlow': { 'cost': 5, 'returnType': 'List' },
-                        'api/v1/spot/subAccount/openOrders': 1,
+                        'api/v1/spot/subAccount/openOrders': { 'cost': 1, 'returnType': 'List' },
                         'api/v1/spot/subAccount/tradeOrders': { 'cost': 1, 'returnType': 'List' },
                         'api/v1/subAccount/trades': { 'cost': 1, 'returnType': 'List' },
                         'api/v1/futures/subAccount/openOrders': { 'cost': 1, 'returnType': 'List' },

@@ -244,7 +244,7 @@ export default class cryptocom extends Exchange {
                             'public/get-trades': { 'cost': 1, 'returnType': 'Dict' },
                             'public/margin/get-transfer-currencies': { 'cost': 1, 'returnType': 'Dict' },
                             'public/margin/get-load-currenices': { 'cost': 1, 'returnType': 'Dict' },
-                            'public/respond-heartbeat': 1,
+                            'public/respond-heartbeat': { 'cost': 1, 'returnType': 'Dict' },
                         },
                     },
                     'private': {

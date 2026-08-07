@@ -86,7 +86,7 @@ interface Exchange {
     v4PrivatePostOrderStopMarket (params?: {}): Promise<Dict>;
     v4PrivatePostOrderCancel (params?: {}): Promise<Dict>;
     v4PrivatePostOrderCancelAll (params?: {}): Promise<List>;
-    v4PrivatePostOrderKillSwitch (params?: {}): Promise<Dict | List>;
+    v4PrivatePostOrderKillSwitch (params?: {}): Promise<Dict>;
     v4PrivatePostOrderKillSwitchStatus (params?: {}): Promise<List>;
     v4PrivatePostOrderBulk (params?: {}): Promise<List>;
     v4PrivatePostOrderModify (params?: {}): Promise<Dict>;

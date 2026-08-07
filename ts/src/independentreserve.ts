@@ -143,7 +143,7 @@ export default class independentreserve extends Exchange {
                         'GetRecentTrades': { 'cost': 1, 'returnType': 'Dict' },
                         'GetFxRates': { 'cost': 1, 'returnType': 'List' },
                         'GetOrderMinimumVolumes': { 'cost': 1, 'returnType': 'Dict' },
-                        'GetCryptoWithdrawalFees': 1,
+                        'GetCryptoWithdrawalFees': { 'cost': 1, 'returnType': 'Dict' },
                         'GetCryptoWithdrawalFees2': { 'cost': 1, 'returnType': 'List' },
                         'GetNetworks': { 'cost': 1, 'returnType': 'List' },
                         'GetPrimaryCurrencyConfig2': { 'cost': 1, 'returnType': 'List' },

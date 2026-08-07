@@ -161,7 +161,7 @@ export default class woo extends Exchange {
                     'pub': {
                         'get': {
                             'hist/kline': { 'cost': 10, 'returnType': 'Dict' },
-                            'hist/trades': 10,
+                            'hist/trades': { 'cost': 10, 'returnType': 'Dict' },
                         },
                     },
                     'public': {
@@ -191,7 +191,7 @@ export default class woo extends Exchange {
                             'order/{oid}/trades': { 'cost': 1, 'returnType': 'Dict' },
                             'client/trades': { 'cost': 1, 'returnType': 'Dict' },
                             'client/hist_trades': { 'cost': 1, 'returnType': 'Dict' },
-                            'staking/yield_history': 1,
+                            'staking/yield_history': { 'cost': 1, 'returnType': 'Dict' },
                             'client/holding': { 'cost': 1, 'returnType': 'Dict' },
                             'asset/deposit': { 'cost': 10, 'returnType': 'Dict' },
                             'asset/history': { 'cost': 60, 'returnType': 'Dict' },
@@ -289,7 +289,7 @@ export default class woo extends Exchange {
                             'algo/orders': { 'cost': 1, 'returnType': 'Dict' },
                             'positions': { 'cost': 3.33, 'returnType': 'Dict' },
                             'buypower': { 'cost': 1, 'returnType': 'Dict' },
-                            'convert/exchangeInfo': 1,
+                            'convert/exchangeInfo': { 'cost': 1, 'returnType': 'Dict' },
                             'convert/assetInfo': { 'cost': 1, 'returnType': 'Dict' },
                             'convert/rfq': { 'cost': 60, 'returnType': 'Dict' },
                             'convert/trade': { 'cost': 1, 'returnType': 'Dict' },

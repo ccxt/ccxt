@@ -187,7 +187,7 @@ export default class alpaca extends Exchange {
                             'v2/wallets/transfers': { 'cost': 1, 'returnType': 'Dict' },
                         },
                         'put': {
-                            'v2/orders/{order_id}': 1,
+                            'v2/orders/{order_id}': { 'cost': 1, 'returnType': 'Dict' },
                             'v2/watchlists/{watchlist_id}': { 'cost': 1, 'returnType': 'Dict' },
                             'v2/watchlists:by_name': { 'cost': 1, 'returnType': 'Dict' },
                         },
@@ -221,7 +221,7 @@ export default class alpaca extends Exchange {
                     },
                     'private': {
                         'get': {
-                            'v1beta1/corporate-actions': 1,
+                            'v1beta1/corporate-actions': { 'cost': 1, 'returnType': 'Dict' },
                             'v1beta1/forex/latest/rates': { 'cost': 1, 'returnType': 'Dict' },
                             'v1beta1/forex/rates': { 'cost': 1, 'returnType': 'Dict' },
                             'v1beta1/logos/{symbol}': { 'cost': 1, 'returnType': 'string' },

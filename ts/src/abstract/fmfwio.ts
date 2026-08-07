@@ -98,7 +98,7 @@ interface hitbtc {
     privatePostWalletInternalWithdraw (params?: {}): Promise<Dict>;
     privatePostWalletCryptoCheckOffchainAvailable (params?: {}): Promise<Dict>;
     privatePostWalletCryptoFeesEstimate (params?: {}): Promise<List>;
-    privatePostWalletAirdropsIdClaim (params?: {}): Promise<Dict | List>;
+    privatePostWalletAirdropsIdClaim (params?: {}): Promise<Dict>;
     privatePostSubAccountFreeze (params?: {}): Promise<Dict>;
     privatePostSubAccountActivate (params?: {}): Promise<Dict>;
     privatePostSubAccountTransfer (params?: {}): Promise<Dict>;

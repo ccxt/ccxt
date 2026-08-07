@@ -40,10 +40,10 @@ interface Exchange {
     privatePostSendcoin (params?: {}): Promise<Dict | List>;
     privatePostWithdraw (params?: {}): Promise<Dict>;
     privatePostSendchildorder (params?: {}): Promise<Dict>;
-    privatePostCancelchildorder (params?: {}): Promise<Dict | List>;
+    privatePostCancelchildorder (params?: {}): Promise<Dict>;
     privatePostSendparentorder (params?: {}): Promise<Dict>;
-    privatePostCancelparentorder (params?: {}): Promise<Dict | List>;
-    privatePostCancelallchildorders (params?: {}): Promise<Dict | List>;
+    privatePostCancelparentorder (params?: {}): Promise<Dict>;
+    privatePostCancelallchildorders (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

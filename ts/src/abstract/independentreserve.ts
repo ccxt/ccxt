@@ -22,7 +22,7 @@ interface Exchange {
     publicGetGetRecentTrades (params?: {}): Promise<Dict>;
     publicGetGetFxRates (params?: {}): Promise<List>;
     publicGetGetOrderMinimumVolumes (params?: {}): Promise<Dict>;
-    publicGetGetCryptoWithdrawalFees (params?: {}): Promise<Dict | List>;
+    publicGetGetCryptoWithdrawalFees (params?: {}): Promise<Dict>;
     publicGetGetCryptoWithdrawalFees2 (params?: {}): Promise<List>;
     publicGetGetNetworks (params?: {}): Promise<List>;
     publicGetGetPrimaryCurrencyConfig2 (params?: {}): Promise<List>;

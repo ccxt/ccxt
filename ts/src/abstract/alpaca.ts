@@ -34,7 +34,7 @@ interface Exchange {
     traderPrivatePostV2WatchlistsWatchlistId (params?: {}): Promise<Dict>;
     traderPrivatePostV2WatchlistsByName (params?: {}): Promise<Dict>;
     traderPrivatePostV2WalletsTransfers (params?: {}): Promise<Dict>;
-    traderPrivatePutV2OrdersOrderId (params?: {}): Promise<Dict | List>;
+    traderPrivatePutV2OrdersOrderId (params?: {}): Promise<Dict>;
     traderPrivatePutV2WatchlistsWatchlistId (params?: {}): Promise<Dict>;
     traderPrivatePutV2WatchlistsByName (params?: {}): Promise<Dict>;
     traderPrivatePatchV2OrdersOrderId (params?: {}): Promise<Dict>;
@@ -54,7 +54,7 @@ interface Exchange {
     marketPublicGetV1beta3CryptoLocQuotes (params?: {}): Promise<Dict>;
     marketPublicGetV1beta3CryptoLocSnapshots (params?: {}): Promise<Dict>;
     marketPublicGetV1beta3CryptoLocTrades (params?: {}): Promise<Dict>;
-    marketPrivateGetV1beta1CorporateActions (params?: {}): Promise<Dict | List>;
+    marketPrivateGetV1beta1CorporateActions (params?: {}): Promise<Dict>;
     marketPrivateGetV1beta1ForexLatestRates (params?: {}): Promise<Dict>;
     marketPrivateGetV1beta1ForexRates (params?: {}): Promise<Dict>;
     marketPrivateGetV1beta1LogosSymbol (params?: {}): Promise<string>;

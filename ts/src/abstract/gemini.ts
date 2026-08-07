@@ -61,9 +61,9 @@ interface Exchange {
     privatePostV1PaymentsAddbank (params?: {}): Promise<Dict>;
     privatePostV1PaymentsMethods (params?: {}): Promise<Dict>;
     privatePostV1PaymentsSenWithdraw (params?: {}): Promise<Dict | List>;
-    privatePostV1BalancesEarn (params?: {}): Promise<Dict | List>;
-    privatePostV1EarnInterest (params?: {}): Promise<Dict | List>;
-    privatePostV1EarnHistory (params?: {}): Promise<Dict | List>;
+    privatePostV1BalancesEarn (params?: {}): Promise<Dict>;
+    privatePostV1EarnInterest (params?: {}): Promise<Dict>;
+    privatePostV1EarnHistory (params?: {}): Promise<List>;
     privatePostV1ApprovedAddressesNetworkRequest (params?: {}): Promise<Dict>;
     privatePostV1ApprovedAddressesAccountNetwork (params?: {}): Promise<Dict>;
     privatePostV1ApprovedAddressesNetworkRemove (params?: {}): Promise<Dict>;
@@ -73,7 +73,7 @@ interface Exchange {
     privatePostV1Heartbeat (params?: {}): Promise<Dict>;
     privatePostV1Roles (params?: {}): Promise<Dict>;
     privatePostV1Custodyaccountfees (params?: {}): Promise<List>;
-    privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate (params?: {}): Promise<Dict | List>;
+    privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate (params?: {}): Promise<Dict>;
     privatePostV1PaymentsAddbankCad (params?: {}): Promise<Dict>;
     privatePostV1Transactions (params?: {}): Promise<Dict>;
     privatePostV1MarginAccount (params?: {}): Promise<Dict>;

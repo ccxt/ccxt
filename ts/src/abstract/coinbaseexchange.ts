@@ -38,7 +38,7 @@ interface Exchange {
     privateGetMarginLiquidationHistory (params?: {}): Promise<Dict | List>;
     privateGetMarginPositionRefreshAmounts (params?: {}): Promise<Dict | List>;
     privateGetMarginStatus (params?: {}): Promise<Dict | List>;
-    privateGetOracle (params?: {}): Promise<Dict | List>;
+    privateGetOracle (params?: {}): Promise<Dict>;
     privateGetOrders (params?: {}): Promise<List>;
     privateGetOrdersId (params?: {}): Promise<Dict>;
     privateGetOrdersClientClientOid (params?: {}): Promise<Dict>;
@@ -81,7 +81,7 @@ interface Exchange {
     privatePostReports (params?: {}): Promise<Dict>;
     privatePostWithdrawalsCoinbase (params?: {}): Promise<Dict | List>;
     privatePostWithdrawalsCoinbaseAccount (params?: {}): Promise<Dict>;
-    privatePostWithdrawalsCrypto (params?: {}): Promise<Dict | List>;
+    privatePostWithdrawalsCrypto (params?: {}): Promise<Dict>;
     privatePostWithdrawalsPaymentMethod (params?: {}): Promise<Dict>;
     privatePostLoansOpen (params?: {}): Promise<Dict>;
     privatePostLoansRepayInterest (params?: {}): Promise<Dict>;

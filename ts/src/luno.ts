@@ -179,7 +179,7 @@ export default class luno extends Exchange {
                         'orders/{id}': { 'cost': 1, 'returnType': 'Dict' },
                         'withdrawals': { 'cost': 1, 'returnType': 'Dict' },
                         'withdrawals/{id}': { 'cost': 1, 'returnType': 'Dict' },
-                        'transfers': 1, // not found in current docs, use GET /api/exchange/1/transfers
+                        'transfers': { 'cost': 1, 'returnType': 'Dict' }, // not found in current docs, use GET /api/exchange/1/transfers
                         'users/linked': { 'cost': 1, 'returnType': 'Dict' },
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}

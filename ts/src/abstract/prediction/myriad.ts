@@ -13,7 +13,7 @@ interface Exchange {
     myriadPublicGetQuestionsId (params?: {}): Promise<Dict>;
     myriadPublicGetMarkets (params?: {}): Promise<Dict>;
     myriadPublicGetMarketsId (params?: {}): Promise<Dict>;
-    myriadPublicGetMarketsNetworkIdId (params?: {}): Promise<Dict | List>;
+    myriadPublicGetMarketsNetworkIdId (params?: {}): Promise<Dict>;
     myriadPublicGetMarketsIdEvents (params?: {}): Promise<Dict>;
     myriadPublicGetMarketsIdOrderbook (params?: {}): Promise<Dict>;
     myriadPublicGetMarketsIdTrades (params?: {}): Promise<List>;

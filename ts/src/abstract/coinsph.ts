@@ -73,7 +73,7 @@ interface Exchange {
     privatePostOpenapiFiatV1SupportChannel (params?: {}): Promise<Dict>;
     privatePostOpenapiFiatV1CashOut (params?: {}): Promise<Dict>;
     privatePostOpenapiFiatV1History (params?: {}): Promise<Dict>;
-    privatePostOpenapiMigrationV4Sellorder (params?: {}): Promise<Dict | List>;
+    privatePostOpenapiMigrationV4Sellorder (params?: {}): Promise<Dict>;
     privatePostOpenapiMigrationV4ValidateField (params?: {}): Promise<Dict | List>;
     privatePostOpenapiTransferV3Transfers (params?: {}): Promise<Dict>;
     privatePostOpenapiTransferV4Transfers (params?: {}): Promise<Dict>;

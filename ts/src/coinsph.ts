@@ -267,7 +267,7 @@ export default class coinsph extends Exchange {
                         'openapi/fiat/v1/support-channel': { 'cost': 1, 'returnType': 'Dict' },
                         'openapi/fiat/v1/cash-out': { 'cost': 1, 'returnType': 'Dict' },
                         'openapi/fiat/v1/history': { 'cost': 1, 'returnType': 'Dict' },
-                        'openapi/migration/v4/sellorder': 1,
+                        'openapi/migration/v4/sellorder': { 'cost': 1, 'returnType': 'Dict' },
                         'openapi/migration/v4/validate-field': 1,
                         'openapi/transfer/v3/transfers': { 'cost': 1, 'returnType': 'Dict' },
                         'openapi/transfer/v4/transfers': { 'cost': 1, 'returnType': 'Dict' },

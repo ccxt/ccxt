@@ -14,9 +14,9 @@ interface Exchange {
     publicGetMarketTrades (params?: {}): Promise<List>;
     publicGetReportMarketTrades (params?: {}): Promise<List>;
     publicGetTickerPrice (params?: {}): Promise<List>;
-    publicGetTickerBook (params?: {}): Promise<List>;
+    publicGetTickerBook (params?: {}): Promise<Dict | List>;
     publicGetMarketCandles (params?: {}): Promise<List>;
-    publicGetTicker24h (params?: {}): Promise<List>;
+    publicGetTicker24h (params?: {}): Promise<Dict | List>;
     publicGetTime (params?: {}): Promise<Dict>;
     publicGetMarkets (params?: {}): Promise<List>;
     publicGetAssets (params?: {}): Promise<List>;

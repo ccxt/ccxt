@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -78,7 +78,7 @@ interface Exchange {
     v2PublicGetPublicGetTrades (params?: {}): Promise<Dict>;
     v2PublicGetPublicMarginGetTransferCurrencies (params?: {}): Promise<Dict>;
     v2PublicGetPublicMarginGetLoadCurrenices (params?: {}): Promise<Dict>;
-    v2PublicGetPublicRespondHeartbeat (params?: {}): Promise<Dict | List>;
+    v2PublicGetPublicRespondHeartbeat (params?: {}): Promise<Dict>;
     v2PrivatePostPrivateSetCancelOnDisconnect (params?: {}): Promise<Dict>;
     v2PrivatePostPrivateGetCancelOnDisconnect (params?: {}): Promise<Dict>;
     v2PrivatePostPrivateCreateWithdrawal (params?: {}): Promise<Dict>;

@@ -37,7 +37,7 @@ interface Exchange {
     publicGetSpotAssetsBridgeInfo (params?: {}): Promise<Dict>;
     publicGetSpotAssetsBridgeParametersSymbol (params?: {}): Promise<Dict>;
     publicGetLakeList (params?: {}): Promise<Dict>;
-    publicGetAccountBuilderCodesApprovals (params?: {}): Promise<Dict | List>;
+    publicGetAccountBuilderCodesApprovals (params?: {}): Promise<List>;
     privatePostAccountLeverage (params?: {}): Promise<Dict>;
     privatePostAccountMargin (params?: {}): Promise<Dict>;
     privatePostAccountWithdraw (params?: {}): Promise<Dict>;
@@ -61,9 +61,9 @@ interface Exchange {
     privatePostAccountBuilderCodesApprove (params?: {}): Promise<Dict | List>;
     privatePostAccountBuilderCodesRevoke (params?: {}): Promise<Dict | List>;
     privatePostAgentBind (params?: {}): Promise<Dict | List>;
-    privatePostAccountApiKeysCreate (params?: {}): Promise<Dict | List>;
-    privatePostAccountApiKeysRevoke (params?: {}): Promise<Dict | List>;
-    privatePostAccountApiKeys (params?: {}): Promise<Dict | List>;
+    privatePostAccountApiKeysCreate (params?: {}): Promise<Dict>;
+    privatePostAccountApiKeysRevoke (params?: {}): Promise<Dict>;
+    privatePostAccountApiKeys (params?: {}): Promise<Dict>;
     privatePostLakeAddBlacklist (params?: {}): Promise<Dict>;
     privatePostLakeAddMaxLeverage (params?: {}): Promise<Dict>;
     privatePostLakeAddWhitelist (params?: {}): Promise<Dict>;

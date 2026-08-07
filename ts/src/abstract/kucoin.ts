@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -107,7 +107,7 @@ interface Exchange {
     privateGetProjectMarketInterestRate (params?: {}): Promise<Dict>;
     privateGetRedeemOrders (params?: {}): Promise<Dict>;
     privateGetPurchaseOrders (params?: {}): Promise<Dict>;
-    privateGetBrokerApiRebaseDownload (params?: {}): Promise<Dict | List>;
+    privateGetBrokerApiRebaseDownload (params?: {}): Promise<Dict>;
     privateGetBrokerQueryMyCommission (params?: {}): Promise<Dict>;
     privateGetBrokerQueryUser (params?: {}): Promise<Dict>;
     privateGetBrokerQueryDetailByUid (params?: {}): Promise<Dict>;
@@ -282,7 +282,7 @@ interface Exchange {
     brokerGetBrokerNdInfo (params?: {}): Promise<Dict>;
     brokerGetBrokerNdAccount (params?: {}): Promise<Dict>;
     brokerGetBrokerNdAccountApikey (params?: {}): Promise<Dict>;
-    brokerGetBrokerNdRebaseDownload (params?: {}): Promise<Dict | List>;
+    brokerGetBrokerNdRebaseDownload (params?: {}): Promise<Dict>;
     brokerGetAssetNdbrokerDepositList (params?: {}): Promise<Dict>;
     brokerGetBrokerNdTransferDetail (params?: {}): Promise<Dict>;
     brokerGetBrokerNdDepositDetail (params?: {}): Promise<Dict>;

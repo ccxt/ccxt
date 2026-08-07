@@ -207,7 +207,7 @@ export default class okx extends Exchange {
                         'market/platform-24-volume': { 'cost': 10, 'returnType': 'Dict' },
                         'market/call-auction-detail': { 'cost': 1, 'returnType': 'Dict' }, // deprecated, use call-auction-details
                         'market/call-auction-details': { 'cost': 1, 'returnType': 'Dict' },
-                        'market/books-sbe': 10,
+                        'market/books-sbe': { 'cost': 10, 'returnType': 'Dict' },
                         'market/block-tickers': { 'cost': 1, 'returnType': 'Dict' },
                         'market/block-ticker': { 'cost': 1, 'returnType': 'Dict' },
                         'market/sprd-ticker': { 'cost': 1, 'returnType': 'Dict' },
@@ -220,8 +220,8 @@ export default class okx extends Exchange {
                         'market/history-mark-price-candles': { 'cost': 1, 'returnType': 'Dict' },
                         'market/exchange-rate': { 'cost': 20, 'returnType': 'Dict' },
                         'market/index-components': { 'cost': 1, 'returnType': 'Dict' },
-                        'market/open-oracle': 50, // not documented
-                        'market/books-lite': 5 / 3, // deprecated
+                        'market/open-oracle': { 'cost': 50, 'returnType': 'Dict' }, // not documented
+                        'market/books-lite': { 'cost': 5 / 3, 'returnType': 'Dict' }, // deprecated
                         // public
                         'public/option-trades': { 'cost': 1, 'returnType': 'Dict' },
                         'public/block-trades': { 'cost': 1, 'returnType': 'Dict' },
@@ -299,7 +299,7 @@ export default class okx extends Exchange {
                         'copytrading/public-subpositions-history': { 'cost': 4, 'returnType': 'Dict' },
                         'copytrading/public-copy-traders': { 'cost': 4, 'returnType': 'Dict' },
                         'support/announcements': { 'cost': 4, 'returnType': 'Dict' },
-                        'support/announcements-types': 20, // typo, use announcement-types
+                        'support/announcements-types': { 'cost': 20, 'returnType': 'Dict' }, // typo, use announcement-types
                         'support/announcement-types': { 'cost': 20, 'returnType': 'Dict' },
                     },
                     'post': {

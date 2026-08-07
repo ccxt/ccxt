@@ -24,7 +24,7 @@ interface Exchange {
     publicGetV1HistoryMarketsSymbolFundingRate (params?: {}): Promise<List>;
     publicGetV1IndexPrices (params?: {}): Promise<List>;
     publicGetV1IndexPricesAssetSymbol (params?: {}): Promise<Dict>;
-    publicGetV1ExpiryPricesSymbol (params?: {}): Promise<Dict | List>;
+    publicGetV1ExpiryPricesSymbol (params?: {}): Promise<Dict>;
     publicGetV1OptionLadder (params?: {}): Promise<List>;
     publicGetV1OptionLadderSymbol (params?: {}): Promise<Dict>;
     privateGetV2Orders (params?: {}): Promise<List>;
@@ -38,7 +38,7 @@ interface Exchange {
     privateGetV1WalletsWithdrawalInstructionsCryptoSymbol (params?: {}): Promise<List>;
     privateGetV1WalletsDepositInstructionsFiatSymbol (params?: {}): Promise<List>;
     privateGetV1WalletsWithdrawalInstructionsFiatSymbol (params?: {}): Promise<List>;
-    privateGetV1WalletsSelfHostedVerificationAttempts (params?: {}): Promise<Dict | List>;
+    privateGetV1WalletsSelfHostedVerificationAttempts (params?: {}): Promise<List>;
     privateGetV1Trades (params?: {}): Promise<List>;
     privateGetV1HistoryTrades (params?: {}): Promise<List>;
     privateGetV1TradesTradeId (params?: {}): Promise<Dict>;
@@ -56,14 +56,14 @@ interface Exchange {
     privateGetV2MmpConfiguration (params?: {}): Promise<Dict>;
     privateGetV2OtcTrades (params?: {}): Promise<List>;
     privateGetV2OtcTradesOtcTradeId (params?: {}): Promise<Dict>;
-    privateGetV2OtcTradesUnconfirmedTrade (params?: {}): Promise<Dict | List>;
+    privateGetV2OtcTradesUnconfirmedTrade (params?: {}): Promise<Dict>;
     privatePostV2Orders (params?: {}): Promise<Dict>;
     privatePostV2Command (params?: {}): Promise<Dict>;
     privatePostV2AmmInstructions (params?: {}): Promise<Dict>;
     privatePostV1WalletsWithdrawal (params?: {}): Promise<Dict>;
     privatePostV2UsersLogin (params?: {}): Promise<Dict>;
     privatePostV1SimulatePortfolioMargin (params?: {}): Promise<Dict>;
-    privatePostV1WalletsSelfHostedInitiate (params?: {}): Promise<Dict | List>;
+    privatePostV1WalletsSelfHostedInitiate (params?: {}): Promise<Dict>;
     privatePostV2MmpConfiguration (params?: {}): Promise<Dict>;
     privatePostV2OtcTrades (params?: {}): Promise<Dict>;
     privatePostV2OtcCommand (params?: {}): Promise<Dict>;

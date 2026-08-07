@@ -10,7 +10,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     v1PubGetHistKline (params?: {}): Promise<Dict>;
-    v1PubGetHistTrades (params?: {}): Promise<Dict | List>;
+    v1PubGetHistTrades (params?: {}): Promise<Dict>;
     v1PublicGetInfo (params?: {}): Promise<Dict>;
     v1PublicGetInfoSymbol (params?: {}): Promise<Dict>;
     v1PublicGetSystemInfo (params?: {}): Promise<Dict>;
@@ -32,7 +32,7 @@ interface Exchange {
     v1PrivateGetOrderOidTrades (params?: {}): Promise<Dict>;
     v1PrivateGetClientTrades (params?: {}): Promise<Dict>;
     v1PrivateGetClientHistTrades (params?: {}): Promise<Dict>;
-    v1PrivateGetStakingYieldHistory (params?: {}): Promise<Dict | List>;
+    v1PrivateGetStakingYieldHistory (params?: {}): Promise<Dict>;
     v1PrivateGetClientHolding (params?: {}): Promise<Dict>;
     v1PrivateGetAssetDeposit (params?: {}): Promise<Dict>;
     v1PrivateGetAssetHistory (params?: {}): Promise<Dict>;
@@ -110,7 +110,7 @@ interface Exchange {
     v3PrivateGetAlgoOrders (params?: {}): Promise<Dict>;
     v3PrivateGetPositions (params?: {}): Promise<Dict>;
     v3PrivateGetBuypower (params?: {}): Promise<Dict>;
-    v3PrivateGetConvertExchangeInfo (params?: {}): Promise<Dict | List>;
+    v3PrivateGetConvertExchangeInfo (params?: {}): Promise<Dict>;
     v3PrivateGetConvertAssetInfo (params?: {}): Promise<Dict>;
     v3PrivateGetConvertRfq (params?: {}): Promise<Dict>;
     v3PrivateGetConvertTrade (params?: {}): Promise<Dict>;

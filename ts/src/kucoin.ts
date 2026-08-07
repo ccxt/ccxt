@@ -274,7 +274,7 @@ export default class kucoin extends Exchange {
                         'redeem/orders': { 'cost': 10, 'returnType': 'Dict' },
                         'purchase/orders': { 'cost': 10, 'returnType': 'Dict' },
                         // broker
-                        'broker/api/rebase/download': 3,
+                        'broker/api/rebase/download': { 'cost': 3, 'returnType': 'Dict' },
                         'broker/queryMyCommission': { 'cost': 3, 'returnType': 'Dict' },
                         'broker/queryUser': { 'cost': 3, 'returnType': 'Dict' },
                         'broker/queryDetailByUid': { 'cost': 3, 'returnType': 'Dict' },
@@ -496,7 +496,7 @@ export default class kucoin extends Exchange {
                         'broker/nd/info': { 'cost': 4, 'returnType': 'Dict' },
                         'broker/nd/account': { 'cost': 4, 'returnType': 'Dict' },
                         'broker/nd/account/apikey': { 'cost': 4, 'returnType': 'Dict' },
-                        'broker/nd/rebase/download': 4,
+                        'broker/nd/rebase/download': { 'cost': 4, 'returnType': 'Dict' },
                         'asset/ndbroker/deposit/list': { 'cost': 2, 'returnType': 'Dict' },
                         'broker/nd/transfer/detail': { 'cost': 2, 'returnType': 'Dict' },
                         'broker/nd/deposit/detail': { 'cost': 2, 'returnType': 'Dict' },

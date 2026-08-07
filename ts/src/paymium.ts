@@ -73,8 +73,8 @@ export default class paymium extends Exchange {
                         'data/{currency}/ticker': { 'cost': 1, 'returnType': 'Dict' },
                         'data/{currency}/trades': { 'cost': 1, 'returnType': 'List' },
                         'data/{currency}/depth': { 'cost': 1, 'returnType': 'Dict' },
-                        'bitcoin_charts/{id}/trades': 1,
-                        'bitcoin_charts/{id}/depth': 1,
+                        'bitcoin_charts/{id}/trades': { 'cost': 1, 'returnType': 'List' },
+                        'bitcoin_charts/{id}/depth': { 'cost': 1, 'returnType': 'Dict' },
                     },
                 },
                 'private': {

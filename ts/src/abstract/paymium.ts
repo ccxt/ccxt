@@ -14,8 +14,8 @@ interface Exchange {
     publicGetDataCurrencyTicker (params?: {}): Promise<Dict>;
     publicGetDataCurrencyTrades (params?: {}): Promise<List>;
     publicGetDataCurrencyDepth (params?: {}): Promise<Dict>;
-    publicGetBitcoinChartsIdTrades (params?: {}): Promise<Dict | List>;
-    publicGetBitcoinChartsIdDepth (params?: {}): Promise<Dict | List>;
+    publicGetBitcoinChartsIdTrades (params?: {}): Promise<List>;
+    publicGetBitcoinChartsIdDepth (params?: {}): Promise<Dict>;
     privateGetUser (params?: {}): Promise<Dict>;
     privateGetUserAddresses (params?: {}): Promise<List>;
     privateGetUserAddressesAddress (params?: {}): Promise<Dict>;

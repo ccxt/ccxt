@@ -45,7 +45,7 @@ interface Exchange {
     privateGetApiV1AccountChainType (params?: {}): Promise<List>;
     privateGetApiV1AccountCheckApiKey (params?: {}): Promise<Dict>;
     privateGetApiV1AccountBalanceFlow (params?: {}): Promise<List>;
-    privateGetApiV1SpotSubAccountOpenOrders (params?: {}): Promise<Dict | List>;
+    privateGetApiV1SpotSubAccountOpenOrders (params?: {}): Promise<List>;
     privateGetApiV1SpotSubAccountTradeOrders (params?: {}): Promise<List>;
     privateGetApiV1SubAccountTrades (params?: {}): Promise<List>;
     privateGetApiV1FuturesSubAccountOpenOrders (params?: {}): Promise<List>;
