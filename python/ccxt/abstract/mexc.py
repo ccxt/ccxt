@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    spot_public_get_announcements = spotPublicGetAnnouncements = Entry('announcements', ['spot', 'public'], 'GET', {'cost': 8})
     spot_public_get_ping = spotPublicGetPing = Entry('ping', ['spot', 'public'], 'GET', {'cost': 1})
     spot_public_get_time = spotPublicGetTime = Entry('time', ['spot', 'public'], 'GET', {'cost': 1})
     spot_public_get_defaultsymbols = spotPublicGetDefaultSymbols = Entry('defaultSymbols', ['spot', 'public'], 'GET', {'cost': 1})

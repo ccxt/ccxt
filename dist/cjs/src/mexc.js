@@ -173,6 +173,7 @@ class mexc extends mexc$1["default"] {
                 'spot': {
                     'public': {
                         'get': {
+                            'announcements': 8,
                             'ping': 1,
                             'time': 1,
                             'defaultSymbols': 1,

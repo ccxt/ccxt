@@ -106,6 +106,7 @@
 	- [zaif](exchanges/zaif.md)
 	- [zebpay](exchanges/zebpay.md)
 - API Spec by Prediction Exchange
+	- [binance](exchanges/prediction/binance.md)
 	- [hyperliquid](exchanges/prediction/hyperliquid.md)
 	- [kalshi](exchanges/prediction/kalshi.md)
 	- [limitless](exchanges/prediction/limitless.md)

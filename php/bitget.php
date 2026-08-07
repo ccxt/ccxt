@@ -1586,6 +1586,7 @@ class bitget extends Exchange {
                     'method' => 'publicMixGetV2MixMarketCurrentFundRate', // or publicMixGetV2MixMarketFundingTime
                 ),
                 'accountsByType' => array(
+                    'funding' => 'spot',
                     'spot' => 'spot',
                     'cross' => 'crossed_margin',
                     'isolated' => 'isolated_margin',
@@ -1593,6 +1594,8 @@ class bitget extends Exchange {
                     'usdc_swap' => 'usdc_futures',
                     'future' => 'coin_futures',
                     'p2p' => 'p2p',
+                    'uta' => 'uta',
+                    'unified' => 'uta',
                 ),
                 'accountsById' => array(
                     'spot' => 'spot',
@@ -1602,6 +1605,7 @@ class bitget extends Exchange {
                     'usdc_futures' => 'usdc_swap',
                     'coin_futures' => 'future',
                     'p2p' => 'p2p',
+                    'uta' => 'uta',
                 ),
                 'sandboxMode' => false,
                 'networks' => array(
@@ -4458,10 +4462,12 @@ class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-$assets
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-$assets
          * @see https://www.bitget.com/api-doc/uta/account/Get-Account
+         * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {string} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {string} [$params->type] 'funding' to fetch the $uta funding-account $assets ($uta only, classic accounts route funding through 'spot')
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         if ($this->markets === null) {
@@ -4476,9 +4482,15 @@ class bitget extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         if ($uta) {
-            $response = $this->privateUtaGetV3AccountAssets($this->extend($request, $params));
-            $results = $this->safe_dict($response, 'data', array());
-            $assets = $this->safe_list($results, 'assets', array());
+            $assets = null;
+            if ($marketType === 'funding') {
+                $response = $this->privateUtaGetV3AccountFundingAssets($this->extend($request, $params));
+                $assets = $this->safe_list($response, 'data', array());
+            } else {
+                $response = $this->privateUtaGetV3AccountAssets($this->extend($request, $params));
+                $results = $this->safe_dict($response, 'data', array());
+                $assets = $this->safe_list($results, 'assets', array());
+            }
             return $this->parse_uta_balance($assets);
         } elseif (($marketType === 'swap') || ($marketType === 'future')) {
             $productType = null;
@@ -4613,12 +4625,30 @@ class bitget extends Exchange {
         //         }
         //     }
         //
+        // funding $uta
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1750396239013,
+        //         "data" => array(
+        //             {
+        //                 "coin" => "BGB",
+        //                 "available" => "0.01",
+        //                 "frozen" => "0",
+        //                 "balance" => "0.01"
+        //             }
+        //         )
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_balance($data);
     }
 
     public function parse_uta_balance(mixed $balance): array {
         $result = array( 'info' => $balance );
+        //
+        // uta
         //
         //     {
         //         "coin" => "USDT",
@@ -4630,13 +4660,22 @@ class bitget extends Exchange {
         //         "locked" => "0"
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "coin" => "BGB",
+        //         "available" => "0.01",
+        //         "frozen" => "0",
+        //         "balance" => "0.01"
+        //     }
+        //
         for ($i = 0; $i < count($balance); $i++) {
             $entry = $balance[$i];
             $account = $this->account();
             $currencyId = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($currencyId);
             $account['debt'] = $this->safe_string($entry, 'debt');
-            $account['used'] = $this->safe_string($entry, 'locked');
+            $account['used'] = $this->safe_string_2($entry, 'locked', 'frozen');
             $account['free'] = $this->safe_string($entry, 'available');
             $account['total'] = $this->safe_string($entry, 'balance');
             if ($code !== null) {
@@ -9557,12 +9596,14 @@ class bitget extends Exchange {
          * transfer $currency internally between wallets on the same account
          *
          * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+         * @see https://www.bitget.com/api-doc/uta/account/transfer
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true to transfer via the unified trading account v3 endpoint
          * @param {string} [$params->symbol] unified CCXT $market $symbol, required when transferring to or from an account type that is a leveraged position-by-position account
          * @param {string} [$params->clientOid] custom id
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
@@ -9570,6 +9611,8 @@ class bitget extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $uta = null;
+        list($uta, $params) = $this->handle_uta_and_params($params, 'transfer', false);
         $currency = $this->currency($code);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromType = $this->safe_string($accountsByType, $fromAccount);
@@ -9587,7 +9630,12 @@ class bitget extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateSpotPostV2SpotWalletTransfer($this->extend($request, $params));
+        $response = null;
+        if ($uta) {
+            $response = $this->privateUtaPostV3AccountTransfer($this->extend($request, $params));
+        } else {
+            $response = $this->privateSpotPostV2SpotWalletTransfer($this->extend($request, $params));
+        }
         //
         //     {
         //         "code" => "00000",

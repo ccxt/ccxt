@@ -3004,7 +3004,7 @@ class bingx(Exchange, ImplicitAPI):
             if not isMarketOrder:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             if triggerPrice is not None:
-                if isMarketOrder and self.safe_string(request, 'quoteOrderQty') is None:
+                if isMarketOrder and (side == 'buy') and self.safe_string(request, 'quoteOrderQty') is None:
                     raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter(or the amount + price) for placing spot market-buy trigger orders')
                 request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if type == 'LIMIT':
