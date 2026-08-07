@@ -561,10 +561,14 @@ export default class binance extends Exchange {
         const title = this.safeString (rawTopic, 'title');
         const endDate = this.safeInteger (rawTopic, 'endDate');
         const created = this.safeInteger2 (rawTopic, 'publishedAt', 'startDate');
+        const status = this.safeString (rawTopic, 'status');
         let active = anyActive;
         if (rawMarketsLength === 0) {
-            const status = this.safeString (rawTopic, 'status');
             active = (status === 'REGISTERED') || (status === 'OPEN');
+        }
+        let resolved = undefined;
+        if (status !== undefined) {
+            resolved = (status === 'RESOLVED') || (status === 'SETTLED');
         }
         return {
             'id': topicId,
@@ -583,7 +587,7 @@ export default class binance extends Exchange {
             'end': endDate,
             'endDatetime': this.iso8601 (endDate),
             'category': this.safeString (rawTopic, 'chartType'),
-            'resolved': undefined,
+            'resolved': resolved,
             'info': rawTopic,
         };
     }
@@ -668,6 +672,7 @@ export default class binance extends Exchange {
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,
+                'price': this.parseNumber (price),
                 'active': active,
                 'winner': winner,
                 'settleFraction': settleFraction,
@@ -705,6 +710,7 @@ export default class binance extends Exchange {
             'type': 'prediction',
             'marketType': 'binary',
             'executionModel': 'clob',
+            'collateral': collateral,
             'spot': false,
             'margin': false,
             'swap': false,
