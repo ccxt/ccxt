@@ -995,13 +995,15 @@ export default class bithumb extends Exchange {
         if (generation === 2) {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
-            const marketIds = [];
+            const marketIds: string[] = [];
             const symbolsForMarketIds = (symbols === undefined) ? this.symbols : symbols;
-            for (let i = 0; i < symbolsForMarketIds.length; i++) {
+            const symbolsForMarketIdsLength = symbolsForMarketIds.length;
+            for (let i = 0; i < symbolsForMarketIdsLength; i++) {
                 const market = this.market (symbolsForMarketIds[i]);
                 marketIds.push (this.getGen2MarketId (market));
             }
-            if (marketIds.length === 0) {
+            const marketIdsLength = marketIds.length;
+            if (marketIdsLength === 0) {
                 return result;
             }
             const marketIdsChunks: string[][] = [];
@@ -1015,8 +1017,8 @@ export default class bithumb extends Exchange {
                 if ((maxMarketIdsPerRequest === undefined) || (maxMarketIdsPerRequest < 1)) {
                     maxMarketIdsPerRequest = 300;
                 }
-                for (let i = 0; i < marketIds.length; i += maxMarketIdsPerRequest) {
-                    const chunk = marketIds.slice (i, i + maxMarketIdsPerRequest);
+                for (let i = 0; i < marketIdsLength; i += maxMarketIdsPerRequest) {
+                    const chunk = this.arraySlice (marketIds, i, this.sum (i, maxMarketIdsPerRequest));
                     marketIdsChunks.push (chunk);
                     request['markets'] = chunk.join (',');
                     promises.push (this.publicGetV1Ticker (this.extend (request, params)));
@@ -1055,15 +1057,17 @@ export default class bithumb extends Exchange {
             //     ]
             //
             const responses = await Promise.all (promises);
-            for (let i = 0; i < responses.length; i++) {
+            const responsesLength = responses.length;
+            for (let i = 0; i < responsesLength; i++) {
                 let response = responses[i];
                 if (this.isDictionary (response) && ('data' in response) && (response['data'] !== undefined)) {
                     response = response['data'];
                 }
                 let expectedMarketId = undefined;
                 const marketIdsChunk = this.safeList (marketIdsChunks, i, []);
-                if (marketIdsChunk.length === 1) {
-                    expectedMarketId = this.safeString (marketIdsChunk, 0);
+                const firstMarketId = this.safeString (marketIdsChunk, 0);
+                if ((firstMarketId !== undefined) && (this.safeString (marketIdsChunk, 1) === undefined)) {
+                    expectedMarketId = firstMarketId;
                 }
                 let tickers = [];
                 if (Array.isArray (response)) {
