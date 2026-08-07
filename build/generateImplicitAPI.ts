@@ -291,10 +291,10 @@ function typescriptImportedTypes (exchange: string): string[] {
 //
 // A declared shape is a fact about the decoded JSON body, so it is worth the
 // same in every language — but not every language can carry it in the same
-// place. PHP and Python can express it where a caller and a type checker will
-// both see it; C#, Go and Java cannot narrow their generated signatures at all
-// without breaking the code that consumes them, so there the shape is
-// documented rather than declared. Each mapping is derived from the one
+// place. PHP, Python, C# and Java can express it where a caller and a type
+// checker will both see it; Go cannot narrow its generated signature without
+// dropping the panic-string-on-channel error multiplexing, so there the shape
+// is documented rather than declared. Each mapping is derived from the one
 // storedReturnTypes map, so all six languages stay in step with the api leaf
 // by construction.
 // -------------------------------------------------------------------------
@@ -309,6 +309,21 @@ const PYTHON_RETURN_ALIASES: Dict = {
     'Dict': '_Dict',
     'List': '_List',
     'string': 'str',
+};
+// C# and Java get the concrete runtime types their JSON decoders actually
+// produce, so the declared type is castable rather than merely descriptive:
+// JsonHelper.Deserialize builds Dictionary<string, object> / List<object>
+// (Exchange.JSONHelper.cs), and Jackson's Object binding builds
+// LinkedHashMap / ArrayList, which satisfy Map<String, Object> / List<Object>.
+const CSHARP_RETURN_TYPES: Dict = {
+    'Dict': 'Dictionary<string, object>',
+    'List': 'List<object>',
+    'string': 'string',
+};
+const JAVA_RETURN_TYPES: Dict = {
+    'Dict': 'java.util.Map<String, Object>',
+    'List': 'java.util.List<Object>',
+    'string': 'String',
 };
 const PROSE_RETURN_SHAPES: Dict = {
     'Dict': 'a JSON object',
@@ -408,8 +423,7 @@ function finalizePythonAliases (exchange: string) {
 }
 
 // a one-line prose description of the decoded body, for the languages whose
-// generated signature cannot be narrowed (see createImplicitMethodsGo /
-// CSharp / Java for why each one cannot)
+// generated signature cannot be narrowed (see createImplicitMethodsGo for why)
 function proseReturnShape (exchange: string, method: string): string {
     const members = returnTypeMembers (exchange, method).map ((name) => PROSE_RETURN_SHAPES[name]);
     if (members.includes (undefined)) {
@@ -419,6 +433,33 @@ function proseReturnShape (exchange: string, method: string): string {
         return members[0];
     }
     return members.slice (0, -1).join (', ') + ' or ' + members[members.length - 1];
+}
+
+// The C#/Java type argument for one generated method. Both languages have an
+// invariant generic return (Task<T>, CompletableFuture<T>) and no union type,
+// so a multi-member shape has no honest narrowing: the least upper bound of
+// Dict/List/string is the root type itself. Those endpoints keep the widest
+// type and say why in the doc comment rather than pretending to a shape the
+// caller would have to re-test anyway.
+function narrowedReturnType (exchange: string, method: string, spelling: Dict, widest: string): string {
+    const members = returnTypeMembers (exchange, method);
+    if (members.length !== 1) {
+        return widest;
+    }
+    return spelling[members[0]] || widest;
+}
+
+function csharpReturnType (exchange: string, method: string): string {
+    return narrowedReturnType (exchange, method, CSHARP_RETURN_TYPES, 'object');
+}
+
+function javaReturnType (exchange: string, method: string): string {
+    return narrowedReturnType (exchange, method, JAVA_RETURN_TYPES, 'Object');
+}
+
+// whether a generated method kept the widest type because its shape is a union
+function isUnionShape (exchange: string, method: string): boolean {
+    return returnTypeMembers (exchange, method).length !== 1;
 }
 
 // storedTypeScriptMethods[exchange][1] is the `import { ... } from base/types.js`
@@ -716,12 +757,19 @@ function createImplicitMethodsCSharp(){
         const methodNames = storedCamelCaseMethods[exchange];
 
         const methods =  methodNames.map(method=> {
+            // callAsync is generic, so the declared shape lands on the
+            // signature itself. Dictionary/List/string resolve without an extra
+            // using: ImplicitUsings supplies System.Collections.Generic.
+            const returns = csharpReturnType (exchange, method);
+            const shape = isUnionShape (exchange, method)
+                ? `${proseReturnShape (exchange, method)}, so this endpoint keeps object`
+                : proseReturnShape (exchange, method);
             return [
                 `${IDEN}/// <summary>Calls the ${method} endpoint.</summary>`,
-                `${IDEN}/// <returns>${proseReturnShape (exchange, method)}</returns>`,
-                `${IDEN}public async Task<object> ${method} (object parameters = null)`,
+                `${IDEN}/// <returns>${shape}</returns>`,
+                `${IDEN}public async Task<${returns}> ${method} (object parameters = null)`,
                 `${IDEN}{`,
-                `${IDEN}${IDEN}return await this.callAsync ("${method}",parameters);`,
+                `${IDEN}${IDEN}return await this.callAsync<${returns}> ("${method}",parameters);`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')
@@ -740,14 +788,21 @@ function createImplicitMethodsJava(){
         const methodNames = storedCamelCaseMethods[exchange];
 
         const methods =  methodNames.map(method=> {
+            // callAsync is generic, so the declared shape lands on the
+            // signature itself. The types are fully qualified because the
+            // generated api classes import nothing but io.github.ccxt.Exchange.
+            const returns = javaReturnType (exchange, method);
+            const shape = isUnionShape (exchange, method)
+                ? `${proseReturnShape (exchange, method)}, so this endpoint keeps Object`
+                : proseReturnShape (exchange, method);
             return [
                 `${IDEN}/**`,
                 `${IDEN} * Calls the ${method} endpoint.`,
                 `${IDEN} *`,
                 `${IDEN} * @param optionalArgs the request parameters`,
-                `${IDEN} * @return ${proseReturnShape (exchange, method)}`,
+                `${IDEN} * @return ${shape}`,
                 `${IDEN} */`,
-                `${IDEN}public java.util.concurrent.CompletableFuture<Object>  ${method} (Object... optionalArgs)`,
+                `${IDEN}public java.util.concurrent.CompletableFuture<${returns}>  ${method} (Object... optionalArgs)`,
                 `${IDEN}{`,
                 `${IDEN}${IDEN}return this.callAsync ("${method}", optionalArgs);`,
                 `${IDEN}}`,
