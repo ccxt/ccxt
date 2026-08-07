@@ -10,6 +10,11 @@ env:
   # `Compiling ccxt`). Debuginfo is useless in CI; [profile.release] in
   # rust/Cargo.toml is unaffected.
   CARGO_PROFILE_DEV_DEBUG: "0"
+  # `cargo test` recompiles `ccxt` under the `test` profile, which does NOT
+  # inherit the `dev` override above — so debuginfo (and the same OOM/exit-143
+  # mid-`Compiling ccxt`) comes back on the `cargo test` steps unless the test
+  # profile is pinned to no-debug too.
+  CARGO_PROFILE_TEST_DEBUG: "0"
 
 on:
   workflow_dispatch:
