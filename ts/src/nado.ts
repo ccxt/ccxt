@@ -120,7 +120,7 @@ export default class nado extends Exchange {
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': { 'cost': 1 } as Endpoint<List>,
+                            'tickers': { 'cost': 1 } as Endpoint<Dict>,
                             'contracts': { 'cost': 1 } as Endpoint<Dict>,
                             'trades': { 'cost': 1 } as Endpoint<List>,
                         },

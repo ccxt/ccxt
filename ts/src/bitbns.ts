@@ -89,7 +89,7 @@ export default class bitbns extends Exchange {
                 'www': {
                     'get': {
                         'order/fetchMarkets': { 'cost': 1 } as Endpoint<List>,
-                        'order/fetchTickers': { 'cost': 1 } as Endpoint<List>,
+                        'order/fetchTickers': { 'cost': 1 } as Endpoint<Dict>,
                         'order/fetchOrderbook': { 'cost': 1 } as Endpoint<Dict>,
                         'order/getTickerWithVolume': { 'cost': 1 } as Endpoint<Dict>,
                         'exchangeData/ohlc': { 'cost': 1 } as Endpoint<List>,

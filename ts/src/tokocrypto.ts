@@ -179,7 +179,7 @@ export default class tokocrypto extends Exchange {
                         'trades': { 'cost': 1 } as Endpoint<List>,
                         'aggTrades': { 'cost': 1 } as Endpoint<List>,
                         'historicalTrades': { 'cost': 5 } as Endpoint<List>,
-                        'klines': { 'cost': 1 } as Endpoint<Dict>,
+                        'klines': { 'cost': 1 } as Endpoint<List>,
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,

@@ -132,7 +132,7 @@ export default class hitbtc extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'public/currency': { 'cost': 10 } as Endpoint<List>,
+                        'public/currency': { 'cost': 10 } as Endpoint<Dict>,
                         'public/currency/{currency}': { 'cost': 10 } as Endpoint<Dict>,
                         'public/symbol': { 'cost': 10 } as Endpoint<Dict>,
                         'public/symbol/{symbol}': { 'cost': 10 } as Endpoint<Dict>,

@@ -189,7 +189,7 @@ export default class bitvavo extends Exchange {
                         'depositHistory': { 'cost': 5 } as Endpoint<List>,
                         'withdrawalHistory': { 'cost': 5 } as Endpoint<List>,
                         'account': { 'cost': 1 } as Endpoint<List>,
-                        'balance': { 'cost': 5 } as Endpoint<Dict>,
+                        'balance': { 'cost': 5 } as Endpoint<List>,
                         'stakingBalance': { 'cost': 1 } as Endpoint<List>,
                         'account/fees': { 'cost': 1 } as Endpoint<Dict>,
                         'account/history': { 'cost': 1 } as Endpoint<Dict>,

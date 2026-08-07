@@ -130,7 +130,7 @@ export default class binanceus extends binance {
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'avgPrice': { 'cost': 1 } as Endpoint<Dict>,
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
                         'ticker': { 'cost': 2, 'noSymbol': 100 } as Endpoint<List>,
                     },
                 },

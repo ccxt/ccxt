@@ -192,7 +192,7 @@ export default class bullish extends Exchange {
                         'v1/history/trades': { 'cost': 5 } as Endpoint<List>,
                         'v1/trades/{tradeId}': { 'cost': 5 } as Endpoint<Dict>,
                         'v1/trades/client-order-id/{clientOrderId}': { 'cost': 1 } as Endpoint<List>,
-                        'v1/accounts/asset': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/accounts/asset': { 'cost': 1 } as Endpoint<List>,
                         'v1/accounts/asset/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/users/logout': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/users/hmac/login': { 'cost': 1 } as Endpoint<Dict>,
