@@ -1757,7 +1757,12 @@ public class BaseExchange {
         io.github.ccxt.ws.Future future = client.future(messageHash);
 
         if (client.subscriptionsMap().putIfAbsent(subscribeHash, subscription != null ? subscription : true) == null) {
-            client.connect(this.calculateWsBackoffDelay(url)).thenAccept(connected -> {
+            int backoffDelay = 0;
+            if (!client.startedConnecting.get()) {
+                // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+                backoffDelay = this.calculateWsBackoffDelay(url);
+            }
+            client.connect(backoffDelay).thenAccept(connected -> {
                 if (message != null) {
                     try {
                         client.send(message);
@@ -1800,7 +1805,12 @@ public class BaseExchange {
         }
 
         if (subscribeHashes2 == null || !missingSubscriptions.isEmpty()) {
-            client.connect(this.calculateWsBackoffDelay(url)).thenAccept(connected -> {
+            int backoffDelay = 0;
+            if (!client.startedConnecting.get()) {
+                // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+                backoffDelay = this.calculateWsBackoffDelay(url);
+            }
+            client.connect(backoffDelay).thenAccept(connected -> {
                 if (message != null) {
                     try {
                         client.send(message);
