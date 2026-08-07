@@ -7091,7 +7091,7 @@ export default class gate extends Exchange {
             path = this.implodeParams (path, settle as Dict);
             // remove the first element from params
             const newParams: List = [];
-            const anyParams = params as List;
+            const anyParams = this.toArray (params);
             for (let i = 1; i < anyParams.length; i++) {
                 newParams.push (params[i]);
             }

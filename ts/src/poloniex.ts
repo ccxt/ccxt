@@ -1476,8 +1476,8 @@ export default class poloniex extends Exchange {
             //             cT: "1740777074704",
             //         },
             //
-            const tradesList = this.safeList (response, 'data');
-            return this.parseTrades (tradesList as List, market, since, limit);
+            const tradesList = this.safeList (response, 'data', []);
+            return this.parseTrades (tradesList, market, since, limit);
         }
         const trades = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
         //
@@ -1573,8 +1573,8 @@ export default class poloniex extends Exchange {
             //                "actType": "TRADING"
             //            },
             //
-            const data = this.safeList (raw, 'data');
-            return this.parseTrades (data as List, market, since, limit);
+            const data = this.safeList (raw, 'data', []);
+            return this.parseTrades (data, market, since, limit);
         }
         const response = await this.privateGetTrades (this.extend (request, params));
         //
