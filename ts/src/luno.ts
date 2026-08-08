@@ -582,6 +582,10 @@ export default class luno extends Exchange {
             // market; markets quoted in other fiat currencies are left on the
             // exchange-wide default until their schedules are verified the same way.
             const fiats = [ 'ZAR' ];
+            // live-but-unverified counters, kept on the exchange-wide default; the market
+            // list is geo-filtered so this is a superset of any one region's view, and
+            // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
+            const unverifiedQuotes = [ 'MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU' ];
             const stablecoins = [ 'USDT', 'USDC' ];
             let taker = undefined;
             let maker = undefined;
@@ -593,7 +597,9 @@ export default class luno extends Exchange {
                     taker = this.parseNumber ('0.006');
                     maker = this.parseNumber ('0.004');
                 }
-            } else if (!this.inArray (quote, stablecoins)) {
+            } else if (!this.inArray (quote, unverifiedQuotes)) {
+                // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
+                // are both in Luno's crypto/crypto column
                 taker = this.parseNumber ('0.001');
                 maker = this.parseNumber ('0.0008');
             }
