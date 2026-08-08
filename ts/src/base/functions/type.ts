@@ -16,7 +16,7 @@ const isStringCoercible = (x: any) => ((hasProps (x) && x.toString) || isNumber 
 
 const prop = (o: any, k: NullableIndexType) => {
     if (k !== undefined && k !== null && isObject (o) && o[k] !== null && o[k] !== '') {
-        return  o[k];
+        return o[k];
     }
     return undefined;
 };
