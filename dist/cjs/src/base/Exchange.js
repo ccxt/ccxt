@@ -2214,6 +2214,7 @@ class BaseExchange {
                 'swap': undefined,
                 'future': undefined,
                 'option': undefined,
+                'index': undefined,
                 'addMargin': undefined,
                 'borrowCrossMargin': undefined,
                 'borrowIsolatedMargin': undefined,

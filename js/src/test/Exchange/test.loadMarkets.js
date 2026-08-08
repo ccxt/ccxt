@@ -6,6 +6,32 @@
 
 import assert from 'assert';
 import testMarket from './base/test.market.js';
+function testLoadedMarketTypes(exchange, skippedProperties) {
+    const marketTypes = ['spot', 'swap', 'future', 'option', 'index'];
+    const collectedTypes = [];
+    assert(exchange.markets !== undefined, '.markets is undefined');
+    const markets = Object.values(exchange.markets);
+    for (let i = 0; i < markets.length; i++) {
+        const market = markets[i];
+        if (!exchange.inArray(market['type'], collectedTypes)) {
+            collectedTypes.push(market['type']);
+        }
+    }
+    for (let i = 0; i < marketTypes.length; i++) {
+        const mType = marketTypes[i];
+        if (exchange.has[mType]) {
+            const skipMarketTypes = ('optionsNotLoadedByDefault' in skippedProperties) && mType === 'option';
+            assert(exchange.inArray(mType, collectedTypes) || skipMarketTypes, 'exchange.has[' + mType + '] is true, but no markets of type ' + mType + ' were found in exchange.markets');
+        }
+        else if (exchange.has[mType] === false) {
+            // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
+            // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
+            // in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
+            const isKnownException = (mType in skippedProperties);
+            assert(!exchange.inArray(mType, collectedTypes) || isKnownException, 'exchange.has[' + mType + '] is false, but markets of type ' + mType + ' were found in exchange.markets');
+        }
+    }
+}
 async function testLoadMarkets(exchange, skippedProperties) {
     const method = 'loadMarkets';
     const markets = await exchange.loadMarkets();
@@ -22,6 +48,7 @@ async function testLoadMarkets(exchange, skippedProperties) {
     for (let i = 0; i < marketValues.length; i++) {
         testMarket(exchange, skippedProperties, method, marketValues[i]);
     }
+    testLoadedMarketTypes(exchange, skippedProperties);
     return true;
 }
 export default testLoadMarkets;

@@ -23,7 +23,7 @@ class bullish extends Exchange {
                 'margin' => false,
                 'swap' => true,
                 'future' => true,
-                'option' => false,
+                'option' => true,
                 'addMargin' => false,
                 'borrowMargin' => false,
                 'cancelAllOrders' => true,
