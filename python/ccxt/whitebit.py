@@ -508,7 +508,6 @@ class whitebit(Exchange, ImplicitAPI):
         margin = isCollateral and not swap
         contract = False
         amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec')))
-        contractSize = amountPrecision
         linear = None
         inverse = None
         if swap:
@@ -547,7 +546,7 @@ class whitebit(Exchange, ImplicitAPI):
             'inverse': inverse,
             'taker': self.parse_number(taker),
             'maker': self.parse_number(maker),
-            'contractSize': None if isSpot else contractSize,
+            'contractSize': None if isSpot else self.parse_number('1'),  # perpetual amounts are denominated in base currency units
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
