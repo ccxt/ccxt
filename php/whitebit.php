@@ -492,7 +492,6 @@ class whitebit extends Exchange {
         $margin = $isCollateral && !$swap;
         $contract = false;
         $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
-        $contractSize = $amountPrecision;
         $linear = null;
         $inverse = null;
         if ($swap) {
@@ -532,7 +531,7 @@ class whitebit extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->parse_number($taker),
             'maker' => $this->parse_number($maker),
-            'contractSize' => $isSpot ? null : $contractSize,
+            'contractSize' => $isSpot ? null : $this->parse_number('1'), // perpetual amounts are denominated in $base currency units
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
