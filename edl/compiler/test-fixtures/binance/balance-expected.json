@@ -1,0 +1,63 @@
+{
+  "info": {
+    "makerCommission": 15,
+    "takerCommission": 15,
+    "buyerCommission": 0,
+    "sellerCommission": 0,
+    "canTrade": true,
+    "canWithdraw": true,
+    "canDeposit": true,
+    "updateTime": 123456789,
+    "accountType": "SPOT",
+    "balances": [
+      {
+        "asset": "BTC",
+        "free": "4723846.89208129",
+        "locked": "0.00000000"
+      },
+      {
+        "asset": "LTC",
+        "free": "4763368.68006011",
+        "locked": "1250.00000000"
+      },
+      {
+        "asset": "ETH",
+        "free": "0.00000000",
+        "locked": "0.00000000"
+      }
+    ],
+    "permissions": ["SPOT"]
+  },
+  "timestamp": null,
+  "datetime": null,
+  "BTC": {
+    "free": 4723846.89208129,
+    "used": 0,
+    "total": 4723846.89208129
+  },
+  "LTC": {
+    "free": 4763368.68006011,
+    "used": 1250,
+    "total": 4764618.68006011
+  },
+  "ETH": {
+    "free": 0,
+    "used": 0,
+    "total": 0
+  },
+  "free": {
+    "BTC": 4723846.89208129,
+    "LTC": 4763368.68006011,
+    "ETH": 0
+  },
+  "used": {
+    "BTC": 0,
+    "LTC": 1250,
+    "ETH": 0
+  },
+  "total": {
+    "BTC": 4723846.89208129,
+    "LTC": 4764618.68006011,
+    "ETH": 0
+  }
+}

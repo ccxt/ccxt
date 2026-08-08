@@ -1,0 +1,183 @@
+Runtime Behavior Schema Structure
+==================================
+
+RuntimeBehaviorSchema
+├── reconnection?: AutoResubscribeConfig
+│   ├── enabled: boolean
+│   ├── strategy: ReconnectionStrategy ('immediate' | 'linear-backoff' | 'exponential-backoff' | 'none')
+│   ├── maxRetries?: number
+│   ├── initialDelayMs?: number (default: 1000)
+│   ├── maxDelayMs?: number (default: 60000)
+│   ├── backoffMultiplier?: number (default: 2)
+│   ├── channels?: string[]
+│   └── preserveSubscriptionState?: boolean (default: true)
+│
+├── pingPong?: PingPongConfig
+│   ├── enabled: boolean
+│   ├── intervalMs: number
+│   ├── timeoutMs: number
+│   ├── pingMessage?: string | object
+│   ├── pongField?: string
+│   └── onTimeout?: 'reconnect' | 'error' | 'ignore' (default: 'reconnect')
+│
+├── connectionLimits?: ConnectionLimitsConfig
+│   ├── maxConnections: number
+│   ├── maxSubscriptionsPerConnection?: number
+│   ├── maxMessagesPerSecond?: number
+│   ├── connectionTimeoutMs?: number (default: 30000)
+│   └── idleTimeoutMs?: number
+│
+├── heartbeat?: HeartbeatConfig
+│   ├── enabled: boolean
+│   ├── intervalMs: number
+│   ├── message?: string | object
+│   └── expectedResponse?: string
+│
+└── ccxtIntegration?: CCXTIntegrationConfig
+    ├── watchMethods: WatchMethodConfig[]
+    │   └── WatchMethodConfig
+    │       ├── method: string (e.g., 'watchTicker')
+    │       ├── channel: string
+    │       ├── parser: string
+    │       └── requiresAuth?: boolean (default: false)
+    ├── orderBookDepth?: number (default: 20)
+    ├── tradesLimit?: number (default: 50)
+    └── snapshotOnConnect?: boolean (default: true)
+
+
+Validation Functions
+====================
+
+validateAutoResubscribeConfig(config) → ValidationResult
+validatePingPongConfig(config) → ValidationResult
+validateConnectionLimitsConfig(config) → ValidationResult
+validateHeartbeatConfig(config) → ValidationResult
+validateCCXTIntegrationConfig(config) → ValidationResult
+validateRuntimeBehavior(config) → ValidationResult
+
+ValidationResult
+├── valid: boolean
+└── errors: ValidationError[]
+    └── ValidationError
+        ├── field: string
+        └── message: string
+
+
+Helper Functions
+================
+
+getDefaultRuntimeBehavior() → RuntimeBehaviorSchema
+mergeWithDefaults(userConfig) → RuntimeBehaviorSchema
+
+
+Example Flow
+============
+
+1. User provides partial configuration
+   ↓
+2. mergeWithDefaults() combines with defaults
+   ↓
+3. validateRuntimeBehavior() validates merged config
+   ↓
+4. If valid → Use in WebSocket connection
+   If invalid → Report errors to user
+
+
+Reconnection Flow Example
+==========================
+
+Connection Lost
+   ↓
+reconnection.enabled? → No → Do nothing
+   ↓ Yes
+reconnection.strategy?
+   ├── 'none' → Do nothing
+   ├── 'immediate' → Reconnect now
+   ├── 'linear-backoff' → delay = initialDelay + (retry × initialDelay × multiplier)
+   └── 'exponential-backoff' → delay = min(initialDelay × (multiplier ^ retry), maxDelay)
+   ↓
+Attempt reconnection
+   ↓
+Success? → Yes → Resubscribe (if preserveSubscriptionState)
+   ↓ No
+retry < maxRetries? → Yes → Wait delay, try again
+   ↓ No
+Give up
+
+
+Ping/Pong Flow Example
+=======================
+
+Connection established
+   ↓
+pingPong.enabled? → No → Skip
+   ↓ Yes
+Start interval timer (every intervalMs)
+   ↓
+Send ping message
+   ↓
+Start timeout timer (timeoutMs)
+   ↓
+Receive pong?
+   ├── Yes (within timeout) → Reset timers, continue
+   └── No (timeout) → onTimeout action
+       ├── 'reconnect' → Trigger reconnection
+       ├── 'error' → Throw error
+       └── 'ignore' → Log warning, continue
+
+
+CCXT Integration Flow
+======================
+
+User calls exchange.watchTicker('BTC/USDT')
+   ↓
+Look up 'watchTicker' in ccxtIntegration.watchMethods
+   ↓
+Find matching WatchMethodConfig
+   ├── method: 'watchTicker'
+   ├── channel: 'ticker'
+   ├── parser: 'parseTicker'
+   └── requiresAuth: false
+   ↓
+Subscribe to WebSocket channel 'ticker'
+   ↓
+Receive WebSocket message
+   ↓
+Apply parser 'parseTicker'
+   ↓
+Return formatted ticker to user
+
+
+Default Values Summary
+======================
+
+Reconnection:
+- enabled: true
+- strategy: 'exponential-backoff'
+- maxRetries: 10
+- initialDelayMs: 1000
+- maxDelayMs: 60000
+- backoffMultiplier: 2
+- preserveSubscriptionState: true
+
+Ping/Pong:
+- enabled: true
+- intervalMs: 30000 (30 seconds)
+- timeoutMs: 10000 (10 seconds)
+- onTimeout: 'reconnect'
+
+Connection Limits:
+- maxConnections: 5
+- maxSubscriptionsPerConnection: 200
+- connectionTimeoutMs: 30000 (30 seconds)
+- idleTimeoutMs: 300000 (5 minutes)
+
+Heartbeat:
+- enabled: false (use ping/pong instead)
+- intervalMs: 30000
+
+CCXT Integration:
+- watchMethods: []
+- orderBookDepth: 20
+- tradesLimit: 50
+- snapshotOnConnect: true

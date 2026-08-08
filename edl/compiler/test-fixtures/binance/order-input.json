@@ -1,0 +1,21 @@
+{
+  "symbol": "LTCBTC",
+  "orderId": 1,
+  "orderListId": -1,
+  "clientOrderId": "myOrder1",
+  "transactTime": 1507725176595,
+  "price": "0.1",
+  "origQty": "1.0",
+  "executedQty": "0.5",
+  "cummulativeQuoteQty": "0.05",
+  "status": "PARTIALLY_FILLED",
+  "timeInForce": "GTC",
+  "type": "LIMIT",
+  "side": "BUY",
+  "stopPrice": "0.0",
+  "icebergQty": "0.0",
+  "time": 1507725176595,
+  "updateTime": 1507725176595,
+  "isWorking": true,
+  "origQuoteOrderQty": "0.0"
+}

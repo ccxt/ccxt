@@ -1,0 +1,156 @@
+{
+  "raw": [
+    {
+      "coin": "BTC",
+      "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+      "tag": "",
+      "url": "https://btc.com/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+    },
+    {
+      "coin": "ETH",
+      "address": "0x1234567890123456789012345678901234567890",
+      "tag": "",
+      "url": "https://etherscan.io/address/0x1234567890123456789012345678901234567890"
+    },
+    {
+      "coin": "USDT",
+      "network": "ETH",
+      "address": "0x1234567890123456789012345678901234567890",
+      "tag": "",
+      "url": "https://etherscan.io/address/0x1234567890123456789012345678901234567890"
+    },
+    {
+      "coin": "USDT",
+      "network": "TRX",
+      "address": "TRXAddressExample1234567890123456789",
+      "tag": "",
+      "url": "https://tronscan.org/#/address/TRXAddressExample1234567890123456789"
+    },
+    {
+      "coin": "USDT",
+      "network": "BSC",
+      "address": "0x9876543210987654321098765432109876543210",
+      "tag": "",
+      "url": "https://bscscan.com/address/0x9876543210987654321098765432109876543210"
+    },
+    {
+      "coin": "XRP",
+      "address": "rXRPAddressExample123456789012345678",
+      "tag": "123456789",
+      "url": "https://xrpscan.com/account/rXRPAddressExample123456789012345678"
+    },
+    {
+      "coin": "XLM",
+      "address": "GXLMADDRESSEXAMPLE1234567890123456789012",
+      "tag": "987654321",
+      "url": "https://stellarchain.io/address/GXLMADDRESSEXAMPLE1234567890123456789012"
+    },
+    {
+      "coin": "EOS",
+      "address": "eosaccountname",
+      "tag": "eostagmemo123",
+      "url": "https://bloks.io/account/eosaccountname"
+    }
+  ],
+  "expected": [
+    {
+      "info": {
+        "coin": "BTC",
+        "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+        "tag": "",
+        "url": "https://btc.com/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+      },
+      "currency": "BTC",
+      "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+      "tag": "",
+      "network": "BTC"
+    },
+    {
+      "info": {
+        "coin": "ETH",
+        "address": "0x1234567890123456789012345678901234567890",
+        "tag": "",
+        "url": "https://etherscan.io/address/0x1234567890123456789012345678901234567890"
+      },
+      "currency": "ETH",
+      "address": "0x1234567890123456789012345678901234567890",
+      "tag": "",
+      "network": "ETH"
+    },
+    {
+      "info": {
+        "coin": "USDT",
+        "network": "ETH",
+        "address": "0x1234567890123456789012345678901234567890",
+        "tag": "",
+        "url": "https://etherscan.io/address/0x1234567890123456789012345678901234567890"
+      },
+      "currency": "USDT",
+      "address": "0x1234567890123456789012345678901234567890",
+      "tag": "",
+      "network": "ETH"
+    },
+    {
+      "info": {
+        "coin": "USDT",
+        "network": "TRX",
+        "address": "TRXAddressExample1234567890123456789",
+        "tag": "",
+        "url": "https://tronscan.org/#/address/TRXAddressExample1234567890123456789"
+      },
+      "currency": "USDT",
+      "address": "TRXAddressExample1234567890123456789",
+      "tag": "",
+      "network": "TRX"
+    },
+    {
+      "info": {
+        "coin": "USDT",
+        "network": "BSC",
+        "address": "0x9876543210987654321098765432109876543210",
+        "tag": "",
+        "url": "https://bscscan.com/address/0x9876543210987654321098765432109876543210"
+      },
+      "currency": "USDT",
+      "address": "0x9876543210987654321098765432109876543210",
+      "tag": "",
+      "network": "BSC"
+    },
+    {
+      "info": {
+        "coin": "XRP",
+        "address": "rXRPAddressExample123456789012345678",
+        "tag": "123456789",
+        "url": "https://xrpscan.com/account/rXRPAddressExample123456789012345678"
+      },
+      "currency": "XRP",
+      "address": "rXRPAddressExample123456789012345678",
+      "tag": "123456789",
+      "network": "XRP"
+    },
+    {
+      "info": {
+        "coin": "XLM",
+        "address": "GXLMADDRESSEXAMPLE1234567890123456789012",
+        "tag": "987654321",
+        "url": "https://stellarchain.io/address/GXLMADDRESSEXAMPLE1234567890123456789012"
+      },
+      "currency": "XLM",
+      "address": "GXLMADDRESSEXAMPLE1234567890123456789012",
+      "tag": "987654321",
+      "network": "XLM"
+    },
+    {
+      "info": {
+        "coin": "EOS",
+        "address": "eosaccountname",
+        "tag": "eostagmemo123",
+        "url": "https://bloks.io/account/eosaccountname"
+      },
+      "currency": "EOS",
+      "address": "eosaccountname",
+      "tag": "eostagmemo123",
+      "network": "EOS"
+    }
+  ]
+}
