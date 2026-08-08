@@ -733,7 +733,6 @@ public class WhitebitCore extends WhitebitApi
         Object margin = Helpers.isTrue(isCollateral) && !Helpers.isTrue(swap);
         Object contract = false;
         Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
-        Object contractSize = amountPrecision;
         Object linear = null;
         Object inverse = null;
         if (Helpers.isTrue(swap))
@@ -784,7 +783,7 @@ public class WhitebitCore extends WhitebitApi
             put( "inverse", finalInverse );
             put( "taker", WhitebitCore.this.parseNumber(taker) );
             put( "maker", WhitebitCore.this.parseNumber(maker) );
-            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : contractSize );
+            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : WhitebitCore.this.parseNumber("1") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
