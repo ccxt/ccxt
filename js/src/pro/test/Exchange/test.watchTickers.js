@@ -59,7 +59,12 @@ async function testWatchTickersHelper(exchange, skippedProperties, argSymbols, a
                     testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
                 catch (ex) {
-                    await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+                    let ohlcv = undefined;
+                    const tickerSymbol = ticker['symbol'];
+                    if ((tickerSymbol !== undefined) && testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
+                        ohlcv = await exchange.fetchOHLCV(tickerSymbol, '1d', undefined, 5);
+                    }
+                    testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                 }
             }
             now = exchange.milliseconds();

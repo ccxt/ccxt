@@ -145,41 +145,41 @@ class mercado(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'coins',
-                        '{coin}/orderbook/',  # last slash critical
-                        '{coin}/ticker/',
-                        '{coin}/trades/',
-                        '{coin}/trades/{from}/',
-                        '{coin}/trades/{from}/{to}',
-                        '{coin}/day-summary/{year}/{month}/{day}/',
-                    ],
+                    'get': {
+                        'coins': {'cost': 1},
+                        '{coin}/orderbook/': {'cost': 1},
+                        '{coin}/ticker/': {'cost': 1},
+                        '{coin}/trades/': {'cost': 1},
+                        '{coin}/trades/{from}/': {'cost': 1},
+                        '{coin}/trades/{from}/{to}': {'cost': 1},
+                        '{coin}/day-summary/{year}/{month}/{day}/': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'cancel_order',
-                        'get_account_info',
-                        'get_order',
-                        'get_withdrawal',
-                        'list_system_messages',
-                        'list_orders',
-                        'list_orderbook',
-                        'place_buy_order',
-                        'place_sell_order',
-                        'place_market_buy_order',
-                        'place_market_sell_order',
-                        'withdraw_coin',
-                    ],
+                    'post': {
+                        'cancel_order': {'cost': 1},
+                        'get_account_info': {'cost': 1},
+                        'get_order': {'cost': 1},
+                        'get_withdrawal': {'cost': 1},
+                        'list_system_messages': {'cost': 1},
+                        'list_orders': {'cost': 1},
+                        'list_orderbook': {'cost': 1},
+                        'place_buy_order': {'cost': 1},
+                        'place_sell_order': {'cost': 1},
+                        'place_market_buy_order': {'cost': 1},
+                        'place_market_sell_order': {'cost': 1},
+                        'withdraw_coin': {'cost': 1},
+                    },
                 },
                 'v4Public': {
-                    'get': [
-                        '{coin}/candle/',
-                    ],
+                    'get': {
+                        '{coin}/candle/': {'cost': 1},
+                    },
                 },
                 'v4PublicNet': {
-                    'get': [
-                        'candles',
-                    ],
+                    'get': {
+                        'candles': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -299,12 +299,15 @@ class mercado(Exchange, ImplicitAPI):
         #
         result = []
         amountLimits = self.safe_value(self.options, 'limits', {})
-        for i in range(0, len(response)):
-            coin = response[i]
+        coins = self.to_array(response)
+        for i in range(0, len(coins)):
+            coin = coins[i]
             baseId = coin
             quoteId = 'BRL'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             id = quote + base
             result.append({
                 'id': id,
@@ -363,7 +366,7 @@ class mercado(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -500,7 +503,7 @@ class mercado(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         data = self.safe_value(response, 'response_data', {})
         balances = self.safe_value(data, 'balance', {})
         result = {'info': response}
@@ -513,7 +516,8 @@ class mercado(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'available')
                 account['total'] = self.safe_string(balance, 'total')
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -809,7 +813,7 @@ class mercado(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -845,8 +849,9 @@ class mercado(Exchange, ImplicitAPI):
             request['to'] = self.seconds()
             request['from'] = request['to'] - (limit * self.parse_timeframe(timeframe))
         response = self.v4PublicNetGetCandles(self.extend(request, params))
-        candles = self.convert_trading_view_to_ohlcv(response, 't', 'o', 'h', 'l', 'c', 'v')
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        # parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
+        # then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
+        return self.parse_trading_view_ohlcv(response, market, timeframe, since, limit)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -918,7 +923,7 @@ class mercado(Exchange, ImplicitAPI):
         trades = self.orders_to_trades(orders)
         return self.filter_by_symbol_since_limit(trades, market['symbol'], since, limit)
 
-    def orders_to_trades(self, orders):
+    def orders_to_trades(self, orders: Any):
         result = []
         for i in range(0, len(orders)):
             trades = self.safe_value(orders[i], 'trades', [])
@@ -926,7 +931,7 @@ class mercado(Exchange, ImplicitAPI):
                 result.append(trades[y])
         return result
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/'
         query = self.omit(params, self.extract_params(path))
         if (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet'):
@@ -949,7 +954,7 @@ class mercado(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         #

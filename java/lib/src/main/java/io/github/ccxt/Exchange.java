@@ -1414,7 +1414,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters)).join();
+            return (this.fetchOrder(((String)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters)).join();
         });
 
     }
@@ -1842,7 +1842,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters);
+            return this.cancelOrder(((String)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters);
         });
 
     }

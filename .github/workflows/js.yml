@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
 
 jobs:
   build:
@@ -80,6 +80,8 @@ jobs:
       if: github.ref == 'refs/heads/master'
       run: |
         rm -rf js/
+    - name: Check base types are in sync with ts/src/base/types.ts
+      run: npm run transpile-types-check
     - name: Pre-transpile and transpile TS
       if: env.important_modified == 'true'
       run: npm run pre-transpile-js
@@ -96,9 +98,9 @@ jobs:
         for exchange in $cleaned_rest_files; do
           # prediction-market exchanges live under ts/src/prediction/
           if [ -f "ts/src/$exchange.ts" ]; then
-            npm run eslint "ts/src/$exchange.ts"
+            npm run lint "ts/src/$exchange.ts"
           elif [ -f "ts/src/prediction/$exchange.ts" ]; then
-            npm run eslint "ts/src/prediction/$exchange.ts"
+            npm run lint "ts/src/prediction/$exchange.ts"
           fi
         done
     - name: Lint Ws (specific)
@@ -107,7 +109,7 @@ jobs:
         cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
         for exchange in $cleaned_ws_files; do
           if [ -f "ts/src/pro/$exchange.ts" ]; then
-            npm run eslint "ts/src/pro/$exchange.ts"
+            npm run lint "ts/src/pro/$exchange.ts"
           fi
         done
     - name: Run Base Tests
@@ -187,9 +189,18 @@ jobs:
 
         git commit -m "[Automated changes] JS files"
 
-        git fetch origin master
-        git rebase --autostash origin/master
-        git push origin HEAD:master
+        for attempt in 1 2 3 4 5; do
+          git fetch origin master
+          git rebase --autostash origin/master
+          if git push origin HEAD:master; then
+            echo "pushed on attempt ${attempt}"
+            exit 0
+          fi
+          echo "master moved, retrying (${attempt})..."
+          sleep $(( (RANDOM % 5) + 2 ))
+        done
+        echo "push failed after 5 attempts"
+        exit 1
         # NB: the wiki/*.md committed above is mirrored to the ccxt/ccxt.wiki repo by the
         # mirror-wiki job in docs-fumadocs.yml (on release / docs changes / manual dispatch).
 

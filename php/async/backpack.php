@@ -159,72 +159,72 @@ class backpack extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'api/v1/assets' => 1, // done
-                        'api/v1/collateral' => 1, // not used
-                        'api/v1/borrowLend/markets' => 1,
-                        'api/v1/borrowLend/markets/history' => 1,
-                        'api/v1/markets' => 1, // done
-                        'api/v1/market' => 1, // not used
-                        'api/v1/ticker' => 1, // done
-                        'api/v1/tickers' => 1, // done
-                        'api/v1/depth' => 1, // done
-                        'api/v1/klines' => 1, // done
-                        'api/v1/markPrices' => 1, // done
-                        'api/v1/openInterest' => 1, // done
-                        'api/v1/fundingRates' => 1, // done
-                        'api/v1/status' => 1, // done
-                        'api/v1/ping' => 1, // todo check if it is needed for ws
-                        'api/v1/time' => 1, // done
-                        'api/v1/wallets' => 1, // not used
-                        'api/v1/trades' => 1, // done
-                        'api/v1/trades/history' => 1, // done
+                        'api/v1/assets' => array( 'cost' => 1 ), // done
+                        'api/v1/collateral' => array( 'cost' => 1 ), // not used
+                        'api/v1/borrowLend/markets' => array( 'cost' => 1 ),
+                        'api/v1/borrowLend/markets/history' => array( 'cost' => 1 ),
+                        'api/v1/markets' => array( 'cost' => 1 ), // done
+                        'api/v1/market' => array( 'cost' => 1 ), // not used
+                        'api/v1/ticker' => array( 'cost' => 1 ), // done
+                        'api/v1/tickers' => array( 'cost' => 1 ), // done
+                        'api/v1/depth' => array( 'cost' => 1 ), // done
+                        'api/v1/klines' => array( 'cost' => 1 ), // done
+                        'api/v1/markPrices' => array( 'cost' => 1 ), // done
+                        'api/v1/openInterest' => array( 'cost' => 1 ), // done
+                        'api/v1/fundingRates' => array( 'cost' => 1 ), // done
+                        'api/v1/status' => array( 'cost' => 1 ), // done
+                        'api/v1/ping' => array( 'cost' => 1 ), // todo check if it is needed for ws
+                        'api/v1/time' => array( 'cost' => 1 ), // done
+                        'api/v1/wallets' => array( 'cost' => 1 ), // not used
+                        'api/v1/trades' => array( 'cost' => 1 ), // done
+                        'api/v1/trades/history' => array( 'cost' => 1 ), // done
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'api/v1/account' => 1, // todo fetchTradingFee
-                        'api/v1/account/limits/borrow' => 1, // not used
-                        'api/v1/account/limits/order' => 1, // not used
-                        'api/v1/account/limits/withdrawal' => 1, // not used
-                        'api/v1/borrowLend/positions' => 1, // todo fetchBorrowInterest
-                        'api/v1/capital' => 1, // done
-                        'api/v1/capital/collateral' => 1, // not used
-                        'wapi/v1/capital/deposits' => 1, // done
-                        'wapi/v1/capital/deposit/address' => 1, // done
-                        'wapi/v1/capital/withdrawals' => 1, // todo complete after withdrawal
-                        'api/v1/position' => 1, // done but todo check if all is right
-                        'wapi/v1/history/borrowLend' => 1, // not used
-                        'wapi/v1/history/interest' => 1, // not used
-                        'wapi/v1/history/borrowLend/positions' => 1, // not used
-                        'wapi/v1/history/dust' => 1, // not used
-                        'wapi/v1/history/fills' => 1, // done
-                        'wapi/v1/history/funding' => 1, // done
-                        'wapi/v1/history/orders' => 1, // done
-                        'wapi/v1/history/rfq' => 1,
-                        'wapi/v1/history/quote' => 1,
-                        'wapi/v1/history/settlement' => 1,
-                        'wapi/v1/history/strategies' => 1,
-                        'api/v1/order' => 1, // done
-                        'api/v1/orders' => 1, // done
+                        'api/v1/account' => array( 'cost' => 1 ), // todo fetchTradingFee
+                        'api/v1/account/limits/borrow' => array( 'cost' => 1 ), // not used
+                        'api/v1/account/limits/order' => array( 'cost' => 1 ), // not used
+                        'api/v1/account/limits/withdrawal' => array( 'cost' => 1 ), // not used
+                        'api/v1/borrowLend/positions' => array( 'cost' => 1 ), // todo fetchBorrowInterest
+                        'api/v1/capital' => array( 'cost' => 1 ), // done
+                        'api/v1/capital/collateral' => array( 'cost' => 1 ), // not used
+                        'wapi/v1/capital/deposits' => array( 'cost' => 1 ), // done
+                        'wapi/v1/capital/deposit/address' => array( 'cost' => 1 ), // done
+                        'wapi/v1/capital/withdrawals' => array( 'cost' => 1 ), // todo complete after withdrawal
+                        'api/v1/position' => array( 'cost' => 1 ), // done but todo check if all is right
+                        'wapi/v1/history/borrowLend' => array( 'cost' => 1 ), // not used
+                        'wapi/v1/history/interest' => array( 'cost' => 1 ), // not used
+                        'wapi/v1/history/borrowLend/positions' => array( 'cost' => 1 ), // not used
+                        'wapi/v1/history/dust' => array( 'cost' => 1 ), // not used
+                        'wapi/v1/history/fills' => array( 'cost' => 1 ), // done
+                        'wapi/v1/history/funding' => array( 'cost' => 1 ), // done
+                        'wapi/v1/history/orders' => array( 'cost' => 1 ), // done
+                        'wapi/v1/history/rfq' => array( 'cost' => 1 ),
+                        'wapi/v1/history/quote' => array( 'cost' => 1 ),
+                        'wapi/v1/history/settlement' => array( 'cost' => 1 ),
+                        'wapi/v1/history/strategies' => array( 'cost' => 1 ),
+                        'api/v1/order' => array( 'cost' => 1 ), // done
+                        'api/v1/orders' => array( 'cost' => 1 ), // done
                     ),
                     'post' => array(
-                        'api/v1/account/convertDust' => 1,
-                        'api/v1/borrowLend' => 1, // todo borrowCrossMargin
-                        'wapi/v1/capital/withdrawals' => 1, // todo complete after withdrawal
-                        'api/v1/order' => 1, // done
-                        'api/v1/orders' => 1, // done
-                        'api/v1/rfq' => 1,
-                        'api/v1/rfq/accept' => 1,
-                        'api/v1/rfq/refresh' => 1,
-                        'api/v1/rfq/cancel' => 1,
-                        'api/v1/rfq/quote' => 1,
+                        'api/v1/account/convertDust' => array( 'cost' => 1 ),
+                        'api/v1/borrowLend' => array( 'cost' => 1 ), // todo borrowCrossMargin
+                        'wapi/v1/capital/withdrawals' => array( 'cost' => 1 ), // todo complete after withdrawal
+                        'api/v1/order' => array( 'cost' => 1 ), // done
+                        'api/v1/orders' => array( 'cost' => 1 ), // done
+                        'api/v1/rfq' => array( 'cost' => 1 ),
+                        'api/v1/rfq/accept' => array( 'cost' => 1 ),
+                        'api/v1/rfq/refresh' => array( 'cost' => 1 ),
+                        'api/v1/rfq/cancel' => array( 'cost' => 1 ),
+                        'api/v1/rfq/quote' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'api/v1/order' => 1, // done
-                        'api/v1/orders' => 1, // done
+                        'api/v1/order' => array( 'cost' => 1 ), // done
+                        'api/v1/orders' => array( 'cost' => 1 ), // done
                     ),
                     'patch' => array(
-                        'api/v1/account' => 1,
+                        'api/v1/account' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -407,7 +407,7 @@ class backpack extends Exchange {
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'networks' => array(
                     'APT' => 'Aptos',
-                    'ARB' => 'Arbitrum',
+                    'ARBITRUM' => 'Arbitrum',
                     'AVAX' => 'Avalanche',
                     'BASE' => 'Base',
                     'BERA' => 'Berachain',
@@ -432,7 +432,7 @@ class backpack extends Exchange {
                 ),
                 'networksById' => array(
                     'aptos' => 'APT',
-                    'arbitrum' => 'ARB',
+                    'arbitrum' => 'ARBITRUM',
                     'avalanche' => 'AVAX',
                     'base' => 'BASE',
                     'berachain' => 'BERA',
@@ -548,26 +548,28 @@ class backpack extends Exchange {
             $networkId = $this->safe_string($network, 'blockchain');
             $networkIdLowerCase = $this->safe_string_lower($network, 'blockchain');
             $networkCode = $this->network_id_to_code($networkIdLowerCase, $code);
-            $parsedNetworks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($network, 'minimumWithdrawal'),
-                        'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maximumWithdrawal'))),
+            if ($networkCode !== null) {
+                $parsedNetworks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($network, 'minimumWithdrawal'),
+                            'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maximumWithdrawal'))),
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($network, 'minimumDeposit'),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($network, 'minimumDeposit'),
-                        'max' => null,
-                    ),
-                ),
-                'active' => null,
-                'deposit' => $this->safe_bool($network, 'depositEnabled'),
-                'withdraw' => $this->safe_bool($network, 'withdrawEnabled'),
-                'fee' => $this->safe_number($network, 'withdrawalFee'),
-                'precision' => null,
-                'info' => $network,
-            );
+                    'active' => null,
+                    'deposit' => $this->safe_bool($network, 'depositEnabled'),
+                    'withdraw' => $this->safe_bool($network, 'withdrawEnabled'),
+                    'fee' => $this->safe_number($network, 'withdrawalFee'),
+                    'precision' => null,
+                    'info' => $network,
+                );
+            }
         }
         $active = null;
         $deposit = null;
@@ -796,7 +798,7 @@ class backpack extends Exchange {
         ));
     }
 
-    public function parse_market_type($type) {
+    public function parse_market_type(mixed $type) {
         $types = array(
             'SPOT' => 'spot',
             'PERP' => 'swap',
@@ -923,7 +925,7 @@ class backpack extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -948,6 +950,9 @@ class backpack extends Exchange {
             //     }
             //
             $microseconds = $this->safe_integer($response, 'timestamp');
+            if ($microseconds === null) {
+                throw new ExchangeError($this->id . ' fetchOrderBook() missing microseconds');
+            }
             $timestamp = $this->parse_to_int($microseconds / 1000);
             $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
             $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
@@ -1001,11 +1006,12 @@ class backpack extends Exchange {
                 $params = $this->omit($params, 'price');
             }
             $response = Async\await($this->publicGetApiV1Klines($this->extend($request, $params)));
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+            $ohlcvs = $this->to_array($response);
+            return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         array(
@@ -1059,7 +1065,7 @@ class backpack extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "fundingRate" => "0.0001",
@@ -1122,7 +1128,7 @@ class backpack extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     array(
         //         {
@@ -1144,7 +1150,7 @@ class backpack extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding $rate prices
@@ -1181,8 +1187,9 @@ class backpack extends Exchange {
             //     )
             //
             $rates = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $rate = $response[$i];
+            $rawRates = $this->to_array($response);
+            for ($i = 0; $i < count($rawRates); $i++) {
+                $rate = $rawRates[$i];
                 $datetime = $this->safe_string($rate, 'intervalEndTimestamp');
                 $timestamp = $this->parse8601($datetime);
                 $rates[] = array(
@@ -1230,7 +1237,8 @@ class backpack extends Exchange {
             } else {
                 $response = Async\await($this->publicGetApiV1Trades($this->extend($request, $params)));
             }
-            return $this->parse_trades($response, $market, $since, $limit);
+            $responseList = $this->to_array($response);
+            return $this->parse_trades($responseList, $market, $since, $limit);
         })();
     }
 
@@ -1274,7 +1282,8 @@ class backpack extends Exchange {
                 $request['fillType'] = 'User'; // default
             }
             $response = Async\await($this->privateGetWapiV1HistoryFills($this->extend($request, $params)));
-            return $this->parse_trades($response, $market, $since, $limit);
+            $responseList = $this->to_array($response);
+            return $this->parse_trades($responseList, $market, $since, $limit);
         })();
     }
 
@@ -1355,7 +1364,7 @@ class backpack extends Exchange {
         ), $market);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -1373,6 +1382,9 @@ class backpack extends Exchange {
             //     }
             //
             $status = $this->safe_string($response, 'status');
+            if ($status === null) {
+                throw new ExchangeError($this->id . ' fetchStatus() missing status');
+            }
             return array(
                 'status' => strtolower($status),
                 'updated' => null,
@@ -1419,7 +1431,7 @@ class backpack extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //     {
         //         "USDC" => {
@@ -1441,7 +1453,9 @@ class backpack extends Exchange {
             $used = Precise::string_add($locked, $staked);
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $used;
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1561,7 +1575,7 @@ class backpack extends Exchange {
         })();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(mixed $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //     array(
@@ -1722,7 +1736,7 @@ class backpack extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -1814,7 +1828,13 @@ class backpack extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1890,7 +1910,7 @@ class backpack extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function encode_order_side($side) {
+    public function encode_order_side(mixed $side) {
         $sides = array(
             'buy' => 'Bid',
             'sell' => 'Ask',
@@ -1925,7 +1945,7 @@ class backpack extends Exchange {
         })();
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open order by it's $id
@@ -2341,7 +2361,7 @@ class backpack extends Exchange {
         })();
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //         "fundingRate" => "0.0001",
@@ -2374,7 +2394,7 @@ class backpack extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $path;
         $url = $this->urls['api'][$api];
         $sortedParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->keysort($params);
@@ -2420,7 +2440,7 @@ class backpack extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function generate_batch_payload($params, $ts, $recvWindow, $instruction) {
+    public function generate_batch_payload(mixed $params, mixed $ts, mixed $recvWindow, mixed $instruction) {
         $payload = '';
         for ($i = 0; $i < count($params); $i++) {
             $order = $this->safe_dict($params, $i, array());
@@ -2434,7 +2454,7 @@ class backpack extends Exchange {
         return $payload;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

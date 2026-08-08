@@ -1,9 +1,10 @@
 import lbankRest from '../lbank.js';
-import type { Balances, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class lbank extends lbankRest {
     describe(): any;
     requestId(): any;
+    checkContractMarket(market: Market, methodName: string): void;
     /**
      * @method
      * @name lbank#fetchOHLCVWs
@@ -52,7 +53,7 @@ export default class lbank extends lbankRest {
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: any, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name lbank#fetchTradesWs
@@ -91,8 +92,8 @@ export default class lbank extends lbankRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: any, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    handleOrders(client: Client, message: any): void;
+    parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: any): string;
     /**
      * @method
@@ -123,11 +124,11 @@ export default class lbank extends lbankRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: any, message: any): void;
-    handleErrorMessage(client: any, message: any): void;
+    handleErrorMessage(client: Client, message: any): void;
     handlePing(client: Client, message: any): Promise<void>;
     handleMessage(client: any, message: any): void;
     authenticate(params?: {}): Promise<any>;

@@ -33,12 +33,12 @@ func NewHyperliquidFromCore(core *HyperliquidCore) *Hyperliquid {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Hyperliquid) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Hyperliquid) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 
 /**
@@ -169,7 +169,7 @@ func (this *Hyperliquid) FetchBalance(params ...any) (Balances, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Hyperliquid) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -229,6 +229,34 @@ func (this *Hyperliquid) FetchTickers(options ...FetchTickersOptions) (Tickers, 
 		return Tickers{}, CreateReturnError(res)
 	}
 	return NewTickers(res), nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchFundingRate
+ * @description fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func (this *Hyperliquid) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+	opts := FetchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchFundingRate(symbol, params)
+	if IsError(res) {
+		return FundingRate{}, CreateReturnError(res)
+	}
+	return NewFundingRate(res), nil
 }
 
 /**
@@ -1709,10 +1737,10 @@ func (this *Hyperliquid) FetchDepositAddressesByNetwork(code string, options ...
 func (this *Hyperliquid) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Hyperliquid) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Hyperliquid) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Hyperliquid) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Hyperliquid) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Hyperliquid) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1723,9 +1751,6 @@ func (this *Hyperliquid) FetchFundingInterval(symbol string, options ...FetchFun
 }
 func (this *Hyperliquid) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
 	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Hyperliquid) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
 }
 func (this *Hyperliquid) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 	return this.exchangeTyped.FetchGreeks(symbol, options...)
@@ -1814,7 +1839,7 @@ func (this *Hyperliquid) FetchPaymentMethods(params ...any) (map[string]any, err
 func (this *Hyperliquid) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Hyperliquid) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Hyperliquid) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Hyperliquid) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1937,7 +1962,7 @@ func (this *Hyperliquid) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Hyperliquid) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Hyperliquid) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Hyperliquid) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Hyperliquid) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1982,7 +2007,7 @@ func (this *Hyperliquid) FetchTradesWs(symbol string, options ...FetchTradesWsOp
 func (this *Hyperliquid) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Hyperliquid) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Hyperliquid) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Hyperliquid) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

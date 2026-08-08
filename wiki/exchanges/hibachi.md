@@ -316,12 +316,12 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hibachi.cancelAllOrders (symbol, params?)
+hibachi.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -355,7 +355,7 @@ hibachi.withdraw (code, amount, address, tag, params?)
 fetches the state of the open orders on the orderbook
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - A dictionary containg [orderbook information](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b  
 

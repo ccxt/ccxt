@@ -10,6 +10,7 @@ import hashlib
 import math
 from ccxt.base.types import Account, Any, Bool, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
@@ -80,72 +81,72 @@ class limitless(PredictionExchange, ImplicitAPI):
                 'limitless': {
                     'public': {
                         'get': {
-                            'markets/active': 1,
-                            'markets/active/{categoryId}': 1,
-                            'categories': 1,
-                            'markets/{addressOrSlug}': 1,
-                            'markets/categories/count': 1,
-                            'markets/active/slugs': 1,
-                            'markets/search': 1,
-                            'markets/{slug}/orderbook': 1,
-                            'markets/{slug}/historical-price': 1,
-                            'auth/signing-message': 1,
-                            'markets/{addressOrSlug}/oracle-candles': 1,
-                            'markets/{slug}/get-feed-events': 1,
-                            'markets/{slug}/events': 1,
-                            'markets/timeline': 1,
-                            'markets/{slug}/timeline': 1,
-                            'navigation': 1,
-                            'market-pages/by-path': 1,
-                            'market-pages/{id}/markets': 1,
-                            'property-keys': 1,
-                            'property-keys/{id}': 1,
-                            'property-keys/{id}/options': 1,
-                            'portfolio/{account}/traded-volume': 1,
-                            'portfolio/{account}/positions': 1,
-                            'portfolio/{account}/pnl-chart': 1,
+                            'markets/active': {'cost': 1},
+                            'markets/active/{categoryId}': {'cost': 1},
+                            'categories': {'cost': 1},
+                            'markets/{addressOrSlug}': {'cost': 1},
+                            'markets/categories/count': {'cost': 1},
+                            'markets/active/slugs': {'cost': 1},
+                            'markets/search': {'cost': 1},
+                            'markets/{slug}/orderbook': {'cost': 1},
+                            'markets/{slug}/historical-price': {'cost': 1},
+                            'auth/signing-message': {'cost': 1},
+                            'markets/{addressOrSlug}/oracle-candles': {'cost': 1},
+                            'markets/{slug}/get-feed-events': {'cost': 1},
+                            'markets/{slug}/events': {'cost': 1},
+                            'markets/timeline': {'cost': 1},
+                            'markets/{slug}/timeline': {'cost': 1},
+                            'navigation': {'cost': 1},
+                            'market-pages/by-path': {'cost': 1},
+                            'market-pages/{id}/markets': {'cost': 1},
+                            'property-keys': {'cost': 1},
+                            'property-keys/{id}': {'cost': 1},
+                            'property-keys/{id}/options': {'cost': 1},
+                            'portfolio/{account}/traded-volume': {'cost': 1},
+                            'portfolio/{account}/positions': {'cost': 1},
+                            'portfolio/{account}/pnl-chart': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
-                            'auth/api-keys': 1,
-                            'profiles/partner-accounts': 1,
-                            'markets/{slug}/user-orders': 1,
-                            'portfolio/positions': 1,
-                            'portfolio/trades': 1,
-                            'markets/{slug}/locked-balance': 1,
-                            'profiles/me': 1,
-                            'profiles/{account}': 1,
-                            'portfolio/pnl-chart': 1,
-                            'portfolio/history': 1,
-                            'portfolio/points': 1,
-                            'portfolio/trading/allowance': 1,
-                            'auth/api-tokens/capabilities': 1,
-                            'auth/api-tokens': 1,
-                            'profiles/partner-accounts/{profileId}/allowances': 1,
+                            'auth/api-keys': {'cost': 1},
+                            'profiles/partner-accounts': {'cost': 1},
+                            'markets/{slug}/user-orders': {'cost': 1},
+                            'portfolio/positions': {'cost': 1},
+                            'portfolio/trades': {'cost': 1},
+                            'markets/{slug}/locked-balance': {'cost': 1},
+                            'profiles/me': {'cost': 1},
+                            'profiles/{account}': {'cost': 1},
+                            'portfolio/pnl-chart': {'cost': 1},
+                            'portfolio/history': {'cost': 1},
+                            'portfolio/points': {'cost': 1},
+                            'portfolio/trading/allowance': {'cost': 1},
+                            'auth/api-tokens/capabilities': {'cost': 1},
+                            'auth/api-tokens': {'cost': 1},
+                            'profiles/partner-accounts/{profileId}/allowances': {'cost': 1},
                         },
                         'post': {
-                            'auth/logout': 1,
-                            'auth/api-keys': 1,
-                            'auth/login': 1,
-                            'orders': 1,
-                            'orders/cancel': 1,
-                            'orders/cancel-batch': 1,
-                            'orders/batch-cancel': 1,
-                            'orders/status/batch': 1,
-                            'portfolio/redeem': 1,
-                            'portfolio/withdraw': 1,
-                            'portfolio/withdrawal-addresses': 1,
-                            'auth/api-tokens/derive': 1,
-                            'profiles/partner-accounts': 1,
-                            'profiles/partner-accounts/{profileId}/allowances/retry': 1,
+                            'auth/logout': {'cost': 1},
+                            'auth/api-keys': {'cost': 1},
+                            'auth/login': {'cost': 1},
+                            'orders': {'cost': 1},
+                            'orders/cancel': {'cost': 1},
+                            'orders/cancel-batch': {'cost': 1},
+                            'orders/batch-cancel': {'cost': 1},
+                            'orders/status/batch': {'cost': 1},
+                            'portfolio/redeem': {'cost': 1},
+                            'portfolio/withdraw': {'cost': 1},
+                            'portfolio/withdrawal-addresses': {'cost': 1},
+                            'auth/api-tokens/derive': {'cost': 1},
+                            'profiles/partner-accounts': {'cost': 1},
+                            'profiles/partner-accounts/{profileId}/allowances/retry': {'cost': 1},
                         },
                         'delete': {
-                            'auth/api-keys': 1,
-                            'orders/{order_id}': 1,
-                            'orders/all/{slug}': 1,
-                            'auth/api-tokens/{tokenId}': 1,
-                            'portfolio/withdrawal-addresses/{address}': 1,
+                            'auth/api-keys': {'cost': 1},
+                            'orders/{order_id}': {'cost': 1},
+                            'orders/all/{slug}': {'cost': 1},
+                            'auth/api-tokens/{tokenId}': {'cost': 1},
+                            'portfolio/withdrawal-addresses/{address}': {'cost': 1},
                         },
                     },
                 },
@@ -257,7 +258,10 @@ class limitless(PredictionExchange, ImplicitAPI):
                     page = self.sum(page, 1)
                     request['page'] = page
                     response = await self.limitlessPublicGetMarketsActive(self.extend(request, rest))
-                    rawPageMarkets = self.safe_list(response, 'data', response)
+                    responseRows = []
+                    if isinstance(response, list):
+                        responseRows = response
+                    rawPageMarkets = self.safe_list(response, 'data', responseRows)
                     page_markets = rawPageMarkets if (rawPageMarkets is not None) else []
                     pageMarketsLength = len(page_markets)
                     if not page_markets or pageMarketsLength == 0:
@@ -1095,13 +1099,17 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(outcomes)):
             outcomeObj = self.outcome(outcomes[i])
             slug = self.safe_string(outcomeObj['info'], 'slug')
+            if slug is None:
+                raise ExchangeError(self.id + ' fetchTickers() missing slug')
             if not (slug in outcomesBySlug):
-                outcomesBySlug[slug] = []
+                if slug is not None:
+                    outcomesBySlug[slug] = []
                 slugs.append(slug)
             # reassign after push, plain mutation through a local is lost in transpiled php(arrays are value types there)
-            grouped = outcomesBySlug[slug]
+            grouped = self.safe_value(outcomesBySlug, slug)
             grouped.append(outcomeObj)
-            outcomesBySlug[slug] = grouped
+            if slug is not None:
+                outcomesBySlug[slug] = grouped
         promises = []
         for i in range(0, len(slugs)):
             slug = slugs[i]
@@ -1307,7 +1315,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         }
         #     ]
         #
-        rawHistoryList = self.safe_list(response, 'data', self.safe_list(response, 'prices', response))
+        responseRows = []
+        if isinstance(response, list):
+            responseRows = response
+        rawHistoryList = self.safe_list(response, 'data', self.safe_list(response, 'prices', responseRows))
         rawHistory = rawHistoryList if (rawHistoryList is not None) else []
         history = rawHistory
         rawHistoryLength = len(rawHistory)
@@ -1319,6 +1330,8 @@ class limitless(PredictionExchange, ImplicitAPI):
                 for i in range(0, len(rawHistory)):
                     series = self.safe_dict(rawHistory, i, {})
                     title = self.safe_string_upper(series, 'title', '')
+                    if title is None:
+                        raise ExchangeError(self.id + ' fetchOHLCV() missing title')
                     if (outcomeLabel is not None) and (title.find(outcomeLabel) >= 0):
                         selectedSeries = series
                         break
@@ -1350,6 +1363,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             point = sorted[i]
             pTs = self.safe_integer(point, 'timestamp')
             pPrice = self.safe_number(point, 'price')
+            if pTs is None:
+                raise ExchangeError(self.id + ' method() missing pTs')
             bucket = self.parse_to_int(pTs / ms) * ms
             key = str(bucket)
             if not (key in candles):
@@ -1357,8 +1372,11 @@ class limitless(PredictionExchange, ImplicitAPI):
                 bucketOrder.append(key)
             else:
                 candle = candles[key]
-                candle[2] = max(candle[2], pPrice)
-                candle[3] = min(candle[3], pPrice)
+                pPriceOrZero = 0 if (pPrice is None) else pPrice
+                candle[2] = max(candle[2], pPriceOrZero)
+                candleLow = pPrice if (candle[3] is None) else candle[3]
+                pPriceOrCandleLow = candle[3] if (pPrice is None) else pPrice
+                candle[3] = min(candleLow, pPriceOrCandleLow)
                 candle[4] = pPrice
                 candles[key] = candle  # php arrays are value types - write the mutation back
         result = []
@@ -1412,7 +1430,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # pass None: parsePredictionOrder sets outcome to the market outcome while the outcome
         # lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         # endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-        return self.parse_prediction_orders(response, None, since, limit)
+        return self.parse_prediction_orders(self.to_array(response), None, since, limit)
 
     async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
         """
@@ -1454,7 +1472,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         })
         return await self.fetch_orders(outcome, since, limit, params)
 
-    async def fetch_orders_by_ids(self, ids, outcome: Str = None, params={}) -> List[PredictionOrder]:
+    async def fetch_orders_by_ids(self, ids: Any, outcome: Str = None, params={}) -> List[PredictionOrder]:
         """
         fetch orders by the list of order id
 
@@ -1762,7 +1780,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 feeCurrency = outcomeSymbol
                 feeCost = self.safe_string(totals, 'contractsFee')
             fee = {
-                'cost': self.apply_scale(feeCost),
+                'cost': self.parse_number(self.apply_scale(feeCost)),
                 'currency': feeCurrency,
             }
         return self.safe_prediction_order({
@@ -1923,6 +1941,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             'buy': 0,
             'sell': 1,
         }
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         sideValue = self.safe_integer(sides, side.lower())
         rank = self.safe_dict(accountInfo, 'rank')
         # signatureType: 0 = EOA, 2 = smart-wallet(the embedded owner signs on behalf of the safe)
@@ -2006,7 +2026,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             parsedOrder['status'] = 'open'
         return parsedOrder
 
-    def sign_order_request(self, signRequest: dict, marketSymbol):
+    def sign_order_request(self, signRequest: dict, marketSymbol: Any):
         self.check_required_credentials()
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey(the embedded/trading wallet key) to sign orders')
@@ -2039,10 +2059,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         msg = self.eth_encode_structured_data(domain, messageTypes, signRequest)
         return self.sign_message(msg, self.privateKey)
 
-    def hash_message(self, message):
+    def hash_message(self, message: Any):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: Any, privateKey: Any):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
@@ -2052,7 +2072,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         result = '0x' + rPadded + sPadded + v
         return result.lower()
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: Any, privateKey: Any):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_evm_transaction(self, tx: dict, privateKey: str) -> str:
@@ -2419,13 +2439,19 @@ class limitless(PredictionExchange, ImplicitAPI):
         amount = self.safe_string(trade, 'outcomeTokenAmount')
         cost = self.safe_string(trade, 'collateralAmount')
         rawSide = self.safe_string_lower(trade, 'strategy')
+        if rawSide is None:
+            raise ExchangeError(self.id + ' parsePredictionTrade() missing rawSide')
         sellIndex = rawSide.find('sell')
         side = 'sell' if (sellIndex >= 0) else 'buy'
         type = None
         takerOrMaker = None
+        if rawSide is None:
+            raise ExchangeError(self.id + ' parsePredictionTrade() missing rawSide')
         if rawSide.find('limit') >= 0:
             type = 'limit'
             takerOrMaker = 'maker'
+        if rawSide is None:
+            raise ExchangeError(self.id + ' method() missing rawSide')
         elif rawSide.find('market') >= 0:
             type = 'market'
             takerOrMaker = 'taker'
@@ -2574,7 +2600,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     result.append(position)
         return result
 
-    def get_position_from_clob_entry(self, label: str, entry: dict = None):
+    def get_position_from_clob_entry(self, label: Str, entry: dict = None):
         if entry is None:
             return None
         tokensBalance = self.safe_dict(entry, 'tokensBalance')
@@ -2582,7 +2608,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         if contracts is None:
             return None
         positions = self.safe_dict(entry, 'positions')
-        position = self.safe_dict(positions, label)
+        position = self.safe_dict(positions, label, {})
         rawMarket = self.safe_dict(entry, 'market')
         slug = self.safe_string(rawMarket, 'slug')
         outcomeObj = self.get_outcome_by_slug_and_label(slug, label)
@@ -2666,6 +2692,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         self.require_event_query(params)
         queries = self.parse_search_queries(params)
+        if queries is None:
+            raise ExchangeError(self.id + ' fetchEvents() missing queries')
         queriesLength = len(queries)
         rest = self.omit(params, ['query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status'])
         eventId = self.safe_string_2(params, 'eventId', 'slug')
@@ -2678,6 +2706,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             limit = min(requestedLimit, 50)
             seen = {}
             for i in range(0, len(queries)):
+                if queries is None:
+                    raise ExchangeError(self.id + ' fetchEvents() missing queries')
                 q = queries[i]
                 response = await self.limitlessPublicGetMarketsSearch(self.extend({
                     'query': q,
@@ -2715,6 +2745,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
             eventKey = self.shorten_slug(groupId) if groupId else None
             m = self.parse_market(raw)
+            if m is None:
+                raise ExchangeError(self.id + ' fetchEvents() missing m')
             self.markets[m['market']] = m
             if eventKey:
                 if not (eventKey in eventGroups):
@@ -2792,7 +2824,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         :returns dict[]: raw limitless market objects, deduped by slug
         """
         categoriesResponse = await self.limitlessPublicGetCategories()
-        categories = categoriesResponse if (categoriesResponse is not None) else []
+        categories = []
+        if isinstance(categoriesResponse, list):
+            categories = categoriesResponse
         wanted = []
         for i in range(0, len(tags)):
             wanted.append(tags[i].lower())
@@ -2804,6 +2838,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             categoryId = self.safe_string(category, 'id')
             matched = False
             for wi in range(0, len(wanted)):
+                if name is None:
+                    raise ExchangeError(self.id + ' fetchRawMarketsByTags() missing name')
                 if name.find(wanted[wi]) >= 0:
                     matched = True
                     break
@@ -2871,7 +2907,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         url = baseUrl + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: Any, requestHeaders: Any, requestBody: Any):
         """
  @ignore
         maps limitless error responses to ccxt exceptions

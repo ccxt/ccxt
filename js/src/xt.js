@@ -9,7 +9,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/xt.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class xt
@@ -86,7 +86,7 @@ export default class xt extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
@@ -149,201 +149,206 @@ export default class xt extends Exchange {
                 'public': {
                     'spot': {
                         'get': {
-                            'currencies': 1,
-                            'depth': 10,
-                            'kline': 1,
-                            'symbol': 1, // 1 for a single symbol
-                            'ticker': 1, // 1 for a single symbol
-                            'ticker/book': 1, // 1 for a single symbol
-                            'ticker/price': 1, // 1 for a single symbol
-                            'ticker/24h': 1, // 1 for a single symbol
-                            'time': 1,
-                            'trade/history': 1,
-                            'trade/recent': 1,
-                            'wallet/support/currency': 1,
+                            'currencies': { 'cost': 1 },
+                            'depth': { 'cost': 10 },
+                            'kline': { 'cost': 1 },
+                            'symbol': { 'cost': 1 }, // 1 for a single symbol
+                            'ticker': { 'cost': 1 }, // 1 for a single symbol
+                            'ticker/book': { 'cost': 1 }, // 1 for a single symbol
+                            'ticker/price': { 'cost': 1 }, // 1 for a single symbol
+                            'ticker/24h': { 'cost': 1 }, // 1 for a single symbol
+                            'time': { 'cost': 1 },
+                            'trade/history': { 'cost': 1 },
+                            'trade/recent': { 'cost': 1 },
+                            'wallet/support/currency': { 'cost': 1 },
                         },
                     },
                     'linear': {
                         'get': {
-                            'future/market/v1/public/contract/risk-balance': 1,
-                            'future/market/v1/public/contract/open-interest': 1,
-                            'future/market/v1/public/leverage/bracket/detail': 1,
-                            'future/market/v1/public/leverage/bracket/list': 1,
-                            'future/market/v1/public/q/agg-ticker': 1,
-                            'future/market/v1/public/q/agg-tickers': 1,
-                            'future/market/v1/public/q/deal': 1,
-                            'future/market/v1/public/q/depth': 1,
-                            'future/market/v1/public/q/funding-rate': 1,
-                            'future/market/v1/public/q/funding-rate-record': 1,
-                            'future/market/v1/public/q/index-price': 1,
-                            'future/market/v1/public/q/kline': 1,
-                            'future/market/v1/public/q/mark-price': 1,
-                            'future/market/v1/public/q/symbol-index-price': 1,
-                            'future/market/v1/public/q/symbol-mark-price': 1,
-                            'future/market/v1/public/q/ticker': 1,
-                            'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33,
-                            'future/market/v1/public/symbol/detail': 3.33,
-                            'future/market/v1/public/symbol/list': 1,
+                            'future/market/v1/public/contract/risk-balance': { 'cost': 1 },
+                            'future/market/v1/public/contract/open-interest': { 'cost': 1 },
+                            'future/market/v1/public/leverage/bracket/detail': { 'cost': 1 },
+                            'future/market/v1/public/leverage/bracket/list': { 'cost': 1 },
+                            'future/market/v1/public/q/agg-ticker': { 'cost': 1 },
+                            'future/market/v1/public/q/agg-tickers': { 'cost': 1 },
+                            'future/market/v1/public/q/deal': { 'cost': 1 },
+                            'future/market/v1/public/q/depth': { 'cost': 1 },
+                            'future/market/v1/public/q/funding-rate': { 'cost': 1 },
+                            'future/market/v1/public/q/funding-rate-record': { 'cost': 1 },
+                            'future/market/v1/public/q/index-price': { 'cost': 1 },
+                            'future/market/v1/public/q/kline': { 'cost': 1 },
+                            'future/market/v1/public/q/mark-price': { 'cost': 1 },
+                            'future/market/v1/public/q/symbol-index-price': { 'cost': 1 },
+                            'future/market/v1/public/q/symbol-mark-price': { 'cost': 1 },
+                            'future/market/v1/public/q/ticker': { 'cost': 1 },
+                            'future/market/v1/public/q/ticker/books': { 'cost': 1 },
+                            'future/market/v1/public/q/tickers': { 'cost': 1 },
+                            'future/market/v1/public/symbol/coins': { 'cost': 3.33 },
+                            'future/market/v1/public/symbol/detail': { 'cost': 3.33 },
+                            'future/market/v1/public/symbol/list': { 'cost': 1 },
                         },
                     },
                     'inverse': {
                         'get': {
-                            'future/market/v1/public/contract/risk-balance': 1,
-                            'future/market/v1/public/contract/open-interest': 1,
-                            'future/market/v1/public/leverage/bracket/detail': 1,
-                            'future/market/v1/public/leverage/bracket/list': 1,
-                            'future/market/v1/public/q/agg-ticker': 1,
-                            'future/market/v1/public/q/agg-tickers': 1,
-                            'future/market/v1/public/q/deal': 1,
-                            'future/market/v1/public/q/depth': 1,
-                            'future/market/v1/public/q/funding-rate': 1,
-                            'future/market/v1/public/q/funding-rate-record': 1,
-                            'future/market/v1/public/q/index-price': 1,
-                            'future/market/v1/public/q/kline': 1,
-                            'future/market/v1/public/q/mark-price': 1,
-                            'future/market/v1/public/q/symbol-index-price': 1,
-                            'future/market/v1/public/q/symbol-mark-price': 1,
-                            'future/market/v1/public/q/ticker': 1,
-                            'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33,
-                            'future/market/v1/public/symbol/detail': 3.33,
-                            'future/market/v1/public/symbol/list': 1,
+                            'future/market/v1/public/contract/risk-balance': { 'cost': 1 },
+                            'future/market/v1/public/contract/open-interest': { 'cost': 1 },
+                            'future/market/v1/public/leverage/bracket/detail': { 'cost': 1 },
+                            'future/market/v1/public/leverage/bracket/list': { 'cost': 1 },
+                            'future/market/v1/public/q/agg-ticker': { 'cost': 1 },
+                            'future/market/v1/public/q/agg-tickers': { 'cost': 1 },
+                            'future/market/v1/public/q/deal': { 'cost': 1 },
+                            'future/market/v1/public/q/depth': { 'cost': 1 },
+                            'future/market/v1/public/q/funding-rate': { 'cost': 1 },
+                            'future/market/v1/public/q/funding-rate-record': { 'cost': 1 },
+                            'future/market/v1/public/q/index-price': { 'cost': 1 },
+                            'future/market/v1/public/q/kline': { 'cost': 1 },
+                            'future/market/v1/public/q/mark-price': { 'cost': 1 },
+                            'future/market/v1/public/q/symbol-index-price': { 'cost': 1 },
+                            'future/market/v1/public/q/symbol-mark-price': { 'cost': 1 },
+                            'future/market/v1/public/q/ticker': { 'cost': 1 },
+                            'future/market/v1/public/q/ticker/books': { 'cost': 1 },
+                            'future/market/v1/public/q/tickers': { 'cost': 1 },
+                            'future/market/v1/public/symbol/coins': { 'cost': 3.33 },
+                            'future/market/v1/public/symbol/detail': { 'cost': 3.33 },
+                            'future/market/v1/public/symbol/list': { 'cost': 1 },
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'balance': 1,
-                            'balances': 1,
-                            'batch-order': 1,
-                            'deposit/address': 1,
-                            'deposit/history': 1,
-                            'history-order': 1,
-                            'open-order': 1,
-                            'order': 1,
-                            'order/{orderId}': 1,
-                            'trade': 1,
-                            'withdraw/history': 1,
+                            'balance': { 'cost': 1 },
+                            'balances': { 'cost': 1 },
+                            'batch-order': { 'cost': 1 },
+                            'deposit/address': { 'cost': 1 },
+                            'deposit/history': { 'cost': 1 },
+                            'history-order': { 'cost': 1 },
+                            'open-order': { 'cost': 1 },
+                            'order': { 'cost': 1 },
+                            'order/{orderId}': { 'cost': 1 },
+                            'trade': { 'cost': 1 },
+                            'withdraw/history': { 'cost': 1 },
                         },
                         'post': {
-                            'order': 0.2,
-                            'withdraw': 10,
-                            'balance/transfer': 1,
-                            'balance/account/transfer': 1,
-                            'ws-token': 1,
+                            'order': { 'cost': 0.2 },
+                            'withdraw': { 'cost': 10 },
+                            'balance/transfer': { 'cost': 1 },
+                            'balance/account/transfer': { 'cost': 1 },
+                            'ws-token': { 'cost': 1 },
                         },
                         'delete': {
-                            'batch-order': 1,
-                            'open-order': 1,
-                            'order/{orderId}': 1,
+                            'batch-order': { 'cost': 1 },
+                            'open-order': { 'cost': 1 },
+                            'order/{orderId}': { 'cost': 1 },
                         },
                         'put': {
-                            'order/{orderId}': 1,
+                            'order/{orderId}': { 'cost': 1 },
                         },
                     },
                     'linear': {
                         'get': {
-                            'future/trade/v1/entrust/plan-detail': 1,
-                            'future/trade/v1/entrust/plan-list': 1,
-                            'future/trade/v1/entrust/plan-list-history': 1,
-                            'future/trade/v1/entrust/profit-detail': 1,
-                            'future/trade/v1/entrust/profit-list': 1,
-                            'future/trade/v1/order/detail': 1,
-                            'future/trade/v1/order/list': 1,
-                            'future/trade/v1/order/list-history': 1,
-                            'future/trade/v1/order/trade-list': 1,
-                            'future/user/v1/account/info': 1,
-                            'future/user/v1/balance/bills': 1,
-                            'future/user/v1/balance/detail': 1,
-                            'future/user/v1/balance/funding-rate-list': 1,
-                            'future/user/v1/balance/list': 1,
-                            'future/user/v1/position/adl': 1,
-                            'future/user/v1/position/list': 1,
-                            'future/user/v1/user/collection/list': 1,
-                            'future/user/v1/user/listen-key': 1,
+                            'future/trade/v1/entrust/plan-detail': { 'cost': 1 },
+                            'future/trade/v1/entrust/plan-list': { 'cost': 1 },
+                            'future/trade/v1/entrust/plan-list-history': { 'cost': 1 },
+                            'future/trade/v1/entrust/profit-detail': { 'cost': 1 },
+                            'future/trade/v1/entrust/profit-list': { 'cost': 1 },
+                            'future/trade/v1/order/detail': { 'cost': 1 },
+                            'future/trade/v1/order/list': { 'cost': 1 },
+                            'future/trade/v1/order/list-history': { 'cost': 1 },
+                            'future/trade/v1/order/trade-list': { 'cost': 1 },
+                            'future/user/v1/account/info': { 'cost': 1 },
+                            'future/user/v1/balance/bills': { 'cost': 1 },
+                            'future/user/v1/balance/detail': { 'cost': 1 },
+                            'future/user/v1/balance/funding-rate-list': { 'cost': 1 },
+                            'future/user/v1/balance/list': { 'cost': 1 },
+                            'future/user/v1/position/adl': { 'cost': 1 },
+                            'future/user/v1/position/break-list': { 'cost': 1 },
+                            'future/user/v1/position/list': { 'cost': 1 },
+                            'future/user/v1/user/collection/list': { 'cost': 1 },
+                            'future/user/v1/user/listen-key': { 'cost': 1 },
                         },
                         'post': {
-                            'future/trade/v1/entrust/cancel-all-plan': 1,
-                            'future/trade/v1/entrust/cancel-all-profit-stop': 1,
-                            'future/trade/v1/entrust/cancel-plan': 1,
-                            'future/trade/v1/entrust/cancel-profit-stop': 1,
-                            'future/trade/v1/entrust/create-plan': 1,
-                            'future/trade/v1/entrust/create-profit': 1,
-                            'future/trade/v1/entrust/update-profit-stop': 1,
-                            'future/trade/v1/order/cancel': 1,
-                            'future/trade/v1/order/cancel-all': 1,
-                            'future/trade/v1/order/create': 1,
-                            'future/trade/v1/order/create-batch': 1,
-                            'future/trade/v1/order/update': 1,
-                            'future/user/v1/account/open': 1,
-                            'future/user/v1/position/adjust-leverage': 1,
-                            'future/user/v1/position/auto-margin': 1,
-                            'future/user/v1/position/close-all': 1,
-                            'future/user/v1/position/margin': 1,
-                            'future/user/v1/user/collection/add': 1,
-                            'future/user/v1/user/collection/cancel': 1,
-                            'future/user/v1/position/change-type': 1,
+                            'future/trade/v1/entrust/cancel-all-plan': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-all-profit-stop': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-plan': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-profit-stop': { 'cost': 1 },
+                            'future/trade/v1/entrust/create-plan': { 'cost': 1 },
+                            'future/trade/v1/entrust/create-profit': { 'cost': 1 },
+                            'future/trade/v1/entrust/update-profit-stop': { 'cost': 1 },
+                            'future/trade/v1/order/cancel': { 'cost': 1 },
+                            'future/trade/v1/order/cancel-all': { 'cost': 1 },
+                            'future/trade/v1/order/create': { 'cost': 1 },
+                            'future/trade/v1/order/create-batch': { 'cost': 1 },
+                            'future/trade/v1/order/update': { 'cost': 1 },
+                            'future/user/v1/account/open': { 'cost': 1 },
+                            'future/user/v1/position/adjust-leverage': { 'cost': 1 },
+                            'future/user/v1/position/auto-margin': { 'cost': 1 },
+                            'future/user/v1/position/close-all': { 'cost': 1 },
+                            'future/user/v1/position/margin': { 'cost': 1 },
+                            'future/user/v1/user/collection/add': { 'cost': 1 },
+                            'future/user/v1/user/collection/cancel': { 'cost': 1 },
+                            'future/user/v1/position/change-type': { 'cost': 1 },
                         },
                     },
                     'inverse': {
                         'get': {
-                            'future/trade/v1/entrust/plan-detail': 1,
-                            'future/trade/v1/entrust/plan-list': 1,
-                            'future/trade/v1/entrust/plan-list-history': 1,
-                            'future/trade/v1/entrust/profit-detail': 1,
-                            'future/trade/v1/entrust/profit-list': 1,
-                            'future/trade/v1/order/detail': 1,
-                            'future/trade/v1/order/list': 1,
-                            'future/trade/v1/order/list-history': 1,
-                            'future/trade/v1/order/trade-list': 1,
-                            'future/user/v1/account/info': 1,
-                            'future/user/v1/balance/bills': 1,
-                            'future/user/v1/balance/detail': 1,
-                            'future/user/v1/balance/funding-rate-list': 1,
-                            'future/user/v1/balance/list': 1,
-                            'future/user/v1/position/adl': 1,
-                            'future/user/v1/position/list': 1,
-                            'future/user/v1/user/collection/list': 1,
-                            'future/user/v1/user/listen-key': 1,
+                            'future/trade/v1/entrust/plan-detail': { 'cost': 1 },
+                            'future/trade/v1/entrust/plan-list': { 'cost': 1 },
+                            'future/trade/v1/entrust/plan-list-history': { 'cost': 1 },
+                            'future/trade/v1/entrust/profit-detail': { 'cost': 1 },
+                            'future/trade/v1/entrust/profit-list': { 'cost': 1 },
+                            'future/trade/v1/order/detail': { 'cost': 1 },
+                            'future/trade/v1/order/list': { 'cost': 1 },
+                            'future/trade/v1/order/list-history': { 'cost': 1 },
+                            'future/trade/v1/order/trade-list': { 'cost': 1 },
+                            'future/user/v1/account/info': { 'cost': 1 },
+                            'future/user/v1/balance/bills': { 'cost': 1 },
+                            'future/user/v1/balance/detail': { 'cost': 1 },
+                            'future/user/v1/balance/funding-rate-list': { 'cost': 1 },
+                            'future/user/v1/balance/list': { 'cost': 1 },
+                            'future/user/v1/position/adl': { 'cost': 1 },
+                            'future/user/v1/position/break-list': { 'cost': 1 },
+                            'future/user/v1/position/list': { 'cost': 1 },
+                            'future/user/v1/user/collection/list': { 'cost': 1 },
+                            'future/user/v1/user/listen-key': { 'cost': 1 },
                         },
                         'post': {
-                            'future/trade/v1/entrust/cancel-all-plan': 1,
-                            'future/trade/v1/entrust/cancel-all-profit-stop': 1,
-                            'future/trade/v1/entrust/cancel-plan': 1,
-                            'future/trade/v1/entrust/cancel-profit-stop': 1,
-                            'future/trade/v1/entrust/create-plan': 1,
-                            'future/trade/v1/entrust/create-profit': 1,
-                            'future/trade/v1/entrust/update-profit-stop': 1,
-                            'future/trade/v1/order/cancel': 1,
-                            'future/trade/v1/order/cancel-all': 1,
-                            'future/trade/v1/order/create': 1,
-                            'future/trade/v1/order/create-batch': 1,
-                            'future/trade/v1/order/update': 1,
-                            'future/user/v1/account/open': 1,
-                            'future/user/v1/position/adjust-leverage': 1,
-                            'future/user/v1/position/auto-margin': 1,
-                            'future/user/v1/position/close-all': 1,
-                            'future/user/v1/position/margin': 1,
-                            'future/user/v1/user/collection/add': 1,
-                            'future/user/v1/user/collection/cancel': 1,
+                            'future/trade/v1/entrust/cancel-all-plan': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-all-profit-stop': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-plan': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-profit-stop': { 'cost': 1 },
+                            'future/trade/v1/entrust/create-plan': { 'cost': 1 },
+                            'future/trade/v1/entrust/create-profit': { 'cost': 1 },
+                            'future/trade/v1/entrust/update-profit-stop': { 'cost': 1 },
+                            'future/trade/v1/order/cancel': { 'cost': 1 },
+                            'future/trade/v1/order/cancel-all': { 'cost': 1 },
+                            'future/trade/v1/order/create': { 'cost': 1 },
+                            'future/trade/v1/order/create-batch': { 'cost': 1 },
+                            'future/trade/v1/order/update': { 'cost': 1 },
+                            'future/user/v1/account/open': { 'cost': 1 },
+                            'future/user/v1/position/adjust-leverage': { 'cost': 1 },
+                            'future/user/v1/position/auto-margin': { 'cost': 1 },
+                            'future/user/v1/position/close-all': { 'cost': 1 },
+                            'future/user/v1/position/margin': { 'cost': 1 },
+                            'future/user/v1/user/collection/add': { 'cost': 1 },
+                            'future/user/v1/user/collection/cancel': { 'cost': 1 },
+                            'future/user/v1/position/change-type': { 'cost': 1 },
                         },
                     },
                     'user': {
                         'get': {
-                            'user/account': 1,
-                            'user/account/api-key': 1,
+                            'user/account': { 'cost': 1 },
+                            'user/account/api-key': { 'cost': 1 },
                         },
                         'post': {
-                            'user/account': 1,
-                            'user/account/api-key': 1,
+                            'user/account': { 'cost': 1 },
+                            'user/account/api-key': { 'cost': 1 },
                         },
                         'put': {
-                            'user/account/api-key': 1,
+                            'user/account/api-key': { 'cost': 1 },
                         },
                         'delete': {
-                            'user/account/{apiKeyId}': 1,
+                            'user/account/{apiKeyId}': { 'cost': 1 },
                         },
                     },
                 },
@@ -692,7 +697,7 @@ export default class xt extends Exchange {
                 'default': {
                     'sandbox': false,
                     'createOrder': {
-                        'marginMode': false,
+                        'marginMode': true,
                         'triggerPrice': false,
                         'triggerDirection': false,
                         'triggerPriceType': undefined,
@@ -773,6 +778,7 @@ export default class xt extends Exchange {
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         // todo
                         'triggerPriceType': {
@@ -814,7 +820,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the xt server
-     * @see https://doc.xt.com/#market1serverInfo
+     * @see https://doc.xt.com/docs/spot/Market/GetServerTime
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the xt server
      */
@@ -837,7 +843,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+     * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetSupportedCurrencies
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -911,31 +917,33 @@ export default class xt extends Exchange {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString(rawNetwork, 'chain');
                 const networkCode = this.networkIdToCode(networkId, code);
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': undefined,
-                    'active': undefined,
-                    'fee': this.safeNumber(rawNetwork, 'withdrawFeeAmount'),
-                    'precision': undefined,
-                    'deposit': this.safeBool(rawNetwork, 'depositEnabled'),
-                    'withdraw': this.safeBool(rawNetwork, 'withdrawEnabled'),
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
+                if (networkCode !== undefined) {
+                    networks[networkCode] = {
+                        'info': rawNetwork,
+                        'id': networkId,
+                        'network': networkCode,
+                        'name': undefined,
+                        'active': undefined,
+                        'fee': this.safeNumber(rawNetwork, 'withdrawFeeAmount'),
+                        'precision': undefined,
+                        'deposit': this.safeBool(rawNetwork, 'depositEnabled'),
+                        'withdraw': this.safeBool(rawNetwork, 'withdrawEnabled'),
+                        'limits': {
+                            'amount': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'withdraw': {
+                                'min': this.safeNumber(rawNetwork, 'withdrawMinAmount'),
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
                         },
-                        'withdraw': {
-                            'min': this.safeNumber(rawNetwork, 'withdrawMinAmount'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
+                    };
+                }
             }
             const typeRaw = this.safeString(entry, 'type');
             let type = undefined;
@@ -945,33 +953,35 @@ export default class xt extends Exchange {
             else {
                 type = 'other';
             }
-            result[code] = this.safeCurrencyStructure({
-                'info': entry,
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString(entry, 'fullName'),
-                'active': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision'))),
-                'deposit': this.safeString(entry, 'depositStatus') === '1',
-                'withdraw': this.safeString(entry, 'withdrawStatus') === '1',
-                'networks': networks,
-                'type': type,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = this.safeCurrencyStructure({
+                    'info': entry,
+                    'id': currencyId,
+                    'code': code,
+                    'name': this.safeString(entry, 'fullName'),
+                    'active': undefined,
+                    'fee': undefined,
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision'))),
+                    'deposit': this.safeString(entry, 'depositStatus') === '1',
+                    'withdraw': this.safeString(entry, 'withdrawStatus') === '1',
+                    'networks': networks,
+                    'type': type,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
+            }
         }
         return result;
     }
@@ -979,8 +989,8 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchMarkets
      * @description retrieves data on all markets for xt
-     * @see https://doc.xt.com/#market2symbol
-     * @see https://doc.xt.com/#futures_quotesgetSymbols
+     * @see https://doc.xt.com/docs/spot/Market/GetSymbolInformation
+     * @see https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1353,8 +1363,8 @@ export default class xt extends Exchange {
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.safeNumber(market, 'takerFee'),
-            'maker': this.safeNumber(market, 'makerFee'),
+            'taker': this.safeNumber2(market, 'takerFee', 'takerFeeRate'),
+            'maker': this.safeNumber2(market, 'makerFee', 'makerFeeRate'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
@@ -1391,8 +1401,8 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://doc.xt.com/#market4kline
-     * @see https://doc.xt.com/#futures_quotesgetKLine
+     * @see https://doc.xt.com/docs/spot/Market/GetKlineData
+     * @see https://doc.xt.com/docs/futures/MarketData/get-trading-pair-information-of-kline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1417,7 +1427,11 @@ export default class xt extends Exchange {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
-            request['startTime'] = since;
+            // xt rounds startTime down to the candle boundary, which makes a mid-candle
+            // window start return one pre-since candle, shifting paginated windows and
+            // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            request['startTime'] = Math.ceil(since / duration) * duration;
         }
         if (limit !== undefined) {
             if (market['spot']) {
@@ -1532,13 +1546,13 @@ export default class xt extends Exchange {
     /**
      * @method
      * @name xt#fetchOrderBook
-     * @see https://doc.xt.com/#market3depth
-     * @see https://doc.xt.com/#futures_quotesgetDepth
+     * @see https://doc.xt.com/docs/spot/Market/GetDepthData
+     * @see https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified market symbol to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1630,8 +1644,8 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#market10ticker24h
-     * @see https://doc.xt.com/#futures_quotesgetAggTicker
+     * @see https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+     * @see https://doc.xt.com/docs/futures/MarketData/get-aggregated-market-information-for-specific-trading-pair
      * @param {string} symbol unified market symbol to fetch the ticker for
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1710,8 +1724,8 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchTickers
      * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-     * @see https://doc.xt.com/#market10ticker24h
-     * @see https://doc.xt.com/#futures_quotesgetAggTickers
+     * @see https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+     * @see https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs
      * @param {string} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1793,7 +1807,9 @@ export default class xt extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker(tickers[i], market);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArray(result, 'symbol', symbols);
     }
@@ -1801,8 +1817,9 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
-     * @see https://doc.xt.com/#market9tickerBook
-     * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+     * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
@@ -1816,12 +1833,25 @@ export default class xt extends Exchange {
         if (symbols !== undefined) {
             market = this.market(symbols[0]);
         }
+        let type = undefined;
         let subType = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchBidsAsks', market, params);
-        if (subType !== undefined) {
-            throw new NotSupported(this.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
+        const isInverse = (subType === 'inverse');
+        const isLinear = (subType === 'linear') || (type === 'swap') || (type === 'future');
+        const isContract = isInverse || isLinear;
+        let response = undefined;
+        if (isInverse) {
+            response = await this.publicInverseGetFutureMarketV1PublicQTickerBooks(this.extend(request, params));
         }
-        const response = await this.publicSpotGetTickerBook(this.extend(request, params));
+        else if (isLinear) {
+            response = await this.publicLinearGetFutureMarketV1PublicQTickerBooks(this.extend(request, params));
+        }
+        else {
+            response = await this.publicSpotGetTickerBook(this.extend(request, params));
+        }
+        //
+        // spot
         //
         //     {
         //         "rc": 0,
@@ -1839,8 +1869,40 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue(response, 'result', []);
-        return this.parseTickers(tickers, symbols);
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "s": "btc_usdt",
+        //                 "t": 1785928174370,
+        //                 "ap": "64085.5",
+        //                 "aq": "101843",
+        //                 "bp": "64085.3",
+        //                 "bq": "121042"
+        //             },
+        //         ]
+        //     }
+        //
+        const tickers = this.safeList(response, 'result', []);
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const rawTicker = tickers[i];
+            // the spot and contract payloads share the same field names, so
+            // the market type cannot be inferred from the entry itself
+            const marketId = this.safeString(rawTicker, 's');
+            const marketType = isContract ? 'contract' : 'spot';
+            const marketInner = this.safeMarket(marketId, market, '_', marketType);
+            const ticker = this.parseTicker(rawTicker, marketInner);
+            const symbol = ticker['symbol'];
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
+        }
+        return this.filterByArray(result, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1928,8 +1990,8 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://doc.xt.com/#market5tradeRecent
-     * @see https://doc.xt.com/#futures_quotesgetDeal
+     * @see https://doc.xt.com/docs/spot/Market/QueryRecentTransactions
+     * @see https://doc.xt.com/docs/futures/MarketData/get-latest-transaction-information-of-trading-pairs
      * @param {string} symbol unified market symbol to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -2005,8 +2067,8 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://doc.xt.com/#tradetradeGet
-     * @see https://doc.xt.com/#futures_ordergetTrades
+     * @see https://doc.xt.com/docs/spot/Trade/QueryTrade
+     * @see https://doc.xt.com/docs/futures/Order/see-transaction-details
      * @param {string} [symbol] unified market symbol to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -2295,8 +2357,8 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://doc.xt.com/#balancebalancesGet
-     * @see https://doc.xt.com/#futures_usergetBalances
+     * @see https://doc.xt.com/docs/spot/Balance/GetBalances
+     * @see https://doc.xt.com/docs/futures/User/GetUserFunds
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
      */
@@ -2416,14 +2478,16 @@ export default class xt extends Exchange {
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
     /**
      * @method
      * @name xt#createMarketBuyOrderWithCost
-     * @see https://doc.xt.com/#orderorderPost
+     * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
      * @description create a market buy order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -2444,10 +2508,10 @@ export default class xt extends Exchange {
      * @method
      * @name xt#createOrder
      * @description create a trade order
-     * @see https://doc.xt.com/#orderorderPost
-     * @see https://doc.xt.com/#futures_ordercreate
-     * @see https://doc.xt.com/#futures_entrustcreatePlan
-     * @see https://doc.xt.com/#futures_entrustcreateProfit
+     * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
+     * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
+     * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
+     * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2564,7 +2628,7 @@ export default class xt extends Exchange {
             const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
             request['positionSide'] = requestType;
         }
-        let response = undefined;
+        let response = {};
         const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2(params, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2(params, 'takeProfit', 'triggerProfitPrice');
@@ -2630,10 +2694,10 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://doc.xt.com/#orderorderGet
-     * @see https://doc.xt.com/#futures_ordergetById
-     * @see https://doc.xt.com/#futures_entrustgetPlanById
-     * @see https://doc.xt.com/#futures_entrustgetProfitById
+     * @see https://doc.xt.com/docs/spot/Order/GetSingleOrder
+     * @see https://doc.xt.com/docs/futures/Order/see-orders-by-id
+     * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
+     * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
@@ -2817,9 +2881,9 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://doc.xt.com/#orderhistoryOrderGet
-     * @see https://doc.xt.com/#futures_ordergetHistory
-     * @see https://doc.xt.com/#futures_entrustgetPlanHistory
+     * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+     * @see https://doc.xt.com/docs/futures/Order/see-order-history
+     * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3272,7 +3336,7 @@ export default class xt extends Exchange {
             orders = this.safeList(resultDict, 'items', []);
         }
         else {
-            orders = this.safeList(response, 'result');
+            orders = this.safeList(response, 'result', []);
         }
         return this.parseOrders(orders, market, since, limit);
     }
@@ -3280,10 +3344,10 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://doc.xt.com/#orderopenOrderGet
-     * @see https://doc.xt.com/#futures_ordergetOrders
-     * @see https://doc.xt.com/#futures_entrustgetPlan
-     * @see https://doc.xt.com/#futures_entrustgetProfit
+     * @see https://doc.xt.com/docs/spot/Order/QueryOpenOrders
+     * @see https://doc.xt.com/docs/futures/Order/see-orders
+     * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+     * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -3299,10 +3363,10 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://doc.xt.com/#orderhistoryOrderGet
-     * @see https://doc.xt.com/#futures_ordergetOrders
-     * @see https://doc.xt.com/#futures_entrustgetPlan
-     * @see https://doc.xt.com/#futures_entrustgetProfit
+     * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+     * @see https://doc.xt.com/docs/futures/Order/see-orders
+     * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+     * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3318,10 +3382,10 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchCanceledOrders
      * @description fetches information on multiple canceled orders made by the user
-     * @see https://doc.xt.com/#orderhistoryOrderGet
-     * @see https://doc.xt.com/#futures_ordergetOrders
-     * @see https://doc.xt.com/#futures_entrustgetPlan
-     * @see https://doc.xt.com/#futures_entrustgetProfit
+     * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+     * @see https://doc.xt.com/docs/futures/Order/see-orders
+     * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+     * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3337,10 +3401,10 @@ export default class xt extends Exchange {
      * @method
      * @name xt#cancelOrder
      * @description cancels an open order
-     * @see https://doc.xt.com/#orderorderDel
-     * @see https://doc.xt.com/#futures_ordercancel
-     * @see https://doc.xt.com/#futures_entrustcancelPlan
-     * @see https://doc.xt.com/#futures_entrustcancelProfit
+     * @see https://doc.xt.com/docs/spot/Order/CancelOrder
+     * @see https://doc.xt.com/docs/futures/Order/cancel-orders
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
@@ -3429,10 +3493,10 @@ export default class xt extends Exchange {
      * @method
      * @name xt#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://doc.xt.com/#orderopenOrderDel
-     * @see https://doc.xt.com/#futures_ordercancelBatch
-     * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
-     * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
+     * @see https://doc.xt.com/docs/spot/Order/CancelCurrentPendingOrder
+     * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
@@ -3514,7 +3578,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#cancelOrders
      * @description cancel multiple orders
-     * @see https://doc.xt.com/#orderbatchOrderDel
+     * @see https://doc.xt.com/docs/spot/Order/CancelBatchOrder
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the exchange API endpoint
@@ -3756,7 +3820,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://doc.xt.com/#futures_usergetBalanceBill
+     * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Account%20Flow%20Information
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
@@ -3875,7 +3939,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+     * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositAddress
      * @param {string} code unified currency code
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} params.network required network id
@@ -3930,7 +3994,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+     * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositHistory
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of transaction structures to retrieve
@@ -3988,7 +4052,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+     * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/WithdrawHistory
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of transaction structures to retrieve
@@ -4046,7 +4110,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#withdraw
      * @description make a withdrawal
-     * @see https://doc.xt.com/#deposit_withdrawalwithdraw
+     * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -4179,7 +4243,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#setLeverage
      * @description set the level of leverage for a market
-     * @see https://doc.xt.com/#futures_useradjustLeverage
+     * @see https://doc.xt.com/docs/futures/User/Adjust%20Leverage
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} params extra parameters specific to the exchange API endpoint
@@ -4230,7 +4294,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#addMargin
      * @description add margin to a position
-     * @see https://doc.xt.com/#futures_useradjustMargin
+     * @see https://doc.xt.com/docs/futures/User/Alter%20Margin
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} params extra parameters specific to the exchange API endpoint
@@ -4244,7 +4308,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#reduceMargin
      * @description remove margin from a position
-     * @see https://doc.xt.com/#futures_useradjustMargin
+     * @see https://doc.xt.com/docs/futures/User/Alter%20Margin
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} params extra parameters specific to the exchange API endpoint
@@ -4304,7 +4368,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchLeverageTiers
      * @description retrieve information on the maximum leverage for different trade sizes
-     * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
+     * @see https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
      * @param {string} [symbols] a list of unified market symbols
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
@@ -4389,7 +4453,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchMarketLeverageTiers
      * @description retrieve information on the maximum leverage for different trade sizes of a single market
-     * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
+     * @see https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
      * @param {string} symbol unified market symbol
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
@@ -4478,7 +4542,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchFundingRateHistory
      * @description fetches historical funding rates
-     * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
+     * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-records
      * @param {string} [symbol] unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
@@ -4563,7 +4627,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://doc.xt.com/#futures_quotesgetFundingRate
+     * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -4575,7 +4639,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://doc.xt.com/#futures_quotesgetFundingRate
+     * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
      * @param {string} symbol unified market symbol
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -4655,9 +4719,73 @@ export default class xt extends Exchange {
     }
     /**
      * @method
+     * @name xt#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new NotSupported(this.id + ' fetchOpenInterest() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchOpenInterest', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.publicInverseGetFutureMarketV1PublicContractOpenInterest(this.extend(request, params));
+        }
+        else {
+            response = await this.publicLinearGetFutureMarketV1PublicContractOpenInterest(this.extend(request, params));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "symbol": "btc_usdt",
+        //             "openInterest": "21005.8646",
+        //             "openInterestUsd": "1120726916.46709",
+        //             "time": 1785925443734
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        return this.parseOpenInterest(result, market);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "openInterest": "21005.8646",
+        //         "openInterestUsd": "1120726916.46709",
+        //         "time": 1785925443734
+        //     }
+        //
+        const marketId = this.safeString(interest, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, 'contract');
+        const timestamp = this.safeInteger(interest, 'time');
+        return this.safeOpenInterest({
+            'symbol': market['symbol'],
+            'openInterestAmount': this.safeNumber(interest, 'openInterest'),
+            'openInterestValue': this.safeNumber(interest, 'openInterestUsd'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
+        }, market);
+    }
+    /**
+     * @method
      * @name xt#fetchFundingHistory
      * @description fetch the funding history
-     * @see https://doc.xt.com/#futures_usergetFunding
+     * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
      * @param {string} symbol unified market symbol
      * @param {int} [since] the starting timestamp in milliseconds
      * @param {int} [limit] the number of entries to return
@@ -4748,10 +4876,47 @@ export default class xt extends Exchange {
         };
     }
     /**
+     * @ignore
+     * @method
+     * @param {object[]} breakList the "result" array of a position/break-list response
+     */
+    indexPositionBreakList(breakList) {
+        const breakBySymbolSide = {};
+        for (let i = 0; i < breakList.length; i++) {
+            const breakEntry = breakList[i];
+            // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
+            // endpoint, including here and on position/list; there is no one-way/net
+            // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            // both validate positionSide against exactly ['LONG', 'SHORT'])
+            const key = this.safeString(breakEntry, 'symbol') + '_' + this.safeString(breakEntry, 'positionSide');
+            breakBySymbolSide[key] = breakEntry;
+        }
+        return breakBySymbolSide;
+    }
+    /**
+     * @ignore
+     * @method
+     * @param {object} entry a single entry from a position/list response
+     * @param {object} breakBySymbolSide the result of indexPositionBreakList()
+     */
+    mergePositionBreakInfo(entry, breakBySymbolSide) {
+        const marketId = this.safeString(entry, 'symbol');
+        const key = marketId + '_' + this.safeString(entry, 'positionSide');
+        const breakEntry = this.safeDict(breakBySymbolSide, key);
+        if (breakEntry === undefined) {
+            return entry;
+        }
+        return this.extend(entry, {
+            'breakPrice': this.safeString(breakEntry, 'breakPrice'),
+            'calMarkPrice': this.safeString(breakEntry, 'calMarkPrice'),
+        });
+    }
+    /**
      * @method
      * @name xt#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -4766,13 +4931,18 @@ export default class xt extends Exchange {
         };
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchPosition', market, params);
-        let response = undefined;
+        const promisesUnresolved = [];
         if (subType === 'inverse') {
-            response = await this.privateInverseGetFutureUserV1PositionList(this.extend(request, params));
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionList(this.extend(request, params)));
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionBreakList(this.extend(request, params)));
         }
         else {
-            response = await this.privateLinearGetFutureUserV1PositionList(this.extend(request, params));
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionList(this.extend(request, params)));
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, params)));
         }
+        const [response, breakResponse] = await Promise.all(promisesUnresolved);
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -4793,28 +4963,46 @@ export default class xt extends Exchange {
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        const positions = this.safeValue(response, 'result', []);
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        const positions = this.safeList(response, 'result', []);
+        const breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, 'result', []));
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString(entry, 'symbol');
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
             const positionSize = this.safeString(entry, 'positionSize');
             if (positionSize !== '0') {
-                return this.parsePosition(entry, marketInner);
+                const merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+                return this.parsePosition(merged, marketInner);
             }
         }
-        return undefined;
+        throw new NullResponse(this.id + ' fetchPosition() could not find a position for ' + symbol);
     }
     /**
      * @method
      * @name xt#fetchPositions
      * @description fetch all open positions
-     * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} [symbols] list of unified market symbols, not supported with xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -4825,13 +5013,18 @@ export default class xt extends Exchange {
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchPositions', undefined, params);
-        let response = undefined;
+        const promisesUnresolved = [];
         if (subType === 'inverse') {
-            response = await this.privateInverseGetFutureUserV1PositionList(params);
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionList(params));
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionBreakList(params));
         }
         else {
-            response = await this.privateLinearGetFutureUserV1PositionList(params);
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionList(params));
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionBreakList(params));
         }
+        const [response, breakResponse] = await Promise.all(promisesUnresolved);
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -4852,22 +5045,41 @@ export default class xt extends Exchange {
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        const positions = this.safeValue(response, 'result', []);
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        const positions = this.safeList(response, 'result', []);
+        const breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, 'result', []));
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString(entry, 'symbol');
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
-            result.push(this.parsePosition(entry, marketInner));
+            const merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+            result.push(this.parsePosition(merged, marketInner));
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
+        //
+        // position/list
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -4883,7 +5095,17 @@ export default class xt extends Exchange {
         //         "openOrderMarginFrozen": "0",
         //         "realizedProfit": "-0.00130138",
         //         "autoMargin": false,
-        //         "leverage": 25
+        //         "leverage": 25,
+        //         "markPrice": "27050"
+        //     }
+        //
+        // position/break-list
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "positionSide": "SHORT",
+        //         "breakPrice": "0",
+        //         "calMarkPrice": "27050"
         //     }
         //
         const marketId = this.safeString(position, 'symbol');
@@ -4892,6 +5114,7 @@ export default class xt extends Exchange {
         const positionType = this.safeString(position, 'positionType');
         const marginMode = (positionType === 'CROSSED') ? 'cross' : 'isolated';
         const collateral = this.safeNumber(position, 'isolatedMargin');
+        const liquidationPriceString = this.omitZero(this.safeString(position, 'breakPrice'));
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -4903,7 +5126,7 @@ export default class xt extends Exchange {
             'contracts': this.safeNumber(position, 'positionSize'),
             'contractSize': market['contractSize'],
             'entryPrice': this.safeNumber(position, 'entryPrice'),
-            'markPrice': undefined,
+            'markPrice': this.safeNumber2(position, 'markPrice', 'calMarkPrice'),
             'notional': undefined,
             'leverage': this.safeInteger(position, 'leverage'),
             'collateral': collateral,
@@ -4912,7 +5135,7 @@ export default class xt extends Exchange {
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': this.parseNumber(liquidationPriceString),
             'marginMode': marginMode,
             'percentage': undefined,
             'marginRatio': undefined,
@@ -4922,7 +5145,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://doc.xt.com/#transfersubTransferPost
+     * @see https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
@@ -4979,7 +5202,7 @@ export default class xt extends Exchange {
      * @method
      * @name xt#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://doc.xt.com/#futures_userchangePositionType
+     * @see https://doc.xt.com/docs/futures/User/Change%20Position%20Type
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} [symbol] required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5008,15 +5231,22 @@ export default class xt extends Exchange {
             marginMode = 'ISOLATED';
         }
         const posSide = this.safeStringUpper(params, 'positionSide');
-        if (posSide === undefined) {
-            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"');
-        }
+        this.checkRequiredArgument('setMarginMode', posSide, 'positionSide', ['LONG', 'SHORT']);
+        params = this.omit(params, 'positionSide');
         const request = {
             'positionType': marginMode,
             'positionSide': posSide,
             'symbol': market['id'],
         };
-        const response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, params));
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('setMarginMode', market, params);
+        let response;
+        if (subType === 'inverse') {
+            response = await this.privateInversePostFutureUserV1PositionChangeType(this.extend(request, params));
+        }
+        else {
+            response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, params));
+        }
         //
         // {
         //     "error": {
@@ -5034,9 +5264,9 @@ export default class xt extends Exchange {
      * @method
      * @name xt#editOrder
      * @description cancels an order and places a new order
-     * @see https://doc.xt.com/#orderorderUpdate
-     * @see https://doc.xt.com/#futures_orderupdate
-     * @see https://doc.xt.com/#futures_entrustupdateProfit
+     * @see https://doc.xt.com/docs/spot/Order/UpdateOrderLimit
+     * @see https://doc.xt.com/docs/futures/Order/update-orders
+     * @see https://doc.xt.com/docs/futures/Entrust/AlterStopLimit
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -5231,8 +5461,14 @@ export default class xt extends Exchange {
             body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
+                if (body === undefined) {
+                    throw new NullResponse(this.id + ' sign() returned empty body');
+                }
                 if (payload.indexOf('future') > -1) {
                     body['clientMedia'] = id;
+                    if (body === undefined) {
+                        throw new NullResponse(this.id + ' sign() returned empty body');
+                    }
                 }
                 else {
                     body['media'] = id;

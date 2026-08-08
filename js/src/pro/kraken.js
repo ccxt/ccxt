@@ -622,7 +622,7 @@ export default class kraken extends krakenRest {
         const interval = this.safeInteger(first, 'interval');
         const timeframe = this.findTimeframe(interval);
         const messageHash = this.getMessageHash('ohlcv', undefined, symbol);
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -765,7 +765,7 @@ export default class kraken extends krakenRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const requiredParams = {};
@@ -825,7 +825,7 @@ export default class kraken extends krakenRest {
             if (symbols !== undefined) {
                 for (let i = 0; i < symbols.length; i++) {
                     const symbol = symbols[i];
-                    const market = this.markets[symbol];
+                    const market = this.market(symbol);
                     const info = this.safeValue(market, 'info', {});
                     const wsName = this.safeString(info, 'wsname');
                     marketsByWsName[wsName] = market;

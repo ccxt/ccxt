@@ -283,13 +283,13 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.subaccount_id | <code>string</code> | No | *required* the subaccount id |
 
 
 ```javascript
-derive.cancelAllOrders (symbol, params?)
+derive.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -561,7 +561,7 @@ derive.fetchWithdrawals (code, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>derive</code>](#derive)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.derive.xyz/reference/orderbook-instrument_name-group-depth  
 

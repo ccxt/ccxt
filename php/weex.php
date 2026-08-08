@@ -199,103 +199,103 @@ class weex extends Exchange {
                 'public' => array(
                     // multiply public endpoints weight by 5
                     'get' => array(
-                        'api/v3/time' => 5, // done
-                        'api/v3/coins' => 25, // done
-                        'api/v3/exchangeInfo' => 100, // done
-                        'api/v3/ping' => 5, // done
-                        'api/v3/apiTradingSymbols' => 25, // not unified
-                        'api/v3/market/ticker/price' => 20, // not unified
-                        'api/v3/market/ticker/24hr' => 10, // done
-                        'api/v3/market/trades' => 125, // done
-                        'api/v3/market/klines' => 10, // done
-                        'api/v3/market/depth' => 25, // done
-                        'api/v3/market/ticker/bookTicker' => 20, // done
+                        'api/v3/time' => array( 'cost' => 5 ), // done
+                        'api/v3/coins' => array( 'cost' => 25 ), // done
+                        'api/v3/exchangeInfo' => array( 'cost' => 100 ), // done
+                        'api/v3/ping' => array( 'cost' => 5 ), // done
+                        'api/v3/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
+                        'api/v3/market/ticker/price' => array( 'cost' => 20 ), // not unified
+                        'api/v3/market/ticker/24hr' => array( 'cost' => 10 ), // done
+                        'api/v3/market/trades' => array( 'cost' => 125 ), // done
+                        'api/v3/market/klines' => array( 'cost' => 10 ), // done
+                        'api/v3/market/depth' => array( 'cost' => 25 ), // done
+                        'api/v3/market/ticker/bookTicker' => array( 'cost' => 20 ), // done
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'api/v3/account/' => 5, // done
-                        'api/v3/account/transferRecords' => 3, // done
-                        'api/v3/order' => 2, // done
-                        'api/v3/openOrders' => 3, // done
-                        'api/v3/allOrders' => 10, // done
-                        'api/v3/myTrades' => 5, // done
-                        'api/v3/rebate/affiliate/getAffiliateUIDs' => 20, // not unified
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset' => 20, // not unified
-                        'api/v3/rebate/affiliate/getAffiliateCommission' => 20, // not unified
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus' => 100, // not unified
-                        'api/v3/rebate/affiliate/querySubChannelTransactions' => 10, // not unified
-                        'api/v3/agency/verifyReferrals' => 20, // not unified
-                        'api/v3/agency/getAssert' => 20, // not unified
-                        'api/v3/agency/getDealData' => 20, // not unified
+                        'api/v3/account/' => array( 'cost' => 5 ), // done
+                        'api/v3/account/transferRecords' => array( 'cost' => 3 ), // done
+                        'api/v3/order' => array( 'cost' => 2 ), // done
+                        'api/v3/openOrders' => array( 'cost' => 3 ), // done
+                        'api/v3/allOrders' => array( 'cost' => 10 ), // done
+                        'api/v3/myTrades' => array( 'cost' => 5 ), // done
+                        'api/v3/rebate/affiliate/getAffiliateUIDs' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus' => array( 'cost' => 100 ), // not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions' => array( 'cost' => 10 ), // not unified
+                        'api/v3/agency/verifyReferrals' => array( 'cost' => 20 ), // not unified
+                        'api/v3/agency/getAssert' => array( 'cost' => 20 ), // not unified
+                        'api/v3/agency/getDealData' => array( 'cost' => 20 ), // not unified
                     ),
                     'post' => array(
-                        'api/v3/account/bills' => 5, // done
-                        'api/v3/account/fundingBills' => 5, // done
-                        'api/v3/order' => 5, // done
-                        'api/v3/order/batch' => 50, // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
-                        'api/v3/rebate/affiliate/internalWithdrawal' => 100, // not unified
+                        'api/v3/account/bills' => array( 'cost' => 5 ), // done
+                        'api/v3/account/fundingBills' => array( 'cost' => 5 ), // done
+                        'api/v3/order' => array( 'cost' => 5 ), // done
+                        'api/v3/order/batch' => array( 'cost' => 50 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
+                        'api/v3/rebate/affiliate/internalWithdrawal' => array( 'cost' => 100 ), // not unified
                     ),
                     'delete' => array(
-                        'api/v3/order' => 1, // done
-                        'api/v3/openOrders' => 1, // done
-                        'api/v3/order/batch' => 10, // done
+                        'api/v3/order' => array( 'cost' => 1 ), // done
+                        'api/v3/openOrders' => array( 'cost' => 1 ), // done
+                        'api/v3/order/batch' => array( 'cost' => 10 ), // done
                     ),
                 ),
                 'contract' => array(
                     // multiply public endpoints weight by 5
                     'get' => array(
-                        'capi/v3/market/time' => 5, // done
-                        'capi/v3/market/exchangeInfo' => 5, // done
-                        'capi/v3/market/depth' => 5, // done
-                        'capi/v3/market/ticker/24hr' => 200, // done
-                        'capi/v3/market/ticker/bookTicker' => 5, // done
-                        'capi/v3/market/trades' => 25, // done
-                        'capi/v3/market/klines' => 5, // done
-                        'capi/v3/market/indexPriceKlines' => 5, // done
-                        'capi/v3/market/markPriceKlines' => 5, // done
-                        'capi/v3/market/historyKlines' => 25, // done
-                        'capi/v3/market/symbolPrice' => 5, // not unified
-                        'capi/v3/market/openInterest' => 10, // done
-                        'capi/v3/market/premiumIndex' => 5, // done
-                        'capi/v3/market/fundingRate' => 25, // done
-                        'capi/v3/market/apiTradingSymbols' => 25, // not unified
+                        'capi/v3/market/time' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/exchangeInfo' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/depth' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/ticker/24hr' => array( 'cost' => 200 ), // done
+                        'capi/v3/market/ticker/bookTicker' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/trades' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/klines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/indexPriceKlines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/markPriceKlines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/historyKlines' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/symbolPrice' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/market/openInterest' => array( 'cost' => 10 ), // done
+                        'capi/v3/market/premiumIndex' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/fundingRate' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
                     ),
                 ),
                 'contractPrivate' => array(
                     'get' => array(
-                        'capi/v3/account/balance' => 10, // done
-                        'capi/v3/account/commissionRate' => 10, // done
-                        'capi/v3/account/accountConfig' => 10, // not unified
-                        'capi/v3/account/symbolConfig' => 10, // done
-                        'capi/v3/account/position/allPosition' => 15, // done
-                        'capi/v3/account/position/singlePosition' => 3, // done
-                        'capi/v3/order' => 3, // done
-                        'capi/v3/openOrders' => 5, // done
-                        'capi/v3/order/history' => 10, // done
-                        'capi/v3/userTrades' => 5, // done
-                        'capi/v3/openAlgoOrders' => 3, // done
-                        'capi/v3/allAlgoOrders' => 10, // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/account/balance' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/commissionRate' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/accountConfig' => array( 'cost' => 10 ), // not unified
+                        'capi/v3/account/symbolConfig' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/position/allPosition' => array( 'cost' => 15 ), // done
+                        'capi/v3/account/position/singlePosition' => array( 'cost' => 3 ), // done
+                        'capi/v3/order' => array( 'cost' => 3 ), // done
+                        'capi/v3/openOrders' => array( 'cost' => 5 ), // done
+                        'capi/v3/order/history' => array( 'cost' => 10 ), // done
+                        'capi/v3/userTrades' => array( 'cost' => 5 ), // done
+                        'capi/v3/openAlgoOrders' => array( 'cost' => 3 ), // done
+                        'capi/v3/allAlgoOrders' => array( 'cost' => 10 ), // not unified - capi/v3/order/history returns both regular and algo orders
                     ),
                     'post' => array(
-                        'capi/v3/account/income' => 5, // done
-                        'capi/v3/account/marginType' => 50, // done
-                        'capi/v3/account/leverage' => 20, // done
-                        'capi/v3/account/positionMargin' => 30, // done
-                        'capi/v3/account/modifyAutoAppendMargin' => 30, // not unified
-                        'capi/v3/order' => 5, // done
-                        'capi/v3/batchOrders' => 10, // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
-                        'capi/v3/closePositions' => 50, // done
-                        'capi/v3/algoOrder' => 5, // done
-                        'capi/v3/placeTpSlOrder' => 5, // not unified
-                        'capi/v3/modifyTpSlOrder' => 5, // not unified
+                        'capi/v3/account/income' => array( 'cost' => 5 ), // done
+                        'capi/v3/account/marginType' => array( 'cost' => 50 ), // done
+                        'capi/v3/account/leverage' => array( 'cost' => 20 ), // done
+                        'capi/v3/account/positionMargin' => array( 'cost' => 30 ), // done
+                        'capi/v3/account/modifyAutoAppendMargin' => array( 'cost' => 30 ), // not unified
+                        'capi/v3/order' => array( 'cost' => 5 ), // done
+                        'capi/v3/batchOrders' => array( 'cost' => 10 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
+                        'capi/v3/closePositions' => array( 'cost' => 50 ), // done
+                        'capi/v3/algoOrder' => array( 'cost' => 5 ), // done
+                        'capi/v3/placeTpSlOrder' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/modifyTpSlOrder' => array( 'cost' => 5 ), // not unified
                     ),
                     'delete' => array(
-                        'capi/v3/order' => 3, // done
-                        'capi/v3/batchOrders' => 10, // done
-                        'capi/v3/allOpenOrders' => 10, // done
-                        'capi/v3/algoOrder' => 3, // done
-                        'capi/v3/algoOpenOrders' => 10, // done
+                        'capi/v3/order' => array( 'cost' => 3 ), // done
+                        'capi/v3/batchOrders' => array( 'cost' => 10 ), // done
+                        'capi/v3/allOpenOrders' => array( 'cost' => 10 ), // done
+                        'capi/v3/algoOrder' => array( 'cost' => 3 ), // done
+                        'capi/v3/algoOpenOrders' => array( 'cost' => 10 ), // done
                     ),
                 ),
             ),
@@ -490,7 +490,7 @@ class weex extends Exchange {
                     'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
-                    'ARBONE' => 'ARBITRUM(ARB)',
+                    'ARBITRUM' => 'ARBITRUM(ARB)',
                     'SOL' => 'SOLANA(SOL)',
                     'OP' => 'OPTIMISM(OP)',
                     'OPTIMISM' => 'OPTIMISM(OP)',
@@ -500,7 +500,7 @@ class weex extends Exchange {
                     'BEP20(BSC)' => 'BEP20',
                     'ERC20' => 'ERC20',
                     'POLYGON(MATIC)' => 'MATIC',
-                    'ARBITRUM(ARB)' => 'ARBONE',
+                    'ARBITRUM(ARB)' => 'ARBITRUM',
                     'SOLANA(SOL)' => 'SOL',
                     'OPTIMISM(OP)' => 'OP',
                     'AVALANCHE_C(AVAX_C)' => 'AVAXC',
@@ -680,7 +680,7 @@ class weex extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -860,27 +860,29 @@ class weex extends Exchange {
             $chain = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chain, 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'info' => $chain,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => null,
-                'deposit' => $this->safe_bool($chain, 'depositEnable'),
-                'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
-                'fee' => $this->safe_number($chain, 'withdrawFee'),
-                'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
-                'isDefault' => $this->safe_bool($chain, 'isDefault', false),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($chain, 'withdrawMin'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($chain, 'depositEnable'),
+                    'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
+                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
+                    'isDefault' => $this->safe_bool($chain, 'isDefault', false),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'withdrawMin'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($chain, 'depositDust'),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($chain, 'depositDust'),
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         $networkKeys = is_array($networks) ? array_keys($networks) : array();
         $networksLength = count($networkKeys);
@@ -1019,7 +1021,7 @@ class weex extends Exchange {
                 $isInverse = true;
             }
         } else {
-            $active = $this->safe_bool($market, 'enableTrade');
+            $active = $this->safe_bool($market, 'enableTrade', false) === true;
         }
         $amountPrecision = $this->safe_number($market, 'stepSize');
         $pricePrecision = $this->safe_number($market, 'tickSize');
@@ -1030,6 +1032,9 @@ class weex extends Exchange {
             $pricePrecision = $this->parse_number($pricePrecisionString);
         }
         $fees = $this->safe_dict($this->fees, $isSpot ? 'spot' : 'contract', array());
+        if ($id === null) {
+            throw new ExchangeError($this->id . ' method() missing id');
+        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'lowercaseId' => strtolower($id),
@@ -1281,7 +1286,7 @@ class weex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (default 15, max 200)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1373,7 +1378,7 @@ class weex extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $response = $this->publicGetApiV3MarketKlines($this->extend($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1437,6 +1442,9 @@ class weex extends Exchange {
                     $endTime = $now;
                     $startTime = $now - $timeDelta;
                 } elseif ($since === null) {
+                    if ($until === null) {
+                        throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since or $until argument');
+                    }
                     $startTime = $until - $timeDelta;
                 } else {
                     $endTime = $since . $timeDelta;
@@ -1457,10 +1465,10 @@ class weex extends Exchange {
                 $response = $this->contractGetCapiV3MarketKlines($this->extend($request, $params));
             }
         }
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1513,7 +1521,11 @@ class weex extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_trades($response, $market, $since, $limit);
+        $responseList = array();
+        if ($response !== null) {
+            $responseList = $this->to_array($response);
+        }
+        return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1641,7 +1653,7 @@ class weex extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1705,7 +1717,7 @@ class weex extends Exchange {
         return $this->parse_funding_rates($response, $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
         $timestamp = $this->safe_integer($contract, 'time');
@@ -1772,7 +1784,7 @@ class weex extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1852,7 +1864,7 @@ class weex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -1865,7 +1877,9 @@ class weex extends Exchange {
             $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'free');
             $account['used'] = $this->safe_string_2($entry, 'frozen', 'locked');
             $account['total'] = $this->safe_string($entry, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1940,7 +1954,7 @@ class weex extends Exchange {
         );
     }
 
-    public function parse_transfer_status(?string $status): string {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'Successful' => 'ok',
         );
@@ -2006,11 +2020,23 @@ class weex extends Exchange {
         //         "transactTime" => 1775608924724
         //     }
         //
+        if ($response === null) {
+            throw new NullResponse($this->id . ' parseOrder() returned empty response');
+        }
         return $this->parse_order($response, $market);
     }
 
-    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createSpotOrderRequest() requires a $side argument');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -2071,11 +2097,23 @@ class weex extends Exchange {
         } else {
             $response = $this->contractPrivatePostCapiV3Order($request);
         }
+        if ($response === null) {
+            throw new NullResponse($this->id . ' createOrder() returned empty response');
+        }
         return $this->parse_order($response, $market);
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createContractOrderRequest() requires a $side argument');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -2248,6 +2286,9 @@ class weex extends Exchange {
         } else {
             $response = $this->contractPrivateDeleteCapiV3Order($this->extend($request, $params));
         }
+        if ($response === null) {
+            throw new NullResponse($this->id . ' parseOrder() returned empty response');
+        }
         $order = $this->parse_order($response, $market);
         $order['status'] = 'canceled';
         return $order;
@@ -2352,7 +2393,7 @@ class weex extends Exchange {
         return $this->parse_orders($ordersResponse, $market, null, null, $extendedParams);
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -2412,6 +2453,9 @@ class weex extends Exchange {
             $response = $this->privateGetApiV3Order($this->extend($request, $params));
         } else {
             $response = $this->contractPrivateGetCapiV3Order($this->extend($request, $params));
+        }
+        if ($response === null) {
+            throw new NullResponse($this->id . ' parseOrder() returned empty response');
         }
         return $this->parse_order($response, $market);
     }
@@ -3070,7 +3114,11 @@ class weex extends Exchange {
             //
             $response = $this->contractPrivateGetCapiV3UserTrades($this->extend($request, $params));
         }
-        return $this->parse_trades($response, $market, $since, $limit);
+        $responseList = array();
+        if ($response !== null) {
+            $responseList = $this->to_array($response);
+        }
+        return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3110,6 +3158,9 @@ class weex extends Exchange {
             $currency = $this->currency($code);
         }
         if ($accountType === 'contract') {
+            if ($currency === null) {
+                throw new ExchangeError($this->id . ' fetchLedger() could not resolve currency');
+            }
             if ($code !== null) {
                 $request['currency'] = $currency['id'];
             }
@@ -3140,7 +3191,8 @@ class weex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('before', $request, $params);
-            $items = $this->privatePostApiV3AccountBills($this->extend($request, $params));
+            $billsResponse = $this->privatePostApiV3AccountBills($this->extend($request, $params));
+            $items = $this->to_array($billsResponse);
         }
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
@@ -3197,6 +3249,9 @@ class weex extends Exchange {
         $before = Precise::string_sub($after, $amountRaw);
         $amount = $this->parse_number(Precise::string_abs($amountRaw));
         $direction = 'in';
+        if ($amountRaw === null) {
+            throw new ExchangeError($this->id . ' parseLedgerEntry() missing amountRaw');
+        }
         if (mb_strpos($amountRaw, '-') !== false) {
             $direction = 'out';
         }
@@ -3569,10 +3624,10 @@ class weex extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($params);
-        return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
+        return $this->parse_margin_modes($this->to_array($response), $symbols, 'symbol', 'swap');
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $marginType = $this->safe_string($marginMode, 'marginType');
         return array(
@@ -3664,7 +3719,7 @@ class weex extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($params);
-        return $this->parse_leverages($response, $symbols, 'symbol', 'swap');
+        return $this->parse_leverages($this->to_array($response), $symbols, 'symbol', 'swap');
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -3736,7 +3791,7 @@ class weex extends Exchange {
         return $this->contractPrivatePostCapiV3AccountLeverage($this->extend($request, $params));
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way
          *
@@ -3795,7 +3850,7 @@ class weex extends Exchange {
         return $this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params));
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3873,7 +3928,7 @@ class weex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);
@@ -3909,7 +3964,7 @@ class weex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         //     {
         //         "code" => -1140,

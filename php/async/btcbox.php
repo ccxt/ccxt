@@ -128,25 +128,25 @@ class btcbox extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'tickers',
+                        'depth' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
+                        'balance' => array( 'cost' => 1 ),
+                        'trade_add' => array( 'cost' => 1 ),
+                        'trade_cancel' => array( 'cost' => 1 ),
+                        'trade_list' => array( 'cost' => 1 ),
+                        'trade_view' => array( 'cost' => 1 ),
+                        'wallet' => array( 'cost' => 1 ),
                     ),
                 ),
                 'webApi' => array(
                     'get' => array(
-                        'ajax/coin/coinInfo',
+                        'ajax/coin/coinInfo' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -254,7 +254,7 @@ class btcbox extends Exchange {
                 $quote = $this->safe_string($symbolParts, 1, '');
                 $quoteId = strtolower($quote);
                 $id = strtolower($baseCurr);
-                $res = $response1[$marketId];
+                $res = $this->safe_dict($response1, $marketId, array());
                 $symbol = $baseCurr . '/' . $quote;
                 $fee = ($id === 'BTC') ? $this->parse_number('0.0005') : $this->parse_number('0.0010');
                 $details = $this->safe_dict($result2Data, $id, array());
@@ -322,7 +322,7 @@ class btcbox extends Exchange {
         $quoteId = $this->safe_string($market, 'quote');
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $this->safe_string($market, 'symbol'),
             'uppercaseId' => null,
             'symbol' => $symbol,
@@ -371,10 +371,10 @@ class btcbox extends Exchange {
             'active' => null,
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -421,14 +421,14 @@ class btcbox extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
             $request = array();
-            $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
+            $numSymbols = count($this->symbols);
             if ($numSymbols > 1) {
                 $request['coin'] = $market['baseId'];
             }
@@ -480,7 +480,7 @@ class btcbox extends Exchange {
             }
             $market = $this->market($symbol);
             $request = array();
-            $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
+            $numSymbols = count($this->symbols);
             if ($numSymbols > 1) {
                 $request['coin'] = $market['baseId'];
             }
@@ -559,7 +559,7 @@ class btcbox extends Exchange {
             }
             $market = $this->market($symbol);
             $request = array();
-            $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
+            $numSymbols = count($this->symbols);
             if ($numSymbols > 1) {
                 $request['coin'] = $market['baseId'];
             }
@@ -761,7 +761,7 @@ class btcbox extends Exchange {
         })();
     }
 
-    public function fetch_orders_by_type($type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_type(mixed $type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($type, $symbol, $since, $limit, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -838,7 +838,7 @@ class btcbox extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
             if ($params) {
@@ -864,7 +864,7 @@ class btcbox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // resort to defaultErrorHandler
         }
@@ -882,7 +882,7 @@ class btcbox extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array()) {
+    public function request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             if (gettype($response) === 'string') {

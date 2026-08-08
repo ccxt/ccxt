@@ -45,7 +45,13 @@ public partial class testMainClass : BaseTest
                 testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
             } catch(Exception ex)
             {
-                await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+                object ohlcv = null;
+                object tickerSymbol = getValue(ticker, "symbol");
+                if (isTrue(isTrue((!isEqual(tickerSymbol, null))) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
+                {
+                    ohlcv = await ((dynamic)exchange).fetchOHLCV(tickerSymbol, "1d", null, 5);
+                }
+                testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
             }
         }
         return response;
@@ -67,6 +73,10 @@ public partial class testMainClass : BaseTest
             // ensure tickers length is less than markets length
             //
             object allMarkets = exchange.markets;
+            if (isTrue(isEqual(allMarkets, null)))
+            {
+                return;
+            }
             object allMarketsLength = getArrayLength(new List<object>(((IDictionary<string,object>)allMarkets).Keys));
             assert(isLessThanOrEqual(obtainedTickersLength, allMarketsLength), add(add(add(add(add(add(add(exchange.id, " "), "fetchTickers"), " must return <= than all markets, but returned: "), ((object)obtainedTickersLength).ToString()), " tickers, "), ((object)allMarketsLength).ToString()), " markets"));
         }

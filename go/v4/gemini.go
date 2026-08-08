@@ -106,99 +106,267 @@ func (this *GeminiCore) Describe() any {
 		},
 		"api": map[string]any{
 			"webExchange": map[string]any{
-				"get": []any{""},
+				"get": map[string]any{
+					"": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"web": map[string]any{
-				"get": []any{"rest-api"},
+				"get": map[string]any{
+					"rest-api": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"public": map[string]any{
 				"get": map[string]any{
-					"v1/symbols":                                   5,
-					"v1/symbols/details/{symbol}":                  5,
-					"v1/network/{token}":                           5,
-					"v1/staking/rates":                             5,
-					"v1/pubticker/{symbol}":                        5,
-					"v1/feepromos":                                 5,
-					"v2/ticker/{symbol}":                           5,
-					"v2/candles/{symbol}/{timeframe}":              5,
-					"v1/trades/{symbol}":                           5,
-					"v1/auction/{symbol}":                          5,
-					"v1/auction/{symbol}/history":                  5,
-					"v1/pricefeed":                                 5,
-					"v1/fundingamount/{symbol}":                    5,
-					"v1/fundingamountreport/records.xlsx":          5,
-					"v1/book/{symbol}":                             5,
-					"v1/earn/rates":                                5,
-					"v2/derivatives/candles/{symbol}/{time_frame}": 5,
-					"v2/fxrate/{symbol}/{timestamp}":               5,
-					"v1/riskstats/{symbol}":                        5,
+					"v1/symbols": map[string]any{
+						"cost": 5,
+					},
+					"v1/symbols/details/{symbol}": map[string]any{
+						"cost": 5,
+					},
+					"v1/network/{token}": map[string]any{
+						"cost": 5,
+					},
+					"v1/staking/rates": map[string]any{
+						"cost": 5,
+					},
+					"v1/pubticker/{symbol}": map[string]any{
+						"cost": 5,
+					},
+					"v1/feepromos": map[string]any{
+						"cost": 5,
+					},
+					"v2/ticker/{symbol}": map[string]any{
+						"cost": 5,
+					},
+					"v2/candles/{symbol}/{timeframe}": map[string]any{
+						"cost": 5,
+					},
+					"v1/trades/{symbol}": map[string]any{
+						"cost": 5,
+					},
+					"v1/auction/{symbol}": map[string]any{
+						"cost": 5,
+					},
+					"v1/auction/{symbol}/history": map[string]any{
+						"cost": 5,
+					},
+					"v1/pricefeed": map[string]any{
+						"cost": 5,
+					},
+					"v1/fundingamount/{symbol}": map[string]any{
+						"cost": 5,
+					},
+					"v1/fundingamountreport/records.xlsx": map[string]any{
+						"cost": 5,
+					},
+					"v1/book/{symbol}": map[string]any{
+						"cost": 5,
+					},
+					"v1/earn/rates": map[string]any{
+						"cost": 5,
+					},
+					"v2/derivatives/candles/{symbol}/{time_frame}": map[string]any{
+						"cost": 5,
+					},
+					"v2/fxrate/{symbol}/{timestamp}": map[string]any{
+						"cost": 5,
+					},
+					"v1/riskstats/{symbol}": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"v1/perpetuals/fundingpaymentreport/records.xlsx": 1,
+					"v1/perpetuals/fundingpaymentreport/records.xlsx": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"v1/staking/unstake":                              1,
-					"v1/staking/stake":                                1,
-					"v1/staking/rewards":                              1,
-					"v1/staking/history":                              1,
-					"v1/order/new":                                    1,
-					"v1/order/cancel":                                 1,
-					"v1/wrap/{symbol}":                                1,
-					"v1/order/cancel/session":                         1,
-					"v1/order/cancel/all":                             1,
-					"v1/order/status":                                 1,
-					"v1/orders":                                       1,
-					"v1/mytrades":                                     1,
-					"v1/notionalvolume":                               1,
-					"v1/tradevolume":                                  1,
-					"v1/clearing/new":                                 1,
-					"v1/clearing/status":                              1,
-					"v1/clearing/cancel":                              1,
-					"v1/clearing/confirm":                             1,
-					"v1/balances":                                     1,
-					"v1/balances/staking":                             1,
-					"v1/notionalbalances/{currency}":                  1,
-					"v1/transfers":                                    1,
-					"v1/addresses/{network}":                          1,
-					"v1/deposit/{network}/newAddress":                 1,
-					"v1/deposit/{currency}/newAddress":                1,
-					"v1/withdraw/{currency}":                          1,
-					"v1/account/transfer/{currency}":                  1,
-					"v1/payments/addbank":                             1,
-					"v1/payments/methods":                             1,
-					"v1/payments/sen/withdraw":                        1,
-					"v1/balances/earn":                                1,
-					"v1/earn/interest":                                1,
-					"v1/earn/history":                                 1,
-					"v1/approvedAddresses/{network}/request":          1,
-					"v1/approvedAddresses/account/{network}":          1,
-					"v1/approvedAddresses/{network}/remove":           1,
-					"v1/account":                                      1,
-					"v1/account/create":                               1,
-					"v1/account/list":                                 1,
-					"v1/heartbeat":                                    1,
-					"v1/roles":                                        1,
-					"v1/custodyaccountfees":                           1,
-					"v1/withdraw/{currencyCodeLowerCase}/feeEstimate": 1,
-					"v1/payments/addbank/cad":                         1,
-					"v1/transactions":                                 1,
-					"v1/margin/account":                               1,
-					"v1/margin/rates":                                 1,
-					"v1/margin/order/preview":                         1,
-					"v1/clearing/list":                                1,
-					"v1/clearing/broker/list":                         1,
-					"v1/clearing/broker/new":                          1,
-					"v1/clearing/trades":                              1,
-					"v1/instant/quote":                                1,
-					"v1/instant/execute":                              1,
-					"v1/account/rename":                               1,
-					"v1/oauth/revokeByToken":                          1,
-					"v1/margin":                                       1,
-					"v1/perpetuals/fundingPayment":                    1,
-					"v1/perpetuals/fundingpaymentreport/records.json": 1,
-					"v1/positions":                                    1,
+					"v1/staking/unstake": map[string]any{
+						"cost": 1,
+					},
+					"v1/staking/stake": map[string]any{
+						"cost": 1,
+					},
+					"v1/staking/rewards": map[string]any{
+						"cost": 1,
+					},
+					"v1/staking/history": map[string]any{
+						"cost": 1,
+					},
+					"v1/order/new": map[string]any{
+						"cost": 1,
+					},
+					"v1/order/cancel": map[string]any{
+						"cost": 1,
+					},
+					"v1/wrap/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/order/cancel/session": map[string]any{
+						"cost": 1,
+					},
+					"v1/order/cancel/all": map[string]any{
+						"cost": 1,
+					},
+					"v1/order/status": map[string]any{
+						"cost": 1,
+					},
+					"v1/orders": map[string]any{
+						"cost": 1,
+					},
+					"v1/mytrades": map[string]any{
+						"cost": 1,
+					},
+					"v1/notionalvolume": map[string]any{
+						"cost": 1,
+					},
+					"v1/tradevolume": map[string]any{
+						"cost": 1,
+					},
+					"v1/clearing/new": map[string]any{
+						"cost": 1,
+					},
+					"v1/clearing/status": map[string]any{
+						"cost": 1,
+					},
+					"v1/clearing/cancel": map[string]any{
+						"cost": 1,
+					},
+					"v1/clearing/confirm": map[string]any{
+						"cost": 1,
+					},
+					"v1/balances": map[string]any{
+						"cost": 1,
+					},
+					"v1/balances/staking": map[string]any{
+						"cost": 1,
+					},
+					"v1/notionalbalances/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"v1/transfers": map[string]any{
+						"cost": 1,
+					},
+					"v1/addresses/{network}": map[string]any{
+						"cost": 1,
+					},
+					"v1/deposit/{network}/newAddress": map[string]any{
+						"cost": 1,
+					},
+					"v1/deposit/{currency}/newAddress": map[string]any{
+						"cost": 1,
+					},
+					"v1/withdraw/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"v1/account/transfer/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"v1/payments/addbank": map[string]any{
+						"cost": 1,
+					},
+					"v1/payments/methods": map[string]any{
+						"cost": 1,
+					},
+					"v1/payments/sen/withdraw": map[string]any{
+						"cost": 1,
+					},
+					"v1/balances/earn": map[string]any{
+						"cost": 1,
+					},
+					"v1/earn/interest": map[string]any{
+						"cost": 1,
+					},
+					"v1/earn/history": map[string]any{
+						"cost": 1,
+					},
+					"v1/approvedAddresses/{network}/request": map[string]any{
+						"cost": 1,
+					},
+					"v1/approvedAddresses/account/{network}": map[string]any{
+						"cost": 1,
+					},
+					"v1/approvedAddresses/{network}/remove": map[string]any{
+						"cost": 1,
+					},
+					"v1/account": map[string]any{
+						"cost": 1,
+					},
+					"v1/account/create": map[string]any{
+						"cost": 1,
+					},
+					"v1/account/list": map[string]any{
+						"cost": 1,
+					},
+					"v1/heartbeat": map[string]any{
+						"cost": 1,
+					},
+					"v1/roles": map[string]any{
+						"cost": 1,
+					},
+					"v1/custodyaccountfees": map[string]any{
+						"cost": 1,
+					},
+					"v1/withdraw/{currencyCodeLowerCase}/feeEstimate": map[string]any{
+						"cost": 1,
+					},
+					"v1/payments/addbank/cad": map[string]any{
+						"cost": 1,
+					},
+					"v1/transactions": map[string]any{
+						"cost": 1,
+					},
+					"v1/margin/account": map[string]any{
+						"cost": 1,
+					},
+					"v1/margin/rates": map[string]any{
+						"cost": 1,
+					},
+					"v1/margin/order/preview": map[string]any{
+						"cost": 1,
+					},
+					"v1/clearing/list": map[string]any{
+						"cost": 1,
+					},
+					"v1/clearing/broker/list": map[string]any{
+						"cost": 1,
+					},
+					"v1/clearing/broker/new": map[string]any{
+						"cost": 1,
+					},
+					"v1/clearing/trades": map[string]any{
+						"cost": 1,
+					},
+					"v1/instant/quote": map[string]any{
+						"cost": 1,
+					},
+					"v1/instant/execute": map[string]any{
+						"cost": 1,
+					},
+					"v1/account/rename": map[string]any{
+						"cost": 1,
+					},
+					"v1/oauth/revokeByToken": map[string]any{
+						"cost": 1,
+					},
+					"v1/margin": map[string]any{
+						"cost": 1,
+					},
+					"v1/perpetuals/fundingPayment": map[string]any{
+						"cost": 1,
+					},
+					"v1/perpetuals/fundingpaymentreport/records.json": map[string]any{
+						"cost": 1,
+					},
+					"v1/positions": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -393,9 +561,9 @@ func (this *GeminiCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes40815 := (<-this.FetchCurrenciesFromWeb(params))
-		PanicOnError(retRes40815)
-		ch <- retRes40815
+		retRes41215 := (<-this.FetchCurrenciesFromWeb(params))
+		PanicOnError(retRes41215)
+		ch <- retRes41215
 		return nil
 
 	}()
@@ -464,26 +632,28 @@ func (this *GeminiCore) ParseCurrency(rawCurrency any) any {
 	var networkCode any = nil
 	if IsTrue(!IsEqual(networkId, nil)) {
 		networkCode = this.NetworkIdToCode(networkId, code)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"info":      rawCurrency,
-			"id":        networkId,
-			"network":   networkCode,
-			"active":    nil,
-			"deposit":   nil,
-			"withdraw":  nil,
-			"fee":       nil,
-			"precision": precision,
-			"limits": map[string]any{
-				"deposit": map[string]any{
-					"min": nil,
-					"max": nil,
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"info":      rawCurrency,
+				"id":        networkId,
+				"network":   networkCode,
+				"active":    nil,
+				"deposit":   nil,
+				"withdraw":  nil,
+				"fee":       nil,
+				"precision": precision,
+				"limits": map[string]any{
+					"deposit": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
+					"withdraw": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
 				},
-				"withdraw": map[string]any{
-					"min": nil,
-					"max": nil,
-				},
-			},
-		})
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
@@ -538,9 +708,9 @@ func (this *GeminiCore) FetchMarkets(optionalArgs ...any) <-chan any {
 			return nil
 		}
 
-		retRes52215 := (<-this.FetchMarketsFromAPI(params))
-		PanicOnError(retRes52215)
-		ch <- retRes52215
+		retRes52815 := (<-this.FetchMarketsFromAPI(params))
+		PanicOnError(retRes52815)
+		ch <- retRes52815
 		return nil
 
 	}()
@@ -724,9 +894,13 @@ func (this *GeminiCore) FetchMarketsFromAPI(optionalArgs ...any) <-chan any {
 		var options any = this.SafeDict(this.Options, "fetchMarketsFromAPI", map[string]any{})
 		var brokenPairs any = this.SafeList(this.Options, "brokenPairs", []any{})
 		var marketIds any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(marketIdsRaw)); i++ {
-			if !IsTrue(this.InArray(GetValue(marketIdsRaw, i), brokenPairs)) {
-				AppendToArray(&marketIds, GetValue(marketIdsRaw, i))
+		var allMarketIds any = []any{}
+		if IsTrue(IsArray(marketIdsRaw)) {
+			allMarketIds = marketIdsRaw
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(allMarketIds)); i++ {
+			if !IsTrue(this.InArray(GetValue(allMarketIds, i), brokenPairs)) {
+				AppendToArray(&marketIds, GetValue(allMarketIds, i))
 			}
 		}
 		if IsTrue(this.SafeBool(options, "fetchDetailsForAllSymbols", false)) {
@@ -878,7 +1052,7 @@ func (this *GeminiCore) ParseMarket(response any) any {
 	}
 	var typeVar any = Ternary(IsTrue(swap), "swap", "spot")
 	var isSpot any = !IsTrue(swap)
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -926,7 +1100,7 @@ func (this *GeminiCore) ParseMarket(response any) any {
 		},
 		"created": nil,
 		"info":    response,
-	}
+	})
 }
 
 /**
@@ -937,7 +1111,7 @@ func (this *GeminiCore) ParseMarket(response any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *GeminiCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -950,8 +1124,8 @@ func (this *GeminiCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes89312 := (<-this.LoadMarkets())
-			PanicOnError(retRes89312)
+			retRes90312 := (<-this.LoadMarkets())
+			PanicOnError(retRes90312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -980,8 +1154,8 @@ func (this *GeminiCore) FetchTickerV1(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes90912 := (<-this.LoadMarkets())
-			PanicOnError(retRes90912)
+			retRes91912 := (<-this.LoadMarkets())
+			PanicOnError(retRes91912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1018,8 +1192,8 @@ func (this *GeminiCore) FetchTickerV2(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93312 := (<-this.LoadMarkets())
-			PanicOnError(retRes93312)
+			retRes94312 := (<-this.LoadMarkets())
+			PanicOnError(retRes94312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1097,22 +1271,22 @@ func (this *GeminiCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		var method any = this.SafeValue(this.Options, "fetchTickerMethod", "fetchTickerV1")
 		if IsTrue(IsEqual(method, "fetchTickerV1")) {
 
-			retRes98519 := (<-this.FetchTickerV1(symbol, params))
-			PanicOnError(retRes98519)
-			ch <- retRes98519
+			retRes99519 := (<-this.FetchTickerV1(symbol, params))
+			PanicOnError(retRes99519)
+			ch <- retRes99519
 			return nil
 		}
 		if IsTrue(IsEqual(method, "fetchTickerV2")) {
 
-			retRes98819 := (<-this.FetchTickerV2(symbol, params))
-			PanicOnError(retRes98819)
-			ch <- retRes98819
+			retRes99819 := (<-this.FetchTickerV2(symbol, params))
+			PanicOnError(retRes99819)
+			ch <- retRes99819
 			return nil
 		}
 
-		retRes99015 := (<-this.FetchTickerV1AndV2(symbol, params))
-		PanicOnError(retRes99015)
-		ch <- retRes99015
+		retRes100015 := (<-this.FetchTickerV1AndV2(symbol, params))
+		PanicOnError(retRes100015)
+		ch <- retRes100015
 		return nil
 
 	}()
@@ -1234,8 +1408,8 @@ func (this *GeminiCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes109812 := (<-this.LoadMarkets())
-			PanicOnError(retRes109812)
+			retRes110812 := (<-this.LoadMarkets())
+			PanicOnError(retRes110812)
 		}
 
 		response := (<-this.PublicGetV1Pricefeed(params))
@@ -1353,8 +1527,8 @@ func (this *GeminiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes119712 := (<-this.LoadMarkets())
-			PanicOnError(retRes119712)
+			retRes120712 := (<-this.LoadMarkets())
+			PanicOnError(retRes120712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1400,7 +1574,9 @@ func (this *GeminiCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1422,8 +1598,8 @@ func (this *GeminiCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes125012 := (<-this.LoadMarkets())
-			PanicOnError(retRes125012)
+			retRes126212 := (<-this.LoadMarkets())
+			PanicOnError(retRes126212)
 		}
 
 		response := (<-this.PrivatePostV1Notionalvolume(params))
@@ -1463,8 +1639,9 @@ func (this *GeminiCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		var maker any = this.ParseNumber(makerString)
 		var taker any = this.ParseNumber(takerString)
 		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
-			var symbol any = GetValue(this.Symbols, i)
+		var symbols any = this.Symbols
+		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+			var symbol any = GetValue(symbols, i)
 			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,
@@ -1499,8 +1676,8 @@ func (this *GeminiCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes131212 := (<-this.LoadMarkets())
-			PanicOnError(retRes131212)
+			retRes132512 := (<-this.LoadMarkets())
+			PanicOnError(retRes132512)
 		}
 
 		response := (<-this.PrivatePostV1Balances(params))
@@ -1700,8 +1877,8 @@ func (this *GeminiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes149512 := (<-this.LoadMarkets())
-			PanicOnError(retRes149512)
+			retRes150812 := (<-this.LoadMarkets())
+			PanicOnError(retRes150812)
 		}
 		var request any = map[string]any{
 			"order_id": id,
@@ -1766,8 +1943,8 @@ func (this *GeminiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes154012 := (<-this.LoadMarkets())
-			PanicOnError(retRes154012)
+			retRes155312 := (<-this.LoadMarkets())
+			PanicOnError(retRes155312)
 		}
 
 		response := (<-this.PrivatePostV1Orders(params))
@@ -1833,8 +2010,8 @@ func (this *GeminiCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes159012 := (<-this.LoadMarkets())
-			PanicOnError(retRes159012)
+			retRes160312 := (<-this.LoadMarkets())
+			PanicOnError(retRes160312)
 		}
 		if IsTrue(!IsEqual(typeVar, "limit")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
@@ -1944,8 +2121,8 @@ func (this *GeminiCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes168512 := (<-this.LoadMarkets())
-			PanicOnError(retRes168512)
+			retRes169812 := (<-this.LoadMarkets())
+			PanicOnError(retRes169812)
 		}
 		var request any = map[string]any{
 			"order_id": id,
@@ -2014,8 +2191,8 @@ func (this *GeminiCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes173412 := (<-this.LoadMarkets())
-			PanicOnError(retRes173412)
+			retRes174712 := (<-this.LoadMarkets())
+			PanicOnError(retRes174712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2065,8 +2242,8 @@ func (this *GeminiCore) Withdraw(code any, amount any, address any, optionalArgs
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes176612 := (<-this.LoadMarkets())
-			PanicOnError(retRes176612)
+			retRes177912 := (<-this.LoadMarkets())
+			PanicOnError(retRes177912)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2145,8 +2322,8 @@ func (this *GeminiCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes182612 := (<-this.LoadMarkets())
-			PanicOnError(retRes182612)
+			retRes183912 := (<-this.LoadMarkets())
+			PanicOnError(retRes183912)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2271,8 +2448,8 @@ func (this *GeminiCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes193612 := (<-this.LoadMarkets())
-			PanicOnError(retRes193612)
+			retRes194912 := (<-this.LoadMarkets())
+			PanicOnError(retRes194912)
 		}
 
 		groupedByNetwork := (<-this.FetchDepositAddressesByNetwork(code, params))
@@ -2309,8 +2486,8 @@ func (this *GeminiCore) FetchDepositAddressesByNetwork(code any, optionalArgs ..
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes195712 := (<-this.LoadMarkets())
-			PanicOnError(retRes195712)
+			retRes197012 := (<-this.LoadMarkets())
+			PanicOnError(retRes197012)
 		}
 		var currency any = this.Currency(code)
 		code = GetValue(currency, "code")
@@ -2435,8 +2612,8 @@ func (this *GeminiCore) CreateDepositAddress(code any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes205012 := (<-this.LoadMarkets())
-			PanicOnError(retRes205012)
+			retRes206312 := (<-this.LoadMarkets())
+			PanicOnError(retRes206312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2488,8 +2665,8 @@ func (this *GeminiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes208212 := (<-this.LoadMarkets())
-			PanicOnError(retRes208212)
+			retRes209512 := (<-this.LoadMarkets())
+			PanicOnError(retRes209512)
 		}
 		var market any = this.Market(symbol)
 		var timeframeId any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -2500,7 +2677,6 @@ func (this *GeminiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 
 		response := (<-this.PublicGetV2CandlesSymbolTimeframe(this.Extend(request, params)))
 		PanicOnError(response)
-
 		//
 		//     [
 		//         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
@@ -2508,7 +2684,12 @@ func (this *GeminiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		//         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		var candles any = []any{}
+		if IsTrue(IsArray(response)) {
+			candles = response
+		}
+
+		ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -2533,8 +2714,8 @@ func (this *GeminiCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes211212 := (<-this.LoadMarkets())
-			PanicOnError(retRes211212)
+			retRes212912 := (<-this.LoadMarkets())
+			PanicOnError(retRes212912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{

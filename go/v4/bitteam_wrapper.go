@@ -111,7 +111,7 @@ func (this *Bitteam) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitteam) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -428,7 +428,7 @@ func (this *Bitteam) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @name bitteam#cancelAllOrders
  * @description cancel open orders of market
  * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
@@ -809,10 +809,10 @@ func (this *Bitteam) FetchDepositAddressesByNetwork(code string, options ...Fetc
 func (this *Bitteam) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDeposits(options...)
 }
-func (this *Bitteam) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Bitteam) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Bitteam) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Bitteam) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Bitteam) FetchFreeBalance(params ...any) (Balance, error) {
@@ -935,7 +935,7 @@ func (this *Bitteam) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Bitteam) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitteam) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitteam) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitteam) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -953,7 +953,7 @@ func (this *Bitteam) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bitteam) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitteam) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitteam) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitteam) FetchTime(params ...any) (int64, error) {
@@ -1079,7 +1079,7 @@ func (this *Bitteam) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bitteam) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bitteam) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bitteam) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bitteam) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1124,7 +1124,7 @@ func (this *Bitteam) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Bitteam) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bitteam) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bitteam) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bitteam) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

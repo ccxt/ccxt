@@ -176,7 +176,7 @@ cex.fetchTrades (symbol, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://trade.cex.io/docs/#rest-public-api-calls-order-book  
 
@@ -435,12 +435,12 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-cex.cancelAllOrders (symbol, params?)
+cex.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -716,7 +716,7 @@ cex.watchMyTrades (symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://trade.cex.io/docs/#websocket-public-api-calls-order-book-subscribe  
 

@@ -175,100 +175,100 @@ class blofin extends blofin$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'market/instruments': 1,
-                        'market/tickers': 1,
-                        'market/books': 1,
-                        'market/trades': 1,
-                        'market/mark-price': 1,
-                        'market/funding-rate': 1,
-                        'market/funding-rate-history': 1,
-                        'market/candles': 1,
-                        'market/index-candles': 1,
-                        'market/mark-price-candles': 1,
-                        'market/position-tiers': 1,
+                        'market/instruments': { 'cost': 1 },
+                        'market/tickers': { 'cost': 1 },
+                        'market/books': { 'cost': 1 },
+                        'market/trades': { 'cost': 1 },
+                        'market/mark-price': { 'cost': 1 },
+                        'market/funding-rate': { 'cost': 1 },
+                        'market/funding-rate-history': { 'cost': 1 },
+                        'market/candles': { 'cost': 1 },
+                        'market/index-candles': { 'cost': 1 },
+                        'market/mark-price-candles': { 'cost': 1 },
+                        'market/position-tiers': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'asset/balances': 1,
-                        'asset/bills': 1,
-                        'asset/withdrawal-history': 1,
-                        'asset/deposit-history': 1,
-                        'account/config': 1,
-                        'asset/currencies': 1,
+                        'asset/balances': { 'cost': 1 },
+                        'asset/bills': { 'cost': 1 },
+                        'asset/withdrawal-history': { 'cost': 1 },
+                        'asset/deposit-history': { 'cost': 1 },
+                        'account/config': { 'cost': 1 },
+                        'asset/currencies': { 'cost': 1 },
                         // trading
-                        'account/balance': 1,
-                        'account/positions': 1,
-                        'account/positions-history': 1,
-                        'account/margin-mode': 1,
-                        'account/position-mode': 1,
-                        'account/leverage-info': 1,
-                        'account/batch-leverage-info': 1,
-                        'trade/orders-pending': 1,
-                        'trade/order-detail': 1,
-                        'trade/orders-tpsl-pending': 1,
-                        'trade/order-tpsl-detail': 1,
-                        'trade/orders-algo-pending': 1,
-                        'trade/orders-history': 1,
-                        'trade/orders-tpsl-history': 1,
-                        'trade/orders-algo-history': 1, // todo new
-                        'trade/fills-history': 1,
-                        'trade/order/price-range': 1,
+                        'account/balance': { 'cost': 1 },
+                        'account/positions': { 'cost': 1 },
+                        'account/positions-history': { 'cost': 1 },
+                        'account/margin-mode': { 'cost': 1 },
+                        'account/position-mode': { 'cost': 1 },
+                        'account/leverage-info': { 'cost': 1 },
+                        'account/batch-leverage-info': { 'cost': 1 },
+                        'trade/orders-pending': { 'cost': 1 },
+                        'trade/order-detail': { 'cost': 1 },
+                        'trade/orders-tpsl-pending': { 'cost': 1 },
+                        'trade/order-tpsl-detail': { 'cost': 1 },
+                        'trade/orders-algo-pending': { 'cost': 1 },
+                        'trade/orders-history': { 'cost': 1 },
+                        'trade/orders-tpsl-history': { 'cost': 1 },
+                        'trade/orders-algo-history': { 'cost': 1 }, // todo new
+                        'trade/fills-history': { 'cost': 1 },
+                        'trade/order/price-range': { 'cost': 1 },
                         // affiliate
-                        'affiliate/basic': 1,
-                        'affiliate/referral-code': 1,
-                        'affiliate/invitees': 1,
-                        'affiliate/sub-invitees': 1,
-                        'affiliate/sub-affiliates': 1,
-                        'affiliate/invitees/daily/info': 1,
+                        'affiliate/basic': { 'cost': 1 },
+                        'affiliate/referral-code': { 'cost': 1 },
+                        'affiliate/invitees': { 'cost': 1 },
+                        'affiliate/sub-invitees': { 'cost': 1 },
+                        'affiliate/sub-affiliates': { 'cost': 1 },
+                        'affiliate/invitees/daily/info': { 'cost': 1 },
                         // copy trading
-                        'copytrading/instruments': 1,
-                        'copytrading/config': 1,
-                        'copytrading/account/balance': 1,
-                        'copytrading/account/positions-by-order': 1,
-                        'copytrading/account/positions-details-by-order': 1,
-                        'copytrading/account/positions-by-contract': 1,
-                        'copytrading/account/position-mode': 1,
-                        'copytrading/account/leverage-info': 1,
-                        'copytrading/trade/orders-pending': 1,
-                        'copytrading/trade/pending-tpsl-by-contract': 1,
-                        'copytrading/trade/position-history-by-order': 1,
-                        'copytrading/trade/orders-history': 1,
-                        'copytrading/trade/pending-tpsl-by-order': 1,
+                        'copytrading/instruments': { 'cost': 1 },
+                        'copytrading/config': { 'cost': 1 },
+                        'copytrading/account/balance': { 'cost': 1 },
+                        'copytrading/account/positions-by-order': { 'cost': 1 },
+                        'copytrading/account/positions-details-by-order': { 'cost': 1 },
+                        'copytrading/account/positions-by-contract': { 'cost': 1 },
+                        'copytrading/account/position-mode': { 'cost': 1 },
+                        'copytrading/account/leverage-info': { 'cost': 1 },
+                        'copytrading/trade/orders-pending': { 'cost': 1 },
+                        'copytrading/trade/pending-tpsl-by-contract': { 'cost': 1 },
+                        'copytrading/trade/position-history-by-order': { 'cost': 1 },
+                        'copytrading/trade/orders-history': { 'cost': 1 },
+                        'copytrading/trade/pending-tpsl-by-order': { 'cost': 1 },
                         // user
-                        'user/query-apikey': 1,
+                        'user/query-apikey': { 'cost': 1 },
                         // tax
-                        'spot/trade/fills-history': 1,
+                        'spot/trade/fills-history': { 'cost': 1 },
                     },
                     'post': {
                         // account
-                        'asset/transfer': 1,
-                        'asset/demo-apply-money': 1,
+                        'asset/transfer': { 'cost': 1 },
+                        'asset/demo-apply-money': { 'cost': 1 },
                         // trading
-                        'account/set-margin-mode': 1,
-                        'account/set-position-mode': 1,
-                        'account/set-leverage': 1,
-                        'trade/order': 1,
-                        'trade/batch-orders': 1,
-                        'trade/order-tpsl': 1,
-                        'trade/order-algo': 1,
-                        'trade/cancel-order': 1,
-                        'trade/cancel-batch-orders': 1,
-                        'trade/cancel-tpsl': 1,
-                        'trade/cancel-algo': 1,
-                        'trade/close-position': 1,
+                        'account/set-margin-mode': { 'cost': 1 },
+                        'account/set-position-mode': { 'cost': 1 },
+                        'account/set-leverage': { 'cost': 1 },
+                        'trade/order': { 'cost': 1 },
+                        'trade/batch-orders': { 'cost': 1 },
+                        'trade/order-tpsl': { 'cost': 1 },
+                        'trade/order-algo': { 'cost': 1 },
+                        'trade/cancel-order': { 'cost': 1 },
+                        'trade/cancel-batch-orders': { 'cost': 1 },
+                        'trade/cancel-tpsl': { 'cost': 1 },
+                        'trade/cancel-algo': { 'cost': 1 },
+                        'trade/close-position': { 'cost': 1 },
                         // copy trading
-                        'copytrading/account/set-position-mode': 1,
-                        'copytrading/account/set-leverage': 1,
-                        'copytrading/trade/place-order': 1,
-                        'copytrading/trade/cancel-order': 1,
-                        'copytrading/trade/place-tpsl-by-contract': 1,
-                        'copytrading/trade/cancel-tpsl-by-contract': 1,
-                        'copytrading/trade/place-tpsl-by-order': 1,
-                        'copytrading/trade/cancel-tpsl-by-order': 1,
-                        'copytrading/trade/close-position-by-order': 1,
-                        'copytrading/trade/close-position-by-contract': 1,
+                        'copytrading/account/set-position-mode': { 'cost': 1 },
+                        'copytrading/account/set-leverage': { 'cost': 1 },
+                        'copytrading/trade/place-order': { 'cost': 1 },
+                        'copytrading/trade/cancel-order': { 'cost': 1 },
+                        'copytrading/trade/place-tpsl-by-contract': { 'cost': 1 },
+                        'copytrading/trade/cancel-tpsl-by-contract': { 'cost': 1 },
+                        'copytrading/trade/place-tpsl-by-order': { 'cost': 1 },
+                        'copytrading/trade/cancel-tpsl-by-order': { 'cost': 1 },
+                        'copytrading/trade/close-position-by-order': { 'cost': 1 },
+                        'copytrading/trade/close-position-by-contract': { 'cost': 1 },
                     },
                 },
             },
@@ -598,7 +598,7 @@ class blofin extends blofin$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1237,6 +1237,12 @@ class blofin extends blofin$1["default"] {
         return this.parseBalanceByType(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2186,7 +2192,7 @@ class blofin extends blofin$1["default"] {
         const data = this.safeList(response, 'data', []);
         const position = this.safeDict(data, 0);
         if (position === undefined) {
-            return undefined;
+            throw new errors.NullResponse(this.id + ' fetchPosition() returned empty position');
         }
         return this.parsePosition(position, market);
     }
@@ -2377,7 +2383,8 @@ class blofin extends blofin$1["default"] {
             initialMarginPercentage = this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString, 4));
         }
         else if (initialMarginString === undefined) {
-            initialMarginString = Precise["default"].stringMul(initialMarginPercentage, notionalString);
+            const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+            initialMarginString = Precise["default"].stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
@@ -2719,7 +2726,7 @@ class blofin extends blofin$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseMarginMode(data, market); // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
+        return this.parseMarginMode(data, market); // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
     }
     /**
      * @method

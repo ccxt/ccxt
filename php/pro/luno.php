@@ -75,7 +75,7 @@ class luno extends \ccxt\async\luno {
         })();
     }
 
-    public function handle_trades(Client $client, $message, $subscription) {
+    public function handle_trades(Client $client, mixed $message, mixed $subscription) {
         //
         //     {
         //         "sequence" => "110980825",
@@ -114,7 +114,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade(mixed $trade, ?array $market = null): array {
         //
         // watchTrades (public)
         //
@@ -126,12 +126,13 @@ class luno extends \ccxt\async\luno {
         //       "order_id" => "BXEEU4S2BWF5WRB"
         //     }
         //
+        $symbol = ($market === null) ? null : $market['symbol'];
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => null,
             'type' => null,
             'side' => null,
@@ -155,7 +156,7 @@ class luno extends \ccxt\async\luno {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {arrayConstructor} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] accepts l2 or l3 for level 2 or level 3 order book
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $this->check_required_credentials();
             if ($this->markets === null) {
@@ -177,7 +178,7 @@ class luno extends \ccxt\async\luno {
         })();
     }
 
-    public function handle_order_book(Client $client, $message, $subscription) {
+    public function handle_order_book(Client $client, mixed $message, mixed $subscription) {
         //
         //     {
         //         "sequence" => "24352",
@@ -232,7 +233,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
+    public function custom_parse_order_book(mixed $orderbook, mixed $symbol, ?int $timestamp = null, $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
         $bids = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
         $asks = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
@@ -245,7 +246,7 @@ class luno extends \ccxt\async\luno {
         );
     }
 
-    public function parse_order_book_bids_asks($bidasks, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
+    public function parse_order_book_bids_asks(mixed $bidasks, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
         $bidasks = $this->to_array($bidasks);
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
@@ -254,7 +255,7 @@ class luno extends \ccxt\async\luno {
         return $result;
     }
 
-    public function custom_parse_bid_ask($bidask, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
+    public function custom_parse_bid_ask(mixed $bidask, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $result = array( $price, $amount );
@@ -265,7 +266,7 @@ class luno extends \ccxt\async\luno {
         return $result;
     }
 
-    public function handle_delta($orderbook, $message) {
+    public function handle_delta(mixed $orderbook, mixed $message) {
         //
         //  create
         //     {
@@ -329,7 +330,7 @@ class luno extends \ccxt\async\luno {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($message === '') {
             return;
         }

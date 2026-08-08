@@ -881,7 +881,7 @@ class bybit extends bybit$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2335,10 +2335,14 @@ class bybit extends bybit$1["default"] {
             if (this.safeValue(this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         }
         else {
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
     }
     async watchTopics(url, messageHashes, topics, params = {}) {
@@ -2467,6 +2471,17 @@ class bybit extends bybit$1["default"] {
                 client.reject(error, authenticatedHash);
                 if (authenticatedHash in client.subscriptions) {
                     delete client.subscriptions[authenticatedHash];
+                }
+                const op = this.safeString(message, 'op');
+                if ((op !== undefined) && (op !== 'auth')) {
+                    // an operation response that carries no reqId, e.g. bybit
+                    // omits it on some permission rejections of trade ops,
+                    // would leave the awaiting future pending forever, and
+                    // since nothing on this client can proceed without
+                    // authentication, reject everything pending, mirroring the
+                    // behavior of unattributable non auth errors, see
+                    // https://github.com/ccxt/ccxt/issues/29361
+                    client.reject(error);
                 }
             }
             else {

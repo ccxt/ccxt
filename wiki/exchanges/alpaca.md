@@ -111,7 +111,7 @@ alpaca.fetchTrades (symbol, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.alpaca.markets/reference/cryptolatestorderbooks  
 
@@ -330,12 +330,12 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
+| symbol | <code>string</code> | No | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-alpaca.cancelAllOrders (symbol, params?)
+alpaca.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -672,7 +672,7 @@ alpaca.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#orderbooks  
 

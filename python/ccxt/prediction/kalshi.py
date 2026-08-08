@@ -7,6 +7,7 @@ from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.kalshi import ImplicitAPI
 from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionSettlement
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -84,96 +85,96 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'kalshi': {
                     'public': {
                         'get': {
-                            'events': 1,
-                            'events/multivariate': 1,
-                            'events/fee_changes': 1,
-                            'events/{event_ticker}': 1,
-                            'events/{event_ticker}/metadata': 1,
-                            'series': 1,
-                            'series/fee_changes': 1,
-                            'series/{series_ticker}': 1,
-                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
-                            'series/{series_ticker}/events/{ticker}/candlesticks': 1,
-                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': 1,
-                            'markets': 1,
-                            'markets/trades': 1,
-                            'markets/orderbooks': 1,
-                            'markets/candlesticks': 1,
-                            'markets/{ticker}': 1,
-                            'markets/{ticker}/orderbook': 1,
-                            'exchange/status': 1,
-                            'exchange/schedule': 1,
-                            'exchange/announcements': 1,
-                            'exchange/user_data_timestamp': 1,
-                            'milestones': 1,
-                            'milestones/{milestone_id}': 1,
-                            'structured_targets': 1,
-                            'structured_targets/{structured_target_id}': 1,
-                            'search/filters_by_sport': 1,
-                            'search/tags_by_categories': 1,
-                            'live_data/batch': 1,
-                            'live_data/milestone/{milestone_id}': 1,
-                            'historical/markets': 1,
-                            'historical/markets/{ticker}/candlesticks': 1,
-                            'historical/trades': 1,
-                            'historical/cutoff_timestamps': 1,
-                            'multivariate_event_collections': 1,
-                            'multivariate_event_collections/{collection_ticker}': 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
-                            'incentive_programs': 1,
+                            'events': {'cost': 1},
+                            'events/multivariate': {'cost': 1},
+                            'events/fee_changes': {'cost': 1},
+                            'events/{event_ticker}': {'cost': 1},
+                            'events/{event_ticker}/metadata': {'cost': 1},
+                            'series': {'cost': 1},
+                            'series/fee_changes': {'cost': 1},
+                            'series/{series_ticker}': {'cost': 1},
+                            'series/{series_ticker}/markets/{ticker}/candlesticks': {'cost': 1},
+                            'series/{series_ticker}/events/{ticker}/candlesticks': {'cost': 1},
+                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': {'cost': 1},
+                            'markets': {'cost': 1},
+                            'markets/trades': {'cost': 1},
+                            'markets/orderbooks': {'cost': 1},
+                            'markets/candlesticks': {'cost': 1},
+                            'markets/{ticker}': {'cost': 1},
+                            'markets/{ticker}/orderbook': {'cost': 1},
+                            'exchange/status': {'cost': 1},
+                            'exchange/schedule': {'cost': 1},
+                            'exchange/announcements': {'cost': 1},
+                            'exchange/user_data_timestamp': {'cost': 1},
+                            'milestones': {'cost': 1},
+                            'milestones/{milestone_id}': {'cost': 1},
+                            'structured_targets': {'cost': 1},
+                            'structured_targets/{structured_target_id}': {'cost': 1},
+                            'search/filters_by_sport': {'cost': 1},
+                            'search/tags_by_categories': {'cost': 1},
+                            'live_data/batch': {'cost': 1},
+                            'live_data/milestone/{milestone_id}': {'cost': 1},
+                            'historical/markets': {'cost': 1},
+                            'historical/markets/{ticker}/candlesticks': {'cost': 1},
+                            'historical/trades': {'cost': 1},
+                            'historical/cutoff_timestamps': {'cost': 1},
+                            'multivariate_event_collections': {'cost': 1},
+                            'multivariate_event_collections/{collection_ticker}': {'cost': 1},
+                            'multivariate_event_collections/{collection_ticker}/lookup': {'cost': 1},
+                            'incentive_programs': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
-                            'portfolio/balance': 1,
-                            'portfolio/orders': 1,
-                            'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders/{order_id}/queue_position': 1,
-                            'portfolio/orders/queue_positions': 1,
-                            'portfolio/positions': 1,
-                            'portfolio/fills': 1,
-                            'portfolio/settlements': 1,
-                            'portfolio/deposits': 1,
-                            'portfolio/withdrawals': 1,
-                            'portfolio/order_groups': 1,
-                            'portfolio/order_groups/{order_group_id}': 1,
-                            'portfolio/summary/total_resting_order_value': 1,
-                            'portfolio/subaccounts/balances': 1,
-                            'portfolio/subaccounts/netting': 1,
-                            'portfolio/subaccounts/transfers': 1,
-                            'historical/fills': 1,
-                            'historical/orders': 1,
+                            'portfolio/balance': {'cost': 1},
+                            'portfolio/orders': {'cost': 1},
+                            'portfolio/orders/{order_id}': {'cost': 1},
+                            'portfolio/orders/{order_id}/queue_position': {'cost': 1},
+                            'portfolio/orders/queue_positions': {'cost': 1},
+                            'portfolio/positions': {'cost': 1},
+                            'portfolio/fills': {'cost': 1},
+                            'portfolio/settlements': {'cost': 1},
+                            'portfolio/deposits': {'cost': 1},
+                            'portfolio/withdrawals': {'cost': 1},
+                            'portfolio/order_groups': {'cost': 1},
+                            'portfolio/order_groups/{order_group_id}': {'cost': 1},
+                            'portfolio/summary/total_resting_order_value': {'cost': 1},
+                            'portfolio/subaccounts/balances': {'cost': 1},
+                            'portfolio/subaccounts/netting': {'cost': 1},
+                            'portfolio/subaccounts/transfers': {'cost': 1},
+                            'historical/fills': {'cost': 1},
+                            'historical/orders': {'cost': 1},
                         },
                         'post': {
-                            'portfolio/orders': 1,
-                            'portfolio/events/orders': 1,
-                            'portfolio/orders/batched': 1,
-                            'portfolio/orders/{order_id}/amend': 1,
-                            'portfolio/orders/{order_id}/decrease': 1,
-                            'portfolio/order_groups/create': 1,
-                            'portfolio/subaccounts': 1,
-                            'portfolio/subaccounts/transfer': 1,
-                            'multivariate_event_collections/{collection_ticker}': 1,
+                            'portfolio/orders': {'cost': 1},
+                            'portfolio/events/orders': {'cost': 1},
+                            'portfolio/orders/batched': {'cost': 1},
+                            'portfolio/orders/{order_id}/amend': {'cost': 1},
+                            'portfolio/orders/{order_id}/decrease': {'cost': 1},
+                            'portfolio/order_groups/create': {'cost': 1},
+                            'portfolio/subaccounts': {'cost': 1},
+                            'portfolio/subaccounts/transfer': {'cost': 1},
+                            'multivariate_event_collections/{collection_ticker}': {'cost': 1},
                         },
                         'put': {
-                            'portfolio/order_groups/{order_group_id}/reset': 1,
-                            'portfolio/order_groups/{order_group_id}/trigger': 1,
-                            'portfolio/order_groups/{order_group_id}/limit': 1,
-                            'portfolio/subaccounts/netting': 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
+                            'portfolio/order_groups/{order_group_id}/reset': {'cost': 1},
+                            'portfolio/order_groups/{order_group_id}/trigger': {'cost': 1},
+                            'portfolio/order_groups/{order_group_id}/limit': {'cost': 1},
+                            'portfolio/subaccounts/netting': {'cost': 1},
+                            'multivariate_event_collections/{collection_ticker}/lookup': {'cost': 1},
                         },
                         'delete': {
-                            'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders/batched': 1,
-                            'portfolio/events/orders/{order_id}': 1,  # v2 cancel(the non-v2 paths above are 410 Gone)
-                            'portfolio/order_groups/{order_group_id}': 1,
+                            'portfolio/orders/{order_id}': {'cost': 1},
+                            'portfolio/orders/batched': {'cost': 1},
+                            'portfolio/events/orders/{order_id}': {'cost': 1},  # v2 cancel(the non-v2 paths above are 410 Gone)
+                            'portfolio/order_groups/{order_group_id}': {'cost': 1},
                         },
                     },
                 },
                 'elections': {
                     'public': {
                         'get': {
-                            'search/series': 1,   # free-text series/event search — elections web host only
+                            'search/series': {'cost': 1},   # free-text series/event search — elections web host only
                         },
                     },
                 },
@@ -338,6 +339,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 parsed = self.parse_market(rawMarket)
                 if self.markets is None:
                     self.markets = self.create_safe_dictionary()
+                if parsed is None:
+                    raise ExchangeError(self.id + ' fetchOutcome() could not resolve parsed')
                 self.markets[parsed['market']] = parsed
                 # index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 # whole cache — on-demand fetchOutcome(loadAllOutcomes False) is the hot path here
@@ -410,6 +413,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             rawMarkets = self.safe_list(response, 'markets', [])
             for i in range(0, len(rawMarkets)):
                 parsed = self.parse_market(rawMarkets[i])
+                if parsed is None:
+                    raise ExchangeError(self.id + ' fetchOutcomes() could not resolve parsed')
                 self.markets[parsed['market']] = parsed
                 self.index_market_outcomes(parsed)
             startIndex = self.sum(startIndex, chunkSize)
@@ -755,7 +760,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         raw = self.safe_dict(response, 'market', response)
         return self.parse_prediction_open_interest(raw, outcomeObj)
 
-    def parse_prediction_open_interest(self, interest, market: Market = None) -> PredictionOpenInterest:
+    def parse_prediction_open_interest(self, interest: dict, market: Market = None) -> PredictionOpenInterest:
         #
         #     {"ticker": "...", "open_interest_fp": "60802.01", ...}   # open interest in contracts
         #
@@ -1140,7 +1145,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         self.options['ohlcvCandleDurationSeconds'] = tf
         return self.parse_ohlcvs(usableCandles, outcomeObj, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         """
  @ignore
         parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
@@ -1298,6 +1303,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             # the ticker filter narrows to the market; a market has both legs, so the
             # wanted-leg filter below still drops the opposite-leg fills
             outcomeObj = self.outcome(outcome)
+            if outcomeObj is None:
+                raise ArgumentsRequired(self.id + ' requires a valid outcome')
             request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
         if limit is not None:
             request['limit'] = limit
@@ -1396,7 +1403,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivateGetPortfolioBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         """
  @ignore
         parses a kalshi balance response(cents) into a unified balances object with a USD entry
@@ -1437,6 +1444,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if outcomesLength == 0:
             return parsed
         wantedTickers = {}
+        if outcomes is None:
+            raise ExchangeError(self.id + ' fetchPositions() missing outcomes')
         for i in range(0, len(outcomes)):
             outcomeObj = self.outcome(outcomes[i])
             outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
@@ -1606,6 +1615,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeObj = None
         if outcome is not None:
             outcomeObj = self.outcome(outcome)
+            if outcomeObj is None:
+                raise ArgumentsRequired(self.id + ' requires a valid outcome')
             request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
         response = await self.kalshiPrivateGetPortfolioOrders(self.extend(request, params))
         orders = self.safe_list(response, 'orders', [])
@@ -1630,6 +1641,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeObj = None
         if outcome is not None:
             outcomeObj = self.outcome(outcome)
+            if outcomeObj is None:
+                raise ArgumentsRequired(self.id + ' requires a valid outcome')
             request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
         response = await self.kalshiPrivateGetPortfolioOrders(self.extend(request, params))
         orders = self.safe_list(response, 'orders', [])
@@ -1950,6 +1963,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict[]: an array of event structures
         """
         queries = self.parse_search_queries(params)
+        if queries is None:
+            raise ExchangeError(self.id + ' fetchEvents() missing queries')
         queriesLength = len(queries)
         params = self.omit(params, ['query', 'queries'])
         userLimit = self.safe_integer(params, 'limit')

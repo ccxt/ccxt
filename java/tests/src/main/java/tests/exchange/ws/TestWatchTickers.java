@@ -82,7 +82,13 @@ public class TestWatchTickers extends BaseTest {
                         TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                     } catch(Exception ex)
                     {
-                        (TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker)).join();
+                        Object ohlcv = null;
+                        Object tickerSymbol = Helpers.GetValue(ticker, "symbol");
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tickerSymbol, null))) && Helpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
+                        {
+                            ohlcv = (exchange.fetchOHLCV(tickerSymbol, "1d", null, 5)).join();
+                        }
+                        TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
                 }
                 now = exchange.milliseconds();

@@ -1591,7 +1591,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ARB"
+                        "network": "ARBITRUM"
                     }
                 ],
                 "httpResponse": {
@@ -1608,7 +1608,7 @@
                     "currency": "USDT",
                     "address": "0xC38268b45F651EA74a5C0cB7531AA79EF20e138f",
                     "tag": null,
-                    "network": "ARB",
+                    "network": "ARBITRUM",
                     "info": {
                         "canDeposit": true,
                         "address": "0xC38268b45F651EA74a5C0cB7531AA79EF20e138f",

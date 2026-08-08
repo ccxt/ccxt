@@ -5,46 +5,46 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    wwwGetOrderFetchMarkets (params?: {}): Promise<implicitReturnType>;
-    wwwGetOrderFetchTickers (params?: {}): Promise<implicitReturnType>;
-    wwwGetOrderFetchOrderbook (params?: {}): Promise<implicitReturnType>;
-    wwwGetOrderGetTickerWithVolume (params?: {}): Promise<implicitReturnType>;
-    wwwGetExchangeDataOhlc (params?: {}): Promise<implicitReturnType>;
-    wwwGetExchangeDataOrderBook (params?: {}): Promise<implicitReturnType>;
-    wwwGetExchangeDataTradedetails (params?: {}): Promise<implicitReturnType>;
-    v1GetPlatformStatus (params?: {}): Promise<implicitReturnType>;
-    v1GetTickers (params?: {}): Promise<implicitReturnType>;
-    v1GetOrderbookSellSymbol (params?: {}): Promise<implicitReturnType>;
-    v1GetOrderbookBuySymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostCurrentCoinBalanceEVERYTHING (params?: {}): Promise<implicitReturnType>;
-    v1PostGetApiUsageStatusUSAGE (params?: {}): Promise<implicitReturnType>;
-    v1PostGetOrderSocketTokenUSAGE (params?: {}): Promise<implicitReturnType>;
-    v1PostCurrentCoinBalanceSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostOrderStatusSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostDepositHistorySymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostWithdrawHistorySymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostWithdrawHistoryAllSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostDepositHistoryAllSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostListOpenOrdersSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostListOpenStopOrdersSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostGetCoinAddressSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostPlaceSellOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostPlaceBuyOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostBuyStopLossSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostSellStopLossSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostCancelOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostCancelStopLossOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostListExecutedOrdersSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostPlaceMarketOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostPlaceMarketOrderQntySymbol (params?: {}): Promise<implicitReturnType>;
-    v2PostOrders (params?: {}): Promise<implicitReturnType>;
-    v2PostCancel (params?: {}): Promise<implicitReturnType>;
-    v2PostGetordersnew (params?: {}): Promise<implicitReturnType>;
-    v2PostMarginOrders (params?: {}): Promise<implicitReturnType>;
+    wwwGetOrderFetchMarkets (params?: {}): Promise<List>;
+    wwwGetOrderFetchTickers (params?: {}): Promise<List>;
+    wwwGetOrderFetchOrderbook (params?: {}): Promise<Dict>;
+    wwwGetOrderGetTickerWithVolume (params?: {}): Promise<Dict>;
+    wwwGetExchangeDataOhlc (params?: {}): Promise<List>;
+    wwwGetExchangeDataOrderBook (params?: {}): Promise<Dict>;
+    wwwGetExchangeDataTradedetails (params?: {}): Promise<List>;
+    v1GetPlatformStatus (params?: {}): Promise<Dict>;
+    v1GetTickers (params?: {}): Promise<Dict>;
+    v1GetOrderbookSellSymbol (params?: {}): Promise<Dict>;
+    v1GetOrderbookBuySymbol (params?: {}): Promise<Dict>;
+    v1PostCurrentCoinBalanceEVERYTHING (params?: {}): Promise<Dict>;
+    v1PostGetApiUsageStatusUSAGE (params?: {}): Promise<Dict>;
+    v1PostGetOrderSocketTokenUSAGE (params?: {}): Promise<Dict>;
+    v1PostCurrentCoinBalanceSymbol (params?: {}): Promise<Dict>;
+    v1PostOrderStatusSymbol (params?: {}): Promise<Dict>;
+    v1PostDepositHistorySymbol (params?: {}): Promise<Dict>;
+    v1PostWithdrawHistorySymbol (params?: {}): Promise<Dict>;
+    v1PostWithdrawHistoryAllSymbol (params?: {}): Promise<Dict>;
+    v1PostDepositHistoryAllSymbol (params?: {}): Promise<Dict>;
+    v1PostListOpenOrdersSymbol (params?: {}): Promise<Dict>;
+    v1PostListOpenStopOrdersSymbol (params?: {}): Promise<Dict>;
+    v1PostGetCoinAddressSymbol (params?: {}): Promise<Dict>;
+    v1PostPlaceSellOrderSymbol (params?: {}): Promise<Dict>;
+    v1PostPlaceBuyOrderSymbol (params?: {}): Promise<Dict>;
+    v1PostBuyStopLossSymbol (params?: {}): Promise<Dict>;
+    v1PostSellStopLossSymbol (params?: {}): Promise<Dict>;
+    v1PostCancelOrderSymbol (params?: {}): Promise<Dict>;
+    v1PostCancelStopLossOrderSymbol (params?: {}): Promise<Dict>;
+    v1PostListExecutedOrdersSymbol (params?: {}): Promise<Dict>;
+    v1PostPlaceMarketOrderSymbol (params?: {}): Promise<Dict>;
+    v1PostPlaceMarketOrderQntySymbol (params?: {}): Promise<Dict>;
+    v2PostOrders (params?: {}): Promise<Dict>;
+    v2PostCancel (params?: {}): Promise<Dict>;
+    v2PostGetordersnew (params?: {}): Promise<Dict>;
+    v2PostMarginOrders (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

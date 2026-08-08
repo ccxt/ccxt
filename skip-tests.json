@@ -810,21 +810,11 @@
                 "withdraw": "not provided",
                 "activeMajorCurrencies": "todo"
             },
-            "watchOrderBook": {
-                "spread": "broken bid-ask: https://github.com/ccxt/ccxt/actions/runs/14995105728/job/42127573821?pr=25943#step:9:382"
-            },
-            "watchOrderBookForSymbols": {
-                "spread": "broken bid-ask: https://github.com/ccxt/ccxt/actions/runs/14995105728/job/42127573821?pr=25943#step:9:382"
-            },
-            "watchTickers": "closes connection",
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
-            "watchTrades": {
-                "timestampSort": "https://github.com/ccxt/ccxt/actions/runs/24385112543/job/71217585200?pr=14269#step:11:545"
-            },
-            "watchTradesForSymbols": {
-                "timestampSort": "same"
+            "watchTickers": {
+                "compareOHLC": "24h high/low can lag the latest price, so close occasionally falls outside the 24h range"
             }
         }
     },
@@ -1152,9 +1142,18 @@
     },
     "derive": {
         "skipMethods": {
+            "features": "not implemented",
             "loadMarkets": {
                 "currency": "messed",
                 "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies": {
+                "precision": "not provided",
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "networks":"empty",
+                "type": "not provided",
+                "activeMajorCurrencies": "todo"
             },
             "fetchOrderBook": "not implemented"
         }

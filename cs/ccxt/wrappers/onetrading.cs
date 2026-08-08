@@ -143,7 +143,7 @@ public partial class onetrading
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -264,6 +264,12 @@ public partial class onetrading
     /// <remarks>
     /// See <see href="https://docs.onetrading.com/rest/trading/cancel-all-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>

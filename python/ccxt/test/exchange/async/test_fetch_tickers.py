@@ -45,7 +45,11 @@ async def fetch_tickers_helper_test(exchange, skipped_properties, arg_symbols, a
         try:
             test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
         except Exception as ex:
-            await test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker)
+            ohlcv = None
+            ticker_symbol = ticker['symbol']
+            if (ticker_symbol is not None) and test_shared_methods.ticker_exception_needs_ohlcv(ex, exchange, ticker):
+                ohlcv = await exchange.fetch_ohlcv(ticker_symbol, '1d', None, 5)
+            test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker, ohlcv)
     return response
 
 
@@ -64,5 +68,7 @@ def fetch_tickers_amounts_test(exchange, skipped_properties, tickers):
         # ensure tickers length is less than markets length
         #
         all_markets = exchange.markets
+        if all_markets is None:
+            return
         all_markets_length = len(list(all_markets.keys()))
         assert obtained_tickers_length <= all_markets_length, exchange.id + ' ' + 'fetchTickers' + ' must return <= than all markets, but returned: ' + str(obtained_tickers_length) + ' tickers, ' + str(all_markets_length) + ' markets'

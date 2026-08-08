@@ -172,6 +172,9 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
             // so, we have to compare with millisecond accururacy
             $dt_parsed = $exchange->parse8601($dt);
             $ts_ms = $entry['timestamp'];
+            if ($dt_parsed === null) {
+                assert(false, 'datetime is not parseable: ' . $dt . $log_text);
+            }
             $diff = abs($dt_parsed - $ts_ms);
             if ($diff >= 500) {
                 $dt_parsed_string = $exchange->iso8601($dt_parsed);
@@ -239,7 +242,7 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
 
 function assert_symbol_in_markets($exchange, $skipped_properties, $method, $symbol) {
     $log_text = log_template($exchange, $method, array());
-    assert((is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
+    assert(($exchange->markets !== null) && (is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
 }
 
 
@@ -665,21 +668,41 @@ function exchange_prop($exchange, $key, $default_value = null) {
 }
 
 
-function validate_ticker_exception_for_percentage($ex, $exchange, $ticker) {
+function ticker_exception_needs_ohlcv($ex, $exchange, $ticker) {
+    // pure helper (no awaits): files under test/Exchange/base transpile into a single
+    // sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
+    // in the per-lane callers - this tells them whether the probe is needed
+    $e_message = $exchange->exception_message($ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+    if (mb_strpos($e_message, 'percentage should be above') !== false || mb_strpos($e_message, 'percentage should be below') !== false) {
+        $symbol = $ticker['symbol'];
+        if ($symbol !== null) {
+            if (($exchange->markets !== null) && (is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
+                if ($exchange->feature_value($symbol, 'fetchOHLCV') !== null) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+
+function validate_ticker_exception_for_percentage($ex, $exchange, $ticker, $ohlcv = null) {
     // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-    $e_message = $exchange->exception_message($ex, false);
-    if (in_array('percentage should be above', $e_message) || in_array('percentage should be below', $e_message)) {
+    // pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
+    // per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
+    $e_message = $exchange->exception_message($ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+    if (mb_strpos($e_message, 'percentage should be above') !== false || mb_strpos($e_message, 'percentage should be below') !== false) {
         $symbol = $ticker['symbol'];
         if ($symbol !== null) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if (!(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
+            if (($exchange->markets === null) || !(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
                 return;
             }
-            // if OHLCV supported
-            if ($exchange->feature_value($symbol, 'fetchOHLCV') !== null) {
-                $ohlcv = $exchange->fetch_ohlcv($symbol, '1d', null, 5);
-                if (count($ohlcv) <= 1) {
-                    // if only 1 day, then allow it
+            if ($ohlcv !== null) {
+                $ohlcv_length = count($ohlcv);
+                if ($ohlcv_length <= 1) {
+                    // if only 1 day of listing, then allow it
                     return;
                 }
             }

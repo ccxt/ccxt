@@ -36,13 +36,19 @@ public partial class bitrue : ccxt.bitrue
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "post", new Dictionary<string, object>() {
-                                { "poseidon/api/v1/listenKey", 1 },
+                                { "poseidon/api/v1/listenKey", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                             { "put", new Dictionary<string, object>() {
-                                { "poseidon/api/v1/listenKey/{listenKey}", 1 },
+                                { "poseidon/api/v1/listenKey/{listenKey}", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                             { "delete", new Dictionary<string, object>() {
-                                { "poseidon/api/v1/listenKey/{listenKey}", 1 },
+                                { "poseidon/api/v1/listenKey/{listenKey}", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                     } },
@@ -185,7 +191,10 @@ public partial class bitrue : ccxt.bitrue
                 {
                     ((IDictionary<string,object>)account)["used"] = used;
                 }
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                }
             }
         }
         this.balance = this.safeBalance(this.balance);
@@ -442,17 +451,22 @@ public partial class bitrue : ccxt.bitrue
 
     public virtual object findSwapMarketByWsBaseQuote(object wsBaseQuote)
     {
-        object symbols = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        object markets = this.markets;
+        if (isTrue(isEqual(markets, null)))
+        {
+            return null;
+        }
+        object symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object candidate = getValue(this.markets, getValue(symbols, i));
+            object candidate = getValue(markets, getValue(symbols, i));
             if (!isTrue(getValue(candidate, "swap")))
             {
                 continue;
             }
             object baseId = this.safeStringLower(candidate, "baseId", "");
             object quoteId = this.safeStringLower(candidate, "quoteId", "");
-            if (isTrue(isEqual(add(((string)baseId), ((string)quoteId)), wsBaseQuote)))
+            if (isTrue(isEqual(add(((string)baseId), quoteId), wsBaseQuote)))
             {
                 return candidate;
             }
@@ -917,7 +931,7 @@ public partial class bitrue : ccxt.bitrue
                 { "BALANCE", this.handleBalance },
                 { "ORDER", this.handleOrder },
             };
-            object handler = this.safeValue(handlers, ((string)eventVar));
+            object handler = this.safeValue(handlers, eventVar);
             if (isTrue(!isEqual(handler, null)))
             {
                 DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

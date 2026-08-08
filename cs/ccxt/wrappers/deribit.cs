@@ -46,10 +46,10 @@ public partial class deribit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetch all the accounts associated with a profile
@@ -332,7 +332,7 @@ public partial class deribit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -478,6 +478,12 @@ public partial class deribit
     /// See <see href="https://docs.deribit.com/#private-cancel_all"/>  <br/>
     /// See <see href="https://docs.deribit.com/#private-cancel_all_by_instrument"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -869,10 +875,10 @@ public partial class deribit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// fetch the current funding rate

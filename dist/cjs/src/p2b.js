@@ -158,28 +158,28 @@ class p2b extends p2b$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'markets': 1,
-                        'market': 1,
-                        'tickers': 1,
-                        'ticker': 1,
-                        'book': 1,
-                        'history': 1,
-                        'depth/result': 1,
-                        'market/kline': 1,
+                        'markets': { 'cost': 1 },
+                        'market': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'book': { 'cost': 1 },
+                        'history': { 'cost': 1 },
+                        'depth/result': { 'cost': 1 },
+                        'market/kline': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'post': {
-                        'account/balances': 1,
-                        'account/balance': 1,
-                        'order/new': 1,
-                        'order/cancel': 1,
-                        'orders': 1,
-                        'account/market_order_history': 1,
-                        'account/market_deal_history': 1,
-                        'account/order': 1,
-                        'account/order_history': 1,
-                        'account/executed_history': 1,
+                        'account/balances': { 'cost': 1 },
+                        'account/balance': { 'cost': 1 },
+                        'order/new': { 'cost': 1 },
+                        'order/cancel': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'account/market_order_history': { 'cost': 1 },
+                        'account/market_deal_history': { 'cost': 1 },
+                        'account/order': { 'cost': 1 },
+                        'account/order_history': { 'cost': 1 },
+                        'account/executed_history': { 'cost': 1 },
                     },
                 },
             },
@@ -584,7 +584,7 @@ class p2b extends p2b$1["default"] {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {

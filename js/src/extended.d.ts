@@ -1,13 +1,13 @@
 import Exchange from './abstract/extended.js';
-import type { Account, Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
 /**
  * @class extended
  * @augments Exchange
  */
 export default class extended extends Exchange {
     describe(): any;
-    loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").MarketInterface>>;
-    indexByStringifiedNumericId(input: any): Dict;
+    loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<Market>>;
+    indexByStringifiedNumericId(input: any): Dict | undefined;
     /**
      * @method
      * @name extended#fetchMarkets
@@ -27,7 +27,7 @@ export default class extended extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): Currency;
+    parseCurrency(currency: Dict): CurrencyInterface;
     /**
      * @method
      * @name extended#fetchTicker
@@ -57,7 +57,7 @@ export default class extended extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -303,7 +303,7 @@ export default class extended extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**
      * @method
      * @name extended#fetchLeverage
@@ -325,7 +325,7 @@ export default class extended extends Exchange {
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: Market): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
      * @name extended#fetchPositions
@@ -362,21 +362,10 @@ export default class extended extends Exchange {
     parsePosition(position: any, market?: Market): Position;
     getExtendedStarkAmount(amount: string, resolution: any, roundUp?: boolean): string;
     fetchExtendedAccount(params?: {}): Promise<any>;
-    createOrderSettlementData(isBuy: boolean, amountString: string, priceString: string, params?: {}): {
-        starkKey: string;
-        collateralPosition: string;
-        baseAssetId: string;
-        baseAmount: string;
-        quoteAssetId: string;
-        quoteAmount: string;
-        feeAssetId: string;
-        feeAmount: string;
-        expiration: string;
-        salt: number;
-    };
+    createOrderSettlementData(isBuy: boolean, amountString: string, priceString: string, params?: {}): Dict;
     createWithdrawalSettlementData(address: string, amountString: string, currency: Currency, account: Dict, params?: {}): Dict;
     createTransferSettlementData(amountString: string, currency: Currency, account: Dict, toVault: string, toL2Key: string, params?: {}): Dict;
-    createExtendedOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: {}): Promise<Dict>;
+    createExtendedOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name extended#createOrder
@@ -469,7 +458,7 @@ export default class extended extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name extended#fetchOrder
@@ -535,7 +524,7 @@ export default class extended extends Exchange {
      */
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: Str): Str;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     getExtendedStringToFelt(value: string): bigint;
     getExtendedEncodeI64(value: any): any;
     getExtendedDecimalToBase16(value: any): string;
@@ -544,11 +533,11 @@ export default class extended extends Exchange {
     getExtendedOrderMsgHash(settlement: Dict): string;
     getExtendedWithdrawalMsgHash(settlement: Dict, starkKey: string): string;
     getExtendedTransferMsgHash(settlement: Dict): string;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
 }

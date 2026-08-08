@@ -54,6 +54,8 @@ class luno extends luno$1["default"] {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -138,69 +140,69 @@ class luno extends luno$1["default"] {
             'api': {
                 'exchange': {
                     'get': {
-                        'markets': 1,
+                        'markets': { 'cost': 1 },
                     },
                 },
                 'exchangePrivate': {
                     'get': {
-                        'candles': 1,
-                        'move': 1,
-                        'move/list_moves': 1,
-                        'transfers': 1,
+                        'candles': { 'cost': 1 },
+                        'move': { 'cost': 1 },
+                        'move/list_moves': { 'cost': 1 },
+                        'transfers': { 'cost': 1 },
                     },
                     'post': {
-                        'convert': 1,
-                        'move': 1,
+                        'convert': { 'cost': 1 },
+                        'move': { 'cost': 1 },
                     },
                 },
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'orderbook_top': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'trades': 1,
+                        'orderbook': { 'cost': 1 },
+                        'orderbook_top': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/{id}/pending': 1,
-                        'accounts/{id}/transactions': 1,
-                        'balance': 1,
-                        'beneficiaries': 1,
-                        'send/networks': 1,
-                        'fee_info': 1,
-                        'funding_address': 1,
-                        'listorders': 1,
-                        'listtrades': 1,
-                        'send_fee': 1,
-                        'orders/{id}': 1,
-                        'withdrawals': 1,
-                        'withdrawals/{id}': 1,
-                        'transfers': 1, // not found in current docs, use GET /api/exchange/1/transfers
-                        'users/linked': 1,
+                        'accounts/{id}/pending': { 'cost': 1 },
+                        'accounts/{id}/transactions': { 'cost': 1 },
+                        'balance': { 'cost': 1 },
+                        'beneficiaries': { 'cost': 1 },
+                        'send/networks': { 'cost': 1 },
+                        'fee_info': { 'cost': 1 },
+                        'funding_address': { 'cost': 1 },
+                        'listorders': { 'cost': 1 },
+                        'listtrades': { 'cost': 1 },
+                        'send_fee': { 'cost': 1 },
+                        'orders/{id}': { 'cost': 1 },
+                        'withdrawals': { 'cost': 1 },
+                        'withdrawals/{id}': { 'cost': 1 },
+                        'transfers': { 'cost': 1 }, // not found in current docs, use GET /api/exchange/1/transfers
+                        'users/linked': { 'cost': 1 },
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
                     },
                     'post': {
-                        'accounts': 1,
-                        'address/validate': 1,
-                        'postorder': 1,
-                        'marketorder': 1,
-                        'stoporder': 1,
-                        'funding_address': 1,
-                        'withdrawals': 1,
-                        'send': 1,
-                        'oauth2/grant': 1, // deprecated for new applications
-                        'beneficiaries': 1,
+                        'accounts': { 'cost': 1 },
+                        'address/validate': { 'cost': 1 },
+                        'postorder': { 'cost': 1 },
+                        'marketorder': { 'cost': 1 },
+                        'stoporder': { 'cost': 1 },
+                        'funding_address': { 'cost': 1 },
+                        'withdrawals': { 'cost': 1 },
+                        'send': { 'cost': 1 },
+                        'oauth2/grant': { 'cost': 1 }, // deprecated for new applications
+                        'beneficiaries': { 'cost': 1 },
                     },
                     'put': {
-                        'accounts/{id}/name': 1,
+                        'accounts/{id}/name': { 'cost': 1 },
                     },
                     'delete': {
-                        'withdrawals/{id}': 1,
-                        'beneficiaries/{id}': 1,
+                        'withdrawals/{id}': { 'cost': 1 },
+                        'beneficiaries/{id}': { 'cost': 1 },
                     },
                 },
             },
@@ -445,26 +447,28 @@ class luno extends luno$1["default"] {
             const networkEntry = rawCurrency[i];
             const networkId = this.safeString(networkEntry, 'name');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'info': networkEntry,
-            };
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -601,7 +605,7 @@ class luno extends luno$1["default"] {
             result.push({
                 'id': accountId,
                 'type': undefined,
-                'currency': code,
+                'code': code,
                 'info': account,
             });
         }
@@ -623,11 +627,11 @@ class luno extends luno$1["default"] {
             const balance = this.safeString(wallet, 'balance');
             const reservedUnconfirmed = Precise["default"].stringAdd(reserved, unconfirmed);
             const balanceUnconfirmed = Precise["default"].stringAdd(balance, unconfirmed);
-            if (code in result) {
+            if ((code !== undefined) && (code in result)) {
                 result[code]['used'] = Precise["default"].stringAdd(result[code]['used'], reservedUnconfirmed);
                 result[code]['total'] = Precise["default"].stringAdd(result[code]['total'], balanceUnconfirmed);
             }
-            else {
+            else if (code !== undefined) {
                 const account = this.account();
                 account['used'] = reservedUnconfirmed;
                 account['total'] = balanceUnconfirmed;
@@ -670,7 +674,7 @@ class luno extends luno$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -903,7 +907,8 @@ class luno extends luno$1["default"] {
         }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetTickers(params);
-        const tickers = this.indexBy(response['tickers'], 'pair');
+        const rawTickers = this.safeList(response, 'tickers', []);
+        const tickers = this.indexBy(rawTickers, 'pair');
         const ids = Object.keys(tickers);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -1254,6 +1259,9 @@ class luno extends luno$1["default"] {
             'pair': market['id'],
         };
         let response = undefined;
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         if (type === 'market') {
             request['type'] = side.toUpperCase();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
@@ -1270,6 +1278,9 @@ class luno extends luno$1["default"] {
             request['price'] = this.priceToPrecision(market['symbol'], price);
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
             response = await this.privatePostPostorder(this.extend(request, params));
+        }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' createOrder() returned empty response');
         }
         return this.safeOrder({
             'info': response,
@@ -1579,6 +1590,38 @@ class luno extends luno$1["default"] {
             'address': this.safeString(depositAddress, 'address'),
             'tag': this.safeString(depositAddress, 'name'),
         };
+    }
+    /**
+     * @method
+     * @name luno#fetchDepositWithdrawFee
+     * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    async fetchDepositWithdrawFee(code, params = {}) {
+        const address = this.safeString(params, 'address');
+        if (address === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchDepositWithdrawFee() requires an "address" parameter - luno quotes the send fee per destination address');
+        }
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetSendFee(this.extend(request, params));
+        //
+        //     {
+        //         "currency": "XBT",
+        //         "fee": "0.00015"
+        //     }
+        //
+        const result = this.depositWithdrawFee(response);
+        result['withdraw']['fee'] = this.safeNumber(response, 'fee');
+        result['withdraw']['percentage'] = false;
+        return this.assignDefaultDepositWithdrawFees(result, currency);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams(path, params);

@@ -150,13 +150,264 @@ public partial class coinbaseexchange : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"currencies", "products", "products/{id}", "products/{id}/book", "products/{id}/candles", "products/{id}/stats", "products/{id}/ticker", "products/{id}/trades", "time", "products/spark-lines", "products/volume-summary"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{id}/book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{id}/candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{id}/stats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{id}/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{id}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/spark-lines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/volume-summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"address-book", "accounts", "accounts/{id}", "accounts/{id}/holds", "accounts/{id}/ledger", "accounts/{id}/transfers", "coinbase-accounts", "fills", "funding", "fees", "margin/profile_information", "margin/buying_power", "margin/withdrawal_power", "margin/withdrawal_power_all", "margin/exit_plan", "margin/liquidation_history", "margin/position_refresh_amounts", "margin/status", "oracle", "orders", "orders/{id}", "orders/client:{client_oid}", "otc/orders", "payment-methods", "position", "profiles", "profiles/{id}", "reports/{report_id}", "transfers", "transfers/{transfer_id}", "users/self/exchange-limits", "users/self/hold-balances", "users/self/trailing-volume", "withdrawals/fee-estimate", "conversions/{conversion_id}", "conversions", "conversions/fees", "loans/lending-overview", "loans/lending-overview-xm", "loans/loan-preview", "loans/loan-preview-xm", "loans/repayment-preview", "loans/repayment-preview-xm", "loans/interest/{loan_id}", "loans/interest/history/{loan_id}", "loans/interest", "loans/assets", "loans"} },
-                    { "post", new List<object>() {"conversions", "deposits/coinbase-account", "deposits/payment-method", "coinbase-accounts/{id}/addresses", "funding/repay", "orders", "position/close", "profiles", "profiles/margin-transfer", "profiles/transfer", "reports", "withdrawals/coinbase", "withdrawals/coinbase-account", "withdrawals/crypto", "withdrawals/payment-method", "loans/open", "loans/repay-interest", "loans/repay-principal"} },
-                    { "delete", new List<object>() {"orders", "orders/client:{client_oid}", "orders/{id}"} },
-                    { "put", new List<object>() {"profiles/{id}/deactivate", "profiles/{id}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "address-book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{id}/holds", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{id}/ledger", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{id}/transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "coinbase-accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/profile_information", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/buying_power", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/withdrawal_power", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/withdrawal_power_all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/exit_plan", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/liquidation_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/position_refresh_amounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "oracle", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/client:{client_oid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "otc/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "payment-methods", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "position", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "profiles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "profiles/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "reports/{report_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers/{transfer_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/self/exchange-limits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/self/hold-balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/self/trailing-volume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/fee-estimate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "conversions/{conversion_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "conversions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "conversions/fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/lending-overview", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/lending-overview-xm", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/loan-preview", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/loan-preview-xm", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/repayment-preview", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/repayment-preview-xm", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/interest/{loan_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/interest/history/{loan_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/interest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "conversions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits/coinbase-account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits/payment-method", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "coinbase-accounts/{id}/addresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding/repay", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "position/close", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "profiles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "profiles/margin-transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "profiles/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "reports", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/coinbase", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/coinbase-account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/crypto", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/payment-method", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/open", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/repay-interest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loans/repay-principal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/client:{client_oid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "put", new Dictionary<string, object>() {
+                        { "profiles/{id}/deactivate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "profiles/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -277,7 +528,7 @@ public partial class coinbaseexchange : Exchange
                     { "BTC", "bitcoin" },
                     { "ETH", "ethereum" },
                     { "SOL", "solana" },
-                    { "ARBONE", "arbitrum" },
+                    { "ARBITRUM", "arbitrum" },
                     { "AVAXC", "avacchain" },
                     { "MATIC", "polygon" },
                     { "BASE", "base" },
@@ -402,24 +653,27 @@ public partial class coinbaseexchange : Exchange
             object network = getValue(supportedNetworks, j);
             object networkId = this.safeString(network, "id");
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "name", this.safeString(network, "name") },
-                { "network", networkCode },
-                { "active", isEqual(this.safeString(network, "status"), "online") },
-                { "withdraw", null },
-                { "deposit", null },
-                { "fee", null },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(network, "min_withdrawal_amount") },
-                        { "max", this.safeNumber(network, "max_withdrawal_amount") },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "name", this.safeString(network, "name") },
+                    { "network", networkCode },
+                    { "active", isEqual(this.safeString(network, "status"), "online") },
+                    { "withdraw", null },
+                    { "deposit", null },
+                    { "fee", null },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(network, "min_withdrawal_amount") },
+                            { "max", this.safeNumber(network, "max_withdrawal_amount") },
+                        } },
                     } },
-                } },
-                { "contract", this.safeString(network, "contract_address") },
-                { "info", network },
-            };
+                    { "contract", this.safeString(network, "contract_address") },
+                    { "info", network },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -507,9 +761,10 @@ public partial class coinbaseexchange : Exchange
         //     ]
         //
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawMarkets = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
-            object market = getValue(response, i);
+            object market = getValue(rawMarkets, i);
             object id = this.safeString(market, "id");
             var baseIdquoteIdVariable = ((string)((string)id)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
@@ -609,7 +864,8 @@ public partial class coinbaseexchange : Exchange
         //         },
         //     ]
         //
-        return this.parseAccounts(response, parameters);
+        object accounts = this.toArray(response);
+        return this.parseAccounts(accounts, parameters);
     }
 
     public override object parseAccount(object account)
@@ -647,7 +903,10 @@ public partial class coinbaseexchange : Exchange
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "hold");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -679,7 +938,7 @@ public partial class coinbaseexchange : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1101,9 +1360,9 @@ public partial class coinbaseexchange : Exchange
         object maker = this.safeNumber(response, "maker_fee_rate");
         object taker = this.safeNumber(response, "taker_fee_rate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(((object)this.symbols), i);
+            object symbol = getValue(this.symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1209,7 +1468,7 @@ public partial class coinbaseexchange : Exchange
         //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
 
     /**
@@ -1624,7 +1883,7 @@ public partial class coinbaseexchange : Exchange
      * @name coinbaseexchange#cancelAllOrders
      * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1716,7 +1975,7 @@ public partial class coinbaseexchange : Exchange
             { "rebate", "rebate" },
             { "conversion", "trade" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -1847,11 +2106,12 @@ public partial class coinbaseexchange : Exchange
             ((IDictionary<string,object>)request)["end_date"] = this.iso8601(until);
         }
         object response = await this.privateGetAccountsIdLedger(this.extend(request, parameters));
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object entries = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
         {
-            ((IDictionary<string,object>)getValue(response, i))["currency"] = code;
+            ((IDictionary<string,object>)getValue(entries, i))["currency"] = code;
         }
-        return this.parseLedger(response, currency, since, limit);
+        return this.parseLedger(entries, currency, since, limit);
     }
 
     /**
@@ -1903,7 +2163,7 @@ public partial class coinbaseexchange : Exchange
         object response = null;
         if (isTrue(isEqual(id, null)))
         {
-            response = await this.privateGetTransfers(this.extend(request, parameters));
+            object transfers = await this.privateGetTransfers(this.extend(request, parameters));
             //
             //    [
             //        {
@@ -1932,16 +2192,17 @@ public partial class coinbaseexchange : Exchange
             //        }
             //    ]
             //
+            response = this.toArray(transfers);
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object account_id = this.safeString(getValue(response, i), "account_id");
-                object account = this.safeValue(this.accountsById, ((string)account_id));
+                object account = this.safeValue(this.accountsById, account_id);
                 object codeInner = this.safeString(account, "code");
                 ((IDictionary<string,object>)getValue(response, i))["currency"] = codeInner;
             }
         } else
         {
-            response = await this.privateGetAccountsIdTransfers(this.extend(request, parameters));
+            object accountTransfers = await this.privateGetAccountsIdTransfers(this.extend(request, parameters));
             //
             //    [
             //        {
@@ -1968,6 +2229,7 @@ public partial class coinbaseexchange : Exchange
             //        }
             //    ]
             //
+            response = this.toArray(accountTransfers);
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)getValue(response, i))["currency"] = code;

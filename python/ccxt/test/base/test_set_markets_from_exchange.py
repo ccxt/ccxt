@@ -42,7 +42,7 @@ async def test_set_markets_from_exchange():
     exchange2 = ccxt.Exchange({
         'id': 'primaryEx',
     })
-    assert len(list(exchange1.markets.keys())) > 0, 'Markets should be loaded in exchange1'
+    assert (exchange1.markets is not None) and (len(list(exchange1.markets.keys())) > 0), 'Markets should be loaded in exchange1'
     # Test error case: exchanges are different
     different_exchange = ccxt.Exchange({
         'id': 'secondaryEx',

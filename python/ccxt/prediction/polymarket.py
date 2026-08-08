@@ -11,6 +11,7 @@ import math
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
 from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionTradingFee, PredictionOrderRequest
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -108,168 +109,168 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 'gamma': {
                     'public': {
                         'get': {
-                            'status': 1,
-                            'comments': 1,
-                            'comments/{id}': 1,
-                            'comments/user_address/{user_address}': 1,
-                            'events': 1,
-                            'events/creators': 1,
-                            'events/creators/{id}': 1,
-                            'events/keyset': 1,
-                            'events/pagination': 1,
-                            'events/results': 1,
-                            'events/slug/{slug}': 1,
-                            'events/{id}': 1,
-                            'events/{id}/comments/count': 1,
-                            'events/{id}/tags': 1,
-                            'events/{id}/tweet-count': 1,
-                            'markets': 1,
-                            'markets/keyset': 1,
-                            'markets/slug/{slug}': 1,
-                            'markets/{id}': 1,
-                            'markets/{id}/description': 1,
-                            'markets/{id}/tags': 1,
-                            'profiles/user_address/{user_address}': 1,
-                            'public-profile': 1,
-                            'public-search': 1,
-                            'series': 1,
-                            'series-summary/slug/{slug}': 1,
-                            'series-summary/{id}': 1,
-                            'series/{id}': 1,
-                            'series/{id}/comments/count': 1,
-                            'sports': 1,
-                            'sports/market-types': 1,
-                            'tags': 1,
-                            'tags/slug/{slug}': 1,
-                            'tags/slug/{slug}/related-tags': 1,
-                            'tags/slug/{slug}/related-tags/tags': 1,
-                            'tags/{id}': 1,
-                            'tags/{id}/related-tags': 1,
-                            'tags/{id}/related-tags/tags': 1,
-                            'teams': 1,
-                            'teams/{id}': 1,
+                            'status': {'cost': 1},
+                            'comments': {'cost': 1},
+                            'comments/{id}': {'cost': 1},
+                            'comments/user_address/{user_address}': {'cost': 1},
+                            'events': {'cost': 1},
+                            'events/creators': {'cost': 1},
+                            'events/creators/{id}': {'cost': 1},
+                            'events/keyset': {'cost': 1},
+                            'events/pagination': {'cost': 1},
+                            'events/results': {'cost': 1},
+                            'events/slug/{slug}': {'cost': 1},
+                            'events/{id}': {'cost': 1},
+                            'events/{id}/comments/count': {'cost': 1},
+                            'events/{id}/tags': {'cost': 1},
+                            'events/{id}/tweet-count': {'cost': 1},
+                            'markets': {'cost': 1},
+                            'markets/keyset': {'cost': 1},
+                            'markets/slug/{slug}': {'cost': 1},
+                            'markets/{id}': {'cost': 1},
+                            'markets/{id}/description': {'cost': 1},
+                            'markets/{id}/tags': {'cost': 1},
+                            'profiles/user_address/{user_address}': {'cost': 1},
+                            'public-profile': {'cost': 1},
+                            'public-search': {'cost': 1},
+                            'series': {'cost': 1},
+                            'series-summary/slug/{slug}': {'cost': 1},
+                            'series-summary/{id}': {'cost': 1},
+                            'series/{id}': {'cost': 1},
+                            'series/{id}/comments/count': {'cost': 1},
+                            'sports': {'cost': 1},
+                            'sports/market-types': {'cost': 1},
+                            'tags': {'cost': 1},
+                            'tags/slug/{slug}': {'cost': 1},
+                            'tags/slug/{slug}/related-tags': {'cost': 1},
+                            'tags/slug/{slug}/related-tags/tags': {'cost': 1},
+                            'tags/{id}': {'cost': 1},
+                            'tags/{id}/related-tags': {'cost': 1},
+                            'tags/{id}/related-tags/tags': {'cost': 1},
+                            'teams': {'cost': 1},
+                            'teams/{id}': {'cost': 1},
                         },
                         'post': {
-                            'markets/abridged': 1,
-                            'markets/information': 1,
+                            'markets/abridged': {'cost': 1},
+                            'markets/information': {'cost': 1},
                         },
                     },
                 },
                 'clob': {
                     'public': {
                         'get': {
-                            'book': 1,
-                            'books': 1,
-                            'builder/trades': 1,
-                            'clob-markets/{condition_id}': 1,
-                            'fee-rate': 1,
-                            'fee-rate/{token_id}': 1,
-                            'last-trade-price': 1,
-                            'last-trades-prices': 1,
-                            'markets-by-token/{token_id}': 1,
-                            'markets/live-activity/{condition_id}': 1,
-                            'midpoint': 1,
-                            'midpoints': 1,
-                            'neg-risk': 1,
-                            'neg-risk/{token_id}': 1,
-                            'price': 1,
-                            'prices': 1,
-                            'prices-history': 1,
-                            'rebates/current': 1,
-                            'rewards/markets/current': 1,
-                            'rewards/markets/multi': 1,
-                            'rewards/markets/{condition_id}': 1,
-                            'sampling-markets': 1,
-                            'sampling-simplified-markets': 1,
-                            'simplified-markets': 1,
-                            'spread': 1,
-                            'tick-size': 1,
-                            'tick-size/{token_id}': 1,
-                            'time': 1,
+                            'book': {'cost': 1},
+                            'books': {'cost': 1},
+                            'builder/trades': {'cost': 1},
+                            'clob-markets/{condition_id}': {'cost': 1},
+                            'fee-rate': {'cost': 1},
+                            'fee-rate/{token_id}': {'cost': 1},
+                            'last-trade-price': {'cost': 1},
+                            'last-trades-prices': {'cost': 1},
+                            'markets-by-token/{token_id}': {'cost': 1},
+                            'markets/live-activity/{condition_id}': {'cost': 1},
+                            'midpoint': {'cost': 1},
+                            'midpoints': {'cost': 1},
+                            'neg-risk': {'cost': 1},
+                            'neg-risk/{token_id}': {'cost': 1},
+                            'price': {'cost': 1},
+                            'prices': {'cost': 1},
+                            'prices-history': {'cost': 1},
+                            'rebates/current': {'cost': 1},
+                            'rewards/markets/current': {'cost': 1},
+                            'rewards/markets/multi': {'cost': 1},
+                            'rewards/markets/{condition_id}': {'cost': 1},
+                            'sampling-markets': {'cost': 1},
+                            'sampling-simplified-markets': {'cost': 1},
+                            'simplified-markets': {'cost': 1},
+                            'spread': {'cost': 1},
+                            'tick-size': {'cost': 1},
+                            'tick-size/{token_id}': {'cost': 1},
+                            'time': {'cost': 1},
                         },
                         'post': {
-                            'batch-prices-history': 1,
-                            'books': 1,
-                            'last-trades-prices': 1,
-                            'markets/live-activity': 1,
-                            'midpoints': 1,
-                            'prices': 1,
-                            'spreads': 1,
+                            'batch-prices-history': {'cost': 1},
+                            'books': {'cost': 1},
+                            'last-trades-prices': {'cost': 1},
+                            'markets/live-activity': {'cost': 1},
+                            'midpoints': {'cost': 1},
+                            'prices': {'cost': 1},
+                            'spreads': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
-                            'auth/api-keys': 1,
-                            'auth/ban-status/closed-only': 1,
-                            'auth/builder-api-key': 1,
-                            'auth/derive-api-key': 1,
-                            'balance-allowance': 1,
-                            'balance-allowance/update': 1,
-                            'data/order/{id}': 1,
-                            'data/orders': 1,
-                            'data/trades': 1,
-                            'notifications': 1,
-                            'order-scoring': 1,
-                            'orders-scoring': 1,
-                            'rewards/user': 1,
-                            'rewards/user/markets': 1,
-                            'rewards/user/percentages': 1,
-                            'rewards/user/total': 1,
+                            'auth/api-keys': {'cost': 1},
+                            'auth/ban-status/closed-only': {'cost': 1},
+                            'auth/builder-api-key': {'cost': 1},
+                            'auth/derive-api-key': {'cost': 1},
+                            'balance-allowance': {'cost': 1},
+                            'balance-allowance/update': {'cost': 1},
+                            'data/order/{id}': {'cost': 1},
+                            'data/orders': {'cost': 1},
+                            'data/trades': {'cost': 1},
+                            'notifications': {'cost': 1},
+                            'order-scoring': {'cost': 1},
+                            'orders-scoring': {'cost': 1},
+                            'rewards/user': {'cost': 1},
+                            'rewards/user/markets': {'cost': 1},
+                            'rewards/user/percentages': {'cost': 1},
+                            'rewards/user/total': {'cost': 1},
                         },
                         'post': {
-                            'auth/api-key': 1,
-                            'auth/builder-api-key': 1,
-                            'heartbeats': 1,
-                            'order': 1,
-                            'orders': 1,
-                            'v1/heartbeats': 1,
+                            'auth/api-key': {'cost': 1},
+                            'auth/builder-api-key': {'cost': 1},
+                            'heartbeats': {'cost': 1},
+                            'order': {'cost': 1},
+                            'orders': {'cost': 1},
+                            'v1/heartbeats': {'cost': 1},
                         },
                         'delete': {
-                            'auth/api-key': 1,
-                            'auth/builder-api-key': 1,
-                            'cancel-all': 1,
-                            'cancel-market-orders': 1,
-                            'notifications': 1,
-                            'order': 1,
-                            'orders': 1,
+                            'auth/api-key': {'cost': 1},
+                            'auth/builder-api-key': {'cost': 1},
+                            'cancel-all': {'cost': 1},
+                            'cancel-market-orders': {'cost': 1},
+                            'notifications': {'cost': 1},
+                            'order': {'cost': 1},
+                            'orders': {'cost': 1},
                         },
                     },
                 },
                 'data': {
                     'public': {
                         'get': {
-                            'activity': 1,
-                            'closed-positions': 1,
-                            'holders': 1,
-                            'live-volume': 1,
-                            'oi': 1,
-                            'other': 1,
-                            'positions': 1,
-                            'revisions': 1,
-                            'traded': 1,
-                            'trades': 1,
-                            'v1/accounting/snapshot': 1,
-                            'v1/activity/combos': 1,
-                            'v1/builders/leaderboard': 1,
-                            'v1/builders/volume': 1,
-                            'v1/leaderboard': 1,
-                            'v1/market-positions': 1,
-                            'v1/positions/combos': 1,
-                            'value': 1,
+                            'activity': {'cost': 1},
+                            'closed-positions': {'cost': 1},
+                            'holders': {'cost': 1},
+                            'live-volume': {'cost': 1},
+                            'oi': {'cost': 1},
+                            'other': {'cost': 1},
+                            'positions': {'cost': 1},
+                            'revisions': {'cost': 1},
+                            'traded': {'cost': 1},
+                            'trades': {'cost': 1},
+                            'v1/accounting/snapshot': {'cost': 1},
+                            'v1/activity/combos': {'cost': 1},
+                            'v1/builders/leaderboard': {'cost': 1},
+                            'v1/builders/volume': {'cost': 1},
+                            'v1/leaderboard': {'cost': 1},
+                            'v1/market-positions': {'cost': 1},
+                            'v1/positions/combos': {'cost': 1},
+                            'value': {'cost': 1},
                         },
                     },
                 },
                 'combos': {
                     'public': {
                         'get': {
-                            'v1/rfq/combo-markets': 1,
+                            'v1/rfq/combo-markets': {'cost': 1},
                         },
                     },
                     'private': {
                         'post': {
-                            'v1/maker/confirmations': 1,
-                            'v1/maker/quotes': 1,
-                            'v1/maker/quotes/cancel': 1,
+                            'v1/maker/confirmations': {'cost': 1},
+                            'v1/maker/quotes': {'cost': 1},
+                            'v1/maker/quotes/cancel': {'cost': 1},
                         },
                     },
                 },
@@ -380,7 +381,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         self.events = eventsDict
         return flatMarkets
 
-    async def fetch_raw_events_by_search(self, queries: List[Any], params={}) -> List[Any]:
+    async def fetch_raw_events_by_search(self, queries: List[str], params={}) -> List[Any]:
         """
  @ignore
         fetches raw gamma event objects matching the given search terms, paginating through all result pages
@@ -552,7 +553,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         firstPageRequest = {'offset': 0}
         firstPageRequest = self.extend(firstPageRequest, baseRequest)
         firstPageResponse = await self.gammaPublicGetEvents(firstPageRequest)
-        firstPage = firstPageResponse if (firstPageResponse is not None) else []
+        firstPageIsArray = isinstance(firstPageResponse, list)
+        firstPage = firstPageResponse if (firstPageIsArray) else []
         firstPageLength = len(firstPage)
         allRawEvents = []
         for fi in range(0, firstPageLength):
@@ -838,6 +840,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 ccxtMarketsLength = len(ccxtMarkets)
                 for i in range(0, ccxtMarketsLength):
                     mkt = ccxtMarkets[i]
+                    if mkt is None:
+                        raise ExchangeError(self.id + ' fetchOutcome() could not resolve mkt')
                     self.markets[mkt['market']] = mkt
                 self.populate_outcomes()
                 byId = self.safe_value(self.outcomes_by_id, outcomeSymbol)
@@ -885,6 +889,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 ccxtMarkets = self.parse_event_to_markets({'markets': rawMarkets})
                 for i in range(0, len(ccxtMarkets)):
                     mkt = ccxtMarkets[i]
+                    if mkt is None:
+                        raise ExchangeError(self.id + ' fetchOutcomes() could not resolve mkt')
                     self.markets[mkt['market']] = mkt
                 startIndex = self.sum(startIndex, chunkSize)
             self.populate_outcomes()
@@ -996,9 +1002,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 self.clobPublicPostLastTradesPrices(bookParams),
             ]
             responses = await asyncio.gather(*promises)
-            books = responses[0]
+            booksResponse = responses[0]
             midpoints = responses[1]
-            lastTrades = responses[2]
+            lastTradesResponse = responses[2]
+            booksIsArray = isinstance(booksResponse, list)
+            books = booksResponse if (booksIsArray) else []
+            lastTradesIsArray = isinstance(lastTradesResponse, list)
+            lastTrades = lastTradesResponse if (lastTradesIsArray) else []
             lastTradesByTokenId = {}
             lastTradesLength = len(lastTrades)
             for li in range(0, lastTradesLength):
@@ -1114,7 +1124,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_order_book(self, outcome: str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
         """
         fetches the CLOB order book for a single outcome token
 
@@ -1250,7 +1260,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             return self.array_slice(candles, -limit)
         return candles
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         # Unused: fetchOHLCV performs client-side bucket aggregation directly.
         #
         #     {
@@ -1321,7 +1331,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         first = self.safe_dict(response, 0, {})
         return self.parse_prediction_open_interest(first, outcomeObj)
 
-    def parse_prediction_open_interest(self, interest, market: Market = None) -> PredictionOpenInterest:
+    def parse_prediction_open_interest(self, interest: dict, market: Market = None) -> PredictionOpenInterest:
         #
         #     {"market": "0x7976b8...92", "value": 4925662.470476}
         #
@@ -1530,7 +1540,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         response = await self.clobPrivateGetBalanceAllowance(self.extend(request, rest))
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         """
  @ignore
         parses a balance-allowance response into a balances object with a USDC entry
@@ -1579,6 +1589,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if outcomesLength == 0:
             return parsed
         wantedIds = {}
+        if outcomes is None:
+            raise ExchangeError(self.id + ' fetchPositions() missing outcomes')
         for i in range(0, len(outcomes)):
             outcomeObj = self.outcome(outcomes[i])
             wantedIds[outcomeObj['outcomeId']] = True
@@ -1821,7 +1833,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         orderOutcomes = []
         for i in range(0, len(orders)):
             o = orders[i]
-            orderOutcomes.append(self.safe_string(o, 'outcome'))
+            __oc = self.safe_string(o, 'outcome')
+            if __oc is not None:
+                orderOutcomes.append(__oc)
         await self.load_outcomes(orderOutcomes)
         bodies = []
         outcomes = []
@@ -1834,9 +1848,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 # a distinct salt per order so two identical orders in one batch don't collide
                 orderParams = self.extend(orderParams, {'salt': self.number_to_string(self.sum(batchSalt, i))})
             built = self.build_clob_order_body(self.safe_string(o, 'outcome'), self.safe_string(o, 'type'), self.safe_string(o, 'side'), self.safe_number(o, 'amount'), self.safe_number(o, 'price'), orderParams)
-            bodies.append(self.safe_dict(built, 'body'))
-            outcomes.append(self.safe_dict(built, 'outcome'))
-            requests.append(self.safe_dict(built, 'request'))
+            bodies.append(self.safe_dict(built, 'body', {}))
+            outcomes.append(self.safe_dict(built, 'outcome', {}))
+            requests.append(self.safe_dict(built, 'request', {}))
         response = await self.clobPrivatePostOrders(bodies)
         result = []
         if isinstance(response, list):
@@ -1850,7 +1864,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             result.append(self.parse_prediction_order(response))
         return result
 
-    def build_clob_order_body(self, outcome: str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
+    def build_clob_order_body(self, outcome: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
         """
  @ignore
         builds and signs a single CLOB order request body(shared by createOrder and createOrders)
@@ -2015,7 +2029,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         request = self.extend(params, {'cost': cost})
         return await self.create_order(outcome, 'market', 'buy', cost, None, request)
 
-    def polymarket_order_raw_amounts(self, side: str, size: float, price: float, tickSize: str, cost: Num = None) -> dict:
+    def polymarket_order_raw_amounts(self, side: Str, size: Num, price: Num, tickSize: Str, cost: Num = None) -> dict:
         configs = {
             '0.1': {'price': 1, 'size': 2, 'amount': 3},
             '0.01': {'price': 2, 'size': 2, 'amount': 4},
@@ -2232,6 +2246,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         requestedSlug = self.safe_string(params, 'slug')
         queries = self.parse_search_queries(params)
         rest = self.omit(params, ['query', 'queries', 'eventId', 'slug'])
+        if queries is None:
+            raise ExchangeError(self.id + ' fetchEvents() missing queries')
         queriesLength = len(queries)
         rawEvents = []
         if (requestedEventId is not None) or (requestedSlug is not None):
@@ -2242,7 +2258,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
             else:
                 lookup['slug'] = requestedSlug
             response = await self.gammaPublicGetEvents(lookup)
-            rawEvents = response if (response is not None) else []
+            responseIsArray = isinstance(response, list)
+            rawEvents = response if (responseIsArray) else []
         elif queriesLength > 0:
             rawEvents = await self.fetch_raw_events_by_search(queries, rest)
         else:
@@ -2272,6 +2289,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     ccxtMarkets = self.parse_event_to_markets(eventForParsing)
             for mi in range(0, len(ccxtMarkets)):
                 m = ccxtMarkets[mi]
+                if m is None:
+                    raise ExchangeError(self.id + ' fetchEvents() missing m')
                 self.markets[m['market']] = m
             parsedEvent = self.parse_event(eventForParsing)
             result.append(parsedEvent)
@@ -2307,6 +2326,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         else:
             response = await self.gammaPublicGetEventsId(self.extend({'id': id}, params))
         eventForParsing = self.safe_dict(response, 'event', response)
+        if eventForParsing is None:
+            eventForParsing = {}
         event = self.parse_event(eventForParsing)
         self.index_event_outcomes(event)
         return event
@@ -2652,6 +2673,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
             creds = await self.derive_api_key(params)
         except Exception as e:
             creds = await self.create_api_key(params)
+        if creds is None:
+            raise ExchangeError(self.id + ' createOrDeriveApiKey() returned no credentials')
         return creds
 
     def set_api_credentials(self, response: dict) -> dict:
@@ -2869,9 +2892,12 @@ class polymarket(PredictionExchange, ImplicitAPI):
         messageHash = 'ticker::' + outcome
         subscribeHash = 'subscribe::' + tokenId
         subscribeMsg = {'assets_ids': [tokenId], 'type': 'market'}
+        if outcome is None:
+            raise ExchangeError(self.id + ' watchTicker() missing outcome')
         if not (outcome in self.orderbooks):
             seededBook = self.order_book({})
-            self.orderbooks[outcome] = seededBook
+            if outcome is not None:
+                self.orderbooks[outcome] = seededBook
         url = self.urls['api']['ws']
         orderbook = await self.watch(url, messageHash, subscribeMsg, subscribeHash)
         bids = orderbook['bids']
@@ -3009,7 +3035,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             client.resolve(stored, 'myTrades::' + outcome)
 
-    def token_id_to_symbol(self, tokenId: str) -> Str:
+    def token_id_to_symbol(self, tokenId: Str) -> Str:
         if not tokenId:
             return None
         # outcome tokens are keyed in outcomes_by_id(populated by fetchEvents/loadMarkets)

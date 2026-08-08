@@ -186,153 +186,411 @@ func (this *AsterCore) Describe() any {
 		"api": map[string]any{
 			"fapiPublic": map[string]any{
 				"get": map[string]any{
-					"v1/ping":              1,
-					"v3/ping":              1,
-					"v1/time":              1,
-					"v3/time":              1,
-					"v1/exchangeInfo":      1,
-					"v3/exchangeInfo":      1,
-					"v1/depth":             1,
-					"v3/depth":             2,
-					"v1/trades":            1,
-					"v3/trades":            1,
-					"v1/historicalTrades":  1,
-					"v3/historicalTrades":  20,
-					"v1/aggTrades":         1,
-					"v3/aggTrades":         20,
-					"v1/klines":            1,
-					"v3/klines":            1,
-					"v1/indexPriceKlines":  1,
-					"v3/indexPriceKlines":  1,
-					"v1/markPriceKlines":   1,
-					"v3/markPriceKlines":   1,
-					"v1/premiumIndex":      1,
-					"v3/premiumIndex":      1,
-					"v1/fundingRate":       1,
-					"v3/fundingRate":       1,
-					"v1/fundingInfo":       1,
-					"v3/fundingInfo":       1,
-					"v1/ticker/24hr":       1,
-					"v3/ticker/24hr":       1,
-					"v1/ticker/price":      1,
-					"v3/ticker/price":      1,
-					"v1/ticker/bookTicker": 1,
-					"v3/ticker/bookTicker": 1,
-					"v1/adlQuantile":       1,
-					"v1/forceOrders":       1,
-					"v3/indexreferences":   1,
+					"v1/ping": map[string]any{
+						"cost": 1,
+					},
+					"v3/ping": map[string]any{
+						"cost": 1,
+					},
+					"v1/time": map[string]any{
+						"cost": 1,
+					},
+					"v3/time": map[string]any{
+						"cost": 1,
+					},
+					"v1/exchangeInfo": map[string]any{
+						"cost": 1,
+					},
+					"v3/exchangeInfo": map[string]any{
+						"cost": 1,
+					},
+					"v1/depth": map[string]any{
+						"cost": 1,
+					},
+					"v3/depth": map[string]any{
+						"cost": 2,
+					},
+					"v1/trades": map[string]any{
+						"cost": 1,
+					},
+					"v3/trades": map[string]any{
+						"cost": 1,
+					},
+					"v1/historicalTrades": map[string]any{
+						"cost": 1,
+					},
+					"v3/historicalTrades": map[string]any{
+						"cost": 20,
+					},
+					"v1/aggTrades": map[string]any{
+						"cost": 1,
+					},
+					"v3/aggTrades": map[string]any{
+						"cost": 20,
+					},
+					"v1/klines": map[string]any{
+						"cost": 1,
+					},
+					"v3/klines": map[string]any{
+						"cost": 1,
+					},
+					"v1/indexPriceKlines": map[string]any{
+						"cost": 1,
+					},
+					"v3/indexPriceKlines": map[string]any{
+						"cost": 1,
+					},
+					"v1/markPriceKlines": map[string]any{
+						"cost": 1,
+					},
+					"v3/markPriceKlines": map[string]any{
+						"cost": 1,
+					},
+					"v1/premiumIndex": map[string]any{
+						"cost": 1,
+					},
+					"v3/premiumIndex": map[string]any{
+						"cost": 1,
+					},
+					"v1/fundingRate": map[string]any{
+						"cost": 1,
+					},
+					"v3/fundingRate": map[string]any{
+						"cost": 1,
+					},
+					"v1/fundingInfo": map[string]any{
+						"cost": 1,
+					},
+					"v3/fundingInfo": map[string]any{
+						"cost": 1,
+					},
+					"v1/ticker/24hr": map[string]any{
+						"cost": 1,
+					},
+					"v3/ticker/24hr": map[string]any{
+						"cost": 1,
+					},
+					"v1/ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"v3/ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"v1/ticker/bookTicker": map[string]any{
+						"cost": 1,
+					},
+					"v3/ticker/bookTicker": map[string]any{
+						"cost": 1,
+					},
+					"v1/adlQuantile": map[string]any{
+						"cost": 1,
+					},
+					"v1/forceOrders": map[string]any{
+						"cost": 1,
+					},
+					"v3/indexreferences": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"fapiPrivate": map[string]any{
 				"get": map[string]any{
-					"v1/positionSide/dual":      1,
-					"v3/positionSide/dual":      30,
-					"v1/multiAssetsMargin":      1,
-					"v3/multiAssetsMargin":      1,
-					"v1/order":                  1,
-					"v3/order":                  1,
-					"v1/openOrder":              1,
-					"v3/openOrder":              1,
-					"v1/openOrders":             1,
-					"v3/openOrders":             1,
-					"v1/allOrders":              1,
-					"v3/allOrders":              1,
-					"v2/balance":                1,
-					"v3/balance":                1,
-					"v3/account":                1,
-					"v1/positionMargin/history": 1,
-					"v3/positionMargin/history": 1,
-					"v2/positionRisk":           1,
-					"v3/positionRisk":           1,
-					"v1/userTrades":             1,
-					"v3/userTrades":             5,
-					"v1/income":                 1,
-					"v3/income":                 1,
-					"v1/leverageBracket":        1,
-					"v3/leverageBracket":        1,
-					"v1/commissionRate":         1,
-					"v3/commissionRate":         1,
-					"v3/adlQuantile":            1,
-					"v3/forceOrders":            1,
-					"v3/mmp":                    1,
-					"v3/accountWithJoinMargin":  1,
-					"v4/account":                1,
-					"v3/agent":                  1,
-					"v3/builder":                1,
+					"v1/positionSide/dual": map[string]any{
+						"cost": 1,
+					},
+					"v3/positionSide/dual": map[string]any{
+						"cost": 30,
+					},
+					"v1/multiAssetsMargin": map[string]any{
+						"cost": 1,
+					},
+					"v3/multiAssetsMargin": map[string]any{
+						"cost": 1,
+					},
+					"v1/order": map[string]any{
+						"cost": 1,
+					},
+					"v3/order": map[string]any{
+						"cost": 1,
+					},
+					"v1/openOrder": map[string]any{
+						"cost": 1,
+					},
+					"v3/openOrder": map[string]any{
+						"cost": 1,
+					},
+					"v1/openOrders": map[string]any{
+						"cost": 1,
+					},
+					"v3/openOrders": map[string]any{
+						"cost": 1,
+					},
+					"v1/allOrders": map[string]any{
+						"cost": 1,
+					},
+					"v3/allOrders": map[string]any{
+						"cost": 1,
+					},
+					"v2/balance": map[string]any{
+						"cost": 1,
+					},
+					"v3/balance": map[string]any{
+						"cost": 1,
+					},
+					"v3/account": map[string]any{
+						"cost": 1,
+					},
+					"v1/positionMargin/history": map[string]any{
+						"cost": 1,
+					},
+					"v3/positionMargin/history": map[string]any{
+						"cost": 1,
+					},
+					"v2/positionRisk": map[string]any{
+						"cost": 1,
+					},
+					"v3/positionRisk": map[string]any{
+						"cost": 1,
+					},
+					"v1/userTrades": map[string]any{
+						"cost": 1,
+					},
+					"v3/userTrades": map[string]any{
+						"cost": 5,
+					},
+					"v1/income": map[string]any{
+						"cost": 1,
+					},
+					"v3/income": map[string]any{
+						"cost": 1,
+					},
+					"v1/leverageBracket": map[string]any{
+						"cost": 1,
+					},
+					"v3/leverageBracket": map[string]any{
+						"cost": 1,
+					},
+					"v1/commissionRate": map[string]any{
+						"cost": 1,
+					},
+					"v3/commissionRate": map[string]any{
+						"cost": 1,
+					},
+					"v3/adlQuantile": map[string]any{
+						"cost": 1,
+					},
+					"v3/forceOrders": map[string]any{
+						"cost": 1,
+					},
+					"v3/mmp": map[string]any{
+						"cost": 1,
+					},
+					"v3/accountWithJoinMargin": map[string]any{
+						"cost": 1,
+					},
+					"v4/account": map[string]any{
+						"cost": 1,
+					},
+					"v3/agent": map[string]any{
+						"cost": 1,
+					},
+					"v3/builder": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"v1/positionSide/dual":     1,
-					"v3/positionSide/dual":     1,
-					"v1/multiAssetsMargin":     1,
-					"v3/multiAssetsMargin":     1,
-					"v1/order":                 1,
-					"v3/order":                 1,
-					"v1/order/test":            1,
-					"v3/order/test":            1,
-					"v1/batchOrders":           1,
-					"v3/batchOrders":           1,
-					"v1/asset/wallet/transfer": 1,
-					"v3/asset/wallet/transfer": 1,
-					"v1/countdownCancelAll":    1,
-					"v3/countdownCancelAll":    1,
-					"v1/leverage":              1,
-					"v3/leverage":              1,
-					"v1/marginType":            1,
-					"v3/marginType":            1,
-					"v1/positionMargin":        1,
-					"v3/positionMargin":        1,
-					"v1/listenKey":             1,
-					"v3/listenKey":             1,
-					"v3/mmp":                   1,
-					"v3/mmpReset":              1,
-					"v3/noop":                  1,
-					"v3/approveAgent":          1,
-					"v3/updateAgent":           1,
-					"v3/approveBuilder":        1,
-					"v3/updateBuilder":         1,
+					"v1/positionSide/dual": map[string]any{
+						"cost": 1,
+					},
+					"v3/positionSide/dual": map[string]any{
+						"cost": 1,
+					},
+					"v1/multiAssetsMargin": map[string]any{
+						"cost": 1,
+					},
+					"v3/multiAssetsMargin": map[string]any{
+						"cost": 1,
+					},
+					"v1/order": map[string]any{
+						"cost": 1,
+					},
+					"v3/order": map[string]any{
+						"cost": 1,
+					},
+					"v1/order/test": map[string]any{
+						"cost": 1,
+					},
+					"v3/order/test": map[string]any{
+						"cost": 1,
+					},
+					"v1/batchOrders": map[string]any{
+						"cost": 1,
+					},
+					"v3/batchOrders": map[string]any{
+						"cost": 1,
+					},
+					"v1/asset/wallet/transfer": map[string]any{
+						"cost": 1,
+					},
+					"v3/asset/wallet/transfer": map[string]any{
+						"cost": 1,
+					},
+					"v1/countdownCancelAll": map[string]any{
+						"cost": 1,
+					},
+					"v3/countdownCancelAll": map[string]any{
+						"cost": 1,
+					},
+					"v1/leverage": map[string]any{
+						"cost": 1,
+					},
+					"v3/leverage": map[string]any{
+						"cost": 1,
+					},
+					"v1/marginType": map[string]any{
+						"cost": 1,
+					},
+					"v3/marginType": map[string]any{
+						"cost": 1,
+					},
+					"v1/positionMargin": map[string]any{
+						"cost": 1,
+					},
+					"v3/positionMargin": map[string]any{
+						"cost": 1,
+					},
+					"v1/listenKey": map[string]any{
+						"cost": 1,
+					},
+					"v3/listenKey": map[string]any{
+						"cost": 1,
+					},
+					"v3/mmp": map[string]any{
+						"cost": 1,
+					},
+					"v3/mmpReset": map[string]any{
+						"cost": 1,
+					},
+					"v3/noop": map[string]any{
+						"cost": 1,
+					},
+					"v3/approveAgent": map[string]any{
+						"cost": 1,
+					},
+					"v3/updateAgent": map[string]any{
+						"cost": 1,
+					},
+					"v3/approveBuilder": map[string]any{
+						"cost": 1,
+					},
+					"v3/updateBuilder": map[string]any{
+						"cost": 1,
+					},
 				},
 				"put": map[string]any{
-					"v1/listenKey": 1,
-					"v3/listenKey": 1,
+					"v1/listenKey": map[string]any{
+						"cost": 1,
+					},
+					"v3/listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"v1/order":         1,
-					"v3/order":         1,
-					"v1/allOpenOrders": 1,
-					"v3/allOpenOrders": 1,
-					"v1/batchOrders":   1,
-					"v3/batchOrders":   1,
-					"v3/mmp":           1,
-					"v1/listenKey":     1,
-					"v3/listenKey":     1,
-					"v3/agent":         1,
-					"v3/builder":       1,
+					"v1/order": map[string]any{
+						"cost": 1,
+					},
+					"v3/order": map[string]any{
+						"cost": 1,
+					},
+					"v1/allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"v3/allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"v1/batchOrders": map[string]any{
+						"cost": 1,
+					},
+					"v3/batchOrders": map[string]any{
+						"cost": 1,
+					},
+					"v3/mmp": map[string]any{
+						"cost": 1,
+					},
+					"v1/listenKey": map[string]any{
+						"cost": 1,
+					},
+					"v3/listenKey": map[string]any{
+						"cost": 1,
+					},
+					"v3/agent": map[string]any{
+						"cost": 1,
+					},
+					"v3/builder": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"sapiPublic": map[string]any{
 				"get": map[string]any{
-					"v1/ping":                       1,
-					"v1/time":                       1,
-					"v1/exchangeInfo":               1,
-					"v1/depth":                      1,
-					"v1/trades":                     1,
-					"v1/historicalTrades":           1,
-					"v1/aggTrades":                  1,
-					"v1/klines":                     1,
-					"v1/ticker/24hr":                1,
-					"v1/ticker/price":               1,
-					"v1/ticker/bookTicker":          1,
-					"v1/aster/withdraw/estimateFee": 1,
-					"v3/ping":                       1,
-					"v3/time":                       1,
-					"v3/exchangeInfo":               1,
+					"v1/ping": map[string]any{
+						"cost": 1,
+					},
+					"v1/time": map[string]any{
+						"cost": 1,
+					},
+					"v1/exchangeInfo": map[string]any{
+						"cost": 1,
+					},
+					"v1/depth": map[string]any{
+						"cost": 1,
+					},
+					"v1/trades": map[string]any{
+						"cost": 1,
+					},
+					"v1/historicalTrades": map[string]any{
+						"cost": 1,
+					},
+					"v1/aggTrades": map[string]any{
+						"cost": 1,
+					},
+					"v1/klines": map[string]any{
+						"cost": 1,
+					},
+					"v1/ticker/24hr": map[string]any{
+						"cost": 1,
+					},
+					"v1/ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"v1/ticker/bookTicker": map[string]any{
+						"cost": 1,
+					},
+					"v1/aster/withdraw/estimateFee": map[string]any{
+						"cost": 1,
+					},
+					"v3/ping": map[string]any{
+						"cost": 1,
+					},
+					"v3/time": map[string]any{
+						"cost": 1,
+					},
+					"v3/exchangeInfo": map[string]any{
+						"cost": 1,
+					},
 					"v3/depth": map[string]any{
 						"cost":    2,
 						"byLimit": []any{[]any{50, 2}, []any{100, 5}, []any{500, 10}, []any{1000, 20}},
 					},
-					"v3/trades":           1,
-					"v3/historicalTrades": 20,
-					"v3/aggTrades":        20,
+					"v3/trades": map[string]any{
+						"cost": 1,
+					},
+					"v3/historicalTrades": map[string]any{
+						"cost": 20,
+					},
+					"v3/aggTrades": map[string]any{
+						"cost": 20,
+					},
 					"v3/klines": map[string]any{
 						"cost":    1,
 						"byLimit": []any{[]any{99, 1}, []any{499, 2}, []any{1000, 5}, []any{10000, 10}},
@@ -349,47 +607,110 @@ func (this *AsterCore) Describe() any {
 						"cost":     1,
 						"noSymbol": 2,
 					},
-					"v3/aster/withdraw/estimateFee": 1,
+					"v3/aster/withdraw/estimateFee": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"sapiPrivate": map[string]any{
 				"get": map[string]any{
-					"v1/commissionRate":     1,
-					"v1/order":              1,
-					"v1/openOrders":         1,
-					"v1/allOrders":          1,
-					"v1/transactionHistory": 1,
-					"v1/account":            1,
-					"v1/userTrades":         1,
+					"v1/commissionRate": map[string]any{
+						"cost": 1,
+					},
+					"v1/order": map[string]any{
+						"cost": 1,
+					},
+					"v1/openOrders": map[string]any{
+						"cost": 1,
+					},
+					"v1/allOrders": map[string]any{
+						"cost": 1,
+					},
+					"v1/transactionHistory": map[string]any{
+						"cost": 1,
+					},
+					"v1/account": map[string]any{
+						"cost": 1,
+					},
+					"v1/userTrades": map[string]any{
+						"cost": 1,
+					},
 					"v3/commissionRate": map[string]any{
 						"cost":     1,
 						"noSymbol": 2,
 					},
-					"v3/order":      1,
-					"v3/openOrders": 1,
-					"v3/allOrders":  5,
-					"v3/account":    5,
-					"v3/userTrades": 5,
-					"v3/openOrder":  1,
+					"v3/order": map[string]any{
+						"cost": 1,
+					},
+					"v3/openOrders": map[string]any{
+						"cost": 1,
+					},
+					"v3/allOrders": map[string]any{
+						"cost": 5,
+					},
+					"v3/account": map[string]any{
+						"cost": 5,
+					},
+					"v3/userTrades": map[string]any{
+						"cost": 5,
+					},
+					"v3/openOrder": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"v1/order":                 1,
-					"v1/asset/wallet/transfer": 5,
-					"v1/asset/sendToAddress":   1,
-					"v1/listenKey":             1,
-					"v3/order":                 1,
-					"v3/asset/wallet/transfer": 5,
-					"v3/aster/user-withdraw":   1,
-					"v3/listenKey":             1,
+					"v1/order": map[string]any{
+						"cost": 1,
+					},
+					"v1/asset/wallet/transfer": map[string]any{
+						"cost": 5,
+					},
+					"v1/asset/sendToAddress": map[string]any{
+						"cost": 1,
+					},
+					"v1/listenKey": map[string]any{
+						"cost": 1,
+					},
+					"v3/order": map[string]any{
+						"cost": 1,
+					},
+					"v3/asset/wallet/transfer": map[string]any{
+						"cost": 5,
+					},
+					"v3/aster/user-withdraw": map[string]any{
+						"cost": 1,
+					},
+					"v3/listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
-				"put": []any{"v1/listenKey", "v3/listenKey"},
+				"put": map[string]any{
+					"v1/listenKey": map[string]any{
+						"cost": 1,
+					},
+					"v3/listenKey": map[string]any{
+						"cost": 1,
+					},
+				},
 				"delete": map[string]any{
-					"v1/order":         1,
-					"v1/allOpenOrders": 1,
-					"v1/listenKey":     1,
-					"v3/allOpenOrders": 1,
-					"v3/order":         1,
-					"v3/listenKey":     1,
+					"v1/order": map[string]any{
+						"cost": 1,
+					},
+					"v1/allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"v1/listenKey": map[string]any{
+						"cost": 1,
+					},
+					"v3/allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"v3/order": map[string]any{
+						"cost": 1,
+					},
+					"v3/listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -570,9 +891,9 @@ func (this *AsterCore) Describe() any {
 				"linear": "FUTURE",
 			},
 			"networks": map[string]any{
-				"ERC20":  "ETH",
-				"BEP20":  "BSC",
-				"ARBONE": "Arbitrum",
+				"ERC20":    "ETH",
+				"BEP20":    "BSC",
+				"ARBITRUM": "Arbitrum",
 			},
 			"networksToChainId": map[string]any{
 				"ETH":      1,
@@ -1223,7 +1544,7 @@ func (this *AsterCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			}
 		}
 
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1501,7 +1822,7 @@ func (this *AsterCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *AsterCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1854,11 +2175,15 @@ func (this *AsterCore) FetchLastPrices(optionalArgs ...any) <-chan any {
 		//         ...
 		//     ]
 		//
+		if IsTrue(IsEqual(response, nil)) {
+			panic(NullResponse(Add(this.Id, " fetchLastPrices() returned empty response")))
+		}
+		var rows any = this.ToArray(response)
 		var results any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var marketId any = this.SafeString(GetValue(response, i), "symbol")
+		for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
+			var marketId any = this.SafeString(GetValue(rows, i), "symbol")
 			var safeMarket any = this.SafeMarket(marketId, nil, nil, marketType)
-			var priceData any = this.Extend(this.ParseLastPrice(GetValue(response, i), safeMarket), params)
+			var priceData any = this.Extend(this.ParseLastPrice(GetValue(rows, i), safeMarket), params)
 			AppendToArray(&results, priceData)
 		}
 		symbols = this.MarketSymbols(symbols)
@@ -1914,8 +2239,8 @@ func (this *AsterCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes177012 := (<-this.LoadMarkets())
-			PanicOnError(retRes177012)
+			retRes177412 := (<-this.LoadMarkets())
+			PanicOnError(retRes177412)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -2033,8 +2358,8 @@ func (this *AsterCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes186912 := (<-this.LoadMarkets())
-			PanicOnError(retRes186912)
+			retRes187312 := (<-this.LoadMarkets())
+			PanicOnError(retRes187312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2083,8 +2408,8 @@ func (this *AsterCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes190212 := (<-this.LoadMarkets())
-			PanicOnError(retRes190212)
+			retRes190612 := (<-this.LoadMarkets())
+			PanicOnError(retRes190612)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -2132,8 +2457,8 @@ func (this *AsterCore) FetchFundingIntervals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes193412 := (<-this.LoadMarkets())
-			PanicOnError(retRes193412)
+			retRes193812 := (<-this.LoadMarkets())
+			PanicOnError(retRes193812)
 		}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
@@ -2188,8 +2513,8 @@ func (this *AsterCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes196912 := (<-this.LoadMarkets())
-			PanicOnError(retRes196912)
+			retRes197312 := (<-this.LoadMarkets())
+			PanicOnError(retRes197312)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2264,8 +2589,8 @@ func (this *AsterCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes20278 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes20278)
+		retRes20318 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes20318)
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -2301,7 +2626,9 @@ func (this *AsterCore) ParseBalance(response any) any {
 		AddElementToObject(account, "free", this.SafeString2(balance, "free", "availableBalance"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -2336,8 +2663,8 @@ func (this *AsterCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan
 			panic(BadRequest(Add(this.Id, " marginMode must be either isolated or cross")))
 		}
 
-		retRes21008 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes21008)
+		retRes21068 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes21068)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":     GetValue(market, "id"),
@@ -2418,15 +2745,15 @@ func (this *AsterCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan a
 			"dualSidePosition": strValue,
 		}
 
-		retRes215615 := (<-this.FapiPrivatePostV3PositionSideDual(this.Extend(request, params)))
-		PanicOnError(retRes215615)
+		retRes216215 := (<-this.FapiPrivatePostV3PositionSideDual(this.Extend(request, params)))
+		PanicOnError(retRes216215)
 		//
 		//     {
 		//         "code": 200,
 		//         "msg": "success"
 		//     }
 		//
-		ch <- retRes215615
+		ch <- retRes216215
 		return nil
 
 	}()
@@ -2466,8 +2793,8 @@ func (this *AsterCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes21848 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes21848)
+		retRes21908 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes21908)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2639,8 +2966,8 @@ func (this *AsterCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes23398 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes23398)
+		retRes23458 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes23458)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2723,8 +3050,8 @@ func (this *AsterCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
 		}
 
-		retRes24048 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24048)
+		retRes24108 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes24108)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2813,8 +3140,8 @@ func (this *AsterCore) FetchOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
 
-		retRes24718 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24718)
+		retRes24778 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes24778)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2904,8 +3231,8 @@ func (this *AsterCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25378 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes25378)
+		retRes25438 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes25438)
 		var request any = map[string]any{}
 		var market any = nil
 		var marketType any = nil
@@ -3009,8 +3336,8 @@ func (this *AsterCore) CreateOrder(symbol any, typeVar any, side any, amount any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes26198 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes26198)
+		retRes26258 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes26258)
 		var market any = this.Market(symbol)
 		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		var response any = nil
@@ -3078,8 +3405,8 @@ func (this *AsterCore) CreateOrders(orders any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes26718 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes26718)
+		retRes26778 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes26778)
 		var ordersRequests any = []any{}
 		var orderSymbols any = []any{}
 		if IsTrue(IsGreaterThan(GetArrayLength(orders), 5)) {
@@ -3147,6 +3474,16 @@ func (this *AsterCore) CreateOrders(orders any, optionalArgs ...any) <-chan any 
 	return ch
 }
 func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	/**
 	 * @method
 	 * @ignore
@@ -3160,10 +3497,6 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} request to be sent to the exchange
 	 */
-	price := GetArg(optionalArgs, 0, nil)
-	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
-	_ = params
 	var market any = this.Market(symbol)
 	var initialUppercaseType any = ToUpper(typeVar)
 	var isMarketOrder any = IsEqual(initialUppercaseType, "MARKET")
@@ -3342,8 +3675,8 @@ func (this *AsterCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
 
-		retRes29138 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes29138)
+		retRes29258 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes29258)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3400,8 +3733,8 @@ func (this *AsterCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes29548 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes29548)
+		retRes29668 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes29668)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3459,8 +3792,8 @@ func (this *AsterCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes29948 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes29948)
+		retRes30068 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes30068)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3515,8 +3848,8 @@ func (this *AsterCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any
 			panic(BadRequest(Add(this.Id, " leverage should be between 1 and 125")))
 		}
 
-		retRes30668 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes30668)
+		retRes30788 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes30788)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":   GetValue(market, "id"),
@@ -3559,8 +3892,8 @@ func (this *AsterCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30938 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes30938)
+		retRes31058 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes31058)
 
 		response := (<-this.FapiPrivateGetV3PositionRisk(params))
 		PanicOnError(response)
@@ -3586,7 +3919,7 @@ func (this *AsterCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		//         }
 		//     ]
 		//
-		ch <- this.ParseLeverages(response, symbols, "symbol")
+		ch <- this.ParseLeverages(this.ToArray(response), symbols, "symbol")
 		return nil
 
 	}()
@@ -3656,8 +3989,8 @@ func (this *AsterCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes31728 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes31728)
+		retRes31848 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes31848)
 
 		response := (<-this.FapiPrivateGetV3PositionRisk(params))
 		PanicOnError(response)
@@ -3685,7 +4018,7 @@ func (this *AsterCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 		//     ]
 		//
 		//
-		ch <- this.ParseMarginModes(response, symbols, "symbol", "swap")
+		ch <- this.ParseMarginModes(this.ToArray(response), symbols, "symbol", "swap")
 		return nil
 
 	}()
@@ -3754,8 +4087,8 @@ func (this *AsterCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a symbol argument")))
 		}
 
-		retRes32468 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes32468)
+		retRes32588 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes32588)
 		var market any = this.Market(symbol)
 		var until any = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
@@ -3789,7 +4122,7 @@ func (this *AsterCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan 
 		//         }
 		//     ]
 		//
-		var modifications any = this.ParseMarginModifications(response)
+		var modifications any = this.ParseMarginModifications(this.ToArray(response))
 
 		ch <- this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)
 		return nil
@@ -3845,8 +4178,8 @@ func (this *AsterCore) ModifyMarginHelper(symbol any, amount any, addOrReduce an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes33228 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes33228)
+		retRes33348 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes33348)
 		var market any = this.Market(symbol)
 		amount = this.AmountToPrecision(symbol, amount)
 		var request any = map[string]any{
@@ -3894,9 +4227,9 @@ func (this *AsterCore) ReduceMargin(symbol any, amount any, optionalArgs ...any)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes335415 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
-		PanicOnError(retRes335415)
-		ch <- retRes335415
+		retRes336615 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+		PanicOnError(retRes336615)
+		ch <- retRes336615
 		return nil
 
 	}()
@@ -3921,9 +4254,9 @@ func (this *AsterCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes336815 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
-		PanicOnError(retRes336815)
-		ch <- retRes336815
+		retRes338015 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+		PanicOnError(retRes338015)
+		ch <- retRes338015
 		return nil
 
 	}()
@@ -3986,8 +4319,8 @@ func (this *AsterCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes34138 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes34138)
+		retRes34258 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes34258)
 		var market any = nil
 		var request any = map[string]any{
 			"incomeType": "FUNDING_FEE",
@@ -4100,8 +4433,8 @@ func (this *AsterCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes35048 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes35048)
+		retRes35168 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes35168)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -4338,11 +4671,11 @@ func (this *AsterCore) FetchPositionsRisk(optionalArgs ...any) <-chan any {
 			}
 		}
 
-		retRes37248 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes37248)
+		retRes37368 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes37368)
 
-		retRes37258 := (<-this.LoadLeverageBrackets(false, params))
-		PanicOnError(retRes37258)
+		retRes37378 := (<-this.LoadLeverageBrackets(false, params))
+		PanicOnError(retRes37378)
 		var request any = map[string]any{}
 
 		response := (<-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params)))
@@ -4366,12 +4699,13 @@ func (this *AsterCore) FetchPositionsRisk(optionalArgs ...any) <-chan any {
 		//         }
 		//     ]
 		//
+		var rawPositions any = this.ToArray(response)
 		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var rawPosition any = GetValue(response, i)
+		for i := 0; IsLessThan(i, GetArrayLength(rawPositions)); i++ {
+			var rawPosition any = GetValue(rawPositions, i)
 			var entryPriceString any = this.SafeString(rawPosition, "entryPrice")
 			if IsTrue(Precise.StringGt(entryPriceString, "0")) {
-				AppendToArray(&result, this.ParsePositionRisk(GetValue(response, i)))
+				AppendToArray(&result, this.ParsePositionRisk(rawPosition))
 			}
 		}
 		symbols = this.MarketSymbols(symbols)
@@ -4416,15 +4750,15 @@ func (this *AsterCore) FetchPositions(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(defaultMethod, "positionRisk")) {
 
-			retRes378119 := (<-this.FetchPositionsRisk(symbols, params))
-			PanicOnError(retRes378119)
-			ch <- retRes378119
+			retRes379419 := (<-this.FetchPositionsRisk(symbols, params))
+			PanicOnError(retRes379419)
+			ch <- retRes379419
 			return nil
 		} else if IsTrue(IsEqual(defaultMethod, "account")) {
 
-			retRes378319 := (<-this.FetchAccountPositions(symbols, params))
-			PanicOnError(retRes378319)
-			ch <- retRes378319
+			retRes379619 := (<-this.FetchAccountPositions(symbols, params))
+			PanicOnError(retRes379619)
+			ch <- retRes379619
 			return nil
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")))
@@ -4445,10 +4779,12 @@ func (this *AsterCore) ParseAccountPositions(account any, optionalArgs ...any) a
 		var code any = this.SafeCurrencyCode(currencyId)
 		var crossWalletBalance any = this.SafeString(entry, "crossWalletBalance")
 		var crossUnPnl any = this.SafeString(entry, "crossUnPnl")
-		AddElementToObject(balances, code, map[string]any{
-			"crossMargin":        Precise.StringAdd(crossWalletBalance, crossUnPnl),
-			"crossWalletBalance": crossWalletBalance,
-		})
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(balances, code, map[string]any{
+				"crossMargin":        Precise.StringAdd(crossWalletBalance, crossUnPnl),
+				"crossWalletBalance": crossWalletBalance,
+			})
+		}
 	}
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
@@ -4485,6 +4821,9 @@ func (this *AsterCore) ParseAccountPosition(position any, optionalArgs ...any) a
 	var initialMarginPercentageString any = nil
 	if IsTrue(!IsEqual(leverageString, nil)) {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
+		if IsTrue(IsEqual(leverage, nil)) {
+			panic(ExchangeError(Add(this.Id, " parseAccountPosition() missing leverage")))
+		}
 		var rational any = this.IsRoundNumber(Mod(1000, leverage))
 		if !IsTrue(rational) {
 			initialMarginPercentageString = Precise.StringDiv(Precise.StringAdd(initialMarginPercentageString, "1e-8"), "1", 8)
@@ -4601,6 +4940,9 @@ func (this *AsterCore) ParseAccountPosition(position any, optionalArgs ...any) a
 		var rounderString any = ToString(rounder)
 		var liquidationPriceRoundedString any = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
 		var truncatedLiquidationPrice any = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
+		if IsTrue(IsEqual(truncatedLiquidationPrice, nil)) {
+			panic(ExchangeError(Add(this.Id, " method() missing truncatedLiquidationPrice")))
+		}
 		if IsTrue(IsEqual(GetValue(truncatedLiquidationPrice, 0), "-")) {
 			// user cannot be liquidated
 			// since he has more collateral than the size of the position
@@ -4664,11 +5006,11 @@ func (this *AsterCore) FetchAccountPositions(optionalArgs ...any) <-chan any {
 			}
 		}
 
-		retRes40068 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes40068)
+		retRes40278 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes40278)
 
-		retRes40078 := (<-this.LoadLeverageBrackets(false, params))
-		PanicOnError(retRes40078)
+		retRes40288 := (<-this.LoadLeverageBrackets(false, params))
+		PanicOnError(retRes40288)
 
 		response := (<-this.FapiPrivateGetV4Account(params))
 		PanicOnError(response)
@@ -4695,8 +5037,8 @@ func (this *AsterCore) LoadLeverageBrackets(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes40178 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes40178)
+		retRes40388 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes40388)
 		// by default cache the leverage bracket
 		// it contains useful stuff like the maintenance margin and initial margin for positions
 		var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
@@ -4728,8 +5070,9 @@ func (this *AsterCore) LoadLeverageBrackets(optionalArgs ...any) <-chan any {
 			//                ...
 			//
 			AddElementToObject(this.Options, "leverageBrackets", this.CreateSafeDictionary())
-			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-				var entry any = GetValue(response, i)
+			var entries any = this.ToArray(response)
+			for i := 0; IsLessThan(i, GetArrayLength(entries)); i++ {
+				var entry any = GetValue(entries, i)
 				var marketId any = this.SafeString(entry, "symbol")
 				var symbol any = this.SafeSymbol(marketId, nil, nil, "contract")
 				var brackets any = this.SafeList(entry, "brackets", []any{})
@@ -4834,8 +5177,8 @@ func (this *AsterCore) Withdraw(code any, amount any, address any, optionalArgs 
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes41258 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes41258)
+		retRes41478 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes41478)
 		var currency any = this.Currency(code)
 		var nonce any = Multiply(this.Milliseconds(), 1000)
 		var request any = map[string]any{
@@ -4928,8 +5271,8 @@ func (this *AsterCore) Transfer(code any, amount any, fromAccount any, toAccount
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes42038 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes42038)
+		retRes42258 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes42258)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"asset":  GetValue(currency, "id"),
@@ -5140,8 +5483,8 @@ func (this *AsterCore) LoadMarketsAndSignIn() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes43798 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
-		PanicOnError(retRes43798)
+		retRes44018 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
+		PanicOnError(retRes44018)
 		return nil
 	}()
 	return ch
@@ -5174,8 +5517,8 @@ func (this *AsterCore) SignIn(optionalArgs ...any) <-chan any {
 			panic(NotSupported(Add(this.Id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")))
 		}
 
-		retRes44008 := (<-this.InitializeClient(params))
-		PanicOnError(retRes44008)
+		retRes44228 := (<-this.InitializeClient(params))
+		PanicOnError(retRes44228)
 
 		ch <- true
 		return nil

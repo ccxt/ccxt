@@ -143,7 +143,7 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
+| symbol | <code>string</code> | No | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
@@ -208,6 +208,7 @@ cancel all open orders in a market
 * [woo](/exchanges/woo.md#cancelallorders)
 * [woofipro](/exchanges/woofipro.md#cancelallorders)
 * [xt](/exchanges/xt.md#cancelallorders)
+* [zebpay](/exchanges/zebpay.md#cancelallorders)
 
 ---
 
@@ -530,7 +531,6 @@ cancel multiple orders
 * [weex](/exchanges/weex.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
 * [xt](/exchanges/xt.md#cancelorders)
-* [zebpay](/exchanges/zebpay.md#cancelorders)
 
 ---
 
@@ -2561,7 +2561,6 @@ fetch the rate of interest to borrow a currency for margin trading
 * [digifinex](/exchanges/digifinex.md#fetchcrossborrowrate)
 * [kucoin](/exchanges/kucoin.md#fetchcrossborrowrate)
 * [okx](/exchanges/okx.md#fetchcrossborrowrate)
-* [whitebit](/exchanges/whitebit.md#fetchcrossborrowrate)
 
 ---
 
@@ -2901,7 +2900,9 @@ fetch the fee for deposits and withdrawals
 
 ##### Supported exchanges
 * [coinex](/exchanges/coinex.md#fetchdepositwithdrawfee)
+* [indodax](/exchanges/indodax.md#fetchdepositwithdrawfee)
 * [kucoin](/exchanges/kucoin.md#fetchdepositwithdrawfee)
+* [luno](/exchanges/luno.md#fetchdepositwithdrawfee)
 
 ---
 
@@ -3248,6 +3249,7 @@ fetch the current funding rate
 * [hibachi](/exchanges/hibachi.md#fetchfundingrate)
 * [hitbtc](/exchanges/hitbtc.md#fetchfundingrate)
 * [htx](/exchanges/htx.md#fetchfundingrate)
+* [hyperliquid](/exchanges/hyperliquid.md#fetchfundingrate)
 * [kucoin](/exchanges/kucoin.md#fetchfundingrate)
 * [lbank](/exchanges/lbank.md#fetchfundingrate)
 * [mexc](/exchanges/mexc.md#fetchfundingrate)
@@ -4480,6 +4482,7 @@ retrieves the open interest of a contract trading pair
 * [paradex](/exchanges/paradex.md#fetchopeninterest)
 * [phemex](/exchanges/phemex.md#fetchopeninterest)
 * [weex](/exchanges/weex.md#fetchopeninterest)
+* [xt](/exchanges/xt.md#fetchopeninterest)
 
 ---
 
@@ -4874,7 +4877,7 @@ fetches information on an order made by the user
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -7334,6 +7337,7 @@ transfer currency internally between wallets on the same account
 * [bybit](/exchanges/bybit.md#transfer)
 * [budfi](/exchanges/budfi.md#transfer)
 * [cex](/exchanges/cex.md#transfer)
+* [coinbase](/exchanges/coinbase.md#transfer)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#transfer)
 * [coinex](/exchanges/coinex.md#transfer)
 * [deepcoin](/exchanges/deepcoin.md#transfer)
@@ -7593,6 +7597,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 * [bingx](/exchanges/bingx.md#unwatchohlcv)
 * [bitfinex](/exchanges/bitfinex.md#unwatchohlcv)
 * [bitget](/exchanges/bitget.md#unwatchohlcv)
+* [bitvavo](/exchanges/bitvavo.md#unwatchohlcv)
 * [bybit](/exchanges/bybit.md#unwatchohlcv)
 * [bydfi](/exchanges/bydfi.md#unwatchohlcv)
 * [cryptocom](/exchanges/cryptocom.md#unwatchohlcv)
@@ -7628,6 +7633,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 * [aster](/exchanges/aster.md#unwatchohlcvforsymbols)
 * [backpack](/exchanges/backpack.md#unwatchohlcvforsymbols)
 * [binance](/exchanges/binance.md#unwatchohlcvforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#unwatchohlcvforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchohlcvforsymbols)
 * [bydfi](/exchanges/bydfi.md#unwatchohlcvforsymbols)
 * [nado](/exchanges/nado.md#unwatchohlcvforsymbols)
@@ -7657,6 +7663,7 @@ unsubscribe from the orderbook channel
 * [binance](/exchanges/binance.md#unwatchorderbook)
 * [bingx](/exchanges/bingx.md#unwatchorderbook)
 * [bitget](/exchanges/bitget.md#unwatchorderbook)
+* [bitvavo](/exchanges/bitvavo.md#unwatchorderbook)
 * [bybit](/exchanges/bybit.md#unwatchorderbook)
 * [bydfi](/exchanges/bydfi.md#unwatchorderbook)
 * [cryptocom](/exchanges/cryptocom.md#unwatchorderbook)
@@ -7696,6 +7703,7 @@ unsubscribe from the orderbook channel
 * [aster](/exchanges/aster.md#unwatchorderbookforsymbols)
 * [backpack](/exchanges/backpack.md#unwatchorderbookforsymbols)
 * [binance](/exchanges/binance.md#unwatchorderbookforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#unwatchorderbookforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchorderbookforsymbols)
 * [bydfi](/exchanges/bydfi.md#unwatchorderbookforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#unwatchorderbookforsymbols)
@@ -7780,6 +7788,7 @@ unWatches a price ticker
 * [cryptocom](/exchanges/cryptocom.md#unwatchticker)
 * [deepcoin](/exchanges/deepcoin.md#unwatchticker)
 * [htx](/exchanges/htx.md#unwatchticker)
+* [hyperliquid](/exchanges/hyperliquid.md#unwatchticker)
 * [kucoin](/exchanges/kucoin.md#unwatchticker)
 * [lighter](/exchanges/lighter.md#unwatchticker)
 * [mexc](/exchanges/mexc.md#unwatchticker)
@@ -7843,6 +7852,7 @@ unsubscribe from the trades channel
 * [bingx](/exchanges/bingx.md#unwatchtrades)
 * [bitfinex](/exchanges/bitfinex.md#unwatchtrades)
 * [bitget](/exchanges/bitget.md#unwatchtrades)
+* [bitvavo](/exchanges/bitvavo.md#unwatchtrades)
 * [bybit](/exchanges/bybit.md#unwatchtrades)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtrades)
 * [deepcoin](/exchanges/deepcoin.md#unwatchtrades)
@@ -7880,6 +7890,7 @@ unsubscribe from the trades channel
 * [aster](/exchanges/aster.md#unwatchtradesforsymbols)
 * [backpack](/exchanges/backpack.md#unwatchtradesforsymbols)
 * [binance](/exchanges/binance.md#unwatchtradesforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#unwatchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchtradesforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtradesforsymbols)
 * [gate](/exchanges/gate.md#unwatchtradesforsymbols)
@@ -8236,7 +8247,6 @@ watches information on multiple trades made by the user
 * [bullish](/exchanges/bullish.md#watchmytrades)
 * [bybit](/exchanges/bybit.md#watchmytrades)
 * [cex](/exchanges/cex.md#watchmytrades)
-* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchmytrades)
 * [coinex](/exchanges/coinex.md#watchmytrades)
 * [cryptocom](/exchanges/cryptocom.md#watchmytrades)
 * [deepcoin](/exchanges/deepcoin.md#watchmytrades)
@@ -8265,27 +8275,6 @@ watches information on multiple trades made by the user
 * [whitebit](/exchanges/whitebit.md#watchmytrades)
 * [woo](/exchanges/woo.md#watchmytrades)
 * [woofipro](/exchanges/woofipro.md#watchmytrades)
-
----
-
-<a name="watchMyTradesForSymbols" id="watchmytradesforsymbols"></a>
-
-## watchMyTradesForSymbols
-watches information on multiple trades made by the user
-
-**Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-##### Supported exchanges
-* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchmytradesforsymbols)
 
 ---
 
@@ -8375,6 +8364,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [aster](/exchanges/aster.md#watchohlcvforsymbols)
 * [backpack](/exchanges/backpack.md#watchohlcvforsymbols)
 * [binance](/exchanges/binance.md#watchohlcvforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#watchohlcvforsymbols)
 * [blofin](/exchanges/blofin.md#watchohlcvforsymbols)
 * [bybit](/exchanges/bybit.md#watchohlcvforsymbols)
 * [bydfi](/exchanges/bydfi.md#watchohlcvforsymbols)
@@ -8393,7 +8383,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -8423,7 +8413,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [bybit](/exchanges/bybit.md#watchorderbook)
 * [bydfi](/exchanges/bydfi.md#watchorderbook)
 * [cex](/exchanges/cex.md#watchorderbook)
-* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchorderbook)
 * [coincheck](/exchanges/coincheck.md#watchorderbook)
 * [coinex](/exchanges/coinex.md#watchorderbook)
 * [coinone](/exchanges/coinone.md#watchorderbook)
@@ -8469,7 +8458,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -8485,10 +8474,10 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [binance](/exchanges/binance.md#watchorderbookforsymbols)
 * [bitget](/exchanges/bitget.md#watchorderbookforsymbols)
 * [bitmex](/exchanges/bitmex.md#watchorderbookforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#watchorderbookforsymbols)
 * [blofin](/exchanges/blofin.md#watchorderbookforsymbols)
 * [bybit](/exchanges/bybit.md#watchorderbookforsymbols)
 * [bydfi](/exchanges/bydfi.md#watchorderbookforsymbols)
-* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchorderbookforsymbols)
 * [coinex](/exchanges/coinex.md#watchorderbookforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#watchorderbookforsymbols)
 * [deribit](/exchanges/deribit.md#watchorderbookforsymbols)
@@ -8537,7 +8526,6 @@ watches information on multiple orders made by the user
 * [bybit](/exchanges/bybit.md#watchorders)
 * [bydfi](/exchanges/bydfi.md#watchorders)
 * [cex](/exchanges/cex.md#watchorders)
-* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchorders)
 * [coinex](/exchanges/coinex.md#watchorders)
 * [cryptocom](/exchanges/cryptocom.md#watchorders)
 * [deepcoin](/exchanges/deepcoin.md#watchorders)
@@ -8589,7 +8577,6 @@ watches information on multiple orders made by the user across multiple symbols
 ##### Supported exchanges
 * [blofin](/exchanges/blofin.md#watchordersforsymbols)
 * [bydfi](/exchanges/bydfi.md#watchordersforsymbols)
-* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchordersforsymbols)
 
 ---
 
@@ -8694,7 +8681,6 @@ watches a price ticker, a statistical calculation with the information calculate
 * [bybit](/exchanges/bybit.md#watchticker)
 * [bydfi](/exchanges/bydfi.md#watchticker)
 * [cex](/exchanges/cex.md#watchticker)
-* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchticker)
 * [coinex](/exchanges/coinex.md#watchticker)
 * [coinone](/exchanges/coinone.md#watchticker)
 * [cryptocom](/exchanges/cryptocom.md#watchticker)
@@ -8754,7 +8740,6 @@ watches a price ticker, a statistical calculation with the information calculate
 * [bybit](/exchanges/bybit.md#watchtickers)
 * [bydfi](/exchanges/bydfi.md#watchtickers)
 * [cex](/exchanges/cex.md#watchtickers)
-* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchtickers)
 * [coinex](/exchanges/coinex.md#watchtickers)
 * [cryptocom](/exchanges/cryptocom.md#watchtickers)
 * [deribit](/exchanges/deribit.md#watchtickers)
@@ -8817,7 +8802,6 @@ watches information on multiple trades made in a market
 * [bullish](/exchanges/bullish.md#watchtrades)
 * [bybit](/exchanges/bybit.md#watchtrades)
 * [cex](/exchanges/cex.md#watchtrades)
-* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchtrades)
 * [coincheck](/exchanges/coincheck.md#watchtrades)
 * [coinex](/exchanges/coinex.md#watchtrades)
 * [coinone](/exchanges/coinone.md#watchtrades)
@@ -8879,9 +8863,9 @@ get the list of most recent trades for a list of symbols
 * [binance](/exchanges/binance.md#watchtradesforsymbols)
 * [bitget](/exchanges/bitget.md#watchtradesforsymbols)
 * [bitmex](/exchanges/bitmex.md#watchtradesforsymbols)
+* [bitvavo](/exchanges/bitvavo.md#watchtradesforsymbols)
 * [blofin](/exchanges/blofin.md#watchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#watchtradesforsymbols)
-* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchtradesforsymbols)
 * [coinex](/exchanges/coinex.md#watchtradesforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#watchtradesforsymbols)
 * [deribit](/exchanges/deribit.md#watchtradesforsymbols)

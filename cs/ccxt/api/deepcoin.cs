@@ -11,266 +11,372 @@ public partial class deepcoin : Exchange
 {
     public deepcoin (object args = null): base(args) {}
 
+    /// <summary>Calls the publicGetDeepcoinMarketBooks endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinMarketBooks (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinMarketBooks",parameters);
     }
 
+    /// <summary>Calls the publicGetDeepcoinMarketCandles endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinMarketCandles (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinMarketCandles",parameters);
     }
 
+    /// <summary>Calls the publicGetDeepcoinMarketInstruments endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinMarketInstruments (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinMarketInstruments",parameters);
     }
 
+    /// <summary>Calls the publicGetDeepcoinMarketTickers endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinMarketTickers (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinMarketTickers",parameters);
     }
 
+    /// <summary>Calls the publicGetDeepcoinMarketIndexCandles endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinMarketIndexCandles (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinMarketIndexCandles",parameters);
     }
 
+    /// <summary>Calls the publicGetDeepcoinMarketTrades endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinMarketTrades (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinMarketTrades",parameters);
     }
 
+    /// <summary>Calls the publicGetDeepcoinMarketMarkPriceCandles endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinMarketMarkPriceCandles (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinMarketMarkPriceCandles",parameters);
     }
 
+    /// <summary>Calls the publicGetDeepcoinMarketStepMargin endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinMarketStepMargin (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinMarketStepMargin",parameters);
     }
 
+    /// <summary>Calls the publicGetDeepcoinTradeFundingRate endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinTradeFundingRate (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinTradeFundingRate",parameters);
     }
 
+    /// <summary>Calls the publicGetDeepcoinTradeFundRateCurrentFundingRate endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinTradeFundRateCurrentFundingRate (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinTradeFundRateCurrentFundingRate",parameters);
     }
 
+    /// <summary>Calls the publicGetDeepcoinTradeFundRateHistory endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDeepcoinTradeFundRateHistory (object parameters = null)
     {
         return await this.callAsync ("publicGetDeepcoinTradeFundRateHistory",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinAccountBalances endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinAccountBalances (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinAccountBalances",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinAccountBills endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinAccountBills (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinAccountBills",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinAccountPositions endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinAccountPositions (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinAccountPositions",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinTradeFills endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinTradeFills (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinTradeFills",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinTradeOrderByID endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinTradeOrderByID (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinTradeOrderByID",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinTradeFinishOrderByID endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinTradeFinishOrderByID (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinTradeFinishOrderByID",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinTradeOrdersHistory endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinTradeOrdersHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinTradeOrdersHistory",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinTradeV2OrdersPending endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinTradeV2OrdersPending (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinTradeV2OrdersPending",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinTradeTriggerOrdersPending endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinTradeTriggerOrdersPending (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinTradeTriggerOrdersPending",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinTradeTriggerOrdersHistory endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinTradeTriggerOrdersHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinTradeTriggerOrdersHistory",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinCopytradingSupportContracts endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinCopytradingSupportContracts (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinCopytradingSupportContracts",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinCopytradingLeaderPosition endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinCopytradingLeaderPosition (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinCopytradingLeaderPosition",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinCopytradingEstimateProfit endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinCopytradingEstimateProfit (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinCopytradingEstimateProfit",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinCopytradingHistoryProfit endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinCopytradingHistoryProfit (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinCopytradingHistoryProfit",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinCopytradingFollowerRank endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinCopytradingFollowerRank (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinCopytradingFollowerRank",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinInternalTransferSupport endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinInternalTransferSupport (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinInternalTransferSupport",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinInternalTransferHistoryOrder endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinInternalTransferHistoryOrder (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinInternalTransferHistoryOrder",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinRebateConfig endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinRebateConfig (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinRebateConfig",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinAgentsUsers endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinAgentsUsers (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinAgentsUsers",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinAgentsUsersRebateList endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinAgentsUsersRebateList (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinAgentsUsersRebateList",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinAgentsUsersRebates endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinAgentsUsersRebates (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinAgentsUsersRebates",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinAssetDepositList endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinAssetDepositList (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinAssetDepositList",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinAssetWithdrawList endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinAssetWithdrawList (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinAssetWithdrawList",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinAssetRechargeChainList endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinAssetRechargeChainList (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinAssetRechargeChainList",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinListenkeyAcquire endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinListenkeyAcquire (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinListenkeyAcquire",parameters);
     }
 
+    /// <summary>Calls the privateGetDeepcoinListenkeyExtend endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetDeepcoinListenkeyExtend (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinListenkeyExtend",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinAccountSetLeverage endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinAccountSetLeverage (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinAccountSetLeverage",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinTradeOrder endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinTradeOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinTradeOrder",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinTradeReplaceOrder endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinTradeReplaceOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinTradeReplaceOrder",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinTradeCancelOrder endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinTradeCancelOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinTradeCancelOrder",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinTradeBatchCancelOrder endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinTradeBatchCancelOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinTradeBatchCancelOrder",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinTradeCancelTriggerOrder endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinTradeCancelTriggerOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinTradeCancelTriggerOrder",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinTradeSwapCancelAll endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinTradeSwapCancelAll (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinTradeSwapCancelAll",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinTradeTriggerOrder endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinTradeTriggerOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinTradeTriggerOrder",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinTradeBatchClosePosition endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinTradeBatchClosePosition (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinTradeBatchClosePosition",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinTradeReplaceOrderSltp endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinTradeReplaceOrderSltp (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinTradeReplaceOrderSltp",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinTradeClosePositionByIds endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinTradeClosePositionByIds (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinTradeClosePositionByIds",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinCopytradingLeaderSettings endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinCopytradingLeaderSettings (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinCopytradingLeaderSettings",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinCopytradingSetContracts endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinCopytradingSetContracts (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinCopytradingSetContracts",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinInternalTransfer endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinInternalTransfer (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinInternalTransfer",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinRebateConfig endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinRebateConfig (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinRebateConfig",parameters);
     }
 
+    /// <summary>Calls the privatePostDeepcoinAssetTransfer endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostDeepcoinAssetTransfer (object parameters = null)
     {
         return await this.callAsync ("privatePostDeepcoinAssetTransfer",parameters);

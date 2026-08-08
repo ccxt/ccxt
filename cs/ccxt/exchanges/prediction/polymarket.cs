@@ -86,168 +86,424 @@ public partial class polymarket : PredictionExchange
                 { "gamma", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "status", 1 },
-                            { "comments", 1 },
-                            { "comments/{id}", 1 },
-                            { "comments/user_address/{user_address}", 1 },
-                            { "events", 1 },
-                            { "events/creators", 1 },
-                            { "events/creators/{id}", 1 },
-                            { "events/keyset", 1 },
-                            { "events/pagination", 1 },
-                            { "events/results", 1 },
-                            { "events/slug/{slug}", 1 },
-                            { "events/{id}", 1 },
-                            { "events/{id}/comments/count", 1 },
-                            { "events/{id}/tags", 1 },
-                            { "events/{id}/tweet-count", 1 },
-                            { "markets", 1 },
-                            { "markets/keyset", 1 },
-                            { "markets/slug/{slug}", 1 },
-                            { "markets/{id}", 1 },
-                            { "markets/{id}/description", 1 },
-                            { "markets/{id}/tags", 1 },
-                            { "profiles/user_address/{user_address}", 1 },
-                            { "public-profile", 1 },
-                            { "public-search", 1 },
-                            { "series", 1 },
-                            { "series-summary/slug/{slug}", 1 },
-                            { "series-summary/{id}", 1 },
-                            { "series/{id}", 1 },
-                            { "series/{id}/comments/count", 1 },
-                            { "sports", 1 },
-                            { "sports/market-types", 1 },
-                            { "tags", 1 },
-                            { "tags/slug/{slug}", 1 },
-                            { "tags/slug/{slug}/related-tags", 1 },
-                            { "tags/slug/{slug}/related-tags/tags", 1 },
-                            { "tags/{id}", 1 },
-                            { "tags/{id}/related-tags", 1 },
-                            { "tags/{id}/related-tags/tags", 1 },
-                            { "teams", 1 },
-                            { "teams/{id}", 1 },
+                            { "status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "comments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "comments/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "comments/user_address/{user_address}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/creators", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/creators/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/keyset", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/pagination", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/results", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/slug/{slug}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/{id}/comments/count", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/{id}/tags", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/{id}/tweet-count", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/keyset", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/slug/{slug}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{id}/description", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{id}/tags", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/user_address/{user_address}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public-profile", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public-search", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series-summary/slug/{slug}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series-summary/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series/{id}/comments/count", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sports", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sports/market-types", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tags", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tags/slug/{slug}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tags/slug/{slug}/related-tags", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tags/slug/{slug}/related-tags/tags", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tags/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tags/{id}/related-tags", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tags/{id}/related-tags/tags", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "teams", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "teams/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "markets/abridged", 1 },
-                            { "markets/information", 1 },
+                            { "markets/abridged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/information", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "clob", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "book", 1 },
-                            { "books", 1 },
-                            { "builder/trades", 1 },
-                            { "clob-markets/{condition_id}", 1 },
-                            { "fee-rate", 1 },
-                            { "fee-rate/{token_id}", 1 },
-                            { "last-trade-price", 1 },
-                            { "last-trades-prices", 1 },
-                            { "markets-by-token/{token_id}", 1 },
-                            { "markets/live-activity/{condition_id}", 1 },
-                            { "midpoint", 1 },
-                            { "midpoints", 1 },
-                            { "neg-risk", 1 },
-                            { "neg-risk/{token_id}", 1 },
-                            { "price", 1 },
-                            { "prices", 1 },
-                            { "prices-history", 1 },
-                            { "rebates/current", 1 },
-                            { "rewards/markets/current", 1 },
-                            { "rewards/markets/multi", 1 },
-                            { "rewards/markets/{condition_id}", 1 },
-                            { "sampling-markets", 1 },
-                            { "sampling-simplified-markets", 1 },
-                            { "simplified-markets", 1 },
-                            { "spread", 1 },
-                            { "tick-size", 1 },
-                            { "tick-size/{token_id}", 1 },
-                            { "time", 1 },
+                            { "book", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "books", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "builder/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "clob-markets/{condition_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "fee-rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "fee-rate/{token_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "last-trade-price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "last-trades-prices", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets-by-token/{token_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/live-activity/{condition_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "midpoint", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "midpoints", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "neg-risk", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "neg-risk/{token_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "prices", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "prices-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "rebates/current", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "rewards/markets/current", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "rewards/markets/multi", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "rewards/markets/{condition_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sampling-markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sampling-simplified-markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "simplified-markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spread", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tick-size", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tick-size/{token_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "time", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "batch-prices-history", 1 },
-                            { "books", 1 },
-                            { "last-trades-prices", 1 },
-                            { "markets/live-activity", 1 },
-                            { "midpoints", 1 },
-                            { "prices", 1 },
-                            { "spreads", 1 },
+                            { "batch-prices-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "books", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "last-trades-prices", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/live-activity", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "midpoints", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "prices", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spreads", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "auth/api-keys", 1 },
-                            { "auth/ban-status/closed-only", 1 },
-                            { "auth/builder-api-key", 1 },
-                            { "auth/derive-api-key", 1 },
-                            { "balance-allowance", 1 },
-                            { "balance-allowance/update", 1 },
-                            { "data/order/{id}", 1 },
-                            { "data/orders", 1 },
-                            { "data/trades", 1 },
-                            { "notifications", 1 },
-                            { "order-scoring", 1 },
-                            { "orders-scoring", 1 },
-                            { "rewards/user", 1 },
-                            { "rewards/user/markets", 1 },
-                            { "rewards/user/percentages", 1 },
-                            { "rewards/user/total", 1 },
+                            { "auth/api-keys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/ban-status/closed-only", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/builder-api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/derive-api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "balance-allowance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "balance-allowance/update", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "data/order/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "data/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "data/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "notifications", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order-scoring", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders-scoring", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "rewards/user", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "rewards/user/markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "rewards/user/percentages", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "rewards/user/total", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "auth/api-key", 1 },
-                            { "auth/builder-api-key", 1 },
-                            { "heartbeats", 1 },
-                            { "order", 1 },
-                            { "orders", 1 },
-                            { "v1/heartbeats", 1 },
+                            { "auth/api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/builder-api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "heartbeats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/heartbeats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "auth/api-key", 1 },
-                            { "auth/builder-api-key", 1 },
-                            { "cancel-all", 1 },
-                            { "cancel-market-orders", 1 },
-                            { "notifications", 1 },
-                            { "order", 1 },
-                            { "orders", 1 },
+                            { "auth/api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/builder-api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "cancel-all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "cancel-market-orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "notifications", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "data", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "activity", 1 },
-                            { "closed-positions", 1 },
-                            { "holders", 1 },
-                            { "live-volume", 1 },
-                            { "oi", 1 },
-                            { "other", 1 },
-                            { "positions", 1 },
-                            { "revisions", 1 },
-                            { "traded", 1 },
-                            { "trades", 1 },
-                            { "v1/accounting/snapshot", 1 },
-                            { "v1/activity/combos", 1 },
-                            { "v1/builders/leaderboard", 1 },
-                            { "v1/builders/volume", 1 },
-                            { "v1/leaderboard", 1 },
-                            { "v1/market-positions", 1 },
-                            { "v1/positions/combos", 1 },
-                            { "value", 1 },
+                            { "activity", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "closed-positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "holders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "live-volume", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "oi", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "other", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "revisions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "traded", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/accounting/snapshot", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/activity/combos", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/builders/leaderboard", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/builders/volume", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/leaderboard", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/market-positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/positions/combos", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "value", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "combos", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v1/rfq/combo-markets", 1 },
+                            { "v1/rfq/combo-markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "v1/maker/confirmations", 1 },
-                            { "v1/maker/quotes", 1 },
-                            { "v1/maker/quotes/cancel", 1 },
+                            { "v1/maker/confirmations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/maker/quotes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/maker/quotes/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -591,7 +847,7 @@ public partial class polymarket : PredictionExchange
         {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
             // so human-readable labels ("Fed Rates") must be slugified first
-            ((IDictionary<string,object>)baseRequest)["tag_slug"] = this.tagToSlug(this.safeString(requestedTags, 0));
+            ((IDictionary<string,object>)baseRequest)["tag_slug"] = this.tagToSlug(((string)this.safeString(requestedTags, 0)));
         }
         if (isTrue(isEqual(status, "active")))
         {
@@ -609,7 +865,8 @@ public partial class polymarket : PredictionExchange
         };
         firstPageRequest = this.extend(firstPageRequest, baseRequest);
         object firstPageResponse = await this.gammaPublicGetEvents(firstPageRequest);
-        object firstPage = ((bool) isTrue((!isEqual(firstPageResponse, null)))) ? firstPageResponse : new List<object>() {};
+        object firstPageIsArray = ((firstPageResponse is IList<object>) || (firstPageResponse.GetType().IsGenericType && firstPageResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        object firstPage = ((bool) isTrue((firstPageIsArray))) ? firstPageResponse : new List<object>() {};
         object firstPageLength = getArrayLength(firstPage);
         object allRawEvents = new List<object>() {};
         for (object fi = 0; isLessThan(fi, firstPageLength); postFixIncrement(ref fi))
@@ -792,7 +1049,7 @@ public partial class polymarket : PredictionExchange
             }
             if (isTrue(isTrue(parsedPrices) && isTrue((!isEqual(parsedPricesLength, null)))))
             {
-                outcomePrices = (IList<object>)(parsedPrices);
+                outcomePrices = parsedPrices;
             }
             object outcomeLabelsLength = getArrayLength(outcomeLabels);
             object clobTokenIdsLength = getArrayLength(clobTokenIds);
@@ -808,7 +1065,7 @@ public partial class polymarket : PredictionExchange
             {
                 object outcomeLabel = getValue(outcomeLabels, oi);
                 object clobTokenId = getValue(clobTokenIds, oi);
-                object outcomePrice = this.safeNumber(((object)outcomePrices), ((object)oi));
+                object outcomePrice = this.safeNumber(outcomePrices, oi);
                 if (!isTrue(clobTokenId))
                 {
                     continue;
@@ -962,7 +1219,11 @@ public partial class polymarket : PredictionExchange
                 for (object i = 0; isLessThan(i, ccxtMarketsLength); postFixIncrement(ref i))
                 {
                     object mkt = getValue(ccxtMarkets, i);
-                    ((IDictionary<string,object>)this.markets)[(string)((string)getValue(mkt, "market"))] = mkt;
+                    if (isTrue(isEqual(mkt, null)))
+                    {
+                        throw new ExchangeError ((string)add(this.id, " fetchOutcome() could not resolve mkt")) ;
+                    }
+                    ((IDictionary<string,object>)this.markets)[(string)getValue(mkt, "market")] = mkt;
                 }
                 this.populateOutcomes();
                 object byId = this.safeValue(this.outcomes_by_id, outcomeSymbol);
@@ -1034,7 +1295,11 @@ public partial class polymarket : PredictionExchange
                 for (object i = 0; isLessThan(i, getArrayLength(ccxtMarkets)); postFixIncrement(ref i))
                 {
                     object mkt = getValue(ccxtMarkets, i);
-                    ((IDictionary<string,object>)this.markets)[(string)((string)getValue(mkt, "market"))] = mkt;
+                    if (isTrue(isEqual(mkt, null)))
+                    {
+                        throw new ExchangeError ((string)add(this.id, " fetchOutcomes() could not resolve mkt")) ;
+                    }
+                    ((IDictionary<string,object>)this.markets)[(string)getValue(mkt, "market")] = mkt;
                 }
                 startIndex = this.sum(startIndex, chunkSize);
             }
@@ -1175,9 +1440,13 @@ public partial class polymarket : PredictionExchange
             }
             object promises = new List<object> {this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)};
             object responses = await promiseAll(promises);
-            object books = getValue(responses, 0);
+            object booksResponse = getValue(responses, 0);
             object midpoints = getValue(responses, 1);
-            object lastTrades = getValue(responses, 2);
+            object lastTradesResponse = getValue(responses, 2);
+            object booksIsArray = ((booksResponse is IList<object>) || (booksResponse.GetType().IsGenericType && booksResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            object books = ((bool) isTrue((booksIsArray))) ? booksResponse : new List<object>() {};
+            object lastTradesIsArray = ((lastTradesResponse is IList<object>) || (lastTradesResponse.GetType().IsGenericType && lastTradesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            object lastTrades = ((bool) isTrue((lastTradesIsArray))) ? lastTradesResponse : new List<object>() {};
             object lastTradesByTokenId = new Dictionary<string, object>() {};
             object lastTradesLength = getArrayLength(lastTrades);
             for (object li = 0; isLessThan(li, lastTradesLength); postFixIncrement(ref li))
@@ -1328,7 +1597,7 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
-        object tokenId = ((string)getValue(outcomeObj, "outcomeId"));
+        object tokenId = getValue(outcomeObj, "outcomeId");
         object request = new Dictionary<string, object>() {
             { "token_id", tokenId },
         };
@@ -1381,7 +1650,7 @@ public partial class polymarket : PredictionExchange
             throw new BadRequest ((string)add(add(add(add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.Join(", ", ((IList<object>)supportedKeys).ToArray()))) ;
         }
         object outcomeObj = await this.loadOutcome(outcome);
-        object tokenId = ((string)getValue(outcomeObj, "outcomeId"));
+        object tokenId = getValue(outcomeObj, "outcomeId");
         object fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
         object nowS = this.seconds();
         object startS = null;
@@ -1643,7 +1912,7 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
-        object tokenId = ((string)getValue(outcomeObj, "outcomeId"));
+        object tokenId = getValue(outcomeObj, "outcomeId");
         object outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object conditionId = this.safeString(outcomeInfo, "conditionId");
         if (isTrue(isEqual(conditionId, null)))
@@ -1699,7 +1968,7 @@ public partial class polymarket : PredictionExchange
             ((IDictionary<string,object>)request)["asset_id"] = getValue(outcomeObj, "outcomeId");
         }
         object response = await this.clobPrivateGetDataTrades(this.extend(request, parameters));
-        object rawTrades = ((bool) isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? response : (IList<object>)(this.safeList(response, "data", new List<object>() {}));
+        object rawTrades = ((bool) isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? response : this.safeList(response, "data", new List<object>() {});
         return this.parsePredictionTrades(rawTrades, outcomeObj, since, limit);
     }
 
@@ -1880,7 +2149,7 @@ public partial class polymarket : PredictionExchange
             { "user", this.walletAddress },
         };
         object response = await this.dataPublicGetPositions(this.extend(request, parameters));
-        object positions = (IList<object>)(this.safeList(response, "data", new List<object>() {}));
+        object positions = this.safeList(response, "data", new List<object>() {});
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
         object parsed = this.parsePredictionPositions(positions);
@@ -1889,6 +2158,10 @@ public partial class polymarket : PredictionExchange
             return parsed;
         }
         object wantedIds = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(outcomes, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchPositions() missing outcomes")) ;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
         {
             object outcomeObj = this.outcome(getValue(outcomes, i));
@@ -1936,7 +2209,7 @@ public partial class polymarket : PredictionExchange
     public override object parsePredictionPosition(object position, object market = null)
     {
         object tokenId = this.safeString(position, "asset");
-        object marketData = this.safeOutcome(tokenId, ((object)market));
+        object marketData = this.safeOutcome(tokenId, market);
         object size = this.safeNumber(position, "size");
         object entryPrice = this.safeNumber(position, "avgPrice");
         object curPrice = this.safeNumber(position, "currentPrice");
@@ -2051,7 +2324,7 @@ public partial class polymarket : PredictionExchange
         // fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
         object id = this.safeString2(order, "id", "orderID");
         object tokenId = this.safeString(order, "asset_id");
-        object mkt = this.safeOutcome(tokenId, ((object)market));
+        object mkt = this.safeOutcome(tokenId, market);
         // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
         object status = this.parseOrderStatus(this.safeString2(order, "status", "type"));
         object side = this.safeStringLower(order, "side");
@@ -2170,7 +2443,11 @@ public partial class polymarket : PredictionExchange
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object o = getValue(orders, i);
-            ((IList<object>)orderOutcomes).Add(this.safeString(o, "outcome"));
+            object __oc = this.safeString(o, "outcome");
+            if (isTrue(!isEqual(__oc, null)))
+            {
+                ((IList<object>)orderOutcomes).Add(__oc);
+            }
         }
         await this.loadOutcomes(orderOutcomes);
         object bodies = new List<object>() {};
@@ -2189,9 +2466,9 @@ public partial class polymarket : PredictionExchange
                 });
             }
             object built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
-            ((IList<object>)bodies).Add(this.safeDict(built, "body"));
-            ((IList<object>)outcomes).Add(this.safeDict(built, "outcome"));
-            ((IList<object>)requests).Add(this.safeDict(built, "request"));
+            ((IList<object>)bodies).Add(this.safeDict(built, "body", new Dictionary<string, object>() {}));
+            ((IList<object>)outcomes).Add(this.safeDict(built, "outcome", new Dictionary<string, object>() {}));
+            ((IList<object>)requests).Add(this.safeDict(built, "request", new Dictionary<string, object>() {}));
         }
         object response = await this.clobPrivatePostOrders(bodies);
         object result = new List<object>() {};
@@ -2227,7 +2504,7 @@ public partial class polymarket : PredictionExchange
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = this.outcome(outcome);
-        object tokenId = ((string)getValue(outcomeObj, "outcomeId"));
+        object tokenId = getValue(outcomeObj, "outcomeId");
         object sideStr = ((string)((string)side)).ToUpper();
         object isMarket = (isEqual(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -2721,6 +2998,10 @@ public partial class polymarket : PredictionExchange
         object requestedSlug = this.safeString(parameters, "slug");
         object queries = this.parseSearchQueries(parameters);
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "eventId", "slug"});
+        if (isTrue(isEqual(queries, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchEvents() missing queries")) ;
+        }
         object queriesLength = getArrayLength(queries);
         object rawEvents = new List<object>() {};
         if (isTrue(isTrue((!isEqual(requestedEventId, null))) || isTrue((!isEqual(requestedSlug, null)))))
@@ -2735,7 +3016,8 @@ public partial class polymarket : PredictionExchange
                 ((IDictionary<string,object>)lookup)["slug"] = requestedSlug;
             }
             object response = await this.gammaPublicGetEvents(lookup);
-            rawEvents = ((bool) isTrue((!isEqual(response, null)))) ? response : new List<object>() {};
+            object responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            rawEvents = ((bool) isTrue((responseIsArray))) ? response : new List<object>() {};
         } else if (isTrue(isGreaterThan(queriesLength, 0)))
         {
             rawEvents = await this.fetchRawEventsBySearch(queries, rest);
@@ -2785,7 +3067,11 @@ public partial class polymarket : PredictionExchange
             for (object mi = 0; isLessThan(mi, getArrayLength(ccxtMarkets)); postFixIncrement(ref mi))
             {
                 object m = getValue(ccxtMarkets, mi);
-                ((IDictionary<string,object>)this.markets)[(string)((string)getValue(m, "market"))] = m;
+                if (isTrue(isEqual(m, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " fetchEvents() missing m")) ;
+                }
+                ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
             }
             object parsedEvent = this.parseEvent(eventForParsing);
             ((IList<object>)result).Add(parsedEvent);
@@ -2834,6 +3120,10 @@ public partial class polymarket : PredictionExchange
             }, parameters));
         }
         object eventForParsing = this.safeDict(response, "event", response);
+        if (isTrue(isEqual(eventForParsing, null)))
+        {
+            eventForParsing = new Dictionary<string, object>() {};
+        }
         object eventVar = this.parseEvent(eventForParsing);
         this.indexEventOutcomes(eventVar);
         return eventVar;
@@ -3012,7 +3302,7 @@ public partial class polymarket : PredictionExchange
         object apiGroup = ((bool) isTrue((api is string))) ? api : getValue(api, 0);
         object access = ((bool) isTrue((api is string))) ? "public" : getValue(api, 1);
         object baseUrls = getValue(this.urls, "api");
-        object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "gamma")));
+        object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "gamma"));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
@@ -3270,6 +3560,10 @@ public partial class polymarket : PredictionExchange
         } catch(Exception e)
         {
             creds = await this.createApiKey(parameters);
+        }
+        if (isTrue(isEqual(creds, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " createOrDeriveApiKey() returned no credentials")) ;
         }
         return creds;
     }
@@ -3565,10 +3859,17 @@ public partial class polymarket : PredictionExchange
             { "assets_ids", new List<object>() {tokenId} },
             { "type", "market" },
         };
+        if (isTrue(isEqual(outcome, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " watchTicker() missing outcome")) ;
+        }
         if (!isTrue((inOp(this.orderbooks, outcome))))
         {
             object seededBook = this.orderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)outcome] = seededBook;
+            if (isTrue(!isEqual(outcome, null)))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)outcome] = seededBook;
+            }
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);

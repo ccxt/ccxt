@@ -1902,9 +1902,9 @@
                         "fee": 0,
                         "fees": {},
                         "networks": {
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "id": "USDT-Arbitrum One",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -4244,9 +4244,9 @@
                                     "wdTickSz": "8"
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "id": "ETH-Arbitrum One",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -8696,11 +8696,11 @@
                     "msg": ""
                 },
                 "parsedResponse": {
-                    "ARBONE": {
+                    "ARBITRUM": {
                         "currency": "USDT",
                         "address": "add1",
                         "tag": null,
-                        "network": "ARBONE",
+                        "network": "ARBITRUM",
                         "info": {
                             "chain": "USDT-Arbitrum One",
                             "ctAddr": "9fcbb9",

@@ -164,68 +164,140 @@ func (this *BitvavoCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"{market}/book":          1,
-					"report/{market}/book":   1,
-					"{market}/trades":        5,
-					"report/{market}/trades": 5,
-					"ticker/price":           1,
-					"ticker/book":            1,
-					"{market}/candles":       1,
+					"{market}/book": map[string]any{
+						"cost": 1,
+					},
+					"report/{market}/book": map[string]any{
+						"cost": 1,
+					},
+					"{market}/trades": map[string]any{
+						"cost": 5,
+					},
+					"report/{market}/trades": map[string]any{
+						"cost": 5,
+					},
+					"ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"ticker/book": map[string]any{
+						"cost": 1,
+					},
+					"{market}/candles": map[string]any{
+						"cost": 1,
+					},
 					"ticker/24h": map[string]any{
 						"cost":     1,
 						"noMarket": 25,
 					},
-					"time":    1,
-					"markets": 1,
-					"assets":  1,
+					"time": map[string]any{
+						"cost": 1,
+					},
+					"markets": map[string]any{
+						"cost": 1,
+					},
+					"assets": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"order": 1,
+					"order": map[string]any{
+						"cost": 1,
+					},
 					"ordersOpen": map[string]any{
 						"cost":     5,
 						"noMarket": 100,
 					},
-					"trades":                             5,
-					"orders":                             5,
-					"deposit":                            1,
-					"depositHistory":                     5,
-					"withdrawalHistory":                  5,
-					"account":                            1,
-					"balance":                            5,
-					"stakingBalance":                     1,
-					"account/fees":                       1,
-					"account/history":                    1,
-					"subaccounts":                        5,
-					"subaccounts/transfers":              5,
-					"subaccounts/transfers/{transferId}": 5,
-					"institutional/subaccounts/balance":  5,
-					"institutional/subaccounts/history":  5,
+					"trades": map[string]any{
+						"cost": 5,
+					},
+					"orders": map[string]any{
+						"cost": 5,
+					},
+					"deposit": map[string]any{
+						"cost": 1,
+					},
+					"depositHistory": map[string]any{
+						"cost": 5,
+					},
+					"withdrawalHistory": map[string]any{
+						"cost": 5,
+					},
+					"account": map[string]any{
+						"cost": 1,
+					},
+					"balance": map[string]any{
+						"cost": 5,
+					},
+					"stakingBalance": map[string]any{
+						"cost": 1,
+					},
+					"account/fees": map[string]any{
+						"cost": 1,
+					},
+					"account/history": map[string]any{
+						"cost": 1,
+					},
+					"subaccounts": map[string]any{
+						"cost": 5,
+					},
+					"subaccounts/transfers": map[string]any{
+						"cost": 5,
+					},
+					"subaccounts/transfers/{transferId}": map[string]any{
+						"cost": 5,
+					},
+					"institutional/subaccounts/balance": map[string]any{
+						"cost": 5,
+					},
+					"institutional/subaccounts/history": map[string]any{
+						"cost": 5,
+					},
 					"institutional/subaccounts/orders/open": map[string]any{
 						"cost":     5,
 						"noMarket": 100,
 					},
 				},
 				"post": map[string]any{
-					"order":                 1,
-					"cancelOrdersAfter":     5,
-					"withdrawal":            1,
-					"crypto/withdrawal":     25,
-					"subaccounts":           5,
-					"subaccounts/transfers": 5,
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"cancelOrdersAfter": map[string]any{
+						"cost": 5,
+					},
+					"withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"crypto/withdrawal": map[string]any{
+						"cost": 25,
+					},
+					"subaccounts": map[string]any{
+						"cost": 5,
+					},
+					"subaccounts/transfers": map[string]any{
+						"cost": 5,
+					},
 				},
 				"put": map[string]any{
-					"order": 1,
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"order": 1,
+					"order": map[string]any{
+						"cost": 1,
+					},
 					"orders": map[string]any{
 						"cost":     25,
 						"noMarket": 100,
 					},
-					"atomic/orders":                   100,
-					"institutional/subaccounts/order": 1,
+					"atomic/orders": map[string]any{
+						"cost": 100,
+					},
+					"institutional/subaccounts/order": map[string]any{
+						"cost": 1,
+					},
 					"institutional/subaccounts/orders": map[string]any{
 						"cost":     25,
 						"noMarket": 100,
@@ -664,22 +736,24 @@ func (this *BitvavoCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(networksArray)); j++ {
 		var networkId any = GetValue(networksArray, j)
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"info":      rawCurrency,
-			"id":        networkId,
-			"network":   networkCode,
-			"active":    active,
-			"deposit":   deposit,
-			"withdraw":  withdrawal,
-			"fee":       withdrawFee,
-			"precision": this.ParseNumber(this.ParsePrecision(precision)),
-			"limits": map[string]any{
-				"withdraw": map[string]any{
-					"min": minWithdraw,
-					"max": nil,
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"info":      rawCurrency,
+				"id":        networkId,
+				"network":   networkCode,
+				"active":    active,
+				"deposit":   deposit,
+				"withdraw":  withdrawal,
+				"fee":       withdrawFee,
+				"precision": this.ParseNumber(this.ParsePrecision(precision)),
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": minWithdraw,
+						"max": nil,
+					},
 				},
-			},
-		})
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
@@ -728,8 +802,8 @@ func (this *BitvavoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes69412 := (<-this.LoadMarkets())
-			PanicOnError(retRes69412)
+			retRes69612 := (<-this.LoadMarkets())
+			PanicOnError(retRes69612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -833,8 +907,8 @@ func (this *BitvavoCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes78112 := (<-this.LoadMarkets())
-			PanicOnError(retRes78112)
+			retRes78312 := (<-this.LoadMarkets())
+			PanicOnError(retRes78312)
 		}
 
 		response := (<-this.PublicGetTicker24h(params))
@@ -891,8 +965,8 @@ func (this *BitvavoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes82012 := (<-this.LoadMarkets())
-			PanicOnError(retRes82012)
+			retRes82212 := (<-this.LoadMarkets())
+			PanicOnError(retRes82212)
 		}
 		var market any = this.Market(symbol)
 		var paginate any = false
@@ -901,9 +975,9 @@ func (this *BitvavoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes82619 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes82619)
-			ch <- retRes82619
+			retRes82819 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes82819)
+			ch <- retRes82819
 			return nil
 		}
 		var request any = map[string]any{
@@ -1055,8 +1129,8 @@ func (this *BitvavoCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes96512 := (<-this.LoadMarkets())
-			PanicOnError(retRes96512)
+			retRes96712 := (<-this.LoadMarkets())
+			PanicOnError(retRes96712)
 		}
 
 		response := (<-this.PrivateGetAccount(params))
@@ -1125,8 +1199,8 @@ func (this *BitvavoCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes101912 := (<-this.LoadMarkets())
-			PanicOnError(retRes101912)
+			retRes102112 := (<-this.LoadMarkets())
+			PanicOnError(retRes102112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1171,7 +1245,7 @@ func (this *BitvavoCore) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitvavoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1184,8 +1258,8 @@ func (this *BitvavoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes106012 := (<-this.LoadMarkets())
-			PanicOnError(retRes106012)
+			retRes106212 := (<-this.LoadMarkets())
+			PanicOnError(retRes106212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1300,8 +1374,8 @@ func (this *BitvavoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes115512 := (<-this.LoadMarkets())
-			PanicOnError(retRes115512)
+			retRes115712 := (<-this.LoadMarkets())
+			PanicOnError(retRes115712)
 		}
 		var market any = this.Market(symbol)
 		var paginate any = false
@@ -1310,9 +1384,9 @@ func (this *BitvavoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes116119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
-			PanicOnError(retRes116119)
-			ch <- retRes116119
+			retRes116319 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
+			PanicOnError(retRes116319)
+			ch <- retRes116319
 			return nil
 		}
 		var request any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, params)
@@ -1327,7 +1401,7 @@ func (this *BitvavoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		//         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1346,7 +1420,9 @@ func (this *BitvavoCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "used", this.SafeString(balance, "inOrder"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1368,8 +1444,8 @@ func (this *BitvavoCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes120312 := (<-this.LoadMarkets())
-			PanicOnError(retRes120312)
+			retRes120712 := (<-this.LoadMarkets())
+			PanicOnError(retRes120712)
 		}
 
 		response := (<-this.PrivateGetBalance(params))
@@ -1408,8 +1484,8 @@ func (this *BitvavoCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes122812 := (<-this.LoadMarkets())
-			PanicOnError(retRes122812)
+			retRes123212 := (<-this.LoadMarkets())
+			PanicOnError(retRes123212)
 		}
 
 		response := (<-this.PrivateGetSubaccounts(params))
@@ -1469,8 +1545,8 @@ func (this *BitvavoCore) Transfer(code any, amount any, fromAccount any, toAccou
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes127512 := (<-this.LoadMarkets())
-			PanicOnError(retRes127512)
+			retRes127912 := (<-this.LoadMarkets())
+			PanicOnError(retRes127912)
 		}
 		var currency any = this.Currency(code)
 		var subaccountId any = this.SafeString(params, "subaccountId")
@@ -1551,8 +1627,8 @@ func (this *BitvavoCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes133612 := (<-this.LoadMarkets())
-			PanicOnError(retRes133612)
+			retRes134012 := (<-this.LoadMarkets())
+			PanicOnError(retRes134012)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -1625,8 +1701,8 @@ func (this *BitvavoCore) FetchTransfer(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes139112 := (<-this.LoadMarkets())
-			PanicOnError(retRes139112)
+			retRes139512 := (<-this.LoadMarkets())
+			PanicOnError(retRes139512)
 		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -1716,8 +1792,8 @@ func (this *BitvavoCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes146712 := (<-this.LoadMarkets())
-			PanicOnError(retRes146712)
+			retRes147112 := (<-this.LoadMarkets())
+			PanicOnError(retRes147112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1753,6 +1829,12 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{
 		"market":    GetValue(market, "id"),
@@ -1870,8 +1952,8 @@ func (this *BitvavoCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes159712 := (<-this.LoadMarkets())
-			PanicOnError(retRes159712)
+			retRes160712 := (<-this.LoadMarkets())
+			PanicOnError(retRes160712)
 		}
 		var market any = this.Market(symbol)
 		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -1997,8 +2079,8 @@ func (this *BitvavoCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes169812 := (<-this.LoadMarkets())
-			PanicOnError(retRes169812)
+			retRes170812 := (<-this.LoadMarkets())
+			PanicOnError(retRes170812)
 		}
 		var market any = this.Market(symbol)
 		var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
@@ -2061,8 +2143,8 @@ func (this *BitvavoCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes174012 := (<-this.LoadMarkets())
-			PanicOnError(retRes174012)
+			retRes175012 := (<-this.LoadMarkets())
+			PanicOnError(retRes175012)
 		}
 		var market any = this.Market(symbol)
 		var request any = this.CancelOrderRequest(id, symbol, params)
@@ -2087,7 +2169,7 @@ func (this *BitvavoCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @name bitvavo#cancelAllOrders
  * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
  * @description cancel all open orders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2102,8 +2184,8 @@ func (this *BitvavoCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes176412 := (<-this.LoadMarkets())
-			PanicOnError(retRes176412)
+			retRes177412 := (<-this.LoadMarkets())
+			PanicOnError(retRes177412)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2163,8 +2245,8 @@ func (this *BitvavoCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes180812 := (<-this.LoadMarkets())
-			PanicOnError(retRes180812)
+			retRes181812 := (<-this.LoadMarkets())
+			PanicOnError(retRes181812)
 		}
 		var codGroupId any = nil
 		codGroupIdparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
@@ -2215,8 +2297,8 @@ func (this *BitvavoCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes184112 := (<-this.LoadMarkets())
-			PanicOnError(retRes184112)
+			retRes185112 := (<-this.LoadMarkets())
+			PanicOnError(retRes185112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2326,8 +2408,8 @@ func (this *BitvavoCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes192712 := (<-this.LoadMarkets())
-			PanicOnError(retRes192712)
+			retRes193712 := (<-this.LoadMarkets())
+			PanicOnError(retRes193712)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
@@ -2335,9 +2417,9 @@ func (this *BitvavoCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes193219 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
-			PanicOnError(retRes193219)
-			ch <- retRes193219
+			retRes194219 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+			PanicOnError(retRes194219)
+			ch <- retRes194219
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -2415,8 +2497,8 @@ func (this *BitvavoCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes198912 := (<-this.LoadMarkets())
-			PanicOnError(retRes198912)
+			retRes199912 := (<-this.LoadMarkets())
+			PanicOnError(retRes199912)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2648,8 +2730,8 @@ func (this *BitvavoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes219912 := (<-this.LoadMarkets())
-			PanicOnError(retRes219912)
+			retRes220912 := (<-this.LoadMarkets())
+			PanicOnError(retRes220912)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2657,9 +2739,9 @@ func (this *BitvavoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes220419 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes220419)
-			ch <- retRes220419
+			retRes221419 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes221419)
+			ch <- retRes221419
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -2720,8 +2802,8 @@ func (this *BitvavoCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes224412 := (<-this.LoadMarkets())
-			PanicOnError(retRes224412)
+			retRes225412 := (<-this.LoadMarkets())
+			PanicOnError(retRes225412)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -2871,8 +2953,8 @@ func (this *BitvavoCore) Withdraw(code any, amount any, address any, optionalArg
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes237312 := (<-this.LoadMarkets())
-			PanicOnError(retRes237312)
+			retRes238312 := (<-this.LoadMarkets())
+			PanicOnError(retRes238312)
 		}
 		var currency any = this.Currency(code)
 		var request any = this.WithdrawRequest(code, amount, address, tag, params)
@@ -2943,8 +3025,8 @@ func (this *BitvavoCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes242212 := (<-this.LoadMarkets())
-			PanicOnError(retRes242212)
+			retRes243212 := (<-this.LoadMarkets())
+			PanicOnError(retRes243212)
 		}
 		var request any = this.FetchWithdrawalsRequest(code, since, limit, params)
 		var currency any = nil
@@ -3027,8 +3109,8 @@ func (this *BitvavoCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes248112 := (<-this.LoadMarkets())
-			PanicOnError(retRes248112)
+			retRes249112 := (<-this.LoadMarkets())
+			PanicOnError(retRes249112)
 		}
 		var request any = this.FetchDepositsRequest(code, since, limit, params)
 		var currency any = nil
@@ -3194,10 +3276,12 @@ func (this *BitvavoCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) a
 		networkId = currencyCode
 	}
 	var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
-	AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
-		"deposit":  GetValue(result, "deposit"),
-		"withdraw": GetValue(result, "withdraw"),
-	})
+	if IsTrue(!IsEqual(networkCode, nil)) {
+		AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+			"deposit":  GetValue(result, "deposit"),
+			"withdraw": GetValue(result, "withdraw"),
+		})
+	}
 	return result
 }
 
@@ -3221,8 +3305,8 @@ func (this *BitvavoCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes265512 := (<-this.LoadMarkets())
-			PanicOnError(retRes265512)
+			retRes266712 := (<-this.LoadMarkets())
+			PanicOnError(retRes266712)
 		}
 
 		response := (<-this.PublicGetAssets(params))

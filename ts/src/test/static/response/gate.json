@@ -1029,7 +1029,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "name": "ARBEVM",
                                     "addr": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
@@ -1038,7 +1038,7 @@
                                     "deposit_disabled": false
                                 },
                                 "id": "ARBEVM",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,

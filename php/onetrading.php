@@ -159,34 +159,34 @@ class onetrading extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'currencies',
-                        'candlesticks/{instrument_code}',
-                        'fees',
-                        'instruments',
-                        'order-book/{instrument_code}',
-                        'market-ticker',
-                        'market-ticker/{instrument_code}',
-                        'time',
+                        'currencies' => array( 'cost' => 1 ),
+                        'candlesticks/{instrument_code}' => array( 'cost' => 1 ),
+                        'fees' => array( 'cost' => 1 ),
+                        'instruments' => array( 'cost' => 1 ),
+                        'order-book/{instrument_code}' => array( 'cost' => 1 ),
+                        'market-ticker' => array( 'cost' => 1 ),
+                        'market-ticker/{instrument_code}' => array( 'cost' => 1 ),
+                        'time' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'account/balances',
-                        'account/fees',
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                        'account/orders/{order_id}/trades',
-                        'account/trades',
-                        'account/trade/{trade_id}',
+                        'account/balances' => array( 'cost' => 1 ),
+                        'account/fees' => array( 'cost' => 1 ),
+                        'account/orders' => array( 'cost' => 1 ),
+                        'account/orders/{order_id}' => array( 'cost' => 1 ),
+                        'account/orders/client/{client_id}' => array( 'cost' => 1 ),
+                        'account/orders/{order_id}/trades' => array( 'cost' => 1 ),
+                        'account/trades' => array( 'cost' => 1 ),
+                        'account/trade/{trade_id}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'account/orders',
+                        'account/orders' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
+                        'account/orders' => array( 'cost' => 1 ),
+                        'account/orders/{order_id}' => array( 'cost' => 1 ),
+                        'account/orders/client/{client_id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -538,7 +538,7 @@ class onetrading extends Exchange {
         if ($isPerp) {
             $symbol = $symbol . ':' . $quote;
         }
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -586,7 +586,7 @@ class onetrading extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_trading_fees($params = array()): array {
@@ -671,8 +671,9 @@ class onetrading extends Exchange {
         $firstSpotTier = $this->safe_dict($spotTiers, 0, array());
         $firstFuturesTier = $this->safe_dict($futuresTiers, 0, array());
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $tierObject = ($market['spot']) ? $firstSpotTier : $firstFuturesTier;
             $result[$symbol] = array(
@@ -738,8 +739,9 @@ class onetrading extends Exchange {
         $futuresTakerFee = Precise::string_div($futuresTakerFee, '100');
         $result = array();
         // $tiers = $this->parse_fee_tiers($feeTiers);
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $makerFee = ($market['spot']) ? $spotMakerFee : $futuresMakerFee;
             $takerFee = ($market['spot']) ? $spotTakerFee : $futuresTakerFee;
@@ -756,7 +758,7 @@ class onetrading extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers($feeTiers, ?array $market = null) {
+    public function parse_fee_tiers(mixed $feeTiers, ?array $market = null) {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -903,10 +905,13 @@ class onetrading extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $ticker = $this->parse_ticker($response[$i]);
+        $rawTickers = $this->to_array($response);
+        for ($i = 0; $i < count($rawTickers); $i++) {
+            $ticker = $this->parse_ticker($rawTickers[$i]);
             $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $result[$symbol] = $ticker;
+            }
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
@@ -920,7 +925,7 @@ class onetrading extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -998,7 +1003,7 @@ class onetrading extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -1024,10 +1029,16 @@ class onetrading extends Exchange {
             'MONTHS' => 'M',
         );
         $lowercaseUnit = $this->safe_string($units, $unit);
+        if (($period === null) || ($lowercaseUnit === null)) {
+            throw new ExchangeError($this->id . ' parseOHLCV() missing period/unit');
+        }
         $timeframe = $period . $lowercaseUnit;
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
         $timestamp = $this->parse8601($this->safe_string($ohlcv, 'time'));
+        if ($timestamp === null) {
+            throw new ExchangeError($this->id . ' parseOHLCV() missing timestamp');
+        }
         $alignedTimestamp = $duration * $this->parse_to_int($timestamp / $duration);
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $volumeField = $this->safe_string($options, 'volume', 'total_amount');
@@ -1059,6 +1070,9 @@ class onetrading extends Exchange {
         }
         $market = $this->market($symbol);
         $periodUnit = $this->safe_string($this->timeframes, $timeframe);
+        if ($periodUnit === null) {
+            throw new ExchangeError($this->id . ' fetchOHLCV() missing periodUnit');
+        }
         list($period, $unit) = explode('/', $periodUnit);
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
@@ -1174,7 +1188,7 @@ class onetrading extends Exchange {
         ), $market);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -1184,7 +1198,9 @@ class onetrading extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1382,6 +1398,9 @@ class onetrading extends Exchange {
         }
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $request = array(
             'instrument_code' => $market['id'],
             'type' => $uppercaseType, // LIMIT, MARKET, STOP
@@ -1482,7 +1501,7 @@ class onetrading extends Exchange {
          *
          * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1869,7 +1888,7 @@ class onetrading extends Exchange {
         return $this->parse_trades($tradeHistory, $market, $since, $limit);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -1894,7 +1913,7 @@ class onetrading extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

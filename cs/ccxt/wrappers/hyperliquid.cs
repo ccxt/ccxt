@@ -20,10 +20,10 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
@@ -101,7 +101,7 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchSwapMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchSwapMarkets(object parameters = null)
     {
         var res = await this.fetchSwapMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
@@ -121,7 +121,7 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchSpotMarkets(object parameters = null)
     {
         var res = await this.fetchSpotMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
@@ -203,7 +203,7 @@ public partial class hyperliquid
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -242,6 +242,26 @@ public partial class hyperliquid
     {
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
+    }
+    /// <summary>
+    /// fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRate(symbol, parameters);
+        return new FundingRate(res);
     }
     /// <summary>
     /// retrieves data on all swap markets for hyperliquid

@@ -1002,7 +1002,7 @@
       "NEAR": 0.2,
       "AVAXC": 0.04,
       "APT": 0.1,
-      "ARBONE": 0.1,
+      "ARBITRUM": 0.1,
       "STATEMINT": 0.1,
       "CELO": 0.05,
       "ERC20": 0.4,
@@ -1211,7 +1211,7 @@
           }
         }
       },
-      "ARBONE": {
+      "ARBITRUM": {
         "info": {
           "network": "ARBITRUM",
           "coin": "USDT",
@@ -1242,7 +1242,7 @@
           "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
         },
         "id": "ARBITRUM",
-        "network": "ARBONE",
+        "network": "ARBITRUM",
         "active": null,
         "deposit": true,
         "withdraw": true,
@@ -2539,7 +2539,7 @@
     "fees": {
       "BEP20": 0.00001,
       "ETH": 0.0001,
-      "ARBONE": 0.00002,
+      "ARBITRUM": 0.00002,
       "BASE": 0.00005,
       "MANTA": 0.00001,
       "OP": 0.000015,
@@ -2643,7 +2643,7 @@
           }
         }
       },
-      "ARBONE": {
+      "ARBITRUM": {
         "info": {
           "network": "ARBITRUM",
           "coin": "ETH",
@@ -2673,7 +2673,7 @@
           "contractAddressUrl": "https://arbiscan.io/token/"
         },
         "id": "ARBITRUM",
-        "network": "ARBONE",
+        "network": "ARBITRUM",
         "active": null,
         "deposit": true,
         "withdraw": true,
@@ -4126,7 +4126,7 @@
       "AVAXC": 0.056,
       "ALGO": 1,
       "APT": 0.04,
-      "ARBONE": 0.2,
+      "ARBITRUM": 0.2,
       "STATEMINT": 0.1,
       "BASE": 0.2,
       "CELO": 0.05,
@@ -4338,7 +4338,7 @@
           }
         }
       },
-      "ARBONE": {
+      "ARBITRUM": {
         "info": {
           "network": "ARBITRUM",
           "coin": "USDC",
@@ -4368,7 +4368,7 @@
           "contractAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
         },
         "id": "ARBITRUM",
-        "network": "ARBONE",
+        "network": "ARBITRUM",
         "active": null,
         "deposit": true,
         "withdraw": true,

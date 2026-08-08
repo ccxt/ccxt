@@ -444,8 +444,8 @@ export class TypedDataEncoder {
         });
         const encoder = TypedDataEncoder.from(types);
         const typesWithDomain = Object.assign({}, types);
-        assertArgument(typesWithDomain.EIP712Domain == null, "types must not contain EIP712Domain type", "types.EIP712Domain", types);
-        typesWithDomain.EIP712Domain = domainTypes;
+        assertArgument(typesWithDomain['EIP712Domain'] == null, "types must not contain EIP712Domain type", "types.EIP712Domain", types);
+        typesWithDomain['EIP712Domain'] = domainTypes;
         // Validate the data structures and types
         encoder.encode(value);
         return {

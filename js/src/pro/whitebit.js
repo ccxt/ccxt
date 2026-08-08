@@ -146,7 +146,7 @@ export default class whitebit extends whitebitRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -320,7 +320,7 @@ export default class whitebit extends whitebitRest {
         //
         const tickers = this.safeValue(message, 'params', []);
         const marketId = this.safeString(tickers, 0);
-        const market = this.safeMarket(marketId, undefined);
+        const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const rawTicker = this.safeValue(tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
@@ -765,6 +765,9 @@ export default class whitebit extends whitebitRest {
         //   }
         //
         const method = this.safeString(message, 'method');
+        if (method === undefined) {
+            return;
+        }
         const data = this.safeValue(message, 'params');
         const balanceDict = this.safeValue(data, 0);
         this.balance['info'] = balanceDict;
@@ -775,7 +778,9 @@ export default class whitebit extends whitebitRest {
         const account = this.account();
         account['free'] = this.safeString(rawBalance, 'available');
         account['used'] = this.safeString(rawBalance, 'freeze');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         let messageHash = 'wallet:';
         if (method.indexOf('Spot') >= 0) {
@@ -810,7 +815,9 @@ export default class whitebit extends whitebitRest {
             const subscription = {};
             const market = this.market(symbol);
             const marketId = market['id'];
-            subscription[marketId] = true;
+            if (marketId !== undefined) {
+                subscription[marketId] = true;
+            }
             marketIds = [marketId];
             if (isNested) {
                 marketIds = [marketIds];
@@ -830,7 +837,9 @@ export default class whitebit extends whitebitRest {
             const marketId = market['id'];
             const isSubscribed = this.safeBool(subscription, marketId, false);
             if (!isSubscribed) {
-                subscription[marketId] = true;
+                if (marketId !== undefined) {
+                    subscription[marketId] = true;
+                }
                 hasSymbolSubscription = false;
             }
             if (hasSymbolSubscription) {

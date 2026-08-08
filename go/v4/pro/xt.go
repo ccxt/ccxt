@@ -38,6 +38,8 @@ func (this *XtCore) Describe() any {
 			"watchOrders":           true,
 			"watchMyTrades":         true,
 			"watchPositions":        true,
+			"watchFundingRate":      true,
+			"unWatchFundingRate":    true,
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
@@ -76,8 +78,8 @@ func (this *XtCore) Describe() any {
  * @method
  * @description required for private endpoints
  * @param {string} isContract true for contract trades
- * @see https://doc.xt.com/#websocket_privategetToken
- * @see https://doc.xt.com/#futures_user_websocket_v2base
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/GetWsToken
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
  * @returns {string} listen key / access token
  */
 func (this *XtCore) GetListenKey(isContract any) <-chan any {
@@ -174,8 +176,8 @@ func (this *XtCore) HandleDelta(orderbook any, delta any) {
  * @ignore
  * @method
  * @description Connects to a websocket channel
- * @see https://doc.xt.com/#websocket_privaterequestFormat
- * @see https://doc.xt.com/#futures_market_websocket_v2base
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
  * @param {string} name name of the channel
  * @param {string} access public or private
  * @param {string} methodName the name of the CCXT class method
@@ -235,9 +237,9 @@ func (this *XtCore) Subscribe(name any, access any, methodName any, optionalArgs
 		}
 		var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType), "/"), tail)
 
-		retRes20315 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-		ccxt.PanicOnError(retRes20315)
-		ch <- retRes20315
+		retRes20515 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
+		ccxt.PanicOnError(retRes20515)
+		ch <- retRes20515
 		return nil
 
 	}()
@@ -248,8 +250,8 @@ func (this *XtCore) Subscribe(name any, access any, methodName any, optionalArgs
  * @ignore
  * @method
  * @description Connects to a websocket channel
- * @see https://doc.xt.com/#websocket_privaterequestFormat
- * @see https://doc.xt.com/#futures_market_websocket_v2base
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
  * @param {string} messageHash the message hash of the subscription
  * @param {string} name name of the channel
  * @param {string} access public or private
@@ -321,9 +323,9 @@ func (this *XtCore) UnSubscribe(messageHash any, name any, access any, methodNam
 			subscriptionParams = this.Omit(subscriptionParams, "symbolsAndTimeframes")
 		}
 
-		retRes26615 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, this.Extend(subscription, subscriptionParams)))
-		ccxt.PanicOnError(retRes26615)
-		ch <- retRes26615
+		retRes26815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, this.Extend(subscription, subscriptionParams)))
+		ccxt.PanicOnError(retRes26815)
+		ch <- retRes26815
 		return nil
 
 	}()
@@ -334,9 +336,8 @@ func (this *XtCore) UnSubscribe(messageHash any, name any, access any, methodNam
  * @method
  * @name xt#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publictickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/ccxt.Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
@@ -351,8 +352,8 @@ func (this *XtCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes28312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes28312)
+			retRes28412 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes28412)
 		}
 		var market any = this.Market(symbol)
 		var options any = this.SafeDict(this.Options, "watchTicker")
@@ -360,9 +361,9 @@ func (this *XtCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
 		var method any = this.SafeString(params, "method", defaultMethod)
 		var name any = ccxt.Add(ccxt.Add(method, "@"), ccxt.GetValue(market, "id"))
 
-		retRes29015 := (<-this.Subscribe(name, "public", "watchTicker", market, nil, params))
-		ccxt.PanicOnError(retRes29015)
-		ch <- retRes29015
+		retRes29115 := (<-this.Subscribe(name, "public", "watchTicker", market, nil, params))
+		ccxt.PanicOnError(retRes29115)
+		ch <- retRes29115
 		return nil
 
 	}()
@@ -373,9 +374,8 @@ func (this *XtCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#unWatchTicker
  * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publictickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/ccxt.Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
@@ -413,9 +413,8 @@ func (this *XtCore) UnWatchTicker(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publicallTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/ccxt.Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} [symbols] unified market symbols
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
@@ -432,8 +431,8 @@ func (this *XtCore) WatchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes33212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes33212)
+			retRes33112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes33112)
 		}
 		var options any = this.SafeDict(this.Options, "watchTickers")
 		var defaultMethod any = this.SafeString(options, "method", "tickers")
@@ -462,9 +461,8 @@ func (this *XtCore) WatchTickers(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#unWatchTickers
  * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publicallTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/ccxt.Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} [symbols] unified market symbols
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
@@ -481,8 +479,8 @@ func (this *XtCore) UnWatchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes36212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes36212)
+			retRes36012 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes36012)
 		}
 		var options any = this.SafeDict(this.Options, "unWatchTickers")
 		var defaultMethod any = this.SafeString(options, "method", "tickers")
@@ -511,8 +509,8 @@ func (this *XtCore) UnWatchTickers(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#websocket_publicsymbolKline
- * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
  * @param {int} [since] not used by xt watchOHLCV
@@ -535,8 +533,8 @@ func (this *XtCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes39312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes39312)
+			retRes39112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes39112)
 		}
 		var market any = this.Market(symbol)
 		var name any = ccxt.Add(ccxt.Add(ccxt.Add("kline@", ccxt.GetValue(market, "id")), ","), timeframe)
@@ -558,8 +556,8 @@ func (this *XtCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#unWatchOHLCV
  * @description stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#websocket_publicsymbolKline
- * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -576,19 +574,19 @@ func (this *XtCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes41712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes41712)
+			retRes41512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes41512)
 		}
 		var market any = this.Market(symbol)
 		var name any = ccxt.Add(ccxt.Add(ccxt.Add("kline@", ccxt.GetValue(market, "id")), ","), timeframe)
 		var messageHash any = ccxt.Add("unsubscribe::", name)
 		var symbolsAndTimeframes any = []any{[]any{ccxt.GetValue(market, "symbol"), timeframe}}
 
-		retRes42315 := (<-this.UnSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, []any{symbol}, params, map[string]any{
+		retRes42115 := (<-this.UnSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, []any{symbol}, params, map[string]any{
 			"symbolsAndTimeframes": symbolsAndTimeframes,
 		}))
-		ccxt.PanicOnError(retRes42315)
-		ch <- retRes42315
+		ccxt.PanicOnError(retRes42115)
+		ch <- retRes42115
 		return nil
 
 	}()
@@ -599,8 +597,8 @@ func (this *XtCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#watchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://doc.xt.com/#websocket_publicdealRecord
- * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -620,8 +618,8 @@ func (this *XtCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes44012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes44012)
+			retRes43812 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes43812)
 		}
 		var market any = this.Market(symbol)
 		var name any = ccxt.Add("trade@", ccxt.GetValue(market, "id"))
@@ -643,8 +641,8 @@ func (this *XtCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#unWatchTrades
  * @description stops watching the list of most recent trades for a particular symbol
- * @see https://doc.xt.com/#websocket_publicdealRecord
- * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
@@ -658,16 +656,16 @@ func (this *XtCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes46312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes46312)
+			retRes46112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes46112)
 		}
 		var market any = this.Market(symbol)
 		var name any = ccxt.Add("trade@", ccxt.GetValue(market, "id"))
 		var messageHash any = ccxt.Add("unsubscribe::", name)
 
-		retRes46815 := (<-this.UnSubscribe(messageHash, name, "public", "unWatchTrades", "trades", market, []any{symbol}, params))
-		ccxt.PanicOnError(retRes46815)
-		ch <- retRes46815
+		retRes46615 := (<-this.UnSubscribe(messageHash, name, "public", "unWatchTrades", "trades", market, []any{symbol}, params))
+		ccxt.PanicOnError(retRes46615)
+		ch <- retRes46615
 		return nil
 
 	}()
@@ -678,15 +676,15 @@ func (this *XtCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://doc.xt.com/#websocket_publiclimitDepth
- * @see https://doc.xt.com/#websocket_publicincreDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] not used by xt watchOrderBook
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.levels] 5, 10, 20, or 50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *XtCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -699,8 +697,8 @@ func (this *XtCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes48712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes48712)
+			retRes48512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes48512)
 		}
 		var market any = this.Market(symbol)
 		var levels any = this.SafeString(params, "levels")
@@ -724,10 +722,10 @@ func (this *XtCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name xt#unWatchOrderBook
  * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://doc.xt.com/#websocket_publiclimitDepth
- * @see https://doc.xt.com/#websocket_publicincreDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.levels] 5, 10, 20, or 50
@@ -742,8 +740,8 @@ func (this *XtCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes51512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes51512)
+			retRes51312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes51312)
 		}
 		var market any = this.Market(symbol)
 		var levels any = this.SafeString(params, "levels")
@@ -754,9 +752,9 @@ func (this *XtCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		}
 		var messageHash any = ccxt.Add("unsubscribe::", name)
 
-		retRes52515 := (<-this.UnSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, []any{symbol}, params))
-		ccxt.PanicOnError(retRes52515)
-		ch <- retRes52515
+		retRes52315 := (<-this.UnSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, []any{symbol}, params))
+		ccxt.PanicOnError(retRes52315)
+		ch <- retRes52315
 		return nil
 
 	}()
@@ -767,8 +765,8 @@ func (this *XtCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan any
  * @method
  * @name xt#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://doc.xt.com/#websocket_privateorderChange
- * @see https://doc.xt.com/#futures_user_websocket_v2order
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderChange
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/UserOrder
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] not used by xt watchOrders
  * @param {int} [limit] the maximum number of orders to return
@@ -790,8 +788,8 @@ func (this *XtCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes54212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes54212)
+			retRes54012 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes54012)
 		}
 		var name any = "order"
 		var market any = nil
@@ -816,8 +814,8 @@ func (this *XtCore) WatchOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://doc.xt.com/#websocket_privateorderDeal
- * @see https://doc.xt.com/#futures_user_websocket_v2trade
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderFilled
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/Transactions
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -839,8 +837,8 @@ func (this *XtCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes57012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes57012)
+			retRes56812 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes56812)
 		}
 		var name any = "trade"
 		var market any = nil
@@ -865,8 +863,8 @@ func (this *XtCore) WatchMyTrades(optionalArgs ...any) <-chan any {
  * @method
  * @name xt#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://doc.xt.com/#websocket_privatebalanceChange
- * @see https://doc.xt.com/#futures_user_websocket_v2balance
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/BalanceChange
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/BalanceChange
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -879,14 +877,14 @@ func (this *XtCore) WatchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes59512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes59512)
+			retRes59312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes59312)
 		}
 		var name any = "balance"
 
-		retRes59815 := (<-this.Subscribe(name, "private", "watchBalance", nil, nil, params))
-		ccxt.PanicOnError(retRes59815)
-		ch <- retRes59815
+		retRes59615 := (<-this.Subscribe(name, "private", "watchBalance", nil, nil, params))
+		ccxt.PanicOnError(retRes59615)
+		ch <- retRes59615
 		return nil
 
 	}()
@@ -896,7 +894,7 @@ func (this *XtCore) WatchBalance(optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name xt#watchPositions
- * @see https://doc.xt.com/#futures_user_websocket_v2position
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/ChangePosition
  * @description watch all open positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {number} [since] since timestamp
@@ -919,8 +917,8 @@ func (this *XtCore) WatchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes61412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes61412)
+			retRes61212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes61212)
 		}
 		var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/"), "user")
 		var client any = this.Client(url)
@@ -951,6 +949,110 @@ func (this *XtCore) WatchPositions(optionalArgs ...any) <-chan any {
 
 	}()
 	return ch
+}
+
+/**
+ * @method
+ * @name xt#watchFundingRate
+ * @description watch the current funding rate
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+ */
+func (this *XtCore) WatchFundingRate(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+			retRes64312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes64312)
+		}
+		var market any = this.Market(symbol)
+		if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
+			panic(ccxt.BadSymbol(ccxt.Add(this.Id, " watchFundingRate() supports swap contracts only")))
+		}
+		var name any = ccxt.Add("fund_rate@", ccxt.GetValue(market, "id"))
+
+		retRes65015 := (<-this.Subscribe(name, "public", "watchFundingRate", market, nil, params))
+		ccxt.PanicOnError(retRes65015)
+		ch <- retRes65015
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name xt#unWatchFundingRate
+ * @description stops watching the funding rate
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+ */
+func (this *XtCore) UnWatchFundingRate(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+			retRes66412 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes66412)
+		}
+		var market any = this.Market(symbol)
+		if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
+			panic(ccxt.BadSymbol(ccxt.Add(this.Id, " unWatchFundingRate() supports swap contracts only")))
+		}
+		var name any = ccxt.Add("fund_rate@", ccxt.GetValue(market, "id"))
+		var messageHash any = ccxt.Add("unsubscribe::", name)
+
+		retRes67215 := (<-this.UnSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, nil, params))
+		ccxt.PanicOnError(retRes67215)
+		ch <- retRes67215
+		return nil
+
+	}()
+	return ch
+}
+func (this *XtCore) HandleFundingRate(client any, message any) any {
+	//
+	//     {
+	//         "topic": "fund_rate",
+	//         "event": "fund_rate@btc_usdt",
+	//         "data": {
+	//             "s": "btc_usdt",  // symbol
+	//             "r": "0.01",      // funding rate
+	//             "t": 123124124    // timestamp
+	//         }
+	//     }
+	//
+	var data any = this.SafeDict(message, "data")
+	var marketId any = this.SafeString(data, "s")
+	if ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)) {
+		var raw any = map[string]any{
+			"symbol":      marketId,
+			"fundingRate": this.SafeString(data, "r"),
+		}
+		var fundingRate any = this.ParseFundingRate(raw)
+		var timestamp any = this.SafeInteger(data, "t")
+		ccxt.AddElementToObject(fundingRate, "timestamp", timestamp)
+		ccxt.AddElementToObject(fundingRate, "datetime", this.Iso8601(timestamp))
+		var symbol any = ccxt.GetValue(fundingRate, "symbol")
+		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+		var event any = this.SafeString(message, "event")
+		var messageHash any = ccxt.Add(event, "::contract")
+		client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
+	}
+	return message
 }
 func (this *XtCore) SetPositionsCache(client any) {
 	if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
@@ -1688,7 +1790,9 @@ func (this *XtCore) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(account, "free", this.SafeString(data, "availableBalance"))
 	ccxt.AddElementToObject(account, "used", this.SafeString(data, "f"))
 	ccxt.AddElementToObject(account, "total", this.SafeString2(data, "b", "walletBalance"))
-	ccxt.AddElementToObject(this.Balance, code, account)
+	if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+		ccxt.AddElementToObject(this.Balance, code, account)
+	}
 	this.Balance = this.SafeBalance(this.Balance)
 	var tradeType any = ccxt.Ternary(ccxt.IsTrue((ccxt.InOp(data, "coin"))), "contract", "spot")
 	client.(ccxt.ClientInterface).Resolve(this.Balance, ccxt.Add("balance::", tradeType))
@@ -1762,6 +1866,7 @@ func (this *XtCore) HandleMessage(client any, message any) {
 			"balance":      this.HandleBalance,
 			"order":        this.HandleOrder,
 			"position":     this.HandlePosition,
+			"fund_rate":    this.HandleFundingRate,
 		}
 		var method any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(topic, nil))), nil, this.SafeValue(methods, topic))
 		if ccxt.IsTrue(ccxt.IsEqual(topic, "trade")) {

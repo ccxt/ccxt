@@ -27,7 +27,7 @@ class bullish extends bullish$1["default"] {
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': false,
                 'borrowMargin': false,
@@ -155,70 +155,70 @@ class bullish extends bullish$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'v1/nonce': 1,
-                        'v1/time': 1,
-                        'v1/assets': 1,
-                        'v1/assets/{symbol}': 1,
-                        'v1/markets': 1,
-                        'v1/markets/{symbol}': 1,
-                        'v1/history/markets/{symbol}': 1,
-                        'v1/markets/{symbol}/orderbook/hybrid': 1,
-                        'v1/markets/{symbol}/trades': 1,
-                        'v1/markets/{symbol}/tick': 1,
-                        'v1/markets/{symbol}/candle': 1,
-                        'v1/history/markets/{symbol}/trades': 1,
-                        'v1/history/markets/{symbol}/funding-rate': 1,
-                        'v1/index-prices': 1,
-                        'v1/index-prices/{assetSymbol}': 1,
-                        'v1/expiry-prices/{symbol}': 1,
-                        'v1/option-ladder': 1,
-                        'v1/option-ladder/{symbol}': 1,
+                        'v1/nonce': { 'cost': 1 },
+                        'v1/time': { 'cost': 1 },
+                        'v1/assets': { 'cost': 1 },
+                        'v1/assets/{symbol}': { 'cost': 1 },
+                        'v1/markets': { 'cost': 1 },
+                        'v1/markets/{symbol}': { 'cost': 1 },
+                        'v1/history/markets/{symbol}': { 'cost': 1 },
+                        'v1/markets/{symbol}/orderbook/hybrid': { 'cost': 1 },
+                        'v1/markets/{symbol}/trades': { 'cost': 1 },
+                        'v1/markets/{symbol}/tick': { 'cost': 1 },
+                        'v1/markets/{symbol}/candle': { 'cost': 1 },
+                        'v1/history/markets/{symbol}/trades': { 'cost': 1 },
+                        'v1/history/markets/{symbol}/funding-rate': { 'cost': 1 },
+                        'v1/index-prices': { 'cost': 1 },
+                        'v1/index-prices/{assetSymbol}': { 'cost': 1 },
+                        'v1/expiry-prices/{symbol}': { 'cost': 1 },
+                        'v1/option-ladder': { 'cost': 1 },
+                        'v1/option-ladder/{symbol}': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/orders': 1,
-                        'v2/history/orders': 1,
-                        'v2/orders/{orderId}': 1,
-                        'v2/amm-instructions': 1,
-                        'v2/amm-instructions/{instructionId}': 1,
-                        'v1/wallets/transactions': 1,
-                        'v1/wallets/limits/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/self-hosted/verification-attempts': 1,
-                        'v1/trades': 5,
-                        'v1/history/trades': 5,
-                        'v1/trades/{tradeId}': 5,
-                        'v1/trades/client-order-id/{clientOrderId}': 1,
-                        'v1/accounts/asset': 1,
-                        'v1/accounts/asset/{symbol}': 1,
-                        'v1/users/logout': 1,
-                        'v1/users/hmac/login': 1,
-                        'v1/accounts/trading-accounts': 1,
-                        'v1/accounts/trading-accounts/{tradingAccountId}': 1,
-                        'v1/derivatives-positions': 1,
-                        'v1/history/derivatives-settlement': 1,
-                        'v1/history/transfer': 1,
-                        'v1/history/borrow-interest': 1,
-                        'v2/mmp-configuration': 1,
-                        'v2/otc-trades': 1,
-                        'v2/otc-trades/{otcTradeId}': 1,
-                        'v2/otc-trades/unconfirmed-trade': 1,
+                        'v2/orders': { 'cost': 1 },
+                        'v2/history/orders': { 'cost': 1 },
+                        'v2/orders/{orderId}': { 'cost': 1 },
+                        'v2/amm-instructions': { 'cost': 1 },
+                        'v2/amm-instructions/{instructionId}': { 'cost': 1 },
+                        'v1/wallets/transactions': { 'cost': 1 },
+                        'v1/wallets/limits/{symbol}': { 'cost': 1 },
+                        'v1/wallets/deposit-instructions/crypto/{symbol}': { 'cost': 1 },
+                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': { 'cost': 1 },
+                        'v1/wallets/deposit-instructions/fiat/{symbol}': { 'cost': 1 },
+                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': { 'cost': 1 },
+                        'v1/wallets/self-hosted/verification-attempts': { 'cost': 1 },
+                        'v1/trades': { 'cost': 5 },
+                        'v1/history/trades': { 'cost': 5 },
+                        'v1/trades/{tradeId}': { 'cost': 5 },
+                        'v1/trades/client-order-id/{clientOrderId}': { 'cost': 1 },
+                        'v1/accounts/asset': { 'cost': 1 },
+                        'v1/accounts/asset/{symbol}': { 'cost': 1 },
+                        'v1/users/logout': { 'cost': 1 },
+                        'v1/users/hmac/login': { 'cost': 1 },
+                        'v1/accounts/trading-accounts': { 'cost': 1 },
+                        'v1/accounts/trading-accounts/{tradingAccountId}': { 'cost': 1 },
+                        'v1/derivatives-positions': { 'cost': 1 },
+                        'v1/history/derivatives-settlement': { 'cost': 1 },
+                        'v1/history/transfer': { 'cost': 1 },
+                        'v1/history/borrow-interest': { 'cost': 1 },
+                        'v2/mmp-configuration': { 'cost': 1 },
+                        'v2/otc-trades': { 'cost': 1 },
+                        'v2/otc-trades/{otcTradeId}': { 'cost': 1 },
+                        'v2/otc-trades/unconfirmed-trade': { 'cost': 1 },
                     },
                     'post': {
-                        'v2/orders': 5,
-                        'v2/command': 5,
-                        'v2/amm-instructions': 1,
-                        'v1/wallets/withdrawal': 1,
-                        'v2/users/login': 1,
-                        'v1/simulate-portfolio-margin': 1,
-                        'v1/wallets/self-hosted/initiate': 1,
-                        'v2/mmp-configuration': 1,
-                        'v2/otc-trades': 1,
-                        'v2/otc-command': 1,
+                        'v2/orders': { 'cost': 5 },
+                        'v2/command': { 'cost': 5 },
+                        'v2/amm-instructions': { 'cost': 1 },
+                        'v1/wallets/withdrawal': { 'cost': 1 },
+                        'v2/users/login': { 'cost': 1 },
+                        'v1/simulate-portfolio-margin': { 'cost': 1 },
+                        'v1/wallets/self-hosted/initiate': { 'cost': 1 },
+                        'v2/mmp-configuration': { 'cost': 1 },
+                        'v2/otc-trades': { 'cost': 1 },
+                        'v2/otc-command': { 'cost': 1 },
                     },
                 },
             },
@@ -903,7 +903,7 @@ class bullish extends bullish$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (not used by bullish)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1380,7 +1380,8 @@ class bullish extends bullish$1["default"] {
         //         }, ...
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         return [
@@ -2224,8 +2225,9 @@ class bullish extends bullish$1["default"] {
         [tradingAccountId, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts(params);
-            for (let i = 0; i < response.length; i++) {
-                const account = response[i];
+            const accounts = this.toArray(response);
+            for (let i = 0; i < accounts.length; i++) {
+                const account = accounts[i];
                 const name = this.safeString(account, 'tradingAccountName');
                 if (name === 'Primary Account') {
                     tradingAccountId = this.safeString(account, 'tradingAccountId');
@@ -2471,7 +2473,9 @@ class bullish extends bullish$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'availableQuantity');
             account['used'] = this.safeString(balance, 'lockedQuantity');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

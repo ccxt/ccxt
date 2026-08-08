@@ -72,12 +72,12 @@ class pacifica(ccxt.async_support.pacifica):
             },
         })
 
-    def setup_api_key_headers(self, key: str = None):
+    def setup_api_key_headers(self, key: Str = None):
         headers = {}
         if key is not None:
             headers['PF-API-KEY'] = key
         else:
-            if self.handle_option('setupApiKeyHeaders', 'apiKey', None) is not None:
+            if self.handle_option('setupApiKeyHeaders', 'apiKey') is not None:
                 headers['PF-API-KEY'] = self.options['apiKey']
         self.options['ws']['options']['headers'] = headers
 
@@ -276,7 +276,7 @@ class pacifica(ccxt.async_support.pacifica):
         ordersToReturn = []
         for i in range(0, len(results)):
             order = results[i]
-            error = self.safe_string(order, 'error', None)
+            error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             marketId = self.safe_string(order, 'symbol')
             market = self.safe_market(marketId)
@@ -397,7 +397,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int|None [params.aggLevel]: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.setup_api_key_headers()
         if self.markets is None:
@@ -453,7 +453,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Any, message: Any):
         #
         # {
         #   "channel": "book",
@@ -645,7 +645,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message):
+    def handle_ws_tickers(self, client: Client, message: Any):
         #
         # {
         #     "channel": "prices",
@@ -680,10 +680,10 @@ class pacifica(ccxt.async_support.pacifica):
         client.resolve(tickers, 'tickers')
         return True
 
-    def parse_ws_ticker(self, rawTicker, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, rawTicker: Any, market: Market = None) -> Ticker:
         return self.parse_ticker(rawTicker, market)
 
-    def handle_my_trades(self, client: Client, message):
+    def handle_my_trades(self, client: Client, message: Any):
         #
         # {
         #   "channel": "account_trades",
@@ -721,7 +721,8 @@ class pacifica(ccxt.async_support.pacifica):
             rawTrade = data[i]
             parsed = self.parse_ws_trade(rawTrade)
             symbol = parsed['symbol']
-            symbols[symbol] = True
+            if symbol is not None:
+                symbols[symbol] = True
             trades.append(parsed)
         keys = list(symbols.keys())
         for i in range(0, len(keys)):
@@ -793,7 +794,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         # {
         #   "channel": "trades",
@@ -822,7 +823,7 @@ class pacifica(ccxt.async_support.pacifica):
             self.trades[symbol] = stored
         trades = self.trades[symbol]
         for i in range(0, len(entry)):
-            data = self.safe_dict(entry, i)
+            data = self.safe_dict(entry, i, {})
             trade = self.parse_ws_trade(data)
             trades.append(trade)
         messageHash = 'trade:' + symbol
@@ -971,7 +972,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messagehash, message, messagehash)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         # {
         #   "channel": "candle",
@@ -994,13 +995,16 @@ class pacifica(ccxt.async_support.pacifica):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         timeframe = self.safe_string(data, 'i')
+        if timeframe is None:
+            return
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        if not (timeframe in self.ohlcvs[symbol]):
+        symbolOhlcvs = self.safe_value(self.ohlcvs, symbol, {})
+        ohlcv = self.safe_value(symbolOhlcvs, timeframe)
+        if ohlcv is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][timeframe] = stored
-        ohlcv = self.ohlcvs[symbol][timeframe]
+            ohlcv = ArrayCacheByTimestamp(limit)
+            symbolOhlcvs[timeframe] = ohlcv
         parsed = self.parse_ohlcv(data)
         ohlcv.append(parsed)
         messageHash = 'candles:' + timeframe + ':' + symbol
@@ -1076,7 +1080,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         # not snapshot, only updates
         # {
         #   "channel": "account_order_updates",
@@ -1119,7 +1123,8 @@ class pacifica(ccxt.async_support.pacifica):
             order = self.parse_order(rawOrder)
             stored.append(order)
             symbol = self.safe_string(order, 'symbol')
-            marketSymbols[symbol] = True
+            if symbol is not None:
+                marketSymbols[symbol] = True
         keys = list(marketSymbols.keys())
         for i in range(0, len(keys)):
             symbol = keys[i]
@@ -1127,7 +1132,7 @@ class pacifica(ccxt.async_support.pacifica):
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         # 'rl' key is present only when a rate-limited API key is used
         # {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1179,11 +1184,13 @@ class pacifica(ccxt.async_support.pacifica):
         symbol = market['symbol']
         interval = self.safe_string(subscription, 'interval')
         timeframe = self.find_timeframe(interval)
+        if timeframe is None:
+            return
         subMessageHash = 'candles:' + timeframe + ':' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)
-        if symbol in self.ohlcvs:
-            if timeframe in self.ohlcvs[symbol]:
+        if (symbol is not None) and (symbol in self.ohlcvs):
+            if (timeframe is not None) and (timeframe in self.ohlcvs[symbol]):
                 del self.ohlcvs[symbol][timeframe]
 
     def handle_order_unsubscription(self, client: Client, subscription: dict):
@@ -1204,7 +1211,7 @@ class pacifica(ccxt.async_support.pacifica):
         }
         self.clean_cache(topicStructure)
 
-    def handle_subscription_response(self, client: Client, message):
+    def handle_subscription_response(self, client: Client, message: Any):
         #  {
         #      "channel": "subscribe",
         #      "data": {
@@ -1241,7 +1248,7 @@ class pacifica(ccxt.async_support.pacifica):
             elif type == 'account_trades':
                 self.handle_my_trades_unsubscription(client, subscription)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         #
         # {
         #     "channel":"subscribe",
@@ -1258,7 +1265,7 @@ class pacifica(ccxt.async_support.pacifica):
         #
         if self.handle_error_message(client, message):
             return
-        postType = self.safe_string(message, 'type', None)
+        postType = self.safe_string(message, 'type')
         topic = self.safe_string(message, 'channel', '')
         methods = {
             'pong': self.handle_pong,
@@ -1291,7 +1298,7 @@ class pacifica(ccxt.async_support.pacifica):
             'method': 'ping',
         }
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         #
         #   {
         #       "channel": "pong"
@@ -1303,7 +1310,7 @@ class pacifica(ccxt.async_support.pacifica):
     def request_id(self) -> str:
         return self.uuid()  # uuid v4
 
-    def wrap_as_post_action(self, operationType: str, request: dict) -> dict:
+    def wrap_as_post_action(self, operationType: Str, request: dict) -> dict:
         if operationType is None:
             raise ArgumentsRequired(self.id + 'postAction() requires a "operationType" argument!')
         requestId = self.request_id()

@@ -7,6 +7,7 @@ namespace ccxt\prediction;
 
 use Exception; // a common import
 use ccxt\abstract\prediction\polymarket as Exchange;
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -105,168 +106,168 @@ class polymarket extends Exchange {
                 'gamma' => array(
                     'public' => array(
                         'get' => array(
-                            'status' => 1,
-                            'comments' => 1,
-                            'comments/{id}' => 1,
-                            'comments/user_address/{user_address}' => 1,
-                            'events' => 1,
-                            'events/creators' => 1,
-                            'events/creators/{id}' => 1,
-                            'events/keyset' => 1,
-                            'events/pagination' => 1,
-                            'events/results' => 1,
-                            'events/slug/{slug}' => 1,
-                            'events/{id}' => 1,
-                            'events/{id}/comments/count' => 1,
-                            'events/{id}/tags' => 1,
-                            'events/{id}/tweet-count' => 1,
-                            'markets' => 1,
-                            'markets/keyset' => 1,
-                            'markets/slug/{slug}' => 1,
-                            'markets/{id}' => 1,
-                            'markets/{id}/description' => 1,
-                            'markets/{id}/tags' => 1,
-                            'profiles/user_address/{user_address}' => 1,
-                            'public-profile' => 1,
-                            'public-search' => 1,
-                            'series' => 1,
-                            'series-summary/slug/{slug}' => 1,
-                            'series-summary/{id}' => 1,
-                            'series/{id}' => 1,
-                            'series/{id}/comments/count' => 1,
-                            'sports' => 1,
-                            'sports/market-types' => 1,
-                            'tags' => 1,
-                            'tags/slug/{slug}' => 1,
-                            'tags/slug/{slug}/related-tags' => 1,
-                            'tags/slug/{slug}/related-tags/tags' => 1,
-                            'tags/{id}' => 1,
-                            'tags/{id}/related-tags' => 1,
-                            'tags/{id}/related-tags/tags' => 1,
-                            'teams' => 1,
-                            'teams/{id}' => 1,
+                            'status' => array( 'cost' => 1 ),
+                            'comments' => array( 'cost' => 1 ),
+                            'comments/{id}' => array( 'cost' => 1 ),
+                            'comments/user_address/{user_address}' => array( 'cost' => 1 ),
+                            'events' => array( 'cost' => 1 ),
+                            'events/creators' => array( 'cost' => 1 ),
+                            'events/creators/{id}' => array( 'cost' => 1 ),
+                            'events/keyset' => array( 'cost' => 1 ),
+                            'events/pagination' => array( 'cost' => 1 ),
+                            'events/results' => array( 'cost' => 1 ),
+                            'events/slug/{slug}' => array( 'cost' => 1 ),
+                            'events/{id}' => array( 'cost' => 1 ),
+                            'events/{id}/comments/count' => array( 'cost' => 1 ),
+                            'events/{id}/tags' => array( 'cost' => 1 ),
+                            'events/{id}/tweet-count' => array( 'cost' => 1 ),
+                            'markets' => array( 'cost' => 1 ),
+                            'markets/keyset' => array( 'cost' => 1 ),
+                            'markets/slug/{slug}' => array( 'cost' => 1 ),
+                            'markets/{id}' => array( 'cost' => 1 ),
+                            'markets/{id}/description' => array( 'cost' => 1 ),
+                            'markets/{id}/tags' => array( 'cost' => 1 ),
+                            'profiles/user_address/{user_address}' => array( 'cost' => 1 ),
+                            'public-profile' => array( 'cost' => 1 ),
+                            'public-search' => array( 'cost' => 1 ),
+                            'series' => array( 'cost' => 1 ),
+                            'series-summary/slug/{slug}' => array( 'cost' => 1 ),
+                            'series-summary/{id}' => array( 'cost' => 1 ),
+                            'series/{id}' => array( 'cost' => 1 ),
+                            'series/{id}/comments/count' => array( 'cost' => 1 ),
+                            'sports' => array( 'cost' => 1 ),
+                            'sports/market-types' => array( 'cost' => 1 ),
+                            'tags' => array( 'cost' => 1 ),
+                            'tags/slug/{slug}' => array( 'cost' => 1 ),
+                            'tags/slug/{slug}/related-tags' => array( 'cost' => 1 ),
+                            'tags/slug/{slug}/related-tags/tags' => array( 'cost' => 1 ),
+                            'tags/{id}' => array( 'cost' => 1 ),
+                            'tags/{id}/related-tags' => array( 'cost' => 1 ),
+                            'tags/{id}/related-tags/tags' => array( 'cost' => 1 ),
+                            'teams' => array( 'cost' => 1 ),
+                            'teams/{id}' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'markets/abridged' => 1,
-                            'markets/information' => 1,
+                            'markets/abridged' => array( 'cost' => 1 ),
+                            'markets/information' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'clob' => array(
                     'public' => array(
                         'get' => array(
-                            'book' => 1,
-                            'books' => 1,
-                            'builder/trades' => 1,
-                            'clob-markets/{condition_id}' => 1,
-                            'fee-rate' => 1,
-                            'fee-rate/{token_id}' => 1,
-                            'last-trade-price' => 1,
-                            'last-trades-prices' => 1,
-                            'markets-by-token/{token_id}' => 1,
-                            'markets/live-activity/{condition_id}' => 1,
-                            'midpoint' => 1,
-                            'midpoints' => 1,
-                            'neg-risk' => 1,
-                            'neg-risk/{token_id}' => 1,
-                            'price' => 1,
-                            'prices' => 1,
-                            'prices-history' => 1,
-                            'rebates/current' => 1,
-                            'rewards/markets/current' => 1,
-                            'rewards/markets/multi' => 1,
-                            'rewards/markets/{condition_id}' => 1,
-                            'sampling-markets' => 1,
-                            'sampling-simplified-markets' => 1,
-                            'simplified-markets' => 1,
-                            'spread' => 1,
-                            'tick-size' => 1,
-                            'tick-size/{token_id}' => 1,
-                            'time' => 1,
+                            'book' => array( 'cost' => 1 ),
+                            'books' => array( 'cost' => 1 ),
+                            'builder/trades' => array( 'cost' => 1 ),
+                            'clob-markets/{condition_id}' => array( 'cost' => 1 ),
+                            'fee-rate' => array( 'cost' => 1 ),
+                            'fee-rate/{token_id}' => array( 'cost' => 1 ),
+                            'last-trade-price' => array( 'cost' => 1 ),
+                            'last-trades-prices' => array( 'cost' => 1 ),
+                            'markets-by-token/{token_id}' => array( 'cost' => 1 ),
+                            'markets/live-activity/{condition_id}' => array( 'cost' => 1 ),
+                            'midpoint' => array( 'cost' => 1 ),
+                            'midpoints' => array( 'cost' => 1 ),
+                            'neg-risk' => array( 'cost' => 1 ),
+                            'neg-risk/{token_id}' => array( 'cost' => 1 ),
+                            'price' => array( 'cost' => 1 ),
+                            'prices' => array( 'cost' => 1 ),
+                            'prices-history' => array( 'cost' => 1 ),
+                            'rebates/current' => array( 'cost' => 1 ),
+                            'rewards/markets/current' => array( 'cost' => 1 ),
+                            'rewards/markets/multi' => array( 'cost' => 1 ),
+                            'rewards/markets/{condition_id}' => array( 'cost' => 1 ),
+                            'sampling-markets' => array( 'cost' => 1 ),
+                            'sampling-simplified-markets' => array( 'cost' => 1 ),
+                            'simplified-markets' => array( 'cost' => 1 ),
+                            'spread' => array( 'cost' => 1 ),
+                            'tick-size' => array( 'cost' => 1 ),
+                            'tick-size/{token_id}' => array( 'cost' => 1 ),
+                            'time' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'batch-prices-history' => 1,
-                            'books' => 1,
-                            'last-trades-prices' => 1,
-                            'markets/live-activity' => 1,
-                            'midpoints' => 1,
-                            'prices' => 1,
-                            'spreads' => 1,
+                            'batch-prices-history' => array( 'cost' => 1 ),
+                            'books' => array( 'cost' => 1 ),
+                            'last-trades-prices' => array( 'cost' => 1 ),
+                            'markets/live-activity' => array( 'cost' => 1 ),
+                            'midpoints' => array( 'cost' => 1 ),
+                            'prices' => array( 'cost' => 1 ),
+                            'spreads' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'auth/api-keys' => 1,
-                            'auth/ban-status/closed-only' => 1,
-                            'auth/builder-api-key' => 1,
-                            'auth/derive-api-key' => 1,
-                            'balance-allowance' => 1,
-                            'balance-allowance/update' => 1,
-                            'data/order/{id}' => 1,
-                            'data/orders' => 1,
-                            'data/trades' => 1,
-                            'notifications' => 1,
-                            'order-scoring' => 1,
-                            'orders-scoring' => 1,
-                            'rewards/user' => 1,
-                            'rewards/user/markets' => 1,
-                            'rewards/user/percentages' => 1,
-                            'rewards/user/total' => 1,
+                            'auth/api-keys' => array( 'cost' => 1 ),
+                            'auth/ban-status/closed-only' => array( 'cost' => 1 ),
+                            'auth/builder-api-key' => array( 'cost' => 1 ),
+                            'auth/derive-api-key' => array( 'cost' => 1 ),
+                            'balance-allowance' => array( 'cost' => 1 ),
+                            'balance-allowance/update' => array( 'cost' => 1 ),
+                            'data/order/{id}' => array( 'cost' => 1 ),
+                            'data/orders' => array( 'cost' => 1 ),
+                            'data/trades' => array( 'cost' => 1 ),
+                            'notifications' => array( 'cost' => 1 ),
+                            'order-scoring' => array( 'cost' => 1 ),
+                            'orders-scoring' => array( 'cost' => 1 ),
+                            'rewards/user' => array( 'cost' => 1 ),
+                            'rewards/user/markets' => array( 'cost' => 1 ),
+                            'rewards/user/percentages' => array( 'cost' => 1 ),
+                            'rewards/user/total' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'auth/api-key' => 1,
-                            'auth/builder-api-key' => 1,
-                            'heartbeats' => 1,
-                            'order' => 1,
-                            'orders' => 1,
-                            'v1/heartbeats' => 1,
+                            'auth/api-key' => array( 'cost' => 1 ),
+                            'auth/builder-api-key' => array( 'cost' => 1 ),
+                            'heartbeats' => array( 'cost' => 1 ),
+                            'order' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'v1/heartbeats' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'auth/api-key' => 1,
-                            'auth/builder-api-key' => 1,
-                            'cancel-all' => 1,
-                            'cancel-market-orders' => 1,
-                            'notifications' => 1,
-                            'order' => 1,
-                            'orders' => 1,
+                            'auth/api-key' => array( 'cost' => 1 ),
+                            'auth/builder-api-key' => array( 'cost' => 1 ),
+                            'cancel-all' => array( 'cost' => 1 ),
+                            'cancel-market-orders' => array( 'cost' => 1 ),
+                            'notifications' => array( 'cost' => 1 ),
+                            'order' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'data' => array(
                     'public' => array(
                         'get' => array(
-                            'activity' => 1,
-                            'closed-positions' => 1,
-                            'holders' => 1,
-                            'live-volume' => 1,
-                            'oi' => 1,
-                            'other' => 1,
-                            'positions' => 1,
-                            'revisions' => 1,
-                            'traded' => 1,
-                            'trades' => 1,
-                            'v1/accounting/snapshot' => 1,
-                            'v1/activity/combos' => 1,
-                            'v1/builders/leaderboard' => 1,
-                            'v1/builders/volume' => 1,
-                            'v1/leaderboard' => 1,
-                            'v1/market-positions' => 1,
-                            'v1/positions/combos' => 1,
-                            'value' => 1,
+                            'activity' => array( 'cost' => 1 ),
+                            'closed-positions' => array( 'cost' => 1 ),
+                            'holders' => array( 'cost' => 1 ),
+                            'live-volume' => array( 'cost' => 1 ),
+                            'oi' => array( 'cost' => 1 ),
+                            'other' => array( 'cost' => 1 ),
+                            'positions' => array( 'cost' => 1 ),
+                            'revisions' => array( 'cost' => 1 ),
+                            'traded' => array( 'cost' => 1 ),
+                            'trades' => array( 'cost' => 1 ),
+                            'v1/accounting/snapshot' => array( 'cost' => 1 ),
+                            'v1/activity/combos' => array( 'cost' => 1 ),
+                            'v1/builders/leaderboard' => array( 'cost' => 1 ),
+                            'v1/builders/volume' => array( 'cost' => 1 ),
+                            'v1/leaderboard' => array( 'cost' => 1 ),
+                            'v1/market-positions' => array( 'cost' => 1 ),
+                            'v1/positions/combos' => array( 'cost' => 1 ),
+                            'value' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'combos' => array(
                     'public' => array(
                         'get' => array(
-                            'v1/rfq/combo-markets' => 1,
+                            'v1/rfq/combo-markets' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
-                            'v1/maker/confirmations' => 1,
-                            'v1/maker/quotes' => 1,
-                            'v1/maker/quotes/cancel' => 1,
+                            'v1/maker/confirmations' => array( 'cost' => 1 ),
+                            'v1/maker/quotes' => array( 'cost' => 1 ),
+                            'v1/maker/quotes/cancel' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -587,7 +588,8 @@ class polymarket extends Exchange {
             $firstPageRequest = array( 'offset' => 0 );
             $firstPageRequest = $this->extend($firstPageRequest, $baseRequest);
             $firstPageResponse = Async\await($this->gammaPublicGetEvents($firstPageRequest));
-            $firstPage = ($firstPageResponse !== null) ? $firstPageResponse : array();
+            $firstPageIsArray = (gettype($firstPageResponse) === 'array' && array_keys($firstPageResponse) === array_keys(array_keys($firstPageResponse)));
+            $firstPage = ($firstPageIsArray) ? $firstPageResponse : array();
             $firstPageLength = count($firstPage);
             $allRawEvents = array();
             for ($fi = 0; $fi < $firstPageLength; $fi++) {
@@ -897,6 +899,9 @@ class polymarket extends Exchange {
                     $ccxtMarketsLength = count($ccxtMarkets);
                     for ($i = 0; $i < $ccxtMarketsLength; $i++) {
                         $mkt = $ccxtMarkets[$i];
+                        if ($mkt === null) {
+                            throw new ExchangeError($this->id . ' fetchOutcome() could not resolve mkt');
+                        }
                         $this->markets[$mkt['market']] = $mkt;
                     }
                     $this->populate_outcomes();
@@ -956,6 +961,9 @@ class polymarket extends Exchange {
                     $ccxtMarkets = $this->parse_event_to_markets(array( 'markets' => $rawMarkets ));
                     for ($i = 0; $i < count($ccxtMarkets); $i++) {
                         $mkt = $ccxtMarkets[$i];
+                        if ($mkt === null) {
+                            throw new ExchangeError($this->id . ' fetchOutcomes() could not resolve mkt');
+                        }
                         $this->markets[$mkt['market']] = $mkt;
                     }
                     $startIndex = $this->sum($startIndex, $chunkSize);
@@ -1084,9 +1092,13 @@ class polymarket extends Exchange {
                     $this->clobPublicPostLastTradesPrices($bookParams),
                 );
                 $responses = Async\await(Promise\all($promises));
-                $books = $responses[0];
+                $booksResponse = $responses[0];
                 $midpoints = $responses[1];
-                $lastTrades = $responses[2];
+                $lastTradesResponse = $responses[2];
+                $booksIsArray = (gettype($booksResponse) === 'array' && array_keys($booksResponse) === array_keys(array_keys($booksResponse)));
+                $books = ($booksIsArray) ? $booksResponse : array();
+                $lastTradesIsArray = (gettype($lastTradesResponse) === 'array' && array_keys($lastTradesResponse) === array_keys(array_keys($lastTradesResponse)));
+                $lastTrades = ($lastTradesIsArray) ? $lastTradesResponse : array();
                 $lastTradesByTokenId = array();
                 $lastTradesLength = count($lastTrades);
                 for ($li = 0; $li < $lastTradesLength; $li++) {
@@ -1212,7 +1224,7 @@ class polymarket extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($outcome, $limit, $params) {
             /**
              * fetches the CLOB order book for a single $outcome token
@@ -1365,7 +1377,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         // Unused => fetchOHLCV performs client-side bucket aggregation directly.
         //
         //     {
@@ -1447,7 +1459,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function parse_prediction_open_interest($interest, ?array $market = null): array {
+    public function parse_prediction_open_interest(array $interest, ?array $market = null): array {
         //
         //     array( "market" => "0x7976b8...92", "value" => 4925662.470476 )
         //
@@ -1683,7 +1695,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         /**
          * @ignore
          * parses a balance-allowance $response into a balances object with a USDC entry
@@ -1738,6 +1750,9 @@ class polymarket extends Exchange {
                 return $parsed;
             }
             $wantedIds = array();
+            if ($outcomes === null) {
+                throw new ExchangeError($this->id . ' fetchPositions() missing outcomes');
+            }
             for ($i = 0; $i < count($outcomes); $i++) {
                 $outcomeObj = $this->outcome($outcomes[$i]);
                 $wantedIds[$outcomeObj['outcomeId']] = true;
@@ -2003,7 +2018,10 @@ class polymarket extends Exchange {
             $orderOutcomes = array();
             for ($i = 0; $i < count($orders); $i++) {
                 $o = $orders[$i];
-                $orderOutcomes[] = $this->safe_string($o, 'outcome');
+                $__oc = $this->safe_string($o, 'outcome');
+                if ($__oc !== null) {
+                    $orderOutcomes[] = $__oc;
+                }
             }
             Async\await($this->load_outcomes($orderOutcomes));
             $bodies = array();
@@ -2018,9 +2036,9 @@ class polymarket extends Exchange {
                     $orderParams = $this->extend($orderParams, array( 'salt' => $this->number_to_string($this->sum($batchSalt, $i)) ));
                 }
                 $built = $this->build_clob_order_body($this->safe_string($o, 'outcome'), $this->safe_string($o, 'type'), $this->safe_string($o, 'side'), $this->safe_number($o, 'amount'), $this->safe_number($o, 'price'), $orderParams);
-                $bodies[] = $this->safe_dict($built, 'body');
-                $outcomes[] = $this->safe_dict($built, 'outcome');
-                $requests[] = $this->safe_dict($built, 'request');
+                $bodies[] = $this->safe_dict($built, 'body', array());
+                $outcomes[] = $this->safe_dict($built, 'outcome', array());
+                $requests[] = $this->safe_dict($built, 'request', array());
             }
             $response = Async\await($this->clobPrivatePostOrders($bodies));
             $result = array();
@@ -2039,7 +2057,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function build_clob_order_body(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+    public function build_clob_order_body(?string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
          * builds and signs a single CLOB order request body (shared by createOrder and createOrders)
@@ -2218,7 +2236,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function polymarket_order_raw_amounts(string $side, float $size, float $price, string $tickSize, ?float $cost = null): array {
+    public function polymarket_order_raw_amounts(?string $side, ?float $size, ?float $price, ?string $tickSize, ?float $cost = null): array {
         $configs = array(
             '0.1' => array( 'price' => 1, 'size' => 2, 'amount' => 3 ),
             '0.01' => array( 'price' => 2, 'size' => 2, 'amount' => 4 ),
@@ -2425,7 +2443,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function fetch_events(array $params = array()): PromiseInterface {
+    public function fetch_events($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance; for an unscoped top-volume browse use fetchMarkets ()
@@ -2452,6 +2470,9 @@ class polymarket extends Exchange {
             $requestedSlug = $this->safe_string($params, 'slug');
             $queries = $this->parse_search_queries($params);
             $rest = $this->omit($params, array( 'query', 'queries', 'eventId', 'slug' ));
+            if ($queries === null) {
+                throw new ExchangeError($this->id . ' fetchEvents() missing queries');
+            }
             $queriesLength = count($queries);
             $rawEvents = array();
             if (($requestedEventId !== null) || ($requestedSlug !== null)) {
@@ -2463,7 +2484,8 @@ class polymarket extends Exchange {
                     $lookup['slug'] = $requestedSlug;
                 }
                 $response = Async\await($this->gammaPublicGetEvents($lookup));
-                $rawEvents = ($response !== null) ? $response : array();
+                $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
+                $rawEvents = ($responseIsArray) ? $response : array();
             } elseif ($queriesLength > 0) {
                 $rawEvents = Async\await($this->fetch_raw_events_by_search($queries, $rest));
             } else {
@@ -2499,6 +2521,9 @@ class polymarket extends Exchange {
                 }
                 for ($mi = 0; $mi < count($ccxtMarkets); $mi++) {
                     $m = $ccxtMarkets[$mi];
+                    if ($m === null) {
+                        throw new ExchangeError($this->id . ' fetchEvents() missing m');
+                    }
                     $this->markets[$m['market']] = $m;
                 }
                 $parsedEvent = $this->parse_event($eventForParsing);
@@ -2541,6 +2566,9 @@ class polymarket extends Exchange {
                 $response = Async\await($this->gammaPublicGetEventsId($this->extend(array( 'id' => $id ), $params)));
             }
             $eventForParsing = $this->safe_dict($response, 'event', $response);
+            if ($eventForParsing === null) {
+                $eventForParsing = array();
+            }
             $event = $this->parse_event($eventForParsing);
             $this->index_event_outcomes($event);
             return $event;
@@ -2925,6 +2953,9 @@ class polymarket extends Exchange {
             } catch (Exception $e) {
                 $creds = Async\await($this->create_api_key($params));
             }
+            if ($creds === null) {
+                throw new ExchangeError($this->id . ' createOrDeriveApiKey() returned no credentials');
+            }
             return $creds;
         })();
     }
@@ -3177,9 +3208,14 @@ class polymarket extends Exchange {
             $messageHash = 'ticker::' . $outcome;
             $subscribeHash = 'subscribe::' . $tokenId;
             $subscribeMsg = array( 'assets_ids' => array( $tokenId ), 'type' => 'market' );
+            if ($outcome === null) {
+                throw new ExchangeError($this->id . ' watchTicker() missing outcome');
+            }
             if (!(is_array($this->orderbooks) && array_key_exists($outcome ?? '', $this->orderbooks))) {
                 $seededBook = $this->order_book(array());
-                $this->orderbooks[$outcome] = $seededBook;
+                if ($outcome !== null) {
+                    $this->orderbooks[$outcome] = $seededBook;
+                }
             }
             $url = $this->urls['api']['ws'];
             $orderbook = Async\await($this->watch($url, $messageHash, $subscribeMsg, $subscribeHash));
@@ -3344,7 +3380,7 @@ class polymarket extends Exchange {
         }
     }
 
-    public function token_id_to_symbol(string $tokenId): ?string {
+    public function token_id_to_symbol(?string $tokenId): ?string {
         if (!$tokenId) {
             return null;
         }

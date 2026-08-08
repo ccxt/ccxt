@@ -70,7 +70,13 @@ public partial class testMainClass : BaseTest
                         testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                     } catch(Exception ex)
                     {
-                        await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+                        object ohlcv = null;
+                        object tickerSymbol = getValue(ticker, "symbol");
+                        if (isTrue(isTrue((!isEqual(tickerSymbol, null))) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
+                        {
+                            ohlcv = await exchange.fetchOHLCV(tickerSymbol, "1d", null, 5);
+                        }
+                        testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
                 }
                 now = exchange.milliseconds();

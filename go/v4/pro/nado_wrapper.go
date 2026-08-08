@@ -165,7 +165,7 @@ func (this *Nado) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWa
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {ccxt.OrderBook} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {ccxt.OrderBook} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Nado) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -227,7 +227,7 @@ func (this *Nado) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBo
  * @param {string[]} symbols unified symbols of the markets to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {ccxt.OrderBook} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {ccxt.OrderBook} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
  */
 func (this *Nado) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
 
@@ -1070,8 +1070,8 @@ func (this *Nado) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([
 	}
 	return ccxt.NewOrderArray(res), nil
 }
-func (this *Nado) WatchExecuteRequest(requestId string, request any) (map[string]any, error) {
-	res := <-this.Core.WatchExecuteRequest(requestId, request)
+func (this *Nado) WatchExecuteRequest(requestIdString string, request any) (map[string]any, error) {
+	res := <-this.Core.WatchExecuteRequest(requestIdString, request)
 	if ccxt.IsError(res) {
 		return map[string]any{}, ccxt.CreateReturnError(res)
 	}
@@ -1254,10 +1254,10 @@ func (this *Nado) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Tr
 func (this *Nado) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Nado) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Nado) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Nado) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Nado) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Nado) FetchFreeBalance(params ...any) (ccxt.Balance, error) {
@@ -1401,7 +1401,7 @@ func (this *Nado) FetchPosition(symbol string, options ...ccxt.FetchPositionOpti
 func (this *Nado) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Nado) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Nado) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Nado) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
@@ -1419,7 +1419,7 @@ func (this *Nado) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptions) 
 func (this *Nado) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Nado) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Nado) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Nado) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
@@ -1539,7 +1539,7 @@ func (this *Nado) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
 func (this *Nado) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Nado) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Nado) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Nado) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {
@@ -1584,7 +1584,7 @@ func (this *Nado) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsOpti
 func (this *Nado) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Nado) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Nado) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Nado) WatchBalance(params ...any) (ccxt.Balances, error) {

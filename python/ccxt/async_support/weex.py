@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.weex import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -215,103 +216,103 @@ class weex(Exchange, ImplicitAPI):
                 'public': {
                     # multiply public endpoints weight by 5
                     'get': {
-                        'api/v3/time': 5,  # done
-                        'api/v3/coins': 25,  # done
-                        'api/v3/exchangeInfo': 100,  # done
-                        'api/v3/ping': 5,  # done
-                        'api/v3/apiTradingSymbols': 25,  # not unified
-                        'api/v3/market/ticker/price': 20,  # not unified
-                        'api/v3/market/ticker/24hr': 10,  # done
-                        'api/v3/market/trades': 125,  # done
-                        'api/v3/market/klines': 10,  # done
-                        'api/v3/market/depth': 25,  # done
-                        'api/v3/market/ticker/bookTicker': 20,  # done
+                        'api/v3/time': {'cost': 5},  # done
+                        'api/v3/coins': {'cost': 25},  # done
+                        'api/v3/exchangeInfo': {'cost': 100},  # done
+                        'api/v3/ping': {'cost': 5},  # done
+                        'api/v3/apiTradingSymbols': {'cost': 25},  # not unified
+                        'api/v3/market/ticker/price': {'cost': 20},  # not unified
+                        'api/v3/market/ticker/24hr': {'cost': 10},  # done
+                        'api/v3/market/trades': {'cost': 125},  # done
+                        'api/v3/market/klines': {'cost': 10},  # done
+                        'api/v3/market/depth': {'cost': 25},  # done
+                        'api/v3/market/ticker/bookTicker': {'cost': 20},  # done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v3/account/': 5,  # done
-                        'api/v3/account/transferRecords': 3,  # done
-                        'api/v3/order': 2,  # done
-                        'api/v3/openOrders': 3,  # done
-                        'api/v3/allOrders': 10,  # done
-                        'api/v3/myTrades': 5,  # done
-                        'api/v3/rebate/affiliate/getAffiliateUIDs': 20,  # not unified
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': 20,  # not unified
-                        'api/v3/rebate/affiliate/getAffiliateCommission': 20,  # not unified
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': 100,  # not unified
-                        'api/v3/rebate/affiliate/querySubChannelTransactions': 10,  # not unified
-                        'api/v3/agency/verifyReferrals': 20,  # not unified
-                        'api/v3/agency/getAssert': 20,  # not unified
-                        'api/v3/agency/getDealData': 20,  # not unified
+                        'api/v3/account/': {'cost': 5},  # done
+                        'api/v3/account/transferRecords': {'cost': 3},  # done
+                        'api/v3/order': {'cost': 2},  # done
+                        'api/v3/openOrders': {'cost': 3},  # done
+                        'api/v3/allOrders': {'cost': 10},  # done
+                        'api/v3/myTrades': {'cost': 5},  # done
+                        'api/v3/rebate/affiliate/getAffiliateUIDs': {'cost': 20},  # not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': {'cost': 20},  # not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission': {'cost': 20},  # not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': {'cost': 100},  # not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions': {'cost': 10},  # not unified
+                        'api/v3/agency/verifyReferrals': {'cost': 20},  # not unified
+                        'api/v3/agency/getAssert': {'cost': 20},  # not unified
+                        'api/v3/agency/getDealData': {'cost': 20},  # not unified
                     },
                     'post': {
-                        'api/v3/account/bills': 5,  # done
-                        'api/v3/account/fundingBills': 5,  # done
-                        'api/v3/order': 5,  # done
-                        'api/v3/order/batch': 50,  # not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
-                        'api/v3/rebate/affiliate/internalWithdrawal': 100,  # not unified
+                        'api/v3/account/bills': {'cost': 5},  # done
+                        'api/v3/account/fundingBills': {'cost': 5},  # done
+                        'api/v3/order': {'cost': 5},  # done
+                        'api/v3/order/batch': {'cost': 50},  # not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'api/v3/rebate/affiliate/internalWithdrawal': {'cost': 100},  # not unified
                     },
                     'delete': {
-                        'api/v3/order': 1,  # done
-                        'api/v3/openOrders': 1,  # done
-                        'api/v3/order/batch': 10,  # done
+                        'api/v3/order': {'cost': 1},  # done
+                        'api/v3/openOrders': {'cost': 1},  # done
+                        'api/v3/order/batch': {'cost': 10},  # done
                     },
                 },
                 'contract': {
                     # multiply public endpoints weight by 5
                     'get': {
-                        'capi/v3/market/time': 5,  # done
-                        'capi/v3/market/exchangeInfo': 5,  # done
-                        'capi/v3/market/depth': 5,  # done
-                        'capi/v3/market/ticker/24hr': 200,  # done
-                        'capi/v3/market/ticker/bookTicker': 5,  # done
-                        'capi/v3/market/trades': 25,  # done
-                        'capi/v3/market/klines': 5,  # done
-                        'capi/v3/market/indexPriceKlines': 5,  # done
-                        'capi/v3/market/markPriceKlines': 5,  # done
-                        'capi/v3/market/historyKlines': 25,  # done
-                        'capi/v3/market/symbolPrice': 5,  # not unified
-                        'capi/v3/market/openInterest': 10,  # done
-                        'capi/v3/market/premiumIndex': 5,  # done
-                        'capi/v3/market/fundingRate': 25,  # done
-                        'capi/v3/market/apiTradingSymbols': 25,  # not unified
+                        'capi/v3/market/time': {'cost': 5},  # done
+                        'capi/v3/market/exchangeInfo': {'cost': 5},  # done
+                        'capi/v3/market/depth': {'cost': 5},  # done
+                        'capi/v3/market/ticker/24hr': {'cost': 200},  # done
+                        'capi/v3/market/ticker/bookTicker': {'cost': 5},  # done
+                        'capi/v3/market/trades': {'cost': 25},  # done
+                        'capi/v3/market/klines': {'cost': 5},  # done
+                        'capi/v3/market/indexPriceKlines': {'cost': 5},  # done
+                        'capi/v3/market/markPriceKlines': {'cost': 5},  # done
+                        'capi/v3/market/historyKlines': {'cost': 25},  # done
+                        'capi/v3/market/symbolPrice': {'cost': 5},  # not unified
+                        'capi/v3/market/openInterest': {'cost': 10},  # done
+                        'capi/v3/market/premiumIndex': {'cost': 5},  # done
+                        'capi/v3/market/fundingRate': {'cost': 25},  # done
+                        'capi/v3/market/apiTradingSymbols': {'cost': 25},  # not unified
                     },
                 },
                 'contractPrivate': {
                     'get': {
-                        'capi/v3/account/balance': 10,  # done
-                        'capi/v3/account/commissionRate': 10,  # done
-                        'capi/v3/account/accountConfig': 10,  # not unified
-                        'capi/v3/account/symbolConfig': 10,  # done
-                        'capi/v3/account/position/allPosition': 15,  # done
-                        'capi/v3/account/position/singlePosition': 3,  # done
-                        'capi/v3/order': 3,  # done
-                        'capi/v3/openOrders': 5,  # done
-                        'capi/v3/order/history': 10,  # done
-                        'capi/v3/userTrades': 5,  # done
-                        'capi/v3/openAlgoOrders': 3,  # done
-                        'capi/v3/allAlgoOrders': 10,  # not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/account/balance': {'cost': 10},  # done
+                        'capi/v3/account/commissionRate': {'cost': 10},  # done
+                        'capi/v3/account/accountConfig': {'cost': 10},  # not unified
+                        'capi/v3/account/symbolConfig': {'cost': 10},  # done
+                        'capi/v3/account/position/allPosition': {'cost': 15},  # done
+                        'capi/v3/account/position/singlePosition': {'cost': 3},  # done
+                        'capi/v3/order': {'cost': 3},  # done
+                        'capi/v3/openOrders': {'cost': 5},  # done
+                        'capi/v3/order/history': {'cost': 10},  # done
+                        'capi/v3/userTrades': {'cost': 5},  # done
+                        'capi/v3/openAlgoOrders': {'cost': 3},  # done
+                        'capi/v3/allAlgoOrders': {'cost': 10},  # not unified - capi/v3/order/history returns both regular and algo orders
                     },
                     'post': {
-                        'capi/v3/account/income': 5,  # done
-                        'capi/v3/account/marginType': 50,  # done
-                        'capi/v3/account/leverage': 20,  # done
-                        'capi/v3/account/positionMargin': 30,  # done
-                        'capi/v3/account/modifyAutoAppendMargin': 30,  # not unified
-                        'capi/v3/order': 5,  # done
-                        'capi/v3/batchOrders': 10,  # not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
-                        'capi/v3/closePositions': 50,  # done
-                        'capi/v3/algoOrder': 5,  # done
-                        'capi/v3/placeTpSlOrder': 5,  # not unified
-                        'capi/v3/modifyTpSlOrder': 5,  # not unified
+                        'capi/v3/account/income': {'cost': 5},  # done
+                        'capi/v3/account/marginType': {'cost': 50},  # done
+                        'capi/v3/account/leverage': {'cost': 20},  # done
+                        'capi/v3/account/positionMargin': {'cost': 30},  # done
+                        'capi/v3/account/modifyAutoAppendMargin': {'cost': 30},  # not unified
+                        'capi/v3/order': {'cost': 5},  # done
+                        'capi/v3/batchOrders': {'cost': 10},  # not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'capi/v3/closePositions': {'cost': 50},  # done
+                        'capi/v3/algoOrder': {'cost': 5},  # done
+                        'capi/v3/placeTpSlOrder': {'cost': 5},  # not unified
+                        'capi/v3/modifyTpSlOrder': {'cost': 5},  # not unified
                     },
                     'delete': {
-                        'capi/v3/order': 3,  # done
-                        'capi/v3/batchOrders': 10,  # done
-                        'capi/v3/allOpenOrders': 10,  # done
-                        'capi/v3/algoOrder': 3,  # done
-                        'capi/v3/algoOpenOrders': 10,  # done
+                        'capi/v3/order': {'cost': 3},  # done
+                        'capi/v3/batchOrders': {'cost': 10},  # done
+                        'capi/v3/allOpenOrders': {'cost': 10},  # done
+                        'capi/v3/algoOrder': {'cost': 3},  # done
+                        'capi/v3/algoOpenOrders': {'cost': 10},  # done
                     },
                 },
             },
@@ -488,7 +489,7 @@ class weex(Exchange, ImplicitAPI):
             },
             'options': {
                 'partner': 'b-WEEX111125',
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'accountsByType': {
                     'spot': 'spot',
@@ -506,7 +507,7 @@ class weex(Exchange, ImplicitAPI):
                     'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
-                    'ARBONE': 'ARBITRUM(ARB)',
+                    'ARBITRUM': 'ARBITRUM(ARB)',
                     'SOL': 'SOLANA(SOL)',
                     'OP': 'OPTIMISM(OP)',
                     'OPTIMISM': 'OPTIMISM(OP)',
@@ -516,7 +517,7 @@ class weex(Exchange, ImplicitAPI):
                     'BEP20(BSC)': 'BEP20',
                     'ERC20': 'ERC20',
                     'POLYGON(MATIC)': 'MATIC',
-                    'ARBITRUM(ARB)': 'ARBONE',
+                    'ARBITRUM(ARB)': 'ARBITRUM',
                     'SOLANA(SOL)': 'SOL',
                     'OPTIMISM(OP)': 'OP',
                     'AVALANCHE_C(AVAX_C)': 'AVAXC',
@@ -694,7 +695,7 @@ class weex(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -704,7 +705,7 @@ class weex(Exchange, ImplicitAPI):
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         response = await self.publicGetApiV3Ping(params)
-        # reutns an empty response if the exchange is alive, otherwise will trigger an error
+        # returns an empty response if the exchange is alive, otherwise will trigger an error
         return {
             'status': 'ok',
             'updated': None,
@@ -860,7 +861,7 @@ class weex(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'coin')
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(rawCurrency, 'name')
@@ -870,27 +871,28 @@ class weex(Exchange, ImplicitAPI):
             chain = self.safe_dict(chains, j)
             networkId = self.safe_string(chain, 'network')
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'deposit': self.safe_bool(chain, 'depositEnable'),
-                'withdraw': self.safe_bool(chain, 'withdrawEnable'),
-                'fee': self.safe_number(chain, 'withdrawFee'),
-                'precision': self.safe_number(chain, 'withdrawIntegerMultiple'),
-                'isDefault': self.safe_bool(chain, 'isDefault', False),
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(chain, 'withdrawMin'),
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_bool(chain, 'depositEnable'),
+                    'withdraw': self.safe_bool(chain, 'withdrawEnable'),
+                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'precision': self.safe_number(chain, 'withdrawIntegerMultiple'),
+                    'isDefault': self.safe_bool(chain, 'isDefault', False),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'withdrawMin'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(chain, 'depositDust'),
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': self.safe_number(chain, 'depositDust'),
-                        'max': None,
-                    },
-                },
-            }
+                }
         networkKeys = list(networks.keys())
         networksLength = len(networkKeys)
         emptyChains = networksLength == 0  # non-functional coins
@@ -1024,7 +1026,7 @@ class weex(Exchange, ImplicitAPI):
                 isLinear = False
                 isInverse = True
         else:
-            active = self.safe_bool(market, 'enableTrade')
+            active = self.safe_bool(market, 'enableTrade', False) is True
         amountPrecision = self.safe_number(market, 'stepSize')
         pricePrecision = self.safe_number(market, 'tickSize')
         if amountPrecision is None:
@@ -1033,6 +1035,8 @@ class weex(Exchange, ImplicitAPI):
             amountPrecision = self.parse_number(amountPrecisionString)
             pricePrecision = self.parse_number(pricePrecisionString)
         fees = self.safe_dict(self.fees, 'spot' if isSpot else 'contract', {})
+        if id is None:
+            raise ExchangeError(self.id + ' method() missing id')
         return self.safe_market_structure({
             'id': id,
             'lowercaseId': id.lower(),
@@ -1272,7 +1276,7 @@ class weex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 15, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1356,7 +1360,7 @@ class weex(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         response = await self.publicGetApiV3MarketKlines(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
     async def fetch_contract_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
@@ -1415,6 +1419,8 @@ class weex(Exchange, ImplicitAPI):
                     endTime = now
                     startTime = now - timeDelta
                 elif since is None:
+                    if until is None:
+                        raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since or until argument')
                     startTime = until - timeDelta
                 else:
                     endTime = since + timeDelta
@@ -1430,9 +1436,9 @@ class weex(Exchange, ImplicitAPI):
                 response = await self.contractGetCapiV3MarketIndexPriceKlines(self.extend(request, params))
             else:
                 response = await self.contractGetCapiV3MarketKlines(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -1481,7 +1487,10 @@ class weex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_trades(response, market, since, limit)
+        responseList = []
+        if response is not None:
+            responseList = self.to_array(response)
+        return self.parse_trades(responseList, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1599,7 +1608,7 @@ class weex(Exchange, ImplicitAPI):
         response = await self.contractGetCapiV3MarketOpenInterest(self.extend(request, params))
         return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -1658,7 +1667,7 @@ class weex(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'swap')
         timestamp = self.safe_integer(contract, 'time')
@@ -1718,7 +1727,7 @@ class weex(Exchange, ImplicitAPI):
         response = await self.contractGetCapiV3MarketFundingRate(self.extend(request, params))
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: Any, market: Market = None):
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -1795,7 +1804,7 @@ class weex(Exchange, ImplicitAPI):
             response = await self.contractPrivateGetCapiV3AccountBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -1808,7 +1817,8 @@ class weex(Exchange, ImplicitAPI):
             account['free'] = self.safe_string_2(entry, 'availableBalance', 'free')
             account['used'] = self.safe_string_2(entry, 'frozen', 'locked')
             account['total'] = self.safe_string(entry, 'balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
@@ -1874,7 +1884,7 @@ class weex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status: Str) -> str:
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'Successful': 'ok',
         }
@@ -1935,10 +1945,18 @@ class weex(Exchange, ImplicitAPI):
         #         "transactTime": 1775608924724
         #     }
         #
+        if response is None:
+            raise NullResponse(self.id + ' parseOrder() returned empty response')
         return self.parse_order(response, market)
 
-    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
+    def create_spot_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createSpotOrderRequest() requires a side argument')
         request = {
             'symbol': market['id'],
             'side': side.upper(),
@@ -1994,10 +2012,18 @@ class weex(Exchange, ImplicitAPI):
             response = await self.contractPrivatePostCapiV3AlgoOrder(request)
         else:
             response = await self.contractPrivatePostCapiV3Order(request)
+        if response is None:
+            raise NullResponse(self.id + ' createOrder() returned empty response')
         return self.parse_order(response, market)
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_contract_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createContractOrderRequest() requires a side argument')
         request = {
             'symbol': market['id'],
             'side': side.upper(),
@@ -2142,6 +2168,8 @@ class weex(Exchange, ImplicitAPI):
             response = await self.contractPrivateDeleteCapiV3AlgoOrder(self.extend(request, params))
         else:
             response = await self.contractPrivateDeleteCapiV3Order(self.extend(request, params))
+        if response is None:
+            raise NullResponse(self.id + ' parseOrder() returned empty response')
         order = self.parse_order(response, market)
         order['status'] = 'canceled'
         return order
@@ -2233,7 +2261,7 @@ class weex(Exchange, ImplicitAPI):
         }
         return self.parse_orders(ordersResponse, market, None, None, extendedParams)
 
-    async def fetch_order(self, id: Str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 
@@ -2289,6 +2317,8 @@ class weex(Exchange, ImplicitAPI):
             response = await self.privateGetApiV3Order(self.extend(request, params))
         else:
             response = await self.contractPrivateGetCapiV3Order(self.extend(request, params))
+        if response is None:
+            raise NullResponse(self.id + ' parseOrder() returned empty response')
         return self.parse_order(response, market)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2890,7 +2920,10 @@ class weex(Exchange, ImplicitAPI):
             #     ]
             #
             response = await self.contractPrivateGetCapiV3UserTrades(self.extend(request, params))
-        return self.parse_trades(response, market, since, limit)
+        responseList = []
+        if response is not None:
+            responseList = self.to_array(response)
+        return self.parse_trades(responseList, market, since, limit)
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
@@ -2926,6 +2959,8 @@ class weex(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         if accountType == 'contract':
+            if currency is None:
+                raise ExchangeError(self.id + ' fetchLedger() could not resolve currency')
             if code is not None:
                 request['currency'] = currency['id']
             if since is not None:
@@ -2949,7 +2984,8 @@ class weex(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             request, params = self.handle_until_option('before', request, params)
-            items = await self.privatePostApiV3AccountBills(self.extend(request, params))
+            billsResponse = await self.privatePostApiV3AccountBills(self.extend(request, params))
+            items = self.to_array(billsResponse)
         return self.parse_ledger(items, currency, since, limit)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
@@ -3004,6 +3040,8 @@ class weex(Exchange, ImplicitAPI):
         before = Precise.string_sub(after, amountRaw)
         amount = self.parse_number(Precise.string_abs(amountRaw))
         direction = 'in'
+        if amountRaw is None:
+            raise ExchangeError(self.id + ' parseLedgerEntry() missing amountRaw')
         if amountRaw.find('-') >= 0:
             direction = 'out'
         rawType = self.safe_string_2(item, 'bizType', 'incomeType')
@@ -3351,9 +3389,9 @@ class weex(Exchange, ImplicitAPI):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.contractPrivateGetCapiV3AccountSymbolConfig(params)
-        return self.parse_margin_modes(response, symbols, 'symbol', 'swap')
+        return self.parse_margin_modes(self.to_array(response), symbols, 'symbol', 'swap')
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         marginType = self.safe_string(marginMode, 'marginType')
         return {
@@ -3435,7 +3473,7 @@ class weex(Exchange, ImplicitAPI):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.contractPrivateGetCapiV3AccountSymbolConfig(params)
-        return self.parse_leverages(response, symbols, 'symbol', 'swap')
+        return self.parse_leverages(self.to_array(response), symbols, 'symbol', 'swap')
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
@@ -3498,7 +3536,7 @@ class weex(Exchange, ImplicitAPI):
                 request['crossLeverage'] = leverage
         return await self.contractPrivatePostCapiV3AccountLeverage(self.extend(request, params))
 
-    async def fetch_position_mode(self, symbol: Str = None, params={}):
+    async def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way
 
@@ -3551,7 +3589,7 @@ class weex(Exchange, ImplicitAPI):
         }
         return await self.contractPrivatePostCapiV3AccountMarginType(self.extend(request, params))
 
-    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         isolatedPositionId = self.safe_string_n(params, ['positionId', 'id', 'isolatedPositionId'])
@@ -3623,7 +3661,7 @@ class weex(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         isBatch = (path.find('batch') >= 0)
@@ -3653,7 +3691,7 @@ class weex(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + '/' + endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         #
         #     {
         #         "code": -1140,

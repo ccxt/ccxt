@@ -37,8 +37,9 @@ function overwriteFileAndFolder(path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder(path);
     }
+    // overwriteFile() already opens+truncates+writes the file; the extra
+    // fs.writeFileSync below wrote every generated file a second time
     overwriteFile(path, content);
-    fs.writeFileSync(path, content);
 }
 
 // User-facing typed-wrapper methods that ship BOTH a typed sync overload
@@ -450,6 +451,40 @@ class NewTranspiler {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        this.patchJavaPropertyTypes();
+    }
+
+    // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
+    // TypeReference returns the raw TypeScript type name (`Dict`, `Str`, `Num`, `Strings`, ...)
+    // WITHOUT consulting `VariableTypeReplacements` — the very map it already applies to locals,
+    // parameters and return types. Java has no `Dict`/`Str`/`Num` class, so a TS field declared
+    //     skippedMethods: Dict = {};
+    // was emitted verbatim as
+    //     public Dict skippedMethods = new java.util.HashMap<String, Object>() {{}};
+    // and javac failed with "cannot find symbol". Untyped fields were unaffected (they fall back
+    // to the initializer-inferred type), which is why this only surfaced once ts/src was annotated
+    // for noImplicitAny.
+    //
+    // Scope: within JavaTranspiler, getType() is called from exactly ONE site —
+    // printPropertyAccessModifiers() — so routing its result through VariableTypeReplacements
+    // fixes class-field declarations only, and cannot perturb parameters, locals or return types
+    // (those already go through ArgTypeReplacements / the Dict special-cases and are correct).
+    // The map is applied by exact key, so a type name it does not know is passed through unchanged.
+    patchJavaPropertyTypes() {
+        const javaTranspiler = (this.transpiler as any)?.javaTranspiler;
+        if (!javaTranspiler || typeof javaTranspiler.getType !== 'function' || javaTranspiler._propertyTypesPatched) {
+            return;
+        }
+        const originalGetType = javaTranspiler.getType.bind(javaTranspiler);
+        javaTranspiler.getType = (node: any) => {
+            const type = originalGetType(node);
+            const replacements = javaTranspiler.VariableTypeReplacements ?? {};
+            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call(replacements, type)) {
+                return replacements[type];
+            }
+            return type;
+        };
+        javaTranspiler._propertyTypesPatched = true;
     }
 
     createGeneratedHeader() {
@@ -1355,7 +1390,7 @@ class NewTranspiler {
         }
 
 
-        this.transpileTests(force)
+        await this.transpileTests(force)
 
         this.transpileErrorHierarchy(force)
 
@@ -1580,8 +1615,7 @@ class NewTranspiler {
             content = this.postProcessWsJava(content, name, true, true);
         }
         content = this.addDeprecatedAnnotations(content);
-        content = this.createGeneratedHeader().join('\n') + '\n' + content;
-        return javaImports + content;
+        return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
 
     /**
@@ -3168,6 +3202,9 @@ class NewTranspiler {
             [/TestMainClass\.this/gm, 'TestMain.this'],
             [/throw new Exception/g, 'throw new RuntimeException'],
             [/throw e/gm, 'throw new RuntimeException(e)'],
+            // noImplicitAny bags: Object so safeValue assignments typecheck (Map is too narrow)
+            [/public (?:Dict|java\.util\.Map<String, Object>) skippedMethods\b/g, 'public Object skippedMethods'],
+            [/public (?:Dict|java\.util\.Map<String, Object>) checkedPublicTests\b/g, 'public Object checkedPublicTests'],
 
         ])
         // Null-safe Array.isArray (see Helpers.isArrayJs).
@@ -3188,7 +3225,7 @@ class NewTranspiler {
         overwriteFileAndFolder(files.javaFile, file);
     }
 
-    transpileExchangeTests(force = true) {
+    async transpileExchangeTests(force = true) {
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
@@ -3235,10 +3272,10 @@ class NewTranspiler {
             'javaFile': BASE_TESTS_FILE,
         });
 
-        this.transpileAndSaveJavaExchangeTests(tests);
+        await this.transpileAndSaveJavaExchangeTests(tests);
     }
 
-    transpileWsExchangeTests(force = true) {
+    async transpileWsExchangeTests(force = true) {
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
@@ -3457,14 +3494,18 @@ class NewTranspiler {
         });
     }
 
-    transpileTests(force = true) {
+    async transpileTests(force = true) {
         if (!shouldTranspileTests) {
             log.bright.yellow('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToJava(force);
-        this.transpileExchangeTests(force);
-        this.transpileWsExchangeTests(force);
+        // each stage is awaited: transpileAndSaveJavaExchangeTests is async, and leaving the
+        // promises floating meant transpileEverything logged "Transpiled successfully" and
+        // runMain started transpileWS with ~84 test files still in flight — three root sets
+        // then alternated against the worker sticky-Program LRU (MAX_CACHED_BATCHES = 3)
+        await this.transpileBaseTestsToJava(force);
+        await this.transpileExchangeTests(force);
+        await this.transpileWsExchangeTests(force);
     }
 }
 
@@ -3498,7 +3539,7 @@ async function runMain() {
     } else if (ws) {
         await transpiler.transpileWS(force)
     } else if (test) {
-        transpiler.transpileTests()
+        await transpiler.transpileTests()
     } else {
         await transpiler.transpileEverything(force, baseOnly, examples)
     }

@@ -159,28 +159,28 @@ class p2b extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'markets' => 1,
-                        'market' => 1,
-                        'tickers' => 1,
-                        'ticker' => 1,
-                        'book' => 1,
-                        'history' => 1,
-                        'depth/result' => 1,
-                        'market/kline' => 1,
+                        'markets' => array( 'cost' => 1 ),
+                        'market' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'book' => array( 'cost' => 1 ),
+                        'history' => array( 'cost' => 1 ),
+                        'depth/result' => array( 'cost' => 1 ),
+                        'market/kline' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'account/balances' => 1,
-                        'account/balance' => 1,
-                        'order/new' => 1,
-                        'order/cancel' => 1,
-                        'orders' => 1,
-                        'account/market_order_history' => 1,
-                        'account/market_deal_history' => 1,
-                        'account/order' => 1,
-                        'account/order_history' => 1,
-                        'account/executed_history' => 1,
+                        'account/balances' => array( 'cost' => 1 ),
+                        'account/balance' => array( 'cost' => 1 ),
+                        'order/new' => array( 'cost' => 1 ),
+                        'order/cancel' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'account/market_order_history' => array( 'cost' => 1 ),
+                        'account/market_deal_history' => array( 'cost' => 1 ),
+                        'account/order' => array( 'cost' => 1 ),
+                        'account/order_history' => array( 'cost' => 1 ),
+                        'account/executed_history' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -530,7 +530,7 @@ class p2b extends Exchange {
         })();
     }
 
-    public function parse_ticker($ticker, ?array $market = null) {
+    public function parse_ticker(mixed $ticker, ?array $market = null) {
         //
         // parseTickers
         //
@@ -604,7 +604,7 @@ class p2b extends Exchange {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} [$params->interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -824,7 +824,7 @@ class p2b extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    array(
         //        1699253400,       // Kline open time
@@ -883,7 +883,7 @@ class p2b extends Exchange {
         })();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance(mixed $response) {
         //
         //    {
         //        "USDT" => array(
@@ -1381,7 +1381,7 @@ class p2b extends Exchange {
         ), $market);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
@@ -1404,7 +1404,7 @@ class p2b extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

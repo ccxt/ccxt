@@ -7,6 +7,7 @@ namespace ccxt\prediction;
 
 use Exception; // a common import
 use ccxt\abstract\prediction\kalshi as Exchange;
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
@@ -82,96 +83,96 @@ class kalshi extends Exchange {
                 'kalshi' => array(
                     'public' => array(
                         'get' => array(
-                            'events' => 1,
-                            'events/multivariate' => 1,
-                            'events/fee_changes' => 1,
-                            'events/{event_ticker}' => 1,
-                            'events/{event_ticker}/metadata' => 1,
-                            'series' => 1,
-                            'series/fee_changes' => 1,
-                            'series/{series_ticker}' => 1,
-                            'series/{series_ticker}/markets/{ticker}/candlesticks' => 1,
-                            'series/{series_ticker}/events/{ticker}/candlesticks' => 1,
-                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history' => 1,
-                            'markets' => 1,
-                            'markets/trades' => 1,
-                            'markets/orderbooks' => 1,
-                            'markets/candlesticks' => 1,
-                            'markets/{ticker}' => 1,
-                            'markets/{ticker}/orderbook' => 1,
-                            'exchange/status' => 1,
-                            'exchange/schedule' => 1,
-                            'exchange/announcements' => 1,
-                            'exchange/user_data_timestamp' => 1,
-                            'milestones' => 1,
-                            'milestones/{milestone_id}' => 1,
-                            'structured_targets' => 1,
-                            'structured_targets/{structured_target_id}' => 1,
-                            'search/filters_by_sport' => 1,
-                            'search/tags_by_categories' => 1,
-                            'live_data/batch' => 1,
-                            'live_data/milestone/{milestone_id}' => 1,
-                            'historical/markets' => 1,
-                            'historical/markets/{ticker}/candlesticks' => 1,
-                            'historical/trades' => 1,
-                            'historical/cutoff_timestamps' => 1,
-                            'multivariate_event_collections' => 1,
-                            'multivariate_event_collections/{collection_ticker}' => 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup' => 1,
-                            'incentive_programs' => 1,
+                            'events' => array( 'cost' => 1 ),
+                            'events/multivariate' => array( 'cost' => 1 ),
+                            'events/fee_changes' => array( 'cost' => 1 ),
+                            'events/{event_ticker}' => array( 'cost' => 1 ),
+                            'events/{event_ticker}/metadata' => array( 'cost' => 1 ),
+                            'series' => array( 'cost' => 1 ),
+                            'series/fee_changes' => array( 'cost' => 1 ),
+                            'series/{series_ticker}' => array( 'cost' => 1 ),
+                            'series/{series_ticker}/markets/{ticker}/candlesticks' => array( 'cost' => 1 ),
+                            'series/{series_ticker}/events/{ticker}/candlesticks' => array( 'cost' => 1 ),
+                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history' => array( 'cost' => 1 ),
+                            'markets' => array( 'cost' => 1 ),
+                            'markets/trades' => array( 'cost' => 1 ),
+                            'markets/orderbooks' => array( 'cost' => 1 ),
+                            'markets/candlesticks' => array( 'cost' => 1 ),
+                            'markets/{ticker}' => array( 'cost' => 1 ),
+                            'markets/{ticker}/orderbook' => array( 'cost' => 1 ),
+                            'exchange/status' => array( 'cost' => 1 ),
+                            'exchange/schedule' => array( 'cost' => 1 ),
+                            'exchange/announcements' => array( 'cost' => 1 ),
+                            'exchange/user_data_timestamp' => array( 'cost' => 1 ),
+                            'milestones' => array( 'cost' => 1 ),
+                            'milestones/{milestone_id}' => array( 'cost' => 1 ),
+                            'structured_targets' => array( 'cost' => 1 ),
+                            'structured_targets/{structured_target_id}' => array( 'cost' => 1 ),
+                            'search/filters_by_sport' => array( 'cost' => 1 ),
+                            'search/tags_by_categories' => array( 'cost' => 1 ),
+                            'live_data/batch' => array( 'cost' => 1 ),
+                            'live_data/milestone/{milestone_id}' => array( 'cost' => 1 ),
+                            'historical/markets' => array( 'cost' => 1 ),
+                            'historical/markets/{ticker}/candlesticks' => array( 'cost' => 1 ),
+                            'historical/trades' => array( 'cost' => 1 ),
+                            'historical/cutoff_timestamps' => array( 'cost' => 1 ),
+                            'multivariate_event_collections' => array( 'cost' => 1 ),
+                            'multivariate_event_collections/{collection_ticker}' => array( 'cost' => 1 ),
+                            'multivariate_event_collections/{collection_ticker}/lookup' => array( 'cost' => 1 ),
+                            'incentive_programs' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'portfolio/balance' => 1,
-                            'portfolio/orders' => 1,
-                            'portfolio/orders/{order_id}' => 1,
-                            'portfolio/orders/{order_id}/queue_position' => 1,
-                            'portfolio/orders/queue_positions' => 1,
-                            'portfolio/positions' => 1,
-                            'portfolio/fills' => 1,
-                            'portfolio/settlements' => 1,
-                            'portfolio/deposits' => 1,
-                            'portfolio/withdrawals' => 1,
-                            'portfolio/order_groups' => 1,
-                            'portfolio/order_groups/{order_group_id}' => 1,
-                            'portfolio/summary/total_resting_order_value' => 1,
-                            'portfolio/subaccounts/balances' => 1,
-                            'portfolio/subaccounts/netting' => 1,
-                            'portfolio/subaccounts/transfers' => 1,
-                            'historical/fills' => 1,
-                            'historical/orders' => 1,
+                            'portfolio/balance' => array( 'cost' => 1 ),
+                            'portfolio/orders' => array( 'cost' => 1 ),
+                            'portfolio/orders/{order_id}' => array( 'cost' => 1 ),
+                            'portfolio/orders/{order_id}/queue_position' => array( 'cost' => 1 ),
+                            'portfolio/orders/queue_positions' => array( 'cost' => 1 ),
+                            'portfolio/positions' => array( 'cost' => 1 ),
+                            'portfolio/fills' => array( 'cost' => 1 ),
+                            'portfolio/settlements' => array( 'cost' => 1 ),
+                            'portfolio/deposits' => array( 'cost' => 1 ),
+                            'portfolio/withdrawals' => array( 'cost' => 1 ),
+                            'portfolio/order_groups' => array( 'cost' => 1 ),
+                            'portfolio/order_groups/{order_group_id}' => array( 'cost' => 1 ),
+                            'portfolio/summary/total_resting_order_value' => array( 'cost' => 1 ),
+                            'portfolio/subaccounts/balances' => array( 'cost' => 1 ),
+                            'portfolio/subaccounts/netting' => array( 'cost' => 1 ),
+                            'portfolio/subaccounts/transfers' => array( 'cost' => 1 ),
+                            'historical/fills' => array( 'cost' => 1 ),
+                            'historical/orders' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'portfolio/orders' => 1,
-                            'portfolio/events/orders' => 1,
-                            'portfolio/orders/batched' => 1,
-                            'portfolio/orders/{order_id}/amend' => 1,
-                            'portfolio/orders/{order_id}/decrease' => 1,
-                            'portfolio/order_groups/create' => 1,
-                            'portfolio/subaccounts' => 1,
-                            'portfolio/subaccounts/transfer' => 1,
-                            'multivariate_event_collections/{collection_ticker}' => 1,
+                            'portfolio/orders' => array( 'cost' => 1 ),
+                            'portfolio/events/orders' => array( 'cost' => 1 ),
+                            'portfolio/orders/batched' => array( 'cost' => 1 ),
+                            'portfolio/orders/{order_id}/amend' => array( 'cost' => 1 ),
+                            'portfolio/orders/{order_id}/decrease' => array( 'cost' => 1 ),
+                            'portfolio/order_groups/create' => array( 'cost' => 1 ),
+                            'portfolio/subaccounts' => array( 'cost' => 1 ),
+                            'portfolio/subaccounts/transfer' => array( 'cost' => 1 ),
+                            'multivariate_event_collections/{collection_ticker}' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
-                            'portfolio/order_groups/{order_group_id}/reset' => 1,
-                            'portfolio/order_groups/{order_group_id}/trigger' => 1,
-                            'portfolio/order_groups/{order_group_id}/limit' => 1,
-                            'portfolio/subaccounts/netting' => 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup' => 1,
+                            'portfolio/order_groups/{order_group_id}/reset' => array( 'cost' => 1 ),
+                            'portfolio/order_groups/{order_group_id}/trigger' => array( 'cost' => 1 ),
+                            'portfolio/order_groups/{order_group_id}/limit' => array( 'cost' => 1 ),
+                            'portfolio/subaccounts/netting' => array( 'cost' => 1 ),
+                            'multivariate_event_collections/{collection_ticker}/lookup' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'portfolio/orders/{order_id}' => 1,
-                            'portfolio/orders/batched' => 1,
-                            'portfolio/events/orders/{order_id}' => 1, // v2 cancel (the non-v2 paths above are 410 Gone)
-                            'portfolio/order_groups/{order_group_id}' => 1,
+                            'portfolio/orders/{order_id}' => array( 'cost' => 1 ),
+                            'portfolio/orders/batched' => array( 'cost' => 1 ),
+                            'portfolio/events/orders/{order_id}' => array( 'cost' => 1 ), // v2 cancel (the non-v2 paths above are 410 Gone)
+                            'portfolio/order_groups/{order_group_id}' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'elections' => array(
                     'public' => array(
                         'get' => array(
-                            'search/series' => 1,   // free-text series/event search — elections web host only
+                            'search/series' => array( 'cost' => 1 ),   // free-text series/event search — elections web host only
                         ),
                     ),
                 ),
@@ -356,6 +357,9 @@ class kalshi extends Exchange {
                     if ($this->markets === null) {
                         $this->markets = $this->create_safe_dictionary();
                     }
+                    if ($parsed === null) {
+                        throw new ExchangeError($this->id . ' fetchOutcome() could not resolve parsed');
+                    }
                     $this->markets[$parsed['market']] = $parsed;
                     // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                     // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
@@ -443,6 +447,9 @@ class kalshi extends Exchange {
                 $rawMarkets = $this->safe_list($response, 'markets', array());
                 for ($i = 0; $i < count($rawMarkets); $i++) {
                     $parsed = $this->parse_market($rawMarkets[$i]);
+                    if ($parsed === null) {
+                        throw new ExchangeError($this->id . ' fetchOutcomes() could not resolve parsed');
+                    }
                     $this->markets[$parsed['market']] = $parsed;
                     $this->index_market_outcomes($parsed);
                 }
@@ -815,7 +822,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function parse_prediction_open_interest($interest, ?array $market = null): array {
+    public function parse_prediction_open_interest(array $interest, ?array $market = null): array {
         //
         //     array( "ticker" => "...", "open_interest_fp" => "60802.01", ... )   // open $interest in contracts
         //
@@ -1235,7 +1242,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         /**
          * @ignore
          * parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
@@ -1408,6 +1415,9 @@ class kalshi extends Exchange {
                 // the ticker filter narrows to the market; a market has both legs, so the
                 // wanted-leg filter below still drops the opposite-leg $fills
                 $outcomeObj = $this->outcome($outcome);
+                if ($outcomeObj === null) {
+                    throw new ArgumentsRequired($this->id . ' requires a valid outcome');
+                }
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
             if ($limit !== null) {
@@ -1526,7 +1536,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         /**
          * @ignore
          * parses a kalshi balance $response (cents) into a unified balances object with a USD entry
@@ -1573,6 +1583,9 @@ class kalshi extends Exchange {
                 return $parsed;
             }
             $wantedTickers = array();
+            if ($outcomes === null) {
+                throw new ExchangeError($this->id . ' fetchPositions() missing outcomes');
+            }
             for ($i = 0; $i < count($outcomes); $i++) {
                 $outcomeObj = $this->outcome($outcomes[$i]);
                 $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
@@ -1767,6 +1780,9 @@ class kalshi extends Exchange {
             $outcomeObj = null;
             if ($outcome !== null) {
                 $outcomeObj = $this->outcome($outcome);
+                if ($outcomeObj === null) {
+                    throw new ArgumentsRequired($this->id . ' requires a valid outcome');
+                }
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioOrders($this->extend($request, $params)));
@@ -1796,6 +1812,9 @@ class kalshi extends Exchange {
             $outcomeObj = null;
             if ($outcome !== null) {
                 $outcomeObj = $this->outcome($outcome);
+                if ($outcomeObj === null) {
+                    throw new ArgumentsRequired($this->id . ' requires a valid outcome');
+                }
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioOrders($this->extend($request, $params)));
@@ -2148,7 +2167,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function fetch_events(array $params = array()): PromiseInterface {
+    public function fetch_events($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint => a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
@@ -2166,6 +2185,9 @@ class kalshi extends Exchange {
              * @return {array[]} an array of event structures
              */
             $queries = $this->parse_search_queries($params);
+            if ($queries === null) {
+                throw new ExchangeError($this->id . ' fetchEvents() missing queries');
+            }
             $queriesLength = count($queries);
             $params = $this->omit($params, array( 'query', 'queries' ));
             $userLimit = $this->safe_integer($params, 'limit');
