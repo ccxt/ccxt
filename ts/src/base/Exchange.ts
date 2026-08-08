@@ -6088,6 +6088,20 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
+    parseTradesDirectional (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, isNewestFirst: Bool = true, params = {}): Trade[] {
+        const tradesArray = this.toArray (trades);
+        let result: Trade[] = [];
+        for (let i = 0; i < tradesArray.length; i++) {
+            const index = isNewestFirst ? tradesArray.length - 1 - i : i;
+            const item = tradesArray[index];
+            const parsed: NullableDict = this.parseTrade (item, market);
+            const trade = this.extend (parsed, params);
+            result.push (trade);
+        }
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
+    }
+
     parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         return this.parseTradesHelper (false, trades, market, since, limit, params);
     }
