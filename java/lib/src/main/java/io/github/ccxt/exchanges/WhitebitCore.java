@@ -2913,10 +2913,6 @@ public class WhitebitCore extends WhitebitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
-            {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
-            }
             if (Helpers.isTrue(isBiggerThanZero))
             {
                 Helpers.addElementToObject(request, "timeout", this.numberToString(Helpers.divide(timeout, 1000)));
