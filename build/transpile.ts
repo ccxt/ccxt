@@ -229,18 +229,23 @@ class Transpiler {
     // whose whole body sits inside `Async\async(function () use (...) { ... })()`:
     //
     //     public function fetch_time($params = array()): PromiseInterface {
-    //         return Async\async(self::fetch_time_impl(...))($params);
+    //         return Async\async(self::do_fetch_time(...))($params);
     //     }
-    //     protected function fetch_time_impl($params) {
+    //     private function do_fetch_time($params) {
     //         $response = Async\await($this->publicGetTime($params));
     //         ...
     //     }
+    //
+    // Naming: `do_<method>` + `private` (not `_impl` / leading underscore). PSR-12 forbids
+    // underscore prefixes as a visibility marker; CCXT PHP is snake_case; `do_*` is the
+    // usual "public facade, do the work" helper shape in PHP frameworks. `private` keeps
+    // the body non-overridable (stubs and bodies are always emitted as a pair).
     //
     // Async\async() stays on the public edge, so public signatures still return
     // PromiseInterface and Promise\all() still overlaps; only the closure, its `use (...)`
     // capture list and one indentation level go away. `self::` (not `$this->`) is required:
     // a subclass override that does `Async\await(parent::fetch_time($params))` would
-    // otherwise late-bind straight back into its own _impl and recurse forever.
+    // otherwise late-bind straight back into its own do_* body and recurse forever.
     //
     // set by transpileJavaScriptToPHP() whenever it leaves an awaiting body flat; read back
     // immediately by transpileJavaScriptToPythonAndPHP() so the caller splits exactly the
@@ -1529,8 +1534,8 @@ class Transpiler {
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
         // indent async php — awaiting bodies stay flat here on purpose: the caller
         // (transpileMethodsToAllLanguages) emits a thin public stub
-        // `return Async\async(self::<name>_impl(...))($args);` and re-homes this flat
-        // body into `protected function <name>_impl (...)`. Async\async() stays on the
+        // `return Async\async(self::do_<name>(...))($args);` and re-homes this flat
+        // body into `private function do_<name> (...)`. Async\async() stays on the
         // public edge, so the method still returns a PromiseInterface and Promise\all
         // still overlaps, but the `function () use (...)` closure and its extra
         // indentation level disappear from every awaiting method.
@@ -2235,17 +2240,18 @@ class Transpiler {
                 phpAsync.push ('');
                 if (phpAsyncBodyIsFlatAwait) {
                     // hybrid async: thin public stub keeps the PromiseInterface contract and the
-                    // Async\async() edge, the flat body moves into a protected `<name>_impl`
-                    // helper (no closure, no `use (...)` capture list, one indent level less).
+                    // Async\async() edge; the flat body moves into a private `do_<name>` helper
+                    // (PSR-12 / snake_case; no closure, no `use (...)`, one indent level less).
                     const forwardedArgs = this.phpParameterForwardingList (phpArgs)
+                    const doMethod = 'do_' + method
                     phpAsync.push (asyncPhpSignature);
-                    phpAsync.push ('        return Async\\async(self::' + method + '_impl(...))(' + forwardedArgs + ');');
+                    phpAsync.push ('        return Async\\async(self::' + doMethod + '(...))(' + forwardedArgs + ');');
                     phpAsync.push ('    ' + '}')
                     phpAsync.push ('');
-                    // the impl is intentionally untyped on the return: after `Async\await(...)`
-                    // it yields the resolved value, not a promise, so the public method's
-                    // `: PromiseInterface` must not be repeated here.
-                    phpAsync.push ('    ' + 'protected function ' + method + '_impl(' + phpArgs + ') {');
+                    // the body helper is intentionally untyped on the return: after
+                    // `Async\await(...)` it yields the resolved value, not a promise, so the
+                    // public method's `: PromiseInterface` must not be repeated here.
+                    phpAsync.push ('    ' + 'private function ' + doMethod + '(' + phpArgs + ') {');
                 } else {
                     phpAsync.push (asyncPhpSignature);
                 }
