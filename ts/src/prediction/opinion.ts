@@ -6,7 +6,7 @@ import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
-import { AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from '../base/errors.js';
+import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, PermissionDenied } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -120,6 +120,8 @@ export default class opinion extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '10014': AccountNotEnabled, // "Please enable trading first" - live-verified: account onboarded but trading wallet not enabled yet
+                    '10403': PermissionDenied, // "API is not available to persons located in the United States, China, or persons located in restricted jurisdictions"
                     '11001': AuthenticationError, // "This API Key has no related Opinion Login Wallet yet"
                     '11002': AuthenticationError, // "Invalid API key"
                     '10605': InvalidOrder, // "Depth not enough" - live-verified: a market order with no matching book depth
@@ -995,6 +997,7 @@ export default class opinion extends Exchange {
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        await this.loadApiKey ();
         this.checkRequiredCredentials ();
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
@@ -1095,6 +1098,7 @@ export default class opinion extends Exchange {
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        await this.loadApiKey ();
         const request: Dict = { 'orderId': id };
         const response = await this.opinionPrivatePostOrderCancel (this.extend (request, params));
         const result = this.safeDict (response, 'result', {});
@@ -1199,6 +1203,7 @@ export default class opinion extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        await this.loadApiKey ();
         let outcomeObj: any = undefined;
         const request: Dict = {};
         if (outcome !== undefined) {
@@ -1223,6 +1228,7 @@ export default class opinion extends Exchange {
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        await this.loadApiKey ();
         let outcomeObj: any = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
@@ -1282,6 +1288,7 @@ export default class opinion extends Exchange {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress');
         }
+        await this.loadApiKey ();
         let outcomeObj: any = undefined;
         const request: Dict = { 'walletAddress': this.walletAddress };
         if (outcome !== undefined) {
@@ -1385,6 +1392,7 @@ export default class opinion extends Exchange {
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     override async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadApiKey ();
         const request: Dict = { 'chain_id': '56' };
         const response = await this.opinionPrivateGetUserBalance (this.extend (request, params));
         const result = this.safeDict (response, 'result', {});
@@ -1437,6 +1445,7 @@ export default class opinion extends Exchange {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositions() requires a walletAddress');
         }
+        await this.loadApiKey ();
         let outcomesLength = 0;
         if (outcomes !== undefined) {
             outcomesLength = outcomes.length;
@@ -1593,6 +1602,38 @@ export default class opinion extends Exchange {
         return response;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name opinion#loadApiKey
+     * @description ensures an apiKey is available before a private call - reuses a directly-set key, otherwise
+     * self-issues one from the walletAddress/privateKey via fetchApiKey(), falling back to createApiKey() when
+     * the wallet has no key yet; freshly created keys can take ~15 seconds to activate venue-side
+     * @returns {string} the apiKey
+     */
+    async loadApiKey (): Promise<Str> {
+        const hasDirectApiKey = !this.isEmptyString (this.apiKey);
+        if (hasDirectApiKey) {
+            return this.apiKey;
+        }
+        const optionsKey = this.safeString (this.options, 'apiKey');
+        if (optionsKey !== undefined) {
+            return optionsKey;
+        }
+        if ((this.walletAddress === undefined) || (this.privateKey === undefined)) {
+            throw new AuthenticationError (this.id + ' private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one');
+        }
+        let creds = undefined;
+        try {
+            creds = await this.fetchApiKey ();
+        } catch (e) {
+            // no key exists for this wallet yet (11010) - self-issue one; any other
+            // failure (unregistered wallet, disabled issuance) surfaces from the create call
+            creds = await this.createApiKey ();
+        }
+        return this.safeString (creds, 'apiKey');
+    }
+
     setApiCredentials (response: Dict): Dict {
         //
         //     { "apiKey": "...", "walletAddress": "..." }
@@ -1641,6 +1682,7 @@ export default class opinion extends Exchange {
      * @returns {any} the first resolved payload
      */
     async subscribeOpinionChannel (messageHash: string, channel: string, marketId: Int): Promise<any> {
+        await this.loadApiKey ();
         const url = this.opinionWsUrl ();
         const subscriptionKey = channel + ':' + this.numberToString (marketId);
         const subscribeMsg: Dict = {
@@ -1715,6 +1757,7 @@ export default class opinion extends Exchange {
         const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'market.depth.diff';
         const messageHash = 'orderbook::' + sym;
+        await this.loadApiKey ();
         const url = this.opinionWsUrl ();
         const client = this.client (url);
         const subscriptionKey = channel + ':' + this.numberToString (marketId);
