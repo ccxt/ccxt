@@ -2039,6 +2039,8 @@ class foxbit extends foxbit$1["default"] {
         }
         headers = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': this.getCcxtVersion(),
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials();

@@ -417,6 +417,16 @@ class BaseExchange {
         // @ts-expect-error
         return encodeURIComponent(...args);
     }
+    /**
+     * @method
+     * @name Exchange#getCcxtVersion
+     * @description returns the version of the ccxt library, e.g. "4.5.54", or "unknown" when the version constant is not initialized (e.g. when an exchange module is imported directly, bypassing the ccxt entry point)
+     * @returns {string} the semver version of the ccxt library, or "unknown" when unavailable
+     */
+    getCcxtVersion() {
+        const staticVersion = Exchange.ccxtVersion;
+        return (staticVersion === undefined) ? 'unknown' : staticVersion;
+    }
     throttle(cost = undefined) {
         return this.throttler.throttle(cost);
     }
