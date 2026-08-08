@@ -286,8 +286,12 @@ public partial class luno : Exchange
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", true },
                     { "percentage", true },
-                    { "taker", this.parseNumber("0.001") },
-                    { "maker", this.parseNumber("0") },
+                    { "taker", this.parseNumber("0.006") },
+                    { "maker", this.parseNumber("0.004") },
+                    { "tiers", new Dictionary<string, object>() {
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.006")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.005")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("40000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("80000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("120000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("160000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.0005")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("40000000"), this.parseNumber("-0.0001")}, new List<object> {this.parseNumber("80000000"), this.parseNumber("-0.0001")}, new List<object> {this.parseNumber("120000000"), this.parseNumber("-0.0002")}, new List<object> {this.parseNumber("160000000"), this.parseNumber("-0.0002")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("-0.0002")}} },
+                    } },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -609,9 +613,41 @@ public partial class luno : Exchange
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object status = this.safeString(market, "trading_status");
+            // Luno's published schedule is categorical, not a single pair. Entry-tier
+            // rates below are read from Luno's own Help Centre fee article for the ZAR
+            // market; markets quoted in other fiat currencies are left on the
+            // exchange-wide default until their schedules are verified the same way.
+            object fiats = new List<object>() {"ZAR"};
+            // live-but-unverified counters, kept on the exchange-wide default; the market
+            // list is geo-filtered so this is a superset of any one region's view, and
+            // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
+            object unverifiedQuotes = new List<object>() {"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"};
+            object stablecoins = new List<object>() {"USDT", "USDC"};
+            object taker = null;
+            object maker = null;
+            if (isTrue(this.inArray(quote, fiats)))
+            {
+                if (isTrue(this.inArray(bs, stablecoins)))
+                {
+                    taker = this.parseNumber("0.002");
+                    maker = this.parseNumber("-0.0001"); // a rebate, not a charge
+                } else
+                {
+                    taker = this.parseNumber("0.006");
+                    maker = this.parseNumber("0.004");
+                }
+            } else if (!isTrue(this.inArray(quote, unverifiedQuotes)))
+            {
+                // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
+                // are both in Luno's crypto/crypto column
+                taker = this.parseNumber("0.001");
+                maker = this.parseNumber("0.0008");
+            }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
+                { "taker", taker },
+                { "maker", maker },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
