@@ -978,7 +978,7 @@ export default class derive extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'trades', []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTradesDescending (data, market, since, limit);
     }
 
     override parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {

@@ -1035,7 +1035,7 @@ export default class grvt extends Exchange {
         //            ...
         //
         const result = this.safeList (response, 'result', []) as List;
-        return this.parseTrades (result, market, since, limit);
+        return this.parseTradesDescending (result, market, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {

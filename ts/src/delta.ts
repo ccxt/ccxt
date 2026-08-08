@@ -1602,7 +1602,7 @@ export default class delta extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
+        return this.parseTradesDescending (result, market, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {

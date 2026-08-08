@@ -794,7 +794,7 @@ export default class hollaex extends Exchange {
         //     }
         //
         const trades = this.safeList (response, market['id'], []) as List;
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTradesDescending (trades, market, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {

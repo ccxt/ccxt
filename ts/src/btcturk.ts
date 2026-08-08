@@ -667,7 +667,7 @@ export default class btcturk extends Exchange {
         if (data !== undefined) {
             dataList = data;
         }
-        return this.parseTrades (dataList, market, since, limit);
+        return this.parseTradesDescending (dataList, market, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {

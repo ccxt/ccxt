@@ -1037,7 +1037,7 @@ export default class bitso extends Exchange {
         };
         const response = await this.publicGetTrades (this.extend (request, params));
         const payload = this.safeList (response, 'payload', []);
-        return this.parseTrades (payload, market, since, limit);
+        return this.parseTradesDescending (payload, market, since, limit);
     }
 
     /**

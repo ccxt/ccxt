@@ -886,7 +886,7 @@ export default class woofipro extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []);
-        return this.parseTrades (rows, market, since, limit);
+        return this.parseTradesDescending (rows, market, since, limit);
     }
 
     override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {

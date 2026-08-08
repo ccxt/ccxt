@@ -1030,16 +1030,14 @@ export default class bittrade extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        let result: List = [];
+        const rawTrades: List = [];
         for (let i = 0; i < data.length; i++) {
             const trades = this.safeValue (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
-                const trade = this.parseTrade (trades[j], market);
-                result.push (trade);
+                rawTrades.push (trades[j]);
             }
         }
-        result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
+        return this.parseTradesDescending (rawTrades, market, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {

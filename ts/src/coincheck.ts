@@ -685,7 +685,7 @@ export default class coincheck extends Exchange {
         //      }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTradesDescending (data, market, since, limit);
     }
 
     /**

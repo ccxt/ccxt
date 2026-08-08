@@ -989,7 +989,7 @@ export default class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTradesDescending (response, market, since, limit);
     }
 
     /**

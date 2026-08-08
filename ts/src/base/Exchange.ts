@@ -6100,6 +6100,29 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
+    parseTradesDescending (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, iparams = {}): Trade[] {
+        return this.parseTradesDirectionalHelper (trades, market, since, limit, true, iparams);
+    }
+
+    parseTradesAscending (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, iparams = {}): Trade[] {
+        return this.parseTradesDirectionalHelper (trades, market, since, limit, false, iparams);
+    }
+
+    parseTradesDirectionalHelper (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, isNewestFirst: Bool = true, params = {}): Trade[] {
+        const tradesArray = this.toArray (trades);
+        const result: Trade[] = [];
+        const length = tradesArray.length;
+        for (let i = 0; i < length; i++) {
+            const index = isNewestFirst ? length - 1 - i : i;
+            const item = tradesArray[index];
+            const parsed: NullableDict = this.parseTrade (item, market);
+            const trade = this.extend (parsed, params);
+            result.push (trade);
+        }
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
+    }
+
     parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         return this.parseTradesHelper (false, trades, market, since, limit, params);
     }

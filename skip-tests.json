@@ -82,6 +82,9 @@
             "orderBook": {
                 "spread": "bid > ask issue https://github.com/ccxt/ccxt/actions/runs/14901691674/job/41855075107?pr=25907#step:9:389"
             },
+            "fetchTrades": {
+                "timestampSort": "todo"
+            },
             "watchTrades": {
                 "timestampSort": "order is messed"
             },
@@ -410,6 +413,10 @@
                 "quoteVolume": "incorrect",
                 "compareOHLC": "todo"
             },
+            "watchTrades":{
+                "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
+                "timestampSort": "messed order coming from exchange"
+            },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
@@ -575,6 +582,10 @@
                 "taker": "is undefined",
                 "maker": "is undefined"
             },
+            "fetchTrades": {
+                "side": "side is undefined",
+                "requireBothSides": "same"
+            },
             "fetchCurrencies": {
                 "deposit": "not provided",
                 "withdraw": "not provided",
@@ -635,8 +646,9 @@
                 "activeMajorCurrencies": "todo"
             },
             "orderBook": {
-                "spread": "bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0)",
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4820"
+                "bid":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0)",
+                "spread":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0)",
+                "timestamp":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4820"
             },
             "ticker": {
                 "spread": "broken bid-ask"
@@ -807,6 +819,9 @@
             },
             "watchTickers": {
                 "compareOHLC": "24h high/low can lag the latest price, so close occasionally falls outside the 24h range"
+            },
+            "fetchTrades": {
+                "timestampSort":"todo"
             }
         }
     },
@@ -854,7 +869,8 @@
                 "currencyIdAndCode": "some currencies show in fetchMarkets but not in fetchCurrencies"
             },
             "fetchTrades": {
-                "side": "side is undefined"
+                "side":"side is undefined",
+                "requireBothSides": "same"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5064"
@@ -958,7 +974,12 @@
                 "active": "is undefined"
             },
             "orderBook": {
-                "compareToNextItem": "ask should be less than next ask"
+                "bid":"ask should be less than next ask"
+            },
+            "fetchTrades": {
+                "emptyResponse": "sometimes response is empty",
+                "compareToNextItem":"ask should be less than next ask",
+                "bid":"ask should be less than next ask"
             }
         }
     },
@@ -1123,7 +1144,10 @@
                 "ask": "same",
                 "average": "same"
             },
-            "fetchTickers": "requires custom param"
+            "fetchTickers": "requires custom param",
+            "fetchTrades": {
+                "side": "todo fix"
+            }
         }
     },
     "derive": {
@@ -1484,6 +1508,9 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
+            "fetchTrades": {
+                "sideSequence": "broken from engine"
+            },
             "orderBook": {
                 "symbol": "undefined, todo fix https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3670"
             },
@@ -1734,6 +1761,9 @@
                 "deposit": "not provided",
                 "activeMajorCurrencies": "todo"
             },
+            "fetchTrades": {
+                "requireBothSides":"sometimes only one side trades happen"
+            },
             "ticker": {
                 "open": "negative values",
                 "high": "negative values",
@@ -1783,7 +1813,8 @@
                 "checkActiveSymbols": "todo"
             },
             "watchTrades": {
-                "timestamp": "ts several hours ahead in in future :)"
+                "timestamp": "ts several hours ahead in in future :)",
+                "timestampSort":"same"
             },
             "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612",
@@ -2170,6 +2201,9 @@
                 "type": "tmp",
                 "limits": "tmp"
             },
+            "watchTrades": {
+                "timestampSort": "timestamp reversed: https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3697"
+            },
             "fetchLastPrices": "tmp",
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "tmp"
@@ -2230,6 +2264,10 @@
             "watchTrades": {
                 "side": "not set"
             },
+            "fetchTrades": {
+                "fees": "missingn from structure",
+                "side": "only sell sides are returned"
+            },
             "watchOrderBook": {
                 "spread": "cross"
             },
@@ -2244,6 +2282,10 @@
             "fetchOHLCV": "index 1 (open price) is undefined",
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchTrades": {
+                "side": "sometimes does not have",
+                "requireBothSides":"sometimes only one side trades happen"
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
@@ -2426,6 +2468,9 @@
             },
             "watchOrderBook": {
                 "spread": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/19507537406/job/55838385322?pr=25884"
+            },
+            "fetchTrades": {
+                "timestampSort":"todo"
             }
         }
     },
@@ -2460,6 +2505,12 @@
                 "precision": "not provided by the exchange api",
                 "networks": "not provided by the exchange api",
                 "activeMajorCurrencies": "deposit and withdraw flags are not provided by the exchange api"
+            },
+            "watchTrades": {
+                "takerOrMaker": "todo fix"
+            },
+            "watchTradesForSymbols": {
+                "takerOrMaker": "todo fix"
             }
         }
     },
