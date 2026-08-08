@@ -188,140 +188,142 @@ class limitless extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all active limitless $markets paginated and returns one CCXT market per child market, each containing a list of outcome objects (YES/NO)
-             *
-             * @see https://docs.limitless.exchange/api-reference/markets/get-active-$markets
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->query] a single search query string to filter $markets by
-             * @param {string[]} [$params->queries] multiple search query strings (alternative to query)
-             * @param {int} [$params->limit] max number of $markets to collect (defaults to options.fetchMarketsLimit, 1000); caps the pages fetched
-             * @return {array[]} an array of objects representing market $data
-             */
-            $queries = $this->parse_search_queries($params);
-            $rest = $this->omit($params, array( 'query', 'queries', 'limit' ));
-            // scope the listing => without a search query loadMarkets would otherwise $page through
-            // every active limitless market. Cap the total number of $markets collected.
-            $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
-            $allRaw = array();
-            $queriesLength = count($queries);
-            if ($queries && $queriesLength > 0) {
-                $requestedLimit = $this->safe_integer($params, 'limit', 50);
-                // the search endpoint rejects $limit > 50 - cap the per-query $request and             // $maxMarkets bound the overall collection
-                $limit = min($requestedLimit, 50);
-                $searchRest = $this->omit($rest, array( 'limit' ));
-                $seen = array();
-                for ($i = 0; $i < count($queries); $i++) {
-                    $q = $queries[$i];
-                    $response = Async\await($this->limitlessPublicGetMarketsSearch($this->extend(array( 'query' => $q, 'limit' => $limit ), $searchRest)));
-                    $found = $this->safe_list($response, 'markets', array());
-                    for ($j = 0; $j < count($found); $j++) {
-                        $raw = $found[$j];
-                        $slug = $this->safe_string($raw, 'slug');
-                        if ($slug && !(is_array($seen) && array_key_exists($slug ?? '', $seen))) {
-                            $seen[$slug] = true;
-                            $allRaw[] = $raw;
-                        }
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * fetches all active limitless $markets paginated and returns one CCXT market per child market, each containing a list of outcome objects (YES/NO)
+         *
+         * @see https://docs.limitless.exchange/api-reference/markets/get-active-$markets
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->query] a single search query string to filter $markets by
+         * @param {string[]} [$params->queries] multiple search query strings (alternative to query)
+         * @param {int} [$params->limit] max number of $markets to collect (defaults to options.fetchMarketsLimit, 1000); caps the pages fetched
+         * @return {array[]} an array of objects representing market $data
+         */
+        $queries = $this->parse_search_queries($params);
+        $rest = $this->omit($params, array( 'query', 'queries', 'limit' ));
+        // scope the listing => without a search query loadMarkets would otherwise $page through
+        // every active limitless market. Cap the total number of $markets collected.
+        $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
+        $allRaw = array();
+        $queriesLength = count($queries);
+        if ($queries && $queriesLength > 0) {
+            $requestedLimit = $this->safe_integer($params, 'limit', 50);
+            // the search endpoint rejects $limit > 50 - cap the per-query $request and             // $maxMarkets bound the overall collection
+            $limit = min($requestedLimit, 50);
+            $searchRest = $this->omit($rest, array( 'limit' ));
+            $seen = array();
+            for ($i = 0; $i < count($queries); $i++) {
+                $q = $queries[$i];
+                $response = Async\await($this->limitlessPublicGetMarketsSearch($this->extend(array( 'query' => $q, 'limit' => $limit ), $searchRest)));
+                $found = $this->safe_list($response, 'markets', array());
+                for ($j = 0; $j < count($found); $j++) {
+                    $raw = $found[$j];
+                    $slug = $this->safe_string($raw, 'slug');
+                    if ($slug && !(is_array($seen) && array_key_exists($slug ?? '', $seen))) {
+                        $seen[$slug] = true;
+                        $allRaw[] = $raw;
                     }
                 }
-            } else {
-                $page = 1;
-                $pageSize = $this->safe_integer($this->options, 'marketsPageSize', 25);
-                $request = array(
-                    'page' => $page,
-                    'limit' => $pageSize,
-                );
-                $firstPageResponse = Async\await($this->limitlessPublicGetMarketsActive($this->extend($request, $rest)));
-                $totalMarketsCount = $this->safe_integer($firstPageResponse, 'totalMarketsCount');
-                $firstData = $this->safe_list($firstPageResponse, 'data', array());
-                $allRaw = $this->array_concat($allRaw, $firstData);
-                $promises = array();
-                $cappedPages = (int) ceil($maxMarkets / $pageSize);
-                $knownTotal = ($totalMarketsCount !== null) ? $totalMarketsCount : 0;
-                $allPages = (int) ceil($knownTotal / $pageSize);
-                $totalPages = min($allPages, $cappedPages);
-                for ($i = 2; $i <= $totalPages; $i++) {
-                    $page = $i;
+            }
+        } else {
+            $page = 1;
+            $pageSize = $this->safe_integer($this->options, 'marketsPageSize', 25);
+            $request = array(
+                'page' => $page,
+                'limit' => $pageSize,
+            );
+            $firstPageResponse = Async\await($this->limitlessPublicGetMarketsActive($this->extend($request, $rest)));
+            $totalMarketsCount = $this->safe_integer($firstPageResponse, 'totalMarketsCount');
+            $firstData = $this->safe_list($firstPageResponse, 'data', array());
+            $allRaw = $this->array_concat($allRaw, $firstData);
+            $promises = array();
+            $cappedPages = (int) ceil($maxMarkets / $pageSize);
+            $knownTotal = ($totalMarketsCount !== null) ? $totalMarketsCount : 0;
+            $allPages = (int) ceil($knownTotal / $pageSize);
+            $totalPages = min($allPages, $cappedPages);
+            for ($i = 2; $i <= $totalPages; $i++) {
+                $page = $i;
+                $request['page'] = $page;
+                $promises[] = $this->limitlessPublicGetMarketsActive($this->extend($request, $rest));
+            }
+            $responses = Async\await(Promise\all($promises));
+            $length = count($responses);
+            for ($j = 0; $j < $length; $j++) {
+                $response = $this->safe_dict($responses, $j);
+                $data = $this->safe_list($response, 'data', array());
+                $allRaw = $this->array_concat($allRaw, $data);
+            }
+            $lastPageResponse = $this->safe_dict($responses, $length - 1);
+            $lastPageData = $this->safe_list($lastPageResponse, 'data', array());
+            $lastPageLength = count($lastPageData);
+            $allRawLength = count($allRaw);
+            if ($lastPageLength >= $pageSize && $allRawLength < $maxMarkets) {
+                while (true) {
+                    $page = $this->sum($page, 1);
                     $request['page'] = $page;
-                    $promises[] = $this->limitlessPublicGetMarketsActive($this->extend($request, $rest));
-                }
-                $responses = Async\await(Promise\all($promises));
-                $length = count($responses);
-                for ($j = 0; $j < $length; $j++) {
-                    $response = $this->safe_dict($responses, $j);
-                    $data = $this->safe_list($response, 'data', array());
-                    $allRaw = $this->array_concat($allRaw, $data);
-                }
-                $lastPageResponse = $this->safe_dict($responses, $length - 1);
-                $lastPageData = $this->safe_list($lastPageResponse, 'data', array());
-                $lastPageLength = count($lastPageData);
-                $allRawLength = count($allRaw);
-                if ($lastPageLength >= $pageSize && $allRawLength < $maxMarkets) {
-                    while (true) {
-                        $page = $this->sum($page, 1);
-                        $request['page'] = $page;
-                        $response = Async\await($this->limitlessPublicGetMarketsActive($this->extend($request, $rest)));
-                        $responseRows = array();
-                        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-                            $responseRows = $response;
-                        }
-                        $rawPageMarkets = $this->safe_list($response, 'data', $responseRows);
-                        $page_markets = ($rawPageMarkets !== null) ? $rawPageMarkets : array();
-                        $pageMarketsLength = count($page_markets);
-                        if (!$page_markets || $pageMarketsLength === 0) {
-                            break;
-                        }
-                        for ($i = 0; $i < count($page_markets); $i++) {
-                            $raw = $page_markets[$i];
-                            $allRaw[] = $raw;
-                        }
-                        $allRawCount = count($allRaw);
-                        if ($pageMarketsLength < $pageSize || $allRawCount >= $maxMarkets) {
-                            break;
-                        }
+                    $response = Async\await($this->limitlessPublicGetMarketsActive($this->extend($request, $rest)));
+                    $responseRows = array();
+                    if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+                        $responseRows = $response;
+                    }
+                    $rawPageMarkets = $this->safe_list($response, 'data', $responseRows);
+                    $page_markets = ($rawPageMarkets !== null) ? $rawPageMarkets : array();
+                    $pageMarketsLength = count($page_markets);
+                    if (!$page_markets || $pageMarketsLength === 0) {
+                        break;
+                    }
+                    for ($i = 0; $i < count($page_markets); $i++) {
+                        $raw = $page_markets[$i];
+                        $allRaw[] = $raw;
+                    }
+                    $allRawCount = count($allRaw);
+                    if ($pageMarketsLength < $pageSize || $allRawCount >= $maxMarkets) {
+                        break;
                     }
                 }
             }
-            $markets = array();
-            $eventGroups = array();
-            // group rows carry their tradeable children in a nested `$markets` list — expand them
-            // into regular rows before parsing (a group row itself has no tokens)
-            $expandedRaw = $this->expand_group_rows($allRaw);
-            for ($i = 0; $i < count($expandedRaw); $i++) {
-                $raw = $expandedRaw[$i];
-                $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
-                $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
-                $m = $this->parse_market($raw);
-                $markets[] = $m;
-                if ($eventKey) {
-                    if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
-                        $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
-                    }
-                    $eventGroup = $eventGroups[$eventKey];
-                    // push through a local and write the slice back — the go transpiler's
-                    // AppendToArray reassigns only a local copy of a map-stored array, so a
-                    // direct push on $eventGroup['markets'] loses the element in go
-                    $groupMarkets = $eventGroup['markets'];
-                    $groupMarkets[] = $m;
-                    $eventGroup['markets'] = $groupMarkets;
+        }
+        $markets = array();
+        $eventGroups = array();
+        // group rows carry their tradeable children in a nested `$markets` list — expand them
+        // into regular rows before parsing (a group row itself has no tokens)
+        $expandedRaw = $this->expand_group_rows($allRaw);
+        for ($i = 0; $i < count($expandedRaw); $i++) {
+            $raw = $expandedRaw[$i];
+            $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
+            $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
+            $m = $this->parse_market($raw);
+            $markets[] = $m;
+            if ($eventKey) {
+                if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
+                    $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                 }
+                $eventGroup = $eventGroups[$eventKey];
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array, so a
+                // direct push on $eventGroup['markets'] loses the element in go
+                $groupMarkets = $eventGroup['markets'];
+                $groupMarkets[] = $m;
+                $eventGroup['markets'] = $groupMarkets;
             }
-            $eventsDict = array();
-            $eventKeys = is_array($eventGroups) ? array_keys($eventGroups) : array();
-            for ($i = 0; $i < count($eventKeys); $i++) {
-                $eventKey = $eventKeys[$i];
-                $g = $eventGroups[$eventKey];
-                $eventsDict[$eventKey] = $this->parse_event($g);
-            }
-            $this->events = $eventsDict;
-            $marketsLength = count($markets);
-            if ($marketsLength > $maxMarkets) {
-                return $this->array_slice($markets, 0, $maxMarkets);
-            }
-            return $markets;
-        })();
+        }
+        $eventsDict = array();
+        $eventKeys = is_array($eventGroups) ? array_keys($eventGroups) : array();
+        for ($i = 0; $i < count($eventKeys); $i++) {
+            $eventKey = $eventKeys[$i];
+            $g = $eventGroups[$eventKey];
+            $eventsDict[$eventKey] = $this->parse_event($g);
+        }
+        $this->events = $eventsDict;
+        $marketsLength = count($markets);
+        if ($marketsLength > $maxMarkets) {
+            return $this->array_slice($markets, 0, $maxMarkets);
+        }
+        return $markets;
     }
 
     public function parse_market(array $raw): array {
@@ -537,27 +539,29 @@ class limitless extends Exchange {
     }
 
     public function fetch_event(string $id, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $params) {
-            /**
-             * fetches a single prediction-market $event by its market slug or address
-             *
-             * @see https://docs.limitless.exchange/api-reference/markets/get-market
-             *
-             * @param {string} $id the market slug or address
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [prediction $event structure](https://docs.ccxt.com/#/?$id=prediction-$event-structure)
-             */
-            $request = array( 'addressOrSlug' => $id );
-            $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug($this->extend($request, $params)));
-            // a group $response carries its tradeable children in `markets` (each a full market row
-            // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
-            // and wraps own one-market $event, which parseEvent's loop then parses
-            $rows = $this->expand_group_rows(array( $response ));
-            $wrapped = $this->extend($response, array( 'markets' => $rows ));
-            $event = $this->parse_event($wrapped);
-            $this->index_event_outcomes($event);
-            return $event;
-        })();
+        return Async\async(self::do_fetch_event(...))($id, $params);
+    }
+
+    private function do_fetch_event(string $id, $params = array()) {
+        /**
+         * fetches a single prediction-market $event by its market slug or address
+         *
+         * @see https://docs.limitless.exchange/api-reference/markets/get-market
+         *
+         * @param {string} $id the market slug or address
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a [prediction $event structure](https://docs.ccxt.com/#/?$id=prediction-$event-structure)
+         */
+        $request = array( 'addressOrSlug' => $id );
+        $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug($this->extend($request, $params)));
+        // a group $response carries its tradeable children in `markets` (each a full market row
+        // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
+        // and wraps own one-market $event, which parseEvent's loop then parses
+        $rows = $this->expand_group_rows(array( $response ));
+        $wrapped = $this->extend($response, array( 'markets' => $rows ));
+        $event = $this->parse_event($wrapped);
+        $this->index_event_outcomes($event);
+        return $event;
     }
 
     public function expand_group_rows(array $rawRows): array {
@@ -865,95 +869,97 @@ class limitless extends Exchange {
     }
 
     public function fetch_ticker(?string $outcome, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $params) {
-            /**
-             * fetches the current price and best bid/ask for a single $outcome token, combining the market detail and order book endpoints
-             *
-             * @see https://docs.limitless.exchange/api-reference/markets/get-market
-             * @see https://docs.limitless.exchange/api-reference/trading/orderbook
-             *
-             * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
-             */
-            Async\await($this->load_outcome($outcome));
-            $outcomeObj = $this->outcome($outcome);
-            $slug = $this->safe_string($outcomeObj['info'], 'slug');
-            $request = array(
-                'addressOrSlug' => $slug,
-            );
-            $promises = array(
-                $this->limitlessPublicGetMarketsAddressOrSlug($this->extend($request, $params)),
-                $this->limitlessPublicGetMarketsSlugOrderbook(array( 'slug' => $slug )),
-            );
-            $responses = Async\await(Promise\all($promises));
-            $response = $responses[0];
-            //
-            //     {
-            //         "id" => "36814",
-            //         "automationType" => "manual",
-            //         "conditionId" => "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
-            //         "negRiskRequestId" => null,
-            //         "description" => "<p>This market will resolve to Yes if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
-            //         "collateralToken" => array(
-            //             "address" => "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-            //             "decimals" => "6",
-            //             "symbol" => "USDC"
-            //         ),
-            //         "title" => "Trump out before 2027?",
-            //         "proxyTitle" => null,
-            //         "expirationDate" => "Jan 1, 2027",
-            //         "expirationTimestamp" => "1798779540000",
-            //         "createdAt" => "2026-01-20T18:17:48.298Z",
-            //         "updatedAt" => "2026-04-09T10:47:02.254Z",
-            //         "categories" => array( "Politics" ),
-            //         "status" => "FUNDED",
-            //         "expired" => false,
-            //         "hidden" => false,
-            //         "creator" => array(
-            //             "name" => "Limitless",
-            //             "imageURI" => "https://limitless.exchange/assets/images/logo.svg",
-            //             "link" => "https://x.com/trylimitless"
-            //         ),
-            //         "tags" => array( "Limitless" ),
-            //         "volume" => "1032001807",
-            //         "volumeFormatted" => "1032.001807",
-            //         "tokens" => array(
-            //             "yes" => "56154308742753982686710750162015444986563701968079760676518531584453506363044",
-            //             "no" => "32572248812801208874557774576516861470423415416073401354576860825663488568217"
-            //         ),
-            //         "prices" => array( 0.155, 0.845 ),
-            //         "tradePrices" => array(
-            //             "buy" => array( "market" => [Array], "limit" => [Array] ),
-            //             "sell" => array( "market" => [Array], "limit" => [Array] )
-            //         ),
-            //         "isOther" => false,
-            //         "isRewardable" => true,
-            //         "slug" => "trump-out-as-president-before-2027-1768933068297",
-            //         "tradeType" => "clob",
-            //         "venue" => array(
-            //             "exchange" => "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
-            //             "adapter" => null
-            //         ),
-            //         "marketType" => "single",
-            //         "priorityIndex" => "0",
-            //         "winningOutcomeIndex" => null,
-            //         "metadata" => array( "fee" => true, "isBannered" => false, "isPolyArbitrage" => true ),
-            //         "settings" => array(
-            //             "minSize" => "100000000",
-            //             "maxSpread" => "0.035",
-            //             "dailyReward" => "5",
-            //             "rewardsEpoch" => "0.003472222222222222",
-            //             "c" => "3",
-            //             "rebateRate" => "0"
-            //         ),
-            //         "imageUrl" => "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
-            //         "logo" => "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
-            //     }
-            //
-            $tickerInput = array( 'market' => $response, 'book' => $responses[1] );
-            return $this->parse_prediction_ticker($tickerInput, $outcomeObj);
-        })();
+        return Async\async(self::do_fetch_ticker(...))($outcome, $params);
+    }
+
+    private function do_fetch_ticker(?string $outcome, $params = array()) {
+        /**
+         * fetches the current price and best bid/ask for a single $outcome token, combining the market detail and order book endpoints
+         *
+         * @see https://docs.limitless.exchange/api-reference/markets/get-market
+         * @see https://docs.limitless.exchange/api-reference/trading/orderbook
+         *
+         * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+         */
+        Async\await($this->load_outcome($outcome));
+        $outcomeObj = $this->outcome($outcome);
+        $slug = $this->safe_string($outcomeObj['info'], 'slug');
+        $request = array(
+            'addressOrSlug' => $slug,
+        );
+        $promises = array(
+            $this->limitlessPublicGetMarketsAddressOrSlug($this->extend($request, $params)),
+            $this->limitlessPublicGetMarketsSlugOrderbook(array( 'slug' => $slug )),
+        );
+        $responses = Async\await(Promise\all($promises));
+        $response = $responses[0];
+        //
+        //     {
+        //         "id" => "36814",
+        //         "automationType" => "manual",
+        //         "conditionId" => "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
+        //         "negRiskRequestId" => null,
+        //         "description" => "<p>This market will resolve to Yes if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //         "collateralToken" => array(
+        //             "address" => "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        //             "decimals" => "6",
+        //             "symbol" => "USDC"
+        //         ),
+        //         "title" => "Trump out before 2027?",
+        //         "proxyTitle" => null,
+        //         "expirationDate" => "Jan 1, 2027",
+        //         "expirationTimestamp" => "1798779540000",
+        //         "createdAt" => "2026-01-20T18:17:48.298Z",
+        //         "updatedAt" => "2026-04-09T10:47:02.254Z",
+        //         "categories" => array( "Politics" ),
+        //         "status" => "FUNDED",
+        //         "expired" => false,
+        //         "hidden" => false,
+        //         "creator" => array(
+        //             "name" => "Limitless",
+        //             "imageURI" => "https://limitless.exchange/assets/images/logo.svg",
+        //             "link" => "https://x.com/trylimitless"
+        //         ),
+        //         "tags" => array( "Limitless" ),
+        //         "volume" => "1032001807",
+        //         "volumeFormatted" => "1032.001807",
+        //         "tokens" => array(
+        //             "yes" => "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //             "no" => "32572248812801208874557774576516861470423415416073401354576860825663488568217"
+        //         ),
+        //         "prices" => array( 0.155, 0.845 ),
+        //         "tradePrices" => array(
+        //             "buy" => array( "market" => [Array], "limit" => [Array] ),
+        //             "sell" => array( "market" => [Array], "limit" => [Array] )
+        //         ),
+        //         "isOther" => false,
+        //         "isRewardable" => true,
+        //         "slug" => "trump-out-as-president-before-2027-1768933068297",
+        //         "tradeType" => "clob",
+        //         "venue" => array(
+        //             "exchange" => "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //             "adapter" => null
+        //         ),
+        //         "marketType" => "single",
+        //         "priorityIndex" => "0",
+        //         "winningOutcomeIndex" => null,
+        //         "metadata" => array( "fee" => true, "isBannered" => false, "isPolyArbitrage" => true ),
+        //         "settings" => array(
+        //             "minSize" => "100000000",
+        //             "maxSpread" => "0.035",
+        //             "dailyReward" => "5",
+        //             "rewardsEpoch" => "0.003472222222222222",
+        //             "c" => "3",
+        //             "rebateRate" => "0"
+        //         ),
+        //         "imageUrl" => "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //         "logo" => "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
+        //     }
+        //
+        $tickerInput = array( 'market' => $response, 'book' => $responses[1] );
+        return $this->parse_prediction_ticker($tickerInput, $outcomeObj);
     }
 
     public function parse_prediction_ticker(array $ticker, ?array $market = null): array {
@@ -1127,619 +1133,637 @@ class limitless extends Exchange {
     }
 
     public function fetch_tickers(?array $outcomes = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcomes, $params) {
-            /**
-             * fetches tickers for multiple outcome tokens, grouping requested $outcomes by their parent market (two requests per market => $detail . order $book)
-             *
-             * @see https://docs.limitless.exchange/api-reference/markets/get-market
-             * @see https://docs.limitless.exchange/api-reference/trading/orderbook
-             *
-             * @param {string[]} $outcomes unified $outcomes or outcome token ids — required => limitless has no endpoint returning all tickers at once, so an unscoped call is not supported
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
-             */
-            if ($outcomes === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+        return Async\async(self::do_fetch_tickers(...))($outcomes, $params);
+    }
+
+    private function do_fetch_tickers(?array $outcomes = null, $params = array()) {
+        /**
+         * fetches tickers for multiple outcome tokens, grouping requested $outcomes by their parent market (two requests per market => $detail . order $book)
+         *
+         * @see https://docs.limitless.exchange/api-reference/markets/get-market
+         * @see https://docs.limitless.exchange/api-reference/trading/orderbook
+         *
+         * @param {string[]} $outcomes unified $outcomes or outcome token ids — required => limitless has no endpoint returning all tickers at once, so an unscoped call is not supported
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
+         */
+        if ($outcomes === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+        }
+        $result = array();
+        // resolve the uncached $outcomes first, then group by parent market to fetch each
+        // market and $book only once
+        Async\await($this->load_outcomes($outcomes));
+        $outcomesBySlug = array();
+        $slugs = array();
+        for ($i = 0; $i < count($outcomes); $i++) {
+            $outcomeObj = $this->outcome($outcomes[$i]);
+            $slug = $this->safe_string($outcomeObj['info'], 'slug');
+            if ($slug === null) {
+                throw new ExchangeError($this->id . ' fetchTickers() missing slug');
             }
-            $result = array();
-            // resolve the uncached $outcomes first, then group by parent market to fetch each
-            // market and $book only once
-            Async\await($this->load_outcomes($outcomes));
-            $outcomesBySlug = array();
-            $slugs = array();
-            for ($i = 0; $i < count($outcomes); $i++) {
-                $outcomeObj = $this->outcome($outcomes[$i]);
-                $slug = $this->safe_string($outcomeObj['info'], 'slug');
-                if ($slug === null) {
-                    throw new ExchangeError($this->id . ' fetchTickers() missing slug');
-                }
-                if (!(is_array($outcomesBySlug) && array_key_exists($slug ?? '', $outcomesBySlug))) {
-                    if ($slug !== null) {
-                        $outcomesBySlug[$slug] = array();
-                    }
-                    $slugs[] = $slug;
-                }
-                // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-                $grouped = $this->safe_value($outcomesBySlug, $slug);
-                $grouped[] = $outcomeObj;
+            if (!(is_array($outcomesBySlug) && array_key_exists($slug ?? '', $outcomesBySlug))) {
                 if ($slug !== null) {
-                    $outcomesBySlug[$slug] = $grouped;
+                    $outcomesBySlug[$slug] = array();
+                }
+                $slugs[] = $slug;
+            }
+            // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
+            $grouped = $this->safe_value($outcomesBySlug, $slug);
+            $grouped[] = $outcomeObj;
+            if ($slug !== null) {
+                $outcomesBySlug[$slug] = $grouped;
+            }
+        }
+        $promises = array();
+        for ($i = 0; $i < count($slugs); $i++) {
+            $slug = $slugs[$i];
+            $promises[] = $this->limitlessPublicGetMarketsAddressOrSlug($this->extend(array( 'addressOrSlug' => $slug ), $params));
+            $promises[] = $this->limitlessPublicGetMarketsSlugOrderbook(array( 'slug' => $slug ));
+        }
+        $responses = Async\await(Promise\all($promises));
+        for ($i = 0; $i < count($slugs); $i++) {
+            $slug = $slugs[$i];
+            $detailIndex = $i * 2;
+            $detail = $responses[$detailIndex];
+            $book = $responses[$this->sum($detailIndex, 1)];
+            $tickerInput = array( 'market' => $detail, 'book' => $book );
+            $grouped = $outcomesBySlug[$slug];
+            for ($j = 0; $j < count($grouped); $j++) {
+                $ticker = $this->parse_prediction_ticker($tickerInput, $grouped[$j]);
+                $symbolKey = $this->safe_string($ticker, 'outcome');
+                if ($symbolKey !== null) {
+                    $result[$symbolKey] = $ticker;
                 }
             }
-            $promises = array();
-            for ($i = 0; $i < count($slugs); $i++) {
-                $slug = $slugs[$i];
-                $promises[] = $this->limitlessPublicGetMarketsAddressOrSlug($this->extend(array( 'addressOrSlug' => $slug ), $params));
-                $promises[] = $this->limitlessPublicGetMarketsSlugOrderbook(array( 'slug' => $slug ));
-            }
-            $responses = Async\await(Promise\all($promises));
-            for ($i = 0; $i < count($slugs); $i++) {
-                $slug = $slugs[$i];
-                $detailIndex = $i * 2;
-                $detail = $responses[$detailIndex];
-                $book = $responses[$this->sum($detailIndex, 1)];
-                $tickerInput = array( 'market' => $detail, 'book' => $book );
-                $grouped = $outcomesBySlug[$slug];
-                for ($j = 0; $j < count($grouped); $j++) {
-                    $ticker = $this->parse_prediction_ticker($tickerInput, $grouped[$j]);
-                    $symbolKey = $this->safe_string($ticker, 'outcome');
-                    if ($symbolKey !== null) {
-                        $result[$symbolKey] = $ticker;
-                    }
-                }
-            }
-            return $result;
-        })();
+        }
+        return $result;
     }
 
     public function fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $since, $limit, $params) {
-            /**
-             * fetches recent public trades for a single $outcome token from the market events feed
-             *
-             * @see https://docs.limitless.exchange/api-reference/trading/market-events
-             *
-             * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum number of trades to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
-             */
-            Async\await($this->load_outcome($outcome));
-            $outcomeObj = $this->outcome($outcome);
-            $slug = $this->safe_string($outcomeObj['info'], 'slug');
-            $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
-            $request = array(
-                'slug' => $slug,
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
+        return Async\async(self::do_fetch_trades(...))($outcome, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches recent public trades for a single $outcome token from the market events feed
+         *
+         * @see https://docs.limitless.exchange/api-reference/trading/market-events
+         *
+         * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum number of trades to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+         */
+        Async\await($this->load_outcome($outcome));
+        $outcomeObj = $this->outcome($outcome);
+        $slug = $this->safe_string($outcomeObj['info'], 'slug');
+        $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
+        $request = array(
+            'slug' => $slug,
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->limitlessPublicGetMarketsSlugEvents($this->extend($request, $params)));
+        //
+        //     {
+        //         "events" => array(
+        //             {
+        //                 "createdAt" => "2026-06-12T15:24:25.617Z",
+        //                 "makerAmount" => "19996200",
+        //                 "matchedSize" => "2500000",
+        //                 "price" => 0.332,
+        //                 "profile" => array( "account" => "0x0572B4Aa431e730d1d19cc7CFea7D6C0Bc07096f" ),
+        //                 "side" => 0,
+        //                 "takerAmount" => "830000",
+        //                 "title" => "",
+        //                 "tokenId" => "34504808738227095158010759634880534083339296329182698784451980951930485131851",
+        //                 "txHash" => "0x432344fc63f26f37e3ffe3aca45bcfcba6b7addfc07d04de4410855c0a56a175"
+        //             }
+        //         ),
+        //         "limit" => 30,
+        //         "page" => 1,
+        //         "totalPages" => 1,
+        //         "totalRows" => 13
+        //     }
+        //
+        $rows = $this->safe_list($response, 'events', array());
+        $filtered = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            $rowTokenId = $this->safe_string($row, 'tokenId');
+            if (($tokenId !== null) && ($rowTokenId !== null) && ($rowTokenId !== $tokenId)) {
+                continue;
             }
-            $response = Async\await($this->limitlessPublicGetMarketsSlugEvents($this->extend($request, $params)));
-            //
-            //     {
-            //         "events" => array(
-            //             {
-            //                 "createdAt" => "2026-06-12T15:24:25.617Z",
-            //                 "makerAmount" => "19996200",
-            //                 "matchedSize" => "2500000",
-            //                 "price" => 0.332,
-            //                 "profile" => array( "account" => "0x0572B4Aa431e730d1d19cc7CFea7D6C0Bc07096f" ),
-            //                 "side" => 0,
-            //                 "takerAmount" => "830000",
-            //                 "title" => "",
-            //                 "tokenId" => "34504808738227095158010759634880534083339296329182698784451980951930485131851",
-            //                 "txHash" => "0x432344fc63f26f37e3ffe3aca45bcfcba6b7addfc07d04de4410855c0a56a175"
-            //             }
-            //         ),
-            //         "limit" => 30,
-            //         "page" => 1,
-            //         "totalPages" => 1,
-            //         "totalRows" => 13
-            //     }
-            //
-            $rows = $this->safe_list($response, 'events', array());
-            $filtered = array();
-            for ($i = 0; $i < count($rows); $i++) {
-                $row = $rows[$i];
-                $rowTokenId = $this->safe_string($row, 'tokenId');
-                if (($tokenId !== null) && ($rowTokenId !== null) && ($rowTokenId !== $tokenId)) {
-                    continue;
-                }
-                $filtered[] = $row;
-            }
-            return $this->parse_prediction_trades($filtered, $outcomeObj, $since, $limit);
-        })();
+            $filtered[] = $row;
+        }
+        return $this->parse_prediction_trades($filtered, $outcomeObj, $since, $limit);
     }
 
     public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $limit, $params) {
-            /**
-             * fetches the order book for a single $outcome token, converting 6-decimal USDC sizes to whole units, no outcomes are quoted at 1 - price with the sides swapped
-             *
-             * @see https://docs.limitless.exchange/api-reference/trading/orderbook
-             *
-             * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
-             * @param {int} [$limit] not used by limitless fetchOrderBook
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
-             */
-            Async\await($this->load_outcome($outcome));
-            $outcomeObj = $this->outcome($outcome);
-            $slug = $this->safe_string($outcomeObj['info'], 'slug');
-            $request = array(
-                'slug' => $slug,
-            );
-            $response = Async\await($this->limitlessPublicGetMarketsSlugOrderbook($this->extend($request, $params)));
-            //
-            //     {
-            //         "bids" => array(
-            //             array( "price" => "0.14", "size" => "12360330000", "side" => "BUY" ),
-            //             array( "price" => "0.1", "size" => "1000000", "side" => "BUY" ),
-            //             array( "price" => "0.003", "size" => "500000000", "side" => "BUY" )
-            //         ),
-            //         "asks" => array(
-            //             array( "price" => "0.161", "size" => "222000000", "side" => "SELL" ),
-            //             array( "price" => "0.996", "size" => "5555000000", "side" => "SELL" ),
-            //             array( "price" => "0.997", "size" => "500000000", "side" => "SELL" )
-            //         ),
-            //         "tokenId" => "56154308742753982686710750162015444986563701968079760676518531584453506363044",
-            //         "adjustedMidpoint" => "0.1505",
-            //         "midpoint" => "0.1505",
-            //         "maxSpread" => "0.035",
-            //         "minSize" => "100000000",
-            //         "lastTradePrice" => "0.161"
-            //     }
-            //
-            $timestamp = $this->milliseconds();
-            $decimals = $this->safe_integer($this->options, 'usdcDecimals', 6);
-            // sizes are scaled by 10^$decimals, USDC uses 6 $decimals
-            $scaleStr = $this->parse_precision($this->number_to_string(-$decimals));
-            $outcomeLabel = $this->safe_string_lower($outcomeObj['info'], 'outcomeLabel', 'yes');
-            $isYes = $outcomeLabel !== 'no';
-            $rawBids = $this->safe_list($response, 'bids', array());
-            $rawAsks = $this->safe_list($response, 'asks', array());
-            // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with $bids and $asks swapped
-            $bidsSource = ($isYes) ? $rawBids : $rawAsks;
-            $asksSource = ($isYes) ? $rawAsks : $rawBids;
-            $bids = array();
-            $asks = array();
-            for ($bi = 0; $bi < count($bidsSource); $bi++) {
-                $priceStr = $this->safe_string($bidsSource[$bi], 'price');
-                if (!$isYes && ($priceStr !== null)) {
-                    $priceStr = Precise::string_sub('1', $priceStr);
-                }
-                $sizeStr = $this->safe_string($bidsSource[$bi], 'size');
-                if ($sizeStr !== null) {
-                    $sizeStr = Precise::string_div($sizeStr, $scaleStr);
-                }
-                $bids[] = array( $this->parse_number($priceStr), $this->parse_number($sizeStr) );
+        return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
+    }
+
+    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+        /**
+         * fetches the order book for a single $outcome token, converting 6-decimal USDC sizes to whole units, no outcomes are quoted at 1 - price with the sides swapped
+         *
+         * @see https://docs.limitless.exchange/api-reference/trading/orderbook
+         *
+         * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
+         * @param {int} [$limit] not used by limitless fetchOrderBook
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
+         */
+        Async\await($this->load_outcome($outcome));
+        $outcomeObj = $this->outcome($outcome);
+        $slug = $this->safe_string($outcomeObj['info'], 'slug');
+        $request = array(
+            'slug' => $slug,
+        );
+        $response = Async\await($this->limitlessPublicGetMarketsSlugOrderbook($this->extend($request, $params)));
+        //
+        //     {
+        //         "bids" => array(
+        //             array( "price" => "0.14", "size" => "12360330000", "side" => "BUY" ),
+        //             array( "price" => "0.1", "size" => "1000000", "side" => "BUY" ),
+        //             array( "price" => "0.003", "size" => "500000000", "side" => "BUY" )
+        //         ),
+        //         "asks" => array(
+        //             array( "price" => "0.161", "size" => "222000000", "side" => "SELL" ),
+        //             array( "price" => "0.996", "size" => "5555000000", "side" => "SELL" ),
+        //             array( "price" => "0.997", "size" => "500000000", "side" => "SELL" )
+        //         ),
+        //         "tokenId" => "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //         "adjustedMidpoint" => "0.1505",
+        //         "midpoint" => "0.1505",
+        //         "maxSpread" => "0.035",
+        //         "minSize" => "100000000",
+        //         "lastTradePrice" => "0.161"
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $decimals = $this->safe_integer($this->options, 'usdcDecimals', 6);
+        // sizes are scaled by 10^$decimals, USDC uses 6 $decimals
+        $scaleStr = $this->parse_precision($this->number_to_string(-$decimals));
+        $outcomeLabel = $this->safe_string_lower($outcomeObj['info'], 'outcomeLabel', 'yes');
+        $isYes = $outcomeLabel !== 'no';
+        $rawBids = $this->safe_list($response, 'bids', array());
+        $rawAsks = $this->safe_list($response, 'asks', array());
+        // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with $bids and $asks swapped
+        $bidsSource = ($isYes) ? $rawBids : $rawAsks;
+        $asksSource = ($isYes) ? $rawAsks : $rawBids;
+        $bids = array();
+        $asks = array();
+        for ($bi = 0; $bi < count($bidsSource); $bi++) {
+            $priceStr = $this->safe_string($bidsSource[$bi], 'price');
+            if (!$isYes && ($priceStr !== null)) {
+                $priceStr = Precise::string_sub('1', $priceStr);
             }
-            for ($ai = 0; $ai < count($asksSource); $ai++) {
-                $priceStr = $this->safe_string($asksSource[$ai], 'price');
-                if (!$isYes && ($priceStr !== null)) {
-                    $priceStr = Precise::string_sub('1', $priceStr);
-                }
-                $sizeStr = $this->safe_string($asksSource[$ai], 'size');
-                if ($sizeStr !== null) {
-                    $sizeStr = Precise::string_div($sizeStr, $scaleStr);
-                }
-                $asks[] = array( $this->parse_number($priceStr), $this->parse_number($sizeStr) );
+            $sizeStr = $this->safe_string($bidsSource[$bi], 'size');
+            if ($sizeStr !== null) {
+                $sizeStr = Precise::string_div($sizeStr, $scaleStr);
             }
-            $orderbook = array(
-                'outcome' => $this->safe_outcome_symbol($outcome, $outcomeObj),
-                'bids' => $this->sort_by($bids, 0, true),
-                'asks' => $this->sort_by($asks, 0),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'nonce' => null,
-            );
-            return $this->safe_prediction_order_book($orderbook, $outcomeObj);
-        })();
+            $bids[] = array( $this->parse_number($priceStr), $this->parse_number($sizeStr) );
+        }
+        for ($ai = 0; $ai < count($asksSource); $ai++) {
+            $priceStr = $this->safe_string($asksSource[$ai], 'price');
+            if (!$isYes && ($priceStr !== null)) {
+                $priceStr = Precise::string_sub('1', $priceStr);
+            }
+            $sizeStr = $this->safe_string($asksSource[$ai], 'size');
+            if ($sizeStr !== null) {
+                $sizeStr = Precise::string_div($sizeStr, $scaleStr);
+            }
+            $asks[] = array( $this->parse_number($priceStr), $this->parse_number($sizeStr) );
+        }
+        $orderbook = array(
+            'outcome' => $this->safe_outcome_symbol($outcome, $outcomeObj),
+            'bids' => $this->sort_by($bids, 0, true),
+            'asks' => $this->sort_by($asks, 0),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'nonce' => null,
+        );
+        return $this->safe_prediction_order_book($orderbook, $outcomeObj);
     }
 
     public function fetch_ohlcv(?string $outcome, $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical prices for a single limitless market $outcome and maps them to OHLCV format, uses the `$interval` query parameter and selects the YES/NO $series that matches the requested $outcome
-             *
-             * @see https://docs.limitless.exchange/api-reference/trading/historical-price
-             *
-             * @param {string} $outcome outcome, e.g. "TRUMP_OUT:YES"
-             * @param {string} $timeframe the length of time each $candle represents
-             * @param {int} [$since] timestamp in $ms of the earliest $candle to fetch
-             * @param {int} [$limit] the maximum number of $candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_outcome($outcome));
-            $outcomeObj = $this->outcome($outcome);
-            $slug = $this->safe_string($outcomeObj['info'], 'slug');
-            $outcomeLabel = $this->safe_string_upper($outcomeObj['info'], 'outcomeLabel');
-            $interval = $this->safe_string($this->timeframes, $timeframe, '1d');
-            $response = Async\await($this->limitlessPublicGetMarketsSlugHistoricalPrice($this->extend(array(
-                'slug' => $slug,
-                'interval' => $interval,
-            ), $params)));
-            //
-            //     {
-            //         "data" => array(
-            //             array(
-            //                  "timestamp" => 1705318200000,
-            //                  "price" => 0.1655
-            //             ),
-            //         )
-            //     }
-            //
-            //
-            //     array(
-            //         array(
-            //             "title" => "YES Token",
-            //             "prices" => array(
-            //                 array(
-            //                     "price" => 0.75,
-            //                     "timestamp" => "2024-01-15T10:30:00Z"
-            //                 ),
-            //             )
-            //         ),
-            //         {
-            //             "title" => "NO Token",
-            //             "prices" => array(
-            //                 {
-            //                     "price" => 0.25,
-            //                     "timestamp" => "2024-01-15T10:30:00Z"
-            //                 }
-            //             )
-            //         }
-            //     )
-            //
-            $responseRows = array();
-            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-                $responseRows = $response;
-            }
-            $rawHistoryList = $this->safe_list($response, 'data', $this->safe_list($response, 'prices', $responseRows));
-            $rawHistory = ($rawHistoryList !== null) ? $rawHistoryList : array();
-            $history = $rawHistory;
-            $rawHistoryLength = count($rawHistory);
-            if ($rawHistoryLength > 0) {
-                $first = $this->safe_dict($rawHistory, 0, array());
-                $firstPrices = $this->safe_list($first, 'prices');
-                if ($firstPrices !== null) {
-                    $selectedSeries = $first;
-                    for ($i = 0; $i < count($rawHistory); $i++) {
-                        $series = $this->safe_dict($rawHistory, $i, array());
-                        $title = $this->safe_string_upper($series, 'title', '');
-                        if ($title === null) {
-                            throw new ExchangeError($this->id . ' fetchOHLCV() missing title');
-                        }
-                        if (($outcomeLabel !== null) && (mb_strpos($title, $outcomeLabel) !== false)) {
-                            $selectedSeries = $series;
-                            break;
-                        }
+        return Async\async(self::do_fetch_ohlcv(...))($outcome, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(?string $outcome, $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical prices for a single limitless market $outcome and maps them to OHLCV format, uses the `$interval` query parameter and selects the YES/NO $series that matches the requested $outcome
+         *
+         * @see https://docs.limitless.exchange/api-reference/trading/historical-price
+         *
+         * @param {string} $outcome outcome, e.g. "TRUMP_OUT:YES"
+         * @param {string} $timeframe the length of time each $candle represents
+         * @param {int} [$since] timestamp in $ms of the earliest $candle to fetch
+         * @param {int} [$limit] the maximum number of $candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
+         */
+        Async\await($this->load_outcome($outcome));
+        $outcomeObj = $this->outcome($outcome);
+        $slug = $this->safe_string($outcomeObj['info'], 'slug');
+        $outcomeLabel = $this->safe_string_upper($outcomeObj['info'], 'outcomeLabel');
+        $interval = $this->safe_string($this->timeframes, $timeframe, '1d');
+        $response = Async\await($this->limitlessPublicGetMarketsSlugHistoricalPrice($this->extend(array(
+            'slug' => $slug,
+            'interval' => $interval,
+        ), $params)));
+        //
+        //     {
+        //         "data" => array(
+        //             array(
+        //                  "timestamp" => 1705318200000,
+        //                  "price" => 0.1655
+        //             ),
+        //         )
+        //     }
+        //
+        //
+        //     array(
+        //         array(
+        //             "title" => "YES Token",
+        //             "prices" => array(
+        //                 array(
+        //                     "price" => 0.75,
+        //                     "timestamp" => "2024-01-15T10:30:00Z"
+        //                 ),
+        //             )
+        //         ),
+        //         {
+        //             "title" => "NO Token",
+        //             "prices" => array(
+        //                 {
+        //                     "price" => 0.25,
+        //                     "timestamp" => "2024-01-15T10:30:00Z"
+        //                 }
+        //             )
+        //         }
+        //     )
+        //
+        $responseRows = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $responseRows = $response;
+        }
+        $rawHistoryList = $this->safe_list($response, 'data', $this->safe_list($response, 'prices', $responseRows));
+        $rawHistory = ($rawHistoryList !== null) ? $rawHistoryList : array();
+        $history = $rawHistory;
+        $rawHistoryLength = count($rawHistory);
+        if ($rawHistoryLength > 0) {
+            $first = $this->safe_dict($rawHistory, 0, array());
+            $firstPrices = $this->safe_list($first, 'prices');
+            if ($firstPrices !== null) {
+                $selectedSeries = $first;
+                for ($i = 0; $i < count($rawHistory); $i++) {
+                    $series = $this->safe_dict($rawHistory, $i, array());
+                    $title = $this->safe_string_upper($series, 'title', '');
+                    if ($title === null) {
+                        throw new ExchangeError($this->id . ' fetchOHLCV() missing title');
                     }
-                    $history = $this->safe_list($selectedSeries, 'prices', array());
+                    if (($outcomeLabel !== null) && (mb_strpos($title, $outcomeLabel) !== false)) {
+                        $selectedSeries = $series;
+                        break;
+                    }
                 }
+                $history = $this->safe_list($selectedSeries, 'prices', array());
             }
-            // the endpoint returns raw price points, not $candles - $bucket them into
-            // $timeframe-aligned $candles (single points would carry unaligned timestamps)
-            $pseudoTrades = array();
-            for ($i = 0; $i < count($history); $i++) {
-                $point = $history[$i];
-                $pointPrice = $this->safe_number($point, 'price');
-                $pointTs = $this->safe_integer($point, 'timestamp');
-                if ($pointTs === null) {
-                    $tsString = $this->safe_string($point, 'timestamp');
-                    $pointTs = $tsString ? $this->parse8601($tsString) : null;
-                } elseif ($pointTs < 1000000000000) {
-                    // old responses may return unix seconds
-                    $pointTs = $pointTs * 1000;
-                }
-                if (($pointPrice !== null) && ($pointTs !== null)) {
-                    $pseudoTrades[] = array( 'timestamp' => $pointTs, 'price' => $pointPrice, 'amount' => 0 );
-                }
+        }
+        // the endpoint returns raw price points, not $candles - $bucket them into
+        // $timeframe-aligned $candles (single points would carry unaligned timestamps)
+        $pseudoTrades = array();
+        for ($i = 0; $i < count($history); $i++) {
+            $point = $history[$i];
+            $pointPrice = $this->safe_number($point, 'price');
+            $pointTs = $this->safe_integer($point, 'timestamp');
+            if ($pointTs === null) {
+                $tsString = $this->safe_string($point, 'timestamp');
+                $pointTs = $tsString ? $this->parse8601($tsString) : null;
+            } elseif ($pointTs < 1000000000000) {
+                // old responses may return unix seconds
+                $pointTs = $pointTs * 1000;
             }
-            // the endpoint returns points NEWEST-$first, so sort ascending by timestamp before bucketing —
-            // otherwise $candles come back descending and open/close are inverted within each $bucket
-            // — the $first $point seen would be the latest, not the earliest. sortBy is stable, so equal
-            // timestamps keep their relative order consistently across languages
-            $sorted = $this->sort_by($pseudoTrades, 'timestamp');
-            $ms = $this->parse_timeframe($timeframe) * 1000;
-            $candles = array();
-            $bucketOrder = array();
-            for ($i = 0; $i < count($sorted); $i++) {
-                $point = $sorted[$i];
-                $pTs = $this->safe_integer($point, 'timestamp');
-                $pPrice = $this->safe_number($point, 'price');
-                if ($pTs === null) {
-                    throw new ExchangeError($this->id . ' method() missing pTs');
-                }
-                $bucket = $this->parse_to_int($pTs / $ms) * $ms;
-                $key = (string) $bucket;
-                if (!(is_array($candles) && array_key_exists($key ?? '', $candles))) {
-                    $candles[$key] = array( $bucket, $pPrice, $pPrice, $pPrice, $pPrice, 0 );
-                    $bucketOrder[] = $key;
-                } else {
-                    $candle = $candles[$key];
-                    $pPriceOrZero = ($pPrice === null) ? 0 : $pPrice;
-                    $candle[2] = max($candle[2], $pPriceOrZero);
-                    $candleLow = ($candle[3] === null) ? $pPrice : $candle[3];
-                    $pPriceOrCandleLow = ($pPrice === null) ? $candle[3] : $pPrice;
-                    $candle[3] = min($candleLow, $pPriceOrCandleLow);
-                    $candle[4] = $pPrice;
-                    $candles[$key] = $candle; // php arrays are value types - write the mutation back
-                }
+            if (($pointPrice !== null) && ($pointTs !== null)) {
+                $pseudoTrades[] = array( 'timestamp' => $pointTs, 'price' => $pointPrice, 'amount' => 0 );
             }
-            $result = array();
-            for ($i = 0; $i < count($bucketOrder); $i++) {
-                $result[] = $candles[$bucketOrder[$i]];
+        }
+        // the endpoint returns points NEWEST-$first, so sort ascending by timestamp before bucketing —
+        // otherwise $candles come back descending and open/close are inverted within each $bucket
+        // — the $first $point seen would be the latest, not the earliest. sortBy is stable, so equal
+        // timestamps keep their relative order consistently across languages
+        $sorted = $this->sort_by($pseudoTrades, 'timestamp');
+        $ms = $this->parse_timeframe($timeframe) * 1000;
+        $candles = array();
+        $bucketOrder = array();
+        for ($i = 0; $i < count($sorted); $i++) {
+            $point = $sorted[$i];
+            $pTs = $this->safe_integer($point, 'timestamp');
+            $pPrice = $this->safe_number($point, 'price');
+            if ($pTs === null) {
+                throw new ExchangeError($this->id . ' method() missing pTs');
             }
-            return $this->filter_by_since_limit($result, $since, $limit, 0);
-        })();
+            $bucket = $this->parse_to_int($pTs / $ms) * $ms;
+            $key = (string) $bucket;
+            if (!(is_array($candles) && array_key_exists($key ?? '', $candles))) {
+                $candles[$key] = array( $bucket, $pPrice, $pPrice, $pPrice, $pPrice, 0 );
+                $bucketOrder[] = $key;
+            } else {
+                $candle = $candles[$key];
+                $pPriceOrZero = ($pPrice === null) ? 0 : $pPrice;
+                $candle[2] = max($candle[2], $pPriceOrZero);
+                $candleLow = ($candle[3] === null) ? $pPrice : $candle[3];
+                $pPriceOrCandleLow = ($pPrice === null) ? $candle[3] : $pPrice;
+                $candle[3] = min($candleLow, $pPriceOrCandleLow);
+                $candle[4] = $pPrice;
+                $candles[$key] = $candle; // php arrays are value types - write the mutation back
+            }
+        }
+        $result = array();
+        for ($i = 0; $i < count($bucketOrder); $i++) {
+            $result[] = $candles[$bucketOrder[$i]];
+        }
+        return $this->filter_by_since_limit($result, $since, $limit, 0);
     }
 
     public function fetch_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $since, $limit, $params) {
-            /**
-             * fetches orders for the authenticated user for a single $outcome
-             *
-             * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
-             *
-             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-             */
-            if ($outcome === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders requires an $outcome argument');
-            }
-            Async\await($this->load_outcome($outcome));
-            $outcomeObj = $this->outcome($outcome);
-            $info = $this->safe_dict($outcomeObj, 'info');
-            $request = array(
-                'slug' => $this->safe_string($info, 'slug'),
-                'statuses' => array( 'LIVE', 'MATCHED' ),
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->limitlessPrivateGetMarketsSlugUserOrders($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "createdAt" => "2026-05-04T08:57:06.448Z",
-            //             "id" => "c4b1a83a-219f-48db-a9be-1ddadf0bc14c",
-            //             "ownerId" => 1315134,
-            //             "marketId" => "112523",
-            //             "token" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-            //             "type" => "GTC",
-            //             "status" => "LIVE",
-            //             "side" => "BUY",
-            //             "makerAmount" => "1000040",
-            //             "takerAmount" => "10870000",
-            //             "price" => "0.092",
-            //             "originalSize" => "10870000",
-            //             "remainingSize" => "10870000"
-            //         }
-            //     )
-            //
-            // pass null => parsePredictionOrder sets $outcome to the market $outcome while the $outcome
-            // lives under 'outcome', so the base $outcome filter would drop every order; the per-slug
-            // endpoint already scopes results and parsePredictionOrder resolves the $outcome via outcomes_by_id
-            return $this->parse_prediction_orders($this->to_array($response), null, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_orders(...))($outcome, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches orders for the authenticated user for a single $outcome
+         *
+         * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
+         *
+         * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+         */
+        if ($outcome === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrders requires an $outcome argument');
+        }
+        Async\await($this->load_outcome($outcome));
+        $outcomeObj = $this->outcome($outcome);
+        $info = $this->safe_dict($outcomeObj, 'info');
+        $request = array(
+            'slug' => $this->safe_string($info, 'slug'),
+            'statuses' => array( 'LIVE', 'MATCHED' ),
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->limitlessPrivateGetMarketsSlugUserOrders($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "createdAt" => "2026-05-04T08:57:06.448Z",
+        //             "id" => "c4b1a83a-219f-48db-a9be-1ddadf0bc14c",
+        //             "ownerId" => 1315134,
+        //             "marketId" => "112523",
+        //             "token" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //             "type" => "GTC",
+        //             "status" => "LIVE",
+        //             "side" => "BUY",
+        //             "makerAmount" => "1000040",
+        //             "takerAmount" => "10870000",
+        //             "price" => "0.092",
+        //             "originalSize" => "10870000",
+        //             "remainingSize" => "10870000"
+        //         }
+        //     )
+        //
+        // pass null => parsePredictionOrder sets $outcome to the market $outcome while the $outcome
+        // lives under 'outcome', so the base $outcome filter would drop every order; the per-slug
+        // endpoint already scopes results and parsePredictionOrder resolves the $outcome via outcomes_by_id
+        return $this->parse_prediction_orders($this->to_array($response), null, $since, $limit);
     }
 
     public function fetch_open_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $since, $limit, $params) {
-            /**
-             * fetches open orders for the authenticated user for a single $outcome
-             *
-             * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
-             *
-             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-             */
-            if ($outcome === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires an $outcome argument');
-            }
-            Async\await($this->load_outcome($outcome));
-            $params = $this->extend($params, array(
-                'statuses' => array( 'LIVE' ),
-            ));
-            return Async\await($this->fetch_orders($outcome, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($outcome, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches open orders for the authenticated user for a single $outcome
+         *
+         * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
+         *
+         * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+         */
+        if ($outcome === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires an $outcome argument');
+        }
+        Async\await($this->load_outcome($outcome));
+        $params = $this->extend($params, array(
+            'statuses' => array( 'LIVE' ),
+        ));
+        return Async\await($this->fetch_orders($outcome, $since, $limit, $params));
     }
 
     public function fetch_closed_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $since, $limit, $params) {
-            /**
-             * fetches closed orders for the authenticated user for a single $outcome
-             *
-             * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
-             *
-             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-             */
-            if ($outcome === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires an $outcome argument');
-            }
-            Async\await($this->load_outcome($outcome));
-            $params = $this->extend($params, array(
-                'statuses' => array( 'MATCHED' ),
-            ));
-            return Async\await($this->fetch_orders($outcome, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_closed_orders(...))($outcome, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches closed orders for the authenticated user for a single $outcome
+         *
+         * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
+         *
+         * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+         */
+        if ($outcome === null) {
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires an $outcome argument');
+        }
+        Async\await($this->load_outcome($outcome));
+        $params = $this->extend($params, array(
+            'statuses' => array( 'MATCHED' ),
+        ));
+        return Async\await($this->fetch_orders($outcome, $since, $limit, $params));
     }
 
     public function fetch_orders_by_ids(mixed $ids, ?string $outcome = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($ids, $outcome, $params) {
-            /**
-             * fetch orders by the list of order $id
-             *
-             * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
-             *
-             * @param {string[]} $ids list of order $id
-             * @param {string} [$outcome] market $outcome, e.g. "TRUMP_OUT:YES"
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?$id=prediction-order-structure)
-             */
-            if ($outcome !== null) {
-                Async\await($this->load_outcome($outcome));
-            }
-            $length = count($ids);
-            if ($length > 50) {
-                throw new BadRequest($this->id . ' fetchOrdersByIds can only fetch up to 50 orders at a time');
-            }
-            $items = array();
-            for ($i = 0; $i < $length; $i++) {
-                $id = $this->safe_string($ids, $i);
-                $item = array(
-                    'orderId' => $id,
-                );
-                $items[] = $item;
-            }
-            $request = array(
-                'items' => $items,
+        return Async\async(self::do_fetch_orders_by_ids(...))($ids, $outcome, $params);
+    }
+
+    private function do_fetch_orders_by_ids(mixed $ids, ?string $outcome = null, $params = array()) {
+        /**
+         * fetch orders by the list of order $id
+         *
+         * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
+         *
+         * @param {string[]} $ids list of order $id
+         * @param {string} [$outcome] market $outcome, e.g. "TRUMP_OUT:YES"
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?$id=prediction-order-structure)
+         */
+        if ($outcome !== null) {
+            Async\await($this->load_outcome($outcome));
+        }
+        $length = count($ids);
+        if ($length > 50) {
+            throw new BadRequest($this->id . ' fetchOrdersByIds can only fetch up to 50 orders at a time');
+        }
+        $items = array();
+        for ($i = 0; $i < $length; $i++) {
+            $id = $this->safe_string($ids, $i);
+            $item = array(
+                'orderId' => $id,
             );
-            $response = Async\await($this->limitlessPrivatePostOrdersStatusBatch($this->extend($request, $params)));
-            //
-            //     {
-            //         "results" => array(
-            //             {
-            //                 "index" => 0,
-            //                 "status" => "found",
-            //                 "orderId" => "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
-            //                 "data" => {
-            //                     "order" => {
-            //                         "createdAt" => "2026-05-04T10:26:01.334Z",
-            //                         "id" => "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
-            //                         "makerAmount" => "9999360",
-            //                         "takerAmount" => "10752000",
-            //                         "expiration" => null,
-            //                         "signatureType" => 2,
-            //                         "salt" => "277966495716",
-            //                         "maker" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
-            //                         "signer" => "0x82a0f074C6C0C11aA370D7FBF077668c31fCc990",
-            //                         "taker" => "0x0000000000000000000000000000000000000000",
-            //                         "tokenId" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-            //                         "side" => 0,
-            //                         "feeRateBps" => 300,
-            //                         "nonce" => "0",
-            //                         "signature" => "0x1640c8558d8c627017b2c6ac71a79770d177033afeb9be72842803afcd12938f23308c507935011ad6d10acc299e5367f76b4f806eb025c15cb05739de11260d1b",
-            //                         "orderType" => "FAK",
-            //                         "price" => "0.93",
-            //                         "marketId" => 112523,
-            //                         "ownerId" => 1315134,
-            //                         "market" => array(
-            //                             "id" => 112523,
-            //                             "slug" => "doge-above-dollar010859-on-may-4-2000-utc-1777838401426",
-            //                             "title" => "DOGE above $0.10859 on May 4, 20:00 UTC?",
-            //                             "status" => "FUNDED",
-            //                             "yesPositionId" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-            //                             "noPositionId" => "101714389600295994108208140228744407174156865974966685440205519669272948152879"
-            //                         ),
-            //                         "owner" => array(
-            //                             "id" => 1315134,
-            //                             "account" => "0x7CFF82f72b991B6B2b661e404389fD8a40bCD21B",
-            //                             "client" => "eoa",
-            //                             "tradeWalletOption" => "smartWallet",
-            //                             "smartWallet" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
-            //                             "points" => 0,
-            //                             "referredUsersCount" => 0
-            //                         }
-            //                     ),
-            //                     "makerMatches" => array(
-            //                         {
-            //                             "id" => "be44a183-ec56-4076-a69c-10283321abd6",
-            //                             "matchedSize" => "10752000",
-            //                             "fillPrice" => "0.93",
-            //                             "fillCost" => "9999360",
-            //                             "orderId" => "3255c786-3f30-4115-a99f-72be478f2e44",
-            //                             "order" => {
-            //                                 "id" => "3255c786-3f30-4115-a99f-72be478f2e44",
-            //                                 "maker" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-            //                                 "price" => "0.07",
-            //                                 "side" => 0,
-            //                                 "tokenId" => "101714389600295994108208140228744407174156865974966685440205519669272948152879",
-            //                                 "owner" => {
-            //                                     "id" => 202602,
-            //                                     "account" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-            //                                     "client" => "eoa",
-            //                                     "tradeWalletOption" => null,
-            //                                     "smartWallet" => null,
-            //                                     "username" => null,
-            //                                     "displayName" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-            //                                     "pfpUrl" => null,
-            //                                     "socialUrl" => null,
-            //                                     "points" => 0,
-            //                                     "referredUsersCount" => 0
-            //                                 }
-            //                             }
-            //                         }
-            //                     ),
-            //                     "execution" => {
-            //                         "feeRateBps" => 300,
-            //                         "effectiveFeeBps" => 59,
-            //                         "matched" => true,
-            //                         "settlementStatus" => "MINED",
-            //                         "tradeEventId" => "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
-            //                         "txHash" => "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
-            //                         "totalsRaw" => {
-            //                             "contractsGross" => "10752000",
-            //                             "contractsFee" => "63436",
-            //                             "contractsNet" => "10688564",
-            //                             "usdGross" => "9999360",
-            //                             "usdFee" => "0",
-            //                             "usdNet" => "9999360"
-            //                         }
-            //                     }
-            //                 }
-            //             }
-            //         )
-            //     }
-            //
-            $results = $this->safe_list($response, 'results', array());
-            $found = array();
-            for ($i = 0; $i < count($results); $i++) {
-                $item = $this->safe_dict($results, $i, array());
-                $itemStatus = $this->safe_string($item, 'status');
-                if ($itemStatus === 'found') {
-                    $found[] = $item;
-                }
+            $items[] = $item;
+        }
+        $request = array(
+            'items' => $items,
+        );
+        $response = Async\await($this->limitlessPrivatePostOrdersStatusBatch($this->extend($request, $params)));
+        //
+        //     {
+        //         "results" => array(
+        //             {
+        //                 "index" => 0,
+        //                 "status" => "found",
+        //                 "orderId" => "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //                 "data" => {
+        //                     "order" => {
+        //                         "createdAt" => "2026-05-04T10:26:01.334Z",
+        //                         "id" => "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //                         "makerAmount" => "9999360",
+        //                         "takerAmount" => "10752000",
+        //                         "expiration" => null,
+        //                         "signatureType" => 2,
+        //                         "salt" => "277966495716",
+        //                         "maker" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                         "signer" => "0x82a0f074C6C0C11aA370D7FBF077668c31fCc990",
+        //                         "taker" => "0x0000000000000000000000000000000000000000",
+        //                         "tokenId" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                         "side" => 0,
+        //                         "feeRateBps" => 300,
+        //                         "nonce" => "0",
+        //                         "signature" => "0x1640c8558d8c627017b2c6ac71a79770d177033afeb9be72842803afcd12938f23308c507935011ad6d10acc299e5367f76b4f806eb025c15cb05739de11260d1b",
+        //                         "orderType" => "FAK",
+        //                         "price" => "0.93",
+        //                         "marketId" => 112523,
+        //                         "ownerId" => 1315134,
+        //                         "market" => array(
+        //                             "id" => 112523,
+        //                             "slug" => "doge-above-dollar010859-on-may-4-2000-utc-1777838401426",
+        //                             "title" => "DOGE above $0.10859 on May 4, 20:00 UTC?",
+        //                             "status" => "FUNDED",
+        //                             "yesPositionId" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                             "noPositionId" => "101714389600295994108208140228744407174156865974966685440205519669272948152879"
+        //                         ),
+        //                         "owner" => array(
+        //                             "id" => 1315134,
+        //                             "account" => "0x7CFF82f72b991B6B2b661e404389fD8a40bCD21B",
+        //                             "client" => "eoa",
+        //                             "tradeWalletOption" => "smartWallet",
+        //                             "smartWallet" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                             "points" => 0,
+        //                             "referredUsersCount" => 0
+        //                         }
+        //                     ),
+        //                     "makerMatches" => array(
+        //                         {
+        //                             "id" => "be44a183-ec56-4076-a69c-10283321abd6",
+        //                             "matchedSize" => "10752000",
+        //                             "fillPrice" => "0.93",
+        //                             "fillCost" => "9999360",
+        //                             "orderId" => "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                             "order" => {
+        //                                 "id" => "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                                 "maker" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                 "price" => "0.07",
+        //                                 "side" => 0,
+        //                                 "tokenId" => "101714389600295994108208140228744407174156865974966685440205519669272948152879",
+        //                                 "owner" => {
+        //                                     "id" => 202602,
+        //                                     "account" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                     "client" => "eoa",
+        //                                     "tradeWalletOption" => null,
+        //                                     "smartWallet" => null,
+        //                                     "username" => null,
+        //                                     "displayName" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                     "pfpUrl" => null,
+        //                                     "socialUrl" => null,
+        //                                     "points" => 0,
+        //                                     "referredUsersCount" => 0
+        //                                 }
+        //                             }
+        //                         }
+        //                     ),
+        //                     "execution" => {
+        //                         "feeRateBps" => 300,
+        //                         "effectiveFeeBps" => 59,
+        //                         "matched" => true,
+        //                         "settlementStatus" => "MINED",
+        //                         "tradeEventId" => "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
+        //                         "txHash" => "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
+        //                         "totalsRaw" => {
+        //                             "contractsGross" => "10752000",
+        //                             "contractsFee" => "63436",
+        //                             "contractsNet" => "10688564",
+        //                             "usdGross" => "9999360",
+        //                             "usdFee" => "0",
+        //                             "usdNet" => "9999360"
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         )
+        //     }
+        //
+        $results = $this->safe_list($response, 'results', array());
+        $found = array();
+        for ($i = 0; $i < count($results); $i++) {
+            $item = $this->safe_dict($results, $i, array());
+            $itemStatus = $this->safe_string($item, 'status');
+            if ($itemStatus === 'found') {
+                $found[] = $item;
             }
-            return $this->parse_prediction_orders($found);
-        })();
+        }
+        return $this->parse_prediction_orders($found);
     }
 
     public function fetch_order(string $id, ?string $outcome = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $outcome, $params) {
-            /**
-             * fetches information on an $order made by the user
-             *
-             * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
-             *
-             * @param {string} $id the $order $id
-             * @param {string} [$outcome] market $outcome, e.g. "TRUMP_OUT:YES"
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?$id=prediction-$order-structure)
-             */
-            if ($outcome !== null) {
-                Async\await($this->load_outcome($outcome));
-            }
-            $orders = Async\await($this->fetch_orders_by_ids(array( $id ), $outcome, $params));
-            $order = $this->safe_dict($orders, 0);
-            if ($order === null) {
-                throw new OrderNotFound($this->id . ' fetchOrder() could not find $order ' . $id);
-            }
-            return $order;
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $outcome, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $outcome = null, $params = array()) {
+        /**
+         * fetches information on an $order made by the user
+         *
+         * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
+         *
+         * @param {string} $id the $order $id
+         * @param {string} [$outcome] market $outcome, e.g. "TRUMP_OUT:YES"
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?$id=prediction-$order-structure)
+         */
+        if ($outcome !== null) {
+            Async\await($this->load_outcome($outcome));
+        }
+        $orders = Async\await($this->fetch_orders_by_ids(array( $id ), $outcome, $params));
+        $order = $this->safe_dict($orders, 0);
+        if ($order === null) {
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find $order ' . $id);
+        }
+        return $order;
     }
 
     public function parse_prediction_order(array $order, ?array $market = null): array {
@@ -2004,176 +2028,180 @@ class limitless extends Exchange {
     }
 
     public function fetch_accounts($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for account id and info
-             *
-             * @see https://docs.limitless.exchange/api-reference/portfolio/get-current-profile
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [account structures]
-             */
-            $response = Async\await($this->limitlessPrivateGetProfilesMe($params));
-            $responseList = array( $response );
-            return $this->parse_accounts($responseList);
-        })();
+        return Async\async(self::do_fetch_accounts(...))($params);
+    }
+
+    private function do_fetch_accounts($params = array()) {
+        /**
+         * query for account id and info
+         *
+         * @see https://docs.limitless.exchange/api-reference/portfolio/get-current-profile
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [account structures]
+         */
+        $response = Async\await($this->limitlessPrivateGetProfilesMe($params));
+        $responseList = array( $response );
+        return $this->parse_accounts($responseList);
     }
 
     public function create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $type, $side, $amount, $price, $params) {
-            /**
-             * places a limit or market order on limitless for the given $outcome token
-             *
-             * @see https://docs.limitless.exchange/api-reference/orders/create-order
-             *
-             * @param {string} $outcome outcome, $e->g. "TRUMP_OUT:YES"
-             * @param {string} $type 'limit' or 'market'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount amount of $outcome tokens
-             * @param {float} [$price] limit $price (0–1 range)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-             */
-            $accounts = Async\await($this->load_accounts());
-            Async\await($this->load_outcome($outcome));
-            $outcomeObj = $this->outcome($outcome);
-            $account = $this->safe_dict($accounts, 0);
-            $accountInfo = $this->safe_dict($account, 'info');
-            // the trade wallet is chosen by `$tradeWalletOption` => 'smartWallet' profiles trade through
-            // the `smartWallet` address, plain 'eoa' profiles trade directly from `$account`. the
-            // smartWallet field can stay populated after switching to eoa, so key off the option here
-            $tradeWalletOption = $this->safe_string($accountInfo, 'tradeWalletOption');
-            $usesSmartWallet = ($tradeWalletOption === 'smartWallet');
-            $walletFromAccount = ($usesSmartWallet) ? $this->safe_string($accountInfo, 'smartWallet') : $this->safe_string($accountInfo, 'account');
-            $maker = $this->walletAddress ? $this->walletAddress : $walletFromAccount;
-            list($maker, $params) = $this->handle_option_and_params($params, 'createOrder', 'maker', $maker);
-            try {
-                $this->check_address($maker);
-            } catch (Exception $e) {
-                throw new InvalidAddress($this->id . ' createOrder requires a valid $maker address. Set the "maker" parameter to a valid address or set the "walletAddress" property in the constructor options.');
-            }
-            // when the profile trades through a smart wallet the order must be signed by the
-            // linked embedded (owner) wallet, not by the smart wallet itself
-            $embeddedAddress = $this->safe_string($accountInfo, 'embeddedAccount');
-            $hasEmbedded = ($embeddedAddress !== null);
-            $isSmartWallet = $usesSmartWallet && $hasEmbedded;
-            $signer = $maker;
-            if ($isSmartWallet) {
-                $signer = $embeddedAddress;
-            }
-            list($signer, $params) = $this->handle_option_and_params($params, 'createOrder', 'signer', $signer);
-            try {
-                $this->check_address($signer);
-            } catch (Exception $e) {
-                throw new InvalidAddress($this->id . ' createOrder requires a valid $signer address. Set the "signer" parameter to a valid address or set the "walletAddress" property in the constructor options.');
-            }
-            $taker = $this->safe_string($this->options, 'nullAddress', '0x0000000000000000000000000000000000000000');
-            list($taker, $params) = $this->handle_option_and_params($params, 'createOrder', 'taker', $taker);
-            try {
-                $this->check_address($taker);
-            } catch (Exception $e) {
-                throw new InvalidAddress($this->id . ' createOrder requires a valid $taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.');
-            }
-            $nonce = $this->milliseconds();
-            $sides = array(
-                'buy' => 0,
-                'sell' => 1,
-            );
-            if ($side === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-            }
-            $sideValue = $this->safe_integer($sides, strtolower($side));
-            $rank = $this->safe_dict($accountInfo, 'rank');
-            // $signatureType => 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
-            $signatureType = $isSmartWallet ? 2 : 0;
-            list($signatureType, $params) = $this->handle_option_and_params($params, 'createOrder', 'signatureType', $signatureType);
-            $signRequest = array(
-                'salt' => $nonce,
-                'maker' => $maker,
-                'signer' => $signer,
-                'taker' => $taker,
-                'tokenId' => $outcomeObj['outcomeId'],
-                'nonce' => 0,
-                'feeRateBps' => $this->safe_integer($rank, 'feeRateBps', 0),
-                'side' => $sideValue,
-                'signatureType' => $signatureType,
-            );
-            // the contract expects expiration uint256; non-zero values are rejected by the API (GTC orders use 0)
-            $expirationInt = $this->safe_integer($params, 'expiration');
-            if ($expirationInt !== null) {
-                $params = $this->omit($params, 'expiration');
-                $signRequest['expiration'] = $this->number_to_string($expirationInt);
-            } else {
-                $signRequest['expiration'] = '0';
-            }
-            $amountString = $this->number_to_string($amount);
-            $priceString = $this->number_to_string($price);
-            $makerAmount = null;
-            $takerAmount = null;
-            $isMarket = $type === 'market';
-            $postOnly = false;
-            list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
-            $timeInForce = $this->safe_string($params, 'timeInForce');
-            $params = $this->omit($params, 'timeInForce');
-            if ($timeInForce === null) {
-                $timeInForce = $isMarket ? 'FOK' : 'GTC';
-            }
-            $marketSymbol = $this->safe_string($outcomeObj, 'market');
-            if ($isMarket && ($side === 'buy')) {
-                $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                $cost = $this->safe_number($params, 'cost');
-                $params = $this->omit($params, 'cost');
-                if ($createMarketBuyOrderRequiresPrice) {
-                    if (($price === null) && ($cost === null)) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
-                    } else {
-                        $quoteAmount = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
-                        $costRequest = ($cost !== null) ? $cost : $quoteAmount;
-                        $makerAmount = $this->cost_to_prediction_precision($outcome, $costRequest);
-                    }
+        return Async\async(self::do_create_order(...))($outcome, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        /**
+         * places a limit or market order on limitless for the given $outcome token
+         *
+         * @see https://docs.limitless.exchange/api-reference/orders/create-order
+         *
+         * @param {string} $outcome outcome, $e->g. "TRUMP_OUT:YES"
+         * @param {string} $type 'limit' or 'market'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount amount of $outcome tokens
+         * @param {float} [$price] limit $price (0–1 range)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+         */
+        $accounts = Async\await($this->load_accounts());
+        Async\await($this->load_outcome($outcome));
+        $outcomeObj = $this->outcome($outcome);
+        $account = $this->safe_dict($accounts, 0);
+        $accountInfo = $this->safe_dict($account, 'info');
+        // the trade wallet is chosen by `$tradeWalletOption` => 'smartWallet' profiles trade through
+        // the `smartWallet` address, plain 'eoa' profiles trade directly from `$account`. the
+        // smartWallet field can stay populated after switching to eoa, so key off the option here
+        $tradeWalletOption = $this->safe_string($accountInfo, 'tradeWalletOption');
+        $usesSmartWallet = ($tradeWalletOption === 'smartWallet');
+        $walletFromAccount = ($usesSmartWallet) ? $this->safe_string($accountInfo, 'smartWallet') : $this->safe_string($accountInfo, 'account');
+        $maker = $this->walletAddress ? $this->walletAddress : $walletFromAccount;
+        list($maker, $params) = $this->handle_option_and_params($params, 'createOrder', 'maker', $maker);
+        try {
+            $this->check_address($maker);
+        } catch (Exception $e) {
+            throw new InvalidAddress($this->id . ' createOrder requires a valid $maker address. Set the "maker" parameter to a valid address or set the "walletAddress" property in the constructor options.');
+        }
+        // when the profile trades through a smart wallet the order must be signed by the
+        // linked embedded (owner) wallet, not by the smart wallet itself
+        $embeddedAddress = $this->safe_string($accountInfo, 'embeddedAccount');
+        $hasEmbedded = ($embeddedAddress !== null);
+        $isSmartWallet = $usesSmartWallet && $hasEmbedded;
+        $signer = $maker;
+        if ($isSmartWallet) {
+            $signer = $embeddedAddress;
+        }
+        list($signer, $params) = $this->handle_option_and_params($params, 'createOrder', 'signer', $signer);
+        try {
+            $this->check_address($signer);
+        } catch (Exception $e) {
+            throw new InvalidAddress($this->id . ' createOrder requires a valid $signer address. Set the "signer" parameter to a valid address or set the "walletAddress" property in the constructor options.');
+        }
+        $taker = $this->safe_string($this->options, 'nullAddress', '0x0000000000000000000000000000000000000000');
+        list($taker, $params) = $this->handle_option_and_params($params, 'createOrder', 'taker', $taker);
+        try {
+            $this->check_address($taker);
+        } catch (Exception $e) {
+            throw new InvalidAddress($this->id . ' createOrder requires a valid $taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.');
+        }
+        $nonce = $this->milliseconds();
+        $sides = array(
+            'buy' => 0,
+            'sell' => 1,
+        );
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
+        $sideValue = $this->safe_integer($sides, strtolower($side));
+        $rank = $this->safe_dict($accountInfo, 'rank');
+        // $signatureType => 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
+        $signatureType = $isSmartWallet ? 2 : 0;
+        list($signatureType, $params) = $this->handle_option_and_params($params, 'createOrder', 'signatureType', $signatureType);
+        $signRequest = array(
+            'salt' => $nonce,
+            'maker' => $maker,
+            'signer' => $signer,
+            'taker' => $taker,
+            'tokenId' => $outcomeObj['outcomeId'],
+            'nonce' => 0,
+            'feeRateBps' => $this->safe_integer($rank, 'feeRateBps', 0),
+            'side' => $sideValue,
+            'signatureType' => $signatureType,
+        );
+        // the contract expects expiration uint256; non-zero values are rejected by the API (GTC orders use 0)
+        $expirationInt = $this->safe_integer($params, 'expiration');
+        if ($expirationInt !== null) {
+            $params = $this->omit($params, 'expiration');
+            $signRequest['expiration'] = $this->number_to_string($expirationInt);
+        } else {
+            $signRequest['expiration'] = '0';
+        }
+        $amountString = $this->number_to_string($amount);
+        $priceString = $this->number_to_string($price);
+        $makerAmount = null;
+        $takerAmount = null;
+        $isMarket = $type === 'market';
+        $postOnly = false;
+        list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $params = $this->omit($params, 'timeInForce');
+        if ($timeInForce === null) {
+            $timeInForce = $isMarket ? 'FOK' : 'GTC';
+        }
+        $marketSymbol = $this->safe_string($outcomeObj, 'market');
+        if ($isMarket && ($side === 'buy')) {
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number($params, 'cost');
+            $params = $this->omit($params, 'cost');
+            if ($createMarketBuyOrderRequiresPrice) {
+                if (($price === null) && ($cost === null)) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                 } else {
-                    $makerAmount = $this->cost_to_prediction_precision($outcome, $amount);
+                    $quoteAmount = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
+                    $costRequest = ($cost !== null) ? $cost : $quoteAmount;
+                    $makerAmount = $this->cost_to_prediction_precision($outcome, $costRequest);
                 }
-            } elseif ($isMarket) {
+            } else {
+                $makerAmount = $this->cost_to_prediction_precision($outcome, $amount);
+            }
+        } elseif ($isMarket) {
+            $makerAmount = $this->amount_to_prediction_precision($outcome, $amount);
+        } else {
+            $calculatedCost = Precise::string_mul($amountString, $priceString);
+            if ($side === 'buy') {
+                $makerAmount = $this->cost_to_prediction_precision($outcome, $calculatedCost);
+                $takerAmount = $this->amount_to_prediction_precision($outcome, $amount);
+            } else {
                 $makerAmount = $this->amount_to_prediction_precision($outcome, $amount);
-            } else {
-                $calculatedCost = Precise::string_mul($amountString, $priceString);
-                if ($side === 'buy') {
-                    $makerAmount = $this->cost_to_prediction_precision($outcome, $calculatedCost);
-                    $takerAmount = $this->amount_to_prediction_precision($outcome, $amount);
-                } else {
-                    $makerAmount = $this->amount_to_prediction_precision($outcome, $amount);
-                    $takerAmount = $this->cost_to_prediction_precision($outcome, $calculatedCost);
-                }
+                $takerAmount = $this->cost_to_prediction_precision($outcome, $calculatedCost);
             }
-            // amounts must be integers (uint256) => parseNumber yields a float that the Python EIP-712 encoder rejects
-            $signRequest['makerAmount'] = $this->parse_to_int($this->apply_scale($makerAmount, true));
-            $signRequest['takerAmount'] = $isMarket ? 1 : $this->parse_to_int($this->apply_scale($takerAmount, true));
-            $signature = $this->sign_order_request($signRequest, $marketSymbol);
-            $signRequest['signature'] = $signature;
-            // $price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
-            if (!$isMarket && ($price !== null)) {
-                $signRequest['price'] = $this->parse_number($priceString);
-            }
-            $slug = $this->safe_string($outcomeObj['info'], 'slug');
-            $request = array(
-                'ownerId' => $this->safe_integer($account, 'id'),
-                'order' => $signRequest,
-                'marketSlug' => $slug,
-                'orderType' => $timeInForce,
-            );
-            if ($postOnly) {
-                $request['postOnly'] = $postOnly;
-            }
-            $response = Async\await($this->limitlessPrivatePostOrders($this->extend($request, $params)));
-            $parsedOrder = $this->parse_prediction_order($response, $outcomeObj);
-            // the create-order $response omits a status field; a freshly accepted order is open
-            if ($parsedOrder['status'] === null) {
-                $parsedOrder['status'] = 'open';
-            }
-            return $parsedOrder;
-        })();
+        }
+        // amounts must be integers (uint256) => parseNumber yields a float that the Python EIP-712 encoder rejects
+        $signRequest['makerAmount'] = $this->parse_to_int($this->apply_scale($makerAmount, true));
+        $signRequest['takerAmount'] = $isMarket ? 1 : $this->parse_to_int($this->apply_scale($takerAmount, true));
+        $signature = $this->sign_order_request($signRequest, $marketSymbol);
+        $signRequest['signature'] = $signature;
+        // $price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
+        if (!$isMarket && ($price !== null)) {
+            $signRequest['price'] = $this->parse_number($priceString);
+        }
+        $slug = $this->safe_string($outcomeObj['info'], 'slug');
+        $request = array(
+            'ownerId' => $this->safe_integer($account, 'id'),
+            'order' => $signRequest,
+            'marketSlug' => $slug,
+            'orderType' => $timeInForce,
+        );
+        if ($postOnly) {
+            $request['postOnly'] = $postOnly;
+        }
+        $response = Async\await($this->limitlessPrivatePostOrders($this->extend($request, $params)));
+        $parsedOrder = $this->parse_prediction_order($response, $outcomeObj);
+        // the create-order $response omits a status field; a freshly accepted order is open
+        if ($parsedOrder['status'] === null) {
+            $parsedOrder['status'] = 'open';
+        }
+        return $parsedOrder;
     }
 
     public function sign_order_request(array $signRequest, mixed $marketSymbol) {
@@ -2263,296 +2291,308 @@ class limitless extends Exchange {
     }
 
     public function approve($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * sets the on-chain ERC20 collateral (USDC) allowance for the limitless exchange contract on Base, which is required before an EOA maker can place orders ("Insufficient collateral allowance" otherwise). Sends a real on-chain transaction signed with the privateKey and waits for the receipt
-             * @param {array} [$params] extra parameters
-             * @param {string} [$params->token] the collateral $token address (default USDC on Base)
-             * @param {string} [$params->spender] the exchange contract to approve (default the limitless CTF exchange); read from a market's venue when omitted
-             * @param {string} [$params->owner] the $token holder address (default $this->walletAddress or the address derived from the privateKey)
-             * @param {float} [$params->amount] the allowance in USDC (default => unlimited / maxUint256)
-             * @param {string} [$params->rpcUrl] the Base RPC url to broadcast through
-             * @param {string} [$params->gasLimit] gas limit hex for the approve tx (default '0x186a0')
-             * @return {array} the transaction receipt
-             */
-            $this->check_required_credentials();
-            if ($this->privateKey === null) {
-                throw new ArgumentsRequired($this->id . ' approve() requires a privateKey to sign the on-chain transaction');
-            }
-            $rpcUrl = $this->safe_string($params, 'rpcUrl', $this->safe_string($this->options, 'rpcUrl'));
-            $chainId = $this->safe_integer($this->options, 'chainId', 8453);
-            $token = $this->safe_string($params, 'token', $this->safe_string($this->options, 'collateralAddress'));
-            $spender = $this->safe_string($params, 'spender', $this->safe_string($this->options, 'exchangeAddress'));
-            $owner = $this->safe_string($params, 'owner', $this->walletAddress);
-            if ($owner === null) {
-                $owner = $this->eth_get_address_from_private_key($this->privateKey);
-            }
-            $gasLimit = $this->safe_string($params, 'gasLimit', '0x186a0');
-            $maxUint = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-            $amountHex = $maxUint;
-            $amount = $this->safe_string($params, 'amount');
-            if ($amount !== null) {
-                $decimals = $this->safe_integer($this->options, 'usdcDecimals', 6);
-                // scale the human USDC $amount to base units ($amount / 10^-$decimals = $amount * 10^$decimals)
-                $scaled = Precise::string_div($amount, $this->parse_precision($this->number_to_string($decimals)));
-                $amountInt = $this->parse_to_int($scaled);
-                $amountBase16 = $this->int_to_base16($amountInt);
-                $amountHex = str_pad($amountBase16, 64, '0', STR_PAD_LEFT);
-            }
-            // approve($spender, $amount) -> selector 0x095ea7b3
-            $approveData = '0x095ea7b3' . $this->pad_hex_address($spender) . $amountHex;
-            $txHash = Async\await($this->send_evm_transaction($rpcUrl, $chainId, $owner, $token, '0x0', $approveData, $gasLimit));
-            return Async\await($this->wait_for_transaction_receipt($rpcUrl, $txHash));
-        })();
+        return Async\async(self::do_approve(...))($params);
+    }
+
+    private function do_approve($params = array()) {
+        /**
+         * sets the on-chain ERC20 collateral (USDC) allowance for the limitless exchange contract on Base, which is required before an EOA maker can place orders ("Insufficient collateral allowance" otherwise). Sends a real on-chain transaction signed with the privateKey and waits for the receipt
+         * @param {array} [$params] extra parameters
+         * @param {string} [$params->token] the collateral $token address (default USDC on Base)
+         * @param {string} [$params->spender] the exchange contract to approve (default the limitless CTF exchange); read from a market's venue when omitted
+         * @param {string} [$params->owner] the $token holder address (default $this->walletAddress or the address derived from the privateKey)
+         * @param {float} [$params->amount] the allowance in USDC (default => unlimited / maxUint256)
+         * @param {string} [$params->rpcUrl] the Base RPC url to broadcast through
+         * @param {string} [$params->gasLimit] gas limit hex for the approve tx (default '0x186a0')
+         * @return {array} the transaction receipt
+         */
+        $this->check_required_credentials();
+        if ($this->privateKey === null) {
+            throw new ArgumentsRequired($this->id . ' approve() requires a privateKey to sign the on-chain transaction');
+        }
+        $rpcUrl = $this->safe_string($params, 'rpcUrl', $this->safe_string($this->options, 'rpcUrl'));
+        $chainId = $this->safe_integer($this->options, 'chainId', 8453);
+        $token = $this->safe_string($params, 'token', $this->safe_string($this->options, 'collateralAddress'));
+        $spender = $this->safe_string($params, 'spender', $this->safe_string($this->options, 'exchangeAddress'));
+        $owner = $this->safe_string($params, 'owner', $this->walletAddress);
+        if ($owner === null) {
+            $owner = $this->eth_get_address_from_private_key($this->privateKey);
+        }
+        $gasLimit = $this->safe_string($params, 'gasLimit', '0x186a0');
+        $maxUint = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+        $amountHex = $maxUint;
+        $amount = $this->safe_string($params, 'amount');
+        if ($amount !== null) {
+            $decimals = $this->safe_integer($this->options, 'usdcDecimals', 6);
+            // scale the human USDC $amount to base units ($amount / 10^-$decimals = $amount * 10^$decimals)
+            $scaled = Precise::string_div($amount, $this->parse_precision($this->number_to_string($decimals)));
+            $amountInt = $this->parse_to_int($scaled);
+            $amountBase16 = $this->int_to_base16($amountInt);
+            $amountHex = str_pad($amountBase16, 64, '0', STR_PAD_LEFT);
+        }
+        // approve($spender, $amount) -> selector 0x095ea7b3
+        $approveData = '0x095ea7b3' . $this->pad_hex_address($spender) . $amountHex;
+        $txHash = Async\await($this->send_evm_transaction($rpcUrl, $chainId, $owner, $token, '0x0', $approveData, $gasLimit));
+        return Async\await($this->wait_for_transaction_receipt($rpcUrl, $txHash));
     }
 
     public function cancel_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $outcome, $params) {
-            /**
-             * cancels a single open $order by $id
-             *
-             * @see https://docs.limitless.exchange/api-reference/orders/cancel-$order
-             *
-             * @param {string} $id $order $id
-             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?$id=prediction-$order-structure)
-             */
-            if ($outcome !== null) {
-                Async\await($this->load_outcome($outcome));
-            }
-            $request = array(
-                'order_id' => $id,
-            );
-            $response = Async\await($this->limitlessPrivateDeleteOrdersOrderId($this->extend($request, $params)));
-            // the delete $response carries no $order body, so backfill the $id and the resulting status
-            $order = $this->parse_prediction_order($response);
-            if ($order['id'] === null) {
-                $order['id'] = $id;
-            }
-            if ($order['status'] === null) {
-                $order['status'] = 'canceled';
-            }
-            return $order;
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $outcome, $params);
+    }
+
+    private function do_cancel_order(?string $id, ?string $outcome = null, $params = array()) {
+        /**
+         * cancels a single open $order by $id
+         *
+         * @see https://docs.limitless.exchange/api-reference/orders/cancel-$order
+         *
+         * @param {string} $id $order $id
+         * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?$id=prediction-$order-structure)
+         */
+        if ($outcome !== null) {
+            Async\await($this->load_outcome($outcome));
+        }
+        $request = array(
+            'order_id' => $id,
+        );
+        $response = Async\await($this->limitlessPrivateDeleteOrdersOrderId($this->extend($request, $params)));
+        // the delete $response carries no $order body, so backfill the $id and the resulting status
+        $order = $this->parse_prediction_order($response);
+        if ($order['id'] === null) {
+            $order['id'] = $id;
+        }
+        if ($order['status'] === null) {
+            $order['status'] = 'canceled';
+        }
+        return $order;
     }
 
     public function redeem(?string $outcome = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $params) {
-            /**
-             * redeem a resolved winning position back to collateral (gasless — the operator settles on-chain)
-             *
-             * @see https://docs.limitless.exchange/api-reference/portfolio/redeem
-             *
-             * @param {string} [$outcome] a unified $outcome on the resolved market to redeem (used to resolve the market $conditionId)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an $outcome
-             * @return {array} the raw redemption $response
-             */
-            $conditionId = $this->safe_string_2($params, 'conditionId', 'condition_id');
-            if ($conditionId === null) {
-                if ($outcome === null) {
-                    throw new ArgumentsRequired($this->id . ' redeem() requires an $outcome or a $params->conditionId');
-                }
-                Async\await($this->load_outcome($outcome));
-                $outcomeObj = $this->outcome($outcome);
-                $conditionId = $this->safe_string($this->safe_dict($outcomeObj, 'info', array()), 'conditionId');
+        return Async\async(self::do_redeem(...))($outcome, $params);
+    }
+
+    private function do_redeem(?string $outcome = null, $params = array()) {
+        /**
+         * redeem a resolved winning position back to collateral (gasless — the operator settles on-chain)
+         *
+         * @see https://docs.limitless.exchange/api-reference/portfolio/redeem
+         *
+         * @param {string} [$outcome] a unified $outcome on the resolved market to redeem (used to resolve the market $conditionId)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an $outcome
+         * @return {array} the raw redemption $response
+         */
+        $conditionId = $this->safe_string_2($params, 'conditionId', 'condition_id');
+        if ($conditionId === null) {
+            if ($outcome === null) {
+                throw new ArgumentsRequired($this->id . ' redeem() requires an $outcome or a $params->conditionId');
             }
-            if ($conditionId === null) {
-                throw new ArgumentsRequired($this->id . ' redeem() could not resolve the market $conditionId - pass $params->conditionId(a bytes32 hex string)');
-            }
-            $request = array(
-                'conditionId' => $conditionId,
-            );
-            $rest = $this->omit($params, array( 'conditionId', 'condition_id' ));
-            $response = Async\await($this->limitlessPrivatePostPortfolioRedeem($this->extend($request, $rest)));
-            return array(
-                'info' => $response,
-                'id' => $conditionId,
-                'conditionId' => $conditionId,
-            );
-        })();
+            Async\await($this->load_outcome($outcome));
+            $outcomeObj = $this->outcome($outcome);
+            $conditionId = $this->safe_string($this->safe_dict($outcomeObj, 'info', array()), 'conditionId');
+        }
+        if ($conditionId === null) {
+            throw new ArgumentsRequired($this->id . ' redeem() could not resolve the market $conditionId - pass $params->conditionId(a bytes32 hex string)');
+        }
+        $request = array(
+            'conditionId' => $conditionId,
+        );
+        $rest = $this->omit($params, array( 'conditionId', 'condition_id' ));
+        $response = Async\await($this->limitlessPrivatePostPortfolioRedeem($this->extend($request, $rest)));
+        return array(
+            'info' => $response,
+            'id' => $conditionId,
+            'conditionId' => $conditionId,
+        );
     }
 
     public function cancel_orders(array $ids, ?string $outcome = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($ids, $outcome, $params) {
-            /**
-             * cancel multiple orders at the same time
-             *
-             * @see https://docs.limitless.exchange/api-reference/trading/cancel-batch
-             *
-             * @param {string[]} $ids order $ids
-             * @param {string} [$outcome] unified market $outcome, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-             */
-            if ($outcome !== null) {
-                Async\await($this->load_outcome($outcome));
-            }
-            $request = array(
-                'orderIds' => $ids,
-            );
-            $response = Async\await($this->limitlessPrivatePostOrdersCancelBatch($this->extend($request, $params)));
-            $canceled = $this->safe_list($response, 'canceled', array());
-            $failed = $this->safe_list($response, 'failed', array());
-            $failedLethgn = count($failed);
-            if ($failedLethgn > 0) {
-                $message = $this->json($response);
-                $feedback = $this->id . ' cancelOrders $failed => ' . $message;
-                throw new OrderNotFound($feedback);
-            }
-            return $this->parse_prediction_orders($canceled);
-        })();
+        return Async\async(self::do_cancel_orders(...))($ids, $outcome, $params);
+    }
+
+    private function do_cancel_orders(array $ids, ?string $outcome = null, $params = array()) {
+        /**
+         * cancel multiple orders at the same time
+         *
+         * @see https://docs.limitless.exchange/api-reference/trading/cancel-batch
+         *
+         * @param {string[]} $ids order $ids
+         * @param {string} [$outcome] unified market $outcome, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+         */
+        if ($outcome !== null) {
+            Async\await($this->load_outcome($outcome));
+        }
+        $request = array(
+            'orderIds' => $ids,
+        );
+        $response = Async\await($this->limitlessPrivatePostOrdersCancelBatch($this->extend($request, $params)));
+        $canceled = $this->safe_list($response, 'canceled', array());
+        $failed = $this->safe_list($response, 'failed', array());
+        $failedLethgn = count($failed);
+        if ($failedLethgn > 0) {
+            $message = $this->json($response);
+            $feedback = $this->id . ' cancelOrders $failed => ' . $message;
+            throw new OrderNotFound($feedback);
+        }
+        return $this->parse_prediction_orders($canceled);
     }
 
     public function cancel_all_orders(?string $outcome = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $params) {
-            /**
-             * cancels all open orders for one market $slug
-             *
-             * @see https://docs.limitless.exchange/api-reference/orders/cancel-all-orders
-             *
-             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->slug] the market $slug to cancel all orders for
-             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-             */
-            if ($outcome !== null) {
-                $warn = true;
-                list($warn, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', $warn);
-                if ($warn) {
-                    throw new BadRequest($this->id . ' cancelAllOrders cancels all orders for entire $slug (both YES and NO outcomes). Please provide $params->slug to specify the $slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
-                }
+        return Async\async(self::do_cancel_all_orders(...))($outcome, $params);
+    }
+
+    private function do_cancel_all_orders(?string $outcome = null, $params = array()) {
+        /**
+         * cancels all open orders for one market $slug
+         *
+         * @see https://docs.limitless.exchange/api-reference/orders/cancel-all-orders
+         *
+         * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->slug] the market $slug to cancel all orders for
+         * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+         */
+        if ($outcome !== null) {
+            $warn = true;
+            list($warn, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', $warn);
+            if ($warn) {
+                throw new BadRequest($this->id . ' cancelAllOrders cancels all orders for entire $slug (both YES and NO outcomes). Please provide $params->slug to specify the $slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
             }
-            $request = array();
-            $slug = $this->safe_string($params, 'slug');
-            if ($outcome !== null) {
-                $outcomeObj = Async\await($this->load_outcome($outcome));
-                $request['slug'] = $this->safe_string($outcomeObj['info'], 'slug');
-            } elseif ($slug === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders requires either an $outcome argument or a $slug parameter');
-            }
-            $response = Async\await($this->limitlessPrivateDeleteOrdersAllSlug($this->extend($request, $params)));
-            //
-            //     {
-            //         "message" => "Orders canceled successfully"
-            //     }
-            //
-            return array( $this->safe_prediction_order(array( 'info' => $response )) );
-        })();
+        }
+        $request = array();
+        $slug = $this->safe_string($params, 'slug');
+        if ($outcome !== null) {
+            $outcomeObj = Async\await($this->load_outcome($outcome));
+            $request['slug'] = $this->safe_string($outcomeObj['info'], 'slug');
+        } elseif ($slug === null) {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders requires either an $outcome argument or a $slug parameter');
+        }
+        $response = Async\await($this->limitlessPrivateDeleteOrdersAllSlug($this->extend($request, $params)));
+        //
+        //     {
+        //         "message" => "Orders canceled successfully"
+        //     }
+        //
+        return array( $this->safe_prediction_order(array( 'info' => $response )) );
     }
 
     public function fetch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcome, $since, $limit, $params) {
-            /**
-             * fetch all $trades made by the user
-             *
-             * @see https://docs.limitless.exchange/api-reference/trades/get-$trades
-             *
-             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of $trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
-             */
-            // resolve the handle for the final filter — the caller may have passed an outcomeId
-            $outcomeSymbol = $outcome;
-            if ($outcome !== null) {
-                $outcomeObj = Async\await($this->load_outcome($outcome));
-                $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome');
-            }
-            $paginate = false;
-            $maxLimit = 100;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', $paginate);
-            if ($paginate) {
-                $params = $this->omit($params, 'paginate');
-                return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $outcome, $since, $limit, $params, 'nextCursor', 'cursor', null, $maxLimit));
-            }
-            $request = array();
-            if ($limit !== null) {
-                $request['limit'] = min($limit, $maxLimit);
-            }
-            $response = Async\await($this->limitlessPrivateGetPortfolioHistory($this->extend($request, $params)));
-            //
-            //     {
-            //         "data" => array(
-            //             array(
-            //                 "action" => "loss",
-            //                 "blockTimestamp" => 1778144400,
-            //                 "collateralAmount" => "2",
-            //                 "collateralSymbol" => "USDC",
-            //                 "collateralToken" => "7",
-            //                 "conditionId" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-            //                 "market" => array(
-            //                     "closed" => true,
-            //                     "collateral" => array(
-            //                     "symbol" => "USDC",
-            //                     "id" => "7",
-            //                     "decimals" => 6),
-            //                     "group" => null,
-            //                     "condition_id" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-            //                     "conditionId" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-            //                     "funding" => "0",
-            //                     "id" => "117515",
-            //                     "slug" => "doge-up-or-down-1-hour-1778140801775",
-            //                     "title" => "DOGE Up or Down - 1 hour",
-            //                     "expirationDate" => "2026-05-07T09:00:00.000Z"
-            //                 ),
-            //                 "outcomeIndex" => 1,
-            //                 "pnl" => "-2000000",
-            //                 "title" => "DOGE Up or Down - 1 hour"
-            //             ),
-            //             {
-            //                 "blockTimestamp" => 1778144137,
-            //                 "collateralAmount" => "2",
-            //                 "market" => array(
-            //                     "closed" => true,
-            //                     "collateral" => array(
-            //                         "symbol" => "USDC",
-            //                         "id" => "7",
-            //                         "decimals" => 6
-            //                     ),
-            //                     "group" => null,
-            //                     "condition_id" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-            //                     "conditionId" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-            //                     "funding" => "0",
-            //                     "id" => "117515",
-            //                     "slug" => "doge-up-or-down-1-hour-1778140801775",
-            //                     "title" => "DOGE Up or Down - 1 hour",
-            //                      "expirationDate" => "2026-05-07T09:00:00.000Z"
-            //                 ),
-            //                 "outcomeTokenAmount" => "10",
-            //                 "outcomeTokenAmounts" => array(
-            //                     "10",
-            //                     "0"
-            //                 ),
-            //                 "outcomeIndex" => 0,
-            //                 "outcomeTokenPrice" => "0.2",
-            //                 "strategy" => "Limit Buy",
-            //                 "transactionHash" => "0x1e1167f09bb65ad3037610ae4f2521b696f7109f535e148ea388d42fdb6e2a10"
-            //             }
-            //         ),
-            //         "nextCursor" => null
-            //     }
-            //
-            $data = $this->safe_list($response, 'data', array());
-            // $response contains both trade, settlement, split and merge history
-            // we filter out the settlements here and only return the $trades
-            $trades = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $item = $this->safe_dict($data, $i);
-                $strategy = $this->safe_string_lower($item, 'strategy');
-                if ($strategy !== null) {
-                    $buyIndex = mb_strpos($strategy, 'buy');
-                    $sellIndex = mb_strpos($strategy, 'sell');
-                    if (($buyIndex >= 0) || ($sellIndex >= 0)) {
-                        $trades[] = $item;
-                    }
+        return Async\async(self::do_fetch_my_trades(...))($outcome, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all $trades made by the user
+         *
+         * @see https://docs.limitless.exchange/api-reference/trades/get-$trades
+         *
+         * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of $trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+         */
+        // resolve the handle for the final filter — the caller may have passed an outcomeId
+        $outcomeSymbol = $outcome;
+        if ($outcome !== null) {
+            $outcomeObj = Async\await($this->load_outcome($outcome));
+            $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome');
+        }
+        $paginate = false;
+        $maxLimit = 100;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', $paginate);
+        if ($paginate) {
+            $params = $this->omit($params, 'paginate');
+            return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $outcome, $since, $limit, $params, 'nextCursor', 'cursor', null, $maxLimit));
+        }
+        $request = array();
+        if ($limit !== null) {
+            $request['limit'] = min($limit, $maxLimit);
+        }
+        $response = Async\await($this->limitlessPrivateGetPortfolioHistory($this->extend($request, $params)));
+        //
+        //     {
+        //         "data" => array(
+        //             array(
+        //                 "action" => "loss",
+        //                 "blockTimestamp" => 1778144400,
+        //                 "collateralAmount" => "2",
+        //                 "collateralSymbol" => "USDC",
+        //                 "collateralToken" => "7",
+        //                 "conditionId" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                 "market" => array(
+        //                     "closed" => true,
+        //                     "collateral" => array(
+        //                     "symbol" => "USDC",
+        //                     "id" => "7",
+        //                     "decimals" => 6),
+        //                     "group" => null,
+        //                     "condition_id" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "conditionId" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "funding" => "0",
+        //                     "id" => "117515",
+        //                     "slug" => "doge-up-or-down-1-hour-1778140801775",
+        //                     "title" => "DOGE Up or Down - 1 hour",
+        //                     "expirationDate" => "2026-05-07T09:00:00.000Z"
+        //                 ),
+        //                 "outcomeIndex" => 1,
+        //                 "pnl" => "-2000000",
+        //                 "title" => "DOGE Up or Down - 1 hour"
+        //             ),
+        //             {
+        //                 "blockTimestamp" => 1778144137,
+        //                 "collateralAmount" => "2",
+        //                 "market" => array(
+        //                     "closed" => true,
+        //                     "collateral" => array(
+        //                         "symbol" => "USDC",
+        //                         "id" => "7",
+        //                         "decimals" => 6
+        //                     ),
+        //                     "group" => null,
+        //                     "condition_id" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "conditionId" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "funding" => "0",
+        //                     "id" => "117515",
+        //                     "slug" => "doge-up-or-down-1-hour-1778140801775",
+        //                     "title" => "DOGE Up or Down - 1 hour",
+        //                      "expirationDate" => "2026-05-07T09:00:00.000Z"
+        //                 ),
+        //                 "outcomeTokenAmount" => "10",
+        //                 "outcomeTokenAmounts" => array(
+        //                     "10",
+        //                     "0"
+        //                 ),
+        //                 "outcomeIndex" => 0,
+        //                 "outcomeTokenPrice" => "0.2",
+        //                 "strategy" => "Limit Buy",
+        //                 "transactionHash" => "0x1e1167f09bb65ad3037610ae4f2521b696f7109f535e148ea388d42fdb6e2a10"
+        //             }
+        //         ),
+        //         "nextCursor" => null
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        // $response contains both trade, settlement, split and merge history
+        // we filter out the settlements here and only return the $trades
+        $trades = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $item = $this->safe_dict($data, $i);
+            $strategy = $this->safe_string_lower($item, 'strategy');
+            if ($strategy !== null) {
+                $buyIndex = mb_strpos($strategy, 'buy');
+                $sellIndex = mb_strpos($strategy, 'sell');
+                if (($buyIndex >= 0) || ($sellIndex >= 0)) {
+                    $trades[] = $item;
                 }
             }
-            $parsedTrades = $this->parse_prediction_trades($trades, null);
-            return $this->filter_by_outcome_since_limit($parsedTrades, $outcomeSymbol, $since, $limit);
-        })();
+        }
+        $parsedTrades = $this->parse_prediction_trades($trades, null);
+        return $this->filter_by_outcome_since_limit($parsedTrades, $outcomeSymbol, $since, $limit);
     }
 
     public function parse_prediction_trade(array $trade, ?array $market = null): array {
@@ -2697,121 +2737,123 @@ class limitless extends Exchange {
     }
 
     public function fetch_positions(?array $outcomes = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($outcomes, $params) {
-            /**
-             * fetches open positions for the authenticated limitless user from the portfolio endpoint
-             *
-             * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
-             *
-             * @param {string[]} [$outcomes] filter by outcome ids or $outcomes
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [prediction $position structures](https://docs.ccxt.com/#/?id=prediction-$position-structure)
-             */
-            $symbolsLength = 0;
-            if ($outcomes !== null) {
-                $symbolsLength = count($outcomes);
-            }
-            if ($symbolsLength > 0) {
-                Async\await($this->load_outcomes($outcomes));
-            }
-            // no bulk warm-up on the unfiltered path => the portfolio request is self-contained and
-            // $labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
-            $response = Async\await($this->limitlessPrivateGetPortfolioPositions($params));
-            //
-            //     {
-            //         "rewards" => array(
-            //                 "todaysRewards" => "0",
-            //                 "totalUnpaidRewards" => "0",
-            //                 "totalUserRewardsLastEpoch" => "0",
-            //                 "rewardsChartData" => array(),
-            //                 "rewardsByEpoch" => array()
-            //         ),
-            //         "points" => "0.00000000",
-            //         "accumulativePoints" => "0.00000000",
-            //         "amm" => array(),
-            //         "group" => array(),
-            //         "clob" => array(
-            //             {
-            //                 "market" => array(
-            //                     "slug" => "btc-above-dollar7982448-on-may-11-1000-utc-1777888806248",
-            //                     "status" => "FUNDED",
-            //                     "title" => "BTC Up or Down - 1 week",
-            //                     "conditionId" => "0xdcd8264cd09a6c50fca35eca24cda13e70f705e8b9ca7df7edb1c53d5e14ef91",
-            //                     "id" => 113280,
-            //                     "address" => null,
-            //                     "closed" => false,
-            //                     "expirationDate" => "2026-05-11T10:00:00.000Z",
-            //                     "deadline" => "2026-05-11T10:00:00.000Z",
-            //                     "negRiskRequestId" => null,
-            //                     "winningOutcomeIndex" => null,
-            //                     "yesPositionId" => "93872239373494820196551522390839917813776244436120184186867916673676200558660",
-            //                     "noPositionId" => "63415751165356883207530164011662686422066216695676262832702521399916548381548",
-            //                     "collateralToken" => array(
-            //                         "id" => 7,
-            //                         "decimals" => 6,
-            //                         "symbol" => "USDC",
-            //                         "address" => "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
-            //                     ),
-            //                     "venue" => array(
-            //                         "exchange" => "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
-            //                         "adapter" => null,
-            //                         "operator" => null
-            //                     ),
-            //                     "group" => array()
-            //                 ),
-            //                 "latestTrade" => array(
-            //                     "outcomeTokenPrice" => 0.991,
-            //                     "latestNoPrice" => 0.009,
-            //                     "latestYesPrice" => 0.991
-            //                 ),
-            //                 "orders" => array(
-            //                     "liveOrders" => array(),
-            //                     "totalCollateralLocked" => "0"
-            //                 ),
-            //                 "positions" => {
-            //                     "no" => array(
-            //                         "cost" => "0",
-            //                         "fillPrice" => "0",
-            //                         "marketValue" => "0",
-            //                         "realisedPnl" => "0",
-            //                         "unrealizedPnl" => "0"
-            //                     ),
-            //                     "yes" => array(
-            //                         "cost" => "995720",
-            //                         "fillPrice" => "991000",
-            //                         "marketValue" => "999919",
-            //                         "realisedPnl" => "0",
-            //                         "unrealizedPnl" => "0"
-            //                     }
-            //                 ),
-            //                 "tokensBalance" => array(
-            //                     "no" => "0",
-            //                     "yes" => "1004763"
-            //                 ),
-            //                 "rewards" => array(
-            //                     "isEarning" => false,
-            //                     "epochs" => array()
-            //                 ),
-            //                 "makerAddress" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36"
-            //             }
-            //         )
-            //     }
-            //
-            $clob = $this->safe_list($response, 'clob', array());
-            $result = array();
-            $labels = array( 'yes', 'no' );
-            for ($i = 0; $i < count($clob); $i++) {
-                $entry = $this->safe_dict($clob, $i);
-                for ($j = 0; $j < count($labels); $j++) {
-                    $label = $this->safe_string($labels, $j);
-                    $position = $this->get_position_from_clob_entry($label, $entry);
-                    if ($position !== null) {
-                        $result[] = $position;
-                    }
+        return Async\async(self::do_fetch_positions(...))($outcomes, $params);
+    }
+
+    private function do_fetch_positions(?array $outcomes = null, $params = array()) {
+        /**
+         * fetches open positions for the authenticated limitless user from the portfolio endpoint
+         *
+         * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
+         *
+         * @param {string[]} [$outcomes] filter by outcome ids or $outcomes
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [prediction $position structures](https://docs.ccxt.com/#/?id=prediction-$position-structure)
+         */
+        $symbolsLength = 0;
+        if ($outcomes !== null) {
+            $symbolsLength = count($outcomes);
+        }
+        if ($symbolsLength > 0) {
+            Async\await($this->load_outcomes($outcomes));
+        }
+        // no bulk warm-up on the unfiltered path => the portfolio request is self-contained and
+        // $labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
+        $response = Async\await($this->limitlessPrivateGetPortfolioPositions($params));
+        //
+        //     {
+        //         "rewards" => array(
+        //                 "todaysRewards" => "0",
+        //                 "totalUnpaidRewards" => "0",
+        //                 "totalUserRewardsLastEpoch" => "0",
+        //                 "rewardsChartData" => array(),
+        //                 "rewardsByEpoch" => array()
+        //         ),
+        //         "points" => "0.00000000",
+        //         "accumulativePoints" => "0.00000000",
+        //         "amm" => array(),
+        //         "group" => array(),
+        //         "clob" => array(
+        //             {
+        //                 "market" => array(
+        //                     "slug" => "btc-above-dollar7982448-on-may-11-1000-utc-1777888806248",
+        //                     "status" => "FUNDED",
+        //                     "title" => "BTC Up or Down - 1 week",
+        //                     "conditionId" => "0xdcd8264cd09a6c50fca35eca24cda13e70f705e8b9ca7df7edb1c53d5e14ef91",
+        //                     "id" => 113280,
+        //                     "address" => null,
+        //                     "closed" => false,
+        //                     "expirationDate" => "2026-05-11T10:00:00.000Z",
+        //                     "deadline" => "2026-05-11T10:00:00.000Z",
+        //                     "negRiskRequestId" => null,
+        //                     "winningOutcomeIndex" => null,
+        //                     "yesPositionId" => "93872239373494820196551522390839917813776244436120184186867916673676200558660",
+        //                     "noPositionId" => "63415751165356883207530164011662686422066216695676262832702521399916548381548",
+        //                     "collateralToken" => array(
+        //                         "id" => 7,
+        //                         "decimals" => 6,
+        //                         "symbol" => "USDC",
+        //                         "address" => "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        //                     ),
+        //                     "venue" => array(
+        //                         "exchange" => "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //                         "adapter" => null,
+        //                         "operator" => null
+        //                     ),
+        //                     "group" => array()
+        //                 ),
+        //                 "latestTrade" => array(
+        //                     "outcomeTokenPrice" => 0.991,
+        //                     "latestNoPrice" => 0.009,
+        //                     "latestYesPrice" => 0.991
+        //                 ),
+        //                 "orders" => array(
+        //                     "liveOrders" => array(),
+        //                     "totalCollateralLocked" => "0"
+        //                 ),
+        //                 "positions" => {
+        //                     "no" => array(
+        //                         "cost" => "0",
+        //                         "fillPrice" => "0",
+        //                         "marketValue" => "0",
+        //                         "realisedPnl" => "0",
+        //                         "unrealizedPnl" => "0"
+        //                     ),
+        //                     "yes" => array(
+        //                         "cost" => "995720",
+        //                         "fillPrice" => "991000",
+        //                         "marketValue" => "999919",
+        //                         "realisedPnl" => "0",
+        //                         "unrealizedPnl" => "0"
+        //                     }
+        //                 ),
+        //                 "tokensBalance" => array(
+        //                     "no" => "0",
+        //                     "yes" => "1004763"
+        //                 ),
+        //                 "rewards" => array(
+        //                     "isEarning" => false,
+        //                     "epochs" => array()
+        //                 ),
+        //                 "makerAddress" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36"
+        //             }
+        //         )
+        //     }
+        //
+        $clob = $this->safe_list($response, 'clob', array());
+        $result = array();
+        $labels = array( 'yes', 'no' );
+        for ($i = 0; $i < count($clob); $i++) {
+            $entry = $this->safe_dict($clob, $i);
+            for ($j = 0; $j < count($labels); $j++) {
+                $label = $this->safe_string($labels, $j);
+                $position = $this->get_position_from_clob_entry($label, $entry);
+                if ($position !== null) {
+                    $result[] = $position;
                 }
             }
-            return $result;
-        })();
+        }
+        return $result;
     }
 
     public function get_position_from_clob_entry(?string $label, ?array $entry = null) {
@@ -2896,228 +2938,234 @@ class limitless extends Exchange {
     }
 
     public function fetch_events($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance
-             *
-             * @see https://docs.limitless.exchange/api-reference/markets/search
-             *
-             * @param {array} [$params] extra exchange-specific parameters
-             * @param {string} [$params->query] a single search term; an eventId/slug does a direct lookup and tags resolve to limitless categories, paging only those categories' listings
-             * @param {string[]} [$params->queries] multiple search terms (alternative to query)
-             * @param {string[]} [$params->tags] category names to scope by (matched against GET /categories, e.g. ['crypto'])
-             * @param {string} [$params->eventId] direct lookup by market address or slug
-             * @param {int} [$params->limit] maximum number of markets per query, defaults to 50
-             * @return {array[]} an array of event structures
-             */
-            $this->require_event_query($params);
-            $queries = $this->parse_search_queries($params);
-            if ($queries === null) {
-                throw new ExchangeError($this->id . ' fetchEvents() missing queries');
-            }
-            $queriesLength = count($queries);
-            $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ));
-            $eventId = $this->safe_string_2($params, 'eventId', 'slug');
-            // always fetch fresh from the API (never serve the possibly-cold cache) => a query searches, an
-            // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
-            $rawMarkets = array();
-            if ($queriesLength > 0) {
-                $requestedLimit = $this->safe_integer($params, 'limit', 50);
-                // the search endpoint rejects $limit > 50 - cap the per-query request
-                $limit = min($requestedLimit, 50);
-                $seen = array();
-                for ($i = 0; $i < count($queries); $i++) {
-                    if ($queries === null) {
-                        throw new ExchangeError($this->id . ' fetchEvents() missing queries');
+        return Async\async(self::do_fetch_events(...))($params);
+    }
+
+    private function do_fetch_events($params = array()) {
+        /**
+         * fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance
+         *
+         * @see https://docs.limitless.exchange/api-reference/markets/search
+         *
+         * @param {array} [$params] extra exchange-specific parameters
+         * @param {string} [$params->query] a single search term; an eventId/slug does a direct lookup and tags resolve to limitless categories, paging only those categories' listings
+         * @param {string[]} [$params->queries] multiple search terms (alternative to query)
+         * @param {string[]} [$params->tags] category names to scope by (matched against GET /categories, e.g. ['crypto'])
+         * @param {string} [$params->eventId] direct lookup by market address or slug
+         * @param {int} [$params->limit] maximum number of markets per query, defaults to 50
+         * @return {array[]} an array of event structures
+         */
+        $this->require_event_query($params);
+        $queries = $this->parse_search_queries($params);
+        if ($queries === null) {
+            throw new ExchangeError($this->id . ' fetchEvents() missing queries');
+        }
+        $queriesLength = count($queries);
+        $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ));
+        $eventId = $this->safe_string_2($params, 'eventId', 'slug');
+        // always fetch fresh from the API (never serve the possibly-cold cache) => a query searches, an
+        // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
+        $rawMarkets = array();
+        if ($queriesLength > 0) {
+            $requestedLimit = $this->safe_integer($params, 'limit', 50);
+            // the search endpoint rejects $limit > 50 - cap the per-query request
+            $limit = min($requestedLimit, 50);
+            $seen = array();
+            for ($i = 0; $i < count($queries); $i++) {
+                if ($queries === null) {
+                    throw new ExchangeError($this->id . ' fetchEvents() missing queries');
+                }
+                $q = $queries[$i];
+                $response = Async\await($this->limitlessPublicGetMarketsSearch($this->extend(array(
+                    'query' => $q,
+                    'limit' => $limit,
+                ), $rest)));
+                $found = $this->safe_list($response, 'markets', array());
+                for ($j = 0; $j < count($found); $j++) {
+                    $raw = $found[$j];
+                    $rawSlug = $this->safe_string($raw, 'slug');
+                    if ($rawSlug && !(is_array($seen) && array_key_exists($rawSlug ?? '', $seen))) {
+                        $seen[$rawSlug] = true;
+                        $rawMarkets[] = $raw;
                     }
-                    $q = $queries[$i];
-                    $response = Async\await($this->limitlessPublicGetMarketsSearch($this->extend(array(
-                        'query' => $q,
-                        'limit' => $limit,
-                    ), $rest)));
-                    $found = $this->safe_list($response, 'markets', array());
-                    for ($j = 0; $j < count($found); $j++) {
-                        $raw = $found[$j];
-                        $rawSlug = $this->safe_string($raw, 'slug');
-                        if ($rawSlug && !(is_array($seen) && array_key_exists($rawSlug ?? '', $seen))) {
-                            $seen[$rawSlug] = true;
-                            $rawMarkets[] = $raw;
-                        }
-                    }
-                }
-            } elseif ($eventId !== null) {
-                $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug($this->extend(array( 'addressOrSlug' => $eventId ), $rest)));
-                $rawMarkets[] = $response;
-            } else {
-                // tags scope => resolve the tags to limitless categories and page only those
-                // categories' listings server-side — never the whole active listing
-                $requestedTags = $this->safe_list($params, 'tags', array());
-                $listRaw = Async\await($this->fetch_raw_markets_by_tags($requestedTags, $params));
-                $listRawLength = count($listRaw);
-                for ($i = 0; $i < $listRawLength; $i++) {
-                    $rawMarkets[] = $listRaw[$i];
                 }
             }
-            if (!$this->events) {
-                $this->events = array();
+        } elseif ($eventId !== null) {
+            $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug($this->extend(array( 'addressOrSlug' => $eventId ), $rest)));
+            $rawMarkets[] = $response;
+        } else {
+            // tags scope => resolve the tags to limitless categories and page only those
+            // categories' listings server-side — never the whole active listing
+            $requestedTags = $this->safe_list($params, 'tags', array());
+            $listRaw = Async\await($this->fetch_raw_markets_by_tags($requestedTags, $params));
+            $listRawLength = count($listRaw);
+            for ($i = 0; $i < $listRawLength; $i++) {
+                $rawMarkets[] = $listRaw[$i];
             }
-            if (!$this->markets) {
-                $this->markets = $this->create_safe_dictionary();
+        }
+        if (!$this->events) {
+            $this->events = array();
+        }
+        if (!$this->markets) {
+            $this->markets = $this->create_safe_dictionary();
+        }
+        $eventGroups = array();
+        // group rows carry their tradeable children in a nested `markets` list — expand them
+        // into regular rows before parsing (a group row itself has no tokens)
+        $expandedMarkets = $this->expand_group_rows($rawMarkets);
+        $rawMarketsLength = count($expandedMarkets);
+        for ($i = 0; $i < $rawMarketsLength; $i++) {
+            $raw = $expandedMarkets[$i];
+            $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
+            $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
+            $m = $this->parse_market($raw);
+            if ($m === null) {
+                throw new ExchangeError($this->id . ' fetchEvents() missing m');
             }
-            $eventGroups = array();
-            // group rows carry their tradeable children in a nested `markets` list — expand them
-            // into regular rows before parsing (a group row itself has no tokens)
-            $expandedMarkets = $this->expand_group_rows($rawMarkets);
-            $rawMarketsLength = count($expandedMarkets);
-            for ($i = 0; $i < $rawMarketsLength; $i++) {
-                $raw = $expandedMarkets[$i];
-                $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
-                $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
-                $m = $this->parse_market($raw);
-                if ($m === null) {
-                    throw new ExchangeError($this->id . ' fetchEvents() missing m');
+            $this->markets[$m['market']] = $m;
+            if ($eventKey) {
+                if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
+                    $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                 }
-                $this->markets[$m['market']] = $m;
-                if ($eventKey) {
-                    if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
-                        $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
-                    }
-                    $eventGroup = $eventGroups[$eventKey];
-                    // push through a local and write the slice back — the go transpiler's
-                    // AppendToArray reassigns only a local copy of a map-stored array, so a
-                    // direct push on $eventGroup['markets'] loses the element in go
-                    $groupMarkets = $eventGroup['markets'];
-                    $groupMarkets[] = $m;
-                    $eventGroup['markets'] = $groupMarkets;
-                }
+                $eventGroup = $eventGroups[$eventKey];
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array, so a
+                // direct push on $eventGroup['markets'] loses the element in go
+                $groupMarkets = $eventGroup['markets'];
+                $groupMarkets[] = $m;
+                $eventGroup['markets'] = $groupMarkets;
             }
-            $result = array();
-            $eventKeys = is_array($eventGroups) ? array_keys($eventGroups) : array();
-            $eventKeysLength = count($eventKeys);
-            for ($i = 0; $i < $eventKeysLength; $i++) {
-                $g = $eventGroups[$eventKeys[$i]];
-                $ev = $this->parse_event($g);
-                $result[] = $ev;
-            }
-            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
-            $this->set_events($result);
-            $this->populate_outcomes();
-            // the limitless search endpoint is FUZZY — it returns nearest-neighbour markets even
-            // for $queries that match nothing — so default searchIn to 'both' to post-filter the
-            // results literally by title/description (an explicit $params->searchIn still wins).
-            // tags were already applied server-side (category-scoped listing); strip them before the
-            // client-side pass — events built from $raw markets carry venue tags, not category names,
-            // so the base tag filter would wrongly drop server-matched events
-            $searchParams = $this->extend(array( 'searchIn' => 'both' ), $params);
-            $postParams = $this->omit($searchParams, array( 'tags' ));
-            return $this->apply_event_fetch_params($result, $postParams, $queries);
-        })();
+        }
+        $result = array();
+        $eventKeys = is_array($eventGroups) ? array_keys($eventGroups) : array();
+        $eventKeysLength = count($eventKeys);
+        for ($i = 0; $i < $eventKeysLength; $i++) {
+            $g = $eventGroups[$eventKeys[$i]];
+            $ev = $this->parse_event($g);
+            $result[] = $ev;
+        }
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        $this->set_events($result);
+        $this->populate_outcomes();
+        // the limitless search endpoint is FUZZY — it returns nearest-neighbour markets even
+        // for $queries that match nothing — so default searchIn to 'both' to post-filter the
+        // results literally by title/description (an explicit $params->searchIn still wins).
+        // tags were already applied server-side (category-scoped listing); strip them before the
+        // client-side pass — events built from $raw markets carry venue tags, not category names,
+        // so the base tag filter would wrongly drop server-matched events
+        $searchParams = $this->extend(array( 'searchIn' => 'both' ), $params);
+        $postParams = $this->omit($searchParams, array( 'tags' ));
+        return $this->apply_event_fetch_params($result, $postParams, $queries);
     }
 
     public function fetch_raw_active_markets($params = array(), ?string $categoryId = null): PromiseInterface {
-        return Async\async(function () use ($params, $categoryId) {
-            /**
-             * @ignore
-             * pages the active-markets listing (or a single category's listing), bounded by limit (or options.fetchMarketsLimit)
-             * @param {array} [$params] extra exchange-specific parameters
-             * @param {int} [$params->limit] max number of raw markets to collect
-             * @param {string} [$categoryId] a limitless category id — pages only that category's listing
-             * @return {array[]} raw limitless market objects
-             */
-            $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
-            $pageSize = $this->safe_integer($this->options, 'marketsPageSize', 25);
-            $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ));
-            $allRaw = array();
-            $page = 1;
-            $collected = 0;
-            while (true) {
-                $request = array( 'page' => $page, 'limit' => $pageSize );
-                $response = null;
-                if ($categoryId !== null) {
-                    $request['categoryId'] = $categoryId;
-                    $response = Async\await($this->limitlessPublicGetMarketsActiveCategoryId($this->extend($request, $rest)));
-                } else {
-                    $response = Async\await($this->limitlessPublicGetMarketsActive($this->extend($request, $rest)));
-                }
-                $data = $this->safe_list($response, 'data', array());
-                $dataLength = count($data);
-                if ($dataLength === 0) {
-                    break;
-                }
-                for ($i = 0; $i < $dataLength; $i++) {
-                    if ($collected < $maxMarkets) {
-                        $allRaw[] = $data[$i];
-                        $collected = $this->sum($collected, 1);
-                    }
-                }
-                $page = $this->sum($page, 1);
-                if ($dataLength < $pageSize || $collected >= $maxMarkets) {
-                    break;
+        return Async\async(self::do_fetch_raw_active_markets(...))($params, $categoryId);
+    }
+
+    private function do_fetch_raw_active_markets($params = array(), ?string $categoryId = null) {
+        /**
+         * @ignore
+         * pages the active-markets listing (or a single category's listing), bounded by limit (or options.fetchMarketsLimit)
+         * @param {array} [$params] extra exchange-specific parameters
+         * @param {int} [$params->limit] max number of raw markets to collect
+         * @param {string} [$categoryId] a limitless category id — pages only that category's listing
+         * @return {array[]} raw limitless market objects
+         */
+        $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
+        $pageSize = $this->safe_integer($this->options, 'marketsPageSize', 25);
+        $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ));
+        $allRaw = array();
+        $page = 1;
+        $collected = 0;
+        while (true) {
+            $request = array( 'page' => $page, 'limit' => $pageSize );
+            $response = null;
+            if ($categoryId !== null) {
+                $request['categoryId'] = $categoryId;
+                $response = Async\await($this->limitlessPublicGetMarketsActiveCategoryId($this->extend($request, $rest)));
+            } else {
+                $response = Async\await($this->limitlessPublicGetMarketsActive($this->extend($request, $rest)));
+            }
+            $data = $this->safe_list($response, 'data', array());
+            $dataLength = count($data);
+            if ($dataLength === 0) {
+                break;
+            }
+            for ($i = 0; $i < $dataLength; $i++) {
+                if ($collected < $maxMarkets) {
+                    $allRaw[] = $data[$i];
+                    $collected = $this->sum($collected, 1);
                 }
             }
-            return $allRaw;
-        })();
+            $page = $this->sum($page, 1);
+            if ($dataLength < $pageSize || $collected >= $maxMarkets) {
+                break;
+            }
+        }
+        return $allRaw;
     }
 
     public function fetch_raw_markets_by_tags(array $tags, $params = array()): PromiseInterface {
-        return Async\async(function () use ($tags, $params) {
-            /**
-             * @ignore
-             * resolves the requested $tags to limitless $categories via GET /categories, then pages only those categories' active listings server-side
-             * @param {string[]} $tags tag/category names to match (case-insensitive substring match on the $category $name)
-             * @param {array} [$params] extra exchange-specific parameters
-             * @param {int} [$params->limit] max number of $raw markets to collect per $category
-             * @return {array[]} $raw limitless market objects, deduped by $slug
-             */
-            $categoriesResponse = Async\await($this->limitlessPublicGetCategories());
-            $categories = array();
-            if ((gettype($categoriesResponse) === 'array' && array_keys($categoriesResponse) === array_keys(array_keys($categoriesResponse)))) {
-                $categories = $categoriesResponse;
-            }
-            $wanted = array();
-            for ($i = 0; $i < count($tags); $i++) {
-                $wanted[] = strtolower($tags[$i]);
-            }
-            $categoryIds = array();
-            $categoriesLength = count($categories);
-            for ($i = 0; $i < $categoriesLength; $i++) {
-                $category = $categories[$i];
-                $name = $this->safe_string_lower($category, 'name', '');
-                $categoryId = $this->safe_string($category, 'id');
-                $matched = false;
-                for ($wi = 0; $wi < count($wanted); $wi++) {
-                    if ($name === null) {
-                        throw new ExchangeError($this->id . ' fetchRawMarketsByTags() missing name');
-                    }
-                    if (mb_strpos($name, $wanted[$wi]) !== false) {
-                        $matched = true;
-                        break;
-                    }
+        return Async\async(self::do_fetch_raw_markets_by_tags(...))($tags, $params);
+    }
+
+    private function do_fetch_raw_markets_by_tags(array $tags, $params = array()) {
+        /**
+         * @ignore
+         * resolves the requested $tags to limitless $categories via GET /categories, then pages only those categories' active listings server-side
+         * @param {string[]} $tags tag/category names to match (case-insensitive substring match on the $category $name)
+         * @param {array} [$params] extra exchange-specific parameters
+         * @param {int} [$params->limit] max number of $raw markets to collect per $category
+         * @return {array[]} $raw limitless market objects, deduped by $slug
+         */
+        $categoriesResponse = Async\await($this->limitlessPublicGetCategories());
+        $categories = array();
+        if ((gettype($categoriesResponse) === 'array' && array_keys($categoriesResponse) === array_keys(array_keys($categoriesResponse)))) {
+            $categories = $categoriesResponse;
+        }
+        $wanted = array();
+        for ($i = 0; $i < count($tags); $i++) {
+            $wanted[] = strtolower($tags[$i]);
+        }
+        $categoryIds = array();
+        $categoriesLength = count($categories);
+        for ($i = 0; $i < $categoriesLength; $i++) {
+            $category = $categories[$i];
+            $name = $this->safe_string_lower($category, 'name', '');
+            $categoryId = $this->safe_string($category, 'id');
+            $matched = false;
+            for ($wi = 0; $wi < count($wanted); $wi++) {
+                if ($name === null) {
+                    throw new ExchangeError($this->id . ' fetchRawMarketsByTags() missing name');
                 }
-                if ($matched && ($categoryId !== null)) {
-                    $categoryIds[] = $categoryId;
-                }
-            }
-            $categoryIdsLength = count($categoryIds);
-            if ($categoryIdsLength === 0) {
-                throw new BadRequest($this->id . ' fetchEvents() could not match the requested $tags to any limitless $category — GET /categories lists the valid names');
-            }
-            $seen = array();
-            $allRaw = array();
-            for ($ci = 0; $ci < $categoryIdsLength; $ci++) {
-                $categoryMarkets = Async\await($this->fetch_raw_active_markets($params, $categoryIds[$ci]));
-                $categoryMarketsLength = count($categoryMarkets);
-                for ($mi = 0; $mi < $categoryMarketsLength; $mi++) {
-                    $raw = $categoryMarkets[$mi];
-                    $slug = $this->safe_string($raw, 'slug');
-                    if (($slug !== null) && !(is_array($seen) && array_key_exists($slug ?? '', $seen))) {
-                        $seen[$slug] = true;
-                        $allRaw[] = $raw;
-                    }
+                if (mb_strpos($name, $wanted[$wi]) !== false) {
+                    $matched = true;
+                    break;
                 }
             }
-            return $allRaw;
-        })();
+            if ($matched && ($categoryId !== null)) {
+                $categoryIds[] = $categoryId;
+            }
+        }
+        $categoryIdsLength = count($categoryIds);
+        if ($categoryIdsLength === 0) {
+            throw new BadRequest($this->id . ' fetchEvents() could not match the requested $tags to any limitless $category — GET /categories lists the valid names');
+        }
+        $seen = array();
+        $allRaw = array();
+        for ($ci = 0; $ci < $categoryIdsLength; $ci++) {
+            $categoryMarkets = Async\await($this->fetch_raw_active_markets($params, $categoryIds[$ci]));
+            $categoryMarketsLength = count($categoryMarkets);
+            for ($mi = 0; $mi < $categoryMarketsLength; $mi++) {
+                $raw = $categoryMarkets[$mi];
+                $slug = $this->safe_string($raw, 'slug');
+                if (($slug !== null) && !(is_array($seen) && array_key_exists($slug ?? '', $seen))) {
+                    $seen[$slug] = true;
+                    $allRaw[] = $raw;
+                }
+            }
+        }
+        return $allRaw;
     }
 
     public function sign(mixed $path, mixed $section = 'limitless', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
