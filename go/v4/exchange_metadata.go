@@ -3,7 +3,7 @@ package ccxt
 var Version string = "4.5.71"
 
 // GetCcxtVersion returns the version of the ccxt library, e.g. "4.5.54"
-func (this *Exchange) GetCcxtVersion() string {
+func (this *BaseExchange) GetCcxtVersion() string {
 	return Version
 }
 
