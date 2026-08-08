@@ -2728,10 +2728,6 @@ public partial class whitebit : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        if (isTrue(isEqual(timeout, null)))
-        {
-            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
-        }
         if (isTrue(isBiggerThanZero))
         {
             ((IDictionary<string,object>)request)["timeout"] = this.numberToString(divide(timeout, 1000));
