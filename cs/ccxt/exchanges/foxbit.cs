@@ -2288,6 +2288,8 @@ public partial class foxbit : Exchange
         }
         headers = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
+            { "X-FB-CLIENT", "ccxt" },
+            { "X-FB-CLIENT-VERSION", this.getCcxtVersion() },
         };
         if (isTrue(isEqual(urlPath, "private")))
         {
