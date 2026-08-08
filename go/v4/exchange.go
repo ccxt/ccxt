@@ -31,6 +31,7 @@ import (
 )
 
 type BaseExchange struct {
+	wsBackoffState map[string][]int64 // per-url reconnect attempts + lastAttempt, see CalculateWsBackoffDelay
 	MarketsMutex *sync.Mutex
 	// cachedCurrenciesMutex  sync.Mutex
 	loadMu                 sync.Mutex
@@ -1775,6 +1776,10 @@ func (this *BaseExchange) Watch(args ...any) <-chan any {
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
 	client.ConnectMu.Lock()
+	if !client.StartedConnecting {
+		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+		backoffDelay = this.CalculateWsBackoffDelay(url)
+	}
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
@@ -2096,6 +2101,10 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
 	client.ConnectMu.Lock()
+	if !client.StartedConnecting {
+		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+		backoffDelay = this.CalculateWsBackoffDelay(url)
+	}
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
@@ -2414,3 +2423,45 @@ func (e *BaseExchange) GetFetchCache() []any {
 }
 
 // #########################################
+
+// CalculateWsBackoffDelay implements exponential reconnect backoff with rng-free jitter,
+// mirroring ts/src/base/Exchange.ts calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
+func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
+	if this.wsBackoffState == nil {
+		this.wsBackoffState = map[string][]int64{}
+	}
+	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{})
+	backoff := SafeValue(wsOptions, "backoff", map[string]interface{}{})
+	base := ParseInt(SafeInteger(backoff, "base", 1000))
+	factor := ParseInt(SafeInteger(backoff, "factor", 2))
+	maxDelay := ParseInt(SafeInteger(backoff, "max", 60000))
+	stableAfter := ParseInt(SafeInteger(backoff, "stableAfter", 30000))
+	now := this.Milliseconds()
+	state, ok := this.wsBackoffState[url]
+	if !ok {
+		state = []int64{0, 0} // attempts, lastAttempt
+	}
+	attempts := state[0]
+	lastAttempt := state[1]
+	if lastAttempt > 0 && (now-lastAttempt) > stableAfter {
+		attempts = 0 // the previous connection was healthy long enough, start fresh
+	}
+	this.wsBackoffState[url] = []int64{attempts + 1, now}
+	if attempts == 0 {
+		return 0 // first dial or recovered, connect immediately
+	}
+	delay := base
+	capped := attempts
+	if capped > 20 {
+		capped = 20 // overflow guard
+	}
+	for i := int64(1); i < capped; i++ {
+		delay = delay * factor
+	}
+	jitterMillis := now % 1000 // rng-free jitter
+	jittered := int64(float64(delay) * (0.8 + float64(jitterMillis)/2500.0)) // 0.8x .. 1.2x
+	if jittered > maxDelay {
+		jittered = maxDelay // the ceiling holds regardless of jitter
+	}
+	return int(jittered)
+}
