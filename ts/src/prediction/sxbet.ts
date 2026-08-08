@@ -2746,6 +2746,12 @@ export default class sxbet extends Exchange {
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
             const row = rows[i];
+            // fills stream through as PENDING first and re-arrive as SUCCESS on confirmation -
+            // keep only confirmed fills, matching the REST tape's tradeStatus=SUCCESS default
+            const tradeStatus = this.safeString2 (row, 'tradeStatus', 'status');
+            if (tradeStatus !== 'SUCCESS') {
+                continue;
+            }
             const trade = this.parsePredictionTrade (row);
             const sym = this.safeString (trade, 'outcome');
             if (sym === undefined) {
