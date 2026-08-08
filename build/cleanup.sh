@@ -50,6 +50,7 @@ restore examples
 restore go/v4/exchange_metadata.go
 restore go/v4/pro/exchange_metadata.go
 restore wiki/Exchange-Markets.md
+restore wiki/Exchange-Markets-By-Country.md
 restore wiki/Manual.md
 restore exchanges.json
 
