@@ -759,7 +759,7 @@ export default class binance extends Exchange {
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
                         'markPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
                         'premiumIndexKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'ticker/bookTicker': { 'cost': 2, 'noSymbol': 5 } as Endpoint<List>,
                         'constituents': { 'cost': 2 } as Endpoint<Dict>,
@@ -853,7 +853,7 @@ export default class binance extends Exchange {
                         'fundingRate': { 'cost': 1 } as Endpoint<List>,
                         'fundingInfo': { 'cost': 1 } as Endpoint<List>,
                         'premiumIndex': { 'cost': 1 } as Endpoint<List>,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'openInterest': { 'cost': 1 } as Endpoint<Dict>,
@@ -917,7 +917,7 @@ export default class binance extends Exchange {
                         'trade/asyn': { 'cost': 1000 } as Endpoint<Dict>,
                         'trade/asyn/id': { 'cost': 10 } as Endpoint<Dict>,
                         'feeBurn': { 'cost': 1 } as Endpoint<Dict>,
-                        'symbolConfig': { 'cost': 5 } as Endpoint<Dict>,
+                        'symbolConfig': { 'cost': 5 } as Endpoint<List>,
                         'accountConfig': { 'cost': 5 } as Endpoint<Dict>,
                         'convert/orderStatus': { 'cost': 5 } as Endpoint<Dict>,
                         // conditional orders
@@ -958,7 +958,7 @@ export default class binance extends Exchange {
                         'listenKey': { 'cost': 1 } as Endpoint<Dict>,
                         // conditional orders
                         'algoOrder': { 'cost': 1 } as Endpoint<Dict>,
-                        'algoOpenOrders': { 'cost': 1 } as Endpoint<List>,
+                        'algoOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'fapiPublicV2': {
@@ -1056,7 +1056,7 @@ export default class binance extends Exchange {
                         'historicalTrades': { 'cost': 2 } as Endpoint<List>, // Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'klines': { 'cost': 0.4 } as Endpoint<List>,
                         'uiKlines': { 'cost': 0.4 } as Endpoint<List>,
-                        'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 } as Endpoint<List>,
+                        'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 } as Endpoint<Dict | List>,
                         'ticker': { 'cost': 0.4, 'noSymbol': 16 } as Endpoint<List>,
                         'ticker/tradingDay': { 'cost': 0.8 } as Endpoint<Dict>,
                         'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 } as Endpoint<List>,
@@ -1082,7 +1082,7 @@ export default class binance extends Exchange {
                         'order': { 'cost': 0.8 } as Endpoint<Dict>,
                         'openOrders': { 'cost': 1.2, 'noSymbol': 16 } as Endpoint<List>,
                         'allOrders': { 'cost': 4 } as Endpoint<List>,
-                        'account': { 'cost': 4 } as Endpoint<List>,
+                        'account': { 'cost': 4 } as Endpoint<Dict>,
                         'myTrades': { 'cost': 4 } as Endpoint<List>,
                         'rateLimit/order': { 'cost': 8 } as Endpoint<List>, // Weight(IP): 40 => cost = 0.2 * 40 = 8
                         'myPreventedMatches': { 'cost': 4 } as Endpoint<List>, // Weight(IP): 20 => cost = 0.2 * 20 = 4

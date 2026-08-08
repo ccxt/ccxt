@@ -166,7 +166,7 @@ export default class btcturk extends Exchange {
                 'graph': {
                     'get': {
                         'ohlcs': { 'cost': 1 } as Endpoint<List>,
-                        'klines/history': { 'cost': 1 } as Endpoint<List>,
+                        'klines/history': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },

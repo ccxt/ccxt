@@ -212,13 +212,13 @@ export default class aster extends Exchange {
                         'v1/markPriceKlines': { 'cost': 1 } as Endpoint<List>,
                         'v3/markPriceKlines': { 'cost': 1 } as Endpoint<List>, // same as klines
                         'v1/premiumIndex': { 'cost': 1 } as Endpoint<Dict>,
-                        'v3/premiumIndex': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/premiumIndex': { 'cost': 1 } as Endpoint<Dict | List>,
                         'v1/fundingRate': { 'cost': 1 } as Endpoint<List>,
                         'v3/fundingRate': { 'cost': 1 } as Endpoint<List>,
                         'v1/fundingInfo': { 'cost': 1 } as Endpoint<List>,
                         'v3/fundingInfo': { 'cost': 1 } as Endpoint<List>,
                         'v1/ticker/24hr': { 'cost': 1 } as Endpoint<List>,
-                        'v3/ticker/24hr': { 'cost': 1 } as Endpoint<List>, // 1 single-symbol, otherwise 40
+                        'v3/ticker/24hr': { 'cost': 1 } as Endpoint<Dict | List>, // 1 single-symbol, otherwise 40
                         'v1/ticker/price': { 'cost': 1 } as Endpoint<List>,
                         'v3/ticker/price': { 'cost': 1 } as Endpoint<List>, // 1 single-symbol, otherwise 2
                         'v1/ticker/bookTicker': { 'cost': 1 } as Endpoint<List>,
@@ -244,7 +244,7 @@ export default class aster extends Exchange {
                         'v1/allOrders': { 'cost': 1 } as Endpoint<List>,
                         'v3/allOrders': { 'cost': 1 } as Endpoint<List>,
                         'v2/balance': { 'cost': 1 } as Endpoint<List>,
-                        'v3/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/balance': { 'cost': 1 } as Endpoint<List>,
                         'v3/account': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/positionMargin/history': { 'cost': 1 } as Endpoint<List>,
                         'v3/positionMargin/history': { 'cost': 1 } as Endpoint<List>,
@@ -344,7 +344,7 @@ export default class aster extends Exchange {
                         'v3/historicalTrades': { 'cost': 20 } as Endpoint<List>,
                         'v3/aggTrades': { 'cost': 20 } as Endpoint<List>,
                         'v3/klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>, // todo: not specified in docs
-                        'v3/ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        'v3/ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
                         'v3/ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'v3/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'v3/aster/withdraw/estimateFee': { 'cost': 1 } as Endpoint<Dict>,

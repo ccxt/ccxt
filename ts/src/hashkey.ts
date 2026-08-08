@@ -225,7 +225,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/getBestOrder': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/coinInfo': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/account/vipInfo': { 'cost': 1 } as Endpoint<Dict>,
-                        'api/v1/account': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/account': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/account/trades': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/account/type': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/account/chainType': { 'cost': 1 } as Endpoint<List>,

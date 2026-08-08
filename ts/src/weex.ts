@@ -211,7 +211,7 @@ export default class weex extends Exchange {
                         'api/v3/ping': { 'cost': 5 } as Endpoint<Dict>, // done
                         'api/v3/apiTradingSymbols': { 'cost': 25 } as Endpoint<List>, // not unified
                         'api/v3/market/ticker/price': { 'cost': 20 } as Endpoint<List>, // not unified
-                        'api/v3/market/ticker/24hr': { 'cost': 10 } as Endpoint<List>, // done
+                        'api/v3/market/ticker/24hr': { 'cost': 10 } as Endpoint<Dict | List>, // done
                         'api/v3/market/trades': { 'cost': 125 } as Endpoint<List>, // done
                         'api/v3/market/klines': { 'cost': 10 } as Endpoint<List>, // done
                         'api/v3/market/depth': { 'cost': 25 } as Endpoint<Dict>, // done
@@ -270,7 +270,7 @@ export default class weex extends Exchange {
                 },
                 'contractPrivate': {
                     'get': {
-                        'capi/v3/account/balance': { 'cost': 10 } as Endpoint<Dict>, // done
+                        'capi/v3/account/balance': { 'cost': 10 } as Endpoint<List>, // done
                         'capi/v3/account/commissionRate': { 'cost': 10 } as Endpoint<Dict>, // done
                         'capi/v3/account/accountConfig': { 'cost': 10 } as Endpoint<Dict>, // not unified
                         'capi/v3/account/symbolConfig': { 'cost': 10 } as Endpoint<List>, // done

@@ -137,7 +137,7 @@ export default class exmo extends Exchange {
                         'trades': { 'cost': 1 } as Endpoint<Dict>,
                         'candles_history': { 'cost': 1 } as Endpoint<Dict>,
                         'required_amount': { 'cost': 1 } as Endpoint<Dict>,
-                        'payments/providers/crypto/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'payments/providers/crypto/list': { 'cost': 1 } as Endpoint<Dict | List>,
                     },
                 },
                 'private': {

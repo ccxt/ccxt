@@ -396,68 +396,63 @@ public partial class BaseExchange
     }
 
     /// <summary>
-    /// Calls one implicit API endpoint by its generated name.
+    /// Calls one implicit API endpoint by its generated name, narrowed to the
+    /// shape that endpoint's api leaf declares.
     /// </summary>
     /// <remarks>
-    /// The type argument is the shape the endpoint's api leaf declares in the
-    /// TypeScript source (<c>{ 'cost': 1 } as Endpoint&lt;List&gt;</c>), which
-    /// build/generateImplicitAPI.ts writes onto every generated ccxt.api
-    /// method. JsonHelper.Deserialize builds Dictionary&lt;string, object&gt;
-    /// for a JSON object and List&lt;object&gt; for a JSON array.
-    /// When the declared shape and the body disagree (mis-declared leaf, or a
-    /// static fixture whose container kind differs), the raw body is still
-    /// returned rather than default(T): silent nulls emptied parseBalance /
-    /// parseTicker results in STATIC_RESPONSE. Unparseable error pages arrive
-    /// as string and become default(T) so transport stays non-throwing.
+    /// The type argument is the shape the api leaf declares in TypeScript
+    /// (<c>{ 'cost': 1 } as Endpoint&lt;List&gt;</c>). <c>res</c> is already a
+    /// decoded JSON value (Dictionary / List / string / null). Never answers
+    /// default(T) for a useful body that merely fails to match T — that silent
+    /// null emptied balances/tickers under STATIC_RESPONSE; a hard shape
+    /// disagreement throws instead so the leaf can be corrected.
     /// </remarks>
     public async virtual Task<T> callAsync<T>(object implicitEndpoint2, object parameters = null)
     {
         var res = await this.callAsync(implicitEndpoint2, parameters);
+        return NarrowResponse<T>(this.id + " " + Convert.ToString(implicitEndpoint2), res);
+    }
+
+    /// <summary>
+    /// Narrows one already-decoded implicit API body to the shape its api leaf declares.
+    /// </summary>
+    public static T NarrowResponse<T>(object endpoint, object res)
+    {
         if (res is T typed)
         {
             return typed;
         }
-        if (res == null || res is string)
+        if (res == null)
         {
             return default(T);
         }
-        // Coerce the common JSON containers when the concrete runtime type is a
-        // sibling IDictionary/IList rather than exactly Dictionary/List<object>.
-        var target = typeof(T);
-        if ((target == typeof(Dictionary<string, object>) || target == typeof(IDictionary<string, object>)) && res is System.Collections.IDictionary idict)
+        // declared leaf and body disagree — name both so the Endpoint<> is fixed
+        throw new ExchangeError(
+            "implicit API endpoint " + Convert.ToString(endpoint) + " is declared as " + DescribeShape(typeof(T))
+            + " but answered with " + DescribeShape(res.GetType())
+            + " — correct the Endpoint<...> assertion on its api leaf in ts/src, or call the untyped callAsync overload");
+    }
+
+    // the api-leaf spelling of a runtime/declared type, for the message above
+    private static string DescribeShape(Type type)
+    {
+        if (type == typeof(Dictionary<string, object>) || type == typeof(IDictionary<string, object>))
         {
-            var d = new Dictionary<string, object>();
-            foreach (System.Collections.DictionaryEntry entry in idict)
-            {
-                d[Convert.ToString(entry.Key)] = entry.Value;
-            }
-            return (T)(object)d;
+            return "a JSON object (Dict)";
         }
-        if (target == typeof(List<object>) && res is System.Collections.IList ilist)
+        if (type == typeof(List<object>) || type == typeof(IList<object>))
         {
-            var list = new List<object>();
-            foreach (var item in ilist)
-            {
-                list.Add(item);
-            }
-            return (T)(object)list;
+            return "a JSON array (List)";
         }
-        // Declared shape wrong but body is still useful to parse* — hand it
-        // through when T is a reference type the runtime value already is.
-        if (res is T retry)
+        if (type == typeof(string))
         {
-            return retry;
+            return "a JSON scalar (string)";
         }
-        // Last resort: keep the payload for object-typed callers / dynamic use.
-        // Prefer a wrong-shape body over default(T) null (which erases balances).
-        try
+        if (type == typeof(object))
         {
-            return (T)res;
+            return "a JSON value (object)";
         }
-        catch (InvalidCastException)
-        {
-            return default(T);
-        }
+        return type.Name;
     }
 
     public async virtual Task<object> callAsync(object implicitEndpoint2, object parameters = null)

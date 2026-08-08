@@ -150,7 +150,7 @@ export default class toobit extends Exchange {
                         'api/v1/futures/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
                         'api/v1/futures/positions': { 'cost': 5 * 1.67 } as Endpoint<List>,
                         'api/v1/futures/historyPositions': { 'cost': 5 } as Endpoint<List>,
-                        'api/v1/futures/balance': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/v1/futures/balance': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/futures/userTrades': { 'cost': 5 * 1.67 } as Endpoint<List>,
                         'api/v1/futures/balanceFlow': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/futures/commissionRate': { 'cost': 5 } as Endpoint<Dict>,

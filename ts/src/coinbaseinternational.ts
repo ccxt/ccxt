@@ -158,7 +158,7 @@ export default class coinbaseinternational extends Exchange {
                             'portfolios/{portfolio}': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios/{portfolio}/detail': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios/{portfolio}/summary': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/balances': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/balances': { 'cost': 1 } as Endpoint<List>,
                             'portfolios/{portfolio}/balances/{asset}': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios/{portfolio}/positions': { 'cost': 1 } as Endpoint<List>,
                             'portfolios/{portfolio}/positions/{instrument}': { 'cost': 1 } as Endpoint<Dict>,

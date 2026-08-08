@@ -132,7 +132,7 @@ export default class hollaex extends Exchange {
                         'kit': { 'cost': 1 } as Endpoint<Dict>,
                         'tiers': { 'cost': 1 } as Endpoint<Dict>,
                         'ticker': { 'cost': 1 } as Endpoint<Dict>,
-                        'tickers': { 'cost': 1 } as Endpoint<List>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
                         'orderbook': { 'cost': 1 } as Endpoint<Dict>,
                         'orderbooks': { 'cost': 1 } as Endpoint<Dict>,
                         'trades': { 'cost': 1 } as Endpoint<Dict>,
