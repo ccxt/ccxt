@@ -1,4 +1,5 @@
 {
+    "disabledRS": true,
     "exchange": "mudrex",
     "skipKeys": [
         "start_time",

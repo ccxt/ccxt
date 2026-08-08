@@ -1,0 +1,9 @@
+[workspace]
+members = ["ccxt", "tests"]
+resolver = "2"
+
+# Keep debug symbols in release so `sample`/`perf`/Instruments can attribute
+# hot frames in `bench_parse_markets` to actual function names. Negligible
+# perf impact (just larger binaries).
+[profile.release]
+debug = true

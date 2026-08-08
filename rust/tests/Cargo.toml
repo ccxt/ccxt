@@ -1,0 +1,29 @@
+[package]
+name = "ccxt_tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ti-rust"
+path = "src/main.rs"
+
+[features]
+# Default-on: the transpiled base tests + per-exchange unified-method
+# tests need to be linked in for `--baseTests` and live `ti-rust <id>`
+# runs (which read `available_tests()` to find what to dispatch).
+# Disable with `--no-default-features` for incremental dev.
+default = ["transpiled-tests", "exchange-tests"]
+# Enable the per-helper transpiled base tests (rust/tests/base/*.rs).
+transpiled-tests = []
+# Enable the per-method transpiled exchange tests (rust/tests/exchange/*.rs).
+# These are what `ti-rust <id>` dispatches into for live mode (mirrors
+# Go's per-test-file `testFiles` map).
+exchange-tests = []
+
+[dependencies]
+ccxt = { path = "../ccxt", features = ["transpiled-base"] }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+indexmap = "2"

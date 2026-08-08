@@ -1699,7 +1699,7 @@
                         "id": "USDT",
                         "numericId": null,
                         "code": "USDT",
-                        "precision": 0.000001,
+                        "precision": 1e-06,
                         "type": "crypto",
                         "name": "Tether USD Coin",
                         "active": null,
@@ -2050,7 +2050,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
-                                "precision": 0.000001,
+                                "precision": 1e-06,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -2201,7 +2201,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
-                                "precision": 0.000001,
+                                "precision": 1e-06,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -2378,7 +2378,7 @@
                                 "deposit": true,
                                 "withdraw": false,
                                 "fee": 2,
-                                "precision": 0.000001,
+                                "precision": 1e-06,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -2424,7 +2424,7 @@
                         "id": "USDC",
                         "numericId": null,
                         "code": "USDC",
-                        "precision": 0.000001,
+                        "precision": 1e-06,
                         "type": "crypto",
                         "name": "USD Coin",
                         "active": null,
@@ -2775,7 +2775,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
-                                "precision": 0.000001,
+                                "precision": 1e-06,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -2926,7 +2926,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
-                                "precision": 0.000001,
+                                "precision": 1e-06,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -3103,7 +3103,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
-                                "precision": 0.000001,
+                                "precision": 1e-06,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -3332,7 +3332,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
-                                "precision": 0.000001,
+                                "precision": 1e-06,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -4020,7 +4020,7 @@
                         "id": "WBTC",
                         "numericId": null,
                         "code": "WBTC",
-                        "precision": 1e-8,
+                        "precision": 1e-08,
                         "type": "crypto",
                         "name": "Wrapped Bitcoin",
                         "active": null,
@@ -4246,7 +4246,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
-                                "precision": 1e-8,
+                                "precision": 1e-08,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -4475,7 +4475,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
-                                "precision": 1e-8,
+                                "precision": 1e-08,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -6520,7 +6520,7 @@
                         "id": "CBBTC",
                         "numericId": null,
                         "code": "CBBTC",
-                        "precision": 1e-8,
+                        "precision": 1e-08,
                         "type": "crypto",
                         "name": null,
                         "active": null,
@@ -6746,7 +6746,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
-                                "precision": 1e-8,
+                                "precision": 1e-08,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -6923,7 +6923,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
-                                "precision": 1e-8,
+                                "precision": 1e-08,
                                 "limits": {
                                     "withdraw": {
                                         "min": null,
@@ -7240,7 +7240,8 @@
                         }
                     ],
                     "stopPrice": 0
-                }
+                },
+                "disabledRS": true
             },
             {
                 "description": "market buy order",
@@ -7368,7 +7369,8 @@
                         }
                     ],
                     "stopPrice": 0
-                }
+                },
+                "disabledRS": true
             },
             {
                 "description": "create takeProfitOrder",
@@ -7499,7 +7501,8 @@
                         }
                     ],
                     "stopPrice": 120
-                }
+                },
+                "disabledRS": true
             },
             {
                 "description": "create stopLossPrice",
@@ -7630,7 +7633,8 @@
                         }
                     ],
                     "stopPrice": 50
-                }
+                },
+                "disabledRS": true
             }
         ],
         "fetchOHLCV": [

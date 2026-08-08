@@ -1,6 +1,7 @@
 {
     "exchange": "grvt",
     "outputType": "json",
+    "disabledRS": true,
     "options": {
         "AuthAccountId": "kbAc342752835723",
         "AuthCookieValue": "sample123",
