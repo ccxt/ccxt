@@ -298,8 +298,12 @@ public class LunoCore extends LunoApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", LunoCore.this.parseNumber("0.001") );
-                    put( "maker", LunoCore.this.parseNumber("0") );
+                    put( "taker", LunoCore.this.parseNumber("0.006") );
+                    put( "maker", LunoCore.this.parseNumber("0.004") );
+                    put( "tiers", new java.util.HashMap<String, Object>() {{
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("0"), LunoCore.this.parseNumber("0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000"), LunoCore.this.parseNumber("0.005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("200000"), LunoCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("1000000"), LunoCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("2000000"), LunoCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("5000000"), LunoCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("10000000"), LunoCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000000"), LunoCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("40000000"), LunoCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("80000000"), LunoCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("120000000"), LunoCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("160000000"), LunoCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("300000000"), LunoCore.this.parseNumber("0.0005"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("0"), LunoCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000"), LunoCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("200000"), LunoCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("1000000"), LunoCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("2000000"), LunoCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("5000000"), LunoCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("10000000"), LunoCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000000"), LunoCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("40000000"), LunoCore.this.parseNumber("-0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("80000000"), LunoCore.this.parseNumber("-0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("120000000"), LunoCore.this.parseNumber("-0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("160000000"), LunoCore.this.parseNumber("-0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("300000000"), LunoCore.this.parseNumber("-0.0002"))))) );
+                    }} );
                 }} );
             }} );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
@@ -630,11 +634,45 @@ public class LunoCore extends LunoApi
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
                 Object status = this.safeString(market, "trading_status");
+                // Luno's published schedule is categorical, not a single pair. Entry-tier
+                // rates below are read from Luno's own Help Centre fee article for the ZAR
+                // market; markets quoted in other fiat currencies are left on the
+                // exchange-wide default until their schedules are verified the same way.
+                Object fiats = new java.util.ArrayList<Object>(java.util.Arrays.asList("ZAR"));
+                // live-but-unverified counters, kept on the exchange-wide default; the market
+                // list is geo-filtered so this is a superset of any one region's view, and
+                // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
+                Object unverifiedQuotes = new java.util.ArrayList<Object>(java.util.Arrays.asList("MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"));
+                Object stablecoins = new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT", "USDC"));
+                Object taker = null;
+                Object maker = null;
+                if (Helpers.isTrue(this.inArray(quote, fiats)))
+                {
+                    if (Helpers.isTrue(this.inArray(base, stablecoins)))
+                    {
+                        taker = this.parseNumber("0.002");
+                        maker = this.parseNumber("-0.0001"); // a rebate, not a charge
+                    } else
+                    {
+                        taker = this.parseNumber("0.006");
+                        maker = this.parseNumber("0.004");
+                    }
+                } else if (!Helpers.isTrue(this.inArray(quote, unverifiedQuotes)))
+                {
+                    // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
+                    // are both in Luno's crypto/crypto column
+                    taker = this.parseNumber("0.001");
+                    maker = this.parseNumber("0.0008");
+                }
     final Object finalBase = base;
+                final Object finalTaker = taker;
+                final Object finalMaker = maker;
                 final Object finalStatus = status;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "taker", finalTaker );
+                    put( "maker", finalMaker );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
