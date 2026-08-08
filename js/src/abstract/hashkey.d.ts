@@ -31,7 +31,7 @@ interface Exchange {
     privateGetApiV1FuturesGetBestOrder(params?: {}): Promise<Dict>;
     privateGetApiV1CoinInfo(params?: {}): Promise<Dict>;
     privateGetApiV1AccountVipInfo(params?: {}): Promise<Dict>;
-    privateGetApiV1Account(params?: {}): Promise<List>;
+    privateGetApiV1Account(params?: {}): Promise<Dict>;
     privateGetApiV1AccountTrades(params?: {}): Promise<List>;
     privateGetApiV1AccountType(params?: {}): Promise<List>;
     privateGetApiV1AccountChainType(params?: {}): Promise<List>;

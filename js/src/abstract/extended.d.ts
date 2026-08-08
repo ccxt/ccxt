@@ -42,7 +42,7 @@ interface Exchange {
     v1PrivateGetBuilderTrades(params?: {}): Promise<Dict>;
     v1PrivatePostUserOrder(params?: {}): Promise<Dict>;
     v1PrivatePostUserOrderMassCancel(params?: {}): Promise<Dict>;
-    v1PrivatePostUserDeadmanswitch(params?: {}): Promise<Dict>;
+    v1PrivatePostUserDeadmanswitch(params?: {}): Promise<string>;
     v1PrivatePostUserBridgeQuote(params?: {}): Promise<Dict>;
     v1PrivatePostUserWithdrawal(params?: {}): Promise<Dict>;
     v1PrivatePostUserTransfer(params?: {}): Promise<Dict>;
