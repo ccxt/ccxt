@@ -225,8 +225,8 @@ class Transpiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in their own namespace/subfolder in every language
     isPrediction = false;
-    // emit awaiting async-PHP methods as a hybrid pair instead of one method whose whole
-    // body sits inside `Async\async(function () use (...) { ... })()`:
+    // Awaiting async-PHP methods are always emitted as a hybrid pair instead of one method
+    // whose whole body sits inside `Async\async(function () use (...) { ... })()`:
     //
     //     public function fetch_time($params = array()): PromiseInterface {
     //         return Async\async(self::fetch_time_impl(...))($params);
@@ -241,10 +241,10 @@ class Transpiler {
     // capture list and one indentation level go away. `self::` (not `$this->`) is required:
     // a subclass override that does `Async\await(parent::fetch_time($params))` would
     // otherwise late-bind straight back into its own _impl and recurse forever.
-    phpHybridAsync = true;
-    // set by transpileJavaScriptToPHP() whenever phpHybridAsync made it leave an awaiting
-    // body flat; read back immediately by transpileJavaScriptToPythonAndPHP() so the caller
-    // splits exactly the same set of methods the old code wrapped in a closure
+    //
+    // set by transpileJavaScriptToPHP() whenever it leaves an awaiting body flat; read back
+    // immediately by transpileJavaScriptToPythonAndPHP() so the caller splits exactly the
+    // same set of methods that previously got a nested closure
     phpAsyncBodyWasFlattened = false;
 
     baseMethodsList!: any[];
@@ -1527,24 +1527,18 @@ class Transpiler {
         // the variable only gets its "$" from phpVariablesRegexes below, so handle it here.
         const noSpaceBeforeDynamicNewParen = [ /new (\$[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])*) \(/g, 'new $1(' ]
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
-        // indent async php
+        // indent async php — awaiting bodies stay flat here on purpose: the caller
+        // (transpileMethodsToAllLanguages) emits a thin public stub
+        // `return Async\async(self::<name>_impl(...))($args);` and re-homes this flat
+        // body into `protected function <name>_impl (...)`. Async\async() stays on the
+        // public edge, so the method still returns a PromiseInterface and Promise\all
+        // still overlaps, but the `function () use (...)` closure and its extra
+        // indentation level disappear from every awaiting method.
         if (async) {
             this.phpAsyncBodyWasFlattened = false
         }
         if (async && js.indexOf (' await ') > -1) {
-            if (!this.phpHybridAsync) {
-                const closure = variables && variables.length ? ' use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
-                phpBody = '        return Async\\async(function ()' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        })();'
-            } else {
-                this.phpAsyncBodyWasFlattened = true
-            }
-            // with phpHybridAsync the body is left flat here on purpose: the caller
-            // (transpileMethodsToAllLanguages) emits a thin public stub
-            // `return Async\async(self::<name>_impl(...))($args);` and re-homes this flat
-            // body into `protected function <name>_impl (...)`. Async\async() stays on the
-            // public edge, so the method still returns a PromiseInterface and Promise\all
-            // still overlaps, but the `function () use (...)` closure and its extra
-            // indentation level disappear from every awaiting method.
+            this.phpAsyncBodyWasFlattened = true
         }
         phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
@@ -2239,7 +2233,7 @@ class Transpiler {
                 php.push ('    ' + '}')
 
                 phpAsync.push ('');
-                if (this.phpHybridAsync && phpAsyncBodyIsFlatAwait) {
+                if (phpAsyncBodyIsFlatAwait) {
                     // hybrid async: thin public stub keeps the PromiseInterface contract and the
                     // Async\async() edge, the flat body moves into a protected `<name>_impl`
                     // helper (no closure, no `use (...)` capture list, one indent level less).
