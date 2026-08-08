@@ -159,6 +159,21 @@ public partial class BaseExchange
 
         if (fetchResponse != null)
         {
+            // Static response fixtures short-circuit here, so handleRestResponse
+            // never runs. Some fixtures store the body as a JSON string; decode
+            // once at this boundary so callers (including callAsync<T>) always
+            // see the parsed value, matching the live transport.
+            if (fetchResponse is string encoded)
+            {
+                try
+                {
+                    return JsonHelper.Deserialize(encoded);
+                }
+                catch (Exception)
+                {
+                    return fetchResponse;
+                }
+            }
             return fetchResponse;
         }
 

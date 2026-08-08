@@ -136,7 +136,7 @@ export default class binanceus extends binance {
                 },
                 'private': {
                     'get': {
-                        'account': { 'cost': 10 } as Endpoint<List>,
+                        'account': { 'cost': 10 } as Endpoint<Dict>,
                         'rateLimit/order': { 'cost': 20 } as Endpoint<List>,
                         'order': { 'cost': 2 } as Endpoint<Dict>,
                         'openOrders': { 'cost': 3, 'noSymbol': 40 } as Endpoint<List>,
