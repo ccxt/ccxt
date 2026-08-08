@@ -54,11 +54,15 @@ public partial class BaseExchange
 
     void rejectFutures(WebSocketClient urlClient, object error)
     {
+        var futuresDict = urlClient.futures as ConcurrentDictionary<string, Future>;
         foreach (var KeyValue in urlClient.subscriptions)
         {
             urlClient.subscriptions.Remove(KeyValue.Key);
             Future existingFuture = null;
-            if (urlClient.futures.TryGetValue(KeyValue.Key, out existingFuture))
+            // TryRemove (not TryGetValue) so that two concurrent cleanup passes (e.g. triggered by
+            // the ping-loop and the receive-loop failing at nearly the same time) can never both
+            // obtain a reference to the same Future and reject it twice
+            if (futuresDict != null && futuresDict.TryRemove(KeyValue.Key, out existingFuture))
             {
                 existingFuture.reject(error);
             }

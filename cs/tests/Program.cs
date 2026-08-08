@@ -188,5 +188,9 @@ public class Tests
         var res = baseTestInstance.RaceTest();
         res.Wait();
         Helper.Green(" [C#] RaceCondition tests passed");
+
+        var futureRes = baseTestInstance.FutureDoubleCompletionTest();
+        futureRes.Wait();
+        Helper.Green(" [C#] Future double-completion RaceCondition tests passed");
     }
 }

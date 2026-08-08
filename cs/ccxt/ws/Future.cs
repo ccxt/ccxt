@@ -41,9 +41,9 @@ public partial class BaseExchange
             // var callSite = new System.Diagnostics.StackTrace(1, true).GetFrame(0);
             // var msg = (callSite?.GetFileName() ?? "Unknown" ) + " " + (callSite?.GetFileLineNumber() ?? 0) + " " + (callSite?.GetMethod()?.Name ?? "Unknown");
             // System.Diagnostics.Debug.WriteLine($"Future.reject called with: {data} (Type: {data?.GetType().Name ?? "null"})" + " ::: " + msg);
-            
+
             Exception exception;
-            
+
             if (data is Exception ex)
             {
                 exception = ex;
@@ -56,7 +56,17 @@ public partial class BaseExchange
             {
                 exception = new Exception($"Future rejected: {data?.ToString() ?? "null"} (Type: {data?.GetType().Name ?? "null"})\n");
             }
-            this.tcs.SetException(exception);
+            lock (obj)
+            {
+                // a Future can be raced between two concurrent completion paths (e.g. ping-loop
+                // timeout vs receive-loop error both failing the same message hash) - guard like
+                // resolve() does, since TaskCompletionSource.SetException throws if already completed
+                if (this.tcs.Task.IsCompleted)
+                {
+                    return;
+                }
+                this.tcs.SetException(exception);
+            }
             // this.tcs = new TaskCompletionSource<object>(); // reset
             // this.task = this.tcs.Task;
         }
