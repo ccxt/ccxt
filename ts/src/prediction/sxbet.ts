@@ -141,6 +141,8 @@ export default class sxbet extends Exchange {
                     'DIRECTIONS_NOT_SAME': BadRequest,
                     'INVALID_ORDERS': OrderNotFillable,   // a targeted order is no longer active
                     'INVALID_ODDS': InvalidOrder,   // desiredOdds must be below 10^20
+                    'PERCENTAGEODDS_UNDEFINED_OR_MALFORMED': InvalidOrder,   // live-verified: maker percentageOdds above the 10^20 cap (price > 1) or malformed
+                    'TOTAL_BET_SIZE_TOO_LOW': InvalidOrder,   // live-verified: stake below the venue's minimum bet size
                     'INVALID_ODDS_SLIPPAGE': BadRequest,   // integer 0-100
                     'MATCH_STATE_INVALID': MarketClosed,   // fixture not available for betting
                     'TAKER_SIGNATURE_MISMATCH': InvalidOrder,
