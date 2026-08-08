@@ -1,5 +1,5 @@
 import Exchange from './abstract/derive.js';
-import type { Dict, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict } from './base/types.js';
 /**
  * @class derive
  * @augments Exchange
@@ -63,7 +63,7 @@ export default class derive extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -315,7 +315,7 @@ export default class derive extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     handleDeriveSubaccountId(methodName: string, params: Dict): [any, Dict];
-    handleDeriveWalletAddress(methodName: string, params: Dict): any[];
+    handleDeriveWalletAddress(methodName: string, params: Dict): (string | Dict)[];
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;

@@ -158,69 +158,69 @@ class luno(Exchange, ImplicitAPI):
             'api': {
                 'exchange': {
                     'get': {
-                        'markets': 1,
+                        'markets': {'cost': 1},
                     },
                 },
                 'exchangePrivate': {
                     'get': {
-                        'candles': 1,
-                        'move': 1,
-                        'move/list_moves': 1,
-                        'transfers': 1,
+                        'candles': {'cost': 1},
+                        'move': {'cost': 1},
+                        'move/list_moves': {'cost': 1},
+                        'transfers': {'cost': 1},
                     },
                     'post': {
-                        'convert': 1,
-                        'move': 1,
+                        'convert': {'cost': 1},
+                        'move': {'cost': 1},
                     },
                 },
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'orderbook_top': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'trades': 1,
+                        'orderbook': {'cost': 1},
+                        'orderbook_top': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'trades': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/{id}/pending': 1,
-                        'accounts/{id}/transactions': 1,
-                        'balance': 1,
-                        'beneficiaries': 1,
-                        'send/networks': 1,
-                        'fee_info': 1,
-                        'funding_address': 1,
-                        'listorders': 1,
-                        'listtrades': 1,
-                        'send_fee': 1,
-                        'orders/{id}': 1,
-                        'withdrawals': 1,
-                        'withdrawals/{id}': 1,
-                        'transfers': 1,  # not found in current docs, use GET /api/exchange/1/transfers
-                        'users/linked': 1,
+                        'accounts/{id}/pending': {'cost': 1},
+                        'accounts/{id}/transactions': {'cost': 1},
+                        'balance': {'cost': 1},
+                        'beneficiaries': {'cost': 1},
+                        'send/networks': {'cost': 1},
+                        'fee_info': {'cost': 1},
+                        'funding_address': {'cost': 1},
+                        'listorders': {'cost': 1},
+                        'listtrades': {'cost': 1},
+                        'send_fee': {'cost': 1},
+                        'orders/{id}': {'cost': 1},
+                        'withdrawals': {'cost': 1},
+                        'withdrawals/{id}': {'cost': 1},
+                        'transfers': {'cost': 1},  # not found in current docs, use GET /api/exchange/1/transfers
+                        'users/linked': {'cost': 1},
                         # GET /api/exchange/2/listorders
                         # GET /api/exchange/2/orders/{id}
                         # GET /api/exchange/3/order
                     },
                     'post': {
-                        'accounts': 1,
-                        'address/validate': 1,
-                        'postorder': 1,
-                        'marketorder': 1,
-                        'stoporder': 1,
-                        'funding_address': 1,
-                        'withdrawals': 1,
-                        'send': 1,
-                        'oauth2/grant': 1,  # deprecated for new applications
-                        'beneficiaries': 1,
+                        'accounts': {'cost': 1},
+                        'address/validate': {'cost': 1},
+                        'postorder': {'cost': 1},
+                        'marketorder': {'cost': 1},
+                        'stoporder': {'cost': 1},
+                        'funding_address': {'cost': 1},
+                        'withdrawals': {'cost': 1},
+                        'send': {'cost': 1},
+                        'oauth2/grant': {'cost': 1},  # deprecated for new applications
+                        'beneficiaries': {'cost': 1},
                     },
                     'put': {
-                        'accounts/{id}/name': 1,
+                        'accounts/{id}/name': {'cost': 1},
                     },
                     'delete': {
-                        'withdrawals/{id}': 1,
-                        'beneficiaries/{id}': 1,
+                        'withdrawals/{id}': {'cost': 1},
+                        'beneficiaries/{id}': {'cost': 1},
                     },
                 },
             },
@@ -904,7 +904,8 @@ class luno(Exchange, ImplicitAPI):
             self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
-        tickers = self.index_by(response['tickers'], 'pair')
+        rawTickers = self.safe_list(response, 'tickers', [])
+        tickers = self.index_by(rawTickers, 'pair')
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):

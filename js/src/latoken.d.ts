@@ -100,7 +100,7 @@ export default class latoken extends Exchange {
      */
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchPublicTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
+        info: Dict;
         symbol: string;
         maker: Num;
         taker: Num;
@@ -108,7 +108,7 @@ export default class latoken extends Exchange {
         tierBased: undefined;
     }>;
     fetchPrivateTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
+        info: Dict;
         symbol: string;
         maker: Num;
         taker: Num;

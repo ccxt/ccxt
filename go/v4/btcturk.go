@@ -135,34 +135,66 @@ func (this *BtcturkCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"orderbook":           1,
-					"ticker":              0.1,
-					"trades":              1,
-					"ohlc":                1,
-					"server/exchangeinfo": 1,
+					"orderbook": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 0.1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"ohlc": map[string]any{
+						"cost": 1,
+					},
+					"server/exchangeinfo": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"users/balances":           1,
-					"openOrders":               1,
-					"allOrders":                1,
-					"users/transactions/trade": 1,
+					"users/balances": map[string]any{
+						"cost": 1,
+					},
+					"openOrders": map[string]any{
+						"cost": 1,
+					},
+					"allOrders": map[string]any{
+						"cost": 1,
+					},
+					"users/transactions/trade": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"users/transactions/crypto": 1,
-					"users/transactions/fiat":   1,
-					"order":                     1,
-					"cancelOrder":               1,
+					"users/transactions/crypto": map[string]any{
+						"cost": 1,
+					},
+					"users/transactions/fiat": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"cancelOrder": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"order": 1,
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"graph": map[string]any{
 				"get": map[string]any{
-					"ohlcs":          1,
-					"klines/history": 1,
+					"ohlcs": map[string]any{
+						"cost": 1,
+					},
+					"klines/history": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},

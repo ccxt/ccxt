@@ -136,44 +136,100 @@ func (this *HibachiCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"market/exchange-info":      1,
-					"market/inventory":          1,
-					"market/data/prices":        1,
-					"market/data/stats":         1,
-					"market/data/trades":        1,
-					"market/data/klines":        1,
-					"market/data/open-interest": 1,
-					"market/data/orderbook":     1,
-					"market/data/funding-rates": 1,
-					"exchange/utc-timestamp":    1,
+					"market/exchange-info": map[string]any{
+						"cost": 1,
+					},
+					"market/inventory": map[string]any{
+						"cost": 1,
+					},
+					"market/data/prices": map[string]any{
+						"cost": 1,
+					},
+					"market/data/stats": map[string]any{
+						"cost": 1,
+					},
+					"market/data/trades": map[string]any{
+						"cost": 1,
+					},
+					"market/data/klines": map[string]any{
+						"cost": 1,
+					},
+					"market/data/open-interest": map[string]any{
+						"cost": 1,
+					},
+					"market/data/orderbook": map[string]any{
+						"cost": 1,
+					},
+					"market/data/funding-rates": map[string]any{
+						"cost": 1,
+					},
+					"exchange/utc-timestamp": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"capital/balance":                   1,
-					"capital/history":                   1,
-					"capital/deposit-info":              1,
-					"trade/account/info":                1,
-					"trade/account/trades":              1,
-					"trade/account/trading_history":     1,
-					"trade/account/settlements_history": 1,
-					"trade/orders":                      1,
-					"trade/order":                       1,
-					"trade/orders/history":              1,
+					"capital/balance": map[string]any{
+						"cost": 1,
+					},
+					"capital/history": map[string]any{
+						"cost": 1,
+					},
+					"capital/deposit-info": map[string]any{
+						"cost": 1,
+					},
+					"trade/account/info": map[string]any{
+						"cost": 1,
+					},
+					"trade/account/trades": map[string]any{
+						"cost": 1,
+					},
+					"trade/account/trading_history": map[string]any{
+						"cost": 1,
+					},
+					"trade/account/settlements_history": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders": map[string]any{
+						"cost": 1,
+					},
+					"trade/order": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders/history": map[string]any{
+						"cost": 1,
+					},
 				},
 				"put": map[string]any{
-					"trade/order": 1,
+					"trade/order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"trade/order":  1,
-					"trade/orders": 1,
+					"trade/order": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"trade/order":            1,
-					"trade/orders":           1,
-					"capital/withdraw":       1,
-					"capital/transfer":       1,
-					"trade/account/leverage": 1,
+					"trade/order": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders": map[string]any{
+						"cost": 1,
+					},
+					"capital/withdraw": map[string]any{
+						"cost": 1,
+					},
+					"capital/transfer": map[string]any{
+						"cost": 1,
+					},
+					"trade/account/leverage": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},

@@ -336,6 +336,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
      * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
+     * @param {boolean} [params.trigger] set to true to watch trigger orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202
+     * @param {boolean} [params.stop] alias of params.trigger
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

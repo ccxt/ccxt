@@ -175,7 +175,9 @@ public class HyperliquidCore extends HyperliquidApi
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "exchange", 1 );
+                        put( "exchange", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -640,7 +642,7 @@ public class HyperliquidCore extends HyperliquidApi
             for (var i = 1; Helpers.isLessThan(i, Helpers.getArrayLength(fetchDexes)); i++)
             {
                 // builder-deployed perp dexs start at 110000
-                Object dex = Helpers.GetValue(fetchDexes, i);
+                Object dex = this.safeDict(fetchDexes, i, new java.util.HashMap<String, Object>() {{}});
                 Object secondPart = Helpers.multiply((Helpers.subtract(i, 1)), 10000);
                 Object offset = this.sum(110000, secondPart);
                 Helpers.addElementToObject(perpDexesOffset, Helpers.GetValue(dex, "name"), offset);
@@ -1708,7 +1710,12 @@ public class HyperliquidCore extends HyperliquidApi
             //         }
             //     ]
             //
-            return this.parseOHLCVs(response, market, timeframe, originalSince, limit, useTail);
+            Object candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                candles = response;
+            }
+            return this.parseOHLCVs(candles, market, timeframe, originalSince, limit, useTail);
         });
 
     }
@@ -1809,7 +1816,12 @@ public class HyperliquidCore extends HyperliquidApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, market, since, limit);
+            Object fills = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                fills = response;
+            }
+            return this.parseTrades(fills, market, since, limit);
         });
 
     }
@@ -2239,7 +2251,11 @@ public class HyperliquidCore extends HyperliquidApi
                 Object response = null;
                 try
                 {
-                    response = (this.publicPostInfo(this.extend(request, parameters))).join();
+                    Object rawResponse = (this.publicPostInfo(this.extend(request, parameters))).join();
+                    if (Helpers.isTrue((rawResponse instanceof String)))
+                    {
+                        response = rawResponse;
+                    }
                 } catch(Exception e)
                 {
                     if (Helpers.isTrue(Helpers.isInstance(e, InvalidProxySettings.class)))
@@ -2448,7 +2464,7 @@ public class HyperliquidCore extends HyperliquidApi
             var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
             var order = ((java.util.List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((java.util.List<Object>) orderglobalParamsVariable).get(1);
-            Object orders = (this.createOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(((Object)order))), globalParams)).join();
+            Object orders = (this.createOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(order)), globalParams)).join();
             return Helpers.GetValue(orders, 0);
         });
 
@@ -3438,7 +3454,7 @@ final Object finalClientOrderId = clientOrderId;
             var orderglobalParamsVariable = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, parameters);
             var order = ((java.util.List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((java.util.List<Object>) orderglobalParamsVariable).get(1);
-            Object orders = (this.editOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(((Object)order))), globalParams)).join();
+            Object orders = (this.editOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(order)), globalParams)).join();
             return Helpers.GetValue(orders, 0);
         });
 
@@ -3620,9 +3636,14 @@ final Object finalClientOrderId = clientOrderId;
             //     ]
             //
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object fundings = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                Object entry = Helpers.GetValue(response, i);
+                fundings = response;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fundings)); i++)
+            {
+                Object entry = Helpers.GetValue(fundings, i);
                 Object timestamp = this.safeInteger(entry, "time");
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -3718,9 +3739,14 @@ final Object finalClientOrderId = clientOrderId;
             //     ]
             //
             Object orderWithStatus = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object rawOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                Object order = Helpers.GetValue(response, i);
+                rawOrders = response;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
+            {
+                Object order = Helpers.GetValue(rawOrders, i);
                 Object extendOrder = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(Helpers.isEqual(this.safeString(order, "status"), null)))
                 {
@@ -3894,9 +3920,14 @@ final Object finalClientOrderId = clientOrderId;
             // so a canceled order appears twice: once as 'open' and once as 'canceled'.
             // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
             Object deduplicatedByOid = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object historicalOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                Object rawOrder = Helpers.GetValue(response, i);
+                historicalOrders = response;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(historicalOrders)); i++)
+            {
+                Object rawOrder = Helpers.GetValue(historicalOrders, i);
                 Object entry = this.safeDict(rawOrder, "order");
                 if (Helpers.isTrue(Helpers.isEqual(entry, null)))
                 {
@@ -4313,7 +4344,12 @@ final Object finalClientOrderId = clientOrderId;
             //         }
             //     ]
             //
-            return this.parseTrades(response, market, since, limit);
+            Object myFills = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                myFills = response;
+            }
+            return this.parseTrades(myFills, market, since, limit);
         });
 
     }
@@ -5515,7 +5551,12 @@ final Object finalClientOrderId = clientOrderId;
             //     }
             // ]
             //
-            Object records = this.extractTypeFromDelta(response);
+            Object depositLedger = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                depositLedger = response;
+            }
+            Object records = this.extractTypeFromDelta(depositLedger);
             Object vaultAddress = null;
             var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
             vaultAddress = ((java.util.List<Object>) vaultAddressparametersVariable).get(0);
@@ -5604,7 +5645,12 @@ final Object finalClientOrderId = clientOrderId;
             //     }
             // ]
             //
-            Object records = this.extractTypeFromDelta(response);
+            Object withdrawalLedger = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                withdrawalLedger = response;
+            }
+            Object records = this.extractTypeFromDelta(withdrawalLedger);
             Object vaultAddress = null;
             var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
             vaultAddress = ((java.util.List<Object>) vaultAddressparametersVariable).get(0);

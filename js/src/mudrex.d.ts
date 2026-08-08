@@ -111,7 +111,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name mudrex#createOrder

@@ -164,64 +164,156 @@ func (this *LighterCore) Describe() any {
 		"api": map[string]any{
 			"root": map[string]any{
 				"get": map[string]any{
-					"":     1,
-					"info": 1,
+					"": map[string]any{
+						"cost": 1,
+					},
+					"info": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"public": map[string]any{
 				"get": map[string]any{
-					"account":             1,
-					"accountsByL1Address": 1,
-					"apikeys":             1,
-					"exchangeStats":       1,
-					"assetDetails":        1,
-					"orderBookDetails":    1,
-					"orderBookOrders":     1,
-					"orderBooks":          1,
-					"recentTrades":        1,
-					"blockTxs":            1,
-					"nextNonce":           1,
-					"tx":                  1,
-					"txFromL1TxHash":      1,
-					"txs":                 1,
-					"announcement":        1,
-					"block":               1,
-					"blocks":              1,
-					"currentHeight":       1,
-					"candles":             1,
-					"fundings":            1,
-					"fastbridge/info":     1,
-					"funding-rates":       1,
-					"withdrawalDelay":     1,
+					"account": map[string]any{
+						"cost": 1,
+					},
+					"accountsByL1Address": map[string]any{
+						"cost": 1,
+					},
+					"apikeys": map[string]any{
+						"cost": 1,
+					},
+					"exchangeStats": map[string]any{
+						"cost": 1,
+					},
+					"assetDetails": map[string]any{
+						"cost": 1,
+					},
+					"orderBookDetails": map[string]any{
+						"cost": 1,
+					},
+					"orderBookOrders": map[string]any{
+						"cost": 1,
+					},
+					"orderBooks": map[string]any{
+						"cost": 1,
+					},
+					"recentTrades": map[string]any{
+						"cost": 1,
+					},
+					"blockTxs": map[string]any{
+						"cost": 1,
+					},
+					"nextNonce": map[string]any{
+						"cost": 1,
+					},
+					"tx": map[string]any{
+						"cost": 1,
+					},
+					"txFromL1TxHash": map[string]any{
+						"cost": 1,
+					},
+					"txs": map[string]any{
+						"cost": 1,
+					},
+					"announcement": map[string]any{
+						"cost": 1,
+					},
+					"block": map[string]any{
+						"cost": 1,
+					},
+					"blocks": map[string]any{
+						"cost": 1,
+					},
+					"currentHeight": map[string]any{
+						"cost": 1,
+					},
+					"candles": map[string]any{
+						"cost": 1,
+					},
+					"fundings": map[string]any{
+						"cost": 1,
+					},
+					"fastbridge/info": map[string]any{
+						"cost": 1,
+					},
+					"funding-rates": map[string]any{
+						"cost": 1,
+					},
+					"withdrawalDelay": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"sendTx":      1,
-					"sendTxBatch": 1,
+					"sendTx": map[string]any{
+						"cost": 1,
+					},
+					"sendTxBatch": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"accountLimits":         1,
-					"accountMetadata":       1,
-					"pnl":                   1,
-					"l1Metadata":            1,
-					"liquidations":          1,
-					"positionFunding":       1,
-					"publicPoolsMetadata":   1,
-					"accountActiveOrders":   1,
-					"accountInactiveOrders": 1,
-					"export":                1,
-					"trades":                1,
-					"accountTxs":            1,
-					"deposit/history":       1,
-					"transfer/history":      1,
-					"withdraw/history":      1,
-					"referral/points":       1,
-					"transferFeeInfo":       1,
+					"accountLimits": map[string]any{
+						"cost": 1,
+					},
+					"accountMetadata": map[string]any{
+						"cost": 1,
+					},
+					"pnl": map[string]any{
+						"cost": 1,
+					},
+					"l1Metadata": map[string]any{
+						"cost": 1,
+					},
+					"liquidations": map[string]any{
+						"cost": 1,
+					},
+					"positionFunding": map[string]any{
+						"cost": 1,
+					},
+					"publicPoolsMetadata": map[string]any{
+						"cost": 1,
+					},
+					"accountActiveOrders": map[string]any{
+						"cost": 1,
+					},
+					"accountInactiveOrders": map[string]any{
+						"cost": 1,
+					},
+					"export": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"accountTxs": map[string]any{
+						"cost": 1,
+					},
+					"deposit/history": map[string]any{
+						"cost": 1,
+					},
+					"transfer/history": map[string]any{
+						"cost": 1,
+					},
+					"withdraw/history": map[string]any{
+						"cost": 1,
+					},
+					"referral/points": map[string]any{
+						"cost": 1,
+					},
+					"transferFeeInfo": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"changeAccountTier": 1,
-					"notification/ack":  1,
+					"changeAccountTier": map[string]any{
+						"cost": 1,
+					},
+					"notification/ack": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},

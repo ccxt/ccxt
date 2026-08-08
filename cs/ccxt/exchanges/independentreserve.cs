@@ -120,10 +120,129 @@ public partial class independentreserve : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"GetValidPrimaryCurrencyCodes", "GetValidSecondaryCurrencyCodes", "GetValidLimitOrderTypes", "GetValidMarketOrderTypes", "GetValidOrderTypes", "GetValidTransactionTypes", "GetMarketSummary", "GetOrderBook", "GetAllOrders", "GetTradeHistorySummary", "GetRecentTrades", "GetFxRates", "GetOrderMinimumVolumes", "GetCryptoWithdrawalFees", "GetCryptoWithdrawalFees2", "GetNetworks", "GetPrimaryCurrencyConfig2"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "GetValidPrimaryCurrencyCodes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetValidSecondaryCurrencyCodes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetValidLimitOrderTypes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetValidMarketOrderTypes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetValidOrderTypes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetValidTransactionTypes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetMarketSummary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderBook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAllOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetTradeHistorySummary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetRecentTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetFxRates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderMinimumVolumes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetCryptoWithdrawalFees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetCryptoWithdrawalFees2", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetNetworks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetPrimaryCurrencyConfig2", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"GetOpenOrders", "GetClosedOrders", "GetClosedFilledOrders", "GetOrderDetails", "GetAccounts", "GetTransactions", "GetFiatBankAccounts", "GetDigitalCurrencyDepositAddress", "GetDigitalCurrencyDepositAddress2", "GetDigitalCurrencyDepositAddresses", "GetDigitalCurrencyDepositAddresses2", "GetTrades", "GetBrokerageFees", "GetDigitalCurrencyWithdrawal", "PlaceLimitOrder", "PlaceMarketOrder", "CancelOrder", "SynchDigitalCurrencyDepositAddressWithBlockchain", "RequestFiatWithdrawal", "WithdrawFiatCurrency", "WithdrawDigitalCurrency", "WithdrawCrypto"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "GetOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetClosedOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetClosedFilledOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderDetails", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetTransactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetFiatBankAccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDigitalCurrencyDepositAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDigitalCurrencyDepositAddress2", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDigitalCurrencyDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDigitalCurrencyDepositAddresses2", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetBrokerageFees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDigitalCurrencyWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "PlaceLimitOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "PlaceMarketOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SynchDigitalCurrencyDepositAddressWithBlockchain", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "RequestFiatWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "WithdrawFiatCurrency", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "WithdrawDigitalCurrency", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "WithdrawCrypto", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -292,14 +411,16 @@ public partial class independentreserve : Exchange
         //     }
         //
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(baseCurrencies)); postFixIncrement(ref i))
+        object baseCurrencyIds = this.toArray(baseCurrencies);
+        object quoteCurrencyIds = this.toArray(quoteCurrencies);
+        for (object i = 0; isLessThan(i, getArrayLength(baseCurrencyIds)); postFixIncrement(ref i))
         {
-            object baseId = getValue(baseCurrencies, i);
+            object baseId = getValue(baseCurrencyIds, i);
             object bs = this.safeCurrencyCode(baseId);
             object minAmount = this.safeNumber(limits, baseId);
-            for (object j = 0; isLessThan(j, getArrayLength(quoteCurrencies)); postFixIncrement(ref j))
+            for (object j = 0; isLessThan(j, getArrayLength(quoteCurrencyIds)); postFixIncrement(ref j))
             {
-                object quoteId = getValue(quoteCurrencies, j);
+                object quoteId = getValue(quoteCurrencyIds, j);
                 object quote = this.safeCurrencyCode(quoteId);
                 object id = add(add(baseId, "/"), quoteId);
                 ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -789,7 +910,8 @@ public partial class independentreserve : Exchange
         {
             market = this.market(symbol);
         }
-        return this.parseTrades(getValue(response, "Data"), market, since, limit);
+        object data = this.safeList(response, "Data", new List<object>() {});
+        return this.parseTrades(data, market, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -862,7 +984,8 @@ public partial class independentreserve : Exchange
             { "numberOfRecentTradesToRetrieve", 50 },
         };
         object response = await this.publicGetGetRecentTrades(this.extend(request, parameters));
-        return this.parseTrades(getValue(response, "Trades"), market, since, limit);
+        object trades = this.safeList(response, "Trades", new List<object>() {});
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -890,9 +1013,10 @@ public partial class independentreserve : Exchange
         //     ]
         //
         object fees = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rows = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
-            object fee = getValue(response, i);
+            object fee = getValue(rows, i);
             object currencyId = this.safeString(fee, "CurrencyCode");
             object code = this.safeCurrencyCode(currencyId);
             object tradingFee = this.safeNumber(fee, "Fee");

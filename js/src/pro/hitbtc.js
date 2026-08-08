@@ -665,10 +665,10 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
     parseWsTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        trades = this.toArray(trades);
+        const tradesArray = this.toArray(trades);
         let result = [];
-        for (let i = 0; i < trades.length; i++) {
-            const trade = this.extend(this.parseWsTrade(trades[i], market), params);
+        for (let i = 0; i < tradesArray.length; i++) {
+            const trade = this.extend(this.parseWsTrade(tradesArray[i], market), params);
             result.push(trade);
         }
         result = this.sortBy2(result, 'timestamp', 'id');

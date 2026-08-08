@@ -5,7 +5,7 @@ import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountNotEnabled, BadRequest, BadSymbol, OperationRejected, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, DuplicateOrderId, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, RequestTimeout, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -140,69 +140,69 @@ export default class luno extends Exchange {
             'api': {
                 'exchange': {
                     'get': {
-                        'markets': 1,
+                        'markets': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'exchangePrivate': {
                     'get': {
-                        'candles': 1,
-                        'move': 1,
-                        'move/list_moves': 1,
-                        'transfers': 1,
+                        'candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'move': { 'cost': 1 } as Endpoint<Dict>,
+                        'move/list_moves': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfers': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'convert': 1,
-                        'move': 1,
+                        'convert': { 'cost': 1 } as Endpoint<Dict>,
+                        'move': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'orderbook_top': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'trades': 1,
+                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook_top': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/{id}/pending': 1,
-                        'accounts/{id}/transactions': 1,
-                        'balance': 1,
-                        'beneficiaries': 1,
-                        'send/networks': 1,
-                        'fee_info': 1,
-                        'funding_address': 1,
-                        'listorders': 1,
-                        'listtrades': 1,
-                        'send_fee': 1,
-                        'orders/{id}': 1,
-                        'withdrawals': 1,
-                        'withdrawals/{id}': 1,
-                        'transfers': 1, // not found in current docs, use GET /api/exchange/1/transfers
-                        'users/linked': 1,
+                        'accounts/{id}/pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts/{id}/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'beneficiaries': { 'cost': 1 } as Endpoint<Dict>,
+                        'send/networks': { 'cost': 1 } as Endpoint<Dict>,
+                        'fee_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'listorders': { 'cost': 1 } as Endpoint<Dict>,
+                        'listtrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'send_fee': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfers': { 'cost': 1 } as Endpoint<Dict>, // not found in current docs, use GET /api/exchange/1/transfers
+                        'users/linked': { 'cost': 1 } as Endpoint<Dict>,
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
                     },
                     'post': {
-                        'accounts': 1,
-                        'address/validate': 1,
-                        'postorder': 1,
-                        'marketorder': 1,
-                        'stoporder': 1,
-                        'funding_address': 1,
-                        'withdrawals': 1,
-                        'send': 1,
-                        'oauth2/grant': 1, // deprecated for new applications
-                        'beneficiaries': 1,
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'address/validate': { 'cost': 1 } as Endpoint<Dict>,
+                        'postorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'marketorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'stoporder': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'send': { 'cost': 1 } as Endpoint<Dict>,
+                        'oauth2/grant': { 'cost': 1 } as Endpoint<Dict>, // deprecated for new applications
+                        'beneficiaries': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'accounts/{id}/name': 1,
+                        'accounts/{id}/name': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'withdrawals/{id}': 1,
-                        'beneficiaries/{id}': 1,
+                        'withdrawals/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'beneficiaries/{id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -526,7 +526,7 @@ export default class luno extends Exchange {
         //         ]
         //     }
         //
-        const result: any[] = [];
+        const result: List = [];
         const markets = this.safeValue (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -919,7 +919,8 @@ export default class luno extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
-        const tickers = this.indexBy (response['tickers'], 'pair');
+        const rawTickers = this.safeList (response, 'tickers', []);
+        const tickers = this.indexBy (rawTickers, 'pair');
         const ids = Object.keys (tickers);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {

@@ -4,7 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Market, NullableList } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, List, Market, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
@@ -680,11 +680,11 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    override parseWsTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        trades = this.toArray (trades);
+    override parseWsTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        const tradesArray = this.toArray (trades);
         let result: Dict[] = [];
-        for (let i = 0; i < trades.length; i++) {
-            const trade = this.extend (this.parseWsTrade (trades[i], market), params);
+        for (let i = 0; i < tradesArray.length; i++) {
+            const trade = this.extend (this.parseWsTrade (tradesArray[i], market), params);
             result.push (trade);
         }
         result = this.sortBy2 (result, 'timestamp', 'id');

@@ -58,6 +58,18 @@ public class Kalshi extends KalshiCore {
     public CompletableFuture<Currencies> fetchCurrenciesAsync() { return fetchCurrenciesAsync((Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
+    public List<MarketInterface> fetchMarkets(Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchMarkets(params));
+        return toTypedList(res, MarketInterface::new);
+    }
+    public List<MarketInterface> fetchMarkets() { return fetchMarkets((Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<List<MarketInterface>> fetchMarketsAsync(Map<String, Object> params) {
+        return super.fetchMarkets(params).thenApply(res -> toTypedList(res, MarketInterface::new));
+    }
+    public CompletableFuture<List<MarketInterface>> fetchMarketsAsync() { return fetchMarketsAsync((Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
     public List<Account> fetchAccounts(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchAccounts(params));
         return toTypedList(res, Account::new);
@@ -548,6 +560,18 @@ public class Kalshi extends KalshiCore {
     }
     public PredictionTickers fetchContractTickers(String[] symbols, Map<String, Object> params) { return fetchContractTickers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<PredictionTickers> fetchContractTickersAsync(String[] symbols, Map<String, Object> params) { return fetchContractTickersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+
+    @SuppressWarnings("unchecked")
+    public OrderBooks fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchOrderBooks(symbols, limit, params));
+        return new OrderBooks(res);
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<OrderBooks> fetchOrderBooksAsync(List<String> symbols, Long limit, Map<String, Object> params) {
+        return super.fetchOrderBooks(symbols, limit, params).thenApply(OrderBooks::new);
+    }
+    public OrderBooks fetchOrderBooks(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooks(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
+    public CompletableFuture<OrderBooks> fetchOrderBooksAsync(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
 
     @SuppressWarnings("unchecked")
     public PredictionOrder createTwapOrder(String symbol, String side, Double amount, Double duration, Map<String, Object> params) {
@@ -1188,6 +1212,18 @@ public class Kalshi extends KalshiCore {
     }
     public CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount) { return createOrderAsync(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createOrderAsync(symbol, type, side, amount, price, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
+    public PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.createMarketOrderWithCost(symbol, side, cost, params));
+        return new PredictionOrder(res);
+    }
+    public PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost) { return createMarketOrderWithCost(symbol, side, cost, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost, Map<String, Object> params) {
+        return super.createMarketOrderWithCost(symbol, side, cost, params).thenApply(PredictionOrder::new);
+    }
+    public CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost) { return createMarketOrderWithCostAsync(symbol, side, cost, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public PredictionOrder createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> params) {

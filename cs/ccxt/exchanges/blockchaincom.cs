@@ -87,38 +87,86 @@ public partial class blockchaincom : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "tickers", 1 },
-                        { "tickers/{symbol}", 1 },
-                        { "symbols", 1 },
-                        { "symbols/{symbol}", 1 },
-                        { "l2/{symbol}", 1 },
-                        { "l3/{symbol}", 1 },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "symbols", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "symbols/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "l2/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "l3/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "fees", 1 },
-                        { "orders", 1 },
-                        { "orders/{orderId}", 1 },
-                        { "trades", 1 },
-                        { "fills", 1 },
-                        { "deposits", 1 },
-                        { "deposits/{depositId}", 1 },
-                        { "accounts", 1 },
-                        { "accounts/{account}/{currency}", 1 },
-                        { "whitelist", 1 },
-                        { "whitelist/{currency}", 1 },
-                        { "withdrawals", 1 },
-                        { "withdrawals/{withdrawalId}", 1 },
+                        { "fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{orderId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits/{depositId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{account}/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "whitelist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "whitelist/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/{withdrawalId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "orders", 1 },
-                        { "deposits/{currency}", 1 },
-                        { "withdrawals", 1 },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "orders", 1 },
-                        { "orders/{orderId}", 1 },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{orderId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },

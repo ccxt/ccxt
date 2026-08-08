@@ -153,167 +153,425 @@ func (this *CryptocomCore) Describe() any {
 			"base": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"v1/public/get-announcements": 1,
+						"v1/public/get-announcements": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"v1": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"public/auth":                         Divide(10, 3),
-						"public/get-instruments":              Divide(10, 3),
-						"public/get-book":                     1,
-						"public/get-candlestick":              1,
-						"public/get-trades":                   1,
-						"public/get-tickers":                  1,
-						"public/get-valuations":               1,
-						"public/get-expired-settlement-price": Divide(10, 3),
-						"public/get-insurance":                1,
-						"public/get-announcements":            1,
-						"public/get-risk-parameters":          1,
+						"public/auth": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-instruments": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-book": map[string]any{
+							"cost": 1,
+						},
+						"public/get-candlestick": map[string]any{
+							"cost": 1,
+						},
+						"public/get-trades": map[string]any{
+							"cost": 1,
+						},
+						"public/get-tickers": map[string]any{
+							"cost": 1,
+						},
+						"public/get-valuations": map[string]any{
+							"cost": 1,
+						},
+						"public/get-expired-settlement-price": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-insurance": map[string]any{
+							"cost": 1,
+						},
+						"public/get-announcements": map[string]any{
+							"cost": 1,
+						},
+						"public/get-risk-parameters": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"public/staking/get-conversion-rate": 2,
+						"public/staking/get-conversion-rate": map[string]any{
+							"cost": 2,
+						},
 					},
 				},
 				"private": map[string]any{
 					"post": map[string]any{
-						"private/set-cancel-on-disconnect":        Divide(10, 3),
-						"private/get-cancel-on-disconnect":        Divide(10, 3),
-						"private/user-balance":                    Divide(10, 3),
-						"private/user-balance-history":            Divide(10, 3),
-						"private/get-positions":                   Divide(10, 3),
-						"private/create-order":                    Divide(2, 3),
-						"private/amend-order":                     Divide(4, 3),
-						"private/create-order-list":               Divide(10, 3),
-						"private/cancel-order":                    Divide(2, 3),
-						"private/cancel-order-list":               Divide(10, 3),
-						"private/cancel-all-orders":               Divide(2, 3),
-						"private/close-position":                  Divide(10, 3),
-						"private/get-order-history":               100,
-						"private/get-open-orders":                 Divide(10, 3),
-						"private/get-order-detail":                Divide(1, 3),
-						"private/get-trades":                      100,
-						"private/change-account-leverage":         Divide(10, 3),
-						"private/get-transactions":                Divide(10, 3),
-						"private/create-subaccount-transfer":      Divide(10, 3),
-						"private/get-subaccount-balances":         Divide(10, 3),
-						"private/get-order-list":                  Divide(10, 3),
-						"private/create-withdrawal":               Divide(10, 3),
-						"private/get-currency-networks":           Divide(10, 3),
-						"private/get-deposit-address":             Divide(10, 3),
-						"private/get-accounts":                    Divide(10, 3),
-						"private/get-withdrawal-history":          Divide(10, 3),
-						"private/get-deposit-history":             Divide(10, 3),
-						"private/get-fee-rate":                    2,
-						"private/get-instrument-fee-rate":         2,
-						"private/fiat/fiat-deposit-info":          Divide(10, 3),
-						"private/fiat/fiat-deposit-history":       Divide(10, 3),
-						"private/fiat/fiat-withdraw-history":      Divide(10, 3),
-						"private/fiat/fiat-create-withdraw":       Divide(10, 3),
-						"private/fiat/fiat-transaction-quota":     Divide(10, 3),
-						"private/fiat/fiat-transaction-limit":     Divide(10, 3),
-						"private/fiat/fiat-get-bank-accounts":     Divide(10, 3),
-						"private/staking/stake":                   2,
-						"private/staking/unstake":                 2,
-						"private/staking/get-staking-position":    2,
-						"private/staking/get-staking-instruments": 2,
-						"private/staking/get-open-stake":          2,
-						"private/staking/get-stake-history":       2,
-						"private/staking/get-reward-history":      2,
-						"private/staking/convert":                 2,
-						"private/staking/get-open-convert":        2,
-						"private/staking/get-convert-history":     2,
-						"private/create-isolated-margin-transfer": Divide(10, 3),
-						"private/change-isolated-margin-leverage": Divide(10, 3),
+						"private/set-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/user-balance": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/user-balance-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-positions": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/amend-order": map[string]any{
+							"cost": Divide(4, 3),
+						},
+						"private/create-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/cancel-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/cancel-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/cancel-all-orders": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/close-position": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-history": map[string]any{
+							"cost": 100,
+						},
+						"private/get-open-orders": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-detail": map[string]any{
+							"cost": Divide(1, 3),
+						},
+						"private/get-trades": map[string]any{
+							"cost": 100,
+						},
+						"private/change-account-leverage": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-transactions": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-subaccount-transfer": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-subaccount-balances": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-withdrawal": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-currency-networks": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-deposit-address": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-accounts": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-withdrawal-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-deposit-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-fee-rate": map[string]any{
+							"cost": 2,
+						},
+						"private/get-instrument-fee-rate": map[string]any{
+							"cost": 2,
+						},
+						"private/fiat/fiat-deposit-info": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-deposit-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-withdraw-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-create-withdraw": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-transaction-quota": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-transaction-limit": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-get-bank-accounts": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/staking/stake": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/unstake": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-staking-position": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-staking-instruments": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-open-stake": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-stake-history": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-reward-history": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/convert": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-open-convert": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-convert-history": map[string]any{
+							"cost": 2,
+						},
+						"private/create-isolated-margin-transfer": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/change-isolated-margin-leverage": map[string]any{
+							"cost": Divide(10, 3),
+						},
 					},
 				},
 			},
 			"v2": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"public/auth":                           1,
-						"public/get-instruments":                1,
-						"public/get-book":                       1,
-						"public/get-candlestick":                1,
-						"public/get-ticker":                     1,
-						"public/get-trades":                     1,
-						"public/margin/get-transfer-currencies": 1,
-						"public/margin/get-load-currenices":     1,
-						"public/respond-heartbeat":              1,
+						"public/auth": map[string]any{
+							"cost": 1,
+						},
+						"public/get-instruments": map[string]any{
+							"cost": 1,
+						},
+						"public/get-book": map[string]any{
+							"cost": 1,
+						},
+						"public/get-candlestick": map[string]any{
+							"cost": 1,
+						},
+						"public/get-ticker": map[string]any{
+							"cost": 1,
+						},
+						"public/get-trades": map[string]any{
+							"cost": 1,
+						},
+						"public/margin/get-transfer-currencies": map[string]any{
+							"cost": 1,
+						},
+						"public/margin/get-load-currenices": map[string]any{
+							"cost": 1,
+						},
+						"public/respond-heartbeat": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"post": map[string]any{
-						"private/set-cancel-on-disconnect":      Divide(10, 3),
-						"private/get-cancel-on-disconnect":      Divide(10, 3),
-						"private/create-withdrawal":             Divide(10, 3),
-						"private/get-withdrawal-history":        Divide(10, 3),
-						"private/get-currency-networks":         Divide(10, 3),
-						"private/get-deposit-history":           Divide(10, 3),
-						"private/get-deposit-address":           Divide(10, 3),
-						"private/export/create-export-request":  Divide(10, 3),
-						"private/export/get-export-requests":    Divide(10, 3),
-						"private/export/download-export-output": Divide(10, 3),
-						"private/get-account-summary":           Divide(10, 3),
-						"private/create-order":                  Divide(2, 3),
-						"private/cancel-order":                  Divide(2, 3),
-						"private/cancel-all-orders":             Divide(2, 3),
-						"private/create-order-list":             Divide(10, 3),
-						"private/get-order-history":             Divide(10, 3),
-						"private/get-open-orders":               Divide(10, 3),
-						"private/get-order-detail":              Divide(1, 3),
-						"private/get-trades":                    100,
-						"private/get-accounts":                  Divide(10, 3),
-						"private/get-subaccount-balances":       Divide(10, 3),
-						"private/create-subaccount-transfer":    Divide(10, 3),
-						"private/otc/get-otc-user":              Divide(10, 3),
-						"private/otc/get-instruments":           Divide(10, 3),
-						"private/otc/request-quote":             100,
-						"private/otc/accept-quote":              100,
-						"private/otc/get-quote-history":         Divide(10, 3),
-						"private/otc/get-trade-history":         Divide(10, 3),
-						"private/otc/create-order":              Divide(10, 3),
+						"private/set-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-withdrawal": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-withdrawal-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-currency-networks": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-deposit-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-deposit-address": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/export/create-export-request": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/export/get-export-requests": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/export/download-export-output": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-account-summary": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/cancel-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/cancel-all-orders": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/create-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-open-orders": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-detail": map[string]any{
+							"cost": Divide(1, 3),
+						},
+						"private/get-trades": map[string]any{
+							"cost": 100,
+						},
+						"private/get-accounts": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-subaccount-balances": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-subaccount-transfer": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/otc/get-otc-user": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/otc/get-instruments": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/otc/request-quote": map[string]any{
+							"cost": 100,
+						},
+						"private/otc/accept-quote": map[string]any{
+							"cost": 100,
+						},
+						"private/otc/get-quote-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/otc/get-trade-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/otc/create-order": map[string]any{
+							"cost": Divide(10, 3),
+						},
 					},
 				},
 			},
 			"derivatives": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"public/auth":                         Divide(10, 3),
-						"public/get-instruments":              Divide(10, 3),
-						"public/get-book":                     1,
-						"public/get-candlestick":              1,
-						"public/get-trades":                   1,
-						"public/get-tickers":                  1,
-						"public/get-valuations":               1,
-						"public/get-expired-settlement-price": Divide(10, 3),
-						"public/get-insurance":                1,
+						"public/auth": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-instruments": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-book": map[string]any{
+							"cost": 1,
+						},
+						"public/get-candlestick": map[string]any{
+							"cost": 1,
+						},
+						"public/get-trades": map[string]any{
+							"cost": 1,
+						},
+						"public/get-tickers": map[string]any{
+							"cost": 1,
+						},
+						"public/get-valuations": map[string]any{
+							"cost": 1,
+						},
+						"public/get-expired-settlement-price": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-insurance": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"post": map[string]any{
-						"private/set-cancel-on-disconnect":   Divide(10, 3),
-						"private/get-cancel-on-disconnect":   Divide(10, 3),
-						"private/user-balance":               Divide(10, 3),
-						"private/user-balance-history":       Divide(10, 3),
-						"private/get-positions":              Divide(10, 3),
-						"private/create-order":               Divide(2, 3),
-						"private/create-order-list":          Divide(10, 3),
-						"private/cancel-order":               Divide(2, 3),
-						"private/cancel-order-list":          Divide(10, 3),
-						"private/cancel-all-orders":          Divide(2, 3),
-						"private/close-position":             Divide(10, 3),
-						"private/convert-collateral":         Divide(10, 3),
-						"private/get-order-history":          100,
-						"private/get-open-orders":            Divide(10, 3),
-						"private/get-order-detail":           Divide(1, 3),
-						"private/get-trades":                 100,
-						"private/change-account-leverage":    Divide(10, 3),
-						"private/get-transactions":           Divide(10, 3),
-						"private/create-subaccount-transfer": Divide(10, 3),
-						"private/get-subaccount-balances":    Divide(10, 3),
-						"private/get-order-list":             Divide(10, 3),
+						"private/set-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/user-balance": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/user-balance-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-positions": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/create-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/cancel-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/cancel-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/cancel-all-orders": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/close-position": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/convert-collateral": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-history": map[string]any{
+							"cost": 100,
+						},
+						"private/get-open-orders": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-detail": map[string]any{
+							"cost": Divide(1, 3),
+						},
+						"private/get-trades": map[string]any{
+							"cost": 100,
+						},
+						"private/change-account-leverage": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-transactions": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-subaccount-transfer": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-subaccount-balances": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
 					},
 				},
 			},

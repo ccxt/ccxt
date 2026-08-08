@@ -592,7 +592,9 @@ func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan any
 			api := endPointData["api"]
 			var cost float64 = 1
 			if valCost, ok := endPointData["cost"]; ok {
-				cost = valCost.(float64)
+				if parsed, ok := toCost(valCost); ok {
+					cost = parsed
+				}
 			}
 			res := <-this.Fetch2(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
 			PanicOnError(res)
@@ -953,14 +955,14 @@ func (this *BaseExchange) transformApiNew(api Dict, paths ...string) {
 					if config, ok := dictValue[endpoint]; ok {
 						if dictConfig, ok := config.(map[string]any); ok {
 							if rl, success := dictConfig["cost"]; success {
-								if rlFloat, ok := rl.(float64); ok {
-									cost = rlFloat
-								} else if rlString, ok := rl.(string); ok {
-									cost = parseCost(rlString)
+								if parsed, ok := toCost(rl); ok {
+									cost = parsed
 								}
 							}
 						} else if config != nil {
-							cost = parseCost(fmt.Sprintf("%v", config))
+							if parsed, ok := toCost(config); ok {
+								cost = parsed
+							}
 						}
 					}
 				}
@@ -1020,6 +1022,29 @@ func parseCost(costStr string) float64 {
 	var cost float64
 	fmt.Sscanf(costStr, "%f", &cost)
 	return cost
+}
+
+// toCost reads an api-leaf rate limit cost, which reaches Go as whatever numeric
+// type the transpiler emitted for it: a bare `1` is an int, `0.1` a float64, and
+// a value carried through a map may arrive as a string. Type-asserting float64
+// alone silently fell back to a cost of 1 for every integer cost declared inside
+// an object leaf (e.g. binance dapiPublic depth {"cost": 2, "byLimit": ...}).
+func toCost(value any) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case float32:
+		return float64(typed), true
+	case int:
+		return float64(typed), true
+	case int32:
+		return float64(typed), true
+	case int64:
+		return float64(typed), true
+	case string:
+		return parseCost(typed), true
+	}
+	return 0, false
 }
 
 // func (this *BaseExchange) callInternal(name2 string, args ...any) any {

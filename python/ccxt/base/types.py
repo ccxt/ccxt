@@ -3,7 +3,7 @@
 
 import sys
 import types
-from typing import Type, Union, List, Optional, Any as PythonAny
+from typing import Type, Union, List, Optional, Callable, Generic, TypeVar, Any as PythonAny
 from decimal import Decimal
 
 
@@ -26,7 +26,17 @@ PositionSide = Literal['long', 'short']
 Any = PythonAny
 
 
-class Entry:
+_EntryReturns = TypeVar('_EntryReturns')
+
+
+class Entry(Generic[_EntryReturns]):
+    """One generated implicit-API endpoint, as a descriptor.
+
+    The type argument is the shape that endpoint's decoded body has, taken
+    from the same declaration the TypeScript abstract is generated from, so
+    `Entry[Dict[str, Any]]` and `Entry[List[Any]]` tell a type checker what
+    the call returns even though there is no `def` to annotate here.
+    """
     def __init__(self, path, api, method, config):
         self.name = None
         self.path = path
@@ -34,12 +44,12 @@ class Entry:
         self.method = method
         self.config = config
 
-        def unbound_method(_self, params={}):
+        def unbound_method(_self, params={}) -> _EntryReturns:
             return _self.request(self.path, self.api, self.method, params, config=self.config)
 
         self.unbound_method = unbound_method
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner) -> Callable[..., _EntryReturns]:
         if instance is None:
             return self.unbound_method
         else:
@@ -47,6 +57,13 @@ class Entry:
 
     def __set_name__(self, owner, name):
         self.name = name
+
+    def __class_getitem__(cls, item):
+        # The subscript exists for the type checkers, which read the parameter
+        # off the Generic base rather than off this call. Returning the class
+        # keeps `Entry[X](...)` exactly as cheap as `Entry(...)` at import
+        # time, which matters at ~14k descriptors built on every import.
+        return cls
 
 
 IndexType = Union[str, int]

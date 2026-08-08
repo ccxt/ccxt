@@ -19,14 +19,14 @@ export default class lighter extends Exchange {
     preLoadLighterLibrary(params?: {}): Promise<boolean>;
     handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): any[];
     handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<any[]>;
-    createSubAccount(name: string, params?: {}): Promise<any>;
+    createSubAccount(name: string, params?: {}): Promise<Dict>;
     createAuth(params?: {}): Str;
     pow(n: string, m: string): string | undefined;
     hashMessage(message: string): string;
     signHash(hash: any, privateKey: any): string;
     signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: any): string;
     handleBuilderFeeApproval(accountIndex: number, apiKeyIndex: number): Promise<boolean>;
-    approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: object): Promise<any>;
+    approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: object): Promise<Dict>;
     changeApiKey(params?: object): Promise<any>;
     setSandboxMode(enable: boolean): void;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any[];
@@ -354,7 +354,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name lighter#setMarginMode
@@ -367,8 +367,8 @@ export default class lighter extends Exchange {
      * @param {int} [params.leverage] required leverage
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
-    modifyLeverageAndMarginMode(leverage: int, marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
+    modifyLeverageAndMarginMode(leverage: int, marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name lighter#cancelOrder
@@ -400,7 +400,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name lighter#addMargin

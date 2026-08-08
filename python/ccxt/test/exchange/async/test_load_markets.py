@@ -29,4 +29,23 @@ async def test_load_markets(exchange, skipped_properties):
     market_values = list(markets.values())
     for i in range(0, len(market_values)):
         test_market(exchange, skipped_properties, method, market_values[i])
+    # market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
+    market_types = ['spot', 'swap', 'future', 'option', 'index']
+    collected_types = []
+    all_markets = list(exchange.markets.values())
+    for i in range(0, len(all_markets)):
+        market = all_markets[i]
+        if not exchange.in_array(market['type'], collected_types):
+            collected_types.append(market['type'])
+    for i in range(0, len(market_types)):
+        m_type = market_types[i]
+        if exchange.has[m_type]:
+            skip_market_types = ('optionsNotLoadedByDefault' in skipped_properties) and m_type == 'option'
+            assert exchange.in_array(m_type, collected_types) or skip_market_types, 'exchange.has[' + m_type + '] is true, but no markets of type ' + m_type + ' were found in exchange.markets'
+        elif exchange.has[m_type] is False:
+            # some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
+            # marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
+            # in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
+            is_known_exception = (m_type in skipped_properties)
+            assert not exchange.in_array(m_type, collected_types) or is_known_exception, 'exchange.has[' + m_type + '] is false, but markets of type ' + m_type + ' were found in exchange.markets'
     return True

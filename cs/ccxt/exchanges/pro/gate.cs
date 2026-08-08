@@ -1746,6 +1746,8 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
      * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
+     * @param {boolean} [params.trigger] set to true to watch trigger orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202
+     * @param {boolean} [params.stop] alias of params.trigger
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1774,8 +1776,23 @@ public partial class gate : ccxt.gate
             { "swap", "futures" },
             { "option", "options" },
         });
-        object channel = add(typeId, ".orders");
-        object messageHash = "orders";
+        object isTrigger = false;
+        var isTriggerqueryVariable = this.handleParamBool2(query, "trigger", "stop", false);
+        isTrigger = ((IList<object>)isTriggerqueryVariable)[0];
+        query = ((IList<object>)isTriggerqueryVariable)[1];
+        if (isTrue(isTrue(isTrigger) && isTrue((isEqual(typeId, "options")))))
+        {
+            throw new NotSupported ((string)add(this.id, " watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202")) ;
+        }
+        // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
+        // see https://github.com/ccxt/ccxt/issues/27202
+        object suffix = ".orders";
+        if (isTrue(isTrigger))
+        {
+            suffix = ((bool) isTrue((isEqual(typeId, "spot")))) ? ".priceorders" : ".autoorders";
+        }
+        object channel = add(typeId, suffix);
+        object messageHash = ((bool) isTrue(isTrigger)) ? "triggerOrders" : "orders";
         object payload = new List<object>() {add("!", "all")};
         if (isTrue(!isEqual(market, null)))
         {
@@ -1847,12 +1864,16 @@ public partial class gate : ccxt.gate
         //     }
         //
         object orders = this.safeValue(message, "result", new List<object>() {});
+        object channel = this.safeString(message, "channel", "");
+        object isTrigger = isTrue((isGreaterThanOrEqual(getIndexOf(channel, "autoorders"), 0))) || isTrue((isGreaterThanOrEqual(getIndexOf(channel, "priceorders"), 0)));
+        object hashPrefix = ((bool) isTrue(isTrigger)) ? "triggerOrders" : "orders";
         object limit = this.safeInteger(this.options, "ordersLimit", 1000);
         if (isTrue(isEqual(this.orders, null)))
         {
             this.orders = new ArrayCacheBySymbolById(limit);
+            this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
-        object stored = this.orders;
+        object stored = ((bool) isTrue(isTrigger)) ? this.triggerOrders : this.orders;
         object marketIds = new Dictionary<string, object>() {};
         object parsedOrders = this.parseOrders(orders);
         for (object i = 0; isLessThan(i, getArrayLength(parsedOrders)); postFixIncrement(ref i))
@@ -1884,10 +1905,10 @@ public partial class gate : ccxt.gate
         object keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object messageHash = add("orders:", getValue(keys, i));
-            callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
+            object messageHash = add(add(hashPrefix, ":"), getValue(keys, i));
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, "orders"});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, hashPrefix});
     }
 
     /**
@@ -2396,6 +2417,8 @@ public partial class gate : ccxt.gate
             { "usertrades", this.handleMyTrades },
             { "candlesticks", this.handleOHLCV },
             { "orders", this.handleOrder },
+            { "autoorders", this.handleOrder },
+            { "priceorders", this.handleOrder },
             { "positions", this.handlePositions },
             { "tickers", this.handleTicker },
             { "book_ticker", this.handleBidAsk },

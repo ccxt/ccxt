@@ -7,525 +7,1047 @@ namespace ccxt\abstract;
 
 
 abstract class toobit extends \ccxt\Exchange {
+    /**
+     * @return array<string, mixed>
+     */
     public function common_get_api_v1_time($params = array()) {
         return $this->request('api/v1/time', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function common_get_api_v1_ping($params = array()) {
         return $this->request('api/v1/ping', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function common_get_api_v1_exchangeinfo($params = array()) {
         return $this->request('api/v1/exchangeInfo', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function common_get_quote_v1_depth($params = array()) {
         return $this->request('quote/v1/depth', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function common_get_quote_v1_depth_merged($params = array()) {
         return $this->request('quote/v1/depth/merged', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_quote_v1_trades($params = array()) {
         return $this->request('quote/v1/trades', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_quote_v1_klines($params = array()) {
         return $this->request('quote/v1/klines', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_quote_v1_index_klines($params = array()) {
         return $this->request('quote/v1/index/klines', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function common_get_quote_v1_indexpricecomponents($params = array()) {
         return $this->request('quote/v1/indexPriceComponents', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_quote_v1_markprice_klines($params = array()) {
         return $this->request('quote/v1/markPrice/klines', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function common_get_quote_v1_markprice($params = array()) {
         return $this->request('quote/v1/markPrice', 'common', 'GET', $params, null, null, array("cost" => 10));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function common_get_quote_v1_index($params = array()) {
         return $this->request('quote/v1/index', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_quote_v1_ticker_24hr($params = array()) {
         return $this->request('quote/v1/ticker/24hr', 'common', 'GET', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_quote_v1_contract_ticker_24hr($params = array()) {
         return $this->request('quote/v1/contract/ticker/24hr', 'common', 'GET', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_quote_v1_ticker_price($params = array()) {
         return $this->request('quote/v1/ticker/price', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_quote_v1_contract_ticker_price($params = array()) {
         return $this->request('quote/v1/contract/ticker/price', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_quote_v1_ticker_bookticker($params = array()) {
         return $this->request('quote/v1/ticker/bookTicker', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_quote_v1_contract_ticker_bookticker($params = array()) {
         return $this->request('quote/v1/contract/ticker/bookTicker', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_api_v1_futures_fundingrate($params = array()) {
         return $this->request('api/v1/futures/fundingRate', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_api_v1_futures_historyfundingrate($params = array()) {
         return $this->request('api/v1/futures/historyFundingRate', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function common_get_api_v1_futures_risklimits($params = array()) {
         return $this->request('api/v1/futures/riskLimits', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_account($params = array()) {
         return $this->request('api/v1/account', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_account_checkapikey($params = array()) {
         return $this->request('api/v1/account/checkApiKey', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_spot_order($params = array()) {
         return $this->request('api/v1/spot/order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_spot_openorders($params = array()) {
         return $this->request('api/v1/spot/openOrders', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_futures_openorders($params = array()) {
         return $this->request('api/v1/futures/openOrders', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_spot_tradeorders($params = array()) {
         return $this->request('api/v1/spot/tradeOrders', 'private', 'GET', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_futures_historyorders($params = array()) {
         return $this->request('api/v1/futures/historyOrders', 'private', 'GET', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_account_trades($params = array()) {
         return $this->request('api/v1/account/trades', 'private', 'GET', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_account_balanceflow($params = array()) {
         return $this->request('api/v1/account/balanceFlow', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_account_depositorders($params = array()) {
         return $this->request('api/v1/account/depositOrders', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_account_withdraworders($params = array()) {
         return $this->request('api/v1/account/withdrawOrders', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_account_deposit_address($params = array()) {
         return $this->request('api/v1/account/deposit/address', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_subaccount($params = array()) {
         return $this->request('api/v1/subAccount', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_account_subaccount($params = array()) {
         return $this->request('api/v1/account/subAccount', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_subaccount_list($params = array()) {
         return $this->request('api/v1/subAccount/list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_futures_accountleverage($params = array()) {
         return $this->request('api/v1/futures/accountLeverage', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_futures_order($params = array()) {
         return $this->request('api/v1/futures/order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_futures_positions($params = array()) {
         return $this->request('api/v1/futures/positions', 'private', 'GET', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_futures_historypositions($params = array()) {
         return $this->request('api/v1/futures/historyPositions', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_futures_balance($params = array()) {
         return $this->request('api/v1/futures/balance', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_futures_usertrades($params = array()) {
         return $this->request('api/v1/futures/userTrades', 'private', 'GET', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_api_v1_futures_balanceflow($params = array()) {
         return $this->request('api/v1/futures/balanceFlow', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_futures_commissionrate($params = array()) {
         return $this->request('api/v1/futures/commissionRate', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_futures_todaypnl($params = array()) {
         return $this->request('api/v1/futures/todayPnl', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_account_download_detail($params = array()) {
         return $this->request('api/v1/account/download/detail', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_inviteuserlist($params = array()) {
         return $this->request('api/v1/agent/inviteUserList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_commissiondatalist($params = array()) {
         return $this->request('api/v1/agent/commissionDataList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_commissiondatainfo($params = array()) {
         return $this->request('api/v1/agent/commissionDataInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_inviterelationcheck($params = array()) {
         return $this->request('api/v1/agent/inviteRelationCheck', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_depositdetaillist($params = array()) {
         return $this->request('api/v1/agent/depositDetailList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_querysubagentdata($params = array()) {
         return $this->request('api/v1/agent/querySubAgentData', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_spotorderslist($params = array()) {
         return $this->request('api/v1/agent/spotOrdersList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_futuresorderslist($params = array()) {
         return $this->request('api/v1/agent/futuresOrdersList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_futurespositionslist($params = array()) {
         return $this->request('api/v1/agent/futuresPositionsList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_invite_commission_detail($params = array()) {
         return $this->request('api/v1/agent/invite-commission-detail', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_user_export($params = array()) {
         return $this->request('api/v1/agent/user/export', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_export_list($params = array()) {
         return $this->request('api/v1/agent/export-list', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_agent_export_url($params = array()) {
         return $this->request('api/v1/agent/export-url', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_spot_ordertest($params = array()) {
         return $this->request('api/v1/spot/orderTest', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_spot_order($params = array()) {
         return $this->request('api/v1/spot/order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_futures_order($params = array()) {
         return $this->request('api/v1/futures/order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_spot_batchorders($params = array()) {
         return $this->request('api/v1/spot/batchOrders', 'private', 'POST', $params, null, null, array("cost" => 3.34));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_subaccount_transfer($params = array()) {
         return $this->request('api/v1/subAccount/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_account_withdraw($params = array()) {
         return $this->request('api/v1/account/withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_futures_margintype($params = array()) {
         return $this->request('api/v1/futures/marginType', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_futures_leverage($params = array()) {
         return $this->request('api/v1/futures/leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_futures_batchorders($params = array()) {
         return $this->request('api/v1/futures/batchOrders', 'private', 'POST', $params, null, null, array("cost" => 3.34));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_futures_position_trading_stop($params = array()) {
         return $this->request('api/v1/futures/position/trading-stop', 'private', 'POST', $params, null, null, array("cost" => 5.01));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_futures_positionmargin($params = array()) {
         return $this->request('api/v1/futures/positionMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_futures_order_update($params = array()) {
         return $this->request('api/v1/futures/order/update', 'private', 'POST', $params, null, null, array("cost" => 3.34));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_futures_autoaddmargin($params = array()) {
         return $this->request('api/v1/futures/autoAddMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_futures_flashclose($params = array()) {
         return $this->request('api/v1/futures/flashClose', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_futures_reverseposition($params = array()) {
         return $this->request('api/v1/futures/reversePosition', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_account_download_apply($params = array()) {
         return $this->request('api/v1/account/download/apply', 'private', 'POST', $params, null, null, array("cost" => 1000));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_userdatastream($params = array()) {
         return $this->request('api/v1/userDataStream', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_api_v1_listenkey($params = array()) {
         return $this->request('api/v1/listenKey', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_api_v1_spot_order($params = array()) {
         return $this->request('api/v1/spot/order', 'private', 'DELETE', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_api_v1_futures_order($params = array()) {
         return $this->request('api/v1/futures/order', 'private', 'DELETE', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_api_v1_spot_openorders($params = array()) {
         return $this->request('api/v1/spot/openOrders', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_api_v1_futures_batchorders($params = array()) {
         return $this->request('api/v1/futures/batchOrders', 'private', 'DELETE', $params, null, null, array("cost" => 5.01));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_api_v1_spot_cancelorderbyids($params = array()) {
         return $this->request('api/v1/spot/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_api_v1_futures_cancelorderbyids($params = array()) {
         return $this->request('api/v1/futures/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 5.01));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_api_v1_userdatastream($params = array()) {
         return $this->request('api/v1/userDataStream', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_api_v1_listenkey($params = array()) {
         return $this->request('api/v1/listenKey', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_put_api_v1_userdatastream($params = array()) {
         return $this->request('api/v1/userDataStream', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_put_api_v1_listenkey($params = array()) {
         return $this->request('api/v1/listenKey', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function commonGetApiV1Time($params = array()) {
         return $this->request('api/v1/time', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function commonGetApiV1Ping($params = array()) {
         return $this->request('api/v1/ping', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function commonGetApiV1ExchangeInfo($params = array()) {
         return $this->request('api/v1/exchangeInfo', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function commonGetQuoteV1Depth($params = array()) {
         return $this->request('quote/v1/depth', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function commonGetQuoteV1DepthMerged($params = array()) {
         return $this->request('quote/v1/depth/merged', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetQuoteV1Trades($params = array()) {
         return $this->request('quote/v1/trades', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetQuoteV1Klines($params = array()) {
         return $this->request('quote/v1/klines', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetQuoteV1IndexKlines($params = array()) {
         return $this->request('quote/v1/index/klines', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function commonGetQuoteV1IndexPriceComponents($params = array()) {
         return $this->request('quote/v1/indexPriceComponents', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetQuoteV1MarkPriceKlines($params = array()) {
         return $this->request('quote/v1/markPrice/klines', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function commonGetQuoteV1MarkPrice($params = array()) {
         return $this->request('quote/v1/markPrice', 'common', 'GET', $params, null, null, array("cost" => 10));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function commonGetQuoteV1Index($params = array()) {
         return $this->request('quote/v1/index', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetQuoteV1Ticker24hr($params = array()) {
         return $this->request('quote/v1/ticker/24hr', 'common', 'GET', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetQuoteV1ContractTicker24hr($params = array()) {
         return $this->request('quote/v1/contract/ticker/24hr', 'common', 'GET', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetQuoteV1TickerPrice($params = array()) {
         return $this->request('quote/v1/ticker/price', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetQuoteV1ContractTickerPrice($params = array()) {
         return $this->request('quote/v1/contract/ticker/price', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetQuoteV1TickerBookTicker($params = array()) {
         return $this->request('quote/v1/ticker/bookTicker', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetQuoteV1ContractTickerBookTicker($params = array()) {
         return $this->request('quote/v1/contract/ticker/bookTicker', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetApiV1FuturesFundingRate($params = array()) {
         return $this->request('api/v1/futures/fundingRate', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetApiV1FuturesHistoryFundingRate($params = array()) {
         return $this->request('api/v1/futures/historyFundingRate', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function commonGetApiV1FuturesRiskLimits($params = array()) {
         return $this->request('api/v1/futures/riskLimits', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1Account($params = array()) {
         return $this->request('api/v1/account', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AccountCheckApiKey($params = array()) {
         return $this->request('api/v1/account/checkApiKey', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1SpotOrder($params = array()) {
         return $this->request('api/v1/spot/order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1SpotOpenOrders($params = array()) {
         return $this->request('api/v1/spot/openOrders', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1FuturesOpenOrders($params = array()) {
         return $this->request('api/v1/futures/openOrders', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1SpotTradeOrders($params = array()) {
         return $this->request('api/v1/spot/tradeOrders', 'private', 'GET', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1FuturesHistoryOrders($params = array()) {
         return $this->request('api/v1/futures/historyOrders', 'private', 'GET', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1AccountTrades($params = array()) {
         return $this->request('api/v1/account/trades', 'private', 'GET', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1AccountBalanceFlow($params = array()) {
         return $this->request('api/v1/account/balanceFlow', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1AccountDepositOrders($params = array()) {
         return $this->request('api/v1/account/depositOrders', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1AccountWithdrawOrders($params = array()) {
         return $this->request('api/v1/account/withdrawOrders', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AccountDepositAddress($params = array()) {
         return $this->request('api/v1/account/deposit/address', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1SubAccount($params = array()) {
         return $this->request('api/v1/subAccount', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1AccountSubAccount($params = array()) {
         return $this->request('api/v1/account/subAccount', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1SubAccountList($params = array()) {
         return $this->request('api/v1/subAccount/list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1FuturesAccountLeverage($params = array()) {
         return $this->request('api/v1/futures/accountLeverage', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1FuturesOrder($params = array()) {
         return $this->request('api/v1/futures/order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1FuturesPositions($params = array()) {
         return $this->request('api/v1/futures/positions', 'private', 'GET', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1FuturesHistoryPositions($params = array()) {
         return $this->request('api/v1/futures/historyPositions', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1FuturesBalance($params = array()) {
         return $this->request('api/v1/futures/balance', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1FuturesUserTrades($params = array()) {
         return $this->request('api/v1/futures/userTrades', 'private', 'GET', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetApiV1FuturesBalanceFlow($params = array()) {
         return $this->request('api/v1/futures/balanceFlow', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1FuturesCommissionRate($params = array()) {
         return $this->request('api/v1/futures/commissionRate', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1FuturesTodayPnl($params = array()) {
         return $this->request('api/v1/futures/todayPnl', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AccountDownloadDetail($params = array()) {
         return $this->request('api/v1/account/download/detail', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentInviteUserList($params = array()) {
         return $this->request('api/v1/agent/inviteUserList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentCommissionDataList($params = array()) {
         return $this->request('api/v1/agent/commissionDataList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentCommissionDataInfo($params = array()) {
         return $this->request('api/v1/agent/commissionDataInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentInviteRelationCheck($params = array()) {
         return $this->request('api/v1/agent/inviteRelationCheck', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentDepositDetailList($params = array()) {
         return $this->request('api/v1/agent/depositDetailList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentQuerySubAgentData($params = array()) {
         return $this->request('api/v1/agent/querySubAgentData', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentSpotOrdersList($params = array()) {
         return $this->request('api/v1/agent/spotOrdersList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentFuturesOrdersList($params = array()) {
         return $this->request('api/v1/agent/futuresOrdersList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentFuturesPositionsList($params = array()) {
         return $this->request('api/v1/agent/futuresPositionsList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentInviteCommissionDetail($params = array()) {
         return $this->request('api/v1/agent/invite-commission-detail', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentUserExport($params = array()) {
         return $this->request('api/v1/agent/user/export', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentExportList($params = array()) {
         return $this->request('api/v1/agent/export-list', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1AgentExportUrl($params = array()) {
         return $this->request('api/v1/agent/export-url', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1SpotOrderTest($params = array()) {
         return $this->request('api/v1/spot/orderTest', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1SpotOrder($params = array()) {
         return $this->request('api/v1/spot/order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1FuturesOrder($params = array()) {
         return $this->request('api/v1/futures/order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1SpotBatchOrders($params = array()) {
         return $this->request('api/v1/spot/batchOrders', 'private', 'POST', $params, null, null, array("cost" => 3.34));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1SubAccountTransfer($params = array()) {
         return $this->request('api/v1/subAccount/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1AccountWithdraw($params = array()) {
         return $this->request('api/v1/account/withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1FuturesMarginType($params = array()) {
         return $this->request('api/v1/futures/marginType', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1FuturesLeverage($params = array()) {
         return $this->request('api/v1/futures/leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1FuturesBatchOrders($params = array()) {
         return $this->request('api/v1/futures/batchOrders', 'private', 'POST', $params, null, null, array("cost" => 3.34));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1FuturesPositionTradingStop($params = array()) {
         return $this->request('api/v1/futures/position/trading-stop', 'private', 'POST', $params, null, null, array("cost" => 5.01));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1FuturesPositionMargin($params = array()) {
         return $this->request('api/v1/futures/positionMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1FuturesOrderUpdate($params = array()) {
         return $this->request('api/v1/futures/order/update', 'private', 'POST', $params, null, null, array("cost" => 3.34));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1FuturesAutoAddMargin($params = array()) {
         return $this->request('api/v1/futures/autoAddMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1FuturesFlashClose($params = array()) {
         return $this->request('api/v1/futures/flashClose', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1FuturesReversePosition($params = array()) {
         return $this->request('api/v1/futures/reversePosition', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1AccountDownloadApply($params = array()) {
         return $this->request('api/v1/account/download/apply', 'private', 'POST', $params, null, null, array("cost" => 1000));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1UserDataStream($params = array()) {
         return $this->request('api/v1/userDataStream', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostApiV1ListenKey($params = array()) {
         return $this->request('api/v1/listenKey', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteApiV1SpotOrder($params = array()) {
         return $this->request('api/v1/spot/order', 'private', 'DELETE', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteApiV1FuturesOrder($params = array()) {
         return $this->request('api/v1/futures/order', 'private', 'DELETE', $params, null, null, array("cost" => 1.67));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteApiV1SpotOpenOrders($params = array()) {
         return $this->request('api/v1/spot/openOrders', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteApiV1FuturesBatchOrders($params = array()) {
         return $this->request('api/v1/futures/batchOrders', 'private', 'DELETE', $params, null, null, array("cost" => 5.01));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteApiV1SpotCancelOrderByIds($params = array()) {
         return $this->request('api/v1/spot/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteApiV1FuturesCancelOrderByIds($params = array()) {
         return $this->request('api/v1/futures/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 5.01));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteApiV1UserDataStream($params = array()) {
         return $this->request('api/v1/userDataStream', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteApiV1ListenKey($params = array()) {
         return $this->request('api/v1/listenKey', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePutApiV1UserDataStream($params = array()) {
         return $this->request('api/v1/userDataStream', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePutApiV1ListenKey($params = array()) {
         return $this->request('api/v1/listenKey', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
