@@ -242,7 +242,7 @@ export default class polymarket extends Exchange {
                             'positions': { 'cost': 1 } as Endpoint<Dict>,
                             'revisions': { 'cost': 1 } as Endpoint<List>,
                             'traded': { 'cost': 1 } as Endpoint<Dict>,
-                            'trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades': { 'cost': 1 } as Endpoint<List>,
                             'v1/accounting/snapshot': { 'cost': 1 } as Endpoint<Dict>,
                             'v1/activity/combos': { 'cost': 1 } as Endpoint<Dict>,
                             'v1/builders/leaderboard': { 'cost': 1 } as Endpoint<List>,
