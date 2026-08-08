@@ -334,7 +334,7 @@ func (this *Fmfwio) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBoo
 func (this *Fmfwio) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Fmfwio) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Fmfwio) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Fmfwio) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -376,7 +376,7 @@ func (this *Fmfwio) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 func (this *Fmfwio) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Fmfwio) FetchTime(params ...any) (int64, error) {
+func (this *Fmfwio) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Fmfwio) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {

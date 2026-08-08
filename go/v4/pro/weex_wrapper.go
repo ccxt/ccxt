@@ -1202,7 +1202,7 @@ func (this *Weex) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.
 func (this *Weex) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Weex) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Weex) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Weex) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -1244,7 +1244,7 @@ func (this *Weex) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions)
 func (this *Weex) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Weex) FetchTime(params ...any) (int64, error) {
+func (this *Weex) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Weex) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {

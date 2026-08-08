@@ -1021,12 +1021,12 @@ func (this *Kraken) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Kraken) FetchTime(params ...any) (int64, error) {
+func (this *Kraken) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	return (res).(int64), nil
+	return res.Val, nil
 }
 
 /**
@@ -1529,7 +1529,7 @@ func (this *Kraken) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBoo
 func (this *Kraken) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Kraken) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Kraken) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Kraken) FetchPaymentMethods(params ...any) (map[string]any, error) {

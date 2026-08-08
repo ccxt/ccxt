@@ -1071,7 +1071,7 @@ func (this *Blockchaincom) FetchOrderBooks(options ...FetchOrderBooksOptions) (O
 func (this *Blockchaincom) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Blockchaincom) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Blockchaincom) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Blockchaincom) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1107,7 +1107,7 @@ func (this *Blockchaincom) FetchPremiumIndexOHLCV(symbol string, options ...Fetc
 func (this *Blockchaincom) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Blockchaincom) FetchTime(params ...any) (int64, error) {
+func (this *Blockchaincom) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Blockchaincom) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {

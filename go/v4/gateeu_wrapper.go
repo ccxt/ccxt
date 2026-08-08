@@ -334,7 +334,7 @@ func (this *Gateeu) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBoo
 func (this *Gateeu) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Gateeu) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Gateeu) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Gateeu) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -376,7 +376,7 @@ func (this *Gateeu) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 func (this *Gateeu) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Gateeu) FetchTime(params ...any) (int64, error) {
+func (this *Gateeu) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Gateeu) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {

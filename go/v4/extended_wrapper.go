@@ -1715,7 +1715,7 @@ func (this *Extended) FetchOrderWithClientOrderId(clientOrderId string, options 
 func (this *Extended) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Extended) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Extended) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Extended) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1742,7 +1742,7 @@ func (this *Extended) FetchPremiumIndexOHLCV(symbol string, options ...FetchPrem
 func (this *Extended) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Extended) FetchTime(params ...any) (int64, error) {
+func (this *Extended) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Extended) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {

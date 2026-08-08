@@ -462,12 +462,12 @@ func (this *ExchangeTyped) UnWatchOrderBook(symbol string, options ...UnWatchOrd
 	}
 	return res, nil
 }
-func (this *ExchangeTyped) FetchTime(params ...any) (int64, error) {
+func (this *ExchangeTyped) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Exchange.FetchTime(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	return (res).(int64), nil
+	return res.Val, nil
 }
 func (this *ExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 
@@ -4877,7 +4877,7 @@ func (this *ExchangeTyped) FetchOrderWithClientOrderId(clientOrderId string, opt
 	}
 	return NewOrder(res), nil
 }
-func (this *ExchangeTyped) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *ExchangeTyped) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 
 	opts := FetchOrderStatusOptionsStruct{}
 
@@ -4896,9 +4896,12 @@ func (this *ExchangeTyped) FetchOrderStatus(id string, options ...FetchOrderStat
 	}
 	res := <-this.Exchange.FetchOrderStatus(id, symbol, params)
 	if IsError(res) {
-		return "", CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(string), nil
+	if typed, ok := res.(string); ok {
+		return &typed, nil
+	}
+	return nil, nil
 }
 func (this *ExchangeTyped) FetchUnifiedOrder(order any, options ...FetchUnifiedOrderOptions) (Order, error) {
 
@@ -6254,12 +6257,12 @@ func (this *BaseExchangeTyped) UnWatchOrderBook(symbol string, options ...UnWatc
 	}
 	return res, nil
 }
-func (this *BaseExchangeTyped) FetchTime(params ...any) (int64, error) {
+func (this *BaseExchangeTyped) FetchTime(params ...any) (*int64, error) {
 	res := <-this.BaseExchange.FetchTime(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	return (res).(int64), nil
+	return res.Val, nil
 }
 func (this *BaseExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 

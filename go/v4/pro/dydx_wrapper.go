@@ -540,7 +540,7 @@ func (this *Dydx) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.
 func (this *Dydx) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Dydx) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Dydx) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Dydx) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -582,7 +582,7 @@ func (this *Dydx) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions)
 func (this *Dydx) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Dydx) FetchTime(params ...any) (int64, error) {
+func (this *Dydx) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Dydx) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {

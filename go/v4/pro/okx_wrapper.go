@@ -1449,7 +1449,7 @@ func (this *Okx) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.O
 func (this *Okx) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Okx) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Okx) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Okx) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -1491,7 +1491,7 @@ func (this *Okx) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) 
 func (this *Okx) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Okx) FetchTime(params ...any) (int64, error) {
+func (this *Okx) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Okx) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {

@@ -1263,7 +1263,7 @@ func (this *Aster) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt
 func (this *Aster) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Aster) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Aster) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Aster) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -1305,7 +1305,7 @@ func (this *Aster) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions
 func (this *Aster) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Aster) FetchTime(params ...any) (int64, error) {
+func (this *Aster) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Aster) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {

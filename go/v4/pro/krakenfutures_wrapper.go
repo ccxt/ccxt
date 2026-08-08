@@ -724,7 +724,7 @@ func (this *Krakenfutures) FetchOrderBooks(options ...ccxt.FetchOrderBooksOption
 func (this *Krakenfutures) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Krakenfutures) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Krakenfutures) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Krakenfutures) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -766,7 +766,7 @@ func (this *Krakenfutures) FetchTicker(symbol string, options ...ccxt.FetchTicke
 func (this *Krakenfutures) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Krakenfutures) FetchTime(params ...any) (int64, error) {
+func (this *Krakenfutures) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Krakenfutures) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {

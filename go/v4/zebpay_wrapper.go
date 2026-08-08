@@ -52,12 +52,12 @@ func (this *Zebpay) FetchStatus(params ...any) (Status, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
  */
-func (this *Zebpay) FetchTime(params ...any) (int64, error) {
+func (this *Zebpay) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	return (res).(int64), nil
+	return res.Val, nil
 }
 
 /**
@@ -1027,7 +1027,7 @@ func (this *Zebpay) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBoo
 func (this *Zebpay) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Zebpay) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Zebpay) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Zebpay) FetchPaymentMethods(params ...any) (map[string]any, error) {

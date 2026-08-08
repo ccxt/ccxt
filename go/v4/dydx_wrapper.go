@@ -34,12 +34,12 @@ func NewDydxFromCore(core *DydxCore) *Dydx {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Dydx) FetchTime(params ...any) (int64, error) {
+func (this *Dydx) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	return (res).(int64), nil
+	return res.Val, nil
 }
 
 /**
@@ -1227,7 +1227,7 @@ func (this *Dydx) FetchOrderWithClientOrderId(clientOrderId string, options ...F
 func (this *Dydx) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Dydx) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Dydx) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Dydx) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {

@@ -3757,11 +3757,11 @@ func (this *KrakenCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *KrakenCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *KrakenCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		// https://www.kraken.com/en-us/features/api#get-server-time
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
@@ -3779,7 +3779,7 @@ func (this *KrakenCore) FetchTime(optionalArgs ...any) <-chan any {
 		//
 		var result any = this.SafeValue(response, "result", map[string]any{})
 
-		ch <- this.SafeTimestamp(result, "unixtime")
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeTimestamp(result, "unixtime"))}
 		return nil
 
 	}()

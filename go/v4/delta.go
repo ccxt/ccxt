@@ -516,11 +516,11 @@ func (this *DeltaCore) SafeMarket(optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *DeltaCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *DeltaCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
@@ -529,7 +529,7 @@ func (this *DeltaCore) FetchTime(optionalArgs ...any) <-chan any {
 		// full response sample under `fetchStatus`
 		var result any = this.SafeDict(response, "result", map[string]any{})
 
-		ch <- this.SafeIntegerProduct(result, "server_time", 0.001)
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeIntegerProduct(result, "server_time", 0.001))}
 		return nil
 
 	}()

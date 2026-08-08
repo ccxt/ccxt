@@ -747,7 +747,7 @@ func (this *Mercado) FetchOrderWithClientOrderId(clientOrderId string, options .
 func (this *Mercado) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Mercado) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Mercado) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Mercado) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -786,7 +786,7 @@ func (this *Mercado) FetchStatus(params ...any) (Status, error) {
 func (this *Mercado) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Mercado) FetchTime(params ...any) (int64, error) {
+func (this *Mercado) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Mercado) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

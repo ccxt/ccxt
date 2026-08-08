@@ -1630,7 +1630,7 @@ func (this *Hitbtc) FetchOrderWithClientOrderId(clientOrderId string, options ..
 func (this *Hitbtc) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Hitbtc) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Hitbtc) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Hitbtc) FetchPaymentMethods(params ...any) (map[string]any, error) {
@@ -1657,7 +1657,7 @@ func (this *Hitbtc) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiu
 func (this *Hitbtc) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Hitbtc) FetchTime(params ...any) (int64, error) {
+func (this *Hitbtc) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Hitbtc) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {

@@ -587,7 +587,7 @@ func (this *Coinspot) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderB
 func (this *Coinspot) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Coinspot) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Coinspot) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Coinspot) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -623,7 +623,7 @@ func (this *Coinspot) FetchPremiumIndexOHLCV(symbol string, options ...FetchPrem
 func (this *Coinspot) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Coinspot) FetchTime(params ...any) (int64, error) {
+func (this *Coinspot) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Coinspot) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

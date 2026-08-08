@@ -1811,11 +1811,11 @@ func (this *PolymarketCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current server time in milliseconds
  */
-func (this *PolymarketCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *PolymarketCore) FetchTime(optionalArgs ...any) <-chan ccxt.Res[*int64] {
+	ch := make(chan ccxt.Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
+		defer ccxt.ReturnPanicErrorRes(ch)
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
@@ -1825,7 +1825,7 @@ func (this *PolymarketCore) FetchTime(optionalArgs ...any) <-chan any {
 		//
 		//     1781273248
 		//
-		ch <- ccxt.Multiply(this.ParseToInt(response), 1000)
+		ch <- ccxt.Res[*int64]{Val: ccxt.Int64PtrFromAny(ccxt.Multiply(this.ParseToInt(response), 1000))}
 		return nil
 
 	}()

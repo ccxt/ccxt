@@ -639,7 +639,7 @@ func (this *Cryptomus) FetchOrderBooks(options ...FetchOrderBooksOptions) (Order
 func (this *Cryptomus) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Cryptomus) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Cryptomus) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Cryptomus) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -678,7 +678,7 @@ func (this *Cryptomus) FetchStatus(params ...any) (Status, error) {
 func (this *Cryptomus) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 	return this.exchangeTyped.FetchTicker(symbol, options...)
 }
-func (this *Cryptomus) FetchTime(params ...any) (int64, error) {
+func (this *Cryptomus) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Cryptomus) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

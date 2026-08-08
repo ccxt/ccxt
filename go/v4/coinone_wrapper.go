@@ -711,7 +711,7 @@ func (this *Coinone) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 func (this *Coinone) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Coinone) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Coinone) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Coinone) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -747,7 +747,7 @@ func (this *Coinone) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremi
 func (this *Coinone) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Coinone) FetchTime(params ...any) (int64, error) {
+func (this *Coinone) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Coinone) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

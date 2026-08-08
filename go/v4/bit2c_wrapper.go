@@ -668,7 +668,7 @@ func (this *Bit2c) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBook
 func (this *Bit2c) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Bit2c) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Bit2c) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bit2c) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -707,7 +707,7 @@ func (this *Bit2c) FetchStatus(params ...any) (Status, error) {
 func (this *Bit2c) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Bit2c) FetchTime(params ...any) (int64, error) {
+func (this *Bit2c) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bit2c) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

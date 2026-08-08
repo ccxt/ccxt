@@ -1202,7 +1202,7 @@ func (this *Kalshi) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) 
 func (this *Kalshi) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Kalshi) FetchTime(params ...any) (int64, error) {
+func (this *Kalshi) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Kalshi) FetchTradingFee(outcome string, options ...ccxt.FetchTradingFeeOptions) (ccxt.PredictionTradingFee, error) {

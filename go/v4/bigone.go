@@ -1111,11 +1111,11 @@ func (this *BigoneCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *BigoneCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *BigoneCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
@@ -1134,7 +1134,7 @@ func (this *BigoneCore) FetchTime(optionalArgs ...any) <-chan any {
 			panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
 		}
 
-		ch <- this.ParseToInt(Divide(timestamp, 1000000))
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.ParseToInt(Divide(timestamp, 1000000)))}
 		return nil
 
 	}()

@@ -664,7 +664,7 @@ func (this *Bitfinex) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (c
 func (this *Bitfinex) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Bitfinex) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Bitfinex) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bitfinex) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -706,7 +706,7 @@ func (this *Bitfinex) FetchTicker(symbol string, options ...ccxt.FetchTickerOpti
 func (this *Bitfinex) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Bitfinex) FetchTime(params ...any) (int64, error) {
+func (this *Bitfinex) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bitfinex) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {
