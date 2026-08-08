@@ -3117,15 +3117,17 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
-        const rawTrades: List = [];
+        const data = this.safeValue (response, 'data', []);
+        let result: List = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeList (data[i], 'data', []);
+            const trades = this.safeValue (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
-                rawTrades.push (trades[j]);
+                const trade = this.parseTrade (trades[j], market);
+                result.push (trade);
             }
         }
-        return this.parseTrades (rawTrades, market, since, limit);
+        result = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
