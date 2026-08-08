@@ -4036,7 +4036,7 @@ export default class coinbase extends Exchange {
         //     }
         //
         const trades = this.safeList (response, 'trades', []);
-        return this.parseTradesDirectional (trades, market, since, limit);
+        return this.parseTradesDescending (trades, market, since, limit);
     }
 
     /**

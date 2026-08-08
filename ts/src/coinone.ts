@@ -849,7 +849,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'transactions', []);
-        return this.parseTradesDirectional (data, market, since, limit);
+        return this.parseTradesDescending (data, market, since, limit);
     }
 
     /**

@@ -3412,7 +3412,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const trades = this.safeList (result, 'list', []);
-        return this.parseTradesDirectional (trades, market, since, limit);
+        return this.parseTradesDescending (trades, market, since, limit);
     }
 
     /**

@@ -1507,6 +1507,9 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
+            "fetchTrades": {
+                "sideSequence": "broken from engine"
+            },
             "orderBook": {
                 "symbol": "undefined, todo fix https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3670"
             },

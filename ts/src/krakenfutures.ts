@@ -927,7 +927,7 @@ export default class krakenfutures extends Exchange {
             //
             rawTrades = this.safeList (response, 'history', []);
         }
-        return this.parseTradesDirectional (rawTrades, market, since, limit);
+        return this.parseTradesDescending (rawTrades, market, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {

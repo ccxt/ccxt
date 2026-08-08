@@ -6088,7 +6088,15 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTradesDirectional (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, isNewestFirst: Bool = true, params = {}): Trade[] {
+    parseTradesDescending (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, iparams = {}): Trade[] {
+        return this.parseTradesDirectionalHelper (trades, market, since, limit, true, iparams);
+    }
+
+    parseTradesAscending (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, iparams = {}): Trade[] {
+        return this.parseTradesDirectionalHelper (trades, market, since, limit, false, iparams);
+    }
+
+    parseTradesDirectionalHelper (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, isNewestFirst: Bool = true, params = {}): Trade[] {
         const tradesArray = this.toArray (trades);
         const result: Trade[] = [];
         const length = tradesArray.length;

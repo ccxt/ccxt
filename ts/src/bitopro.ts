@@ -778,7 +778,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTradesDirectional (trades, market, since, limit);
+        return this.parseTradesDescending (trades, market, since, limit);
     }
 
     /**
