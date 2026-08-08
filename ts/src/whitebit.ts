@@ -1683,7 +1683,7 @@ export default class whitebit extends Exchange {
         //          },
         //      ],
         //
-        return this.parseTradesDescending (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     /**

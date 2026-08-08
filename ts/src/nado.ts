@@ -2143,7 +2143,7 @@ export default class nado extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTradesDescending (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     /**

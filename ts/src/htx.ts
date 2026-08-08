@@ -3125,7 +3125,7 @@ export default class htx extends Exchange {
                 rawTrades.push (trades[j]);
             }
         }
-        return this.parseTradesDescending (rawTrades, market, since, limit);
+        return this.parseTrades (rawTrades, market, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
