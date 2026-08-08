@@ -6091,8 +6091,9 @@ export class BaseExchange {
     parseTradesDirectional (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, isNewestFirst: Bool = true, params = {}): Trade[] {
         const tradesArray = this.toArray (trades);
         const result: Trade[] = [];
-        for (let i = 0; i < tradesArray.length; i++) {
-            const index = isNewestFirst ? tradesArray.length - 1 - i : i;
+        const length = tradesArray.length;
+        for (let i = 0; i < length; i++) {
+            const index = isNewestFirst ? length - 1 - i : i;
             const item = tradesArray[index];
             const parsed: NullableDict = this.parseTrade (item, market);
             const trade = this.extend (parsed, params);
