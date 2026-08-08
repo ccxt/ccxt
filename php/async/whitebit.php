@@ -2420,11 +2420,7 @@ class whitebit extends Exchange {
         $isBiggerThanZero = ($timeout > 0);
         $request = array(
             'market' => $market['id'],
-            // 'timeout' => ($timeout > 0) ? $this->number_to_string($timeout / 1000) : null,
         );
-        if ($timeout === null) {
-            throw new ExchangeError($this->id . ' cancelAllOrdersAfter() missing timeout');
-        }
         if ($isBiggerThanZero) {
             $request['timeout'] = $this->number_to_string($timeout / 1000);
         } else {
