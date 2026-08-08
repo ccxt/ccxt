@@ -191,6 +191,7 @@ import hyperliquidPrediction from './src/prediction/hyperliquid.js';
 import kalshiPrediction from './src/prediction/kalshi.js';
 import limitlessPrediction from './src/prediction/limitless.js';
 import myriadPrediction from './src/prediction/myriad.js';
+import opinionPrediction from './src/prediction/opinion.js';
 import polymarketPrediction from './src/prediction/polymarket.js';
 declare const exchanges: {
     alpaca: typeof alpaca;
@@ -382,6 +383,7 @@ declare const prediction: {
     kalshi: typeof kalshiPrediction;
     limitless: typeof limitlessPrediction;
     myriad: typeof myriadPrediction;
+    opinion: typeof opinionPrediction;
     polymarket: typeof polymarketPrediction;
 };
 declare const ccxt: {
@@ -476,6 +478,7 @@ declare const ccxt: {
         kalshi: typeof kalshiPrediction;
         limitless: typeof limitlessPrediction;
         myriad: typeof myriadPrediction;
+        opinion: typeof opinionPrediction;
         polymarket: typeof polymarketPrediction;
     };
 } & {
