@@ -2319,11 +2319,7 @@ class whitebit extends whitebit$1["default"] {
         const isBiggerThanZero = (timeout > 0);
         const request = {
             'market': market['id'],
-            // 'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
         };
-        if (timeout === undefined) {
-            throw new errors.ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
-        }
         if (isBiggerThanZero) {
             request['timeout'] = this.numberToString(timeout / 1000);
         }
