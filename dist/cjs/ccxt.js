@@ -81,7 +81,6 @@ var indodax = require('./src/indodax.js');
 var kraken = require('./src/kraken.js');
 var krakenfutures = require('./src/krakenfutures.js');
 var kucoin = require('./src/kucoin.js');
-var kucoineu = require('./src/kucoineu.js');
 var kucoinfutures = require('./src/kucoinfutures.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
@@ -165,7 +164,6 @@ var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
-var kucoineu$1 = require('./src/pro/kucoineu.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var lbank$1 = require('./src/pro/lbank.js');
 var lighter$1 = require('./src/pro/lighter.js');
@@ -191,6 +189,7 @@ var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
+var binance$2 = require('./src/prediction/binance.js');
 var hyperliquid$2 = require('./src/prediction/hyperliquid.js');
 var kalshi = require('./src/prediction/kalshi.js');
 var limitless = require('./src/prediction/limitless.js');
@@ -199,7 +198,7 @@ var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.70';
+const version = '4.5.71';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -273,7 +272,6 @@ const exchanges = {
     'kraken': kraken["default"],
     'krakenfutures': krakenfutures["default"],
     'kucoin': kucoin["default"],
-    'kucoineu': kucoineu["default"],
     'kucoinfutures': kucoinfutures["default"],
     'latoken': latoken["default"],
     'lbank': lbank["default"],
@@ -359,7 +357,6 @@ const pro = {
     'kraken': kraken$1["default"],
     'krakenfutures': krakenfutures$1["default"],
     'kucoin': kucoin$1["default"],
-    'kucoineu': kucoineu$1["default"],
     'kucoinfutures': kucoinfutures$1["default"],
     'lbank': lbank$1["default"],
     'lighter': lighter$1["default"],
@@ -390,6 +387,7 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const prediction = {
+    'binance': binance$2["default"],
     'hyperliquid': hyperliquid$2["default"],
     'kalshi': kalshi["default"],
     'limitless': limitless["default"],
@@ -523,7 +521,6 @@ exports.indodax = indodax["default"];
 exports.kraken = kraken["default"];
 exports.krakenfutures = krakenfutures["default"];
 exports.kucoin = kucoin["default"];
-exports.kucoineu = kucoineu["default"];
 exports.kucoinfutures = kucoinfutures["default"];
 exports.latoken = latoken["default"];
 exports.lbank = lbank["default"];

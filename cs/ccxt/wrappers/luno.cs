@@ -87,7 +87,7 @@ public partial class luno
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -427,8 +427,9 @@ public partial class luno
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
-    public async Task<List<LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, object limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedgerByEntries(code, entry, limit, parameters);
         return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
@@ -541,5 +542,25 @@ public partial class luno
     {
         var res = await this.fetchDepositAddress(code, parameters);
         return new DepositAddress(res);
+    }
+    /// <summary>
+    /// fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Send/operation/SendFee"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
+    public async Task<DepositWithdrawFee> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositWithdrawFee(code, parameters);
+        return new DepositWithdrawFee(res);
     }
 }

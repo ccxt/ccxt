@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, ADL, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -175,174 +175,174 @@ class woo(Exchange, ImplicitAPI):
                 'v1': {
                     'pub': {
                         'get': {
-                            'hist/kline': 10,
-                            'hist/trades': 10,
+                            'hist/kline': {'cost': 10},
+                            'hist/trades': {'cost': 10},
                         },
                     },
                     'public': {
                         'get': {
-                            'info': 1,
-                            'info/{symbol}': 1,
-                            'system_info': 1,
-                            'market_trades': 1,
-                            'token': 1,
-                            'token_network': 1,
-                            'funding_rates': 1,
-                            'funding_rate/{symbol}': 1,
-                            'funding_rate_history': 1,
-                            'futures': 1,
-                            'futures/{symbol}': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
+                            'info': {'cost': 1},
+                            'info/{symbol}': {'cost': 1},
+                            'system_info': {'cost': 1},
+                            'market_trades': {'cost': 1},
+                            'token': {'cost': 1},
+                            'token_network': {'cost': 1},
+                            'funding_rates': {'cost': 1},
+                            'funding_rate/{symbol}': {'cost': 1},
+                            'funding_rate_history': {'cost': 1},
+                            'futures': {'cost': 1},
+                            'futures/{symbol}': {'cost': 1},
+                            'orderbook/{symbol}': {'cost': 1},
+                            'kline': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
-                            'client/token': 1,
-                            'order/{oid}': 1,
-                            'client/order/{client_order_id}': 1,
-                            'orders': 1,
-                            'client/trade/{tid}': 1,
-                            'order/{oid}/trades': 1,
-                            'client/trades': 1,
-                            'client/hist_trades': 1,
-                            'staking/yield_history': 1,
-                            'client/holding': 1,
-                            'asset/deposit': 10,
-                            'asset/history': 60,
-                            'sub_account/all': 60,
-                            'sub_account/assets': 60,
-                            'sub_account/asset_detail': 60,
-                            'sub_account/ip_restriction': 10,
-                            'asset/main_sub_transfer_history': 30,
-                            'token_interest': 60,
-                            'token_interest/{token}': 60,
-                            'interest/history': 60,
-                            'interest/repay': 60,
-                            'funding_fee/history': 30,
-                            'positions': 3.33,  # 30 requests per 10 seconds
-                            'position/{symbol}': 3.33,
-                            'client/transaction_history': 60,
-                            'client/futures_leverage': 60,
+                            'client/token': {'cost': 1},
+                            'order/{oid}': {'cost': 1},
+                            'client/order/{client_order_id}': {'cost': 1},
+                            'orders': {'cost': 1},
+                            'client/trade/{tid}': {'cost': 1},
+                            'order/{oid}/trades': {'cost': 1},
+                            'client/trades': {'cost': 1},
+                            'client/hist_trades': {'cost': 1},
+                            'staking/yield_history': {'cost': 1},
+                            'client/holding': {'cost': 1},
+                            'asset/deposit': {'cost': 10},
+                            'asset/history': {'cost': 60},
+                            'sub_account/all': {'cost': 60},
+                            'sub_account/assets': {'cost': 60},
+                            'sub_account/asset_detail': {'cost': 60},
+                            'sub_account/ip_restriction': {'cost': 10},
+                            'asset/main_sub_transfer_history': {'cost': 30},
+                            'token_interest': {'cost': 60},
+                            'token_interest/{token}': {'cost': 60},
+                            'interest/history': {'cost': 60},
+                            'interest/repay': {'cost': 60},
+                            'funding_fee/history': {'cost': 30},
+                            'positions': {'cost': 3.33},  # 30 requests per 10 seconds
+                            'position/{symbol}': {'cost': 3.33},
+                            'client/transaction_history': {'cost': 60},
+                            'client/futures_leverage': {'cost': 60},
                         },
                         'post': {
-                            'order': 1,  # 10 requests per 1 second per symbol
-                            'order/cancel_all_after': 1,
-                            'asset/ltv': 30,
-                            'asset/internal_withdraw': 30,
-                            'interest/repay': 60,
-                            'client/account_mode': 120,
-                            'client/position_mode': 5,
-                            'client/leverage': 120,
-                            'client/futures_leverage': 30,
-                            'client/isolated_margin': 30,
+                            'order': {'cost': 1},  # 10 requests per 1 second per symbol
+                            'order/cancel_all_after': {'cost': 1},
+                            'asset/ltv': {'cost': 30},
+                            'asset/internal_withdraw': {'cost': 30},
+                            'interest/repay': {'cost': 60},
+                            'client/account_mode': {'cost': 120},
+                            'client/position_mode': {'cost': 5},
+                            'client/leverage': {'cost': 120},
+                            'client/futures_leverage': {'cost': 30},
+                            'client/isolated_margin': {'cost': 30},
                         },
                         'delete': {
-                            'order': 1,
-                            'client/order': 1,
-                            'orders': 1,
-                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
+                            'order': {'cost': 1},
+                            'client/order': {'cost': 1},
+                            'orders': {'cost': 1},
+                            'asset/withdraw': {'cost': 120},  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
                 'v2': {
                     'private': {
                         'get': {
-                            'client/holding': 1,
+                            'client/holding': {'cost': 1},
                         },
                     },
                 },
                 'v3': {
                     'public': {
                         'get': {
-                            'systemInfo': 1,  # 10/1s
-                            'instruments': 1,  # 10/1s
-                            'token': 1,  # 10/1s
-                            'tokenNetwork': 1,  # 10/1s
-                            'tokenInfo': 1,  # 10/1s
-                            'marketTrades': 1,  # 10/1s
-                            'marketTradesHistory': 1,  # 10/1s
-                            'orderbook': 1,  # 10/1s
-                            'kline': 1,  # 10/1s
-                            'klineHistory': 1,  # 10/1s
-                            'futures': 1,  # 10/1s
-                            'fundingRate': 1,  # 10/1s
-                            'fundingRateHistory': 1,  # 10/1s
-                            'insuranceFund': 1,  # 10/1s
+                            'systemInfo': {'cost': 1},  # 10/1s
+                            'instruments': {'cost': 1},  # 10/1s
+                            'token': {'cost': 1},  # 10/1s
+                            'tokenNetwork': {'cost': 1},  # 10/1s
+                            'tokenInfo': {'cost': 1},  # 10/1s
+                            'marketTrades': {'cost': 1},  # 10/1s
+                            'marketTradesHistory': {'cost': 1},  # 10/1s
+                            'orderbook': {'cost': 1},  # 10/1s
+                            'kline': {'cost': 1},  # 10/1s
+                            'klineHistory': {'cost': 1},  # 10/1s
+                            'futures': {'cost': 1},  # 10/1s
+                            'fundingRate': {'cost': 1},  # 10/1s
+                            'fundingRateHistory': {'cost': 1},  # 10/1s
+                            'insuranceFund': {'cost': 1},  # 10/1s
                         },
                     },
                     'private': {
                         'get': {
-                            'trade/order': 2,  # 5/1s
-                            'trade/orders': 1,  # 10/1s
-                            'trade/algoOrder': 1,  # 10/1s
-                            'trade/algoOrders': 1,  # 10/1s
-                            'trade/transaction': 1,  # 10/1s
-                            'trade/transactionHistory': 5,  # 2/1s
-                            'trade/tradingFee': 5,  # 2/1s
-                            'account/info': 60,  # 10/60s
-                            'account/tokenConfig': 1,  # 10/1s
-                            'account/symbolConfig': 1,  # 10/1s
-                            'account/subAccounts/all': 60,  # 10/60s
-                            'account/referral/summary': 60,  # 10/60s
-                            'account/referral/rewardHistory': 60,  # 10/60s
-                            'account/credentials': 60,  # 10/60s
-                            'asset/balances': 1,  # 10/1s
-                            'asset/token/history': 60,  # 10/60s
-                            'asset/transfer/history': 30,  # 20/60s
-                            'asset/wallet/history': 60,  # 10/60s
-                            'asset/wallet/deposit': 60,  # 10/60s
-                            'asset/staking/yieldHistory': 60,  # 10/60s
-                            'futures/positions': 3.33,  # 30/10s
-                            'futures/leverage': 60,  # 10/60s
-                            'futures/defaultMarginMode': 60,  # 10/60s
-                            'futures/fundingFee/history': 30,  # 20/60s
-                            'spotMargin/interestRate': 60,  # 10/60s
-                            'spotMargin/interestHistory': 60,  # 10/60s
-                            'spotMargin/maxMargin': 60,  # 10/60s
-                            'algo/order/{oid}': 1,
-                            'algo/orders': 1,
-                            'positions': 3.33,
-                            'buypower': 1,
-                            'convert/exchangeInfo': 1,
-                            'convert/assetInfo': 1,
-                            'convert/rfq': 60,
-                            'convert/trade': 1,
-                            'convert/trades': 1,
+                            'trade/order': {'cost': 2},  # 5/1s
+                            'trade/orders': {'cost': 1},  # 10/1s
+                            'trade/algoOrder': {'cost': 1},  # 10/1s
+                            'trade/algoOrders': {'cost': 1},  # 10/1s
+                            'trade/transaction': {'cost': 1},  # 10/1s
+                            'trade/transactionHistory': {'cost': 5},  # 2/1s
+                            'trade/tradingFee': {'cost': 5},  # 2/1s
+                            'account/info': {'cost': 60},  # 10/60s
+                            'account/tokenConfig': {'cost': 1},  # 10/1s
+                            'account/symbolConfig': {'cost': 1},  # 10/1s
+                            'account/subAccounts/all': {'cost': 60},  # 10/60s
+                            'account/referral/summary': {'cost': 60},  # 10/60s
+                            'account/referral/rewardHistory': {'cost': 60},  # 10/60s
+                            'account/credentials': {'cost': 60},  # 10/60s
+                            'asset/balances': {'cost': 1},  # 10/1s
+                            'asset/token/history': {'cost': 60},  # 10/60s
+                            'asset/transfer/history': {'cost': 30},  # 20/60s
+                            'asset/wallet/history': {'cost': 60},  # 10/60s
+                            'asset/wallet/deposit': {'cost': 60},  # 10/60s
+                            'asset/staking/yieldHistory': {'cost': 60},  # 10/60s
+                            'futures/positions': {'cost': 3.33},  # 30/10s
+                            'futures/leverage': {'cost': 60},  # 10/60s
+                            'futures/defaultMarginMode': {'cost': 60},  # 10/60s
+                            'futures/fundingFee/history': {'cost': 30},  # 20/60s
+                            'spotMargin/interestRate': {'cost': 60},  # 10/60s
+                            'spotMargin/interestHistory': {'cost': 60},  # 10/60s
+                            'spotMargin/maxMargin': {'cost': 60},  # 10/60s
+                            'algo/order/{oid}': {'cost': 1},
+                            'algo/orders': {'cost': 1},
+                            'positions': {'cost': 3.33},
+                            'buypower': {'cost': 1},
+                            'convert/exchangeInfo': {'cost': 1},
+                            'convert/assetInfo': {'cost': 1},
+                            'convert/rfq': {'cost': 60},
+                            'convert/trade': {'cost': 1},
+                            'convert/trades': {'cost': 1},
                         },
                         'post': {
-                            'trade/order': 2,  # 5/1s
-                            'trade/algoOrder': 5,  # 2/1s
-                            'trade/cancelAllAfter': 1,  # 10/1s
-                            'account/tradingMode': 120,  # 5/60s
-                            'account/listenKey': 20,  # 5/10s
-                            'asset/transfer': 30,  # 20/60s
-                            'asset/wallet/withdraw': 60,  # 10/60s
-                            'spotMargin/leverage': 120,  # 5/60s
-                            'spotMargin/interestRepay': 60,  # 10/60s
-                            'algo/order': 5,
-                            'convert/rft': 60,
+                            'trade/order': {'cost': 2},  # 5/1s
+                            'trade/algoOrder': {'cost': 5},  # 2/1s
+                            'trade/cancelAllAfter': {'cost': 1},  # 10/1s
+                            'account/tradingMode': {'cost': 120},  # 5/60s
+                            'account/listenKey': {'cost': 20},  # 5/10s
+                            'asset/transfer': {'cost': 30},  # 20/60s
+                            'asset/wallet/withdraw': {'cost': 60},  # 10/60s
+                            'spotMargin/leverage': {'cost': 120},  # 5/60s
+                            'spotMargin/interestRepay': {'cost': 60},  # 10/60s
+                            'algo/order': {'cost': 5},
+                            'convert/rft': {'cost': 60},
                         },
                         'put': {
-                            'trade/order': 2,  # 5/1s
-                            'trade/algoOrder': 2,  # 5/1s
-                            'futures/leverage': 60,  # 10/60s
-                            'futures/positionMode': 120,  # 5/60s
-                            'order/{oid}': 2,
-                            'order/client/{client_order_id}': 2,
-                            'algo/order/{oid}': 2,
-                            'algo/order/client/{client_order_id}': 2,
+                            'trade/order': {'cost': 2},  # 5/1s
+                            'trade/algoOrder': {'cost': 2},  # 5/1s
+                            'futures/leverage': {'cost': 60},  # 10/60s
+                            'futures/positionMode': {'cost': 120},  # 5/60s
+                            'order/{oid}': {'cost': 2},
+                            'order/client/{client_order_id}': {'cost': 2},
+                            'algo/order/{oid}': {'cost': 2},
+                            'algo/order/client/{client_order_id}': {'cost': 2},
                         },
                         'delete': {
-                            'trade/order': 1,  # 10/1s
-                            'trade/orders': 1,  # 10/1s
-                            'trade/algoOrder': 1,  # 10/1s
-                            'trade/algoOrders': 1,  # 10/1s
-                            'trade/allOrders': 1,  # 10/1s
-                            'algo/order/{order_id}': 1,
-                            'algo/orders/pending': 1,
-                            'algo/orders/pending/{symbol}': 1,
-                            'orders/pending': 1,
+                            'trade/order': {'cost': 1},  # 10/1s
+                            'trade/orders': {'cost': 1},  # 10/1s
+                            'trade/algoOrder': {'cost': 1},  # 10/1s
+                            'trade/algoOrders': {'cost': 1},  # 10/1s
+                            'trade/allOrders': {'cost': 1},  # 10/1s
+                            'algo/order/{order_id}': {'cost': 1},
+                            'algo/orders/pending': {'cost': 1},
+                            'algo/orders/pending/{symbol}': {'cost': 1},
+                            'orders/pending': {'cost': 1},
                         },
                     },
                 },
@@ -372,7 +372,7 @@ class woo(Exchange, ImplicitAPI):
                     'TRC20': 'TRON',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -652,13 +652,13 @@ class woo(Exchange, ImplicitAPI):
                     'symbol must not be blank': BadRequest,  # when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported': BadRequest,  # when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled': BadRequest,  # actual response whensending 'cancelOrder' for already canceled id [-1006]
-                    'Insufficient WOO. Please enable margin trading for leverage trading': BadRequest,  # when selling insufficent token [-1012]
+                    'Insufficient WOO. Please enable margin trading for leverage trading': BadRequest,  # when selling insufficient token [-1012]
                 },
             },
             'precisionMode': TICK_SIZE,
         })
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -800,7 +800,7 @@ class woo(Exchange, ImplicitAPI):
             linear = True
             inverse = False
         active = self.safe_string(market, 'status') == 'TRADING'
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -848,7 +848,7 @@ class woo(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -964,7 +964,7 @@ class woo(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def parse_token_and_fee_temp(self, item, feeTokenKeys, feeAmountKeys):
+    def parse_token_and_fee_temp(self, item: Any, feeTokenKeys: Any, feeAmountKeys: Any):
         feeCost = self.safe_string_n(item, feeAmountKeys)
         fee = None
         if feeCost is not None:
@@ -1138,7 +1138,7 @@ class woo(Exchange, ImplicitAPI):
         #     "success": True
         # }
         #
-        # only make one request for currrencies...
+        # only make one request for currencies...
         tokenNetworkResponsePromise = self.v1PublicGetTokenNetwork(params)
         #
         # {
@@ -1183,10 +1183,11 @@ class woo(Exchange, ImplicitAPI):
             }
             parsed = self.parse_currency(customCurrency)
             code = self.safe_string(parsed, 'code')
-            result[code] = parsed
+            if code is not None:
+                result[code] = parsed
         return result
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, '_coin_id')
         code = self.safe_currency_code(currencyId)
         tokensByNetworkId = self.index_by(rawCurrency['_tokens_by_id'], 'network')
@@ -1199,27 +1200,28 @@ class woo(Exchange, ImplicitAPI):
             networkEntry = self.safe_dict(chainsByNetworkId, networkId, {})
             networkCode = self.network_id_to_code(networkId, code)
             specialNetworkId = self.safe_string(tokenEntry, 'token')
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'currencyNetworkId': specialNetworkId,  # exchange uses special crrency-ids(coin + network junction)
-                'network': networkCode,
-                'active': None,
-                'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
-                'withdraw': self.safe_string(networkEntry, 'allow_withdraw') == '1',
-                'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(tokenEntry, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(networkEntry, 'minimum_withdrawal'),
-                        'max': None,
+            if networkCode is not None:
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'currencyNetworkId': specialNetworkId,  # exchange uses special currency-ids(coin + network junction)
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
+                    'withdraw': self.safe_string(networkEntry, 'allow_withdraw') == '1',
+                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(tokenEntry, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(networkEntry, 'minimum_withdrawal'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'info': {'network': networkEntry, 'token': tokenEntry},
-            }
+                    'info': {'network': networkEntry, 'token': tokenEntry},
+                }
         return self.safe_currency_structure({
             'id': currencyId,
             'name': None,
@@ -1280,7 +1282,7 @@ class woo(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
-    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
+    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params: dict = {}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
 
@@ -1304,7 +1306,7 @@ class woo(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return await self.create_order(symbol, type, side, amount, price, params)
 
-    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params: dict = {}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
 
@@ -1508,7 +1510,7 @@ class woo(Exchange, ImplicitAPI):
         data['timestamp'] = self.safe_string(response, 'timestamp')
         return self.parse_order(data, market)
 
-    def encode_margin_mode(self, mode):
+    def encode_margin_mode(self, mode: Any):
         modes = {
             'cross': 'CROSS',
             'isolated': 'ISOLATED',
@@ -1665,7 +1667,7 @@ class woo(Exchange, ImplicitAPI):
         https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
 
         cancel all open orders in a market
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -2105,7 +2107,7 @@ class woo(Exchange, ImplicitAPI):
         if timestamp is None:
             timestamp = self.safe_integer(order, 'timestamp')
         orderId = self.safe_string_2(order, 'orderId', 'algoOrderId')
-        clientOrderId = self.omit_zero((self.safe_string_2(order, 'clientOrderId', 'clientAlgoOrderId')))  # Somehow, self always returns 0 for limit order
+        clientOrderId = self.omit_zero(self.safe_string_2(order, 'clientOrderId', 'clientAlgoOrderId'))  # Somehow, self always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -2116,7 +2118,7 @@ class woo(Exchange, ImplicitAPI):
         status = self.safe_value_2(order, 'status', 'algoStatus')
         side = self.safe_string_lower(order, 'side')
         filled = self.omit_zero(self.safe_value_2(order, 'executed', 'totalExecutedQuantity'))
-        average = self.omit_zero((self.safe_string(order, 'averageExecutedPrice')))
+        average = self.omit_zero(self.safe_string(order, 'averageExecutedPrice'))
         # remaining = Precise.string_sub(cost, filled)
         fee = self.safe_number(order, 'totalFee')
         feeCurrency = self.safe_string(order, 'feeAsset')
@@ -2184,7 +2186,7 @@ class woo(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -2276,7 +2278,7 @@ class woo(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'startTimestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -2459,7 +2461,7 @@ class woo(Exchange, ImplicitAPI):
         rows = self.array_concat(mainRows, subRows)
         return self.parse_accounts(rows, params)
 
-    def parse_account(self, account):
+    def parse_account(self, account: Any):
         #
         #     {
         #         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
@@ -2537,7 +2539,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_balance(data)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -2548,7 +2550,8 @@ class woo(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
             account['free'] = self.safe_string(balance, 'availableBalance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2585,18 +2588,18 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def get_dedicated_network_id(self, currency, params: dict) -> Any:
+    def get_dedicated_network_id(self, currency: Any, params: dict) -> Any:
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         networkCode = self.network_id_to_code(networkCode, currency['code'])
-        networkEntry = self.safe_dict(currency['networks'], networkCode)
+        networkEntry = None if (networkCode is None) else self.safe_dict(currency['networks'], networkCode)
         if networkEntry is None:
             supportedNetworks = list(currency['networks'].keys())
             raise BadRequest(self.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + self.json(supportedNetworks))
         currentyNetworkId = self.safe_string(networkEntry, 'currencyNetworkId')
         return [currentyNetworkId, params]
 
-    def parse_deposit_address(self, depositEntry, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositEntry: Any, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositEntry, 'address')
         self.check_address(address)
         return {
@@ -2732,14 +2735,14 @@ class woo(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
         }
         return self.safe_string(types, type, type)
 
-    def get_currency_from_chaincode(self, networkizedCode, currency):
+    def get_currency_from_chaincode(self, networkizedCode: Any, currency: Any):
         if currency is not None:
             return currency
         else:
@@ -3098,7 +3101,7 @@ class woo(Exchange, ImplicitAPI):
         })
         return self.parse_transaction(transactionData, currency)
 
-    async def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}):
+    async def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -3133,7 +3136,7 @@ class woo(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def parse_margin_loan(self, info, currency: Currency = None):
+    def parse_margin_loan(self, info: Any, currency: Currency = None) -> MarginLoan:
         #
         #     {
         #         "success": True,
@@ -3152,7 +3155,7 @@ class woo(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -3211,7 +3214,7 @@ class woo(Exchange, ImplicitAPI):
             headers['x-api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #
@@ -3226,7 +3229,7 @@ class woo(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         return None
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         #     {
         #         "id": 1286360,
@@ -3325,7 +3328,7 @@ class woo(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_incomes(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -3757,7 +3760,7 @@ class woo(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'REDUCE', params)
 
-    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -3769,7 +3772,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return await self.v1PrivatePostClientIsolatedMargin(self.extend(request, params))
 
-    async def fetch_position(self, symbol: Str, params={}):
+    async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on an open position
 
@@ -4220,34 +4223,35 @@ class woo(Exchange, ImplicitAPI):
             entry = data[i]
             id = self.safe_string(entry, 'token')
             code = self.safe_currency_code(id)
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': None,
-                'type': None,
-                'name': None,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': self.safe_number(entry, 'tick'),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+            if code is not None:
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': None,
+                    'type': None,
+                    'name': None,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': self.safe_number(entry, 'tick'),
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': self.safe_timestamp(entry, 'createdTime'),
-            }
+                    'created': self.safe_timestamp(entry, 'createdTime'),
+                }
         return result
 
     async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
@@ -4337,7 +4341,7 @@ class woo(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def default_network_code_for_currency(self, code):
+    def default_network_code_for_currency(self, code: Any):
         currencyItem = self.currency(code)
         networks = currencyItem['networks']
         networkKeys = list(networks.keys())

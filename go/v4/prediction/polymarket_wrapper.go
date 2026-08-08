@@ -61,7 +61,7 @@ func (this *Polymarket) FetchMarkets(params ...any) ([]ccxt.MarketInterface, err
  * @param {int} [params.limit] page size per search query, defaults to 50
  * @returns {object[]} an array of raw gamma event objects
  */
-func (this *Polymarket) FetchRawEventsBySearch(queries []any, options ...FetchRawEventsBySearchOptions) ([]map[string]any, error) {
+func (this *Polymarket) FetchRawEventsBySearch(queries []string, options ...FetchRawEventsBySearchOptions) ([]map[string]any, error) {
 
 	opts := FetchRawEventsBySearchOptionsStruct{}
 
@@ -1256,10 +1256,10 @@ func (this *Polymarket) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]c
 func (this *Polymarket) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Polymarket) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Polymarket) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Polymarket) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Polymarket) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Polymarket) FetchFreeBalance(params ...any) (ccxt.Balance, error) {
@@ -1391,7 +1391,7 @@ func (this *Polymarket) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.Predi
 func (this *Polymarket) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
-func (this *Polymarket) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Polymarket) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Polymarket) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
@@ -1439,7 +1439,7 @@ func (this *Polymarket) Withdraw(code string, amount float64, address string, op
 func (this *Polymarket) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
-func (this *Polymarket) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Polymarket) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Polymarket) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptions) ([]ccxt.OHLCV, error) {
@@ -1451,7 +1451,7 @@ func (this *Polymarket) FetchOrdersByStatusWs(status string, options ...ccxt.Fet
 func (this *Polymarket) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Polymarket) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Polymarket) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Polymarket) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {

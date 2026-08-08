@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, IndexType, Int, OrderBook, Trade
+from ccxt.base.types import Any, IndexType, Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -70,7 +70,7 @@ class luno(ccxt.async_support.luno):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message, subscription):
+    def handle_trades(self, client: Client, message: Any, subscription: Any):
         #
         #     {
         #         "sequence": "110980825",
@@ -105,7 +105,7 @@ class luno(ccxt.async_support.luno):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade: Any, market: Market = None) -> Trade:
         #
         # watchTrades(public)
         #
@@ -117,12 +117,13 @@ class luno(ccxt.async_support.luno):
         #       "order_id": "BXEEU4S2BWF5WRB"
         #     }
         #
+        symbol = None if (market is None) else market['symbol']
         return self.safe_trade({
             'info': trade,
             'id': None,
             'timestamp': None,
             'datetime': None,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': None,
@@ -144,7 +145,7 @@ class luno(ccxt.async_support.luno):
         :param int [limit]: the maximum amount of order book entries to return
         :param dictConstructor [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: accepts l2 or l3 for level 2 or level 3 order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.check_required_credentials()
         if self.markets is None:
@@ -163,7 +164,7 @@ class luno(ccxt.async_support.luno):
         orderbook = await self.watch(url, messageHash, request, subscriptionHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message, subscription):
+    def handle_order_book(self, client: Client, message: Any, subscription: Any):
         #
         #     {
         #         "sequence": "24352",
@@ -215,7 +216,7 @@ class luno(ccxt.async_support.luno):
         orderbook['nonce'] = nonce
         client.resolve(orderbook, messageHash)
 
-    def custom_parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2):
+    def custom_parse_order_book(self, orderbook: Any, symbol: Any, timestamp: Int = None, bidsKey='bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2):
         bids = self.parse_order_book_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
         asks = self.parse_order_book_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
         return {
@@ -227,14 +228,14 @@ class luno(ccxt.async_support.luno):
             'nonce': None,
         }
 
-    def parse_order_book_bids_asks(self, bidasks, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
+    def parse_order_book_bids_asks(self, bidasks: Any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
         bidasks = self.to_array(bidasks)
         result = []
         for i in range(0, len(bidasks)):
             result.append(self.custom_parse_bid_ask(bidasks[i], priceKey, amountKey, thirdKey))
         return result
 
-    def custom_parse_bid_ask(self, bidask, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
+    def custom_parse_bid_ask(self, bidask: Any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         result = [price, amount]
@@ -243,7 +244,7 @@ class luno(ccxt.async_support.luno):
             result.append(thirdValue)
         return result
 
-    def handle_delta(self, orderbook, message):
+    def handle_delta(self, orderbook: Any, message: Any):
         #
         #  create
         #     {
@@ -302,7 +303,7 @@ class luno(ccxt.async_support.luno):
             asksOrderSide.storeArray([0, 0, orderId])
             bidsOrderSide.storeArray([0, 0, orderId])
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if message == '':
             return
         subscriptions = list(client.subscriptions.values())

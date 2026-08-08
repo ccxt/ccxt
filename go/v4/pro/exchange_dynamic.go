@@ -215,10 +215,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		kucoinItf := NewKucoinCore()
 		kucoinItf.Init(exchangeArgs)
 		return kucoinItf, true
-	case "kucoineu":
-		kucoineuItf := NewKucoineuCore()
-		kucoineuItf.Init(exchangeArgs)
-		return kucoineuItf, true
 	case "kucoinfutures":
 		kucoinfuturesItf := NewKucoinfuturesCore()
 		kucoinfuturesItf.Init(exchangeArgs)

@@ -225,6 +225,32 @@ class Transpiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in their own namespace/subfolder in every language
     isPrediction = false;
+    // Awaiting async-PHP methods are always emitted as a hybrid pair instead of one method
+    // whose whole body sits inside `Async\async(function () use (...) { ... })()`:
+    //
+    //     public function fetch_time($params = array()): PromiseInterface {
+    //         return Async\async(self::do_fetch_time(...))($params);
+    //     }
+    //     private function do_fetch_time($params) {
+    //         $response = Async\await($this->publicGetTime($params));
+    //         ...
+    //     }
+    //
+    // Naming: `do_<method>` + `private` (not `_impl` / leading underscore). PSR-12 forbids
+    // underscore prefixes as a visibility marker; CCXT PHP is snake_case; `do_*` is the
+    // usual "public facade, do the work" helper shape in PHP frameworks. `private` keeps
+    // the body non-overridable (stubs and bodies are always emitted as a pair).
+    //
+    // Async\async() stays on the public edge, so public signatures still return
+    // PromiseInterface and Promise\all() still overlaps; only the closure, its `use (...)`
+    // capture list and one indentation level go away. `self::` (not `$this->`) is required:
+    // a subclass override that does `Async\await(parent::fetch_time($params))` would
+    // otherwise late-bind straight back into its own do_* body and recurse forever.
+    //
+    // set by transpileJavaScriptToPHP() whenever it leaves an awaiting body flat; read back
+    // immediately by transpileJavaScriptToPythonAndPHP() so the caller splits exactly the
+    // same set of methods that previously got a nested closure
+    phpAsyncBodyWasFlattened = false;
 
     baseMethodsList!: any[];
 
@@ -761,7 +787,7 @@ class Transpiler {
     getTypescriptRemovalRegexes() {
         return [
             [ /(?<![a-zA-Z0-9_]\s)(?<![a-zA-Z0-9_])\((\w+)\sas\s\w+\)/g, '$1'], // remove parens around a cast like "(x as any)" -> "x"; but NOT when it's a call arg, in either the spaced "foo (x as string)" or unspaced "foo(x as string)" form (the latter is produced by trimmedUnCamelCase collapsing base-method calls, e.g. capitalize(side as string)) — both keep their parens and let the next rule drop just the " as T"
-            [ /\sas (Dictionary<)?\w+(\[])?(>)?/g, ''], // remove any "as any" or "as number" or "as trade[]"
+            [ /\sas (\w+<[^<>]*(?:<[^<>]*>[^<>]*)*>|(?:Dictionary<)?\w+(?:\[])?>?)/g, ''], // remove any "as any" or "as number" or "as trade[]" or a generic cast such as "as Endpoint<Dict | List>" (the generic arm must run first, otherwise "as Foo" matches and strands "<T>")
             [ /(^|[^a-zA-Z0-9_])((?:let|const)\s+\w+):[^=\n]+(\s+=.*$)/gm, '$1$2$3'], // remove variable type
         ]
     }
@@ -1019,10 +1045,12 @@ class Transpiler {
             'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
+            'CurrencyInterface': /(?:->|:) (?:List\[)?CurrencyInterface\b/,
             'DepositAddress': /-> (?:List\[)?DepositAddress/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
+            'NullableIndexType': /: NullableIndexType/,
             'Int': /(: (?:List\[)?Int\b)|(-> Int:)/,
             'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
@@ -1038,6 +1066,7 @@ class Transpiler {
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
             'MarginModification': /-> MarginModification:/,
+            'MarginLoan': /-> MarginLoan:/,
             'Market': /(-> Market:|: Market)/,
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
@@ -1052,6 +1081,8 @@ class Transpiler {
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
+            'PositionModeInfo': /-> PositionModeInfo:/,
+            'Status': /-> Status:/,
             'Str': /(: (?:List\[)?Str\b)|(-> Str:)/,
             'Strings': /: (?:List\[)?Strings =/,
             'SubType': /: SubType/,
@@ -1065,6 +1096,8 @@ class Transpiler {
             'Trade': /-> (?:List\[)?Trade/,
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
+            'DepositWithdrawFee': /-> DepositWithdrawFee:/,
+            'DepositWithdrawFees': /-> DepositWithdrawFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
             'FundingRateHistory': /-> (?:List\[)?FundingRateHistory/,
             'MarketInterface': /-> (?:List\[)?MarketInterface/,
@@ -1384,6 +1417,54 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+    // splits a rendered PHP parameter list into its individual parameters, ignoring
+    // commas nested inside defaults like `array(1, 2)` or `'a,b'`
+    splitPHPParameterList (phpArgs: string) {
+        const parts: string[] = []
+        let depth = 0
+        let quote = ''
+        let current = ''
+        for (let i = 0; i < phpArgs.length; i++) {
+            const char = phpArgs[i]
+            if (quote) {
+                if ((char === quote) && (phpArgs[i - 1] !== '\\')) {
+                    quote = ''
+                }
+            } else if ((char === "'") || (char === '"')) {
+                quote = char
+            } else if ((char === '(') || (char === '[')) {
+                depth++
+            } else if ((char === ')') || (char === ']')) {
+                depth--
+            } else if ((char === ',') && (depth === 0)) {
+                parts.push (current)
+                current = ''
+                continue
+            }
+            current += char
+        }
+        if (current.trim ().length) {
+            parts.push (current)
+        }
+        return parts
+    }
+
+    // turns a rendered PHP parameter list (`string $symbol, $params = array()`) into the
+    // argument expressions used to forward it to another method (`$symbol, $params`),
+    // preserving by-reference and variadic markers
+    phpParameterForwardingList (phpArgs: string) {
+        if (!phpArgs || !phpArgs.trim ().length) {
+            return ''
+        }
+        return this.splitPHPParameterList (phpArgs).map ((part) => {
+            const match = part.match (/(\.\.\.)?\s*&?\s*(\$\w+)/)
+            if (!match) {
+                throw new Error ('phpParameterForwardingList: could not parse PHP parameter "' + part + '"')
+            }
+            return (match[1] || '') + match[2]
+        }).join (', ')
+    }
+
     transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
 
         // match all local variables (let, const or var)
@@ -1451,10 +1532,18 @@ class Transpiler {
         // the variable only gets its "$" from phpVariablesRegexes below, so handle it here.
         const noSpaceBeforeDynamicNewParen = [ /new (\$[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])*) \(/g, 'new $1(' ]
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
-        // indent async php
+        // indent async php — awaiting bodies stay flat here on purpose: the caller
+        // (transpileMethodsToAllLanguages) emits a thin public stub
+        // `return Async\async(self::do_<name>(...))($args);` and re-homes this flat
+        // body into `private function do_<name> (...)`. Async\async() stays on the
+        // public edge, so the method still returns a PromiseInterface and Promise\all
+        // still overlaps, but the `function () use (...)` closure and its extra
+        // indentation level disappear from every awaiting method.
+        if (async) {
+            this.phpAsyncBodyWasFlattened = false
+        }
         if (async && js.indexOf (' await ') > -1) {
-            const closure = variables && variables.length ? ' use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
-            phpBody = '        return Async\\async(function ()' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        })();'
+            this.phpAsyncBodyWasFlattened = true
         }
         phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
@@ -1479,15 +1568,18 @@ class Transpiler {
 
         let phpAsyncBody  = ''
         let phpBody = ''
+        let phpAsyncBodyIsFlatAwait = false
 
         if (this.buildPHP) {
             // transpile JS → Async PHP
             phpAsyncBody = this.transpileJavaScriptToPHP (args, true)
+            // read the flag before the sync pass below clobbers nothing but keeps intent obvious
+            phpAsyncBodyIsFlatAwait = this.phpAsyncBodyWasFlattened
             // transpile JS -> Sync PHP
             phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
         }
 
-        return { python3Body, python2Body, phpBody, phpAsyncBody }
+        return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
     }
 
     //-----------------------------------------------------------------------------
@@ -1854,16 +1946,20 @@ class Transpiler {
             let part = this.moveJsDocInside(methods[i].trim());
             // let part = methods[i].trim ()
             let lines = part.split ("\n")
-            // strip TypeScript overload signature lines (body-less declarations ending with ';')
-            // they carry no runtime code and the implementation signature below handles all cases
-            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+            // strip leading blank / comment lines first (// line comments AND /* */ block comments
+            // like /* eslint-disable ... */) so a note above overload signatures does not block the
+            // overload stripper (otherwise lines[0] is a comment, overloads are not removed, and the
+            // signature regex fails → unCamelCase(undefined)).
+            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//') || lines[0].trim ().startsWith ('/*'))) {
                 lines.shift ()
             }
-            // strip leading blank / line-comment lines so a standalone section-divider comment
-            // block (or a method preceded by // comments) isn't mistaken for the signature. the
-            // main Exchange base has neither, so this is a no-op there; the prediction base uses
-            // section dividers between method groups.
-            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//'))) {
+            // strip TypeScript overload signature lines (body-less declarations ending with ';')
+            // they carry no runtime code and the implementation signature below handles all cases
+            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+(?:\s*<[^>]+>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+                lines.shift ()
+            }
+            // re-strip any blanks/comments left between overloads and the implementation
+            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//') || lines[0].trim ().startsWith ('/*'))) {
                 lines.shift ()
             }
             if (lines.length === 0) {
@@ -1884,19 +1980,20 @@ class Transpiler {
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
-            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(.+?))?\s*{/ // signature line, return type captured non-greedily to allow tuples like [Str, Dict]
+            let methodSignatureRegex = /(async |)(\S+)(?:\s*<[^>]+>)?\s*\(([^)]*)\)\s*(?::\s+(.+?))?\s*{/ // optional TS generics; return type non-greedy for tuples
             let matches = methodSignatureRegex.exec (signature)
 
             if (!matches) {
                 log.red (methods[i])
                 log.yellow.bright ("\nMake sure your methods don't have empty lines!\n")
+                throw new Error ('transpileMethodsToAllLanguages: could not parse method signature in ' + className)
             }
 
             // async or not
-            let keyword = matches?.[1] as string
+            let keyword = matches[1] as string
 
             // method name
-            let method = matches?.[2] as string
+            let method = matches[2] as string
 
             if (process.argv.includes ('--check-parsers')) {
                 this.checkIfMethodLacksParser (className, method, part)
@@ -1907,10 +2004,10 @@ class Transpiler {
             method = unCamelCase (method)
 
             // method arguments
-            const args = (matches?.[3] as string).trim ()
+            const args = (matches[3] as string).trim ()
 
             // return type
-            let returnType = matches?.[4] as string
+            let returnType = matches[4] as string
 
             // extract argument names and local variables
             const argsArray = args.length ? args.split (',').map (x => x.trim ()) : []
@@ -1927,6 +2024,13 @@ class Transpiler {
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
+                // strip trailing `| undefined` / `| null` from return unions so python gets Order not Order | undefined
+                if (syncReturnType && syncReturnType.indexOf ('|') !== -1) {
+                    const returnParts = syncReturnType.split ('|').map ((p) => p.trim ()).filter ((p) => (p !== 'undefined') && (p !== 'null'));
+                    if (returnParts.length === 1) {
+                        syncReturnType = returnParts[0];
+                    }
+                }
             }
             // tuple return types like [Str, Dict] map to array/list (no single-token equivalent)
             const isTupleReturnType = (syncReturnType !== '') && (syncReturnType[0] === '[')
@@ -1943,9 +2047,16 @@ class Transpiler {
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
                 'NullableDict': 'dict',
+                'List': 'List[Any]',
                 'NullableList': 'List[Any]'
             }
             const unwrapLists = (type: string) => {
+                // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
+                // only stripping a trailing `[]` from the whole string would emit the invalid
+                // python `dict[]` (E999 Unexpected token ']'), so split on `|` and recurse.
+                if (type.indexOf ('|') !== -1) {
+                    return type.split ('|').map ((member) => unwrapLists (member.trim ())).join (' | ')
+                }
                 let count = 0
                 while (type.slice (-2) == '[]') {
                     type = type.slice (0, -2)
@@ -1969,15 +2080,17 @@ class Transpiler {
                     'number': 'float',
                     'boolean': 'bool',
                     'IndexType': 'int|string',
+                    'NullableIndexType': 'int|string|null',
                     'Int': '?int',
                     'OrderType': 'string',
                     'OrderSide': 'string',
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                     'NullableDict': '?array',
+                    'List': 'array',
                     'NullableList': '?array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -1996,6 +2109,33 @@ class Transpiler {
                         nullable = nullable || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
                         let type = secondPart[0].trim ()
+                        // the hand-written BaseExchange declares the trailing params bag untyped
+                        // (`$params = []`), and PHP rejects an override that narrows it to
+                        // `array $params` ("must be compatible with"). noImplicitAny annotated
+                        // overrides as `params: Dict = {}`, which would emit `array` here, so keep
+                        // any `params` argument that defaults to `{}` untyped to match the base.
+                        const isUntypedParamsBag = (variable === 'params') && (secondPart.length === 2) && (secondPart[1].trim () === '{}')
+                        if (isUntypedParamsBag) {
+                            return '$' + variable + endpart
+                        }
+                        // Normalise union parameter types so we never emit invalid PHP like
+                        // `?Dict | null` or `?Currency | Str`. Split on `|`, drop the `undefined`
+                        // member (it only signals nullability, already carried by the default /
+                        // the leading `?`). If one named type remains, keep it as a nullable hint;
+                        // if several distinct types remain, PHP cannot express the union, so fall
+                        // back to an untyped parameter (mixed-like) rather than a broken hint.
+                        if (type.indexOf (' | ') !== -1) {
+                            const unionParts = type.split ('|').map ((p) => p.trim ());
+                            const nonUndefined = unionParts.filter ((p) => p !== 'undefined');
+                            if (unionParts.length !== nonUndefined.length) {
+                                nullable = true;
+                            }
+                            if (nonUndefined.length === 1) {
+                                type = nonUndefined[0];
+                            } else {
+                                type = 'any'; // multiple concrete union members -> emit no PHP type hint
+                            }
+                        }
                         const phpType = phpTypes[type] ?? type
                         let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
                         if (resolveType === 'object[]') {
@@ -2039,14 +2179,19 @@ class Transpiler {
                 pythonArgs = argsArray.map (x => {
                     if (x.includes (':')) {
                         const parts = x.split(':')
-                        let typeParts = parts[1].trim ().split (' ')
-                        const type = typeParts[0]
-                        typeParts[0] = ''
                         let variable = parts[0]
                         // const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
-                        const rawType = unwrapLists (type)
-                        return variable + ': ' + rawType + typeParts.join (' ')
+                        // split the annotation into the type expression and the optional ` = default`
+                        // tail. The whole type expression must go through unwrapLists, otherwise a
+                        // union like `Dict | Dict[] | undefined` would only map its first member and
+                        // emit the invalid python `dict | Dict[] | None` (E999 Unexpected token ']').
+                        const annotation = parts[1].trim ()
+                        const defaultIndex = annotation.indexOf (' = ')
+                        const typeExpression = (defaultIndex === -1) ? annotation : annotation.slice (0, defaultIndex)
+                        const defaultExpression = (defaultIndex === -1) ? '' : annotation.slice (defaultIndex)
+                        const rawType = unwrapLists (typeExpression.trim ())
+                        return variable + ': ' + rawType + defaultExpression
                     } else {
                         return x.replace (' = ', '=')
                     }
@@ -2062,7 +2207,7 @@ class Transpiler {
             let js = lines.slice (1, -1).join ("\n")
 
             // transpile everything
-            let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
             if (this.buildPython) {
                 // compile the final Python code for the method signature
@@ -2093,7 +2238,23 @@ class Transpiler {
                 php.push ('    ' + '}')
 
                 phpAsync.push ('');
-                phpAsync.push (asyncPhpSignature);
+                if (phpAsyncBodyIsFlatAwait) {
+                    // hybrid async: thin public stub keeps the PromiseInterface contract and the
+                    // Async\async() edge; the flat body moves into a private `do_<name>` helper
+                    // (PSR-12 / snake_case; no closure, no `use (...)`, one indent level less).
+                    const forwardedArgs = this.phpParameterForwardingList (phpArgs)
+                    const doMethod = 'do_' + method
+                    phpAsync.push (asyncPhpSignature);
+                    phpAsync.push ('        return Async\\async(self::' + doMethod + '(...))(' + forwardedArgs + ');');
+                    phpAsync.push ('    ' + '}')
+                    phpAsync.push ('');
+                    // the body helper is intentionally untyped on the return: after
+                    // `Async\await(...)` it yields the resolved value, not a promise, so the
+                    // public method's `: PromiseInterface` must not be repeated here.
+                    phpAsync.push ('    ' + 'private function ' + doMethod + '(' + phpArgs + ') {');
+                } else {
+                    phpAsync.push (asyncPhpSignature);
+                }
                 phpAsync.push (phpAsyncBody);
                 phpAsync.push ('    ' + '}')
             }

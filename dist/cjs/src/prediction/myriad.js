@@ -92,46 +92,46 @@ class myriad extends myriad$1["default"] {
                 'myriad': {
                     'public': {
                         'get': {
-                            'questions': 1,
-                            'questions/{id}': 1,
-                            'markets': 1,
-                            'markets/{id}': 1,
-                            'markets/{networkId}/{id}': 1,
-                            'markets/{id}/events': 1,
-                            'markets/{id}/orderbook': 1,
-                            'markets/{id}/trades': 1,
-                            'markets/{id}/holders': 1,
-                            'markets/{id}/referrals': 1,
-                            'events': 1,
-                            'orders': 1,
-                            'orders/{hash}': 1,
-                            'users/{address}/events': 1,
-                            'users/{address}/referrals': 1,
-                            'users/{address}/portfolio': 1,
-                            'users/{address}/markets': 1,
-                            'tags': 1,
-                            'topics': 1,
+                            'questions': { 'cost': 1 },
+                            'questions/{id}': { 'cost': 1 },
+                            'markets': { 'cost': 1 },
+                            'markets/{id}': { 'cost': 1 },
+                            'markets/{networkId}/{id}': { 'cost': 1 },
+                            'markets/{id}/events': { 'cost': 1 },
+                            'markets/{id}/orderbook': { 'cost': 1 },
+                            'markets/{id}/trades': { 'cost': 1 },
+                            'markets/{id}/holders': { 'cost': 1 },
+                            'markets/{id}/referrals': { 'cost': 1 },
+                            'events': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'orders/{hash}': { 'cost': 1 },
+                            'users/{address}/events': { 'cost': 1 },
+                            'users/{address}/referrals': { 'cost': 1 },
+                            'users/{address}/portfolio': { 'cost': 1 },
+                            'users/{address}/markets': { 'cost': 1 },
+                            'tags': { 'cost': 1 },
+                            'topics': { 'cost': 1 },
                         },
                         'post': {
-                            'markets/quote': 1,
-                            'markets/claim': 1,
-                            'orders': 1,
-                            'orders/cancel-batch': 1,
-                            'orders/cancel-all': 1,
-                            'positions/split': 1,
-                            'positions/merge': 1,
-                            'positions/redeem': 1,
-                            'positions/redeem-voided': 1,
-                            'positions/neg-risk/split': 1,
-                            'positions/neg-risk/merge': 1,
+                            'markets/quote': { 'cost': 1 },
+                            'markets/claim': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'orders/cancel-batch': { 'cost': 1 },
+                            'orders/cancel-all': { 'cost': 1 },
+                            'positions/split': { 'cost': 1 },
+                            'positions/merge': { 'cost': 1 },
+                            'positions/redeem': { 'cost': 1 },
+                            'positions/redeem-voided': { 'cost': 1 },
+                            'positions/neg-risk/split': { 'cost': 1 },
+                            'positions/neg-risk/merge': { 'cost': 1 },
                         },
                         'delete': {
-                            'orders/{hash}': 1,
+                            'orders/{hash}': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'post': {
-                            'markets/quote_with_fee': 1,
+                            'markets/quote_with_fee': { 'cost': 1 },
                         },
                     },
                 },
@@ -263,7 +263,8 @@ class myriad extends myriad$1["default"] {
                 'state': state,
                 'limit': limit,
             }, rest));
-            const foundList = this.safeList(response, 'data', response);
+            const responseIsArray = Array.isArray(response);
+            const foundList = (responseIsArray) ? response : this.safeList(response, 'data', []);
             const found = (foundList !== undefined) ? foundList : [];
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
@@ -309,7 +310,8 @@ class myriad extends myriad$1["default"] {
                 'page': page,
                 'trading_model': tradingModel,
             }, rest));
-            const rawMarketsList = this.safeList(response, 'data', response);
+            const responseIsArray = Array.isArray(response);
+            const rawMarketsList = (responseIsArray) ? response : this.safeList(response, 'data', []);
             const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
@@ -436,7 +438,8 @@ class myriad extends myriad$1["default"] {
                 'keyword': q,
                 'limit': limit,
             }, rest));
-            const foundList = this.safeList(response, 'data', response);
+            const responseIsArray = Array.isArray(response);
+            const foundList = (responseIsArray) ? response : this.safeList(response, 'data', []);
             const found = (foundList !== undefined) ? foundList : [];
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
@@ -476,7 +479,8 @@ class myriad extends myriad$1["default"] {
                 request['state'] = state;
             }
             const response = await this.myriadPublicGetQuestions(this.extend(request, rest));
-            const rawQuestionsList = this.safeList(response, 'data', response);
+            const responseIsArray = Array.isArray(response);
+            const rawQuestionsList = (responseIsArray) ? response : this.safeList(response, 'data', []);
             const rawQuestions = (rawQuestionsList !== undefined) ? rawQuestionsList : [];
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
@@ -732,10 +736,18 @@ class myriad extends myriad$1["default"] {
         const signature = crypto.ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1_js.secp256k1, undefined);
         let rHex = this.safeString(signature, 'r');
         let sHex = this.safeString(signature, 's');
-        if ((rHex.length % 2) !== 0) {
+        if (rHex === undefined) {
+            throw new errors.ExchangeError(this.id + ' signEvmTransaction() missing rHex');
+        }
+        const rHexLength = rHex.length;
+        if ((rHexLength % 2) !== 0) {
             rHex = '0' + rHex;
         }
-        if ((sHex.length % 2) !== 0) {
+        if (sHex === undefined) {
+            throw new errors.ExchangeError(this.id + ' signEvmTransaction() missing sHex');
+        }
+        const sHexLength = sHex.length;
+        if ((sHexLength % 2) !== 0) {
             sHex = '0' + sHex;
         }
         const yParity = this.safeInteger(signature, 'v');
@@ -959,7 +971,10 @@ class myriad extends myriad$1["default"] {
         const ordersLength = orders.length;
         const orderOutcomes = [];
         for (let i = 0; i < ordersLength; i++) {
-            orderOutcomes.push(this.safeString(orders[i], 'outcome'));
+            const __oc = this.safeString(orders[i], 'outcome');
+            if (__oc !== undefined) {
+                orderOutcomes.push(__oc);
+            }
         }
         await this.loadOutcomes(orderOutcomes);
         const result = [];
@@ -1233,7 +1248,13 @@ class myriad extends myriad$1["default"] {
         const scaled = Precise["default"].stringMul(valueStr, '1000000000000000000');
         // use > -1 (not >= 0): when '.' is absent PHP's mb_strpos returns false, and false >= 0
         // coerces to true (wrongly truncating to empty), whereas false > -1 correctly coerces to false
+        if (scaled === undefined) {
+            throw new errors.ExchangeError(this.id + ' toOrderbookWei() missing scaled');
+        }
         const dotIndex = scaled.indexOf('.');
+        if (scaled === undefined) {
+            throw new errors.ExchangeError(this.id + ' toOrderbookWei() missing scaled');
+        }
         if (dotIndex > -1) {
             return scaled.slice(0, dotIndex);
         }
@@ -1929,7 +1950,9 @@ class myriad extends myriad$1["default"] {
         for (let i = 0; i < n; i++) {
             const v = digits.indexOf(chars[i]);
             if (v > -1) {
-                result = Precise["default"].stringAdd(Precise["default"].stringMul(result, '16'), this.numberToString(v));
+                const mul = Precise["default"].stringMul(result, '16');
+                const digit = this.numberToString(v);
+                result = Precise["default"].stringAdd(mul, digit);
             }
         }
         return result;
@@ -1940,6 +1963,9 @@ class myriad extends myriad$1["default"] {
             return undefined;
         }
         let scale = '1';
+        if (decimals === undefined) {
+            throw new errors.ExchangeError(this.id + ' fromWeiWithDecimals() missing decimals');
+        }
         for (let i = 0; i < decimals; i++) {
             scale = scale + '0';
         }
@@ -2384,6 +2410,9 @@ class myriad extends myriad$1["default"] {
         let percentage = undefined;
         if ((price !== undefined) && (change !== undefined)) {
             previousClose = price - change;
+            if (previousClose === undefined) {
+                throw new errors.ExchangeError(this.id + ' method() missing previousClose');
+            }
             if (previousClose !== 0) {
                 percentage = change / previousClose * 100;
             }
@@ -2856,7 +2885,8 @@ class myriad extends myriad$1["default"] {
         //         ]
         //     }
         //
-        const rowsList = this.safeList(response, 'data', response);
+        const responseIsArray = Array.isArray(response);
+        const rowsList = (responseIsArray) ? response : this.safeList(response, 'data', []);
         const rows = (rowsList !== undefined) ? rowsList : [];
         const trades = [];
         for (let i = 0; i < rows.length; i++) {
@@ -2930,6 +2960,9 @@ class myriad extends myriad$1["default"] {
         }
         const queries = this.parseSearchQueries(params);
         const rest = this.omit(params, ['query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags']);
+        if (queries === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchEvents() missing queries');
+        }
         const queriesLength = queries.length;
         const eventId = this.safeString(params, 'eventId');
         // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
@@ -3010,7 +3043,8 @@ class myriad extends myriad$1["default"] {
                 filteredMarkets.push(m);
             }
             // skip question events that contribute no new markets after de-duplicating by market handle
-            if ((evMarketsLength > 0) && (filteredMarkets.length === 0)) {
+            const filteredMarketsLength = filteredMarkets.length;
+            if ((evMarketsLength > 0) && (filteredMarketsLength === 0)) {
                 continue;
             }
             ev['markets'] = filteredMarkets;
@@ -3089,7 +3123,9 @@ class myriad extends myriad$1["default"] {
         const options = this.options['requestId'];
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        if (url !== undefined) {
+            this.options['requestId'][url] = newValue;
+        }
         return newValue;
     }
     fromWei(wei) {
@@ -3232,7 +3268,7 @@ class myriad extends myriad$1["default"] {
         const future = this.watch(url, messageHash, subscribeMsg, channel);
         if (isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
-            client.resolve(this.orderbooks[sym], messageHash);
+            client.resolve(this.safeValue(this.orderbooks, sym), messageHash);
         }
         const orderbook = await future;
         return orderbook.limit();
@@ -3715,7 +3751,9 @@ class myriad extends myriad$1["default"] {
             const balances = this.safeDict(this.options, 'positionBalances', {});
             const prior = this.safeString(balances, posId, '0');
             const updated = Precise["default"].stringAdd(prior, deltaShares);
-            balances[posId] = updated;
+            if (posId !== undefined) {
+                balances[posId] = updated;
+            }
             this.options['positionBalances'] = balances;
             contracts = this.parseNumber(updated);
         }

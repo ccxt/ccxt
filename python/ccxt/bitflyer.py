@@ -92,49 +92,49 @@ class bitflyer(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'getmarkets/usa',  # new(wip)
-                        'getmarkets/eu',  # new(wip)
-                        'getmarkets',     # or 'markets'
-                        'getboard',       # ...
-                        'getticker',
-                        'getexecutions',
-                        'gethealth',
-                        'getboardstate',
-                        'getchats',
-                        'getfundingrate',
-                    ],
+                    'get': {
+                        'getmarkets/usa': {'cost': 1},
+                        'getmarkets/eu': {'cost': 1},
+                        'getmarkets': {'cost': 1},
+                        'getboard': {'cost': 1},
+                        'getticker': {'cost': 1},
+                        'getexecutions': {'cost': 1},
+                        'gethealth': {'cost': 1},
+                        'getboardstate': {'cost': 1},
+                        'getchats': {'cost': 1},
+                        'getfundingrate': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'getpermissions',
-                        'getbalance',
-                        'getbalancehistory',
-                        'getcollateral',
-                        'getcollateralhistory',
-                        'getcollateralaccounts',
-                        'getaddresses',
-                        'getcoinins',
-                        'getcoinouts',
-                        'getbankaccounts',
-                        'getdeposits',
-                        'getwithdrawals',
-                        'getchildorders',
-                        'getparentorders',
-                        'getparentorder',
-                        'getexecutions',
-                        'getpositions',
-                        'gettradingcommission',
-                    ],
-                    'post': [
-                        'sendcoin',
-                        'withdraw',
-                        'sendchildorder',
-                        'cancelchildorder',
-                        'sendparentorder',
-                        'cancelparentorder',
-                        'cancelallchildorders',
-                    ],
+                    'get': {
+                        'getpermissions': {'cost': 1},
+                        'getbalance': {'cost': 1},
+                        'getbalancehistory': {'cost': 1},
+                        'getcollateral': {'cost': 1},
+                        'getcollateralhistory': {'cost': 1},
+                        'getcollateralaccounts': {'cost': 1},
+                        'getaddresses': {'cost': 1},
+                        'getcoinins': {'cost': 1},
+                        'getcoinouts': {'cost': 1},
+                        'getbankaccounts': {'cost': 1},
+                        'getdeposits': {'cost': 1},
+                        'getwithdrawals': {'cost': 1},
+                        'getchildorders': {'cost': 1},
+                        'getparentorders': {'cost': 1},
+                        'getparentorder': {'cost': 1},
+                        'getexecutions': {'cost': 1},
+                        'getpositions': {'cost': 1},
+                        'gettradingcommission': {'cost': 1},
+                    },
+                    'post': {
+                        'sendcoin': {'cost': 1},
+                        'withdraw': {'cost': 1},
+                        'sendchildorder': {'cost': 1},
+                        'cancelchildorder': {'cost': 1},
+                        'sendparentorder': {'cost': 1},
+                        'cancelparentorder': {'cost': 1},
+                        'cancelallchildorders': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -227,7 +227,7 @@ class bitflyer(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_expiry_date(self, expiry):
+    def parse_expiry_date(self, expiry: Any):
         day = expiry[0:2]
         monthName = expiry[2:5]
         year = expiry[5:9]
@@ -294,8 +294,8 @@ class bitflyer(Exchange, ImplicitAPI):
         #         {"product_code": "BTC_JPY", "market_type": "Spot"},
         #     ]
         #
-        markets = self.array_concat(jp_markets, us_markets)
-        markets = self.array_concat(markets, eu_markets)
+        markets = self.array_concat(self.to_array(jp_markets), self.to_array(us_markets))
+        markets = self.array_concat(markets, self.to_array(eu_markets))
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -403,7 +403,7 @@ class bitflyer(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -412,7 +412,8 @@ class bitflyer(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'amount')
             account['free'] = self.safe_string(balance, 'available')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -457,7 +458,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -814,7 +815,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1018,14 +1019,14 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_deposit_status(self, status):
+    def parse_deposit_status(self, status: Any):
         statuses = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_withdrawal_status(self, status):
+    def parse_withdrawal_status(self, status: Any):
         statuses = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
@@ -1136,7 +1137,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #    {
         #        "current_funding_rate": -0.003750000000
@@ -1166,7 +1167,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'
@@ -1193,7 +1194,7 @@ class bitflyer(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to the default error handler
         feedback = self.id + ' ' + body

@@ -166,41 +166,91 @@ public partial class bitteam : Exchange
             { "api", new Dictionary<string, object>() {
                 { "history", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "api/tw/history/{pairName}/{resolution}", 1 },
+                        { "api/tw/history/{pairName}/{resolution}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "trade/api/asset", 1 },
-                        { "trade/api/currencies", 1 },
-                        { "trade/api/orderbooks/{symbol}", 1 },
-                        { "trade/api/orders", 1 },
-                        { "trade/api/pair/{name}", 1 },
-                        { "trade/api/pairs", 1 },
-                        { "trade/api/pairs/precisions", 1 },
-                        { "trade/api/rates", 1 },
-                        { "trade/api/trade/{id}", 1 },
-                        { "trade/api/trades", 1 },
-                        { "trade/api/ccxt/pairs", 1 },
-                        { "trade/api/cmc/assets", 1 },
-                        { "trade/api/cmc/orderbook/{pair}", 1 },
-                        { "trade/api/cmc/summary", 1 },
-                        { "trade/api/cmc/ticker", 1 },
-                        { "trade/api/cmc/trades/{pair}", 1 },
+                        { "trade/api/asset", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/orderbooks/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/pair/{name}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/pairs/precisions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/rates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/trade/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/ccxt/pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/cmc/assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/cmc/orderbook/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/cmc/summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/cmc/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/cmc/trades/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "trade/api/ccxt/balance", 1 },
-                        { "trade/api/ccxt/order/{id}", 1 },
-                        { "trade/api/ccxt/ordersOfUser", 1 },
-                        { "trade/api/ccxt/tradesOfUser", 1 },
-                        { "trade/api/transactionsOfUser", 1 },
+                        { "trade/api/ccxt/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/ccxt/order/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/ccxt/ordersOfUser", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/ccxt/tradesOfUser", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/transactionsOfUser", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "trade/api/ccxt/cancel-all-order", 1 },
-                        { "trade/api/ccxt/cancelorder", 1 },
-                        { "trade/api/ccxt/ordercreate", 1 },
+                        { "trade/api/ccxt/cancel-all-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/ccxt/cancelorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/api/ccxt/ordercreate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -666,7 +716,7 @@ public partial class bitteam : Exchange
         object maxWithdraw = this.safeString(txLimits, "maxWithdraw");
         object minDeposit = this.safeString(txLimits, "minDeposit");
         object fee = null;
-        object withdrawCommissionFixed = ((object)this.safeValue(txLimits, "withdrawCommissionFixed", new Dictionary<string, object>() {}));
+        object withdrawCommissionFixed = this.safeValue(txLimits, "withdrawCommissionFixed", new Dictionary<string, object>() {});
         object feesByNetworkId = new Dictionary<string, object>() {};
         object blockChain = this.safeString(currency, "blockChain");
         // if only one blockChain
@@ -690,30 +740,33 @@ public partial class bitteam : Exchange
             object networkId = getValue(networkIds, j);
             object networkCode = this.networkIdToCode(networkId, code);
             object networkFee = this.safeNumber(feesByNetworkId, networkId);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "active", active },
-                { "fee", networkFee },
-                { "precision", networkPrecision },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "deposit", deposit },
+                    { "withdraw", withdraw },
+                    { "active", active },
+                    { "fee", networkFee },
+                    { "precision", networkPrecision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.parseNumber(minWithdraw) },
+                            { "max", this.parseNumber(maxWithdraw) },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.parseNumber(minDeposit) },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdraw) },
-                        { "max", this.parseNumber(maxWithdraw) },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minDeposit) },
-                        { "max", null },
-                    } },
-                } },
-                { "info", currency },
-            };
+                    { "info", currency },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -826,7 +879,7 @@ public partial class bitteam : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1501,13 +1554,14 @@ public partial class bitteam : Exchange
         //     ]
         //
         object tickers = new List<object>() {};
-        if (!isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        object rawTickers = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            response = new List<object>() {};
+            rawTickers = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
-            object rawTicker = getValue(response, i);
+            object rawTicker = getValue(rawTickers, i);
             object ticker = this.parseTicker(rawTicker);
             ((IList<object>)tickers).Add(ticker);
         }
@@ -2261,11 +2315,14 @@ public partial class bitteam : Exchange
             object used = this.safeString(currencyBalance, "used");
             object total = this.safeString(currencyBalance, "total");
             object currencyCode = this.safeCurrencyCode(((string)rawCurrencyId).ToLower());
-            ((IDictionary<string,object>)balance)[(string)currencyCode] = new Dictionary<string, object>() {
-                { "free", free },
-                { "used", used },
-                { "total", total },
-            };
+            if (isTrue(!isEqual(currencyCode, null)))
+            {
+                ((IDictionary<string,object>)balance)[(string)currencyCode] = new Dictionary<string, object>() {
+                    { "free", free },
+                    { "used", used },
+                    { "total", total },
+                };
+            }
         }
         return this.safeBalance(balance);
     }
@@ -2492,7 +2549,7 @@ public partial class bitteam : Exchange
             { "deposit", "deposit" },
             { "withdraw", "withdrawal" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object parseTransactionStatus(object status)

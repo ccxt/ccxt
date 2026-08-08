@@ -94,168 +94,424 @@ func (this *PolymarketCore) Describe() any {
 			"gamma": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"status":                               1,
-						"comments":                             1,
-						"comments/{id}":                        1,
-						"comments/user_address/{user_address}": 1,
-						"events":                               1,
-						"events/creators":                      1,
-						"events/creators/{id}":                 1,
-						"events/keyset":                        1,
-						"events/pagination":                    1,
-						"events/results":                       1,
-						"events/slug/{slug}":                   1,
-						"events/{id}":                          1,
-						"events/{id}/comments/count":           1,
-						"events/{id}/tags":                     1,
-						"events/{id}/tweet-count":              1,
-						"markets":                              1,
-						"markets/keyset":                       1,
-						"markets/slug/{slug}":                  1,
-						"markets/{id}":                         1,
-						"markets/{id}/description":             1,
-						"markets/{id}/tags":                    1,
-						"profiles/user_address/{user_address}": 1,
-						"public-profile":                       1,
-						"public-search":                        1,
-						"series":                               1,
-						"series-summary/slug/{slug}":           1,
-						"series-summary/{id}":                  1,
-						"series/{id}":                          1,
-						"series/{id}/comments/count":           1,
-						"sports":                               1,
-						"sports/market-types":                  1,
-						"tags":                                 1,
-						"tags/slug/{slug}":                     1,
-						"tags/slug/{slug}/related-tags":        1,
-						"tags/slug/{slug}/related-tags/tags":   1,
-						"tags/{id}":                            1,
-						"tags/{id}/related-tags":               1,
-						"tags/{id}/related-tags/tags":          1,
-						"teams":                                1,
-						"teams/{id}":                           1,
+						"status": map[string]any{
+							"cost": 1,
+						},
+						"comments": map[string]any{
+							"cost": 1,
+						},
+						"comments/{id}": map[string]any{
+							"cost": 1,
+						},
+						"comments/user_address/{user_address}": map[string]any{
+							"cost": 1,
+						},
+						"events": map[string]any{
+							"cost": 1,
+						},
+						"events/creators": map[string]any{
+							"cost": 1,
+						},
+						"events/creators/{id}": map[string]any{
+							"cost": 1,
+						},
+						"events/keyset": map[string]any{
+							"cost": 1,
+						},
+						"events/pagination": map[string]any{
+							"cost": 1,
+						},
+						"events/results": map[string]any{
+							"cost": 1,
+						},
+						"events/slug/{slug}": map[string]any{
+							"cost": 1,
+						},
+						"events/{id}": map[string]any{
+							"cost": 1,
+						},
+						"events/{id}/comments/count": map[string]any{
+							"cost": 1,
+						},
+						"events/{id}/tags": map[string]any{
+							"cost": 1,
+						},
+						"events/{id}/tweet-count": map[string]any{
+							"cost": 1,
+						},
+						"markets": map[string]any{
+							"cost": 1,
+						},
+						"markets/keyset": map[string]any{
+							"cost": 1,
+						},
+						"markets/slug/{slug}": map[string]any{
+							"cost": 1,
+						},
+						"markets/{id}": map[string]any{
+							"cost": 1,
+						},
+						"markets/{id}/description": map[string]any{
+							"cost": 1,
+						},
+						"markets/{id}/tags": map[string]any{
+							"cost": 1,
+						},
+						"profiles/user_address/{user_address}": map[string]any{
+							"cost": 1,
+						},
+						"public-profile": map[string]any{
+							"cost": 1,
+						},
+						"public-search": map[string]any{
+							"cost": 1,
+						},
+						"series": map[string]any{
+							"cost": 1,
+						},
+						"series-summary/slug/{slug}": map[string]any{
+							"cost": 1,
+						},
+						"series-summary/{id}": map[string]any{
+							"cost": 1,
+						},
+						"series/{id}": map[string]any{
+							"cost": 1,
+						},
+						"series/{id}/comments/count": map[string]any{
+							"cost": 1,
+						},
+						"sports": map[string]any{
+							"cost": 1,
+						},
+						"sports/market-types": map[string]any{
+							"cost": 1,
+						},
+						"tags": map[string]any{
+							"cost": 1,
+						},
+						"tags/slug/{slug}": map[string]any{
+							"cost": 1,
+						},
+						"tags/slug/{slug}/related-tags": map[string]any{
+							"cost": 1,
+						},
+						"tags/slug/{slug}/related-tags/tags": map[string]any{
+							"cost": 1,
+						},
+						"tags/{id}": map[string]any{
+							"cost": 1,
+						},
+						"tags/{id}/related-tags": map[string]any{
+							"cost": 1,
+						},
+						"tags/{id}/related-tags/tags": map[string]any{
+							"cost": 1,
+						},
+						"teams": map[string]any{
+							"cost": 1,
+						},
+						"teams/{id}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"markets/abridged":    1,
-						"markets/information": 1,
+						"markets/abridged": map[string]any{
+							"cost": 1,
+						},
+						"markets/information": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"clob": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"book":                                 1,
-						"books":                                1,
-						"builder/trades":                       1,
-						"clob-markets/{condition_id}":          1,
-						"fee-rate":                             1,
-						"fee-rate/{token_id}":                  1,
-						"last-trade-price":                     1,
-						"last-trades-prices":                   1,
-						"markets-by-token/{token_id}":          1,
-						"markets/live-activity/{condition_id}": 1,
-						"midpoint":                             1,
-						"midpoints":                            1,
-						"neg-risk":                             1,
-						"neg-risk/{token_id}":                  1,
-						"price":                                1,
-						"prices":                               1,
-						"prices-history":                       1,
-						"rebates/current":                      1,
-						"rewards/markets/current":              1,
-						"rewards/markets/multi":                1,
-						"rewards/markets/{condition_id}":       1,
-						"sampling-markets":                     1,
-						"sampling-simplified-markets":          1,
-						"simplified-markets":                   1,
-						"spread":                               1,
-						"tick-size":                            1,
-						"tick-size/{token_id}":                 1,
-						"time":                                 1,
+						"book": map[string]any{
+							"cost": 1,
+						},
+						"books": map[string]any{
+							"cost": 1,
+						},
+						"builder/trades": map[string]any{
+							"cost": 1,
+						},
+						"clob-markets/{condition_id}": map[string]any{
+							"cost": 1,
+						},
+						"fee-rate": map[string]any{
+							"cost": 1,
+						},
+						"fee-rate/{token_id}": map[string]any{
+							"cost": 1,
+						},
+						"last-trade-price": map[string]any{
+							"cost": 1,
+						},
+						"last-trades-prices": map[string]any{
+							"cost": 1,
+						},
+						"markets-by-token/{token_id}": map[string]any{
+							"cost": 1,
+						},
+						"markets/live-activity/{condition_id}": map[string]any{
+							"cost": 1,
+						},
+						"midpoint": map[string]any{
+							"cost": 1,
+						},
+						"midpoints": map[string]any{
+							"cost": 1,
+						},
+						"neg-risk": map[string]any{
+							"cost": 1,
+						},
+						"neg-risk/{token_id}": map[string]any{
+							"cost": 1,
+						},
+						"price": map[string]any{
+							"cost": 1,
+						},
+						"prices": map[string]any{
+							"cost": 1,
+						},
+						"prices-history": map[string]any{
+							"cost": 1,
+						},
+						"rebates/current": map[string]any{
+							"cost": 1,
+						},
+						"rewards/markets/current": map[string]any{
+							"cost": 1,
+						},
+						"rewards/markets/multi": map[string]any{
+							"cost": 1,
+						},
+						"rewards/markets/{condition_id}": map[string]any{
+							"cost": 1,
+						},
+						"sampling-markets": map[string]any{
+							"cost": 1,
+						},
+						"sampling-simplified-markets": map[string]any{
+							"cost": 1,
+						},
+						"simplified-markets": map[string]any{
+							"cost": 1,
+						},
+						"spread": map[string]any{
+							"cost": 1,
+						},
+						"tick-size": map[string]any{
+							"cost": 1,
+						},
+						"tick-size/{token_id}": map[string]any{
+							"cost": 1,
+						},
+						"time": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"batch-prices-history":  1,
-						"books":                 1,
-						"last-trades-prices":    1,
-						"markets/live-activity": 1,
-						"midpoints":             1,
-						"prices":                1,
-						"spreads":               1,
+						"batch-prices-history": map[string]any{
+							"cost": 1,
+						},
+						"books": map[string]any{
+							"cost": 1,
+						},
+						"last-trades-prices": map[string]any{
+							"cost": 1,
+						},
+						"markets/live-activity": map[string]any{
+							"cost": 1,
+						},
+						"midpoints": map[string]any{
+							"cost": 1,
+						},
+						"prices": map[string]any{
+							"cost": 1,
+						},
+						"spreads": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"auth/api-keys":               1,
-						"auth/ban-status/closed-only": 1,
-						"auth/builder-api-key":        1,
-						"auth/derive-api-key":         1,
-						"balance-allowance":           1,
-						"balance-allowance/update":    1,
-						"data/order/{id}":             1,
-						"data/orders":                 1,
-						"data/trades":                 1,
-						"notifications":               1,
-						"order-scoring":               1,
-						"orders-scoring":              1,
-						"rewards/user":                1,
-						"rewards/user/markets":        1,
-						"rewards/user/percentages":    1,
-						"rewards/user/total":          1,
+						"auth/api-keys": map[string]any{
+							"cost": 1,
+						},
+						"auth/ban-status/closed-only": map[string]any{
+							"cost": 1,
+						},
+						"auth/builder-api-key": map[string]any{
+							"cost": 1,
+						},
+						"auth/derive-api-key": map[string]any{
+							"cost": 1,
+						},
+						"balance-allowance": map[string]any{
+							"cost": 1,
+						},
+						"balance-allowance/update": map[string]any{
+							"cost": 1,
+						},
+						"data/order/{id}": map[string]any{
+							"cost": 1,
+						},
+						"data/orders": map[string]any{
+							"cost": 1,
+						},
+						"data/trades": map[string]any{
+							"cost": 1,
+						},
+						"notifications": map[string]any{
+							"cost": 1,
+						},
+						"order-scoring": map[string]any{
+							"cost": 1,
+						},
+						"orders-scoring": map[string]any{
+							"cost": 1,
+						},
+						"rewards/user": map[string]any{
+							"cost": 1,
+						},
+						"rewards/user/markets": map[string]any{
+							"cost": 1,
+						},
+						"rewards/user/percentages": map[string]any{
+							"cost": 1,
+						},
+						"rewards/user/total": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"auth/api-key":         1,
-						"auth/builder-api-key": 1,
-						"heartbeats":           1,
-						"order":                1,
-						"orders":               1,
-						"v1/heartbeats":        1,
+						"auth/api-key": map[string]any{
+							"cost": 1,
+						},
+						"auth/builder-api-key": map[string]any{
+							"cost": 1,
+						},
+						"heartbeats": map[string]any{
+							"cost": 1,
+						},
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"v1/heartbeats": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"auth/api-key":         1,
-						"auth/builder-api-key": 1,
-						"cancel-all":           1,
-						"cancel-market-orders": 1,
-						"notifications":        1,
-						"order":                1,
-						"orders":               1,
+						"auth/api-key": map[string]any{
+							"cost": 1,
+						},
+						"auth/builder-api-key": map[string]any{
+							"cost": 1,
+						},
+						"cancel-all": map[string]any{
+							"cost": 1,
+						},
+						"cancel-market-orders": map[string]any{
+							"cost": 1,
+						},
+						"notifications": map[string]any{
+							"cost": 1,
+						},
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"data": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"activity":                1,
-						"closed-positions":        1,
-						"holders":                 1,
-						"live-volume":             1,
-						"oi":                      1,
-						"other":                   1,
-						"positions":               1,
-						"revisions":               1,
-						"traded":                  1,
-						"trades":                  1,
-						"v1/accounting/snapshot":  1,
-						"v1/activity/combos":      1,
-						"v1/builders/leaderboard": 1,
-						"v1/builders/volume":      1,
-						"v1/leaderboard":          1,
-						"v1/market-positions":     1,
-						"v1/positions/combos":     1,
-						"value":                   1,
+						"activity": map[string]any{
+							"cost": 1,
+						},
+						"closed-positions": map[string]any{
+							"cost": 1,
+						},
+						"holders": map[string]any{
+							"cost": 1,
+						},
+						"live-volume": map[string]any{
+							"cost": 1,
+						},
+						"oi": map[string]any{
+							"cost": 1,
+						},
+						"other": map[string]any{
+							"cost": 1,
+						},
+						"positions": map[string]any{
+							"cost": 1,
+						},
+						"revisions": map[string]any{
+							"cost": 1,
+						},
+						"traded": map[string]any{
+							"cost": 1,
+						},
+						"trades": map[string]any{
+							"cost": 1,
+						},
+						"v1/accounting/snapshot": map[string]any{
+							"cost": 1,
+						},
+						"v1/activity/combos": map[string]any{
+							"cost": 1,
+						},
+						"v1/builders/leaderboard": map[string]any{
+							"cost": 1,
+						},
+						"v1/builders/volume": map[string]any{
+							"cost": 1,
+						},
+						"v1/leaderboard": map[string]any{
+							"cost": 1,
+						},
+						"v1/market-positions": map[string]any{
+							"cost": 1,
+						},
+						"v1/positions/combos": map[string]any{
+							"cost": 1,
+						},
+						"value": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"combos": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"v1/rfq/combo-markets": 1,
+						"v1/rfq/combo-markets": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"post": map[string]any{
-						"v1/maker/confirmations": 1,
-						"v1/maker/quotes":        1,
-						"v1/maker/quotes/cancel": 1,
+						"v1/maker/confirmations": map[string]any{
+							"cost": 1,
+						},
+						"v1/maker/quotes": map[string]any{
+							"cost": 1,
+						},
+						"v1/maker/quotes/cancel": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -616,7 +872,8 @@ func (this *PolymarketCore) FetchRawEventsList(optionalArgs ...any) <-chan any {
 
 		firstPageResponse := (<-this.GammaPublicGetEvents(firstPageRequest))
 		ccxt.PanicOnError(firstPageResponse)
-		var firstPage any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(firstPageResponse, nil))), firstPageResponse, []any{})
+		var firstPageIsArray any = ccxt.IsArray(firstPageResponse)
+		var firstPage any = ccxt.Ternary(ccxt.IsTrue((firstPageIsArray)), firstPageResponse, []any{})
 		var firstPageLength any = ccxt.GetArrayLength(firstPage)
 		var allRawEvents any = []any{}
 		for fi := 0; ccxt.IsLessThan(fi, firstPageLength); fi++ {
@@ -957,6 +1214,9 @@ func (this *PolymarketCore) FetchOutcome(outcomeSymbol any) <-chan any {
 				var ccxtMarketsLength any = ccxt.GetArrayLength(ccxtMarkets)
 				for i := 0; ccxt.IsLessThan(i, ccxtMarketsLength); i++ {
 					var mkt any = ccxt.GetValue(ccxtMarkets, i)
+					if ccxt.IsTrue(ccxt.IsEqual(mkt, nil)) {
+						panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchOutcome() could not resolve mkt")))
+					}
 					ccxt.AddElementToObject(this.Markets, ccxt.GetValue(mkt, "market"), mkt)
 				}
 				this.PopulateOutcomes()
@@ -969,9 +1229,9 @@ func (this *PolymarketCore) FetchOutcome(outcomeSymbol any) <-chan any {
 			}
 		}
 
-		retRes90415 := (<-this.BaseExchange.FetchOutcome(outcomeSymbol))
-		ccxt.PanicOnError(retRes90415)
-		ch <- retRes90415
+		retRes90715 := (<-this.BaseExchange.FetchOutcome(outcomeSymbol))
+		ccxt.PanicOnError(retRes90715)
+		ch <- retRes90715
 		return nil
 
 	}()
@@ -1034,6 +1294,9 @@ func (this *PolymarketCore) FetchOutcomes(outcomeSymbols any) <-chan any {
 				})
 				for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(ccxtMarkets)); i++ {
 					var mkt any = ccxt.GetValue(ccxtMarkets, i)
+					if ccxt.IsTrue(ccxt.IsEqual(mkt, nil)) {
+						panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchOutcomes() could not resolve mkt")))
+					}
 					ccxt.AddElementToObject(this.Markets, ccxt.GetValue(mkt, "market"), mkt)
 				}
 				startIndex = this.Sum(startIndex, chunkSize)
@@ -1043,8 +1306,8 @@ func (this *PolymarketCore) FetchOutcomes(outcomeSymbols any) <-chan any {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomeSymbols)); i++ {
 			if !ccxt.IsTrue(this.HasOutcome(ccxt.GetValue(outcomeSymbols, i))) {
 
-				retRes96016 := (<-this.FetchOutcome(ccxt.GetValue(outcomeSymbols, i)))
-				ccxt.PanicOnError(retRes96016)
+				retRes96616 := (<-this.FetchOutcome(ccxt.GetValue(outcomeSymbols, i)))
+				ccxt.PanicOnError(retRes96616)
 			}
 		}
 
@@ -1159,8 +1422,8 @@ func (this *PolymarketCore) FetchTickers(optionalArgs ...any) <-chan any {
 		}
 		// batch-resolve the uncached outcomes (one gamma request per 50 token ids)
 
-		retRes10428 := (<-this.LoadOutcomes(outcomes))
-		ccxt.PanicOnError(retRes10428)
+		retRes10488 := (<-this.LoadOutcomes(outcomes))
+		ccxt.PanicOnError(retRes10488)
 		var targets any = []any{}
 		for oi := 0; ccxt.IsLessThan(oi, ccxt.GetArrayLength(outcomes)); oi++ {
 			ccxt.AppendToArray(&targets, ccxt.GetValue(outcomes, oi))
@@ -1194,9 +1457,13 @@ func (this *PolymarketCore) FetchTickers(optionalArgs ...any) <-chan any {
 
 			responses := (<-ccxt.PromiseAll(promises))
 			ccxt.PanicOnError(responses)
-			var books any = ccxt.GetValue(responses, 0)
+			var booksResponse any = ccxt.GetValue(responses, 0)
 			var midpoints any = ccxt.GetValue(responses, 1)
-			var lastTrades any = ccxt.GetValue(responses, 2)
+			var lastTradesResponse any = ccxt.GetValue(responses, 2)
+			var booksIsArray any = ccxt.IsArray(booksResponse)
+			var books any = ccxt.Ternary(ccxt.IsTrue((booksIsArray)), booksResponse, []any{})
+			var lastTradesIsArray any = ccxt.IsArray(lastTradesResponse)
+			var lastTrades any = ccxt.Ternary(ccxt.IsTrue((lastTradesIsArray)), lastTradesResponse, []any{})
 			var lastTradesByTokenId any = map[string]any{}
 			var lastTradesLength any = ccxt.GetArrayLength(lastTrades)
 			for li := 0; ccxt.IsLessThan(li, lastTradesLength); li++ {
@@ -1801,8 +2068,8 @@ func (this *PolymarketCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes15378 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes15378)
+		retRes15478 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes15478)
 		var request any = map[string]any{}
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -1949,8 +2216,8 @@ func (this *PolymarketCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes16478 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes16478)
+		retRes16578 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes16578)
 		// the collateral balance is tied to the signature type / funder that holds the USDC
 		var signatureType any = this.SafeInteger2(params, "signatureType", "signature_type", this.SafeInteger(this.Options, "signatureType", 3))
 		var rest any = this.Omit(params, []any{"signatureType", "signature_type"})
@@ -2017,8 +2284,8 @@ func (this *PolymarketCore) FetchPositions(optionalArgs ...any) <-chan any {
 		if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
 			outcomesLength = ccxt.GetArrayLength(outcomes)
 
-			retRes169612 := (<-this.LoadOutcomes(outcomes))
-			ccxt.PanicOnError(retRes169612)
+			retRes170612 := (<-this.LoadOutcomes(outcomes))
+			ccxt.PanicOnError(retRes170612)
 		}
 		// no bulk warm-up on the unfiltered path: the positions request is self-contained and
 		// labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
@@ -2041,6 +2308,9 @@ func (this *PolymarketCore) FetchPositions(optionalArgs ...any) <-chan any {
 			return nil
 		}
 		var wantedIds any = map[string]any{}
+		if ccxt.IsTrue(ccxt.IsEqual(outcomes, nil)) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchPositions() missing outcomes")))
+		}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
 			var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
 			ccxt.AddElementToObject(wantedIds, ccxt.GetValue(outcomeObj, "outcomeId"), true)
@@ -2168,8 +2438,8 @@ func (this *PolymarketCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18118 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes18118)
+		retRes18248 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes18248)
 		var request any = map[string]any{}
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -2212,8 +2482,8 @@ func (this *PolymarketCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes18368 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes18368)
+		retRes18498 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes18498)
 		var request any = map[string]any{
 			"id": id,
 		}
@@ -2347,11 +2617,11 @@ func (this *PolymarketCore) CreateOrder(outcome any, typeVar any, side any, amou
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes19498 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes19498)
+		retRes19628 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes19628)
 
-		retRes19508 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes19508)
+		retRes19638 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes19638)
 		var built any = this.BuildClobOrderBody(outcome, typeVar, side, amount, price, params)
 
 		response := (<-this.ClobPrivatePostOrder(this.SafeDict(built, "body")))
@@ -2385,18 +2655,21 @@ func (this *PolymarketCore) CreateOrders(orders any, optionalArgs ...any) <-chan
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes19708 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes19708)
+		retRes19838 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes19838)
 		// buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
 		// requested outcomes first (one gamma request for all uncached token ids)
 		var orderOutcomes any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(orders)); i++ {
 			var o any = ccxt.GetValue(orders, i)
-			ccxt.AppendToArray(&orderOutcomes, this.SafeString(o, "outcome"))
+			var __oc any = this.SafeString(o, "outcome")
+			if ccxt.IsTrue(!ccxt.IsEqual(__oc, nil)) {
+				ccxt.AppendToArray(&orderOutcomes, __oc)
+			}
 		}
 
-		retRes19788 := (<-this.LoadOutcomes(orderOutcomes))
-		ccxt.PanicOnError(retRes19788)
+		retRes19948 := (<-this.LoadOutcomes(orderOutcomes))
+		ccxt.PanicOnError(retRes19948)
 		var bodies any = []any{}
 		var outcomes any = []any{}
 		var requests any = []any{}
@@ -2411,9 +2684,9 @@ func (this *PolymarketCore) CreateOrders(orders any, optionalArgs ...any) <-chan
 				})
 			}
 			var built any = this.BuildClobOrderBody(this.SafeString(o, "outcome"), this.SafeString(o, "type"), this.SafeString(o, "side"), this.SafeNumber(o, "amount"), this.SafeNumber(o, "price"), orderParams)
-			ccxt.AppendToArray(&bodies, this.SafeDict(built, "body"))
-			ccxt.AppendToArray(&outcomes, this.SafeDict(built, "outcome"))
-			ccxt.AppendToArray(&requests, this.SafeDict(built, "request"))
+			ccxt.AppendToArray(&bodies, this.SafeDict(built, "body", map[string]any{}))
+			ccxt.AppendToArray(&outcomes, this.SafeDict(built, "outcome", map[string]any{}))
+			ccxt.AppendToArray(&requests, this.SafeDict(built, "request", map[string]any{}))
 		}
 
 		response := (<-this.ClobPrivatePostOrders(bodies))
@@ -2624,9 +2897,9 @@ func (this *PolymarketCore) CreateMarketBuyOrderWithCost(outcome any, cost any, 
 			"cost": cost,
 		})
 
-		retRes218715 := (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
-		ccxt.PanicOnError(retRes218715)
-		ch <- retRes218715
+		retRes220315 := (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
+		ccxt.PanicOnError(retRes220315)
+		ch <- retRes220315
 		return nil
 
 	}()
@@ -2831,8 +3104,8 @@ func (this *PolymarketCore) CancelOrder(id any, optionalArgs ...any) <-chan any 
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23278 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes23278)
+		retRes23438 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes23438)
 		// cancelling by id needs no market data, so events do not have to be loaded first
 		var request any = map[string]any{
 			"orderID": id,
@@ -2877,8 +3150,8 @@ func (this *PolymarketCore) CancelOrders(ids any, optionalArgs ...any) <-chan an
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23508 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes23508)
+		retRes23668 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes23668)
 		// the request body is the bare array of order ids (DELETE /orders), so params are not merged
 
 		response := (<-this.ClobPrivateDeleteOrders(ids))
@@ -2920,8 +3193,8 @@ func (this *PolymarketCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23728 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes23728)
+		retRes23888 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes23888)
 		var response any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 			// scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
@@ -2989,6 +3262,9 @@ func (this *PolymarketCore) FetchEvents(optionalArgs ...any) <-chan any {
 		var requestedSlug any = this.SafeString(params, "slug")
 		var queries any = this.ParseSearchQueries(params)
 		var rest any = this.Omit(params, []any{"query", "queries", "eventId", "slug"})
+		if ccxt.IsTrue(ccxt.IsEqual(queries, nil)) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchEvents() missing queries")))
+		}
 		var queriesLength any = ccxt.GetArrayLength(queries)
 		var rawEvents any = []any{}
 		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(requestedEventId, nil))) || ccxt.IsTrue((!ccxt.IsEqual(requestedSlug, nil)))) {
@@ -3002,7 +3278,8 @@ func (this *PolymarketCore) FetchEvents(optionalArgs ...any) <-chan any {
 
 			response := (<-this.GammaPublicGetEvents(lookup))
 			ccxt.PanicOnError(response)
-			rawEvents = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(response, nil))), response, []any{})
+			var responseIsArray any = ccxt.IsArray(response)
+			rawEvents = ccxt.Ternary(ccxt.IsTrue((responseIsArray)), response, []any{})
 		} else if ccxt.IsTrue(ccxt.IsGreaterThan(queriesLength, 0)) {
 
 			rawEvents = (<-this.FetchRawEventsBySearch(queries, rest))
@@ -3050,6 +3327,9 @@ func (this *PolymarketCore) FetchEvents(optionalArgs ...any) <-chan any {
 			}
 			for mi := 0; ccxt.IsLessThan(mi, ccxt.GetArrayLength(ccxtMarkets)); mi++ {
 				var m any = ccxt.GetValue(ccxtMarkets, mi)
+				if ccxt.IsTrue(ccxt.IsEqual(m, nil)) {
+					panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchEvents() missing m")))
+				}
 				ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
 			}
 			var parsedEvent any = this.ParseEvent(eventForParsing)
@@ -3109,6 +3389,9 @@ func (this *PolymarketCore) FetchEvent(id any, optionalArgs ...any) <-chan any {
 			ccxt.PanicOnError(response)
 		}
 		var eventForParsing any = this.SafeDict(response, "event", response)
+		if ccxt.IsTrue(ccxt.IsEqual(eventForParsing, nil)) {
+			eventForParsing = map[string]any{}
+		}
 		var event any = this.ParseEvent(eventForParsing)
 		this.IndexEventOutcomes(event)
 
@@ -3563,6 +3846,9 @@ func (this *PolymarketCore) CreateOrDeriveApiKey(optionalArgs ...any) <-chan any
 			}(this)
 
 		}
+		if ccxt.IsTrue(ccxt.IsEqual(creds, nil)) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " createOrDeriveApiKey() returned no credentials")))
+		}
 
 		ch <- creds
 		return nil
@@ -3605,8 +3891,8 @@ func (this *PolymarketCore) LoadApiCredentials() <-chan any {
 			var alreadyDerived any = this.SafeString(this.Options, "l2ApiKey")
 			if ccxt.IsTrue(ccxt.IsEqual(alreadyDerived, nil)) {
 
-				retRes291916 := (<-this.CreateOrDeriveApiKey())
-				ccxt.PanicOnError(retRes291916)
+				retRes294816 := (<-this.CreateOrDeriveApiKey())
+				ccxt.PanicOnError(retRes294816)
 			}
 
 			return nil
@@ -3877,9 +4163,14 @@ func (this *PolymarketCore) WatchTicker(outcome any, optionalArgs ...any) <-chan
 			"assets_ids": []any{tokenId},
 			"type":       "market",
 		}
+		if ccxt.IsTrue(ccxt.IsEqual(outcome, nil)) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchTicker() missing outcome")))
+		}
 		if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, outcome))) {
 			var seededBook any = this.OrderBook(map[string]any{})
-			ccxt.AddElementToObject(this.Orderbooks, outcome, seededBook)
+			if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
+				ccxt.AddElementToObject(this.Orderbooks, outcome, seededBook)
+			}
 		}
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 
@@ -3974,8 +4265,8 @@ func (this *PolymarketCore) WatchOrders(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes32158 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes32158)
+		retRes32498 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes32498)
 		var messageHash any = "orders"
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
@@ -4023,8 +4314,8 @@ func (this *PolymarketCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes32418 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes32418)
+		retRes32758 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes32758)
 		var messageHash any = "myTrades"
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
@@ -4071,9 +4362,9 @@ func (this *PolymarketCore) SubscribeUserChannel(messageHash any, optionalArgs .
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "wsUser")
 		var subscribeHash any = "user"
 
-		retRes326515 := (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
-		ccxt.PanicOnError(retRes326515)
-		ch <- retRes326515
+		retRes329915 := (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
+		ccxt.PanicOnError(retRes329915)
+		ch <- retRes329915
 		return nil
 
 	}()

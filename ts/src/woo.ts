@@ -6,7 +6,7 @@ import Exchange from './abstract/woo.js';
 import { AccountSuspended, AuthenticationError, BadSymbol, DuplicateOrderId, InsufficientFunds, OrderNotFound, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
+import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, Status, MarginLoan, Endpoint, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, De
  * @augments Exchange
  */
 export default class woo extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'woo',
             'name': 'WOO X',
@@ -160,174 +160,174 @@ export default class woo extends Exchange {
                 'v1': {
                     'pub': {
                         'get': {
-                            'hist/kline': 10,
-                            'hist/trades': 10,
+                            'hist/kline': { 'cost': 10 } as Endpoint<Dict>,
+                            'hist/trades': { 'cost': 10 } as Endpoint<Dict>,
                         },
                     },
                     'public': {
                         'get': {
-                            'info': 1,
-                            'info/{symbol}': 1,
-                            'system_info': 1,
-                            'market_trades': 1,
-                            'token': 1,
-                            'token_network': 1,
-                            'funding_rates': 1,
-                            'funding_rate/{symbol}': 1,
-                            'funding_rate_history': 1,
-                            'futures': 1,
-                            'futures/{symbol}': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
+                            'info': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'system_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'market_trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'token': { 'cost': 1 } as Endpoint<Dict>,
+                            'token_network': { 'cost': 1 } as Endpoint<Dict>,
+                            'funding_rates': { 'cost': 1 } as Endpoint<Dict>,
+                            'funding_rate/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orderbook/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'kline': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'client/token': 1,
-                            'order/{oid}': 1,
-                            'client/order/{client_order_id}': 1,
-                            'orders': 1,
-                            'client/trade/{tid}': 1,
-                            'order/{oid}/trades': 1,
-                            'client/trades': 1,
-                            'client/hist_trades': 1,
-                            'staking/yield_history': 1,
-                            'client/holding': 1,
-                            'asset/deposit': 10,
-                            'asset/history': 60,
-                            'sub_account/all': 60,
-                            'sub_account/assets': 60,
-                            'sub_account/asset_detail': 60,
-                            'sub_account/ip_restriction': 10,
-                            'asset/main_sub_transfer_history': 30,
-                            'token_interest': 60,
-                            'token_interest/{token}': 60,
-                            'interest/history': 60,
-                            'interest/repay': 60,
-                            'funding_fee/history': 30,
-                            'positions': 3.33, // 30 requests per 10 seconds
-                            'position/{symbol}': 3.33,
-                            'client/transaction_history': 60,
-                            'client/futures_leverage': 60,
+                            'client/token': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/trade/{tid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/{oid}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/hist_trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'staking/yield_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/holding': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/deposit': { 'cost': 10 } as Endpoint<Dict>,
+                            'asset/history': { 'cost': 60 } as Endpoint<Dict>,
+                            'sub_account/all': { 'cost': 60 } as Endpoint<Dict>,
+                            'sub_account/assets': { 'cost': 60 } as Endpoint<Dict>,
+                            'sub_account/asset_detail': { 'cost': 60 } as Endpoint<Dict>,
+                            'sub_account/ip_restriction': { 'cost': 10 } as Endpoint<Dict>,
+                            'asset/main_sub_transfer_history': { 'cost': 30 } as Endpoint<Dict>,
+                            'token_interest': { 'cost': 60 } as Endpoint<Dict>,
+                            'token_interest/{token}': { 'cost': 60 } as Endpoint<Dict>,
+                            'interest/history': { 'cost': 60 } as Endpoint<Dict>,
+                            'interest/repay': { 'cost': 60 } as Endpoint<Dict>,
+                            'funding_fee/history': { 'cost': 30 } as Endpoint<Dict>,
+                            'positions': { 'cost': 3.33 } as Endpoint<Dict>, // 30 requests per 10 seconds
+                            'position/{symbol}': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'client/transaction_history': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/futures_leverage': { 'cost': 60 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'order': 1, // 10 requests per 1 second per symbol
-                            'order/cancel_all_after': 1,
-                            'asset/ltv': 30,
-                            'asset/internal_withdraw': 30,
-                            'interest/repay': 60,
-                            'client/account_mode': 120,
-                            'client/position_mode': 5,
-                            'client/leverage': 120,
-                            'client/futures_leverage': 30,
-                            'client/isolated_margin': 30,
+                            'order': { 'cost': 1 } as Endpoint<Dict>, // 10 requests per 1 second per symbol
+                            'order/cancel_all_after': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/ltv': { 'cost': 30 } as Endpoint<Dict>,
+                            'asset/internal_withdraw': { 'cost': 30 } as Endpoint<Dict>,
+                            'interest/repay': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/account_mode': { 'cost': 120 } as Endpoint<Dict>,
+                            'client/position_mode': { 'cost': 5 } as Endpoint<Dict>,
+                            'client/leverage': { 'cost': 120 } as Endpoint<Dict>,
+                            'client/futures_leverage': { 'cost': 30 } as Endpoint<Dict>,
+                            'client/isolated_margin': { 'cost': 30 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'order': 1,
-                            'client/order': 1,
-                            'orders': 1,
-                            'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<List>,
+                            'asset/withdraw': { 'cost': 120 } as Endpoint<Dict>,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
                 'v2': {
                     'private': {
                         'get': {
-                            'client/holding': 1,
+                            'client/holding': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'v3': {
                     'public': {
                         'get': {
-                            'systemInfo': 1, // 10/1s
-                            'instruments': 1, // 10/1s
-                            'token': 1, // 10/1s
-                            'tokenNetwork': 1, // 10/1s
-                            'tokenInfo': 1, // 10/1s
-                            'marketTrades': 1, // 10/1s
-                            'marketTradesHistory': 1, // 10/1s
-                            'orderbook': 1, // 10/1s
-                            'kline': 1, // 10/1s
-                            'klineHistory': 1, // 10/1s
-                            'futures': 1, // 10/1s
-                            'fundingRate': 1, // 10/1s
-                            'fundingRateHistory': 1, // 10/1s
-                            'insuranceFund': 1, // 10/1s
+                            'systemInfo': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'instruments': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'token': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'tokenNetwork': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'tokenInfo': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'marketTrades': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'marketTradesHistory': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'orderbook': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'kline': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'klineHistory': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'futures': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'fundingRate': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'fundingRateHistory': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'insuranceFund': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
                         },
                     },
                     'private': {
                         'get': {
-                            'trade/order': 2, // 5/1s
-                            'trade/orders': 1, // 10/1s
-                            'trade/algoOrder': 1, // 10/1s
-                            'trade/algoOrders': 1, // 10/1s
-                            'trade/transaction': 1, // 10/1s
-                            'trade/transactionHistory': 5, // 2/1s
-                            'trade/tradingFee': 5, // 2/1s
-                            'account/info': 60, // 10/60s
-                            'account/tokenConfig': 1, // 10/1s
-                            'account/symbolConfig': 1, // 10/1s
-                            'account/subAccounts/all': 60, // 10/60s
-                            'account/referral/summary': 60, // 10/60s
-                            'account/referral/rewardHistory': 60, // 10/60s
-                            'account/credentials': 60, // 10/60s
-                            'asset/balances': 1, // 10/1s
-                            'asset/token/history': 60, // 10/60s
-                            'asset/transfer/history': 30, // 20/60s
-                            'asset/wallet/history': 60, // 10/60s
-                            'asset/wallet/deposit': 60, // 10/60s
-                            'asset/staking/yieldHistory': 60, // 10/60s
-                            'futures/positions': 3.33, // 30/10s
-                            'futures/leverage': 60, // 10/60s
-                            'futures/defaultMarginMode': 60, // 10/60s
-                            'futures/fundingFee/history': 30, // 20/60s
-                            'spotMargin/interestRate': 60, // 10/60s
-                            'spotMargin/interestHistory': 60, // 10/60s
-                            'spotMargin/maxMargin': 60, // 10/60s
-                            'algo/order/{oid}': 1,
-                            'algo/orders': 1,
-                            'positions': 3.33,
-                            'buypower': 1,
-                            'convert/exchangeInfo': 1,
-                            'convert/assetInfo': 1,
-                            'convert/rfq': 60,
-                            'convert/trade': 1,
-                            'convert/trades': 1,
+                            'trade/order': { 'cost': 2 } as Endpoint<Dict>, // 5/1s
+                            'trade/orders': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/algoOrder': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/algoOrders': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/transaction': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/transactionHistory': { 'cost': 5 } as Endpoint<Dict>, // 2/1s
+                            'trade/tradingFee': { 'cost': 5 } as Endpoint<Dict>, // 2/1s
+                            'account/info': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'account/tokenConfig': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'account/symbolConfig': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'account/subAccounts/all': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'account/referral/summary': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'account/referral/rewardHistory': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'account/credentials': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'asset/balances': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'asset/token/history': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'asset/transfer/history': { 'cost': 30 } as Endpoint<Dict>, // 20/60s
+                            'asset/wallet/history': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'asset/wallet/deposit': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'asset/staking/yieldHistory': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'futures/positions': { 'cost': 3.33 } as Endpoint<Dict>, // 30/10s
+                            'futures/leverage': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'futures/defaultMarginMode': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'futures/fundingFee/history': { 'cost': 30 } as Endpoint<Dict>, // 20/60s
+                            'spotMargin/interestRate': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'spotMargin/interestHistory': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'spotMargin/maxMargin': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'algo/order/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'positions': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'buypower': { 'cost': 1 } as Endpoint<Dict>,
+                            'convert/exchangeInfo': { 'cost': 1 } as Endpoint<Dict>,
+                            'convert/assetInfo': { 'cost': 1 } as Endpoint<Dict>,
+                            'convert/rfq': { 'cost': 60 } as Endpoint<Dict>,
+                            'convert/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'convert/trades': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'trade/order': 2, // 5/1s
-                            'trade/algoOrder': 5, // 2/1s
-                            'trade/cancelAllAfter': 1, // 10/1s
-                            'account/tradingMode': 120, // 5/60s
-                            'account/listenKey': 20, // 5/10s
-                            'asset/transfer': 30, // 20/60s
-                            'asset/wallet/withdraw': 60, // 10/60s
-                            'spotMargin/leverage': 120, // 5/60s
-                            'spotMargin/interestRepay': 60, // 10/60s
-                            'algo/order': 5,
-                            'convert/rft': 60,
+                            'trade/order': { 'cost': 2 } as Endpoint<Dict>, // 5/1s
+                            'trade/algoOrder': { 'cost': 5 } as Endpoint<Dict>, // 2/1s
+                            'trade/cancelAllAfter': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'account/tradingMode': { 'cost': 120 } as Endpoint<Dict>, // 5/60s
+                            'account/listenKey': { 'cost': 20 } as Endpoint<Dict>, // 5/10s
+                            'asset/transfer': { 'cost': 30 } as Endpoint<Dict>, // 20/60s
+                            'asset/wallet/withdraw': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'spotMargin/leverage': { 'cost': 120 } as Endpoint<Dict>, // 5/60s
+                            'spotMargin/interestRepay': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'algo/order': { 'cost': 5 } as Endpoint<Dict>,
+                            'convert/rft': { 'cost': 60 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'trade/order': 2, // 5/1s
-                            'trade/algoOrder': 2, // 5/1s
-                            'futures/leverage': 60, // 10/60s
-                            'futures/positionMode': 120, // 5/60s
-                            'order/{oid}': 2,
-                            'order/client/{client_order_id}': 2,
-                            'algo/order/{oid}': 2,
-                            'algo/order/client/{client_order_id}': 2,
+                            'trade/order': { 'cost': 2 } as Endpoint<Dict>, // 5/1s
+                            'trade/algoOrder': { 'cost': 2 } as Endpoint<Dict>, // 5/1s
+                            'futures/leverage': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'futures/positionMode': { 'cost': 120 } as Endpoint<Dict>, // 5/60s
+                            'order/{oid}': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/client/{client_order_id}': { 'cost': 2 } as Endpoint<Dict>,
+                            'algo/order/{oid}': { 'cost': 2 } as Endpoint<Dict>,
+                            'algo/order/client/{client_order_id}': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'trade/order': 1, // 10/1s
-                            'trade/orders': 1, // 10/1s
-                            'trade/algoOrder': 1, // 10/1s
-                            'trade/algoOrders': 1, // 10/1s
-                            'trade/allOrders': 1, // 10/1s
-                            'algo/order/{order_id}': 1,
-                            'algo/orders/pending': 1,
-                            'algo/orders/pending/{symbol}': 1,
-                            'orders/pending': 1,
+                            'trade/order': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/orders': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/algoOrder': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/algoOrders': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/allOrders': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'algo/order/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/orders/pending': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/orders/pending/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders/pending': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -357,7 +357,7 @@ export default class woo extends Exchange {
                     'TRC20': 'TRON',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -652,7 +652,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.v3PublicGetSystemInfo (params);
         //
         //     {
@@ -691,7 +691,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.v3PublicGetSystemInfo (params);
         //
         //     {
@@ -715,7 +715,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -757,11 +757,11 @@ export default class woo extends Exchange {
         return this.parseMarkets (rows);
     }
 
-    parseMarket (market: Dict): Market {
+    override parseMarket (market: Dict): Market {
         const marketId = this.safeString (market, 'symbol', '');
         const parts = marketId.split ('_');
         const first = this.safeString (parts, 0);
-        let marketType: MarketType | undefined = undefined;
+        let marketType: Str = undefined;
         let spot = false;
         let swap = false;
         if (first === 'SPOT') {
@@ -793,7 +793,7 @@ export default class woo extends Exchange {
             inverse = false;
         }
         const active = this.safeString (market, 'status') === 'TRADING';
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -841,7 +841,7 @@ export default class woo extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     /**
@@ -855,7 +855,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -890,7 +890,7 @@ export default class woo extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public/market_trades
         //
@@ -966,9 +966,9 @@ export default class woo extends Exchange {
         }, market);
     }
 
-    parseTokenAndFeeTemp (item, feeTokenKeys, feeAmountKeys) {
+    parseTokenAndFeeTemp (item: any, feeTokenKeys: any, feeAmountKeys: any) {
         const feeCost = this.safeStringN (item, feeAmountKeys);
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeStringN (item, feeTokenKeys);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1004,7 +1004,7 @@ export default class woo extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1036,7 +1036,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1102,7 +1102,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         const result: Dict = {};
         const tokenResponsePromise = this.v1PublicGetToken (params);
         //
@@ -1194,12 +1194,14 @@ export default class woo extends Exchange {
             };
             const parsed = this.parseCurrency (customCurrency);
             const code = this.safeString (parsed, 'code');
-            result[code] = parsed;
+            if (code !== undefined) {
+                result[code] = parsed;
+            }
         }
         return result;
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, '_coin_id');
         const code = this.safeCurrencyCode (currencyId);
         const tokensByNetworkId = this.indexBy (rawCurrency['_tokens_by_id'], 'network');
@@ -1212,27 +1214,29 @@ export default class woo extends Exchange {
             const networkEntry = this.safeDict (chainsByNetworkId, networkId, {});
             const networkCode = this.networkIdToCode (networkId, code);
             const specialNetworkId = this.safeString (tokenEntry, 'token');
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'currencyNetworkId': specialNetworkId, // exchange uses special currency-ids (coin + network junction)
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
-                'withdraw': this.safeString (networkEntry, 'allow_withdraw') === '1',
-                'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenEntry, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'currencyNetworkId': specialNetworkId, // exchange uses special currency-ids (coin + network junction)
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
+                    'withdraw': this.safeString (networkEntry, 'allow_withdraw') === '1',
+                    'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenEntry, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': { 'network': networkEntry, 'token': tokenEntry },
-            };
+                    'info': { 'network': networkEntry, 'token': tokenEntry },
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -1269,7 +1273,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1290,7 +1294,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1316,7 +1320,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    override async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         if (trailingAmount === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingAmountOrder() requires a trailingAmount argument');
         }
@@ -1343,7 +1347,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    override async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
         }
@@ -1381,7 +1385,7 @@ export default class woo extends Exchange {
      * @param {string} [params.position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         params = this.omit (params, [ 'reduceOnly', 'reduce_only' ]);
         const orderType = type.toUpperCase ();
@@ -1510,7 +1514,7 @@ export default class woo extends Exchange {
             request['childOrders'] = [ outterOrder ];
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (isConditional) {
             response = await this.v3PrivatePostTradeAlgoOrder (this.extend (request, params));
             //
@@ -1553,7 +1557,7 @@ export default class woo extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    encodeMarginMode (mode) {
+    encodeMarginMode (mode: any) {
         const modes = {
             'cross': 'CROSS',
             'isolated': 'ISOLATED',
@@ -1584,7 +1588,7 @@ export default class woo extends Exchange {
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1625,7 +1629,7 @@ export default class woo extends Exchange {
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         const isConditional = isTrailing || (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             if (isConditional) {
@@ -1669,7 +1673,7 @@ export default class woo extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         if (!isTrigger && (symbol === undefined)) {
@@ -1687,7 +1691,7 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (isTrigger) {
             if (isByClientOrder) {
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
@@ -1734,7 +1738,7 @@ export default class woo extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1745,7 +1749,7 @@ export default class woo extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (trigger) {
             response = await this.v3PrivateDeleteTradeAlgoOrders (params);
         } else {
@@ -1773,7 +1777,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1805,7 +1809,7 @@ export default class woo extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1817,7 +1821,7 @@ export default class woo extends Exchange {
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (trigger) {
             if (clientOrderId !== undefined) {
                 request['clientAlgoOrderId'] = id;
@@ -1920,7 +1924,7 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1948,7 +1952,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 500);
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (trigger) {
             response = await this.v3PrivateGetTradeAlgoOrders (this.extend (request, params));
             //
@@ -2061,7 +2065,7 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2086,7 +2090,7 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2103,7 +2107,7 @@ export default class woo extends Exchange {
         return this.safeString (timeInForces, (timeInForce as string));
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //     {
@@ -2198,7 +2202,7 @@ export default class woo extends Exchange {
             timestamp = this.safeInteger (order, 'timestamp');
         }
         const orderId = this.safeString2 (order, 'orderId', 'algoOrderId');
-        const clientOrderId = this.omitZero ((this.safeString2 (order, 'clientOrderId', 'clientAlgoOrderId') as string)); // Somehow, this always returns 0 for limit order
+        const clientOrderId = this.omitZero (this.safeString2 (order, 'clientOrderId', 'clientAlgoOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -2209,7 +2213,7 @@ export default class woo extends Exchange {
         const status = this.safeValue2 (order, 'status', 'algoStatus');
         const side = this.safeStringLower (order, 'side');
         const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
-        const average = this.omitZero ((this.safeString (order, 'averageExecutedPrice') as string));
+        const average = this.omitZero (this.safeString (order, 'averageExecutedPrice'));
         // const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeNumber (order, 'totalFee');
         const feeCurrency = this.safeString (order, 'feeAsset');
@@ -2281,9 +2285,9 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2334,7 +2338,7 @@ export default class woo extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2382,7 +2386,7 @@ export default class woo extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'startTimestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -2405,7 +2409,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2451,7 +2455,7 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2521,7 +2525,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params = {}): Promise<Account[]> {
         const mainAccountPromise = this.v3PrivateGetAccountInfo (params);
         //
         //     {
@@ -2577,7 +2581,7 @@ export default class woo extends Exchange {
         return this.parseAccounts (rows, params);
     }
 
-    parseAccount (account) {
+    override parseAccount (account: any) {
         //
         //     {
         //         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
@@ -2626,7 +2630,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2658,7 +2662,7 @@ export default class woo extends Exchange {
         return this.parseBalance (data);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -2669,7 +2673,9 @@ export default class woo extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
             account['free'] = this.safeString (balance, 'availableBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -2683,7 +2689,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         // this method is TODO because of networks unification
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2693,7 +2699,7 @@ export default class woo extends Exchange {
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
             'token': currency['id'],
-            'network': this.networkCodeToId ((networkCode as string), currency['code']),
+            'network': this.networkCodeToId (networkCode, currency['code']),
         };
         const response = await this.v3PrivateGetAssetWalletDeposit (this.extend (request, params));
         //
@@ -2710,11 +2716,11 @@ export default class woo extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    getDedicatedNetworkId (currency, params: Dict): any {
+    getDedicatedNetworkId (currency: any, params: Dict): any {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         networkCode = this.networkIdToCode (networkCode, currency['code']);
-        const networkEntry = this.safeDict (currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry === undefined) {
             const supportedNetworks = Object.keys (currency['networks']);
             throw new BadRequest (this.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + this.json (supportedNetworks));
@@ -2723,7 +2729,7 @@ export default class woo extends Exchange {
         return [ currentyNetworkId, params ];
     }
 
-    parseDepositAddress (depositEntry, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositEntry: any, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositEntry, 'address');
         this.checkAddress (address);
         return {
@@ -2812,14 +2818,14 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, params);
         const currency = this.safeValue (currencyRows, 0);
         const rows = this.safeList (currencyRows, 1);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "createdTime": "1734964440.523",
@@ -2869,15 +2875,15 @@ export default class woo extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
-    getCurrencyFromChaincode (networkizedCode, currency) {
+    getCurrencyFromChaincode (networkizedCode: any, currency: any) {
         if (currency !== undefined) {
             return currency;
         } else {
@@ -2904,7 +2910,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {
             'tokenSide': 'DEPOSIT',
         };
@@ -2922,7 +2928,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {
             'tokenSide': 'WITHDRAW',
         };
@@ -2940,7 +2946,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {
             'type': 'BALANCE',
         };
@@ -2950,7 +2956,7 @@ export default class woo extends Exchange {
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "createdTime": "1734964440.523",
@@ -3031,7 +3037,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3080,7 +3086,7 @@ export default class woo extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -3134,7 +3140,7 @@ export default class woo extends Exchange {
         return this.parseTransfers (rows, currency, since, limit, params);
     }
 
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //    fetchTransfers
         //     {
@@ -3217,7 +3223,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -3271,7 +3277,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async repayMargin (code: string, amount: number, symbol: Str = undefined, params = {}) {
+    override async repayMargin (code: string, amount: number, symbol: Str = undefined, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3291,14 +3297,14 @@ export default class woo extends Exchange {
         //         "success": true,
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
         });
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "success": true,
@@ -3315,11 +3321,11 @@ export default class woo extends Exchange {
         };
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
@@ -3390,7 +3396,7 @@ export default class woo extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
@@ -3408,7 +3414,7 @@ export default class woo extends Exchange {
         return undefined;
     }
 
-    parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //         "id": 1286360,
@@ -3456,7 +3462,7 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3515,7 +3521,7 @@ export default class woo extends Exchange {
         return this.parseIncomes (rows, market, since, limit);
     }
 
-    parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -3537,7 +3543,7 @@ export default class woo extends Exchange {
         //     }
         //
         const symbol = this.safeString (fundingRate, 'symbol');
-        market = this.market ((symbol as string));
+        market = this.market (symbol);
         const nextFundingTimestamp = this.safeInteger2 (fundingRate, 'nextFundingTime', 'fundingTs');
         const estFundingRateTimestamp = this.safeInteger (fundingRate, 'estFundingRateTimestamp');
         const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'lastFundingRateTimestamp');
@@ -3577,7 +3583,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
         return await this.fetchFundingRate (symbol, params);
     }
 
@@ -3590,7 +3596,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3634,7 +3640,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3678,7 +3684,7 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3751,7 +3757,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         let hedgeMode: Str = undefined;
         if (hedged) {
             hedgeMode = 'HEDGE_MODE';
@@ -3783,12 +3789,12 @@ export default class woo extends Exchange {
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['spot']) {
             response = await this.v3PrivateGetAccountInfo (params);
             //
@@ -3875,7 +3881,7 @@ export default class woo extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         market = this.safeMarket (marketId, market);
         const marginMode = this.safeStringLower (leverage, 'marginMode');
@@ -3921,7 +3927,7 @@ export default class woo extends Exchange {
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3956,7 +3962,7 @@ export default class woo extends Exchange {
      * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
 
@@ -3971,11 +3977,11 @@ export default class woo extends Exchange {
      * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'REDUCE', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3998,11 +4004,11 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: Str, params = {}) {
+    override async fetchPosition (symbol: string, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -4053,7 +4059,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4094,7 +4100,7 @@ export default class woo extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         //
         // v1PrivateGetPositionSymbol
         //     {
@@ -4211,7 +4217,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+    override async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4257,7 +4263,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+    override async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4289,7 +4295,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
+    override async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4337,7 +4343,7 @@ export default class woo extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+    override async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4375,7 +4381,7 @@ export default class woo extends Exchange {
         return this.parseConversions (rows, code, 'sellAsset', 'buyAsset', since, limit);
     }
 
-    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    override parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //
@@ -4438,7 +4444,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
+    override async fetchConvertCurrencies (params = {}): Promise<Currencies> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4462,34 +4468,36 @@ export default class woo extends Exchange {
             const entry = data[i];
             const id = this.safeString (entry, 'token');
             const code = this.safeCurrencyCode (id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.safeNumber (entry, 'tick'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': this.safeNumber (entry, 'tick'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeTimestamp (entry, 'createdTime'),
-            };
+                    'created': this.safeTimestamp (entry, 'createdTime'),
+                };
+            }
         }
         return result;
     }
@@ -4503,7 +4511,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+    override async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4545,7 +4553,7 @@ export default class woo extends Exchange {
         return this.parseADLRanks (positions, symbols);
     }
 
-    parseADLRank (info: Dict, market: Market = undefined): ADL {
+    override parseADLRank (info: Dict, market: Market = undefined): ADL {
         //
         // fetchPositionsADLRank
         //
@@ -4584,7 +4592,7 @@ export default class woo extends Exchange {
         } as ADL;
     }
 
-    defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
+    defaultNetworkCodeForCurrency (code: any) { // TODO: can be moved into base as an unified method
         const currencyItem = this.currency (code);
         const networks = currencyItem['networks'];
         const networkKeys = Object.keys (networks);
@@ -4598,7 +4606,7 @@ export default class woo extends Exchange {
         return this.safeValue (networkKeys, 0);
     }
 
-    setSandboxMode (enable: boolean) {
+    override setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }

@@ -158,6 +158,8 @@ def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, n
             # so, we have to compare with millisecond accururacy
             dt_parsed = exchange.parse8601(dt)
             ts_ms = entry['timestamp']
+            if dt_parsed is None:
+                assert False, 'datetime is not parseable: ' + dt + log_text
             diff = abs(dt_parsed - ts_ms)
             if diff >= 500:
                 dt_parsed_string = exchange.iso8601(dt_parsed)
@@ -210,7 +212,7 @@ def assert_symbol(exchange, skipped_properties, method, entry, key, expected_sym
 
 def assert_symbol_in_markets(exchange, skipped_properties, method, symbol):
     log_text = log_template(exchange, method, {})
-    assert (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
+    assert (exchange.markets is not None) and (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
 
 
 def assert_greater(exchange, skipped_properties, method, entry, key, compare_to, allow_null=True):
@@ -563,19 +565,34 @@ def exchange_prop(exchange, key, default_value=None):
     return exchange.get_property(exchange, key_upper, default_value)
 
 
-def validate_ticker_exception_for_percentage(ex, exchange, ticker):
+def ticker_exception_needs_ohlcv(ex, exchange, ticker):
+    # pure helper (no awaits): files under test/Exchange/base transpile into a single
+    # sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
+    # in the per-lane callers - this tells them whether the probe is needed
+    e_message = exchange.exception_message(ex, False)  # typed string so the php transpile uses mb_strpos, not in_array
+    if 'percentage should be above' in e_message or 'percentage should be below' in e_message:
+        symbol = ticker['symbol']
+        if symbol is not None:
+            if (exchange.markets is not None) and (symbol in exchange.markets):
+                if exchange.feature_value(symbol, 'fetchOHLCV') is not None:
+                    return True
+    return False
+
+
+def validate_ticker_exception_for_percentage(ex, exchange, ticker, ohlcv=None):
     # only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-    e_message = exchange.exception_message(ex, False)
+    # pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
+    # per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
+    e_message = exchange.exception_message(ex, False)  # typed string so the php transpile uses mb_strpos, not in_array
     if 'percentage should be above' in e_message or 'percentage should be below' in e_message:
         symbol = ticker['symbol']
         if symbol is not None:
             # if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if not (symbol in exchange.markets):
+            if (exchange.markets is None) or not (symbol in exchange.markets):
                 return
-            # if OHLCV supported
-            if exchange.feature_value(symbol, 'fetchOHLCV') is not None:
-                ohlcv = exchange.fetch_ohlcv(symbol, '1d', None, 5)
-                if len(ohlcv) <= 1:
-                    # if only 1 day, then allow it
+            if ohlcv is not None:
+                ohlcv_length = len(ohlcv)
+                if ohlcv_length <= 1:
+                    # if only 1 day of listing, then allow it
                     return
     assert e_message == '', e_message  # trigger error

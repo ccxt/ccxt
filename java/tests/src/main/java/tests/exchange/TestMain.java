@@ -1584,7 +1584,7 @@ public class TestMain extends BaseTest
             Helpers.addElementToObject(result, targetExchange, ioFileRead(path));
             return result;
         }
-        Object files = (java.util.List<String>)(ioDirRead(folder));
+        Object files = ioDirRead(folder);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(files)); i++)
         {
             Object file = Helpers.GetValue(files, i);
@@ -2107,7 +2107,10 @@ public class TestMain extends BaseTest
             Helpers.addElementToObject(options, "secret", "");
         }
         BaseExchange exchange = initExchange(exchangeName, options);
-        exchange.currencies = currencies;
+        if (Helpers.isTrue(!Helpers.isEqual(currencies, null)))
+        {
+            exchange.currencies = currencies;
+        }
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if (Helpers.isTrue(!Helpers.isEqual(predictionEvents, null)))
@@ -2223,7 +2226,7 @@ public class TestMain extends BaseTest
                     }
                     Object type = exchange.safeString(exchangeData, "outputType");
                     Object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    (this.testRequestStatically(exchange, method, result, ((String)type), skipKeys)).join();
+                    (this.testRequestStatically(exchange, method, result, type, skipKeys)).join();
                     // reset options
                     exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, new java.util.HashMap<String, Object>() {{}}));
                 }
@@ -2511,7 +2514,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()));
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()));
             (Helpers.promiseAll(promises)).join();
             Object successMessage = Helpers.add(Helpers.add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
             dump(Helpers.add("[INFO]", successMessage));
@@ -2700,7 +2703,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "Referer"), id), Helpers.add(Helpers.add("bybit - id: ", id), " not in headers."));
             if (!Helpers.isTrue(isSync()))
@@ -2734,7 +2737,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Object id = "ccxt";
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "KC-API-PARTNER"), id), Helpers.add(Helpers.add("kucoin - id: ", id), " not in headers for spot orders."));
@@ -2745,7 +2748,7 @@ public class TestMain extends BaseTest
                 }})).join();
             } catch(Exception e)
             {
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "KC-API-PARTNER"), id), Helpers.add(Helpers.add("kucoin - id: ", id), " not in headers for spot uta orders."));
             id = "ccxtfutures";
@@ -2754,7 +2757,7 @@ public class TestMain extends BaseTest
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
             } catch(Exception e)
             {
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "KC-API-PARTNER"), id), Helpers.add(Helpers.add("kucoin - id: ", id), " not in headers for swap orders."));
             try
@@ -2764,7 +2767,7 @@ public class TestMain extends BaseTest
                 }})).join();
             } catch(Exception e)
             {
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "KC-API-PARTNER"), id), Helpers.add(Helpers.add("kucoin - id: ", id), " not in headers for swap uta orders."));
             if (!Helpers.isTrue(isSync()))
@@ -2794,7 +2797,7 @@ public class TestMain extends BaseTest
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
             } catch(Exception e)
             {
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "KC-API-PARTNER"), id), Helpers.add(Helpers.add("kucoinfutures - id: ", id), " not in headers."));
             try
@@ -2803,7 +2806,7 @@ public class TestMain extends BaseTest
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
             } catch(Exception e)
             {
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "KC-API-PARTNER"), id), Helpers.add(Helpers.add("kucoinfutures - id: ", id), " not in headers for uta orders."));
             if (!Helpers.isTrue(isSync()))
@@ -2829,7 +2832,7 @@ public class TestMain extends BaseTest
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
             } catch(Exception e)
             {
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "X-CHANNEL-API-CODE"), id), Helpers.add(Helpers.add("bitget - id: ", id), " not in headers."));
             if (!Helpers.isTrue(isSync()))
@@ -2856,7 +2859,7 @@ public class TestMain extends BaseTest
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
             } catch(Exception e)
             {
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "source"), id), Helpers.add(Helpers.add("mexc - id: ", id), " not in headers."));
             if (!Helpers.isTrue(isSync()))
@@ -3001,7 +3004,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "X-SOURCE-KEY"), id), Helpers.add(Helpers.add("bingx - id: ", id), " not in headers."));
             if (!Helpers.isTrue(isSync()))
@@ -3070,7 +3073,7 @@ public class TestMain extends BaseTest
     // async testHyperliquid () {
     //     const exchange = this.initOfflineExchange ('hyperliquid');
     //     const id = '1';
-    //     let request = undefined;
+    //     let request: NullableDict = undefined;
     //     try {
     //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
     //     } catch (e) {
@@ -3252,7 +3255,7 @@ public class TestMain extends BaseTest
                 (exchange.createOrder("BTC/USD:USDC", "limit", "buy", 1, 20000)).join();
             } catch(Exception e)
             {
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "PARADEX-PARTNER"), id), Helpers.add(Helpers.add("paradex - id: ", id), " not in headers"));
             if (!Helpers.isTrue(isSync()))
@@ -3278,7 +3281,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "INPUT-SOURCE"), id), Helpers.add(Helpers.add("hashkey - id: ", id), " not in headers."));
             if (!Helpers.isTrue(isSync()))
@@ -3400,7 +3403,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "X-Broker-Id"), id), Helpers.add(Helpers.add("backpack - id: ", id), " not in headers."));
             if (!Helpers.isTrue(isSync()))
@@ -3426,7 +3429,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
-                reqHeaders = exchange.last_request_headers;
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "X-BB-API-PLATFORM"), id), Helpers.add(Helpers.add("toobit - id: ", id), " not in headers."));
             if (!Helpers.isTrue(isSync()))
@@ -3466,6 +3469,34 @@ public class TestMain extends BaseTest
             clientOrderId = Helpers.GetValue(request, "newClientOrderId");
             Assert(((String)clientOrderId).startsWith(((String)id)), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for swap order does not start with id: "), id));
             return null;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> testFoxbit()
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Exchange exchange = ((Exchange)this.initOfflineExchange("foxbit"));
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
+            Object id = "ccxt";
+            try
+            {
+                (exchange.createOrder("BTC/BRL", "limit", "buy", 1, 20000)).join();
+            } catch(Exception e)
+            {
+                // we expect an error here, we're only interested in the headers
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
+            }
+            Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "X-FB-CLIENT"), id), Helpers.add(Helpers.add("foxbit - id: ", id), " not in headers."));
+            Object version = exchange.getCcxtVersion();
+            Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "X-FB-CLIENT-VERSION"), version), Helpers.add(Helpers.add("foxbit - version: ", version), " not in headers."));
+            if (!Helpers.isTrue(isSync()))
+            {
+                (close(exchange)).join();
+            }
+            return true;
         });
 
     }

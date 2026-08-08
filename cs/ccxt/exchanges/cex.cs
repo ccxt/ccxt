@@ -126,39 +126,95 @@ public partial class cex : Exchange
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {} },
                     { "post", new Dictionary<string, object>() {
-                        { "get_server_time", 1 },
-                        { "get_pairs_info", 1 },
-                        { "get_currencies_info", 1 },
-                        { "get_processing_info", 10 },
-                        { "get_ticker", 1 },
-                        { "get_trade_history", 1 },
-                        { "get_order_book", 1 },
-                        { "get_candles", 1 },
+                        { "get_server_time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_pairs_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_currencies_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_processing_info", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "get_ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_trade_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_order_book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {} },
                     { "post", new Dictionary<string, object>() {
-                        { "get_my_current_fee", 5 },
-                        { "get_fee_strategy", 1 },
-                        { "get_my_volume", 5 },
-                        { "do_create_account", 1 },
-                        { "get_my_account_status_v3", 5 },
-                        { "get_my_wallet_balance", 5 },
-                        { "get_my_orders", 5 },
-                        { "do_my_new_order", 1 },
-                        { "do_cancel_my_order", 1 },
-                        { "do_cancel_all_orders", 5 },
-                        { "get_order_book", 1 },
-                        { "get_candles", 1 },
-                        { "get_trade_history", 1 },
-                        { "get_my_transaction_history", 1 },
-                        { "get_my_funding_history", 5 },
-                        { "do_my_internal_transfer", 1 },
-                        { "get_processing_info", 10 },
-                        { "get_deposit_address", 5 },
-                        { "do_deposit_funds_from_wallet", 1 },
-                        { "do_withdrawal_funds_to_wallet", 1 },
+                        { "get_my_current_fee", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_fee_strategy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_my_volume", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "do_create_account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_my_account_status_v3", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_my_wallet_balance", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_my_orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "do_my_new_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "do_cancel_my_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "do_cancel_all_orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_order_book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_trade_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_my_transaction_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_my_funding_history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "do_my_internal_transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_processing_info", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "get_deposit_address", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "do_deposit_funds_from_wallet", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "do_withdrawal_funds_to_wallet", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -275,7 +331,7 @@ public partial class cex : Exchange
                     { "AVALANCHEC", "avalanche" },
                     { "ETHPOW", "ethereumpow" },
                     { "NEAR", "near" },
-                    { "ARB", "arbitrum" },
+                    { "ARBITRUM", "arbitrum" },
                     { "DOT", "polkadot" },
                     { "OPT", "optimism" },
                     { "INJ", "injective" },
@@ -366,27 +422,30 @@ public partial class cex : Exchange
             object networkCode = this.networkIdToCode(networkId, code);
             object deposit = isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
             object withdraw = isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "margin", null },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "active", null },
-                { "fee", this.safeNumber(rawNetwork, "withdrawalFee") },
-                { "precision", currencyPrecision },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(rawNetwork, "minDeposit") },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "margin", null },
+                    { "deposit", deposit },
+                    { "withdraw", withdraw },
+                    { "active", null },
+                    { "fee", this.safeNumber(rawNetwork, "withdrawalFee") },
+                    { "precision", currencyPrecision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(rawNetwork, "minDeposit") },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(rawNetwork, "minWithdrawal") },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(rawNetwork, "minWithdrawal") },
-                        { "max", null },
-                    } },
-                } },
-                { "info", rawNetwork },
-            };
+                    { "info", rawNetwork },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -737,7 +796,7 @@ public partial class cex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -908,11 +967,15 @@ public partial class cex : Exchange
                 market = this.safeMarket(key);
             }
             object parsed = this.parseTradingFee(getValue(response, key), market);
-            ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
+            if (isTrue(!isEqual(getValue(parsed, "symbol"), null)))
+            {
+                ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
+            }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             if (!isTrue((inOp(result, symbol))))
             {
                 object market = this.market(symbol);
@@ -1054,7 +1117,10 @@ public partial class cex : Exchange
                 { "used", this.safeString(balance, "balanceOnHold") },
                 { "total", this.safeString(balance, "balance") },
             };
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1368,6 +1434,10 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "clientOrderId", this.uuid() },
             { "currency1", getValue(market, "baseId") },
@@ -1445,7 +1515,7 @@ public partial class cex : Exchange
         //             "rejectCode": 405,
         //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
         //
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -1625,7 +1695,7 @@ public partial class cex : Exchange
             { "withdraw", "withdrawal" },
             { "commission", "fee" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**

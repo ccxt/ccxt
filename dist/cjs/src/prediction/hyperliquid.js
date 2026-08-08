@@ -99,7 +99,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 },
                 'private': {
                     'post': {
-                        'exchange': 1,
+                        'exchange': { 'cost': 1 },
                     },
                 },
             },
@@ -672,7 +672,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        const mids = this.safeDict(response, 'mids', response);
+        let allMids = {};
+        if ((typeof response !== 'string') && !Array.isArray(response)) {
+            allMids = response;
+        }
+        const mids = this.safeDict(allMids, 'mids', allMids);
         const tickers = {};
         const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
         const outcomeHandles = Object.keys(outcomesMap);
@@ -836,6 +840,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             const candleCount = (limit !== undefined) ? limit : 100;
             const startOffset = tf * candleCount * -1000;
             startTime = this.sum(until, startOffset);
+            if (startTime === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchOHLCV() missing startTime');
+            }
             if (startTime < 0) {
                 startTime = 0;
             }
@@ -867,7 +874,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        let candles = [];
+        if (Array.isArray(response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     /**
      * @ignore
@@ -940,7 +951,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             const account = this.account();
             account['total'] = total;
             account['used'] = used;
-            result[coin] = account;
+            if (coin !== undefined) {
+                result[coin] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -988,7 +1001,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         const response = results[0];
         const midsResponse = results[1];
         const balances = this.safeList(response, 'balances', []);
-        const mids = this.safeDict(midsResponse, 'mids', midsResponse);
+        let allMids = {};
+        if ((typeof midsResponse !== 'string') && !Array.isArray(midsResponse)) {
+            allMids = midsResponse;
+        }
+        const mids = this.safeDict(allMids, 'mids', allMids);
         const positions = [];
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict(balances, i, {});
@@ -1157,7 +1174,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 return this.safeDict(this.outcomes_by_id, key, {});
             }
         }
-        if ((outcomeInput in this.markets) || (outcomeInput in this.markets_by_id)) {
+        if (((this.markets !== undefined) && (outcomeInput in this.markets)) || ((this.markets_by_id !== undefined) && (outcomeInput in this.markets_by_id))) {
             const market = this.safeMarket(outcomeInput);
             const sideHintOrDefault = (sideHint !== undefined) ? sideHint : 'YES';
             const found = this.findOutcomeInMarket(market, sideHintOrDefault);
@@ -1215,7 +1232,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             }
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a limit price for outcome markets in between 0 and 1.');
         }
-        let px;
+        let px = undefined;
         if (isMarket) {
             const priceStr = this.numberToString(price);
             px = isBuy ? Precise["default"].stringMul(priceStr, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(priceStr, Precise["default"].stringSub('1', slippage));
@@ -1223,6 +1240,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         else {
             px = this.priceToPrecision(marketSymbol, price);
+        }
+        if (px === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() could not determine price');
         }
         const sz = this.amountToPrecision(marketSymbol, amount);
         const orderType = {
@@ -1440,8 +1460,12 @@ class hyperliquid extends hyperliquid$1["default"] {
         const request = { 'type': method, 'user': userAddress };
         const response = await this.publicPostInfo(this.extend(request, params));
         const ordersWithStatus = [];
-        for (let i = 0; i < response.length; i++) {
-            const order = response[i];
+        let rawOrders = [];
+        if (Array.isArray(response)) {
+            rawOrders = response;
+        }
+        for (let i = 0; i < rawOrders.length; i++) {
+            const order = rawOrders[i];
             ordersWithStatus.push(this.extend(order, { 'ccxtStatus': 'open' }));
         }
         const parsed = this.parsePredictionOrders(ordersWithStatus, undefined, since);
@@ -1472,8 +1496,12 @@ class hyperliquid extends hyperliquid$1["default"] {
         const response = await this.publicPostInfo(this.extend(request, params));
         // Deduplicate by oid keeping most recent statusTimestamp
         const deduped = {};
-        for (let i = 0; i < response.length; i++) {
-            const raw = response[i];
+        let historicalOrders = [];
+        if (Array.isArray(response)) {
+            historicalOrders = response;
+        }
+        for (let i = 0; i < historicalOrders.length; i++) {
+            const raw = historicalOrders[i];
             let entry = this.safeDict(raw, 'order');
             if (entry === undefined) {
                 entry = raw;
@@ -1528,7 +1556,11 @@ class hyperliquid extends hyperliquid$1["default"] {
             request['oid'] = isCloid ? id : this.parseToNumeric(id);
         }
         const response = await this.publicPostInfo(this.extend(request, params));
-        const orderWrapper = this.safeDict(response, 'order', response);
+        let orderStatus = {};
+        if ((typeof response !== 'string') && !Array.isArray(response)) {
+            orderStatus = response;
+        }
+        const orderWrapper = this.safeDict(orderStatus, 'order', orderStatus);
         const parsed = this.parsePredictionOrder(orderWrapper, undefined);
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
@@ -1674,7 +1706,13 @@ class hyperliquid extends hyperliquid$1["default"] {
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         const response = await this.publicPostInfo(this.extend(request, params));
-        const trades = (response) ? response : [];
+        let trades = [];
+        if (Array.isArray(response)) {
+            trades = response;
+        }
+        else if (typeof response !== 'string') {
+            trades = this.toArray(response);
+        }
         return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
     /**
@@ -1717,7 +1755,13 @@ class hyperliquid extends hyperliquid$1["default"] {
             request['endTime'] = until;
         }
         const response = await this.publicPostInfo(this.extend(request, params));
-        const fills = (response) ? response : [];
+        let fills = [];
+        if (Array.isArray(response)) {
+            fills = response;
+        }
+        else if (typeof response !== 'string') {
+            fills = this.toArray(response);
+        }
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         const parsedTrades = this.parsePredictionTrades(fills, undefined);
@@ -1811,6 +1855,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const marketValues = this.toArray(marketsDict);
         // Group markets by parentSymbol
         const groupMap = {};
+        if (queries === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchEvents() missing queries');
+        }
         const lowerQueries = [];
         for (let i = 0; i < queries.length; i++) {
             const queryString = queries[i];
@@ -1854,15 +1901,22 @@ class hyperliquid extends hyperliquid$1["default"] {
                     continue;
                 }
             }
+            if (parentSymbol === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchEvents() missing parentSymbol');
+            }
             if (!(parentSymbol in groupMap)) {
-                groupMap[parentSymbol] = [];
+                if (parentSymbol !== undefined) {
+                    groupMap[parentSymbol] = [];
+                }
             }
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            const parentMarkets = groupMap[parentSymbol];
+            const parentMarkets = this.safeValue(groupMap, parentSymbol);
             parentMarkets.push(mkt);
-            groupMap[parentSymbol] = parentMarkets;
+            if (parentSymbol !== undefined) {
+                groupMap[parentSymbol] = parentMarkets;
+            }
         }
         const events = [];
         const groupKeys = Object.keys(groupMap);
@@ -1949,6 +2003,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const prec = this.safeNumber(this.safeDict(market, 'precision', {}), 'amount', 0.0001);
         // Convert precision to decimal places
         let decimals = 4;
+        if (prec === undefined) {
+            throw new errors.ExchangeError(this.id + ' amountToPrecision() missing prec');
+        }
         if (prec > 0) {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -1958,6 +2015,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(outcome);
         const prec = this.safeNumber(this.safeDict(market, 'precision', {}), 'price', 0.0001);
         let decimals = 4;
+        if (prec === undefined) {
+            throw new errors.ExchangeError(this.id + ' priceToPrecision() missing prec');
+        }
         if (prec > 0) {
             decimals = this.precisionFromString(this.numberToString(prec));
         }

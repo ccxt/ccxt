@@ -141,7 +141,7 @@ class Precise {
         this.integer = BigInt (string.slice (0, i + 1));
     }
 
-    equals (other) {
+    equals (other: any) {
         this.reduce ();
         other.reduce ();
         return (this.decimals === other.decimals) && (this.integer === other.integer);

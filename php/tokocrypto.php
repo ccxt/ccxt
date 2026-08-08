@@ -168,56 +168,56 @@ class tokocrypto extends Exchange {
             'api' => array(
                 'binance' => array(
                     'get' => array(
-                        'ping' => 1,
-                        'time' => 1,
+                        'ping' => array( 'cost' => 1 ),
+                        'time' => array( 'cost' => 1 ),
                         'depth' => array( 'cost' => 1, 'byLimit' => array( array( 100, 1 ), array( 500, 5 ), array( 1000, 10 ), array( 5000, 50 ) ) ),
-                        'trades' => 1,
-                        'aggTrades' => 1,
-                        'historicalTrades' => 5,
-                        'klines' => 1,
+                        'trades' => array( 'cost' => 1 ),
+                        'aggTrades' => array( 'cost' => 1 ),
+                        'historicalTrades' => array( 'cost' => 5 ),
+                        'klines' => array( 'cost' => 1 ),
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'exchangeInfo' => 10,
+                        'exchangeInfo' => array( 'cost' => 10 ),
                     ),
                     'put' => array(
-                        'userDataStream' => 1,
+                        'userDataStream' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'userDataStream' => 1,
+                        'userDataStream' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'userDataStream' => 1,
+                        'userDataStream' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'open/v1/common/time' => 1,
-                        'open/v1/common/symbols' => 1,
+                        'open/v1/common/time' => array( 'cost' => 1 ),
+                        'open/v1/common/symbols' => array( 'cost' => 1 ),
                         // all the actual symbols are type 1
-                        'open/v1/market/depth' => 1, // when symbol type is not 1
-                        'open/v1/market/trades' => 1, // when symbol type is not 1
-                        'open/v1/market/agg-trades' => 1, // when symbol type is not 1
-                        'open/v1/market/klines' => 1, // when symbol type is not 1
+                        'open/v1/market/depth' => array( 'cost' => 1 ), // when symbol type is not 1
+                        'open/v1/market/trades' => array( 'cost' => 1 ), // when symbol type is not 1
+                        'open/v1/market/agg-trades' => array( 'cost' => 1 ), // when symbol type is not 1
+                        'open/v1/market/klines' => array( 'cost' => 1 ), // when symbol type is not 1
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'open/v1/orders/detail' => 1,
-                        'open/v1/orders' => 1,
-                        'open/v1/account/spot' => 1,
-                        'open/v1/account/spot/asset' => 1,
-                        'open/v1/orders/trades' => 1,
-                        'open/v1/withdraws' => 1,
-                        'open/v1/deposits' => 1,
-                        'open/v1/deposits/address' => 1,
+                        'open/v1/orders/detail' => array( 'cost' => 1 ),
+                        'open/v1/orders' => array( 'cost' => 1 ),
+                        'open/v1/account/spot' => array( 'cost' => 1 ),
+                        'open/v1/account/spot/asset' => array( 'cost' => 1 ),
+                        'open/v1/orders/trades' => array( 'cost' => 1 ),
+                        'open/v1/withdraws' => array( 'cost' => 1 ),
+                        'open/v1/deposits' => array( 'cost' => 1 ),
+                        'open/v1/deposits/address' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'open/v1/orders' => 1,
-                        'open/v1/orders/cancel' => 1,
-                        'open/v1/orders/oco' => 1,
-                        'open/v1/withdraws' => 1,
-                        'open/v1/user-data-stream' => 1,
+                        'open/v1/orders' => array( 'cost' => 1 ),
+                        'open/v1/orders/cancel' => array( 'cost' => 1 ),
+                        'open/v1/orders/oco' => array( 'cost' => 1 ),
+                        'open/v1/withdraws' => array( 'cost' => 1 ),
+                        'open/v1/user-data-stream' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -894,7 +894,7 @@ class tokocrypto extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1198,7 +1198,8 @@ class tokocrypto extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_trades($response, $market, $since, $limit);
+        $responseList = $this->to_array($response);
+        return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1303,7 +1304,7 @@ class tokocrypto extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function get_market_id_by_type($market) {
+    public function get_market_id_by_type(mixed $market) {
         if ($market['quote'] === 'USDT') {
             return $market['baseId'] . $market['quoteId'];
         }
@@ -1352,7 +1353,7 @@ class tokocrypto extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     array(
         //         1591478520000, // open time
@@ -1453,7 +1454,12 @@ class tokocrypto extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     )
         //
-        $data = $this->safe_list($response, 'data', $response);
+        $data = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $data = $response;
+        } else {
+            $data = $this->safe_list($response, 'data', array());
+        }
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -1505,7 +1511,7 @@ class tokocrypto extends Exchange {
         return $this->parse_balance_custom($response, $type, $marginMode);
     }
 
-    public function parse_balance_custom($response, $type = null, $marginMode = null) {
+    public function parse_balance_custom(mixed $response, ?string $type = null, ?string $marginMode = null) {
         $timestamp = $this->safe_integer($response, 'updateTime');
         $result = array(
             'info' => $response,
@@ -1521,7 +1527,9 @@ class tokocrypto extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'free');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1699,7 +1707,7 @@ class tokocrypto extends Exchange {
         ), $market);
     }
 
-    public function parse_order_type($status) {
+    public function parse_order_type(mixed $status) {
         $statuses = array(
             '2' => 'market',
             '1' => 'limit',
@@ -2340,7 +2348,7 @@ class tokocrypto extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status_by_type($status, $type = null) {
+    public function parse_transaction_status_by_type(mixed $status, ?string $type = null) {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -2525,7 +2533,7 @@ class tokocrypto extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         if (!(is_array($this->urls['api']['rest']) && array_key_exists($api ?? '', $this->urls['api']['rest']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
         }
@@ -2588,7 +2596,7 @@ class tokocrypto extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
@@ -2664,7 +2672,7 @@ class tokocrypto extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
         if ((is_array($config) && array_key_exists('noCoin' ?? '', $config)) && !(is_array($params) && array_key_exists('coin' ?? '', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
@@ -2673,7 +2681,7 @@ class tokocrypto extends Exchange {
             return $config['noPoolId'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
             $limit = $params['limit'];
-            $byLimit = $config['byLimit'];
+            $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
                 if ($limit <= $entry[0]) {

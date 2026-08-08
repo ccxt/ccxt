@@ -89,7 +89,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -113,6 +113,16 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    /**
+     * @method
+     * @name hyperliquid#unWatchTicker
+     * @description unWatches the price ticker stream of a specific market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified symbol of the market to stop watching the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTicker(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name hyperliquid#watchTickers
@@ -159,6 +169,7 @@ export default class hyperliquid extends hyperliquidRest {
      */
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     handleWsTickers(client: Client, message: any): boolean;
+    handleActiveAssetCtx(client: Client, message: any): boolean;
     parseWsTicker(rawTicker: any, market?: Market): Ticker;
     handleMyTrades(client: Client, message: any): void;
     /**
@@ -286,6 +297,7 @@ export default class hyperliquid extends hyperliquidRest {
     handleOrderBookUnsubscription(client: Client, subscription: Dict): void;
     handleTradesUnsubscription(client: Client, subscription: Dict): void;
     handleTickersUnsubscription(client: Client, subscription: Dict): void;
+    handleTickerUnsubscription(client: Client, subscription: Dict): void;
     handleOHLCVUnsubscription(client: Client, subscription: Dict): void;
     handleOrderUnsubscription(client: Client, subscription: Dict): void;
     handleMyTradesUnsubscription(client: Client, subscription: Dict): void;

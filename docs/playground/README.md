@@ -4,15 +4,12 @@ An online IDE that runs [CCXT](https://github.com/ccxt/ccxt) against **live publ
 exchange endpoints** in multiple languages, with an AI assistant that writes the
 code for you.
 
-- **Languages:** TypeScript, Python, PHP, **Go** and **C#** all run
-  in the playground. **Java** appears as a tab marked **local** — its dependency
-  tree (guava/jackson/web3j/netty) can't be resolved in the sandbox without a
-  build tool, so it shows a one-line install + sample instead. The AI assistant
-  writes code for all six.
+- **Languages:** TypeScript, Python, PHP, **Go**, **C#** and **Java** all run
+  in the playground. The AI assistant writes code for all six.
   - TypeScript runs natively on Node (`--experimental-transform-types`, no tsc) — so
     `enum`/`namespace`/parameter properties work, but types are erased, not checked.
-  - Go (~2–3s/run) and C# (~3–4s/run) compile each run, but only the user's file
-    recompiles against a pre-warmed ccxt build, so they stay fast.
+  - Go (~2–3s/run), C# (~3–4s/run) and Java (~1s/run) compile each run, but only
+    the user's file recompiles against a pre-resolved ccxt, so they stay fast.
 - **Editor:** Monaco (the VS Code editor) with syntax highlighting per language,
   and **CCXT IntelliSense for TypeScript** — `exchange.` autocompletes every unified
   method with signatures and JSDoc. This uses Monaco's built-in TypeScript
@@ -22,8 +19,13 @@ code for you.
   autocomplete for Python/PHP/Go/C#/Java would require a real LSP per language.
 - **Execution:** a backend executor spawns the real interpreter for each language
   using a pinned CCXT install, so you get real responses from real exchanges.
-- **AI assistant:** streams free models via [OpenRouter](https://openrouter.ai);
-  generated code can be inserted straight into the editor.
+- **AI assistant:** streamed from the chat-completions endpoint in
+  `PLAYGROUND_AI_URL`; every code answer covers all six languages at once — the
+  sidebar shows **only** the language tab you have selected (Insert ready as soon
+  as that block finishes streaming). One Insert files that tab immediately; the
+  other languages fill their editor buffers silently in the background. The
+  playground holds no inference credential: it posts `{stream, messages}` and
+  streams the reply back, so the endpoint owns the backend and its keys.
 
 ## Quick start
 
@@ -31,7 +33,7 @@ code for you.
 cd docs/playground
 npm install
 npm run setup-runtimes        # optional but recommended (see below)
-cp .env.example .env.local    # add your OPENROUTER_API_KEY for the AI panel
+cp .env.example .env.local    # set PLAYGROUND_AI_URL for the AI panel
 npm run dev                   # http://localhost:3000
 ```
 
@@ -47,7 +49,7 @@ touch the container filesystem; the host is unreachable.
 
 ```bash
 cd docs/playground
-OPENROUTER_API_KEY=sk-or-... docker compose up --build
+PLAYGROUND_AI_URL=http://<host>:<port>/v1/chat/completions docker compose up --build
 # → http://localhost:3000
 ```
 
@@ -70,10 +72,10 @@ to serve under a sub-path. `docker-compose.yml` enforces the host protections:
   the exchange API domains generated from CCXT** (`proxy/`). Mining pools, C2,
   data-exfil endpoints, and the host's neighbor services are all unreachable —
   even via a raw socket, because the app has no other route out;
-- the **OpenRouter key is injected as env**, never baked into the image or on a
-  file in the image (`.env.local` is `.dockerignore`d), and run children get a
-  scrubbed env (the AI feature's egress to OpenRouter is the one non-exchange host
-  on the allowlist);
+- **no inference credential in the container** — the app posts to the endpoint in
+  `PLAYGROUND_AI_URL` (deployment-local, reached directly via `NO_PROXY`); that
+  endpoint holds the credential, so a run that reads the server's env finds
+  nothing worth stealing. Run children also get a scrubbed env;
 - **submission logging** → every `/api/run` and `/api/ai` request is logged as
   JSONL (`lib/log.ts`) for abuse inspection. In production the deploy points
   `PLAYGROUND_LOG_FILE` at a host-mounted file (`/var/log/ccxt-playground/app/`)
@@ -96,10 +98,9 @@ deploy — the egress path is verified on every release.
 
 Code from different users *can* see each other inside the container — that's an
 accepted trade-off; the boundary is host-vs-container, not run-vs-run. Note this
-also means a run can read the server process's env (e.g. the OpenRouter key) via
-`/proc` inside the container. If you need the key shielded from runs too, run the
-executor as a separate uid from the Next server, or front the key with a sidecar
-so it never lives in the app process env.
+also means a run can read the server process's env via `/proc` inside the
+container — which is precisely why no inference credential lives there; the
+assistant's credential stays behind `PLAYGROUND_AI_URL`.
 
 Verified: from inside the container a run **cannot** read or write host files
 (the host `.env.local` doesn't exist there, writes to host paths fail), sees only
@@ -127,15 +128,15 @@ Fumadocs site at `/`. (Publishing a host port doesn't work on a Docker
 container's fixed internal IP, and the container still has no route *out* except
 via the egress proxy.)
 
-**All five runnable languages (TypeScript/Python/PHP/C#/Go) run in production.**
+**All six runnable languages (TypeScript/Python/PHP/Go/C#/Java) run in production.**
 The Go warm build (~5 GB peak) happens on the GitHub-hosted build runner, not on
-the docs box; the run container's 4 GB cap covers warm `go run`s. On a small box,
-add `PLAYGROUND_DISABLED=go` back to the workflow's build-args to make Go
-install-only again.
+the docs box; the run container's 3 GB cap covers warm `go run`s plus concurrent
+Java JVMs (`-Xmx512m` each). On a small box, add `PLAYGROUND_DISABLED=go,java`
+to the workflow's build-args to make them install-only again.
 
 One-time box setup (already done on the current box):
 
-- `/root/ccxt-playground.env` (root-only) holding `OPENROUTER_API_KEY=...`
+- `/root/ccxt-playground.env` (root-only) holding `PLAYGROUND_AI_URL=...`
 - the nginx `location /playground` + rate-limited `location /playground/api` block
 - GitHub repo secrets reused from the Fumadocs deploy: `DOCS_DEPLOY_SSH_KEY`,
   `DOCS_DEPLOY_KNOWN_HOSTS`, `DOCS_DEPLOY_HOST`, `DOCS_DEPLOY_USER`.
@@ -154,18 +155,23 @@ installs the nightly-restart cron automatically.
   cache **pre-warmed** (cold build of ccxt is ~45s; warm runs ~2s). Needs Go 1.24+.
 - **C#** → `runtime/csharp/app` project (`dotnet add package ccxt`) restored and
   build-warmed. Needs the .NET SDK.
+- **Java** → `runtime/java/libs` (`io.github.ccxt:ccxt` + transitive jars resolved
+  from Maven Central; latest release unless `CCXT_JAVA_VERSION` is pinned) plus a
+  precompiled `Playground` proxy helper in `runtime/java/classes`. Needs JDK 21+
+  and Maven at provision time (Docker resolves the jars in a throwaway build
+  stage, so Maven never ships in the image).
 
 Python and PHP fall back to the surrounding monorepo's CCXT (`../../python` via
-`PYTHONPATH`, `../../ccxt.php`) if not provisioned. Go and C# show a "run
+`PYTHONPATH`, `../../ccxt.php`) if not provisioned. Go, C# and Java show a "run
 setup-runtimes" message until provisioned (no fallback — they need the warm
-cache/restore to be fast).
+cache/restore/resolved jars to be fast).
 
 ## Sandboxing & safety
 
 User code runs in `lib/runners/sandbox.ts` with:
 
 - **scrubbed env** — the child process only sees `PATH`/`HOME`/`LANG`, never the
-  server's secrets (e.g. `OPENROUTER_API_KEY`);
+  server's secrets;
 - **hard timeout** — the whole process group is `SIGKILL`ed after
   `RUN_TIMEOUT_MS` (default 15s);
 - **output cap** — combined stdout/stderr is bounded (256 KB);
@@ -185,16 +191,26 @@ recommended on top:
 3. For untrusted multi-tenant use where runs must not see each other, run each
    execution in its own throwaway container (or gVisor) rather than the shared one.
 
-## Why Java is install-only
+## How Java runs (and how it reaches exchanges)
 
-Go and C# are runnable (`lib/runners/{go,csharp}.ts`). Java isn't, for one
-concrete reason: the sandbox has no Maven/Gradle/coursier to resolve ccxt-java's
-dependency tree (guava, jackson-databind, web3j-crypto, netty…). Java 21's
-single-file launch (`java Main.java`) works, but only with the full classpath
-assembled. To make Java runnable: add a build tool to the environment, resolve
-the deps into `runtime/java/libs/`, then add a `java.ts` runner that calls
-`java -cp "runtime/java/libs/*" Main.java`, flip `available: true`, and add `java`
-to `RunnableLanguageId`.
+Java runs server-side like Go/C# (`lib/runners/java.ts`): each run is compiled
+in a throwaway dir (the snippet must be `public class Main`) and launched
+against the pre-resolved `runtime/java/libs/*` classpath. Runs go through a
+generated `Launcher` that calls `Main.main` and then forces JVM exit —
+ccxt-java's pro `close()` leaves Netty's shared event loop alive, so a `watch*`
+snippet's JVM would otherwise linger until the hard timeout after `main`
+returns.
+
+One wrinkle the other languages don't have: **ccxt-java ignores proxy env
+vars** (`System.getenv` never appears in `io/github/ccxt/**`), and its REST
+client (`java.net.http.HttpClient`) defaults to *no* proxy. The runner therefore
+parses `HTTPS_PROXY`/`HTTP_PROXY` into JVM flags
+(`-Dhttps.proxyHost/-Dhttps.proxyPort/-Dhttp.*`), which `HttpClient` honors.
+WebSockets are a separate path: ccxt's Netty `WsClient` ignores those flags and
+only reads the exchange's own `wssProxy` field, so `watch*` snippets construct
+exchanges via `Playground.proxy(new Binance())` — a tiny helper precompiled
+into `runtime/java/classes` that sets `httpsProxy` + `wssProxy` from the env
+(no-op outside the playground).
 
 ## Layout
 
@@ -202,12 +218,12 @@ to `RunnableLanguageId`.
 app/
   page.tsx              playground shell (state lives here)
   api/run/route.ts      POST {language, code} -> execution result
-  api/ai/route.ts       POST {messages, model} -> streamed OpenRouter completion
+  api/ai/route.ts       POST {messages, language, code} -> streamed completion
 components/             Toolbar, Editor (Monaco), OutputPanel, AssistantPanel
 lib/
   languages.ts          language metadata
   examples.ts           starter snippets per (example, language)
   runners/              sandbox + ts/python/php runners + dispatcher
-  ai/openrouter.ts      free-model list + system prompt
+  ai/assistant.ts       endpoint config + system prompt
 scripts/setup-runtimes.sh
 ```

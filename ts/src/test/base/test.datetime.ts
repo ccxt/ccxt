@@ -3,7 +3,6 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
-import {  ROUND_DOWN, ROUND_UP } from '../../base/functions/number.js';
 
 function testIso8601 () {
 

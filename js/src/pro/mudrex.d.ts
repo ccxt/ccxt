@@ -1,8 +1,9 @@
 import mudrexRest from '../mudrex.js';
 import type { Int, OHLCV, Strings, Ticker, Tickers } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
 export default class mudrex extends mudrexRest {
     describe(): any;
-    ping(client: any): {
+    ping(client: Client): {
         id: any;
         method: string;
     };
@@ -17,7 +18,7 @@ export default class mudrex extends mudrexRest {
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleMessage(client: any, message: any): void;
-    handleErrorMessage(client: any, message: any): void;
+    handleErrorMessage(client: Client, message: any): void;
     handleOHLCV(client: any, message: any): void;
     handleTicker(client: any, message: any): void;
 }

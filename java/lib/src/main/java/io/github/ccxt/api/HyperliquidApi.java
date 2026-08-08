@@ -19,12 +19,24 @@ public class HyperliquidApi extends Exchange
         super(options);
     }
 
+    /**
+     * Calls the publicPostInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object, a JSON array or a JSON scalar, so this endpoint keeps Object
+     */
     public java.util.concurrent.CompletableFuture<Object>  publicPostInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicPostInfo", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostExchange (Object... optionalArgs)
+    /**
+     * Calls the privatePostExchange endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostExchange (Object... optionalArgs)
     {
         return this.callAsync ("privatePostExchange", optionalArgs);
     }

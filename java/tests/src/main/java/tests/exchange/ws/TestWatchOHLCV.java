@@ -37,6 +37,10 @@ public class TestWatchOHLCV extends BaseTest {
             try
             {
                 response = (exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit)).join();
+                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                {
+                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                }
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -49,6 +53,10 @@ public class TestWatchOHLCV extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
+                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                {
+                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)

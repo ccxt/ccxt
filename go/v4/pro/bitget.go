@@ -807,7 +807,7 @@ func (this *BitgetCore) HandleOHLCV(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(timeframe, nil)) {
 		return
 	}
-	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
 		var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -990,7 +990,7 @@ func (this *BitgetCore) UnWatchChannel(symbol any, channel any, messageHashTopic
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitgetCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2811,7 +2811,10 @@ func (this *BitgetCore) HandleBalance(client any, message any) {
 				var entry any = ccxt.GetValue(coins, j)
 				var currencyId any = this.SafeString(entry, "coin")
 				var code any = this.SafeCurrencyCode(currencyId)
-				var account any = ccxt.Ternary(ccxt.IsTrue((ccxt.InOp(this.Balance, code))), ccxt.GetValue(this.Balance, code), this.Account())
+				var account any = this.Account()
+				if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(code, nil))) && ccxt.IsTrue((ccxt.InOp(this.Balance, code)))) {
+					account = ccxt.GetValue(this.Balance, code)
+				}
 				var borrow any = this.SafeString(entry, "borrow")
 				var debts any = this.SafeString(entry, "debts")
 				if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(borrow, nil))) || ccxt.IsTrue((!ccxt.IsEqual(debts, nil)))) {
@@ -2820,12 +2823,17 @@ func (this *BitgetCore) HandleBalance(client any, message any) {
 				ccxt.AddElementToObject(account, "free", this.SafeString(entry, "available"))
 				ccxt.AddElementToObject(account, "used", this.SafeString(entry, "locked"))
 				ccxt.AddElementToObject(account, "total", this.SafeString(entry, "balance"))
-				ccxt.AddElementToObject(this.Balance, code, account)
+				if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+					ccxt.AddElementToObject(this.Balance, code, account)
+				}
 			}
 		} else {
 			var currencyId any = this.SafeString2(rawBalance, "coin", "marginCoin")
 			var code any = this.SafeCurrencyCode(currencyId)
-			var account any = ccxt.Ternary(ccxt.IsTrue((ccxt.InOp(this.Balance, code))), ccxt.GetValue(this.Balance, code), this.Account())
+			var account any = this.Account()
+			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(code, nil))) && ccxt.IsTrue((ccxt.InOp(this.Balance, code)))) {
+				account = ccxt.GetValue(this.Balance, code)
+			}
 			var borrow any = this.SafeString(rawBalance, "borrow")
 			if ccxt.IsTrue(!ccxt.IsEqual(borrow, nil)) {
 				var interest any = this.SafeString(rawBalance, "interest")
@@ -2835,9 +2843,14 @@ func (this *BitgetCore) HandleBalance(client any, message any) {
 			ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, freeQuery))
 			ccxt.AddElementToObject(account, "total", this.SafeString(rawBalance, "equity"))
 			ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "frozen"))
-			ccxt.AddElementToObject(this.Balance, code, account)
+			if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+				ccxt.AddElementToObject(this.Balance, code, account)
+			}
 		}
 	}
+	// REST parseBalance sets info, keep the ws structure at parity,
+	// see https://github.com/ccxt/ccxt/issues/21973
+	ccxt.AddElementToObject(this.Balance, "info", message)
 	this.Balance = this.SafeBalance(this.Balance)
 	var messageHash any = ccxt.Add("balance:", instType)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
@@ -2867,9 +2880,9 @@ func (this *BitgetCore) WatchPublic(uta any, messageHash any, args any, optional
 		}
 		var message any = this.Extend(request, params)
 
-		retRes248815 := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(retRes248815)
-		ch <- retRes248815
+		retRes250115 := (<-this.Watch(url, messageHash, message, messageHash))
+		ccxt.PanicOnError(retRes250115)
+		ch <- retRes250115
 		return nil
 
 	}()
@@ -2900,9 +2913,9 @@ func (this *BitgetCore) UnWatchPublic(uta any, messageHash any, args any, option
 		}
 		var message any = this.Extend(request, params)
 
-		retRes250915 := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(retRes250915)
-		ch <- retRes250915
+		retRes252215 := (<-this.Watch(url, messageHash, message, messageHash))
+		ccxt.PanicOnError(retRes252215)
+		ch <- retRes252215
 		return nil
 
 	}()
@@ -2930,9 +2943,9 @@ func (this *BitgetCore) WatchPublicMultiple(uta any, messageHashes any, argsArra
 		}
 		var message any = this.Extend(request, params)
 
-		retRes252715 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-		ccxt.PanicOnError(retRes252715)
-		ch <- retRes252715
+		retRes254015 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+		ccxt.PanicOnError(retRes254015)
+		ch <- retRes254015
 		return nil
 
 	}()
@@ -2969,9 +2982,9 @@ func (this *BitgetCore) Authenticate(optionalArgs ...any) <-chan any {
 			this.Watch(url, messageHash, message, messageHash)
 		}
 
-		retRes255615 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes255615)
-		ch <- retRes255615
+		retRes256915 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes256915)
+		ch <- retRes256915
 		return nil
 
 	}()
@@ -2997,19 +3010,19 @@ func (this *BitgetCore) WatchPrivate(uta any, messageHash any, subscriptionHash 
 			}
 		}
 
-		retRes25728 := (<-this.Authenticate(map[string]any{
+		retRes25858 := (<-this.Authenticate(map[string]any{
 			"url": url,
 		}))
-		ccxt.PanicOnError(retRes25728)
+		ccxt.PanicOnError(retRes25858)
 		var request any = map[string]any{
 			"op":   "subscribe",
 			"args": []any{args},
 		}
 		var message any = this.Extend(request, params)
 
-		retRes257815 := (<-this.Watch(url, messageHash, message, subscriptionHash))
-		ccxt.PanicOnError(retRes257815)
-		ch <- retRes257815
+		retRes259115 := (<-this.Watch(url, messageHash, message, subscriptionHash))
+		ccxt.PanicOnError(retRes259115)
+		ch <- retRes259115
 		return nil
 
 	}()

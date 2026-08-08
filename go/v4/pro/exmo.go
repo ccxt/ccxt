@@ -144,6 +144,9 @@ func (this *ExmoCore) HandleBalance(client any, message any) {
 	//     }
 	//
 	var topic any = this.SafeString(message, "topic")
+	if ccxt.IsTrue(ccxt.IsEqual(topic, nil)) {
+		return
+	}
 	var parts any = ccxt.Split(topic, "/")
 	var typeVar any = this.SafeString(parts, 0)
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
@@ -182,7 +185,9 @@ func (this *ExmoCore) ParseSpotBalance(message any) {
 			var account any = this.Account()
 			ccxt.AddElementToObject(account, "free", this.SafeString(balances, currencyId))
 			ccxt.AddElementToObject(account, "used", this.SafeString(reserved, currencyId))
-			ccxt.AddElementToObject(this.Balance, code, account)
+			if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+				ccxt.AddElementToObject(this.Balance, code, account)
+			}
 		}
 	} else if ccxt.IsTrue(ccxt.IsEqual(event, "update")) {
 		var currencyId any = this.SafeString(data, "currency")
@@ -190,7 +195,9 @@ func (this *ExmoCore) ParseSpotBalance(message any) {
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "free", this.SafeString(data, "balance"))
 		ccxt.AddElementToObject(account, "used", this.SafeString(data, "reserved"))
-		ccxt.AddElementToObject(this.Balance, code, account)
+		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+			ccxt.AddElementToObject(this.Balance, code, account)
+		}
 	}
 	this.Balance = this.SafeBalance(this.Balance)
 }
@@ -220,7 +227,9 @@ func (this *ExmoCore) ParseMarginBalance(message any) {
 		ccxt.AddElementToObject(account, "free", this.SafeString(wallet, "free"))
 		ccxt.AddElementToObject(account, "used", this.SafeString(wallet, "used"))
 		ccxt.AddElementToObject(account, "total", this.SafeString(wallet, "balance"))
-		ccxt.AddElementToObject(this.Balance, code, account)
+		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+			ccxt.AddElementToObject(this.Balance, code, account)
+		}
 		this.Balance = this.SafeBalance(this.Balance)
 	}
 }
@@ -243,8 +252,8 @@ func (this *ExmoCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes22012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes22012)
+			retRes22912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes22912)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -257,9 +266,9 @@ func (this *ExmoCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
 		}
 		var request any = this.DeepExtend(message, params)
 
-		retRes23415 := (<-this.Watch(url, messageHash, request, messageHash, request))
-		ccxt.PanicOnError(retRes23415)
-		ch <- retRes23415
+		retRes24315 := (<-this.Watch(url, messageHash, request, messageHash, request))
+		ccxt.PanicOnError(retRes24315)
+		ch <- retRes24315
 		return nil
 
 	}()
@@ -286,8 +295,8 @@ func (this *ExmoCore) WatchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes24812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes24812)
+			retRes25712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes25712)
 		}
 		symbols = this.MarketSymbols(symbols, nil, false)
 		var messageHashes any = []any{}
@@ -305,8 +314,8 @@ func (this *ExmoCore) WatchTickers(optionalArgs ...any) <-chan any {
 		}
 		var request any = this.DeepExtend(message, params)
 
-		retRes2658 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, request))
-		ccxt.PanicOnError(retRes2658)
+		retRes2748 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, request))
+		ccxt.PanicOnError(retRes2748)
 
 		ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 		return nil
@@ -335,6 +344,9 @@ func (this *ExmoCore) HandleTicker(client any, message any) {
 	//      }
 	//
 	var topic any = this.SafeString(message, "topic")
+	if ccxt.IsTrue(ccxt.IsEqual(topic, nil)) {
+		return
+	}
 	var topicParts any = ccxt.Split(topic, ":")
 	var marketId any = this.SafeString(topicParts, 1)
 	var symbol any = this.SafeSymbol(marketId)
@@ -369,8 +381,8 @@ func (this *ExmoCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes31312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes31312)
+			retRes32512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes32512)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -409,6 +421,9 @@ func (this *ExmoCore) HandleTrades(client any, message any) {
 	//      }
 	//
 	var topic any = this.SafeString(message, "topic")
+	if ccxt.IsTrue(ccxt.IsEqual(topic, nil)) {
+		return
+	}
 	var parts any = ccxt.Split(topic, ":")
 	var marketId any = this.SafeString(parts, 1)
 	var symbol any = this.SafeSymbol(marketId)
@@ -455,12 +470,12 @@ func (this *ExmoCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes38112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes38112)
+			retRes39612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes39612)
 		}
 
-		retRes3838 := (<-this.Authenticate(params))
-		ccxt.PanicOnError(retRes3838)
+		retRes3988 := (<-this.Authenticate(params))
+		ccxt.PanicOnError(retRes3988)
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("watchMyTrades", nil, params)
 		typeVar := ccxt.GetValue(typeVarqueryVariable, 0)
 		query := ccxt.GetValue(typeVarqueryVariable, 1)
@@ -548,6 +563,9 @@ func (this *ExmoCore) HandleMyTrades(client any, message any) {
 	//     }
 	//
 	var topic any = this.SafeString(message, "topic")
+	if ccxt.IsTrue(ccxt.IsEqual(topic, nil)) {
+		return
+	}
 	var parts any = ccxt.Split(topic, "/")
 	var typeVar any = this.SafeString(parts, 0)
 	var messageHash any = ccxt.Add("myTrades:", typeVar)
@@ -572,7 +590,9 @@ func (this *ExmoCore) HandleMyTrades(client any, message any) {
 	for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(trades)); j++ {
 		var trade any = ccxt.GetValue(trades, j)
 		myTrades.(ccxt.Appender).Append(trade)
-		ccxt.AddElementToObject(symbols, ccxt.GetValue(trade, "symbol"), true)
+		if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(trade, "symbol"), nil)) {
+			ccxt.AddElementToObject(symbols, ccxt.GetValue(trade, "symbol"), true)
+		}
 	}
 	var symbolKeys any = ccxt.ObjectKeys(symbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolKeys)); i++ {
@@ -590,7 +610,7 @@ func (this *ExmoCore) HandleMyTrades(client any, message any) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ExmoCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -603,8 +623,8 @@ func (this *ExmoCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes51112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes51112)
+			retRes53112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes53112)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -662,6 +682,9 @@ func (this *ExmoCore) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var topic any = this.SafeString(message, "topic")
+	if ccxt.IsTrue(ccxt.IsEqual(topic, nil)) {
+		return
+	}
 	var parts any = ccxt.Split(topic, ":")
 	var marketId any = this.SafeString(parts, 1)
 	var symbol any = this.SafeSymbol(marketId)
@@ -723,12 +746,12 @@ func (this *ExmoCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes61512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes61512)
+			retRes63812 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes63812)
 		}
 
-		retRes6178 := (<-this.Authenticate(params))
-		ccxt.PanicOnError(retRes6178)
+		retRes6408 := (<-this.Authenticate(params))
+		ccxt.PanicOnError(retRes6408)
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("watchOrders", nil, params)
 		typeVar := ccxt.GetValue(typeVarqueryVariable, 0)
 		query := ccxt.GetValue(typeVarqueryVariable, 1)
@@ -814,6 +837,9 @@ func (this *ExmoCore) HandleOrders(client any, message any) {
 	// }
 	//
 	var topic any = this.SafeString(message, "topic")
+	if ccxt.IsTrue(ccxt.IsEqual(topic, nil)) {
+		return
+	}
 	var parts any = ccxt.Split(topic, "/")
 	var typeVar any = this.SafeString(parts, 0)
 	var messageHash any = ccxt.Add("orders:", typeVar)
@@ -834,7 +860,9 @@ func (this *ExmoCore) HandleOrders(client any, message any) {
 	for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(rawOrders)); j++ {
 		var order any = this.ParseWsOrder(ccxt.GetValue(rawOrders, j))
 		cachedOrders.(ccxt.Appender).Append(order)
-		ccxt.AddElementToObject(symbols, ccxt.GetValue(order, "symbol"), true)
+		if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(order, "symbol"), nil)) {
+			ccxt.AddElementToObject(symbols, ccxt.GetValue(order, "symbol"), true)
+		}
 	}
 	var symbolKeys any = ccxt.ObjectKeys(symbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolKeys)); i++ {

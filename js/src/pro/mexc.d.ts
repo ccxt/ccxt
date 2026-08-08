@@ -1,5 +1,5 @@
 import mexcRest from '../mexc.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Tickers, Strings, FundingRate, Market } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class mexc extends mexcRest {
     describe(): any;
@@ -26,7 +26,7 @@ export default class mexc extends mexcRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTickers(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name mexc#watchBidsAsks
@@ -69,7 +69,7 @@ export default class mexc extends mexcRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBookSubscription(client: Client, message: any): void;
@@ -104,7 +104,7 @@ export default class mexc extends mexcRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrade(client: Client, message: any, subscription?: any): void;
+    handleMyTrade(client: Client, message: any, subscription?: Dict | undefined): void;
     parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
@@ -123,8 +123,8 @@ export default class mexc extends mexcRest {
     handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: any, market?: Market): string;
-    parseWsOrderType(type: any): string;
-    parseWsTimeInForce(timeInForce: any): string;
+    parseWsOrderType(type: any): Str;
+    parseWsTimeInForce(timeInForce: any): Str;
     /**
      * @method
      * @name mexc#watchBalance
@@ -165,7 +165,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name mexc#unWatchTickers
@@ -194,7 +194,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name mexc#unWatchOrderBook
@@ -204,7 +204,7 @@ export default class mexc extends mexcRest {
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name mexc#unWatchTrades
@@ -214,9 +214,9 @@ export default class mexc extends mexcRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     handleUnsubscriptions(client: Client, messageHashes: string[]): void;
-    authenticate(subscriptionHash: any, params?: {}): Promise<string>;
+    authenticate(subscriptionHash: any, params?: {}): Promise<Str>;
     keepAliveListenKey(listenKey: any, params?: {}): Promise<void>;
     handlePong(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): void;

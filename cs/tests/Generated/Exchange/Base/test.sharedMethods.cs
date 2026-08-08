@@ -196,6 +196,10 @@ public partial class testMainClass : BaseTest
                     // so, we have to compare with millisecond accururacy
                     object dtParsed = exchange.parse8601(dt);
                     object tsMs = getValue(entry, "timestamp");
+                    if (isTrue(isEqual(dtParsed, null)))
+                    {
+                        assert(false, add(add("datetime is not parseable: ", dt), logText));
+                    }
                     object diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
                     if (isTrue(isGreaterThanOrEqual(diff, 500)))
                     {
@@ -271,7 +275,7 @@ public partial class testMainClass : BaseTest
         public void assertSymbolInMarkets(BaseExchange exchange, object skippedProperties, object method, object symbol)
         {
             object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
-            assert((inOp(exchange.markets, symbol)), add("symbol should be present in exchange.symbols", logText));
+            assert(isTrue((!isEqual(exchange.markets, null))) && isTrue((inOp(exchange.markets, symbol))), add("symbol should be present in exchange.symbols", logText));
         }
         public void assertGreater(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
         {
@@ -742,27 +746,50 @@ public partial class testMainClass : BaseTest
             object keyUpper = exchange.capitalize(((object)key).ToString());
             return exchange.getProperty(exchange, keyUpper, defaultValue);
         }
-        async public Task validateTickerExceptionForPercentage(object ex, BaseExchange exchange, object ticker)
+        public object tickerExceptionNeedsOhlcv(object ex, BaseExchange exchange, object ticker)
+        {
+            // pure helper (no awaits): files under test/Exchange/base transpile into a single
+            // sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
+            // in the per-lane callers - this tells them whether the probe is needed
+            object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+            if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(eMessage, "percentage should be above"), 0)) || isTrue(isGreaterThanOrEqual(getIndexOf(eMessage, "percentage should be below"), 0))))
+            {
+                object symbol = getValue(ticker, "symbol");
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    if (isTrue(isTrue((!isEqual(exchange.markets, null))) && isTrue((inOp(exchange.markets, symbol)))))
+                    {
+                        if (isTrue(!isEqual(exchange.featureValue(symbol, "fetchOHLCV"), null)))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        public void validateTickerExceptionForPercentage(object ex, BaseExchange exchange, object ticker, object ohlcv = null)
         {
             // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-            object eMessage = exchange.exceptionMessage(ex, false);
+            // pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
+            // per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
+            object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
             if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(eMessage, "percentage should be above"), 0)) || isTrue(isGreaterThanOrEqual(getIndexOf(eMessage, "percentage should be below"), 0))))
             {
                 object symbol = getValue(ticker, "symbol");
                 if (isTrue(!isEqual(symbol, null)))
                 {
                     // if it's not in markets, then maybe newly added symbol, so can can compromise there
-                    if (!isTrue((inOp(exchange.markets, symbol))))
+                    if (isTrue(isTrue((isEqual(exchange.markets, null))) || !isTrue((inOp(exchange.markets, symbol)))))
                     {
                         return;
                     }
-                    // if OHLCV supported
-                    if (isTrue(!isEqual(exchange.featureValue(symbol, "fetchOHLCV"), null)))
+                    if (isTrue(!isEqual(ohlcv, null)))
                     {
-                        object ohlcv = await ((dynamic)exchange).fetchOHLCV(symbol, "1d", null, 5);
-                        if (isTrue(isLessThanOrEqual(getArrayLength(ohlcv), 1)))
+                        object ohlcvLength = getArrayLength(ohlcv);
+                        if (isTrue(isLessThanOrEqual(ohlcvLength, 1)))
                         {
-                            // if only 1 day, then allow it
+                            // if only 1 day of listing, then allow it
                             return;
                         }
                     }

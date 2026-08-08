@@ -1146,7 +1146,7 @@ func (this *BybitCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan an
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BybitCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2932,9 +2932,13 @@ func (this *BybitCore) ParseWsBalance(balance any, optionalArgs ...any) {
 		if ccxt.IsTrue(ccxt.IsEqual(this.SafeValue(this.Balance, accountType), nil)) {
 			ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
 		}
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(accountType, nil))) && ccxt.IsTrue((!ccxt.IsEqual(code, nil)))) {
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
+		}
 	} else {
-		ccxt.AddElementToObject(this.Balance, code, account)
+		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+			ccxt.AddElementToObject(this.Balance, code, account)
+		}
 	}
 }
 func (this *BybitCore) WatchTopics(url any, messageHashes any, topics any, optionalArgs ...any) <-chan any {
@@ -2951,9 +2955,9 @@ func (this *BybitCore) WatchTopics(url any, messageHashes any, topics any, optio
 		}
 		var message any = this.Extend(request, params)
 
-		retRes238015 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-		ccxt.PanicOnError(retRes238015)
-		ch <- retRes238015
+		retRes238415 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+		ccxt.PanicOnError(retRes238415)
+		ch <- retRes238415
 		return nil
 
 	}()
@@ -2983,9 +2987,9 @@ func (this *BybitCore) UnWatchTopics(url any, topic any, symbols any, messageHas
 		}
 		var message any = this.Extend(request, params)
 
-		retRes239815 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes, this.Extend(subscription, subExtension)))
-		ccxt.PanicOnError(retRes239815)
-		ch <- retRes239815
+		retRes240215 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes, this.Extend(subscription, subExtension)))
+		ccxt.PanicOnError(retRes240215)
+		ch <- retRes240215
 		return nil
 
 	}()
@@ -3017,9 +3021,9 @@ func (this *BybitCore) Authenticate(url any, optionalArgs ...any) <-chan any {
 			this.Watch(url, messageHash, message, messageHash)
 		}
 
-		retRes242215 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes242215)
-		ch <- retRes242215
+		retRes242615 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes242615)
+		ch <- retRes242615
 		return nil
 
 	}()
@@ -3088,6 +3092,17 @@ func (this *BybitCore) HandleErrorMessage(client any, message any) any {
 							client.(ccxt.ClientInterface).Reject(error, authenticatedHash)
 							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash)) {
 								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash)
+							}
+							var op any = this.SafeString(message, "op")
+							if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(op, nil))) && ccxt.IsTrue((!ccxt.IsEqual(op, "auth")))) {
+								// an operation response that carries no reqId, e.g. bybit
+								// omits it on some permission rejections of trade ops,
+								// would leave the awaiting future pending forever, and
+								// since nothing on this client can proceed without
+								// authentication, reject everything pending, mirroring the
+								// behavior of unattributable non auth errors, see
+								// https://github.com/ccxt/ccxt/issues/29361
+								client.(ccxt.ClientInterface).Reject(error)
 							}
 						} else {
 							client.(ccxt.ClientInterface).Reject(error, messageHash)

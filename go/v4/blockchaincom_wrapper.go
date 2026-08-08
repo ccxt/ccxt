@@ -50,7 +50,7 @@ func (this *Blockchaincom) FetchMarkets(params ...any) ([]MarketInterface, error
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Blockchaincom) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -954,10 +954,10 @@ func (this *Blockchaincom) FetchDepositAddressesByNetwork(code string, options .
 func (this *Blockchaincom) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Blockchaincom) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Blockchaincom) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Blockchaincom) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Blockchaincom) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Blockchaincom) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1086,7 +1086,7 @@ func (this *Blockchaincom) FetchPosition(symbol string, options ...FetchPosition
 func (this *Blockchaincom) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Blockchaincom) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Blockchaincom) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Blockchaincom) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1104,7 +1104,7 @@ func (this *Blockchaincom) FetchPositionsRisk(options ...FetchPositionsRiskOptio
 func (this *Blockchaincom) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Blockchaincom) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Blockchaincom) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Blockchaincom) FetchTime(params ...any) (int64, error) {
@@ -1224,7 +1224,7 @@ func (this *Blockchaincom) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Blockchaincom) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Blockchaincom) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Blockchaincom) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Blockchaincom) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1269,7 +1269,7 @@ func (this *Blockchaincom) FetchTradesWs(symbol string, options ...FetchTradesWs
 func (this *Blockchaincom) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Blockchaincom) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Blockchaincom) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Blockchaincom) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

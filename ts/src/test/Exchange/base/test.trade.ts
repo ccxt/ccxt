@@ -1,5 +1,6 @@
 import { Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
+import type { Dict } from '../../../base/types.js';
 
 function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
     // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
@@ -37,9 +38,9 @@ function testTrade (exchange: Exchange, skippedProperties: object, method: strin
     testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
     if (!('fees' in skippedProperties)) {
         // todo: remove undefined check and probably non-empty array check later
-        if (entry['fees'] !== undefined) {
-            for (let i = 0; i < entry['fees'].length; i++) {
-                testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fees'], i);
+        if ((entry as Dict)['fees'] !== undefined) {
+            for (let i = 0; i < (entry as Dict)['fees'].length; i++) {
+                testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, (entry as Dict)['fees'], i);
             }
         }
     }

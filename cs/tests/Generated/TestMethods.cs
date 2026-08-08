@@ -1492,7 +1492,7 @@ public partial class testMainClass
             ((IDictionary<string,object>)result)[(string)targetExchange] = ioFileRead(path);
             return result;
         }
-        object files = (IList<string>)(ioDirRead(folder));
+        object files = ioDirRead(folder);
         for (object i = 0; isLessThan(i, getArrayLength(files)); postFixIncrement(ref i))
         {
             object file = getValue(files, i);
@@ -1998,7 +1998,10 @@ public partial class testMainClass
             ((IDictionary<string,object>)options)["secret"] = "";
         }
         BaseExchange exchange = initExchange(exchangeName, options);
-        exchange.currencies = currencies;
+        if (isTrue(!isEqual(currencies, null)))
+        {
+            exchange.currencies = currencies;
+        }
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if (isTrue(!isEqual(predictionEvents, null)))
@@ -2110,7 +2113,7 @@ public partial class testMainClass
                 }
                 object type = exchange.safeString(exchangeData, "outputType");
                 object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
-                await this.testRequestStatically(exchange, method, result, ((string)type), skipKeys);
+                await this.testRequestStatically(exchange, method, result, type, skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
             }
@@ -2365,7 +2368,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2534,7 +2537,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "Referer"), id), add(add("bybit - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
@@ -2563,7 +2566,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         object id = "ccxt";
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoin - id: ", id), " not in headers for spot orders."));
@@ -2574,7 +2577,7 @@ public partial class testMainClass
             });
         } catch(Exception e)
         {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoin - id: ", id), " not in headers for spot uta orders."));
         id = "ccxtfutures";
@@ -2583,7 +2586,7 @@ public partial class testMainClass
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoin - id: ", id), " not in headers for swap orders."));
         try
@@ -2593,7 +2596,7 @@ public partial class testMainClass
             });
         } catch(Exception e)
         {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoin - id: ", id), " not in headers for swap uta orders."));
         if (!isTrue(isSync()))
@@ -2618,7 +2621,7 @@ public partial class testMainClass
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoinfutures - id: ", id), " not in headers."));
         try
@@ -2627,7 +2630,7 @@ public partial class testMainClass
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoinfutures - id: ", id), " not in headers for uta orders."));
         if (!isTrue(isSync()))
@@ -2648,7 +2651,7 @@ public partial class testMainClass
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), add(add("bitget - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
@@ -2670,7 +2673,7 @@ public partial class testMainClass
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "source"), id), add(add("mexc - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
@@ -2795,7 +2798,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "X-SOURCE-KEY"), id), add(add("bingx - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
@@ -2852,7 +2855,7 @@ public partial class testMainClass
     // async testHyperliquid () {
     //     const exchange = this.initOfflineExchange ('hyperliquid');
     //     const id = '1';
-    //     let request = undefined;
+    //     let request: NullableDict = undefined;
     //     try {
     //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
     //     } catch (e) {
@@ -3011,7 +3014,7 @@ public partial class testMainClass
             await exchange.createOrder("BTC/USD:USDC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "PARADEX-PARTNER"), id), add(add("paradex - id: ", id), " not in headers"));
         if (!isTrue(isSync()))
@@ -3032,7 +3035,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "INPUT-SOURCE"), id), add(add("hashkey - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
@@ -3134,7 +3137,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "X-Broker-Id"), id), add(add("backpack - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
@@ -3155,7 +3158,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "X-BB-API-PLATFORM"), id), add(add("toobit - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
@@ -3189,5 +3192,28 @@ public partial class testMainClass
         }
         clientOrderId = getValue(request, "newClientOrderId");
         assert(((string)clientOrderId).StartsWith(((string)id)), add(add(add("weex - newClientOrderId: ", clientOrderId), " for swap order does not start with id: "), id));
+    }
+
+    public async virtual Task<object> testFoxbit()
+    {
+        Exchange exchange = ((Exchange)this.initOfflineExchange("foxbit"));
+        object reqHeaders = new Dictionary<string, object>() {};
+        object id = "ccxt";
+        try
+        {
+            await exchange.createOrder("BTC/BRL", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+        }
+        assert(isEqual(getValue(reqHeaders, "X-FB-CLIENT"), id), add(add("foxbit - id: ", id), " not in headers."));
+        object version = exchange.getCcxtVersion();
+        assert(isEqual(getValue(reqHeaders, "X-FB-CLIENT-VERSION"), version), add(add("foxbit - version: ", version), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
     }
 }

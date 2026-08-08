@@ -618,9 +618,11 @@ export class ParamType {
             const name = this.name || "";
 
             if (this.isArray()) {
+                if (this.arrayChildren == null) { throw new Error("missing array children"); }
                 const result = JSON.parse(this.arrayChildren.format("json"));
                 result.name = name;
-                result.type += `[${ (this.arrayLength < 0 ? "": String(this.arrayLength)) }]`;
+                const arrayLength = this.arrayLength;
+                result.type += `[${ ((arrayLength == null || arrayLength < 0) ? "": String(arrayLength)) }]`;
                 return JSON.stringify(result);
             }
 
@@ -632,6 +634,7 @@ export class ParamType {
 
             if (typeof(this.indexed) === "boolean") { result.indexed = this.indexed; }
             if (this.isTuple()) {
+                if (this.components == null) { throw new Error("missing components"); }
                 result.components = this.components.map((c) => JSON.parse(c.format(format)));
             }
             return JSON.stringify(result);
@@ -641,10 +644,13 @@ export class ParamType {
 
         // Array
         if (this.isArray()) {
+            if (this.arrayChildren == null) { throw new Error("missing array children"); }
             result += this.arrayChildren.format(format);
-            result += `[${ (this.arrayLength < 0 ? "": String(this.arrayLength)) }]`;
+            const arrayLength = this.arrayLength;
+            result += `[${ ((arrayLength == null || arrayLength < 0) ? "": String(arrayLength)) }]`;
         } else {
             if (this.isTuple()) {
+                if (this.components == null) { throw new Error("missing components"); }
                 result += "(" + this.components.map(
                     (comp) => comp.format(format)
                 ).join((format === "full") ? ", ": ",") + ")";
@@ -703,17 +709,19 @@ export class ParamType {
             if (this.arrayLength !== -1 && value.length !== this.arrayLength) {
                 throw new Error("array is wrong length");
             }
-            const _this = this;
-            return value.map((v) => (_this.arrayChildren.walk(v, process)));
+            const arrayChildren = this.arrayChildren;
+            if (arrayChildren == null) { throw new Error("missing array children"); }
+            return value.map((v) => (arrayChildren.walk(v, process)));
         }
 
         if (this.isTuple()) {
             if (!Array.isArray(value)) { throw new Error("invalid tuple value"); }
-            if (value.length !== this.components.length) {
+            const components = this.components;
+            if (components == null) { throw new Error("missing components"); }
+            if (value.length !== components.length) {
                 throw new Error("array is wrong length");
             }
-            const _this = this;
-            return value.map((v, i) => (_this.components[i].walk(v, process)));
+            return value.map((v, i) => (components[i].walk(v, process)));
         }
 
         return process(this.type, value);
@@ -727,6 +735,7 @@ export class ParamType {
                 throw new Error("array is wrong length");
             }
             const childType = this.arrayChildren;
+            if (childType == null) { throw new Error("missing array children"); }
 
             const result = value.slice();
             result.forEach((value, index) => {
@@ -740,6 +749,7 @@ export class ParamType {
 
         if (this.isTuple()) {
             const components = this.components;
+            if (components == null) { throw new Error("missing components"); }
 
             // Convert the object into an array
             let result: Array<any>;
@@ -760,7 +770,7 @@ export class ParamType {
                 });
             }
 
-            if (result.length !== this.components.length) {
+            if (result.length !== components.length) {
                 throw new Error("array is wrong length");
             }
 
@@ -1087,7 +1097,7 @@ export class ErrorFragment extends NamedFragment {
     /**
      *  Returns a new **ErrorFragment** for %%obj%%.
      */
-    static from(obj: any): ErrorFragment {
+    static override from(obj: any): ErrorFragment {
         if (ErrorFragment.isFragment(obj)) { return obj; }
 
         if (typeof(obj) === "string") {
@@ -1172,7 +1182,7 @@ export class EventFragment extends NamedFragment {
     /**
      *  Returns a new **EventFragment** for %%obj%%.
      */
-    static from(obj: any): EventFragment {
+    static override from(obj: any): EventFragment {
         if (EventFragment.isFragment(obj)) { return obj; }
 
         if (typeof(obj) === "string") {
@@ -1254,7 +1264,7 @@ export class ConstructorFragment extends Fragment {
     /**
      *  Returns a new **ConstructorFragment** for %%obj%%.
      */
-    static from(obj: any): ConstructorFragment {
+    static override from(obj: any): ConstructorFragment {
         if (ConstructorFragment.isFragment(obj)) { return obj; }
 
         if (typeof(obj) === "string") {
@@ -1321,7 +1331,7 @@ export class FallbackFragment extends Fragment {
     /**
      *  Returns a new **FallbackFragment** for %%obj%%.
      */
-    static from(obj: any): FallbackFragment {
+    static override from(obj: any): FallbackFragment {
         if (FallbackFragment.isFragment(obj)) { return obj; }
 
         if (typeof(obj) === "string") {
@@ -1497,7 +1507,7 @@ export class FunctionFragment extends NamedFragment {
     /**
      *  Returns a new **FunctionFragment** for %%obj%%.
      */
-    static from(obj: any): FunctionFragment {
+    static override from(obj: any): FunctionFragment {
         if (FunctionFragment.isFragment(obj)) { return obj; }
 
         if (typeof(obj) === "string") {
@@ -1584,7 +1594,7 @@ export class StructFragment extends NamedFragment {
     /**
      *  Returns a new **StructFragment** for %%obj%%.
      */
-    static from(obj: any): StructFragment {
+    static override from(obj: any): StructFragment {
         if (typeof(obj) === "string") {
             try {
                 return StructFragment.from(lex(obj));

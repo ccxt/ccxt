@@ -133,19 +133,213 @@ func (this *CoinoneCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"orderbook", "ticker", "ticker_utc", "trades"},
+				"get": map[string]any{
+					"orderbook": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"ticker_utc": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"v2Public": map[string]any{
-				"get": []any{"range_units", "markets/{quote_currency}", "markets/{quote_currency}/{target_currency}", "orderbook/{quote_currency}/{target_currency}", "trades/{quote_currency}/{target_currency}", "ticker_new/{quote_currency}", "ticker_new/{quote_currency}/{target_currency}", "ticker_utc_new/{quote_currency}", "ticker_utc_new/{quote_currency}/{target_currency}", "currencies", "currencies/{currency}", "chart/{quote_currency}/{target_currency}"},
+				"get": map[string]any{
+					"range_units": map[string]any{
+						"cost": 1,
+					},
+					"markets/{quote_currency}": map[string]any{
+						"cost": 1,
+					},
+					"markets/{quote_currency}/{target_currency}": map[string]any{
+						"cost": 1,
+					},
+					"orderbook/{quote_currency}/{target_currency}": map[string]any{
+						"cost": 1,
+					},
+					"trades/{quote_currency}/{target_currency}": map[string]any{
+						"cost": 1,
+					},
+					"ticker_new/{quote_currency}": map[string]any{
+						"cost": 1,
+					},
+					"ticker_new/{quote_currency}/{target_currency}": map[string]any{
+						"cost": 1,
+					},
+					"ticker_utc_new/{quote_currency}": map[string]any{
+						"cost": 1,
+					},
+					"ticker_utc_new/{quote_currency}/{target_currency}": map[string]any{
+						"cost": 1,
+					},
+					"currencies": map[string]any{
+						"cost": 1,
+					},
+					"currencies/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"chart/{quote_currency}/{target_currency}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"account/deposit_address", "account/btc_deposit_address", "account/balance", "account/daily_balance", "account/user_info", "account/virtual_account", "order/cancel_all", "order/cancel", "order/limit_buy", "order/limit_sell", "order/complete_orders", "order/limit_orders", "order/order_info", "transaction/auth_number", "transaction/history", "transaction/krw/history", "transaction/btc", "transaction/coin"},
+				"post": map[string]any{
+					"account/deposit_address": map[string]any{
+						"cost": 1,
+					},
+					"account/btc_deposit_address": map[string]any{
+						"cost": 1,
+					},
+					"account/balance": map[string]any{
+						"cost": 1,
+					},
+					"account/daily_balance": map[string]any{
+						"cost": 1,
+					},
+					"account/user_info": map[string]any{
+						"cost": 1,
+					},
+					"account/virtual_account": map[string]any{
+						"cost": 1,
+					},
+					"order/cancel_all": map[string]any{
+						"cost": 1,
+					},
+					"order/cancel": map[string]any{
+						"cost": 1,
+					},
+					"order/limit_buy": map[string]any{
+						"cost": 1,
+					},
+					"order/limit_sell": map[string]any{
+						"cost": 1,
+					},
+					"order/complete_orders": map[string]any{
+						"cost": 1,
+					},
+					"order/limit_orders": map[string]any{
+						"cost": 1,
+					},
+					"order/order_info": map[string]any{
+						"cost": 1,
+					},
+					"transaction/auth_number": map[string]any{
+						"cost": 1,
+					},
+					"transaction/history": map[string]any{
+						"cost": 1,
+					},
+					"transaction/krw/history": map[string]any{
+						"cost": 1,
+					},
+					"transaction/btc": map[string]any{
+						"cost": 1,
+					},
+					"transaction/coin": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"v2Private": map[string]any{
-				"post": []any{"account/balance", "account/deposit_address", "account/user_info", "account/virtual_account", "order/cancel", "order/limit_buy", "order/limit_sell", "order/limit_orders", "order/complete_orders", "order/query_order", "transaction/auth_number", "transaction/btc", "transaction/history", "transaction/krw/history"},
+				"post": map[string]any{
+					"account/balance": map[string]any{
+						"cost": 1,
+					},
+					"account/deposit_address": map[string]any{
+						"cost": 1,
+					},
+					"account/user_info": map[string]any{
+						"cost": 1,
+					},
+					"account/virtual_account": map[string]any{
+						"cost": 1,
+					},
+					"order/cancel": map[string]any{
+						"cost": 1,
+					},
+					"order/limit_buy": map[string]any{
+						"cost": 1,
+					},
+					"order/limit_sell": map[string]any{
+						"cost": 1,
+					},
+					"order/limit_orders": map[string]any{
+						"cost": 1,
+					},
+					"order/complete_orders": map[string]any{
+						"cost": 1,
+					},
+					"order/query_order": map[string]any{
+						"cost": 1,
+					},
+					"transaction/auth_number": map[string]any{
+						"cost": 1,
+					},
+					"transaction/btc": map[string]any{
+						"cost": 1,
+					},
+					"transaction/history": map[string]any{
+						"cost": 1,
+					},
+					"transaction/krw/history": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"v2_1Private": map[string]any{
-				"post": []any{"account/balance/all", "account/balance", "account/trade_fee", "account/trade_fee/{quote_currency}/{target_currency}", "order/limit", "order/cancel", "order/cancel/all", "order/open_orders", "order/open_orders/all", "order/complete_orders", "order/complete_orders/all", "order/info", "transaction/krw/history", "transaction/coin/history", "transaction/coin/withdrawal/limit"},
+				"post": map[string]any{
+					"account/balance/all": map[string]any{
+						"cost": 1,
+					},
+					"account/balance": map[string]any{
+						"cost": 1,
+					},
+					"account/trade_fee": map[string]any{
+						"cost": 1,
+					},
+					"account/trade_fee/{quote_currency}/{target_currency}": map[string]any{
+						"cost": 1,
+					},
+					"order/limit": map[string]any{
+						"cost": 1,
+					},
+					"order/cancel": map[string]any{
+						"cost": 1,
+					},
+					"order/cancel/all": map[string]any{
+						"cost": 1,
+					},
+					"order/open_orders": map[string]any{
+						"cost": 1,
+					},
+					"order/open_orders/all": map[string]any{
+						"cost": 1,
+					},
+					"order/complete_orders": map[string]any{
+						"cost": 1,
+					},
+					"order/complete_orders/all": map[string]any{
+						"cost": 1,
+					},
+					"order/info": map[string]any{
+						"cost": 1,
+					},
+					"transaction/krw/history": map[string]any{
+						"cost": 1,
+					},
+					"transaction/coin/history": map[string]any{
+						"cost": 1,
+					},
+					"transaction/coin/withdrawal/limit": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"fees": map[string]any{
@@ -439,7 +633,9 @@ func (this *CoinoneCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "avail"))
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -461,8 +657,8 @@ func (this *CoinoneCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes50412 := (<-this.LoadMarkets())
-			PanicOnError(retRes50412)
+			retRes50612 := (<-this.LoadMarkets())
+			PanicOnError(retRes50612)
 		}
 
 		response := (<-this.V2PrivatePostAccountBalance(params))
@@ -483,7 +679,7 @@ func (this *CoinoneCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CoinoneCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -496,8 +692,8 @@ func (this *CoinoneCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes52212 := (<-this.LoadMarkets())
-			PanicOnError(retRes52212)
+			retRes52412 := (<-this.LoadMarkets())
+			PanicOnError(retRes52412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -563,8 +759,8 @@ func (this *CoinoneCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes57212 := (<-this.LoadMarkets())
-			PanicOnError(retRes57212)
+			retRes57412 := (<-this.LoadMarkets())
+			PanicOnError(retRes57412)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{
@@ -645,8 +841,8 @@ func (this *CoinoneCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes63712 := (<-this.LoadMarkets())
-			PanicOnError(retRes63712)
+			retRes63912 := (<-this.LoadMarkets())
+			PanicOnError(retRes63912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -848,8 +1044,8 @@ func (this *CoinoneCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes81912 := (<-this.LoadMarkets())
-			PanicOnError(retRes81912)
+			retRes82112 := (<-this.LoadMarkets())
+			PanicOnError(retRes82112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -921,8 +1117,8 @@ func (this *CoinoneCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes87512 := (<-this.LoadMarkets())
-			PanicOnError(retRes87512)
+			retRes87712 := (<-this.LoadMarkets())
+			PanicOnError(retRes87712)
 		}
 		var market any = this.Market(symbol)
 		// the v1 order/limit_buy and order/limit_sell endpoints were retired by
@@ -977,8 +1173,8 @@ func (this *CoinoneCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes91412 := (<-this.LoadMarkets())
-			PanicOnError(retRes91412)
+			retRes91612 := (<-this.LoadMarkets())
+			PanicOnError(retRes91612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1179,8 +1375,8 @@ func (this *CoinoneCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes109512 := (<-this.LoadMarkets())
-			PanicOnError(retRes109512)
+			retRes109712 := (<-this.LoadMarkets())
+			PanicOnError(retRes109712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1244,8 +1440,8 @@ func (this *CoinoneCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes113912 := (<-this.LoadMarkets())
-			PanicOnError(retRes113912)
+			retRes114112 := (<-this.LoadMarkets())
+			PanicOnError(retRes114112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1312,8 +1508,8 @@ func (this *CoinoneCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes119012 := (<-this.LoadMarkets())
-			PanicOnError(retRes119012)
+			retRes119212 := (<-this.LoadMarkets())
+			PanicOnError(retRes119212)
 		}
 		var request any = map[string]any{
 			"order_id": id,
@@ -1358,8 +1554,8 @@ func (this *CoinoneCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes121912 := (<-this.LoadMarkets())
-			PanicOnError(retRes121912)
+			retRes122112 := (<-this.LoadMarkets())
+			PanicOnError(retRes122112)
 		}
 
 		response := (<-this.V2PrivatePostAccountDepositAddress(params))
@@ -1409,7 +1605,9 @@ func (this *CoinoneCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 				AddElementToObject(depositAddress, "tag", value)
 				AddElementToObject(depositAddress, "info", []any{address, value})
 			}
-			AddElementToObject(result, code, depositAddress)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, depositAddress)
+			}
 		}
 
 		ch <- result

@@ -161,174 +161,174 @@ export default class woo extends Exchange {
                 'v1': {
                     'pub': {
                         'get': {
-                            'hist/kline': 10,
-                            'hist/trades': 10,
+                            'hist/kline': { 'cost': 10 },
+                            'hist/trades': { 'cost': 10 },
                         },
                     },
                     'public': {
                         'get': {
-                            'info': 1,
-                            'info/{symbol}': 1,
-                            'system_info': 1,
-                            'market_trades': 1,
-                            'token': 1,
-                            'token_network': 1,
-                            'funding_rates': 1,
-                            'funding_rate/{symbol}': 1,
-                            'funding_rate_history': 1,
-                            'futures': 1,
-                            'futures/{symbol}': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
+                            'info': { 'cost': 1 },
+                            'info/{symbol}': { 'cost': 1 },
+                            'system_info': { 'cost': 1 },
+                            'market_trades': { 'cost': 1 },
+                            'token': { 'cost': 1 },
+                            'token_network': { 'cost': 1 },
+                            'funding_rates': { 'cost': 1 },
+                            'funding_rate/{symbol}': { 'cost': 1 },
+                            'funding_rate_history': { 'cost': 1 },
+                            'futures': { 'cost': 1 },
+                            'futures/{symbol}': { 'cost': 1 },
+                            'orderbook/{symbol}': { 'cost': 1 },
+                            'kline': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'client/token': 1,
-                            'order/{oid}': 1,
-                            'client/order/{client_order_id}': 1,
-                            'orders': 1,
-                            'client/trade/{tid}': 1,
-                            'order/{oid}/trades': 1,
-                            'client/trades': 1,
-                            'client/hist_trades': 1,
-                            'staking/yield_history': 1,
-                            'client/holding': 1,
-                            'asset/deposit': 10,
-                            'asset/history': 60,
-                            'sub_account/all': 60,
-                            'sub_account/assets': 60,
-                            'sub_account/asset_detail': 60,
-                            'sub_account/ip_restriction': 10,
-                            'asset/main_sub_transfer_history': 30,
-                            'token_interest': 60,
-                            'token_interest/{token}': 60,
-                            'interest/history': 60,
-                            'interest/repay': 60,
-                            'funding_fee/history': 30,
-                            'positions': 3.33, // 30 requests per 10 seconds
-                            'position/{symbol}': 3.33,
-                            'client/transaction_history': 60,
-                            'client/futures_leverage': 60,
+                            'client/token': { 'cost': 1 },
+                            'order/{oid}': { 'cost': 1 },
+                            'client/order/{client_order_id}': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'client/trade/{tid}': { 'cost': 1 },
+                            'order/{oid}/trades': { 'cost': 1 },
+                            'client/trades': { 'cost': 1 },
+                            'client/hist_trades': { 'cost': 1 },
+                            'staking/yield_history': { 'cost': 1 },
+                            'client/holding': { 'cost': 1 },
+                            'asset/deposit': { 'cost': 10 },
+                            'asset/history': { 'cost': 60 },
+                            'sub_account/all': { 'cost': 60 },
+                            'sub_account/assets': { 'cost': 60 },
+                            'sub_account/asset_detail': { 'cost': 60 },
+                            'sub_account/ip_restriction': { 'cost': 10 },
+                            'asset/main_sub_transfer_history': { 'cost': 30 },
+                            'token_interest': { 'cost': 60 },
+                            'token_interest/{token}': { 'cost': 60 },
+                            'interest/history': { 'cost': 60 },
+                            'interest/repay': { 'cost': 60 },
+                            'funding_fee/history': { 'cost': 30 },
+                            'positions': { 'cost': 3.33 }, // 30 requests per 10 seconds
+                            'position/{symbol}': { 'cost': 3.33 },
+                            'client/transaction_history': { 'cost': 60 },
+                            'client/futures_leverage': { 'cost': 60 },
                         },
                         'post': {
-                            'order': 1, // 10 requests per 1 second per symbol
-                            'order/cancel_all_after': 1,
-                            'asset/ltv': 30,
-                            'asset/internal_withdraw': 30,
-                            'interest/repay': 60,
-                            'client/account_mode': 120,
-                            'client/position_mode': 5,
-                            'client/leverage': 120,
-                            'client/futures_leverage': 30,
-                            'client/isolated_margin': 30,
+                            'order': { 'cost': 1 }, // 10 requests per 1 second per symbol
+                            'order/cancel_all_after': { 'cost': 1 },
+                            'asset/ltv': { 'cost': 30 },
+                            'asset/internal_withdraw': { 'cost': 30 },
+                            'interest/repay': { 'cost': 60 },
+                            'client/account_mode': { 'cost': 120 },
+                            'client/position_mode': { 'cost': 5 },
+                            'client/leverage': { 'cost': 120 },
+                            'client/futures_leverage': { 'cost': 30 },
+                            'client/isolated_margin': { 'cost': 30 },
                         },
                         'delete': {
-                            'order': 1,
-                            'client/order': 1,
-                            'orders': 1,
-                            'asset/withdraw': 120, // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
+                            'order': { 'cost': 1 },
+                            'client/order': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'asset/withdraw': { 'cost': 120 }, // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
                 'v2': {
                     'private': {
                         'get': {
-                            'client/holding': 1,
+                            'client/holding': { 'cost': 1 },
                         },
                     },
                 },
                 'v3': {
                     'public': {
                         'get': {
-                            'systemInfo': 1, // 10/1s
-                            'instruments': 1, // 10/1s
-                            'token': 1, // 10/1s
-                            'tokenNetwork': 1, // 10/1s
-                            'tokenInfo': 1, // 10/1s
-                            'marketTrades': 1, // 10/1s
-                            'marketTradesHistory': 1, // 10/1s
-                            'orderbook': 1, // 10/1s
-                            'kline': 1, // 10/1s
-                            'klineHistory': 1, // 10/1s
-                            'futures': 1, // 10/1s
-                            'fundingRate': 1, // 10/1s
-                            'fundingRateHistory': 1, // 10/1s
-                            'insuranceFund': 1, // 10/1s
+                            'systemInfo': { 'cost': 1 }, // 10/1s
+                            'instruments': { 'cost': 1 }, // 10/1s
+                            'token': { 'cost': 1 }, // 10/1s
+                            'tokenNetwork': { 'cost': 1 }, // 10/1s
+                            'tokenInfo': { 'cost': 1 }, // 10/1s
+                            'marketTrades': { 'cost': 1 }, // 10/1s
+                            'marketTradesHistory': { 'cost': 1 }, // 10/1s
+                            'orderbook': { 'cost': 1 }, // 10/1s
+                            'kline': { 'cost': 1 }, // 10/1s
+                            'klineHistory': { 'cost': 1 }, // 10/1s
+                            'futures': { 'cost': 1 }, // 10/1s
+                            'fundingRate': { 'cost': 1 }, // 10/1s
+                            'fundingRateHistory': { 'cost': 1 }, // 10/1s
+                            'insuranceFund': { 'cost': 1 }, // 10/1s
                         },
                     },
                     'private': {
                         'get': {
-                            'trade/order': 2, // 5/1s
-                            'trade/orders': 1, // 10/1s
-                            'trade/algoOrder': 1, // 10/1s
-                            'trade/algoOrders': 1, // 10/1s
-                            'trade/transaction': 1, // 10/1s
-                            'trade/transactionHistory': 5, // 2/1s
-                            'trade/tradingFee': 5, // 2/1s
-                            'account/info': 60, // 10/60s
-                            'account/tokenConfig': 1, // 10/1s
-                            'account/symbolConfig': 1, // 10/1s
-                            'account/subAccounts/all': 60, // 10/60s
-                            'account/referral/summary': 60, // 10/60s
-                            'account/referral/rewardHistory': 60, // 10/60s
-                            'account/credentials': 60, // 10/60s
-                            'asset/balances': 1, // 10/1s
-                            'asset/token/history': 60, // 10/60s
-                            'asset/transfer/history': 30, // 20/60s
-                            'asset/wallet/history': 60, // 10/60s
-                            'asset/wallet/deposit': 60, // 10/60s
-                            'asset/staking/yieldHistory': 60, // 10/60s
-                            'futures/positions': 3.33, // 30/10s
-                            'futures/leverage': 60, // 10/60s
-                            'futures/defaultMarginMode': 60, // 10/60s
-                            'futures/fundingFee/history': 30, // 20/60s
-                            'spotMargin/interestRate': 60, // 10/60s
-                            'spotMargin/interestHistory': 60, // 10/60s
-                            'spotMargin/maxMargin': 60, // 10/60s
-                            'algo/order/{oid}': 1,
-                            'algo/orders': 1,
-                            'positions': 3.33,
-                            'buypower': 1,
-                            'convert/exchangeInfo': 1,
-                            'convert/assetInfo': 1,
-                            'convert/rfq': 60,
-                            'convert/trade': 1,
-                            'convert/trades': 1,
+                            'trade/order': { 'cost': 2 }, // 5/1s
+                            'trade/orders': { 'cost': 1 }, // 10/1s
+                            'trade/algoOrder': { 'cost': 1 }, // 10/1s
+                            'trade/algoOrders': { 'cost': 1 }, // 10/1s
+                            'trade/transaction': { 'cost': 1 }, // 10/1s
+                            'trade/transactionHistory': { 'cost': 5 }, // 2/1s
+                            'trade/tradingFee': { 'cost': 5 }, // 2/1s
+                            'account/info': { 'cost': 60 }, // 10/60s
+                            'account/tokenConfig': { 'cost': 1 }, // 10/1s
+                            'account/symbolConfig': { 'cost': 1 }, // 10/1s
+                            'account/subAccounts/all': { 'cost': 60 }, // 10/60s
+                            'account/referral/summary': { 'cost': 60 }, // 10/60s
+                            'account/referral/rewardHistory': { 'cost': 60 }, // 10/60s
+                            'account/credentials': { 'cost': 60 }, // 10/60s
+                            'asset/balances': { 'cost': 1 }, // 10/1s
+                            'asset/token/history': { 'cost': 60 }, // 10/60s
+                            'asset/transfer/history': { 'cost': 30 }, // 20/60s
+                            'asset/wallet/history': { 'cost': 60 }, // 10/60s
+                            'asset/wallet/deposit': { 'cost': 60 }, // 10/60s
+                            'asset/staking/yieldHistory': { 'cost': 60 }, // 10/60s
+                            'futures/positions': { 'cost': 3.33 }, // 30/10s
+                            'futures/leverage': { 'cost': 60 }, // 10/60s
+                            'futures/defaultMarginMode': { 'cost': 60 }, // 10/60s
+                            'futures/fundingFee/history': { 'cost': 30 }, // 20/60s
+                            'spotMargin/interestRate': { 'cost': 60 }, // 10/60s
+                            'spotMargin/interestHistory': { 'cost': 60 }, // 10/60s
+                            'spotMargin/maxMargin': { 'cost': 60 }, // 10/60s
+                            'algo/order/{oid}': { 'cost': 1 },
+                            'algo/orders': { 'cost': 1 },
+                            'positions': { 'cost': 3.33 },
+                            'buypower': { 'cost': 1 },
+                            'convert/exchangeInfo': { 'cost': 1 },
+                            'convert/assetInfo': { 'cost': 1 },
+                            'convert/rfq': { 'cost': 60 },
+                            'convert/trade': { 'cost': 1 },
+                            'convert/trades': { 'cost': 1 },
                         },
                         'post': {
-                            'trade/order': 2, // 5/1s
-                            'trade/algoOrder': 5, // 2/1s
-                            'trade/cancelAllAfter': 1, // 10/1s
-                            'account/tradingMode': 120, // 5/60s
-                            'account/listenKey': 20, // 5/10s
-                            'asset/transfer': 30, // 20/60s
-                            'asset/wallet/withdraw': 60, // 10/60s
-                            'spotMargin/leverage': 120, // 5/60s
-                            'spotMargin/interestRepay': 60, // 10/60s
-                            'algo/order': 5,
-                            'convert/rft': 60,
+                            'trade/order': { 'cost': 2 }, // 5/1s
+                            'trade/algoOrder': { 'cost': 5 }, // 2/1s
+                            'trade/cancelAllAfter': { 'cost': 1 }, // 10/1s
+                            'account/tradingMode': { 'cost': 120 }, // 5/60s
+                            'account/listenKey': { 'cost': 20 }, // 5/10s
+                            'asset/transfer': { 'cost': 30 }, // 20/60s
+                            'asset/wallet/withdraw': { 'cost': 60 }, // 10/60s
+                            'spotMargin/leverage': { 'cost': 120 }, // 5/60s
+                            'spotMargin/interestRepay': { 'cost': 60 }, // 10/60s
+                            'algo/order': { 'cost': 5 },
+                            'convert/rft': { 'cost': 60 },
                         },
                         'put': {
-                            'trade/order': 2, // 5/1s
-                            'trade/algoOrder': 2, // 5/1s
-                            'futures/leverage': 60, // 10/60s
-                            'futures/positionMode': 120, // 5/60s
-                            'order/{oid}': 2,
-                            'order/client/{client_order_id}': 2,
-                            'algo/order/{oid}': 2,
-                            'algo/order/client/{client_order_id}': 2,
+                            'trade/order': { 'cost': 2 }, // 5/1s
+                            'trade/algoOrder': { 'cost': 2 }, // 5/1s
+                            'futures/leverage': { 'cost': 60 }, // 10/60s
+                            'futures/positionMode': { 'cost': 120 }, // 5/60s
+                            'order/{oid}': { 'cost': 2 },
+                            'order/client/{client_order_id}': { 'cost': 2 },
+                            'algo/order/{oid}': { 'cost': 2 },
+                            'algo/order/client/{client_order_id}': { 'cost': 2 },
                         },
                         'delete': {
-                            'trade/order': 1, // 10/1s
-                            'trade/orders': 1, // 10/1s
-                            'trade/algoOrder': 1, // 10/1s
-                            'trade/algoOrders': 1, // 10/1s
-                            'trade/allOrders': 1, // 10/1s
-                            'algo/order/{order_id}': 1,
-                            'algo/orders/pending': 1,
-                            'algo/orders/pending/{symbol}': 1,
-                            'orders/pending': 1,
+                            'trade/order': { 'cost': 1 }, // 10/1s
+                            'trade/orders': { 'cost': 1 }, // 10/1s
+                            'trade/algoOrder': { 'cost': 1 }, // 10/1s
+                            'trade/algoOrders': { 'cost': 1 }, // 10/1s
+                            'trade/allOrders': { 'cost': 1 }, // 10/1s
+                            'algo/order/{order_id}': { 'cost': 1 },
+                            'algo/orders/pending': { 'cost': 1 },
+                            'algo/orders/pending/{symbol}': { 'cost': 1 },
+                            'orders/pending': { 'cost': 1 },
                         },
                     },
                 },
@@ -358,7 +358,7 @@ export default class woo extends Exchange {
                     'TRC20': 'TRON',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -793,7 +793,7 @@ export default class woo extends Exchange {
             inverse = false;
         }
         const active = this.safeString(market, 'status') === 'TRADING';
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -841,7 +841,7 @@ export default class woo extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -1188,7 +1188,9 @@ export default class woo extends Exchange {
             };
             const parsed = this.parseCurrency(customCurrency);
             const code = this.safeString(parsed, 'code');
-            result[code] = parsed;
+            if (code !== undefined) {
+                result[code] = parsed;
+            }
         }
         return result;
     }
@@ -1205,27 +1207,29 @@ export default class woo extends Exchange {
             const networkEntry = this.safeDict(chainsByNetworkId, networkId, {});
             const networkCode = this.networkIdToCode(networkId, code);
             const specialNetworkId = this.safeString(tokenEntry, 'token');
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'currencyNetworkId': specialNetworkId, // exchange uses special currency-ids (coin + network junction)
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',
-                'withdraw': this.safeString(networkEntry, 'allow_withdraw') === '1',
-                'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'minimum_withdrawal'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'currencyNetworkId': specialNetworkId, // exchange uses special currency-ids (coin + network junction)
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',
+                    'withdraw': this.safeString(networkEntry, 'allow_withdraw') === '1',
+                    'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'minimum_withdrawal'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': { 'network': networkEntry, 'token': tokenEntry },
-            };
+                    'info': { 'network': networkEntry, 'token': tokenEntry },
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -2280,7 +2284,7 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2660,7 +2664,9 @@ export default class woo extends Exchange {
             const account = this.account();
             account['total'] = this.safeString(balance, 'holding');
             account['free'] = this.safeString(balance, 'availableBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2703,7 +2709,7 @@ export default class woo extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         networkCode = this.networkIdToCode(networkCode, currency['code']);
-        const networkEntry = this.safeDict(currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict(currency['networks'], networkCode);
         if (networkEntry === undefined) {
             const supportedNetworks = Object.keys(currency['networks']);
             throw new BadRequest(this.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + this.json(supportedNetworks));
@@ -4423,34 +4429,36 @@ export default class woo extends Exchange {
             const entry = data[i];
             const id = this.safeString(entry, 'token');
             const code = this.safeCurrencyCode(id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.safeNumber(entry, 'tick'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': this.safeNumber(entry, 'tick'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeTimestamp(entry, 'createdTime'),
-            };
+                    'created': this.safeTimestamp(entry, 'createdTime'),
+                };
+            }
         }
         return result;
     }

@@ -49,9 +49,18 @@ let defaultMaxInflation = 1024;
 class AbiCoder {
     #getCoder(param) {
         if (param.isArray()) {
+            if (param.arrayChildren == null) {
+                throw new Error("missing array children");
+            }
+            if (param.arrayLength == null) {
+                throw new Error("missing array length");
+            }
             return new array.ArrayCoder(this.#getCoder(param.arrayChildren), param.arrayLength, param.name);
         }
         if (param.isTuple()) {
+            if (param.components == null) {
+                throw new Error("missing components");
+            }
             return new tuple.TupleCoder(param.components.map((c) => this.#getCoder(c)), param.name);
         }
         switch (param.baseType) {

@@ -67,72 +67,188 @@ public partial class limitless : PredictionExchange
                 { "limitless", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "markets/active", 1 },
-                            { "markets/active/{categoryId}", 1 },
-                            { "categories", 1 },
-                            { "markets/{addressOrSlug}", 1 },
-                            { "markets/categories/count", 1 },
-                            { "markets/active/slugs", 1 },
-                            { "markets/search", 1 },
-                            { "markets/{slug}/orderbook", 1 },
-                            { "markets/{slug}/historical-price", 1 },
-                            { "auth/signing-message", 1 },
-                            { "markets/{addressOrSlug}/oracle-candles", 1 },
-                            { "markets/{slug}/get-feed-events", 1 },
-                            { "markets/{slug}/events", 1 },
-                            { "markets/timeline", 1 },
-                            { "markets/{slug}/timeline", 1 },
-                            { "navigation", 1 },
-                            { "market-pages/by-path", 1 },
-                            { "market-pages/{id}/markets", 1 },
-                            { "property-keys", 1 },
-                            { "property-keys/{id}", 1 },
-                            { "property-keys/{id}/options", 1 },
-                            { "portfolio/{account}/traded-volume", 1 },
-                            { "portfolio/{account}/positions", 1 },
-                            { "portfolio/{account}/pnl-chart", 1 },
+                            { "markets/active", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/active/{categoryId}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "categories", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{addressOrSlug}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/categories/count", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/active/slugs", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/search", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/orderbook", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/historical-price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/signing-message", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{addressOrSlug}/oracle-candles", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/get-feed-events", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/events", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/timeline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/timeline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "navigation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market-pages/by-path", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market-pages/{id}/markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "property-keys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "property-keys/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "property-keys/{id}/options", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/{account}/traded-volume", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/{account}/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/{account}/pnl-chart", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "auth/api-keys", 1 },
-                            { "profiles/partner-accounts", 1 },
-                            { "markets/{slug}/user-orders", 1 },
-                            { "portfolio/positions", 1 },
-                            { "portfolio/trades", 1 },
-                            { "markets/{slug}/locked-balance", 1 },
-                            { "profiles/me", 1 },
-                            { "profiles/{account}", 1 },
-                            { "portfolio/pnl-chart", 1 },
-                            { "portfolio/history", 1 },
-                            { "portfolio/points", 1 },
-                            { "portfolio/trading/allowance", 1 },
-                            { "auth/api-tokens/capabilities", 1 },
-                            { "auth/api-tokens", 1 },
-                            { "profiles/partner-accounts/{profileId}/allowances", 1 },
+                            { "auth/api-keys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/partner-accounts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/user-orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/locked-balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/me", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/{account}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/pnl-chart", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/points", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/trading/allowance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-tokens/capabilities", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-tokens", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/partner-accounts/{profileId}/allowances", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "auth/logout", 1 },
-                            { "auth/api-keys", 1 },
-                            { "auth/login", 1 },
-                            { "orders", 1 },
-                            { "orders/cancel", 1 },
-                            { "orders/cancel-batch", 1 },
-                            { "orders/batch-cancel", 1 },
-                            { "orders/status/batch", 1 },
-                            { "portfolio/redeem", 1 },
-                            { "portfolio/withdraw", 1 },
-                            { "portfolio/withdrawal-addresses", 1 },
-                            { "auth/api-tokens/derive", 1 },
-                            { "profiles/partner-accounts", 1 },
-                            { "profiles/partner-accounts/{profileId}/allowances/retry", 1 },
+                            { "auth/logout", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-keys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/login", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/cancel-batch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/batch-cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/status/batch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/redeem", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/withdraw", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/withdrawal-addresses", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-tokens/derive", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/partner-accounts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/partner-accounts/{profileId}/allowances/retry", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "auth/api-keys", 1 },
-                            { "orders/{order_id}", 1 },
-                            { "orders/all/{slug}", 1 },
-                            { "auth/api-tokens/{tokenId}", 1 },
-                            { "portfolio/withdrawal-addresses/{address}", 1 },
+                            { "auth/api-keys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/all/{slug}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-tokens/{tokenId}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/withdrawal-addresses/{address}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -189,7 +305,7 @@ public partial class limitless : PredictionExchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object queries = (IList<object>)(this.parseSearchQueries(parameters));
+        object queries = this.parseSearchQueries(parameters);
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every active limitless market. Cap the total number of markets collected.
@@ -211,7 +327,7 @@ public partial class limitless : PredictionExchange
                     { "query", q },
                     { "limit", limit },
                 }, searchRest));
-                object found = (IList<object>)(this.safeList(response, "markets", new List<object>() {}));
+                object found = this.safeList(response, "markets", new List<object>() {});
                 for (object j = 0; isLessThan(j, getArrayLength(found)); postFixIncrement(ref j))
                 {
                     object raw = getValue(found, j);
@@ -265,7 +381,12 @@ public partial class limitless : PredictionExchange
                     page = this.sum(page, 1);
                     ((IDictionary<string,object>)request)["page"] = page;
                     object response = await this.limitlessPublicGetMarketsActive(this.extend(request, rest));
-                    object rawPageMarkets = this.safeList(response, "data", ((object)response));
+                    object responseRows = new List<object>() {};
+                    if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                    {
+                        responseRows = response;
+                    }
+                    object rawPageMarkets = this.safeList(response, "data", responseRows);
                     object page_markets = ((bool) isTrue((!isEqual(rawPageMarkets, null)))) ? rawPageMarkets : new List<object>() {};
                     object pageMarketsLength = getArrayLength(page_markets);
                     if (isTrue(!isTrue(page_markets) || isTrue(isEqual(pageMarketsLength, 0))))
@@ -1097,8 +1218,8 @@ public partial class limitless : PredictionExchange
         if (isTrue(!isEqual(book, null)))
         {
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
-            object rawBids = (IList<object>)(this.safeList(book, "bids", new List<object>() {}));
-            object rawAsks = (IList<object>)(this.safeList(book, "asks", new List<object>() {}));
+            object rawBids = this.safeList(book, "bids", new List<object>() {});
+            object rawAsks = this.safeList(book, "asks", new List<object>() {});
             object rawBidsLength = getArrayLength(rawBids);
             object rawAsksLength = getArrayLength(rawAsks);
             object yesBestBid = ((bool) isTrue((isGreaterThan(rawBidsLength, 0)))) ? getValue(rawBids, 0) : null;
@@ -1139,7 +1260,7 @@ public partial class limitless : PredictionExchange
                 }
             }
         }
-        object prices = (IList<object>)(this.safeList(raw, "prices", new List<object>() {}));
+        object prices = this.safeList(raw, "prices", new List<object>() {});
         object pricesLength = getArrayLength(prices);
         if (isTrue(isTrue((isEqual(lastStr, null))) && isTrue((isGreaterThan(pricesLength, 0)))))
         {
@@ -1216,15 +1337,25 @@ public partial class limitless : PredictionExchange
         {
             object outcomeObj = this.outcome(getValue(outcomes, i));
             object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
+            if (isTrue(isEqual(slug, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchTickers() missing slug")) ;
+            }
             if (!isTrue((inOp(outcomesBySlug, slug))))
             {
-                ((IDictionary<string,object>)outcomesBySlug)[(string)slug] = new List<object>() {};
+                if (isTrue(!isEqual(slug, null)))
+                {
+                    ((IDictionary<string,object>)outcomesBySlug)[(string)slug] = new List<object>() {};
+                }
                 ((IList<object>)slugs).Add(slug);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            object grouped = getValue(outcomesBySlug, slug);
+            object grouped = this.safeValue(outcomesBySlug, slug);
             ((IList<object>)grouped).Add(outcomeObj);
-            ((IDictionary<string,object>)outcomesBySlug)[(string)slug] = grouped;
+            if (isTrue(!isEqual(slug, null)))
+            {
+                ((IDictionary<string,object>)outcomesBySlug)[(string)slug] = grouped;
+            }
         }
         object promises = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(slugs)); postFixIncrement(ref i))
@@ -1248,7 +1379,7 @@ public partial class limitless : PredictionExchange
                 { "market", detail },
                 { "book", book },
             };
-            object grouped = (IList<object>)(getValue(outcomesBySlug, slug));
+            object grouped = getValue(outcomesBySlug, slug);
             for (object j = 0; isLessThan(j, getArrayLength(grouped)); postFixIncrement(ref j))
             {
                 object ticker = this.parsePredictionTicker(tickerInput, getValue(grouped, j));
@@ -1310,7 +1441,7 @@ public partial class limitless : PredictionExchange
         //         "totalRows": 13
         //     }
         //
-        object rows = (IList<object>)(this.safeList(response, "events", new List<object>() {}));
+        object rows = this.safeList(response, "events", new List<object>() {});
         object filtered = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
@@ -1371,8 +1502,8 @@ public partial class limitless : PredictionExchange
         object scaleStr = this.parsePrecision(this.numberToString(prefixUnaryNeg(ref decimals)));
         object outcomeLabel = this.safeStringLower(getValue(outcomeObj, "info"), "outcomeLabel", "yes");
         object isYes = !isEqual(outcomeLabel, "no");
-        object rawBids = (IList<object>)(this.safeList(response, "bids", new List<object>() {}));
-        object rawAsks = (IList<object>)(this.safeList(response, "asks", new List<object>() {}));
+        object rawBids = this.safeList(response, "bids", new List<object>() {});
+        object rawAsks = this.safeList(response, "asks", new List<object>() {});
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
         object bidsSource = ((bool) isTrue((isYes))) ? rawBids : rawAsks;
         object asksSource = ((bool) isTrue((isYes))) ? rawAsks : rawBids;
@@ -1474,7 +1605,12 @@ public partial class limitless : PredictionExchange
         //         }
         //     ]
         //
-        object rawHistoryList = this.safeList(response, "data", this.safeList(response, "prices", ((object)response)));
+        object responseRows = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            responseRows = response;
+        }
+        object rawHistoryList = this.safeList(response, "data", this.safeList(response, "prices", responseRows));
         object rawHistory = ((bool) isTrue((!isEqual(rawHistoryList, null)))) ? rawHistoryList : new List<object>() {};
         object history = rawHistory;
         object rawHistoryLength = getArrayLength(rawHistory);
@@ -1489,6 +1625,10 @@ public partial class limitless : PredictionExchange
                 {
                     object series = this.safeDict(rawHistory, i, new Dictionary<string, object>() {});
                     object title = this.safeStringUpper(series, "title", "");
+                    if (isTrue(isEqual(title, null)))
+                    {
+                        throw new ExchangeError ((string)add(this.id, " fetchOHLCV() missing title")) ;
+                    }
                     if (isTrue(isTrue((!isEqual(outcomeLabel, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(title, outcomeLabel), 0)))))
                     {
                         selectedSeries = series;
@@ -1537,6 +1677,10 @@ public partial class limitless : PredictionExchange
             object point = getValue(sorted, i);
             object pTs = this.safeInteger(point, "timestamp");
             object pPrice = this.safeNumber(point, "price");
+            if (isTrue(isEqual(pTs, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " method() missing pTs")) ;
+            }
             object bucket = multiply(this.parseToInt(divide(pTs, ms)), ms);
             object key = ((object)bucket).ToString();
             if (!isTrue((inOp(candles, key))))
@@ -1546,8 +1690,11 @@ public partial class limitless : PredictionExchange
             } else
             {
                 object candle = getValue(candles, key);
-                ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), pPrice);
-                ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(getValue(candle, 3), pPrice);
+                object pPriceOrZero = ((bool) isTrue((isEqual(pPrice, null)))) ? 0 : pPrice;
+                ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), pPriceOrZero);
+                object candleLow = ((bool) isTrue((isEqual(getValue(candle, 3), null)))) ? pPrice : getValue(candle, 3);
+                object pPriceOrCandleLow = ((bool) isTrue((isEqual(pPrice, null)))) ? getValue(candle, 3) : pPrice;
+                ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(candleLow, pPriceOrCandleLow);
                 ((List<object>)candle)[Convert.ToInt32(4)] = pPrice;
                 ((IDictionary<string,object>)candles)[(string)key] = candle; // php arrays are value types - write the mutation back
             }
@@ -1612,7 +1759,7 @@ public partial class limitless : PredictionExchange
         // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-        return this.parsePredictionOrders(response, null, since, limit);
+        return this.parsePredictionOrders(this.toArray(response), null, since, limit);
     }
 
     /**
@@ -1966,7 +2113,7 @@ public partial class limitless : PredictionExchange
         }
         object id = this.safeString(rawOrder, "id");
         object tokenId = this.safeString2(rawOrder, "token", "tokenId");
-        object mkt = this.safeOutcome(tokenId, ((object)market));
+        object mkt = this.safeOutcome(tokenId, market);
         object outcomeSymbol = this.safeString(mkt, "outcome");
         object rawSide = this.safeString(rawOrder, "side");
         object side = this.parseOrderSide(rawSide);
@@ -2004,7 +2151,7 @@ public partial class limitless : PredictionExchange
                 feeCost = this.safeString(totals, "contractsFee");
             }
             fee = new Dictionary<string, object>() {
-                { "cost", this.applyScale(feeCost) },
+                { "cost", this.parseNumber(this.applyScale(feeCost)) },
                 { "currency", feeCurrency },
             };
         }
@@ -2208,6 +2355,10 @@ public partial class limitless : PredictionExchange
             { "buy", 0 },
             { "sell", 1 },
         };
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object sideValue = this.safeInteger(sides, ((string)side).ToLower());
         object rank = this.safeDict(accountInfo, "rank");
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
@@ -2313,7 +2464,7 @@ public partial class limitless : PredictionExchange
             ((IDictionary<string,object>)request)["postOnly"] = postOnly;
         }
         object response = await this.limitlessPrivatePostOrders(this.extend(request, parameters));
-        object parsedOrder = this.parsePredictionOrder(response, ((object)outcomeObj));
+        object parsedOrder = this.parsePredictionOrder(response, outcomeObj);
         // the create-order response omits a status field; a freshly accepted order is open
         if (isTrue(isEqual(getValue(parsedOrder, "status"), null)))
         {
@@ -2839,14 +2990,26 @@ public partial class limitless : PredictionExchange
         object amount = this.safeString(trade, "outcomeTokenAmount");
         object cost = this.safeString(trade, "collateralAmount");
         object rawSide = this.safeStringLower(trade, "strategy");
+        if (isTrue(isEqual(rawSide, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parsePredictionTrade() missing rawSide")) ;
+        }
         object sellIndex = getIndexOf(rawSide, "sell");
         object side = ((bool) isTrue((isGreaterThanOrEqual(sellIndex, 0)))) ? "sell" : "buy";
         object type = null;
         object takerOrMaker = null;
+        if (isTrue(isEqual(rawSide, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parsePredictionTrade() missing rawSide")) ;
+        }
         if (isTrue(isGreaterThanOrEqual(getIndexOf(rawSide, "limit"), 0)))
         {
             type = "limit";
             takerOrMaker = "maker";
+            if (isTrue(isEqual(rawSide, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " method() missing rawSide")) ;
+            }
         } else if (isTrue(isGreaterThanOrEqual(getIndexOf(rawSide, "market"), 0)))
         {
             type = "market";
@@ -2998,7 +3161,7 @@ public partial class limitless : PredictionExchange
         //         ]
         //     }
         //
-        object clob = (IList<object>)(this.safeList(response, "clob", new List<object>() {}));
+        object clob = this.safeList(response, "clob", new List<object>() {});
         object result = new List<object>() {};
         object labels = new List<object>() {"yes", "no"};
         for (object i = 0; isLessThan(i, getArrayLength(clob)); postFixIncrement(ref i))
@@ -3030,7 +3193,7 @@ public partial class limitless : PredictionExchange
             return null;
         }
         object positions = this.safeDict(entry, "positions");
-        object position = this.safeDict(positions, label);
+        object position = this.safeDict(positions, label, new Dictionary<string, object>() {});
         object rawMarket = this.safeDict(entry, "market");
         object slug = this.safeString(rawMarket, "slug");
         object outcomeObj = this.getOutcomeBySlugAndLabel(slug, label);
@@ -3123,6 +3286,10 @@ public partial class limitless : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         this.requireEventQuery(parameters);
         object queries = this.parseSearchQueries(parameters);
+        if (isTrue(isEqual(queries, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchEvents() missing queries")) ;
+        }
         object queriesLength = getArrayLength(queries);
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status"});
         object eventId = this.safeString2(parameters, "eventId", "slug");
@@ -3137,12 +3304,16 @@ public partial class limitless : PredictionExchange
             object seen = new Dictionary<string, object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
             {
+                if (isTrue(isEqual(queries, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " fetchEvents() missing queries")) ;
+                }
                 object q = getValue(queries, i);
                 object response = await this.limitlessPublicGetMarketsSearch(this.extend(new Dictionary<string, object>() {
                     { "query", q },
                     { "limit", limit },
                 }, rest));
-                object found = (IList<object>)(this.safeList(response, "markets", new List<object>() {}));
+                object found = this.safeList(response, "markets", new List<object>() {});
                 for (object j = 0; isLessThan(j, getArrayLength(found)); postFixIncrement(ref j))
                 {
                     object raw = getValue(found, j);
@@ -3191,7 +3362,11 @@ public partial class limitless : PredictionExchange
             object groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, this.safeString(raw, "slug"));
             object eventKey = ((bool) isTrue(groupId)) ? this.shortenSlug(groupId) : null;
             object m = this.parseMarket(raw);
-            ((IDictionary<string,object>)this.markets)[(string)((string)getValue(m, "market"))] = m;
+            if (isTrue(isEqual(m, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchEvents() missing m")) ;
+            }
+            ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
             if (isTrue(eventKey))
             {
                 if (!isTrue((inOp(eventGroups, eventKey))))
@@ -3271,7 +3446,7 @@ public partial class limitless : PredictionExchange
             {
                 response = await this.limitlessPublicGetMarketsActive(this.extend(request, rest));
             }
-            object data = (IList<object>)(this.safeList(response, "data", new List<object>() {}));
+            object data = this.safeList(response, "data", new List<object>() {});
             object dataLength = getArrayLength(data);
             if (isTrue(isEqual(dataLength, 0)))
             {
@@ -3308,7 +3483,11 @@ public partial class limitless : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object categoriesResponse = await this.limitlessPublicGetCategories();
-        object categories = ((bool) isTrue((!isEqual(categoriesResponse, null)))) ? categoriesResponse : new List<object>() {};
+        object categories = new List<object>() {};
+        if (isTrue(((categoriesResponse is IList<object>) || (categoriesResponse.GetType().IsGenericType && categoriesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            categories = categoriesResponse;
+        }
         object wanted = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tags)); postFixIncrement(ref i))
         {
@@ -3324,6 +3503,10 @@ public partial class limitless : PredictionExchange
             object matched = false;
             for (object wi = 0; isLessThan(wi, getArrayLength(wanted)); postFixIncrement(ref wi))
             {
+                if (isTrue(isEqual(name, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " fetchRawMarketsByTags() missing name")) ;
+                }
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(name, getValue(wanted, wi)), 0)))
                 {
                     matched = true;
@@ -3381,7 +3564,7 @@ public partial class limitless : PredictionExchange
         object apiGroup = ((bool) isTrue((section is string))) ? section : getValue(section, 0);
         object access = ((bool) isTrue((section is string))) ? "public" : getValue(section, 1);
         object baseUrls = getValue(this.urls, "api");
-        object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "limitless")));
+        object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "limitless"));
         object url = add("/", this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object querystring = this.urlencodeWithArrayRepeat(query);

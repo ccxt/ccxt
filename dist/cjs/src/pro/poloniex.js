@@ -156,8 +156,12 @@ class poloniex extends poloniex$1["default"] {
             marketIds.push('all');
         }
         else {
+            if (symbols === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' subscribe() symbols is required');
+            }
             messageHash = messageHash + '::' + symbols.join(',');
-            marketIds = this.marketIds(symbols);
+            const ids = this.marketIds(symbols);
+            marketIds = (ids === undefined) ? [] : ids;
         }
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
@@ -212,6 +216,9 @@ class poloniex extends poloniex$1["default"] {
         await this.authenticate();
         const market = this.market(symbol);
         let uppercaseType = type.toUpperCase();
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrderWs() side is required');
+        }
         const uppercaseSide = side.toUpperCase();
         const isPostOnly = this.isPostOnly(uppercaseType === 'MARKET', uppercaseType === 'LIMIT_MAKER', params);
         if (isPostOnly) {
@@ -465,7 +472,7 @@ class poloniex extends poloniex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by poloniex watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -605,12 +612,14 @@ class poloniex extends poloniex$1["default"] {
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                if (symbol !== undefined && timeframe !== undefined) {
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
             }
             stored.append(parsed);
             client.resolve(stored, messageHash);
@@ -648,7 +657,9 @@ class poloniex extends poloniex$1["default"] {
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
                     tradesArray = new Cache.ArrayCache(tradesLimit);
-                    this.trades[symbol] = tradesArray;
+                    if (symbol !== undefined) {
+                        this.trades[symbol] = tradesArray;
+                    }
                 }
                 tradesArray.append(trade);
                 client.resolve(tradesArray, messageHash);
@@ -1015,8 +1026,12 @@ class poloniex extends poloniex$1["default"] {
             if (marketId !== undefined) {
                 const ticker = this.parseTicker(item);
                 const symbol = ticker['symbol'];
-                this.tickers[symbol] = ticker;
-                newTickers[symbol] = ticker;
+                if (symbol !== undefined) {
+                    this.tickers[symbol] = ticker;
+                }
+                if (symbol !== undefined) {
+                    newTickers[symbol] = ticker;
+                }
             }
         }
         const messageHashes = this.findMessageHashes(client, 'ticker::');
@@ -1183,7 +1198,9 @@ class poloniex extends poloniex$1["default"] {
             const newAccount = this.account();
             newAccount['free'] = this.safeString(balance, 'available');
             newAccount['used'] = this.safeString(balance, 'hold');
-            result[code] = newAccount;
+            if (code !== undefined) {
+                result[code] = newAccount;
+            }
         }
         return this.safeBalance(result);
     }

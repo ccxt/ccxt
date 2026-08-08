@@ -36,7 +36,7 @@ const precisionConstants = {
     NO_PADDING,
     PAD_WITH_ZERO,
 };
-const assert = (x, y) => { if (!x)
+const assert = (x, y = undefined) => { if (!x)
     throw new Error(y || 'assertion failed'); };
 function numberToString(x) {
     if (x === undefined)
@@ -44,6 +44,8 @@ function numberToString(x) {
     if (typeof x !== 'number')
         return x.toString();
     const s = x.toString();
+    if (s.indexOf('e') < 0)
+        return s; // fast path: nothing to expand without scientific notation
     if (Math.abs(x) < 1.0) {
         const n_e = s.split('e-');
         const n = n_e[0].replace('.', '');
@@ -83,6 +85,9 @@ const truncate_to_string = (num, precision = 0) => {
 };
 const truncate = (num, precision = 0) => parseFloat(truncate_to_string(num, precision));
 function precisionFromString(str) {
+    if (str === undefined) {
+        return 0;
+    }
     // support string formats like '1e-4'
     if (str.indexOf('e') > -1 || str.indexOf('E') > -1) {
         const numStr = str.replace(/\d\.?\d*[eE]/, '');
@@ -93,8 +98,29 @@ function precisionFromString(str) {
     //     return str.length * -1
     // }
     // default strings like '0.0001'
-    const split = str.replace(/0+$/g, '').split('.');
-    return (split.length > 1) ? (split[1].length) : 0;
+    // equivalent to str.replace (/0+$/g, '').split ('.') but without the intermediate allocations
+    let dot = -1;
+    let secondDot = -1;
+    let lastNonZero = -1;
+    const strLength = str.length;
+    for (let i = 0; i < strLength; i++) {
+        const c = str.charCodeAt(i);
+        if (c !== 48) { // '0'
+            lastNonZero = i;
+            if (c === 46) { // '.'
+                if (dot < 0) {
+                    dot = i;
+                }
+                else if (secondDot < 0) {
+                    secondDot = i;
+                }
+            }
+        }
+    }
+    if (dot < 0) {
+        return 0;
+    }
+    return ((secondDot < 0) ? (lastNonZero + 1) : secondDot) - dot - 1;
 }
 /*  ------------------------------------------------------------------------ */
 const decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode = DECIMAL_PLACES, paddingMode = NO_PADDING) => {
@@ -119,7 +145,7 @@ const _decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode =
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow(10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * _decimalToPrecision(x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString();
+            return (toNearest * parseFloat(_decimalToPrecision(x / toNearest, roundingMode, 0, countingMode, paddingMode))).toString();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString();
@@ -182,7 +208,6 @@ const _decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode =
     }
     const hasDot = strDot < str.length;
     /*  Char code constants         */
-    const MINUS = 45;
     const DOT = 46;
     const ZERO = 48;
     const ONE = (ZERO + 1);
@@ -276,21 +301,17 @@ const _decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode =
     const padStart = (nBeforeDot + 1 + nAfterDot); //  -123.456( )
     const padEnd = (padStart + pad); //  -123.456     ( )
     const isInteger = (nAfterDot + pad) === 0; //  -123
-    /*  Fill the output buffer with characters    */
-    const out = new Uint8Array(nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad);
-    // ------------------------------------------------------------------------------------------ // ---------------------
-    if (signNeeded)
-        out[0] = MINUS; // -     minus sign
+    /*  Build the output string from characters    */
+    let out = signNeeded ? '-' : ''; // -     minus sign
     for (i = nSign, j = readStart; i < nBeforeDot; i++, j++)
-        out[i] = chars[j]; // 123   before dot
+        out += String.fromCharCode(chars[j]); // 123   before dot
     if (!isInteger)
-        out[nBeforeDot] = DOT; // .     dot
+        out += '.'; // .     dot
     for (i = nBeforeDot + 1, j = afterDot; i < padStart; i++, j++)
-        out[i] = chars[j]; // 456   after dot
+        out += String.fromCharCode(chars[j]); // 456   after dot
     for (i = padStart; i < padEnd; i++)
-        out[i] = ZERO; // 000   padding
-    /*  Build a string from the output buffer     */
-    return String.fromCharCode(...out);
+        out += '0'; // 000   padding
+    return out;
 };
 function omitZero(stringNumber) {
     try {

@@ -102,7 +102,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 },
                 'private': {
                     'post': {
-                        'exchange': 1,
+                        'exchange': {'cost': 1},
                     },
                 },
             },
@@ -613,7 +613,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         #
         # {"mids": {"#10": "0.45", "#11": "0.55", ...}}
         #
-        mids = self.safe_dict(response, 'mids', response)
+        allMids = {}
+        if (not isinstance(response, str)) and not isinstance(response, list):
+            allMids = response
+        mids = self.safe_dict(allMids, 'mids', allMids)
         tickers = {}
         outcomesMap = self.outcomes if (self.outcomes is not None) else {}
         outcomeHandles = list(outcomesMap.keys())
@@ -699,7 +702,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'info': raw,
         }, market)
 
-    async def fetch_order_book(self, outcome: str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
         """
         fetches the L2 order book for an outcome market
 
@@ -769,6 +772,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             candleCount = limit if (limit is not None) else 100
             startOffset = tf * candleCount * -1000
             startTime = self.sum(until, startOffset)
+            if startTime is None:
+                raise ExchangeError(self.id + ' fetchOHLCV() missing startTime')
             if startTime < 0:
                 startTime = 0
         request = {
@@ -798,9 +803,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        candles = []
+        if isinstance(response, list):
+            candles = response
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         """
  @ignore
         parses a single hyperliquid candle object into a CCXT OHLCV tuple
@@ -869,7 +877,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             account = self.account()
             account['total'] = total
             account['used'] = used
-            result[coin] = account
+            if coin is not None:
+                result[coin] = account
         return self.safe_balance(result)
 
     async def fetch_positions(self, outcomes: Strings = None, params={}) -> List[PredictionPosition]:
@@ -913,7 +922,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         response = results[0]
         midsResponse = results[1]
         balances = self.safe_list(response, 'balances', [])
-        mids = self.safe_dict(midsResponse, 'mids', midsResponse)
+        allMids = {}
+        if (not isinstance(midsResponse, str)) and not isinstance(midsResponse, list):
+            allMids = midsResponse
+        mids = self.safe_dict(allMids, 'mids', allMids)
         positions = []
         for i in range(0, len(balances)):
             balance = self.safe_dict(balances, i, {})
@@ -1052,7 +1064,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 return self.safe_dict(self.outcomes, key, {})
             if key in self.outcomes_by_id:
                 return self.safe_dict(self.outcomes_by_id, key, {})
-        if (outcomeInput in self.markets) or (outcomeInput in self.markets_by_id):
+        if ((self.markets is not None) and (outcomeInput in self.markets)) or ((self.markets_by_id is not None) and (outcomeInput in self.markets_by_id)):
             market = self.safe_market(outcomeInput)
             sideHintOrDefault = sideHint if (sideHint is not None) else 'YES'
             found = self.find_outcome_in_market(market, sideHintOrDefault)
@@ -1105,13 +1117,15 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if isMarket:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses self reference price together with the configured slippage to derive the execution price.')
             raise ArgumentsRequired(self.id + ' createOrder() requires a limit price for outcome markets in between 0 and 1.')
-        px: str
+        px = None
         if isMarket:
             priceStr = self.number_to_string(price)
             px = Precise.string_mul(priceStr, Precise.string_add('1', slippage)) if isBuy else Precise.string_mul(priceStr, Precise.string_sub('1', slippage))
             px = self.price_to_precision(marketSymbol, px)
         else:
             px = self.price_to_precision(marketSymbol, price)
+        if px is None:
+            raise ArgumentsRequired(self.id + ' createOrder() could not determine price')
         sz = self.amount_to_precision(marketSymbol, amount)
         orderType = {
             'limit': {'tif': tif},
@@ -1311,8 +1325,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         request = {'type': method, 'user': userAddress}
         response = await self.publicPostInfo(self.extend(request, params))
         ordersWithStatus = []
-        for i in range(0, len(response)):
-            order = response[i]
+        rawOrders = []
+        if isinstance(response, list):
+            rawOrders = response
+        for i in range(0, len(rawOrders)):
+            order = rawOrders[i]
             ordersWithStatus.append(self.extend(order, {'ccxtStatus': 'open'}))
         parsed = self.parse_prediction_orders(ordersWithStatus, None, since)
         outcomeHandle = None
@@ -1341,8 +1358,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         response = await self.publicPostInfo(self.extend(request, params))
         # Deduplicate by oid keeping most recent statusTimestamp
         deduped = {}
-        for i in range(0, len(response)):
-            raw = response[i]
+        historicalOrders = []
+        if isinstance(response, list):
+            historicalOrders = response
+        for i in range(0, len(historicalOrders)):
+            raw = historicalOrders[i]
             entry = self.safe_dict(raw, 'order')
             if entry is None:
                 entry = raw
@@ -1388,7 +1408,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             isCloid = len(id) >= 34
             request['oid'] = id if isCloid else self.parse_to_numeric(id)
         response = await self.publicPostInfo(self.extend(request, params))
-        orderWrapper = self.safe_dict(response, 'order', response)
+        orderStatus = {}
+        if (not isinstance(response, str)) and not isinstance(response, list):
+            orderStatus = response
+        orderWrapper = self.safe_dict(orderStatus, 'order', orderStatus)
         parsed = self.parse_prediction_order(orderWrapper, None)
         if outcome is not None:
             await self.load_outcome(outcome)
@@ -1526,7 +1549,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         }
         # recentTrades returns the coin's most recent public trades(newest first)
         response = await self.publicPostInfo(self.extend(request, params))
-        trades = response if (response) else []
+        trades = []
+        if isinstance(response, list):
+            trades = response
+        elif not isinstance(response, str):
+            trades = self.to_array(response)
         return self.parse_prediction_trades(trades, outcomeObj, since, limit)
 
     async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
@@ -1564,7 +1591,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
         response = await self.publicPostInfo(self.extend(request, params))
-        fills = response if (response) else []
+        fills = []
+        if isinstance(response, list):
+            fills = response
+        elif not isinstance(response, str):
+            fills = self.to_array(response)
         # parse without an outcome fallback — fills span every market the wallet traded, so a
         # requested-outcome fallback would mislabel fills whose market is no longer listed
         parsedTrades = self.parse_prediction_trades(fills, None)
@@ -1652,6 +1683,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         marketValues = self.to_array(marketsDict)
         # Group markets by parentSymbol
         groupMap = {}
+        if queries is None:
+            raise ExchangeError(self.id + ' fetchEvents() missing queries')
         lowerQueries = []
         for i in range(0, len(queries)):
             queryString = queries[i]
@@ -1687,14 +1720,18 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                         break
                 if not matches:
                     continue
+            if parentSymbol is None:
+                raise ExchangeError(self.id + ' fetchEvents() missing parentSymbol')
             if not (parentSymbol in groupMap):
-                groupMap[parentSymbol] = []
+                if parentSymbol is not None:
+                    groupMap[parentSymbol] = []
             # push through a local and write the slice back — the go transpiler's
             # AppendToArray reassigns only a local copy of a map-stored array, so a
             # direct push on groupMap[parentSymbol] loses the element in go
-            parentMarkets = groupMap[parentSymbol]
+            parentMarkets = self.safe_value(groupMap, parentSymbol)
             parentMarkets.append(mkt)
-            groupMap[parentSymbol] = parentMarkets
+            if parentSymbol is not None:
+                groupMap[parentSymbol] = parentMarkets
         events = []
         groupKeys = list(groupMap.keys())
         for gi in range(0, len(groupKeys)):
@@ -1767,19 +1804,23 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'info': raw,
         })
 
-    def amount_to_precision(self, outcome: str, amount: Any) -> str:
+    def amount_to_precision(self, outcome: Str, amount: Any) -> str:
         market = self.market(outcome)
         prec = self.safe_number(self.safe_dict(market, 'precision', {}), 'amount', 0.0001)
         # Convert precision to decimal places
         decimals = 4
+        if prec is None:
+            raise ExchangeError(self.id + ' amountToPrecision() missing prec')
         if prec > 0:
             decimals = self.precision_from_string(self.number_to_string(prec))
         return self.decimal_to_precision(amount, 1, decimals, 2, self.paddingMode)
 
-    def price_to_precision(self, outcome: str, price: Any) -> str:
+    def price_to_precision(self, outcome: Str, price: Any) -> str:
         market = self.market(outcome)
         prec = self.safe_number(self.safe_dict(market, 'precision', {}), 'price', 0.0001)
         decimals = 4
+        if prec is None:
+            raise ExchangeError(self.id + ' priceToPrecision() missing prec')
         if prec > 0:
             decimals = self.precision_from_string(self.number_to_string(prec))
         return self.decimal_to_precision(price, 1, decimals, 2, self.paddingMode)
@@ -1980,7 +2021,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 raise ExchangeError(feedback)
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         if ('byType' in config) and ('type' in params):
             type = params['type']
             byType = config['byType']

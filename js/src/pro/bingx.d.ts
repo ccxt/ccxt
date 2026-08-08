@@ -70,7 +70,7 @@ export default class bingx extends bingxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -116,7 +116,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name bingx#watchOrders
@@ -157,7 +157,7 @@ export default class bingx extends bingxRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, type: any, subType: any, subscriptionHash: any, params: any): void;
-    loadBalanceSnapshot(client: any, messageHash: any, type: any, subType: any): Promise<void>;
+    loadBalanceSnapshot(client: Client, messageHash: any, type: any, subType: any): Promise<void>;
     /**
      * @method
      * @name bingx#watchPositions
@@ -171,13 +171,13 @@ export default class bingx extends bingxRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings): void;
-    loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
-    parseWsPosition(position: any, market?: any): Position;
+    loadPositionsSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
+    parseWsPosition(position: any, market?: Market): Position;
     handlePositions(client: Client, message: any): void;
-    handleErrorMessage(client: any, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): boolean;
     keepAliveListenKey(params?: {}): Promise<void>;
     authenticate(params?: {}): Promise<void>;
-    pong(client: any, message: any): Promise<void>;
+    pong(client: Client, message: any): Promise<void>;
     handleOrder(client: any, message: any): void;
     handleMyTrades(client: Client, message: any): void;
     handleBalance(client: Client, message: any): void;

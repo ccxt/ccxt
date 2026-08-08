@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.toobit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -117,105 +117,105 @@ class toobit(Exchange, ImplicitAPI):
             'api': {
                 'common': {
                     'get': {
-                        'api/v1/time': 1,
-                        'api/v1/ping': 1,
-                        'api/v1/exchangeInfo': 1,
-                        'quote/v1/depth': 1,  # todo: by limit 1-10
-                        'quote/v1/depth/merged': 1,
-                        'quote/v1/trades': 1,
-                        'quote/v1/klines': 1,
-                        'quote/v1/index/klines': 1,
-                        'quote/v1/indexPriceComponents': 1,
-                        'quote/v1/markPrice/klines': 1,
-                        'quote/v1/markPrice': 10,  # 5 requests per second
-                        'quote/v1/index': 1,
-                        'quote/v1/ticker/24hr': 40,  # todo: 1-40 depenidng noSymbol
-                        'quote/v1/contract/ticker/24hr': 40,  # todo: 1-40 depenidng noSymbol
-                        'quote/v1/ticker/price': 1,
-                        'quote/v1/contract/ticker/price': 1,
-                        'quote/v1/ticker/bookTicker': 1,
-                        'quote/v1/contract/ticker/bookTicker': 1,
-                        'api/v1/futures/fundingRate': 1,
-                        'api/v1/futures/historyFundingRate': 1,
-                        'api/v1/futures/riskLimits': 1,
+                        'api/v1/time': {'cost': 1},
+                        'api/v1/ping': {'cost': 1},
+                        'api/v1/exchangeInfo': {'cost': 1},
+                        'quote/v1/depth': {'cost': 1},  # todo: by limit 1-10
+                        'quote/v1/depth/merged': {'cost': 1},
+                        'quote/v1/trades': {'cost': 1},
+                        'quote/v1/klines': {'cost': 1},
+                        'quote/v1/index/klines': {'cost': 1},
+                        'quote/v1/indexPriceComponents': {'cost': 1},
+                        'quote/v1/markPrice/klines': {'cost': 1},
+                        'quote/v1/markPrice': {'cost': 10},  # 5 requests per second
+                        'quote/v1/index': {'cost': 1},
+                        'quote/v1/ticker/24hr': {'cost': 40},  # todo: 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr': {'cost': 40},  # todo: 1-40 depending noSymbol
+                        'quote/v1/ticker/price': {'cost': 1},
+                        'quote/v1/contract/ticker/price': {'cost': 1},
+                        'quote/v1/ticker/bookTicker': {'cost': 1},
+                        'quote/v1/contract/ticker/bookTicker': {'cost': 1},
+                        'api/v1/futures/fundingRate': {'cost': 1},
+                        'api/v1/futures/historyFundingRate': {'cost': 1},
+                        'api/v1/futures/riskLimits': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 5,
-                        'api/v1/account/checkApiKey': 1,
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/spot/openOrders': 1 * 1.67,
-                        'api/v1/futures/openOrders': 1 * 1.67,
-                        'api/v1/spot/tradeOrders': 5 * 1.67,
-                        'api/v1/futures/historyOrders': 5 * 1.67,
-                        'api/v1/account/trades': 5 * 1.67,
-                        'api/v1/account/balanceFlow': 5,
-                        'api/v1/account/depositOrders': 5,
-                        'api/v1/account/withdrawOrders': 5,
-                        'api/v1/account/deposit/address': 1,
+                        'api/v1/account': {'cost': 5},
+                        'api/v1/account/checkApiKey': {'cost': 1},
+                        'api/v1/spot/order': {'cost': 1 * 1.67},
+                        'api/v1/spot/openOrders': {'cost': 1 * 1.67},
+                        'api/v1/futures/openOrders': {'cost': 1 * 1.67},
+                        'api/v1/spot/tradeOrders': {'cost': 5 * 1.67},
+                        'api/v1/futures/historyOrders': {'cost': 5 * 1.67},
+                        'api/v1/account/trades': {'cost': 5 * 1.67},
+                        'api/v1/account/balanceFlow': {'cost': 5},
+                        'api/v1/account/depositOrders': {'cost': 5},
+                        'api/v1/account/withdrawOrders': {'cost': 5},
+                        'api/v1/account/deposit/address': {'cost': 1},
                         # contracts
-                        'api/v1/subAccount': 5,
-                        'api/v1/account/subAccount': 5,
-                        'api/v1/subAccount/list': 5,
-                        'api/v1/futures/accountLeverage': 1,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/futures/positions': 5 * 1.67,
-                        'api/v1/futures/historyPositions': 5,
-                        'api/v1/futures/balance': 5,
-                        'api/v1/futures/userTrades': 5 * 1.67,
-                        'api/v1/futures/balanceFlow': 5,
-                        'api/v1/futures/commissionRate': 5,
-                        'api/v1/futures/todayPnl': 5,
-                        'api/v1/account/download/detail': 10,
-                        'api/v1/agent/inviteUserList': 1,
-                        'api/v1/agent/commissionDataList': 1,
-                        'api/v1/agent/commissionDataInfo': 1,
-                        'api/v1/agent/inviteRelationCheck': 1,
-                        'api/v1/agent/depositDetailList': 1,
-                        'api/v1/agent/querySubAgentData': 1,
-                        'api/v1/agent/spotOrdersList': 1,
-                        'api/v1/agent/futuresOrdersList': 1,
-                        'api/v1/agent/futuresPositionsList': 1,
-                        'api/v1/agent/invite-commission-detail': 1,
-                        'api/v1/agent/user/export': 1,
-                        'api/v1/agent/export-list': 1,
-                        'api/v1/agent/export-url': 1,
+                        'api/v1/subAccount': {'cost': 5},
+                        'api/v1/account/subAccount': {'cost': 5},
+                        'api/v1/subAccount/list': {'cost': 5},
+                        'api/v1/futures/accountLeverage': {'cost': 1},
+                        'api/v1/futures/order': {'cost': 1 * 1.67},
+                        'api/v1/futures/positions': {'cost': 5 * 1.67},
+                        'api/v1/futures/historyPositions': {'cost': 5},
+                        'api/v1/futures/balance': {'cost': 5},
+                        'api/v1/futures/userTrades': {'cost': 5 * 1.67},
+                        'api/v1/futures/balanceFlow': {'cost': 5},
+                        'api/v1/futures/commissionRate': {'cost': 5},
+                        'api/v1/futures/todayPnl': {'cost': 5},
+                        'api/v1/account/download/detail': {'cost': 10},
+                        'api/v1/agent/inviteUserList': {'cost': 1},
+                        'api/v1/agent/commissionDataList': {'cost': 1},
+                        'api/v1/agent/commissionDataInfo': {'cost': 1},
+                        'api/v1/agent/inviteRelationCheck': {'cost': 1},
+                        'api/v1/agent/depositDetailList': {'cost': 1},
+                        'api/v1/agent/querySubAgentData': {'cost': 1},
+                        'api/v1/agent/spotOrdersList': {'cost': 1},
+                        'api/v1/agent/futuresOrdersList': {'cost': 1},
+                        'api/v1/agent/futuresPositionsList': {'cost': 1},
+                        'api/v1/agent/invite-commission-detail': {'cost': 1},
+                        'api/v1/agent/user/export': {'cost': 1},
+                        'api/v1/agent/export-list': {'cost': 1},
+                        'api/v1/agent/export-url': {'cost': 1},
                     },
                     'post': {
-                        'api/v1/spot/orderTest': 1 * 1.67,
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/spot/batchOrders': 2 * 1.67,
-                        'api/v1/subAccount/transfer': 1,
-                        'api/v1/account/withdraw': 1,
+                        'api/v1/spot/orderTest': {'cost': 1 * 1.67},
+                        'api/v1/spot/order': {'cost': 1 * 1.67},
+                        'api/v1/futures/order': {'cost': 1 * 1.67},
+                        'api/v1/spot/batchOrders': {'cost': 2 * 1.67},
+                        'api/v1/subAccount/transfer': {'cost': 1},
+                        'api/v1/account/withdraw': {'cost': 1},
                         # contracts
-                        'api/v1/futures/marginType': 1,
-                        'api/v1/futures/leverage': 1,
-                        'api/v1/futures/batchOrders': 2 * 1.67,
-                        'api/v1/futures/position/trading-stop': 3 * 1.67,
-                        'api/v1/futures/positionMargin': 1,
-                        'api/v1/futures/order/update': 2 * 1.67,
-                        'api/v1/futures/autoAddMargin': 1,
-                        'api/v1/futures/flashClose': 1,
-                        'api/v1/futures/reversePosition': 5,
-                        'api/v1/account/download/apply': 1000,
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/futures/marginType': {'cost': 1},
+                        'api/v1/futures/leverage': {'cost': 1},
+                        'api/v1/futures/batchOrders': {'cost': 2 * 1.67},
+                        'api/v1/futures/position/trading-stop': {'cost': 3 * 1.67},
+                        'api/v1/futures/positionMargin': {'cost': 1},
+                        'api/v1/futures/order/update': {'cost': 2 * 1.67},
+                        'api/v1/futures/autoAddMargin': {'cost': 1},
+                        'api/v1/futures/flashClose': {'cost': 1},
+                        'api/v1/futures/reversePosition': {'cost': 5},
+                        'api/v1/account/download/apply': {'cost': 1000},
+                        'api/v1/userDataStream': {'cost': 1},
+                        'api/v1/listenKey': {'cost': 1},
                     },
                     'delete': {
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/spot/openOrders': 5 * 1.67,
-                        'api/v1/futures/batchOrders': 3 * 1.67,
-                        'api/v1/spot/cancelOrderByIds': 5 * 1.67,
-                        'api/v1/futures/cancelOrderByIds': 3 * 1.67,
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/spot/order': {'cost': 1 * 1.67},
+                        'api/v1/futures/order': {'cost': 1 * 1.67},
+                        'api/v1/spot/openOrders': {'cost': 5 * 1.67},
+                        'api/v1/futures/batchOrders': {'cost': 3 * 1.67},
+                        'api/v1/spot/cancelOrderByIds': {'cost': 5 * 1.67},
+                        'api/v1/futures/cancelOrderByIds': {'cost': 3 * 1.67},
+                        'api/v1/userDataStream': {'cost': 1},
+                        'api/v1/listenKey': {'cost': 1},
                     },
                     'put': {
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/userDataStream': {'cost': 1},
+                        'api/v1/listenKey': {'cost': 1},
                     },
                 },
             },
@@ -457,7 +457,7 @@ class toobit(Exchange, ImplicitAPI):
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
-                    'ARBONE': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BASE': 'BASE',
                     'TON': 'TON',
                     'AVAXC': 'AVAXC',
@@ -558,7 +558,7 @@ class toobit(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -742,7 +742,7 @@ class toobit(Exchange, ImplicitAPI):
                 result[code] = parsed
         return result
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'coinId')
         code = self.safe_currency_code(id)
         networks = {}
@@ -751,27 +751,28 @@ class toobit(Exchange, ImplicitAPI):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string(rawNetwork, 'chainType')
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': None,
-                'deposit': self.safe_bool(rawNetwork, 'allowDeposit'),
-                'withdraw': self.safe_bool(rawNetwork, 'allowWithdraw'),
-                'active': None,
-                'fee': self.safe_number(rawNetwork, 'withdrawFee'),
-                'precision': None,
-                'limits': {
-                    'deposit': {
-                        'min': self.safe_number(rawNetwork, 'minDepositQuantity'),
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': None,
+                    'deposit': self.safe_bool(rawNetwork, 'allowDeposit'),
+                    'withdraw': self.safe_bool(rawNetwork, 'allowWithdraw'),
+                    'active': None,
+                    'fee': self.safe_number(rawNetwork, 'withdrawFee'),
+                    'precision': None,
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(rawNetwork, 'minDepositQuantity'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(rawNetwork, 'minWithdrawQuantity'),
+                            'max': self.safe_number(rawNetwork, 'maxWithdrawQuantity'),
+                        },
                     },
-                    'withdraw': {
-                        'min': self.safe_number(rawNetwork, 'minWithdrawQuantity'),
-                        'max': self.safe_number(rawNetwork, 'maxWithdrawQuantity'),
-                    },
-                },
-                'info': rawNetwork,
-            }
+                    'info': rawNetwork,
+                }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -1032,7 +1033,7 @@ class toobit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1300,9 +1301,12 @@ class toobit(Exchange, ImplicitAPI):
             #        ],
             #        ...
             #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        candles = []
+        if isinstance(response, list):
+            candles = response
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer_n(ohlcv, [0, 'time', 't']),
             self.safe_number_n(ohlcv, [1, 'open', 'o']),
@@ -1419,7 +1423,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry, market: Market = None):
+    def parse_last_price(self, entry: Any, market: Market = None):
         marketId = self.safe_string(entry, 's')
         market = self.safe_market(marketId, market)
         return {
@@ -1465,7 +1469,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_bids_asks_custom(response, symbols)
 
-    def parse_bids_asks_custom(self, tickers, symbols: Strings = None, params={}) -> Tickers:
+    def parse_bids_asks_custom(self, tickers: Any, symbols: Strings = None, params={}) -> Tickers:
         results = []
         for i in range(0, len(tickers)):
             parsedTicker = self.parse_bid_ask_custom(tickers[i])
@@ -1474,7 +1478,7 @@ class toobit(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def parse_bid_ask_custom(self, ticker):
+    def parse_bid_ask_custom(self, ticker: Any):
         return {
             'timestamp': self.safe_string(ticker, 't'),
             'symbol': self.safe_string(ticker, 's'),
@@ -1493,7 +1497,7 @@ class toobit(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexe by market symbols
+        :returns dict[]: a list of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
         if self.markets is None:
             await self.load_markets()
@@ -1515,7 +1519,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         nextFundingRate = self.safe_number(contract, 'rate')
@@ -1581,7 +1585,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: Any, market: Market = None):
         timestamp = self.safe_integer(contract, 'settleTime')
         marketId = self.safe_string(contract, 'symbol')
         return {
@@ -1640,7 +1644,7 @@ class toobit(Exchange, ImplicitAPI):
             #
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1654,7 +1658,8 @@ class toobit(Exchange, ImplicitAPI):
             account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
             account['total'] = self.safe_string_2(balance, 'total', 'balance')
             account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1708,7 +1713,9 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
         market = self.market(symbol)
         if side is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
@@ -1736,7 +1743,11 @@ class toobit(Exchange, ImplicitAPI):
             request['type'] = type.upper()
         return [request, params]
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_contract_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1908,7 +1919,7 @@ class toobit(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
+    def parse_order_type(self, status: Any):
         statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -2273,8 +2284,11 @@ class toobit(Exchange, ImplicitAPI):
             #    ]
             #
         ordersList = []
-        for i in range(0, len(response)):
-            ordersList.append({'result': response[i]})
+        responseList = []
+        if isinstance(response, list):
+            responseList = response
+        for i in range(0, len(responseList)):
+            ordersList.append({'result': responseList[i]})
         return self.parse_orders(ordersList, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2491,7 +2505,7 @@ class toobit(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_type(self, type):
+    def parse_ledger_type(self, type: Any):
         types = {
             'USER_ACCOUNT_TRANSFER': 'transfer',
             'AIRDROP': 'rebate',
@@ -2541,7 +2555,7 @@ class toobit(Exchange, ImplicitAPI):
         result[market['symbol']] = fee
         return result
 
-    def parse_trading_fee(self, data, market: Market = None):
+    def parse_trading_fee(self, data: Any, market: Market = None):
         marketId = self.safe_string(data, 'symbol')
         return {
             'info': data,
@@ -2580,7 +2594,7 @@ class toobit(Exchange, ImplicitAPI):
         """
         return await self.fetch_deposits_or_withdrawals_helper('withdrawals', code, since, limit, params)
 
-    async def fetch_deposits_or_withdrawals_helper(self, type, code, since, limit, params={}):
+    async def fetch_deposits_or_withdrawals_helper(self, type: Any, code: Any, since: Any, limit: Any, params={}):
         if self.markets is None:
             await self.load_markets()
         currency = None
@@ -2774,7 +2788,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
@@ -3006,7 +3020,7 @@ class toobit(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         isPost = method == 'POST'
         isDelete = method == 'DELETE'
@@ -3051,7 +3065,7 @@ class toobit(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         errorCode = self.safe_string(response, 'code')

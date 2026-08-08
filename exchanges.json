@@ -72,7 +72,6 @@
         "kraken",
         "krakenfutures",
         "kucoin",
-        "kucoineu",
         "kucoinfutures",
         "latoken",
         "lbank",
@@ -158,7 +157,6 @@
         "kraken",
         "krakenfutures",
         "kucoin",
-        "kucoineu",
         "kucoinfutures",
         "lbank",
         "lighter",
@@ -186,6 +184,7 @@
         "xt"
     ],
     "prediction": [
+        "binance",
         "hyperliquid",
         "kalshi",
         "limitless",

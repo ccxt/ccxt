@@ -41,7 +41,6 @@ async function example1 () {
         'side': rawSide,
         'trailing_stop': trailing_stop
     }
-    // @ts-expect-error
     const trailing_response = await exchange.privatePostPrivateLinearPositionTradingStop (trailingParams);
     console.log(trailing_response)
 

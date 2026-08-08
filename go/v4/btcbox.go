@@ -124,13 +124,49 @@ func (this *BtcboxCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"depth", "orders", "ticker", "tickers"},
+				"get": map[string]any{
+					"depth": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"balance", "trade_add", "trade_cancel", "trade_list", "trade_view", "wallet"},
+				"post": map[string]any{
+					"balance": map[string]any{
+						"cost": 1,
+					},
+					"trade_add": map[string]any{
+						"cost": 1,
+					},
+					"trade_cancel": map[string]any{
+						"cost": 1,
+					},
+					"trade_list": map[string]any{
+						"cost": 1,
+					},
+					"trade_view": map[string]any{
+						"cost": 1,
+					},
+					"wallet": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"webApi": map[string]any{
-				"get": []any{"ajax/coin/coinInfo"},
+				"get": map[string]any{
+					"ajax/coin/coinInfo": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"options": map[string]any{
@@ -246,7 +282,7 @@ func (this *BtcboxCore) FetchMarkets(optionalArgs ...any) <-chan any {
 			var quote any = this.SafeString(symbolParts, 1, "")
 			var quoteId any = ToLower(quote)
 			var id any = ToLower(baseCurr)
-			var res any = GetValue(response1, marketId)
+			var res any = this.SafeDict(response1, marketId, map[string]any{})
 			var symbol any = Add(Add(baseCurr, "/"), quote)
 			var fee any = Ternary(IsTrue((IsEqual(id, "BTC"))), this.ParseNumber("0.0005"), this.ParseNumber("0.0010"))
 			var details any = this.SafeDict(result2Data, id, map[string]any{})
@@ -317,7 +353,7 @@ func (this *BtcboxCore) ParseMarket(market any) any {
 	var quoteId any = this.SafeString(market, "quote")
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             this.SafeString(market, "symbol"),
 		"uppercaseId":    nil,
 		"symbol":         symbol,
@@ -366,7 +402,7 @@ func (this *BtcboxCore) ParseMarket(market any) any {
 		"active":  nil,
 		"created": nil,
 		"info":    market,
-	}
+	})
 }
 func (this *BtcboxCore) ParseBalance(response any) any {
 	var result any = map[string]any{
@@ -428,7 +464,7 @@ func (this *BtcboxCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BtcboxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -446,7 +482,7 @@ func (this *BtcboxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
-		var numSymbols any = Ternary(IsTrue((IsEqual(this.Symbols, nil))), 0, GetArrayLength(this.Symbols))
+		var numSymbols any = GetArrayLength(this.Symbols)
 		if IsTrue(IsGreaterThan(numSymbols, 1)) {
 			AddElementToObject(request, "coin", GetValue(market, "baseId"))
 		}
@@ -512,7 +548,7 @@ func (this *BtcboxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
-		var numSymbols any = Ternary(IsTrue((IsEqual(this.Symbols, nil))), 0, GetArrayLength(this.Symbols))
+		var numSymbols any = GetArrayLength(this.Symbols)
 		if IsTrue(IsGreaterThan(numSymbols, 1)) {
 			AddElementToObject(request, "coin", GetValue(market, "baseId"))
 		}
@@ -626,7 +662,7 @@ func (this *BtcboxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
-		var numSymbols any = Ternary(IsTrue((IsEqual(this.Symbols, nil))), 0, GetArrayLength(this.Symbols))
+		var numSymbols any = GetArrayLength(this.Symbols)
 		if IsTrue(IsGreaterThan(numSymbols, 1)) {
 			AddElementToObject(request, "coin", GetValue(market, "baseId"))
 		}
